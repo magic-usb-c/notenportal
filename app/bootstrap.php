@@ -28,5 +28,5 @@ function h(string $s): string {
 }
 
 // DB + Context global verfügbar machen (simpel für jetzt)
-$pdo = get_pdo();
-$ctx = current_user_context($pdo);
+try { $pdo = get_pdo(); $ctx = current_user_context($pdo); }
+catch(Throwable $e) { app_log('error','DB connect failed',['ex' => get_class($e)]); $pdo = null; $ctx = []; }
