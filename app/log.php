@@ -2,24 +2,35 @@
 declare(strict_types=1);
 
 /*
+  app/log.php
   Zweck:
-  - einfache App-Logs unabhängig von Apache-Logs
-  - schreibt in /var/www/notenportal/storage/logs/app.log
-  - für Debug/Tracing deiner eigenen Logik (Login, DB-Aktionen, Errors)
-
-  Format:
-  - ISO-Zeitstempel, Level, Message, optional Context als JSON
+  - App-Logs unabhängig von Apache/PHP error log
+  - schreibt in storage/logs/app.log
+  - low-risk: wenn Schreiben fehlschlägt, nicht fatal werden
 */
 
 function app_log(string $level, string $message, array $context = []): void
 {
     $logFile = __DIR__ . '/../storage/logs/app.log';
 
-    $ts = (new DateTimeImmutable('now'))->format('c'); // ISO 8601
+    $ts = (new DateTimeImmutable('now'))->format('c');
     $ctx = $context ? ' ' . json_encode($context, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : '';
-
     $line = sprintf("[%s] %s: %s%s\n", $ts, strtoupper($level), $message, $ctx);
 
-    // LOCK_EX verhindert, dass parallele Requests Zeilen ineinander schreiben
-    file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+    try {
+        @file_put_contents($logFile, $line, FILE_APPEND | LOCK_EX);
+    } catch (Throwable $e) {
+        // Fallback ins PHP error log, aber ohne Context-Spam
+        error_log("notenportal app_log failed: " . $message);
+    }
+}
+
+function app_log_exception(string $message, Throwable $e, array $context = []): void
+{
+    $context = array_merge($context, [
+        'exception' => get_class($e),
+        // message kann sensitive sein; trotzdem hilfreich intern
+        'error' => $e->getMessage(),
+    ]);
+    app_log('error', $message, $context);
 }

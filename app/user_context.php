@@ -4,34 +4,30 @@ declare(strict_types=1);
 /*
   app/user_context.php
   Zweck:
-  - Ein zentraler "Kontext" für den eingeloggten User.
-  - Liefert: user_id, username, rollen, lernender_id, berufsbildner_id
-  - Damit kannst du in jeder Seite saubere Filter machen:
-      Lernender: WHERE lernende.benutzer_id = :uid
-      Berufsbildner: via betreuungen/berufsbildner_id
+  - zentraler Kontext für eingeloggten User
+  - liefert: user_id, username, roles, is_admin, lernender_id, berufsbildner_id
 */
 
 require_once __DIR__ . '/auth.php';
 
-/**
- * Liefert Kontextdaten zum eingeloggten User.
- *
- * Rückgabe-Beispiel:
- * [
- *   'user_id' => 1,
- *   'username' => 'lerni1',
- *   'roles' => ['Lernender'],
- *   'is_admin' => false,
- *   'lernender_id' => 3,
- *   'berufsbildner_id' => null
- * ]
- */
 function current_user_context(PDO $pdo): array
 {
     start_secure_session();
 
     $uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
     $username = (string)($_SESSION['username'] ?? '');
+
+    // nicht eingeloggt -> Kontext minimal, keine weiteren Queries
+    if ($uid <= 0) {
+        return [
+            'user_id' => 0,
+            'username' => '',
+            'roles' => [],
+            'is_admin' => false,
+            'lernender_id' => null,
+            'berufsbildner_id' => null,
+        ];
+    }
 
     $roles = current_user_roles($pdo);
     $isAdmin = false;
@@ -42,7 +38,6 @@ function current_user_context(PDO $pdo): array
         }
     }
 
-    // Lernender-Profil-ID holen (falls vorhanden)
     $lernenderId = null;
     $stmt = $pdo->prepare(
         'SELECT lernender_id
@@ -51,12 +46,11 @@ function current_user_context(PDO $pdo): array
          LIMIT 1'
     );
     $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && isset($row['lernender_id'])) {
         $lernenderId = (int)$row['lernender_id'];
     }
 
-    // Berufsbildner-Profil-ID holen (falls vorhanden)
     $berufsbildnerId = null;
     $stmt = $pdo->prepare(
         'SELECT berufsbildner_id
@@ -65,7 +59,7 @@ function current_user_context(PDO $pdo): array
          LIMIT 1'
     );
     $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row && isset($row['berufsbildner_id'])) {
         $berufsbildnerId = (int)$row['berufsbildner_id'];
     }

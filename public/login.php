@@ -3,33 +3,28 @@ declare(strict_types=1);
 
 require __DIR__ . '/../app/bootstrap.php';
 
-
 header('Content-Type: text/html; charset=utf-8');
+
+if (is_logged_in()) {
+    redirect('/dashboard.php');
+}
 
 $error = '';
 $identifier = '';
 
-
-/*
-  POST: Login prüfen
-  - Identifier kann benutzername ODER email sein
-  - Query ist prepared -> schützt vor SQL Injection
-  - Passwortprüfung via password_verify() -> bcrypt korrekt
-*/
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $identifier = trim((string)($_POST['identifier'] ?? ''));
     $password   = (string)($_POST['password'] ?? '');
     $csrf       = (string)($_POST['csrf_token'] ?? '');
 
-    if (!hash_equals($_SESSION['csrf_token'], $csrf)) {
+    if (login_rate_limit_check()) {
+        $error = 'Zu viele Fehlversuche. Bitte später erneut versuchen.';
+    } elseif ($csrf === '' || !hash_equals(csrf_token(), $csrf)) {
         $error = 'Ungültige Anfrage (CSRF). Bitte neu versuchen.';
     } elseif ($identifier === '' || $password === '') {
         $error = 'Bitte Benutzername/E-Mail und Passwort ausfüllen.';
     } else {
         try {
-            $pdo = get_pdo();
-
-            // LIMIT 1: wir wollen genau einen User
             $stmt = $pdo->prepare(
                 'SELECT benutzer_id, benutzername, passwort_hash, aktiv
                  FROM benutzer
@@ -40,59 +35,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':u' => $identifier,
                 ':e' => $identifier,
             ]);
-            $user = $stmt->fetch();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Generische Fehlermeldung (kein Username-Enumeration)
             $genericFail = 'Login fehlgeschlagen. Benutzer oder Passwort stimmt nicht.';
 
-            if (!$user || (int)$user['aktiv'] !== 1) {
+            if (!$user || (int)($user['aktiv'] ?? 0) !== 1) {
                 $error = $genericFail;
+                login_rate_limit_register_fail();
                 app_log('warn', 'Login failed (no user or inactive)', [
                     'identifier' => $identifier,
                     'reason' => $user ? 'inactive' : 'not_found',
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                 ]);
+                sleep(1);
+            } elseif (!password_verify($password, (string)$user['passwort_hash'])) {
+                $error = $genericFail;
+                login_rate_limit_register_fail();
+                app_log('warn', 'Login failed (bad password)', [
+                    'identifier' => $identifier,
+                    'user_id' => (int)$user['benutzer_id'],
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ]);
+                sleep(1);
             } else {
-                // WICHTIG: nicht neu hashen! => verify gegen gespeicherten bcrypt-hash
-                if (!password_verify($password, (string)$user['passwort_hash'])) {
-                    $error = $genericFail;
-                    app_log('warn', 'Login failed (bad password)', [
-                        'identifier' => $identifier,
-                        'user_id' => (int)$user['benutzer_id'],
-                    ]);
-                } else {
-                    // Optional: Hash “upgraden”, wenn PHP künftig stärkere Parameter nutzt
-                    if (password_needs_rehash((string)$user['passwort_hash'], PASSWORD_BCRYPT)) {
-                        $newHash = password_hash($password, PASSWORD_BCRYPT);
-                        $upd = $pdo->prepare('UPDATE benutzer SET passwort_hash = :h WHERE benutzer_id = :uid');
-                        $upd->execute([':h' => $newHash, ':uid' => (int)$user['benutzer_id']]);
-                    }
-
-                    login_user((int)$user['benutzer_id'], (string)$user['benutzername']);
-                    app_log('info', 'Login success', [
-                        'user_id' => (int)$user['benutzer_id'],
-                        'benutzername' => (string)$user['benutzername'],
-                    ]);
-
-                    header('Location: /dashboard.php');
-                    exit;
+                if (password_needs_rehash((string)$user['passwort_hash'], PASSWORD_BCRYPT)) {
+                    $newHash = password_hash($password, PASSWORD_BCRYPT);
+                    $upd = $pdo->prepare('UPDATE benutzer SET passwort_hash = :h WHERE benutzer_id = :uid');
+                    $upd->execute([':h' => $newHash, ':uid' => (int)$user['benutzer_id']]);
                 }
+
+                login_user((int)$user['benutzer_id'], (string)$user['benutzername']);
+                app_log('info', 'Login success', [
+                    'user_id' => (int)$user['benutzer_id'],
+                    'benutzername' => (string)$user['benutzername'],
+                    'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                ]);
+
+                redirect('/dashboard.php');
             }
         } catch (Throwable $e) {
-            // Im Browser keine Details, aber ins Log schon
             $error = 'Interner Fehler beim Login. Bitte später erneut versuchen.';
-            app_log('error', 'Login exception', [
+            app_log_exception('Login exception', $e, [
                 'identifier' => $identifier,
-                'exception' => get_class($e),
-                'message' => $e->getMessage(),
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
             ]);
         }
     }
-}
-
-// Wenn bereits eingeloggt, direkt weiter
-if (is_logged_in()) {
-    header('Location: /dashboard.php');
-    exit;
 }
 ?>
 <!doctype html>
@@ -105,12 +93,14 @@ if (is_logged_in()) {
 <body>
   <h1>Login</h1>
 
+  <?= flash_render_html() ?>
+
   <?php if ($error !== ''): ?>
     <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
   <?php endif; ?>
 
   <form method="post" action="/login.php" autocomplete="off">
-    <input type="hidden" name="csrf_token" value="<?= h($_SESSION['csrf_token']) ?>">
+    <?= csrf_field() ?>
 
     <label>
       Benutzername oder E-Mail<br>

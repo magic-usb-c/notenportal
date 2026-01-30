@@ -9,17 +9,13 @@ header('Content-Type: text/html; charset=utf-8');
 $notes = [];
 $error = '';
 
-try {
-    /*
-      Filter:
-      - Admin: sieht alles (limitiert)
-      - Lernender: nur eigene Noten
-      - Berufsbildner: nur betreute Lernende (aktuell gültige Betreuung)
-    */
+$canManage = (!empty($ctx['is_admin']) || !empty($ctx['lernender_id'])); // admin oder lernender
+$canSeeLearnerColumn = (!empty($ctx['is_admin']) || !empty($ctx['berufsbildner_id']));
 
+try {
     if (!empty($ctx['is_admin'])) {
         $stmt = $pdo->query(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+            'SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
                     k.name AS kategorie,
                     COALESCE(f.name, m.titel) AS objekt_name,
                     s.bezeichnung AS semester,
@@ -35,11 +31,11 @@ try {
              ORDER BY n.pruefungsdatum DESC
              LIMIT 200'
         );
-        $notes = $stmt->fetchAll();
+        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     } elseif (!empty($ctx['lernender_id'])) {
         $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+            'SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
                     k.name AS kategorie,
                     COALESCE(f.name, m.titel) AS objekt_name,
                     s.bezeichnung AS semester
@@ -53,11 +49,11 @@ try {
              ORDER BY n.pruefungsdatum DESC'
         );
         $stmt->execute([':lid' => (int)$ctx['lernender_id']]);
-        $notes = $stmt->fetchAll();
+        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     } elseif (!empty($ctx['berufsbildner_id'])) {
         $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+            'SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
                     k.name AS kategorie,
                     COALESCE(f.name, m.titel) AS objekt_name,
                     s.bezeichnung AS semester,
@@ -78,13 +74,15 @@ try {
              LIMIT 200'
         );
         $stmt->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
-        $notes = $stmt->fetchAll();
-
+        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     } else {
         $error = 'Kein gültiges Profil (weder Lernender noch Berufsbildner noch Admin).';
     }
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Noten.';
+    app_log_exception('Load notes failed', $e, [
+        'user_id' => $ctx['user_id'] ?? null,
+    ]);
 }
 ?>
 <!doctype html>
@@ -97,17 +95,22 @@ try {
 <body>
   <h1>Noten</h1>
 
+  <?= flash_render_html() ?>
+
   <p>
     Eingeloggt als: <b><?= h((string)$ctx['username']) ?></b>
     (Rollen: <?= h(implode(', ', (array)$ctx['roles'])) ?>)
   </p>
 
   <p>
-    <a href="/dashboard.php">Dashboard</a> |
-    <form method="post" action="/logout.php" style="display:inline;">
-      <input type="hidden" name="csrf_token" value="<?= h((string)$_SESSION['csrf_token']) ?>">
-      <button type="submit">Logout</button>
-    </form>
+    <a href="/dashboard.php">Dashboard</a>
+    <?php if ($canManage): ?>
+      | <a href="/noten_create.php">+ Neue Note</a>
+    <?php endif; ?>
+    | <form method="post" action="/logout.php" style="display:inline;">
+        <?= csrf_field() ?>
+        <button type="submit">Logout</button>
+      </form>
   </p>
 
   <?php if ($error !== ''): ?>
@@ -123,8 +126,11 @@ try {
         <th>Semester</th>
         <th>Note</th>
         <th>Gewichtung %</th>
-        <?php if (!empty($ctx['is_admin']) || !empty($ctx['berufsbildner_id'])): ?>
+        <?php if ($canSeeLearnerColumn): ?>
           <th>Lernender</th>
+        <?php endif; ?>
+        <?php if ($canManage): ?>
+          <th>Aktionen</th>
         <?php endif; ?>
       </tr>
       <?php foreach ($notes as $n): ?>
@@ -135,8 +141,20 @@ try {
           <td><?= h((string)$n['semester']) ?></td>
           <td><?= h((string)$n['note_wert']) ?></td>
           <td><?= h((string)($n['gewichtung_prozent'] ?? '')) ?></td>
-          <?php if (!empty($ctx['is_admin']) || !empty($ctx['berufsbildner_id'])): ?>
+
+          <?php if ($canSeeLearnerColumn): ?>
             <td><?= h((string)($n['lernender_username'] ?? '')) ?></td>
+          <?php endif; ?>
+
+          <?php if ($canManage): ?>
+            <td>
+              <a href="/noten_edit.php?note_id=<?= h((string)$n['note_id']) ?>">Bearbeiten</a>
+              <form method="post" action="/noten_delete.php" style="display:inline;" onsubmit="return confirm('Wirklich löschen?');">
+                <?= csrf_field() ?>
+                <input type="hidden" name="note_id" value="<?= h((string)$n['note_id']) ?>">
+                <button type="submit">Löschen</button>
+              </form>
+            </td>
           <?php endif; ?>
         </tr>
       <?php endforeach; ?>

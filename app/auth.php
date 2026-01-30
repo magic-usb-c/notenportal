@@ -4,13 +4,18 @@ declare(strict_types=1);
 /*
   app/auth.php
   Zweck:
-  - sichere Session-Konfiguration (Cookies, strict mode, regeneration)
-  - Hilfsfunktionen für Login/Logout/Guards
+  - sichere Session-Konfiguration
+  - Login/Logout
+  - Guards (require_login etc.)
 
-  WICHTIG:
-  - Passwörter werden NICHT neu gehashed zum Vergleichen.
-    Stattdessen: password_verify($plainPassword, $storedHash)
+  Hinweis:
+  - Rollen werden über DB abgefragt (benutzer_rollen -> rollen)
 */
+
+require_once __DIR__ . '/http.php';
+
+const NP_SESSION_NAME = 'np_session';
+const NP_SESSION_IDLE_TIMEOUT = 60 * 60; // 60 Minuten
 
 function start_secure_session(): void
 {
@@ -18,100 +23,95 @@ function start_secure_session(): void
         return;
     }
 
-    // Strict mode verhindert Session-Fixation über frei gewählte Session-IDs
     ini_set('session.use_strict_mode', '1');
-
-    // Cookies-only: keine Session-ID in URLs
     ini_set('session.use_only_cookies', '1');
 
-    // In Prod: sichere Session-ID Länge/Entropie ist ok by default bei PHP 8.3,
-    // wir lassen Standardwerte.
-
-    // Cookie-Parameter setzen
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
-    // SameSite=Lax passt gut für Login-Forms (schützt gegen viele CSRF-Fälle)
-    // Secure-Flag nur bei HTTPS, sonst würdest du dich in HTTP aussperren.
     session_set_cookie_params([
-        'lifetime' => 0,                 // Session-Cookie bis Browser zu
+        'lifetime' => 0,
         'path'     => '/',
-        'domain'   => '',                // default Host
-        'secure'   => $isHttps,          // nur über HTTPS senden
-        'httponly' => true,              // JS kann Cookie nicht lesen
+        'domain'   => '',
+        'secure'   => $isHttps,
+        'httponly' => true,
         'samesite' => 'Lax',
     ]);
 
-    session_name('np_session');
+    session_name(NP_SESSION_NAME);
     session_start();
 }
 
-/**
- * Nach erfolgreichem Login: Session ID rotieren (gegen Fixation)
- * und Userdaten in Session speichern.
- */
 function login_user(int $benutzer_id, string $benutzername): void
 {
     start_secure_session();
-
-    // Regeneriert die Session-ID und löscht die alte
     session_regenerate_id(true);
 
     $_SESSION['user_id'] = $benutzer_id;
     $_SESSION['username'] = $benutzername;
+
     $_SESSION['logged_in_at'] = time();
+    $_SESSION['last_activity'] = time();
+
+    // Reset Login-Fails
+    unset($_SESSION['login_failures'], $_SESSION['login_locked_until']);
 }
 
-/**
- * Session komplett zerstören (Logout)
- */
 function logout_user(): void
 {
     start_secure_session();
 
     $_SESSION = [];
 
-    // Cookie invalidieren
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 3600, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+        setcookie(session_name(), '', time() - 3600, $params['path'], $params['domain'], (bool)$params['secure'], (bool)$params['httponly']);
     }
 
     session_destroy();
 }
 
-/**
- * True/False: User eingeloggt?
- */
 function is_logged_in(): bool
 {
     start_secure_session();
     return isset($_SESSION['user_id']) && ctype_digit((string)$_SESSION['user_id']);
 }
 
-/**
- * Eingeloggte User-ID oder null
- */
 function current_user_id(): ?int
 {
-    start_secure_session();
     return is_logged_in() ? (int)$_SESSION['user_id'] : null;
 }
 
 /**
- * Guard: Seite nur für eingeloggte User.
- * Redirect auf Login, wenn nicht eingeloggt.
+ * Session-Timeout: wenn zu lange inaktiv, wird ausgeloggt.
  */
+function enforce_idle_timeout(): void
+{
+    start_secure_session();
+
+    if (!is_logged_in()) {
+        return;
+    }
+
+    $last = isset($_SESSION['last_activity']) ? (int)$_SESSION['last_activity'] : 0;
+    if ($last > 0 && (time() - $last) > NP_SESSION_IDLE_TIMEOUT) {
+        logout_user();
+        // Hinweis: flash kommt aus bootstrap; hier nicht verwenden, damit auth.php standalone bleibt
+        redirect('/login.php');
+    }
+
+    $_SESSION['last_activity'] = time();
+}
+
 function require_login(): void
 {
     if (!is_logged_in()) {
-        header('Location: /login.php');
-        exit;
+        redirect('/login.php');
     }
+    enforce_idle_timeout();
 }
 
 /**
- * Holt alle Rollen-Namen des eingeloggten Users aus der DB.
- * Rückgabe z.B. ['Admin','Lernender']
+ * Rollen aus DB (z.B. ['Admin','Lernender']).
  */
 function current_user_roles(PDO $pdo): array
 {
@@ -132,18 +132,17 @@ function current_user_roles(PDO $pdo): array
     $stmt->execute([':uid' => $uid]);
 
     return array_map(
-        static fn($row) => (string)$row['name'],
-        $stmt->fetchAll()
+        static fn(array $row) => (string)($row['name'] ?? ''),
+        $stmt->fetchAll(PDO::FETCH_ASSOC) ?: []
     );
 }
 
-/**
- * True, wenn User eine bestimmte Rolle hat.
- */
 function user_has_role(PDO $pdo, string $roleName): bool
 {
-    $roles = current_user_roles($pdo);
-    foreach ($roles as $r) {
+    $roleName = trim($roleName);
+    if ($roleName === '') return false;
+
+    foreach (current_user_roles($pdo) as $r) {
         if (strcasecmp($r, $roleName) === 0) {
             return true;
         }
@@ -151,14 +150,45 @@ function user_has_role(PDO $pdo, string $roleName): bool
     return false;
 }
 
-/**
- * Guard: nur User mit Rolle dürfen weiter.
- * Beispiel: require_role($pdo, 'Admin');
- */
 function require_role(PDO $pdo, string $roleName): void
 {
     if (!user_has_role($pdo, $roleName)) {
         http_response_code(403);
         exit('Forbidden');
     }
+}
+
+/**
+ * Sehr simples Login-Rate-Limit pro Session (Lab-tauglich).
+ */
+function login_rate_limit_check(): bool
+{
+    start_secure_session();
+    $lockedUntil = (int)($_SESSION['login_locked_until'] ?? 0);
+    return $lockedUntil > time();
+}
+
+function login_rate_limit_register_fail(): void
+{
+    start_secure_session();
+
+    $fails = $_SESSION['login_failures'] ?? ['count' => 0, 'since' => time()];
+    if (!is_array($fails) || !isset($fails['count'], $fails['since'])) {
+        $fails = ['count' => 0, 'since' => time()];
+    }
+
+    // Fenster: 10 Minuten
+    $window = 10 * 60;
+    if ((time() - (int)$fails['since']) > $window) {
+        $fails = ['count' => 0, 'since' => time()];
+    }
+
+    $fails['count'] = (int)$fails['count'] + 1;
+
+    // ab 8 Fehlversuchen -> 10 Minuten lock
+    if ($fails['count'] >= 8) {
+        $_SESSION['login_locked_until'] = time() + 10 * 60;
+    }
+
+    $_SESSION['login_failures'] = $fails;
 }

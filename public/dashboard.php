@@ -14,21 +14,21 @@ $user = null;
 $error = '';
 
 try {
-    // Benutzerdaten aus DB holen (nur zum Test/Proof)
     $stmt = $pdo->prepare(
-        'SELECT benutzer_id, benutzername, email, aktiv, erstellt_am, aktualisiert_am
+        'SELECT benutzer_id, benutzername, email, aktiv
          FROM benutzer
          WHERE benutzer_id = :uid
          LIMIT 1'
     );
     $stmt->execute([':uid' => $userId]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         $error = 'Benutzer nicht gefunden (Session ungültig?).';
     }
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Benutzerdaten.';
+    app_log_exception('Dashboard load user failed', $e, ['user_id' => $userId]);
 }
 ?>
 <!doctype html>
@@ -41,38 +41,37 @@ try {
 <body>
   <h1>Dashboard</h1>
 
+  <?= flash_render_html() ?>
+
   <p>
-    Eingeloggt als: <b><?= h($username) ?></b><br>
-    Rollen: <?= h(implode(', ', $roles)) ?>
+    Eingeloggt als: <b><?= h($username) ?></b>
+    (Rollen: <?= h(implode(', ', $roles)) ?>)
   </p>
 
   <p>
     <a href="/noten.php">Noten</a>
-
     <?php if (!empty($ctx['is_admin'])): ?>
-    |   <a href="/admin.php">Admin</a>
+      | <a href="/admin.php">Admin</a>
     <?php endif; ?>
-
-  | <form method="post" action="/logout.php" style="display:inline;">
-      <input type="hidden" name="csrf_token" value="<?= h((string)$_SESSION['csrf_token']) ?>">
-      <button type="submit">Logout</button>
-    </form>
   </p>
 
-  </p>
+  <form method="post" action="/logout.php" style="display:inline;">
+    <?= csrf_field() ?>
+    <button type="submit">Logout</button>
+  </form>
+
+  <hr>
 
   <?php if ($error !== ''): ?>
     <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
-  <?php else: ?>
-    <h2>Benutzer aus Datenbank</h2>
-    <table border="1" cellpadding="6" cellspacing="0">
-      <tr><th>ID</th><td><?= h((string)$user['benutzer_id']) ?></td></tr>
-      <tr><th>Benutzername</th><td><?= h((string)$user['benutzername']) ?></td></tr>
-      <tr><th>E-Mail</th><td><?= h((string)$user['email']) ?></td></tr>
-      <tr><th>Aktiv</th><td><?= ((int)$user['aktiv'] === 1) ? 'ja' : 'nein' ?></td></tr>
-      <tr><th>Erstellt</th><td><?= h((string)$user['erstellt_am']) ?></td></tr>
-      <tr><th>Aktualisiert</th><td><?= h((string)$user['aktualisiert_am']) ?></td></tr>
-    </table>
+  <?php elseif ($user): ?>
+    <h2>Account</h2>
+    <ul>
+      <li>ID: <?= h((string)$user['benutzer_id']) ?></li>
+      <li>Benutzername: <?= h((string)$user['benutzername']) ?></li>
+      <li>E-Mail: <?= h((string)($user['email'] ?? '')) ?></li>
+      <li>Aktiv: <?= h((string)$user['aktiv']) ?></li>
+    </ul>
   <?php endif; ?>
 </body>
 </html>
