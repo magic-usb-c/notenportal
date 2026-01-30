@@ -1,0 +1,9 @@
+# Ignore all runtime files in storage
+*
+# but keep folder structure
+!.gitignore
+!.gitkeep
+!cache/
+!logs/
+!sessions/
+!uploads/
