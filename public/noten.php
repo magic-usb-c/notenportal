@@ -312,7 +312,7 @@ function short_text(string $s, int $max = 60): string
           <td><a href="/noten_detail.php?note_id=<?= h((string)$n['note_id']) ?>">Öffnen</a></td>
 
           <td>
-            <?php if ($isBb && !$seen): ?>
+            <?php if ($isBb || $isAdmin && !$seen): ?>
               <form method="post" action="/noten.php" style="display:inline;">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="seen">
