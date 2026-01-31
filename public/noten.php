@@ -7,15 +7,23 @@ require_once __DIR__ . '/../app/notes.php';
 require_login();
 header('Content-Type: text/html; charset=utf-8');
 
-$notes = [];
-$error = '';
-
 $isAdmin = !empty($ctx['is_admin']);
 $isLearner = !empty($ctx['lernender_id']);
 $isBb = !empty($ctx['berufsbildner_id']);
 
-$canManage = ($isAdmin || $isLearner);                 // Edit/Delete/Create
-$canSeeLearnerColumn = ($isAdmin || $isBb);            // Lernender-Spalte
+$canManage = ($isAdmin || $isLearner);
+$canSeeLearnerColumn = ($isAdmin || $isBb);
+
+$error = '';
+$notes = [];
+$opt = [];
+
+function short_text(string $s, int $max = 60): string
+{
+    $s = trim(preg_replace('/\s+/', ' ', $s));
+    if (mb_strlen($s, 'UTF-8') <= $max) return $s;
+    return mb_substr($s, 0, $max - 1, 'UTF-8') . '…';
+}
 
 // --- POST Actions direkt in der Tabelle ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,7 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/noten.php');
     }
 
-    // Zugriff auf diese Note muss serverseitig validiert werden
     try {
         $note = fetch_note_detail_for_ctx($pdo, $ctx, $noteId);
         if (!$note) {
@@ -39,8 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($action === 'seen') {
-            // "gesehen" macht nur Sinn, wenn der User Berufsbildner-Kontext hat
-            if (!$isBb) {
+            if (empty($ctx['berufsbildner_id'])) {
                 flash_add('error', 'Nur Berufsbildner können als gesehen markieren.');
                 redirect('/noten.php');
             }
@@ -51,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'comment') {
             $txt = trim((string)($_POST['kommentar_text'] ?? ''));
-
             if ($txt === '') {
                 flash_add('error', 'Kommentar darf nicht leer sein.');
                 redirect('/noten.php');
@@ -80,154 +85,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// --- GET Filter ---
+$filters = [
+    'lernender_id' => ($isAdmin || $isBb) ? v_int_id($_GET['lernender_id'] ?? null) : null,
+    'kategorie_id' => v_int_id($_GET['kategorie_id'] ?? null),
+    'semester_id'  => v_int_id($_GET['semester_id'] ?? null),
+    'fach_id'      => v_int_id($_GET['fach_id'] ?? null),
+    'modul_id'     => v_int_id($_GET['modul_id'] ?? null),
+    'seen'         => (string)($_GET['seen'] ?? 'all'),
+];
+if (!in_array($filters['seen'], ['all', 'yes', 'no'], true)) $filters['seen'] = 'all';
+
+$sort = (string)($_GET['sort'] ?? 'date_desc');
+
 try {
-    // letzter Kommentar pro Note
-    $lastCommentJoin = '
-        LEFT JOIN (
-            SELECT note_id, MAX(kommentar_id) AS last_kommentar_id
-            FROM noten_kommentare
-            GROUP BY note_id
-        ) lk ON lk.note_id = n.note_id
-        LEFT JOIN noten_kommentare nk ON nk.kommentar_id = lk.last_kommentar_id
-        LEFT JOIN benutzer cb ON cb.benutzer_id = nk.autor_benutzer_id
-    ';
-
-    if ($isAdmin) {
-        // gesehen: irgendein Berufsbildner
-        $seenJoin = '
-            LEFT JOIN (
-                SELECT note_id, MAX(gesehen_am) AS gesehen_am
-                FROM noten_gesehen
-                GROUP BY note_id
-            ) ng ON ng.note_id = n.note_id
-        ';
-
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   s.bezeichnung AS semester,
-                   b.benutzername AS lernender_username,
-                   ng.gesehen_am AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $seenJoin . '
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-
-        $notes = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-    } elseif ($isLearner) {
-        // gesehen: irgendein Berufsbildner
-        $seenJoin = '
-            LEFT JOIN (
-                SELECT note_id, MAX(gesehen_am) AS gesehen_am
-                FROM noten_gesehen
-                GROUP BY note_id
-            ) ng ON ng.note_id = n.note_id
-        ';
-
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   s.bezeichnung AS semester,
-                   NULL AS lernender_username,
-                   ng.gesehen_am AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $seenJoin . '
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-              AND n.lernender_id = :lid
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':lid' => (int)$ctx['lernender_id']]);
-        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-    } elseif ($isBb) {
-        // gesehen: von MIR als Berufsbildner (wichtig: 2 verschiedene Parameter-Namen wegen PDO HY093)
-        $seenJoin = '
-            LEFT JOIN (
-                SELECT note_id, MAX(gesehen_am) AS gesehen_am
-                FROM noten_gesehen
-                WHERE berufsbildner_id = :bbid_seen
-                GROUP BY note_id
-            ) ng ON ng.note_id = n.note_id
-        ';
-
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   s.bezeichnung AS semester,
-                   b.benutzername AS lernender_username,
-                   ng.gesehen_am AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-            JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $seenJoin . '
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-              AND bt.berufsbildner_id = :bbid_where
-              AND bt.gueltig_von <= CURDATE()
-              AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
-            ':bbid_seen' => (int)$ctx['berufsbildner_id'],
-            ':bbid_where' => (int)$ctx['berufsbildner_id'],
-        ]);
-        $notes = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-
-    } else {
-        $error = 'Kein gültiges Profil (weder Lernender noch Berufsbildner noch Admin).';
-    }
-
+    $opt = load_note_filter_options($pdo, $ctx);
+    $notes = fetch_notes_list_for_ctx_filtered($pdo, $ctx, $filters, $sort);
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Noten.';
-    app_log_exception('Load notes failed', $e, [
-        'user_id' => $ctx['user_id'] ?? null,
-    ]);
-}
-
-// kleine Helper für Anzeige
-function short_text(string $s, int $max = 60): string
-{
-    $s = trim(preg_replace('/\s+/', ' ', $s));
-    if (mb_strlen($s, 'UTF-8') <= $max) return $s;
-    return mb_substr($s, 0, $max - 1, 'UTF-8') . '…';
+    app_log_exception('Load notes failed', $e, ['user_id' => $ctx['user_id'] ?? null]);
 }
 ?>
 <!doctype html>
@@ -249,14 +125,99 @@ function short_text(string $s, int $max = 60): string
 
   <p>
     <a href="/dashboard.php">Dashboard</a>
-    <?php if ($canManage): ?>
-      | <a href="/noten_create.php">+ Neue Note</a>
-    <?php endif; ?>
+    <?php if ($canManage): ?> | <a href="/noten_create.php">+ Neue Note</a><?php endif; ?>
     | <form method="post" action="/logout.php" style="display:inline;">
-        <?= csrf_field() ?>
-        <button type="submit">Logout</button>
+        <?= csrf_field() ?><button type="submit">Logout</button>
       </form>
   </p>
+
+  <h2>Filter</h2>
+  <form method="get" action="/noten.php">
+    <?php if ($isAdmin || $isBb): ?>
+      <label>Lernender:
+        <select name="lernender_id">
+          <option value="">Alle</option>
+          <?php foreach (($opt['lernende'] ?? []) as $l): ?>
+            <option value="<?= h((string)$l['lernender_id']) ?>" <?= ((string)$filters['lernender_id'] === (string)$l['lernender_id']) ? 'selected' : '' ?>>
+              <?= h((string)$l['benutzername']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      &nbsp;
+    <?php endif; ?>
+
+    <label>Kategorie:
+      <select name="kategorie_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['kategorien'] ?? []) as $k): ?>
+          <option value="<?= h((string)$k['kategorie_id']) ?>" <?= ((string)$filters['kategorie_id'] === (string)$k['kategorie_id']) ? 'selected' : '' ?>>
+            <?= h((string)$k['name']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Semester:
+      <select name="semester_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['semester'] ?? []) as $s): ?>
+          <option value="<?= h((string)$s['semester_id']) ?>" <?= ((string)$filters['semester_id'] === (string)$s['semester_id']) ? 'selected' : '' ?>>
+            <?= h((string)$s['bezeichnung']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Fach:
+      <select name="fach_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['faecher'] ?? []) as $f): ?>
+          <option value="<?= h((string)$f['fach_id']) ?>" <?= ((string)$filters['fach_id'] === (string)$f['fach_id']) ? 'selected' : '' ?>>
+            <?= h((string)$f['name']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Modul:
+      <select name="modul_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['module'] ?? []) as $m): ?>
+          <option value="<?= h((string)$m['modul_id']) ?>" <?= ((string)$filters['modul_id'] === (string)$m['modul_id']) ? 'selected' : '' ?>>
+            <?= h((string)$m['titel']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Gesehen:
+      <select name="seen">
+        <option value="all" <?= $filters['seen'] === 'all' ? 'selected' : '' ?>>Alle</option>
+        <option value="yes" <?= $filters['seen'] === 'yes' ? 'selected' : '' ?>>Ja</option>
+        <option value="no"  <?= $filters['seen'] === 'no'  ? 'selected' : '' ?>>Nein</option>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Sortierung:
+      <select name="sort">
+        <option value="date_desc" <?= $sort === 'date_desc' ? 'selected' : '' ?>>Datum (neu → alt)</option>
+        <option value="date_asc"  <?= $sort === 'date_asc'  ? 'selected' : '' ?>>Datum (alt → neu)</option>
+        <option value="note_desc" <?= $sort === 'note_desc' ? 'selected' : '' ?>>Note (hoch → tief)</option>
+        <option value="note_asc"  <?= $sort === 'note_asc'  ? 'selected' : '' ?>>Note (tief → hoch)</option>
+        <option value="obj_asc"   <?= $sort === 'obj_asc'   ? 'selected' : '' ?>>Fach/Modul (A → Z)</option>
+        <option value="obj_desc"  <?= $sort === 'obj_desc'  ? 'selected' : '' ?>>Fach/Modul (Z → A)</option>
+      </select>
+    </label>
+
+    <button type="submit">Anwenden</button>
+    <a href="/noten.php">Reset</a>
+  </form>
 
   <?php if ($error !== ''): ?>
     <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
@@ -273,9 +234,7 @@ function short_text(string $s, int $max = 60): string
         <th>Gewichtung %</th>
         <th>Gesehen</th>
         <th>Neuster Kommentar</th>
-        <?php if ($canSeeLearnerColumn): ?>
-          <th>Lernender</th>
-        <?php endif; ?>
+        <?php if ($canSeeLearnerColumn): ?><th>Lernender</th><?php endif; ?>
         <th>Details</th>
         <th>Aktionen</th>
       </tr>
@@ -284,11 +243,12 @@ function short_text(string $s, int $max = 60): string
         <?php
           $seen = !empty($n['gesehen_am']);
           $seenText = $seen ? 'Ja' : 'Nein';
+
           $commentText = (string)($n['last_comment_text'] ?? '');
           $commentAt = (string)($n['last_comment_at'] ?? '');
           $commentAuthor = (string)($n['last_comment_author'] ?? '');
 
-          $commentDisplay = '';
+          $commentDisplay = '—';
           if ($commentText !== '') {
               $commentDisplay = short_text($commentText, 60);
               if ($commentAuthor !== '') $commentDisplay .= ' (' . $commentAuthor . ')';
@@ -303,7 +263,7 @@ function short_text(string $s, int $max = 60): string
           <td><?= h((string)$n['note_wert']) ?></td>
           <td><?= h((string)($n['gewichtung_prozent'] ?? '')) ?></td>
           <td><?= h($seenText) ?></td>
-          <td><?= $commentDisplay !== '' ? h($commentDisplay) : '—' ?></td>
+          <td><?= h($commentDisplay) ?></td>
 
           <?php if ($canSeeLearnerColumn): ?>
             <td><?= h((string)($n['lernender_username'] ?? '')) ?></td>
@@ -312,7 +272,7 @@ function short_text(string $s, int $max = 60): string
           <td><a href="/noten_detail.php?note_id=<?= h((string)$n['note_id']) ?>">Öffnen</a></td>
 
           <td>
-            <?php if ($isBb || $isAdmin && !$seen): ?>
+            <?php if (!empty($ctx['berufsbildner_id']) && !$seen): ?>
               <form method="post" action="/noten.php" style="display:inline;">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="seen">
@@ -343,7 +303,7 @@ function short_text(string $s, int $max = 60): string
     </table>
 
     <p>
-      Hinweis: “Gesehen” bedeutet bei Berufsbildnern “von mir gesehen”. Bei Admin/Lernenden bedeutet es “mindestens ein Berufsbildner hat es gesehen”.
+      Hinweis: Bei Berufsbildnern ist “Gesehen” = von mir gesehen. Bei Admin/Lernenden: mindestens ein Berufsbildner hat es gesehen.
     </p>
   <?php endif; ?>
 </body>
