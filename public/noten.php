@@ -145,6 +145,8 @@ try {
           <?php if ($canSeeLearnerColumn): ?>
             <td><?= h((string)($n['lernender_username'] ?? '')) ?></td>
           <?php endif; ?>
+          
+          <td><a href="/noten_detail.php?note_id=<?= h((string)$n['note_id']) ?>">Öffnen</a></td>
 
           <?php if ($canManage): ?>
             <td>
