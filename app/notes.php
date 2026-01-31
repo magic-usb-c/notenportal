@@ -217,18 +217,19 @@ function fetch_note_detail_for_ctx(PDO $pdo, array $ctx, int $noteId): ?array
                 GROUP BY note_id, berufsbildner_id
              ) ng
              ON ng.note_id = n.note_id
-             AND ng.berufsbildner_id = :bbid
+             AND ng.berufsbildner_id = :bbid_join
 
              WHERE n.note_id = :id
                AND n.geloescht_am IS NULL
-               AND bt.berufsbildner_id = :bbid
+               AND bt.berufsbildner_id = :bbid_where
                AND bt.gueltig_von <= CURDATE()
                AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
              LIMIT 1'
         );
         $stmt->execute([
             ':id' => $noteId,
-            ':bbid' => (int)$ctx['berufsbildner_id'],
+            ':bbid_join' => (int)$ctx['berufsbildner_id'],
+            ':bbid_where' => (int)$ctx['berufsbildner_id'],
         ]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
