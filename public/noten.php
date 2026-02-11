@@ -2,89 +2,108 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../app/bootstrap.php';
-require_login();
+require_once __DIR__ . '/../app/notes.php';
 
+require_login();
 header('Content-Type: text/html; charset=utf-8');
 
-$notes = [];
+$isAdmin = !empty($ctx['is_admin']);
+$isLearner = !empty($ctx['lernender_id']);
+$isBb = !empty($ctx['berufsbildner_id']);
+
+$canManage = ($isAdmin || $isLearner);
+$canSeeLearnerColumn = ($isAdmin || $isBb);
+
 $error = '';
+$notes = [];
+$opt = [];
+
+function short_text(string $s, int $max = 60): string
+{
+    $s = trim(preg_replace('/\s+/', ' ', $s));
+    if (mb_strlen($s, 'UTF-8') <= $max) return $s;
+    return mb_substr($s, 0, $max - 1, 'UTF-8') . '…';
+}
+
+// --- POST Actions direkt in der Tabelle ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_post();
+    require_csrf();
+
+    $action = (string)($_POST['action'] ?? '');
+    $noteId = v_int_id($_POST['note_id'] ?? null);
+
+    if (!$noteId) {
+        flash_add('error', 'Ungültige Note.');
+        redirect('/noten.php');
+    }
+
+    try {
+        $note = fetch_note_detail_for_ctx($pdo, $ctx, $noteId);
+        if (!$note) {
+            flash_add('error', 'Keine Berechtigung oder Note existiert nicht.');
+            redirect('/noten.php');
+        }
+
+        if ($action === 'seen') {
+            if (empty($ctx['berufsbildner_id'])) {
+                flash_add('error', 'Nur Berufsbildner können als gesehen markieren.');
+                redirect('/noten.php');
+            }
+            mark_note_seen($pdo, $noteId, (int)$ctx['berufsbildner_id']);
+            flash_add('success', 'Als gesehen markiert.');
+            redirect('/noten.php');
+        }
+
+        if ($action === 'comment') {
+            $txt = trim((string)($_POST['kommentar_text'] ?? ''));
+            if ($txt === '') {
+                flash_add('error', 'Kommentar darf nicht leer sein.');
+                redirect('/noten.php');
+            }
+            if (mb_strlen($txt, 'UTF-8') > 2000) {
+                flash_add('error', 'Kommentar zu lang (max. 2000 Zeichen).');
+                redirect('/noten.php');
+            }
+
+            add_note_comment($pdo, $noteId, (int)$ctx['user_id'], $txt);
+            flash_add('success', 'Kommentar gespeichert.');
+            redirect('/noten.php');
+        }
+
+        flash_add('error', 'Ungültige Aktion.');
+        redirect('/noten.php');
+
+    } catch (Throwable $e) {
+        app_log_exception('Noten list action failed', $e, [
+            'action' => $action,
+            'note_id' => $noteId,
+            'user_id' => $ctx['user_id'] ?? null,
+        ]);
+        flash_add('error', 'Interner Fehler.');
+        redirect('/noten.php');
+    }
+}
+
+// --- GET Filter ---
+$filters = [
+    'lernender_id' => ($isAdmin || $isBb) ? v_int_id($_GET['lernender_id'] ?? null) : null,
+    'kategorie_id' => v_int_id($_GET['kategorie_id'] ?? null),
+    'semester_id'  => v_int_id($_GET['semester_id'] ?? null),
+    'fach_id'      => v_int_id($_GET['fach_id'] ?? null),
+    'modul_id'     => v_int_id($_GET['modul_id'] ?? null),
+    'seen'         => (string)($_GET['seen'] ?? 'all'),
+];
+if (!in_array($filters['seen'], ['all', 'yes', 'no'], true)) $filters['seen'] = 'all';
+
+$sort = (string)($_GET['sort'] ?? 'date_desc');
 
 try {
-    /*
-      Filter:
-      - Admin: sieht alles (limitiert)
-      - Lernender: nur eigene Noten
-      - Berufsbildner: nur betreute Lernende (aktuell gültige Betreuung)
-    */
-
-    if (!empty($ctx['is_admin'])) {
-        $stmt = $pdo->query(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    COALESCE(f.name, m.titel) AS objekt_name,
-                    s.bezeichnung AS semester,
-                    b.benutzername AS lernender_username
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             JOIN lernende l ON l.lernender_id = n.lernender_id
-             JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             WHERE n.geloescht_am IS NULL
-             ORDER BY n.pruefungsdatum DESC
-             LIMIT 200'
-        );
-        $notes = $stmt->fetchAll();
-
-    } elseif (!empty($ctx['lernender_id'])) {
-        $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    COALESCE(f.name, m.titel) AS objekt_name,
-                    s.bezeichnung AS semester
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             WHERE n.geloescht_am IS NULL
-               AND n.lernender_id = :lid
-             ORDER BY n.pruefungsdatum DESC'
-        );
-        $stmt->execute([':lid' => (int)$ctx['lernender_id']]);
-        $notes = $stmt->fetchAll();
-
-    } elseif (!empty($ctx['berufsbildner_id'])) {
-        $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    COALESCE(f.name, m.titel) AS objekt_name,
-                    s.bezeichnung AS semester,
-                    b.benutzername AS lernender_username
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             JOIN lernende l ON l.lernender_id = n.lernender_id
-             JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-             JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             WHERE n.geloescht_am IS NULL
-               AND bt.berufsbildner_id = :bbid
-               AND bt.gueltig_von <= CURDATE()
-               AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
-             ORDER BY n.pruefungsdatum DESC
-             LIMIT 200'
-        );
-        $stmt->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
-        $notes = $stmt->fetchAll();
-
-    } else {
-        $error = 'Kein gültiges Profil (weder Lernender noch Berufsbildner noch Admin).';
-    }
+    $opt = load_note_filter_options($pdo, $ctx);
+    $notes = fetch_notes_list_for_ctx_filtered($pdo, $ctx, $filters, $sort);
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Noten.';
+    app_log_exception('Load notes failed', $e, ['user_id' => $ctx['user_id'] ?? null]);
 }
 ?>
 <!doctype html>
@@ -97,18 +116,108 @@ try {
 <body>
   <h1>Noten</h1>
 
+  <?= flash_render_html() ?>
+
   <p>
     Eingeloggt als: <b><?= h((string)$ctx['username']) ?></b>
     (Rollen: <?= h(implode(', ', (array)$ctx['roles'])) ?>)
   </p>
 
   <p>
-    <a href="/dashboard.php">Dashboard</a> |
-    <form method="post" action="/logout.php" style="display:inline;">
-      <input type="hidden" name="csrf_token" value="<?= h((string)$_SESSION['csrf_token']) ?>">
-      <button type="submit">Logout</button>
-    </form>
+    <a href="/dashboard.php">Dashboard</a>
+    <?php if ($canManage): ?> | <a href="/noten_create.php">+ Neue Note</a><?php endif; ?>
+    | <form method="post" action="/logout.php" style="display:inline;">
+        <?= csrf_field() ?><button type="submit">Logout</button>
+      </form>
   </p>
+
+  <h2>Filter</h2>
+  <form method="get" action="/noten.php">
+    <?php if ($isAdmin || $isBb): ?>
+      <label>Lernender:
+        <select name="lernender_id">
+          <option value="">Alle</option>
+          <?php foreach (($opt['lernende'] ?? []) as $l): ?>
+            <option value="<?= h((string)$l['lernender_id']) ?>" <?= ((string)$filters['lernender_id'] === (string)$l['lernender_id']) ? 'selected' : '' ?>>
+              <?= h((string)$l['benutzername']) ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
+      &nbsp;
+    <?php endif; ?>
+
+    <label>Kategorie:
+      <select name="kategorie_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['kategorien'] ?? []) as $k): ?>
+          <option value="<?= h((string)$k['kategorie_id']) ?>" <?= ((string)$filters['kategorie_id'] === (string)$k['kategorie_id']) ? 'selected' : '' ?>>
+            <?= h((string)$k['name']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Semester:
+      <select name="semester_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['semester'] ?? []) as $s): ?>
+          <option value="<?= h((string)$s['semester_id']) ?>" <?= ((string)$filters['semester_id'] === (string)$s['semester_id']) ? 'selected' : '' ?>>
+            <?= h((string)$s['bezeichnung']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Fach:
+      <select name="fach_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['faecher'] ?? []) as $f): ?>
+          <option value="<?= h((string)$f['fach_id']) ?>" <?= ((string)$filters['fach_id'] === (string)$f['fach_id']) ? 'selected' : '' ?>>
+            <?= h((string)$f['name']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Modul:
+      <select name="modul_id">
+        <option value="">Alle</option>
+        <?php foreach (($opt['module'] ?? []) as $m): ?>
+          <option value="<?= h((string)$m['modul_id']) ?>" <?= ((string)$filters['modul_id'] === (string)$m['modul_id']) ? 'selected' : '' ?>>
+            <?= h((string)$m['titel']) ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Gesehen:
+      <select name="seen">
+        <option value="all" <?= $filters['seen'] === 'all' ? 'selected' : '' ?>>Alle</option>
+        <option value="yes" <?= $filters['seen'] === 'yes' ? 'selected' : '' ?>>Ja</option>
+        <option value="no"  <?= $filters['seen'] === 'no'  ? 'selected' : '' ?>>Nein</option>
+      </select>
+    </label>
+    &nbsp;
+
+    <label>Sortierung:
+      <select name="sort">
+        <option value="date_desc" <?= $sort === 'date_desc' ? 'selected' : '' ?>>Datum (neu → alt)</option>
+        <option value="date_asc"  <?= $sort === 'date_asc'  ? 'selected' : '' ?>>Datum (alt → neu)</option>
+        <option value="note_desc" <?= $sort === 'note_desc' ? 'selected' : '' ?>>Note (hoch → tief)</option>
+        <option value="note_asc"  <?= $sort === 'note_asc'  ? 'selected' : '' ?>>Note (tief → hoch)</option>
+        <option value="obj_asc"   <?= $sort === 'obj_asc'   ? 'selected' : '' ?>>Fach/Modul (A → Z)</option>
+        <option value="obj_desc"  <?= $sort === 'obj_desc'  ? 'selected' : '' ?>>Fach/Modul (Z → A)</option>
+      </select>
+    </label>
+
+    <button type="submit">Anwenden</button>
+    <a href="/noten.php">Reset</a>
+  </form>
 
   <?php if ($error !== ''): ?>
     <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
@@ -123,11 +232,29 @@ try {
         <th>Semester</th>
         <th>Note</th>
         <th>Gewichtung %</th>
-        <?php if (!empty($ctx['is_admin']) || !empty($ctx['berufsbildner_id'])): ?>
-          <th>Lernender</th>
-        <?php endif; ?>
+        <th>Gesehen</th>
+        <th>Neuster Kommentar</th>
+        <?php if ($canSeeLearnerColumn): ?><th>Lernender</th><?php endif; ?>
+        <th>Details</th>
+        <th>Aktionen</th>
       </tr>
+
       <?php foreach ($notes as $n): ?>
+        <?php
+          $seen = !empty($n['gesehen_am']);
+          $seenText = $seen ? 'Ja' : 'Nein';
+
+          $commentText = (string)($n['last_comment_text'] ?? '');
+          $commentAt = (string)($n['last_comment_at'] ?? '');
+          $commentAuthor = (string)($n['last_comment_author'] ?? '');
+
+          $commentDisplay = '—';
+          if ($commentText !== '') {
+              $commentDisplay = short_text($commentText, 60);
+              if ($commentAuthor !== '') $commentDisplay .= ' (' . $commentAuthor . ')';
+              if ($commentAt !== '') $commentDisplay .= ' ' . $commentAt;
+          }
+        ?>
         <tr>
           <td><?= h((string)$n['pruefungsdatum']) ?></td>
           <td><?= h((string)$n['kategorie']) ?></td>
@@ -135,12 +262,49 @@ try {
           <td><?= h((string)$n['semester']) ?></td>
           <td><?= h((string)$n['note_wert']) ?></td>
           <td><?= h((string)($n['gewichtung_prozent'] ?? '')) ?></td>
-          <?php if (!empty($ctx['is_admin']) || !empty($ctx['berufsbildner_id'])): ?>
+          <td><?= h($seenText) ?></td>
+          <td><?= h($commentDisplay) ?></td>
+
+          <?php if ($canSeeLearnerColumn): ?>
             <td><?= h((string)($n['lernender_username'] ?? '')) ?></td>
           <?php endif; ?>
+
+          <td><a href="/noten_detail.php?note_id=<?= h((string)$n['note_id']) ?>">Öffnen</a></td>
+
+          <td>
+            <?php if (!empty($ctx['berufsbildner_id']) && !$seen): ?>
+              <form method="post" action="/noten.php" style="display:inline;">
+                <?= csrf_field() ?>
+                <input type="hidden" name="action" value="seen">
+                <input type="hidden" name="note_id" value="<?= h((string)$n['note_id']) ?>">
+                <button type="submit">Gesehen</button>
+              </form>
+            <?php endif; ?>
+
+            <form method="post" action="/noten.php" style="display:inline;">
+              <?= csrf_field() ?>
+              <input type="hidden" name="action" value="comment">
+              <input type="hidden" name="note_id" value="<?= h((string)$n['note_id']) ?>">
+              <input type="text" name="kommentar_text" size="22" maxlength="2000" placeholder="Kommentar…" required>
+              <button type="submit">Senden</button>
+            </form>
+
+            <?php if ($canManage): ?>
+              | <a href="/noten_edit.php?note_id=<?= h((string)$n['note_id']) ?>">Bearbeiten</a>
+              <form method="post" action="/noten_delete.php" style="display:inline;" onsubmit="return confirm('Wirklich löschen?');">
+                <?= csrf_field() ?>
+                <input type="hidden" name="note_id" value="<?= h((string)$n['note_id']) ?>">
+                <button type="submit">Löschen</button>
+              </form>
+            <?php endif; ?>
+          </td>
         </tr>
       <?php endforeach; ?>
     </table>
+
+    <p>
+      Hinweis: Bei Berufsbildnern ist “Gesehen” = von mir gesehen. Bei Admin/Lernenden: mindestens ein Berufsbildner hat es gesehen.
+    </p>
   <?php endif; ?>
 </body>
 </html>

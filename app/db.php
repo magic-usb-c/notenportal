@@ -3,88 +3,60 @@ declare(strict_types=1);
 
 /*
   app/db.php
-  Ziel:
-  - EIN zentraler Ort für DB-Verbindung (keine Kopien in login/dashboard/etc.)
-  - DB-Credentials kommen aus /etc/notenportal/db.ini (nicht im Webroot)
-  - Verbindung über Unix Socket (lokal, kein TCP-Port nach aussen)
+  Zweck:
+  - DB-Config aus /etc/notenportal/db.ini lesen
+  - PDO Verbindung via Unix-Socket aufbauen
+  - robustes Error-Handling (keine Secrets im Output)
 */
 
-function db_config_path(): string
-{
-    return '/etc/notenportal/db.ini';
-}
+const NP_DB_INI = '/etc/notenportal/db.ini';
 
-/**
- * Liefert das DB-Config-Array oder wirft eine Exception mit klarer Fehlermeldung.
- */
 function load_db_config(): array
 {
-    $path = db_config_path();
-
-    $cfg = parse_ini_file($path, false, INI_SCANNER_RAW);
-    if ($cfg === false) {
-        throw new RuntimeException("DB config unreadable: {$path}");
+    if (!is_readable(NP_DB_INI)) {
+        throw new RuntimeException('DB config unreadable');
     }
 
-    foreach (['DB_NAME','DB_USER','DB_PASS','DB_SOCKET'] as $k) {
-        if (!isset($cfg[$k]) || $cfg[$k] === '') {
-            throw new RuntimeException("DB config missing key: {$k}");
+    $ini = parse_ini_file(NP_DB_INI, false, INI_SCANNER_TYPED);
+    if (!is_array($ini)) {
+        throw new RuntimeException('DB config parse failed');
+    }
+
+    $required = ['DB_NAME', 'DB_USER', 'DB_PASS', 'DB_SOCKET'];
+    foreach ($required as $k) {
+        if (!array_key_exists($k, $ini)) {
+            throw new RuntimeException('DB config missing key: ' . $k);
         }
     }
 
-    return $cfg;
+    return $ini;
 }
 
-/**
- * Zentrale PDO-Verbindung (benutzen alle Seiten).
- */
 function get_pdo(): PDO
 {
     $cfg = load_db_config();
 
-    $dsn = sprintf(
-        'mysql:unix_socket=%s;dbname=%s;charset=utf8mb4',
-        $cfg['DB_SOCKET'],
-        $cfg['DB_NAME']
-    );
+    // Verbindung via Unix-Socket (kein TCP Port nötig)
+    $dsn = sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $cfg['DB_SOCKET'], $cfg['DB_NAME']);
 
-    return new PDO($dsn, $cfg['DB_USER'], $cfg['DB_PASS'], [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    $pdo = new PDO($dsn, (string)$cfg['DB_USER'], (string)$cfg['DB_PASS'], [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
+
+    return $pdo;
 }
 
 /**
- * Optional: DB-Healthcheck/Debug (für Testseiten).
- * Gibt KEIN Passwort zurück.
+ * Optional: kleiner Health-Check
  */
-function db_health(): array
+function db_health(PDO $pdo): bool
 {
-    $info = [
-        'config_path' => db_config_path(),
-        'config_readable' => is_readable(db_config_path()),
-        'php_version' => PHP_VERSION,
-    ];
-
     try {
-        $cfg = load_db_config();
-
-        $info['db_name'] = $cfg['DB_NAME'];
-        $info['db_user'] = $cfg['DB_USER'];
-        $info['db_socket'] = $cfg['DB_SOCKET'];
-        $info['socket_exists'] = file_exists($cfg['DB_SOCKET']);
-
-        $pdo = get_pdo();
-        $row = $pdo->query("SELECT NOW() AS ts, CURRENT_USER() AS cu")->fetch();
-
-        $info['db_now'] = $row['ts'] ?? null;
-        $info['db_current_user'] = $row['cu'] ?? null;
-        $info['db_server_version'] = $pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
-
-        return ['ok' => true, 'info' => $info];
+        $pdo->query('SELECT 1')->fetch();
+        return true;
     } catch (Throwable $e) {
-        $info['exception'] = get_class($e);
-        return ['ok' => false, 'info' => $info, 'error' => $e->getMessage()];
+        return false;
     }
 }

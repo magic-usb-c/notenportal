@@ -3,16 +3,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../app/bootstrap.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit('Method Not Allowed');
-}
-
-$csrf = (string)($_POST['csrf_token'] ?? '');
-if (empty($_SESSION['csrf_token']) || !hash_equals((string)$_SESSION['csrf_token'], $csrf)) {
-    http_response_code(400);
-    exit('Bad Request (CSRF)');
-}
+require_post();
+require_csrf();
 
 app_log('info', 'Logout', [
     'user_id' => $_SESSION['user_id'] ?? null,
@@ -22,5 +14,5 @@ app_log('info', 'Logout', [
 
 logout_user();
 
-header('Location: /login.php');
-exit;
+flash_add('info', 'Du bist ausgeloggt.');
+redirect('/login.php');

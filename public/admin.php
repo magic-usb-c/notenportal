@@ -5,7 +5,6 @@ require __DIR__ . '/../app/bootstrap.php';
 
 require_login();
 
-// Admin-Check: kommt aus current_user_context() in user_context.php
 if (empty($ctx['is_admin'])) {
     http_response_code(403);
     exit('Forbidden');
@@ -24,8 +23,16 @@ $roles    = (array)($ctx['roles'] ?? []);
   <title>Admin – Notenportal</title>
 </head>
 <body>
-  <h1>Admin-Bereich</h1>
+  <h1>Admin</h1>
+
+  <?= flash_render_html() ?>
+
   <p>Eingeloggt als: <b><?= h($username) ?></b></p>
+
+  <p>
+    <a href="/dashboard.php">Dashboard</a> |
+    <a href="/noten.php">Noten</a>
+  </p>
 
   <h2>Deine Rollen</h2>
   <ul>
@@ -34,6 +41,7 @@ $roles    = (array)($ctx['roles'] ?? []);
     <?php endforeach; ?>
   </ul>
 
-  <p><a href="/dashboard.php">Zurück</a></p>
+  <h2>Hinweis</h2>
+  <p>Admin-CRUD (User/Module/Fächer/Semester) kommt als nächster Ausbau.</p>
 </body>
 </html>
