@@ -28,7 +28,7 @@ try {
 }
 
 /**
- * Seen-Status Liste (für alle Rollen sichtbar, sobald sie Zugriff auf die Note haben).
+ * Seen-Status Liste (für alle Rollen sichtbar, sobald Zugriff auf die Note besteht).
  */
 $seenList = [];
 try {
@@ -38,7 +38,7 @@ try {
          JOIN berufsbildner bb ON bb.berufsbildner_id = ng.berufsbildner_id
          JOIN benutzer b ON b.benutzer_id = bb.benutzer_id
          WHERE ng.note_id = :nid
-         ORDER BY ng.gesehen_am DESC'
+         ORDER BY ng.gesehen_am DESC, ng.berufsbildner_id ASC'
     );
     $stmt->execute([':nid' => $noteId]);
     $seenList = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
@@ -120,7 +120,19 @@ try {
     $errors['form'] = 'Interner Fehler beim Laden der Kommentare.';
 }
 
-$objekt = (string)($note['fach_name'] ?: ($note['modul_titel'] ?: ''));
+// Objekt-Label sauber bauen: Fach oder Modulnummer+Titel (+ Gruppe)
+$objekt = '';
+if (!empty($note['fach_name'])) {
+    $objekt = (string)$note['fach_name'];
+} else {
+    $mn = trim((string)($note['modul_nummer'] ?? ''));
+    $mt = trim((string)($note['modul_titel'] ?? ''));
+    $objekt = trim($mn . ' ' . $mt);
+    $gn = trim((string)($note['gruppen_name'] ?? ''));
+    if ($gn !== '') {
+        $objekt .= ' – ' . $gn;
+    }
+}
 ?>
 <!doctype html>
 <html lang="de">
@@ -157,6 +169,10 @@ $objekt = (string)($note['fach_name'] ?: ($note['modul_titel'] ?: ''));
 
     <?php if (!empty($note['lernender_username'])): ?>
       <li><b>Lernender:</b> <?= h((string)$note['lernender_username']) ?></li>
+    <?php endif; ?>
+
+    <?php if (!empty($note['titel'])): ?>
+      <li><b>Titel:</b> <?= h((string)$note['titel']) ?></li>
     <?php endif; ?>
   </ul>
 

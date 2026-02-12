@@ -2,7 +2,6 @@
 declare(strict_types=1);
 
 require __DIR__ . '/../app/bootstrap.php';
-require_once __DIR__ . '/../app/notes.php';
 
 require_login();
 
@@ -21,7 +20,16 @@ if (!$noteId) {
 }
 
 try {
-    $note = fetch_note($pdo, $noteId);
+    // Note holen (nur was wir fürs Permission-Check brauchen)
+    $stmt = $pdo->prepare(
+        'SELECT note_id, lernender_id
+         FROM noten
+         WHERE note_id = :id AND geloescht_am IS NULL
+         LIMIT 1'
+    );
+    $stmt->execute([':id' => $noteId]);
+    $note = $stmt->fetch(PDO::FETCH_ASSOC);
+
     if (!$note) {
         http_response_code(404);
         exit('Not Found');
@@ -32,7 +40,18 @@ try {
         exit('Forbidden');
     }
 
-    soft_delete_note($pdo, $noteId);
+    // Soft-Delete + Audit
+    $del = $pdo->prepare(
+        'UPDATE noten
+         SET geloescht_am = NOW(),
+             aktualisiert_von_benutzer_id = :uid
+         WHERE note_id = :id AND geloescht_am IS NULL
+         LIMIT 1'
+    );
+    $del->execute([
+        ':id'  => $noteId,
+        ':uid' => (int)($ctx['user_id'] ?? 0),
+    ]);
 
     app_log('info', 'Note deleted (soft)', [
         'note_id' => $noteId,

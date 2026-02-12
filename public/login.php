@@ -25,17 +25,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Bitte Benutzername/E-Mail und Passwort ausfüllen.';
     } else {
         try {
-            $stmt = $pdo->prepare(
-                'SELECT benutzer_id, benutzername, passwort_hash, aktiv
-                 FROM benutzer
-                 WHERE benutzername = :u OR email = :e
-                 LIMIT 1'
-            );
-            $stmt->execute([
-                ':u' => $identifier,
-                ':e' => $identifier,
-            ]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            $user = null;
+
+            // Versuch 1: Benutzername ODER E-Mail (falls Spalte existiert)
+            try {
+                $stmt = $pdo->prepare(
+                    'SELECT benutzer_id, benutzername, email, passwort_hash, aktiv
+                     FROM benutzer
+                     WHERE benutzername = :ident OR email = :ident
+                     LIMIT 1'
+                );
+                $stmt->execute([':ident' => $identifier]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            } catch (PDOException $e) {
+                // Fallback: falls "email" Spalte nicht existiert oder Query nicht passt
+                app_log_exception('Login query (with email) failed, trying fallback', $e, [
+                    'identifier' => $identifier,
+                ]);
+
+                $stmt = $pdo->prepare(
+                    'SELECT benutzer_id, benutzername, passwort_hash, aktiv
+                     FROM benutzer
+                     WHERE benutzername = :ident
+                     LIMIT 1'
+                );
+                $stmt->execute([':ident' => $identifier]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+            }
 
             $genericFail = 'Login fehlgeschlagen. Benutzer oder Passwort stimmt nicht.';
 
@@ -58,13 +74,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 sleep(1);
             } else {
+                // Optional rehash
                 if (password_needs_rehash((string)$user['passwort_hash'], PASSWORD_BCRYPT)) {
                     $newHash = password_hash($password, PASSWORD_BCRYPT);
-                    $upd = $pdo->prepare('UPDATE benutzer SET passwort_hash = :h WHERE benutzer_id = :uid');
-                    $upd->execute([':h' => $newHash, ':uid' => (int)$user['benutzer_id']]);
+                    if ($newHash !== false) {
+                        $upd = $pdo->prepare(
+                            'UPDATE benutzer
+                             SET passwort_hash = :h
+                             WHERE benutzer_id = :uid
+                             LIMIT 1'
+                        );
+                        $upd->execute([
+                            ':h' => $newHash,
+                            ':uid' => (int)$user['benutzer_id'],
+                        ]);
+                    }
                 }
 
                 login_user((int)$user['benutzer_id'], (string)$user['benutzername']);
+
                 app_log('info', 'Login success', [
                     'user_id' => (int)$user['benutzer_id'],
                     'benutzername' => (string)$user['benutzername'],

@@ -7,12 +7,12 @@ require_once __DIR__ . '/../app/notes.php';
 require_login();
 header('Content-Type: text/html; charset=utf-8');
 
-$isAdmin = !empty($ctx['is_admin']);
+$isAdmin   = !empty($ctx['is_admin']);
 $isLearner = !empty($ctx['lernender_id']);
-$isBb = !empty($ctx['berufsbildner_id']);
+$isBb      = !empty($ctx['berufsbildner_id']);
 
-$canManage = ($isAdmin || $isLearner);
-$canSeeLearnerColumn = ($isAdmin || $isBb);
+$canManage = ($isAdmin || $isLearner);        // erstellen/bearbeiten/löschen
+$canSeeLearnerColumn = ($isAdmin || $isBb);   // Lernender-Spalte sehen
 
 $error = '';
 $notes = [];
@@ -20,7 +20,7 @@ $opt = [];
 
 function short_text(string $s, int $max = 60): string
 {
-    $s = trim(preg_replace('/\s+/', ' ', $s));
+    $s = trim((string)preg_replace('/\s+/', ' ', $s));
     if (mb_strlen($s, 'UTF-8') <= $max) return $s;
     return mb_substr($s, 0, $max - 1, 'UTF-8') . '…';
 }
@@ -86,20 +86,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // --- GET Filter ---
+// Neues Schema: Modul-Filter über modul_belegung_id
 $filters = [
-    'lernender_id' => ($isAdmin || $isBb) ? v_int_id($_GET['lernender_id'] ?? null) : null,
-    'kategorie_id' => v_int_id($_GET['kategorie_id'] ?? null),
-    'semester_id'  => v_int_id($_GET['semester_id'] ?? null),
-    'fach_id'      => v_int_id($_GET['fach_id'] ?? null),
-    'modul_id'     => v_int_id($_GET['modul_id'] ?? null),
-    'seen'         => (string)($_GET['seen'] ?? 'all'),
+    'lernender_id'       => ($isAdmin || $isBb) ? v_int_id($_GET['lernender_id'] ?? null) : null,
+    'kategorie_id'       => v_int_id($_GET['kategorie_id'] ?? null),
+    'semester_id'        => v_int_id($_GET['semester_id'] ?? null),
+    'fach_id'            => v_int_id($_GET['fach_id'] ?? null),
+    'modul_belegung_id'  => v_int_id($_GET['modul_belegung_id'] ?? null),
+
+    // Backward-Compat: falls irgendwo noch modul_id kommt (filtert in notes.php über JOIN module)
+    'modul_id'           => v_int_id($_GET['modul_id'] ?? null),
+
+    'seen'               => (string)($_GET['seen'] ?? 'all'),
 ];
-if (!in_array($filters['seen'], ['all', 'yes', 'no'], true)) $filters['seen'] = 'all';
+
+if (!in_array($filters['seen'], ['all', 'yes', 'no'], true)) {
+    $filters['seen'] = 'all';
+}
 
 $sort = (string)($_GET['sort'] ?? 'date_desc');
 
 try {
-    $opt = load_note_filter_options($pdo, $ctx);
+    $opt = load_note_filter_options($pdo, $ctx);              // liefert modul_belegungen (nicht module)
     $notes = fetch_notes_list_for_ctx_filtered($pdo, $ctx, $filters, $sort);
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Noten.';
@@ -183,12 +191,19 @@ try {
     </label>
     &nbsp;
 
-    <label>Modul:
-      <select name="modul_id">
+    <label>Modul-Belegung:
+      <select name="modul_belegung_id">
         <option value="">Alle</option>
-        <?php foreach (($opt['module'] ?? []) as $m): ?>
-          <option value="<?= h((string)$m['modul_id']) ?>" <?= ((string)$filters['modul_id'] === (string)$m['modul_id']) ? 'selected' : '' ?>>
-            <?= h((string)$m['titel']) ?>
+        <?php foreach (($opt['modul_belegungen'] ?? []) as $mb): ?>
+          <?php
+            // notes.php liefert meist "label" direkt; fallback bauen wir trotzdem
+            $label = (string)($mb['label'] ?? '');
+            if ($label === '') {
+                $label = trim((string)($mb['modul_nummer'] ?? '') . ' ' . (string)($mb['titel'] ?? ''));
+            }
+          ?>
+          <option value="<?= h((string)$mb['modul_belegung_id']) ?>" <?= ((string)$filters['modul_belegung_id'] === (string)$mb['modul_belegung_id']) ? 'selected' : '' ?>>
+            <?= h($label) ?>
           </option>
         <?php endforeach; ?>
       </select>
@@ -244,8 +259,8 @@ try {
           $seen = !empty($n['gesehen_am']);
           $seenText = $seen ? 'Ja' : 'Nein';
 
-          $commentText = (string)($n['last_comment_text'] ?? '');
-          $commentAt = (string)($n['last_comment_at'] ?? '');
+          $commentText   = (string)($n['last_comment_text'] ?? '');
+          $commentAt     = (string)($n['last_comment_at'] ?? '');
           $commentAuthor = (string)($n['last_comment_author'] ?? '');
 
           $commentDisplay = '—';
@@ -302,9 +317,6 @@ try {
       <?php endforeach; ?>
     </table>
 
-    <p>
-      Hinweis: Bei Berufsbildnern ist “Gesehen” = von mir gesehen. Bei Admin/Lernenden: mindestens ein Berufsbildner hat es gesehen.
-    </p>
   <?php endif; ?>
 </body>
 </html>

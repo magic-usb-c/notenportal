@@ -6,14 +6,15 @@ require_login();
 
 header('Content-Type: text/html; charset=utf-8');
 
-$userId = (int)($ctx['user_id'] ?? 0);
+$userId   = (int)($ctx['user_id'] ?? 0);
 $username = (string)($ctx['username'] ?? 'unknown');
-$roles = (array)($ctx['roles'] ?? []);
+$roles    = (array)($ctx['roles'] ?? []);
 
-$user = null;
 $error = '';
+$user = null;
 
 try {
+    // Sanity-Check: User existiert + aktiv
     $stmt = $pdo->prepare(
         'SELECT benutzer_id, benutzername, email, aktiv
          FROM benutzer
@@ -25,6 +26,9 @@ try {
 
     if (!$user) {
         $error = 'Benutzer nicht gefunden (Session ungültig?).';
+    } elseif ((int)($user['aktiv'] ?? 0) !== 1) {
+        $error = 'Account ist deaktiviert. Bitte Admin kontaktieren.';
+        logout_user();
     }
 } catch (Throwable $e) {
     $error = 'Interner Fehler beim Laden der Benutzerdaten.';
@@ -43,13 +47,22 @@ try {
 
   <?= flash_render_html() ?>
 
+  <?php if ($error !== ''): ?>
+    <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
+    <p><a href="/login.php">Zum Login</a></p>
+    <?php exit; ?>
+  <?php endif; ?>
+
   <p>
-    Eingeloggt als: <b><?= h($username) ?></b>
-    (Rollen: <?= h(implode(', ', $roles)) ?>)
+    Eingeloggt als: <b><?= h($username) ?></b><br>
+    Rollen: <?= h($roles ? implode(', ', $roles) : '-') ?>
   </p>
 
   <p>
     <a href="/noten.php">Noten</a>
+    <?php if (!empty($ctx['berufsbildner_id'])): ?>
+      | <a href="/berufsbildner.php">Berufsbildner</a>
+    <?php endif; ?>
     <?php if (!empty($ctx['is_admin'])): ?>
       | <a href="/admin.php">Admin</a>
     <?php endif; ?>
@@ -62,9 +75,7 @@ try {
 
   <hr>
 
-  <?php if ($error !== ''): ?>
-    <p style="color:red;font-weight:bold;"><?= h($error) ?></p>
-  <?php elseif ($user): ?>
+  <?php if ($user): ?>
     <h2>Account</h2>
     <ul>
       <li>ID: <?= h((string)$user['benutzer_id']) ?></li>
