@@ -5,7 +5,7 @@ declare(strict_types=1);
   app/db.php
   Zweck:
   - DB-Config aus /etc/notenportal/db.ini lesen
-  - PDO Verbindung via Unix-Socket aufbauen
+  - PDO Verbindung aufbauen (Unix-Socket ODER TCP)
   - robustes Error-Handling (keine Secrets im Output)
 */
 
@@ -22,10 +22,28 @@ function load_db_config(): array
         throw new RuntimeException('DB config parse failed');
     }
 
-    $required = ['DB_NAME', 'DB_USER', 'DB_PASS', 'DB_SOCKET'];
-    foreach ($required as $k) {
+    // Required minimal
+    foreach (['DB_NAME', 'DB_USER', 'DB_PASS'] as $k) {
         if (!array_key_exists($k, $ini)) {
             throw new RuntimeException('DB config missing key: ' . $k);
+        }
+    }
+
+    // Optional with defaults
+    $ini['DB_CHARSET'] = isset($ini['DB_CHARSET']) && is_string($ini['DB_CHARSET']) && $ini['DB_CHARSET'] !== ''
+        ? $ini['DB_CHARSET']
+        : 'utf8mb4';
+
+    // Either DB_SOCKET or DB_HOST (TCP)
+    if (!isset($ini['DB_SOCKET']) && !isset($ini['DB_HOST'])) {
+        // Default: socket typical on Debian/MariaDB
+        $ini['DB_SOCKET'] = '/run/mysqld/mysqld.sock';
+    }
+
+    if (isset($ini['DB_HOST'])) {
+        $ini['DB_PORT'] = isset($ini['DB_PORT']) ? (int)$ini['DB_PORT'] : 3306;
+        if ($ini['DB_PORT'] <= 0 || $ini['DB_PORT'] > 65535) {
+            throw new RuntimeException('DB config invalid DB_PORT');
         }
     }
 
@@ -36,16 +54,34 @@ function get_pdo(): PDO
 {
     $cfg = load_db_config();
 
-    // Verbindung via Unix-Socket (kein TCP Port nötig)
-    $dsn = sprintf('mysql:unix_socket=%s;dbname=%s;charset=utf8mb4', $cfg['DB_SOCKET'], $cfg['DB_NAME']);
+    $dbName   = (string)$cfg['DB_NAME'];
+    $dbUser   = (string)$cfg['DB_USER'];
+    $dbPass   = (string)$cfg['DB_PASS'];
+    $charset  = (string)$cfg['DB_CHARSET'];
 
-    $pdo = new PDO($dsn, (string)$cfg['DB_USER'], (string)$cfg['DB_PASS'], [
+    // DSN: prefer socket if present and non-empty, else TCP
+    if (!empty($cfg['DB_SOCKET']) && is_string($cfg['DB_SOCKET'])) {
+        $socket = $cfg['DB_SOCKET'];
+        $dsn = sprintf('mysql:unix_socket=%s;dbname=%s;charset=%s', $socket, $dbName, $charset);
+    } else {
+        $host = (string)($cfg['DB_HOST'] ?? '127.0.0.1');
+        $port = (int)($cfg['DB_PORT'] ?? 3306);
+        $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=%s', $host, $port, $dbName, $charset);
+    }
+
+    $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
-    ]);
+        PDO::ATTR_STRINGIFY_FETCHES  => false,
+    ];
 
-    return $pdo;
+    // Optional: Connection timeout (only works for TCP)
+    if (defined('PDO::ATTR_TIMEOUT')) {
+        $options[PDO::ATTR_TIMEOUT] = 5;
+    }
+
+    return new PDO($dsn, $dbUser, $dbPass, $options);
 }
 
 /**

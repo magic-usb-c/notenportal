@@ -14,7 +14,9 @@ function current_user_context(PDO $pdo): array
 {
     start_secure_session();
 
-    $uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+    $uidRaw = $_SESSION['user_id'] ?? 0;
+    $uid = (is_int($uidRaw) || (is_string($uidRaw) && ctype_digit($uidRaw))) ? (int)$uidRaw : 0;
+
     $username = (string)($_SESSION['username'] ?? '');
 
     // nicht eingeloggt -> Kontext minimal, keine weiteren Queries
@@ -30,38 +32,45 @@ function current_user_context(PDO $pdo): array
     }
 
     $roles = current_user_roles($pdo);
+
     $isAdmin = false;
+    $isLernender = false;
+    $isBerufsbildner = false;
+
     foreach ($roles as $r) {
-        if (strcasecmp($r, 'Admin') === 0) {
-            $isAdmin = true;
-            break;
-        }
+        if (strcasecmp($r, 'Admin') === 0) $isAdmin = true;
+        if (strcasecmp($r, 'Lernender') === 0) $isLernender = true;
+        if (strcasecmp($r, 'Berufsbildner') === 0) $isBerufsbildner = true;
     }
 
     $lernenderId = null;
-    $stmt = $pdo->prepare(
-        'SELECT lernender_id
-         FROM lernende
-         WHERE benutzer_id = :uid AND geloescht_am IS NULL
-         LIMIT 1'
-    );
-    $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row && isset($row['lernender_id'])) {
-        $lernenderId = (int)$row['lernender_id'];
+    if ($isLernender || $isAdmin) {
+        $stmt = $pdo->prepare(
+            'SELECT lernender_id
+             FROM lernende
+             WHERE benutzer_id = :uid AND geloescht_am IS NULL
+             LIMIT 1'
+        );
+        $stmt->execute([':uid' => $uid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && isset($row['lernender_id'])) {
+            $lernenderId = (int)$row['lernender_id'];
+        }
     }
 
     $berufsbildnerId = null;
-    $stmt = $pdo->prepare(
-        'SELECT berufsbildner_id
-         FROM berufsbildner
-         WHERE benutzer_id = :uid AND geloescht_am IS NULL
-         LIMIT 1'
-    );
-    $stmt->execute([':uid' => $uid]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row && isset($row['berufsbildner_id'])) {
-        $berufsbildnerId = (int)$row['berufsbildner_id'];
+    if ($isBerufsbildner || $isAdmin) {
+        $stmt = $pdo->prepare(
+            'SELECT berufsbildner_id
+             FROM berufsbildner
+             WHERE benutzer_id = :uid AND geloescht_am IS NULL
+             LIMIT 1'
+        );
+        $stmt->execute([':uid' => $uid]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row && isset($row['berufsbildner_id'])) {
+            $berufsbildnerId = (int)$row['berufsbildner_id'];
+        }
     }
 
     return [

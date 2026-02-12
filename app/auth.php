@@ -17,8 +17,7 @@ const NP_SESSION_IDLE_TIMEOUT = 60 * 60; // 60 Minuten
 
 /**
  * Session start mit sicheren Defaults.
- * Achtung: funktioniert am besten, wenn storage/sessions existiert (PHP session.save_path in php.ini),
- * sonst nutzt PHP den System-default.
+ * Hinweis: Optimal, wenn PHP session.save_path sauber gesetzt ist (z.B. storage/sessions).
  */
 function start_secure_session(): void
 {
@@ -32,11 +31,10 @@ function start_secure_session(): void
 
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
-    // Cookie-Params (merken wir uns für Logout-Löschung)
     $params = [
         'lifetime' => 0,
         'path'     => '/',
-        'domain'   => '',      // leer = current host
+        'domain'   => '',
         'secure'   => $isHttps,
         'httponly' => true,
         'samesite' => 'Lax',
@@ -46,12 +44,12 @@ function start_secure_session(): void
     session_set_cookie_params($params);
     session_start();
 
-    // Light binding gegen Session hijacking (nicht zu aggressiv, sonst Probleme hinter Proxies)
-    if (!isset($_SESSION['_sess_sig'])) {
+    // Light binding gegen Session hijacking (nicht zu aggressiv, sonst Proxy/NAT-Probleme)
+    if (!isset($_SESSION['_sess_sig']) || !is_string($_SESSION['_sess_sig'])) {
         $_SESSION['_sess_sig'] = session_signature();
     } else {
-        if (!hash_equals((string)$_SESSION['_sess_sig'], session_signature())) {
-            // Signatur passt nicht -> Session kill
+        if (!hash_equals($_SESSION['_sess_sig'], session_signature())) {
+            // Signatur passt nicht -> Session kill + Login erzwingen
             logout_user();
             redirect('/login.php');
         }
@@ -59,20 +57,22 @@ function start_secure_session(): void
 }
 
 /**
- * Signature über UA + grobe IP (nur /24 bei IPv4, /64 bei IPv6) um nicht zu strict zu sein.
+ * Signature über UA + grobe IP (/24 bei IPv4, grob /64 bei IPv6).
  */
 function session_signature(): string
 {
     $ua = (string)($_SERVER['HTTP_USER_AGENT'] ?? '');
     $ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
 
-    // IP grob maskieren, damit DHCP/NAT nicht sofort killt, aber Replay schwerer wird
     if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
         $parts = explode('.', $ip);
-        $ip = $parts[0] . '.' . $parts[1] . '.' . $parts[2] . '.0';
+        if (count($parts) === 4) {
+            $ip = $parts[0] . '.' . $parts[1] . '.' . $parts[2] . '.0';
+        }
     } elseif (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-        // very rough /64-ish
-        $ip = preg_replace('/(^([0-9a-fA-F]{0,4}:){4}).*$/', '$1::', $ip) ?: $ip;
+        // grob /64-ish
+        $masked = preg_replace('/(^([0-9a-fA-F]{0,4}:){4}).*$/', '$1::', $ip);
+        $ip = is_string($masked) && $masked !== '' ? $masked : $ip;
     }
 
     return hash('sha256', $ua . '|' . $ip);
@@ -82,7 +82,6 @@ function login_user(int $benutzer_id, string $benutzername): void
 {
     start_secure_session();
 
-    // Neue Session-ID nach Login
     session_regenerate_id(true);
 
     $_SESSION['user_id'] = $benutzer_id;
@@ -91,7 +90,6 @@ function login_user(int $benutzer_id, string $benutzername): void
     $_SESSION['logged_in_at'] = time();
     $_SESSION['last_activity'] = time();
 
-    // Reset Login-Fails
     unset($_SESSION['login_failures'], $_SESSION['login_locked_until']);
 }
 
@@ -101,11 +99,9 @@ function logout_user(): void
 
     $_SESSION = [];
 
-    // Cookie korrekt löschen: gleiche params wie gesetzt
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     $cookieParams = session_get_cookie_params();
 
-    // PHPs session_get_cookie_params() liefert kein samesite, daher setzen wir mindestens path/domain/secure/httponly.
     setcookie(
         session_name(),
         '',
@@ -125,7 +121,20 @@ function logout_user(): void
 function is_logged_in(): bool
 {
     start_secure_session();
-    return isset($_SESSION['user_id']) && ctype_digit((string)$_SESSION['user_id']);
+
+    if (!isset($_SESSION['user_id'])) {
+        return false;
+    }
+
+    // user_id kann int oder string sein, aber muss positiv sein
+    $uid = $_SESSION['user_id'];
+    if (is_int($uid)) {
+        return $uid > 0;
+    }
+    if (is_string($uid) && ctype_digit($uid)) {
+        return (int)$uid > 0;
+    }
+    return false;
 }
 
 function current_user_id(): ?int
@@ -171,7 +180,7 @@ function current_user_roles(PDO $pdo): array
 {
     start_secure_session();
 
-    if (!isset($_SESSION['user_id']) || !ctype_digit((string)$_SESSION['user_id'])) {
+    if (!is_logged_in()) {
         return [];
     }
 
@@ -189,7 +198,9 @@ function current_user_roles(PDO $pdo): array
     $out = [];
     foreach ($rows as $row) {
         $name = trim((string)($row['name'] ?? ''));
-        if ($name !== '') $out[] = $name;
+        if ($name !== '') {
+            $out[] = $name;
+        }
     }
     return $out;
 }

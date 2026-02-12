@@ -6,10 +6,15 @@ declare(strict_types=1);
   Zweck:
   - DB-Zugriffe + Permission-Checks rund um Noten
   - inkl. Kommentare + "Gesehen"-Markierung
+  - angepasst an neues Schema:
+    - noten.modul_belegung_id (statt modul_id)
+    - optional noten.gruppe_id, noten.titel
+    - erfasst_von_benutzer_id / aktualisiert_von_benutzer_id
 */
 
 function can_manage_notes(array $ctx): bool
 {
+    // "manage" = Noten erfassen/bearbeiten/löschen (nicht nur ansehen)
     return !empty($ctx['is_admin']) || !empty($ctx['lernender_id']);
 }
 
@@ -20,22 +25,47 @@ function can_manage_note(array $ctx, int $noteLernenderId): bool
     return false;
 }
 
-function load_note_form_options(PDO $pdo, bool $isAdmin): array
+/**
+ * Optionen fürs Note-Formular.
+ * Wichtig: Für Modul-Noten braucht man modul_belegung_id.
+ *
+ * Rückgabe-Keys:
+ * - kategorien, semester, faecher, modul_belegungen, gruppen (alle Gruppen), lernende (nur Admin)
+ */
+function load_note_form_options(PDO $pdo, bool $isAdmin, ?int $lernenderId = null): array
 {
     $opt = [
         'kategorien' => [],
         'semester' => [],
         'faecher' => [],
-        'module' => [],
+        'modul_belegungen' => [],
+        'gruppen' => [],
         'lernende' => [],
     ];
 
     $opt['kategorien'] = $pdo->query('SELECT kategorie_id, name FROM kategorien ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
     $opt['semester']   = $pdo->query('SELECT semester_id, bezeichnung FROM semester ORDER BY semester_id')->fetchAll(PDO::FETCH_ASSOC) ?: [];
     $opt['faecher']    = $pdo->query('SELECT fach_id, name FROM faecher ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    $opt['module']     = $pdo->query('SELECT modul_id, titel FROM module ORDER BY titel')->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
+    // Modul-Belegungen (für Dropdown bei Modul-Noten)
+    // Admin: alle Belegungen (inkl. Lernendenname)
+    // Lernender: nur eigene
     if ($isAdmin) {
+        $sql = '
+            SELECT mb.modul_belegung_id,
+                   mb.lernender_id,
+                   m.modul_nummer,
+                   m.titel,
+                   CONCAT(m.modul_nummer, " ", m.titel, " (", b.benutzername, ")") AS label
+            FROM modul_belegungen mb
+            JOIN module m ON m.modul_id = mb.modul_id
+            JOIN lernende l ON l.lernender_id = mb.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            WHERE l.geloescht_am IS NULL
+            ORDER BY m.modul_nummer, m.titel, b.benutzername
+        ';
+        $opt['modul_belegungen'] = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
         $stmt = $pdo->query(
             'SELECT l.lernender_id, b.benutzername
              FROM lernende l
@@ -44,7 +74,31 @@ function load_note_form_options(PDO $pdo, bool $isAdmin): array
              ORDER BY b.benutzername'
         );
         $opt['lernende'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    } else {
+        if ($lernenderId) {
+            $stmt = $pdo->prepare(
+                'SELECT mb.modul_belegung_id,
+                        mb.lernender_id,
+                        m.modul_nummer,
+                        m.titel,
+                        CONCAT(m.modul_nummer, " ", m.titel) AS label
+                 FROM modul_belegungen mb
+                 JOIN module m ON m.modul_id = mb.modul_id
+                 WHERE mb.lernender_id = :lid
+                 ORDER BY m.modul_nummer, m.titel'
+            );
+            $stmt->execute([':lid' => (int)$lernenderId]);
+            $opt['modul_belegungen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
     }
+
+    // Gruppen (optional) – alle Gruppen laden, später kannst du UI-seitig nach Belegung filtern
+    $sqlGroups = '
+        SELECT g.gruppe_id, g.modul_belegung_id, g.bezeichnung
+        FROM modul_note_gruppen g
+        ORDER BY g.modul_belegung_id, g.bezeichnung
+    ';
+    $opt['gruppen'] = $pdo->query($sqlGroups)->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
     return $opt;
 }
@@ -52,7 +106,8 @@ function load_note_form_options(PDO $pdo, bool $isAdmin): array
 function fetch_note(PDO $pdo, int $noteId): ?array
 {
     $stmt = $pdo->prepare(
-        'SELECT note_id, lernender_id, kategorie_id, semester_id, fach_id, modul_id,
+        'SELECT note_id, lernender_id, kategorie_id, semester_id,
+                fach_id, modul_belegung_id, gruppe_id, titel,
                 pruefungsdatum, note_wert, gewichtung_prozent
          FROM noten
          WHERE note_id = :id AND geloescht_am IS NULL
@@ -65,15 +120,20 @@ function fetch_note(PDO $pdo, int $noteId): ?array
 
 function insert_note(PDO $pdo, array $data, int $createdByUserId): int
 {
+    // Backward-Compat falls irgendwo noch "modul_id" kommt:
+    $modulBelegungId = $data['modul_belegung_id'] ?? ($data['modul_id'] ?? null);
+
     $stmt = $pdo->prepare(
         'INSERT INTO noten (
-            lernender_id, kategorie_id, semester_id, fach_id, modul_id,
-            pruefungsdatum, note_wert, gewichtung_prozent,
-            erstellt_von_benutzer_id
+            lernender_id, kategorie_id, semester_id,
+            fach_id, modul_belegung_id, gruppe_id,
+            titel, pruefungsdatum, note_wert, gewichtung_prozent,
+            erfasst_von_benutzer_id
          ) VALUES (
-            :lernender_id, :kategorie_id, :semester_id, :fach_id, :modul_id,
-            :pruefungsdatum, :note_wert, :gewichtung_prozent,
-            :erstellt_von_benutzer_id
+            :lernender_id, :kategorie_id, :semester_id,
+            :fach_id, :modul_belegung_id, :gruppe_id,
+            :titel, :pruefungsdatum, :note_wert, :gewichtung_prozent,
+            :erfasst_von_benutzer_id
          )'
     );
 
@@ -81,29 +141,36 @@ function insert_note(PDO $pdo, array $data, int $createdByUserId): int
         ':lernender_id' => (int)$data['lernender_id'],
         ':kategorie_id' => (int)$data['kategorie_id'],
         ':semester_id' => (int)$data['semester_id'],
-        ':fach_id' => $data['fach_id'] ? (int)$data['fach_id'] : null,
-        ':modul_id' => $data['modul_id'] ? (int)$data['modul_id'] : null,
+        ':fach_id' => !empty($data['fach_id']) ? (int)$data['fach_id'] : null,
+        ':modul_belegung_id' => !empty($modulBelegungId) ? (int)$modulBelegungId : null,
+        ':gruppe_id' => !empty($data['gruppe_id']) ? (int)$data['gruppe_id'] : null,
+        ':titel' => (isset($data['titel']) && $data['titel'] !== '') ? (string)$data['titel'] : null,
         ':pruefungsdatum' => (string)$data['pruefungsdatum'],
         ':note_wert' => (string)$data['note_wert'],
         ':gewichtung_prozent' => ($data['gewichtung_prozent'] === null ? null : (string)$data['gewichtung_prozent']),
-        ':erstellt_von_benutzer_id' => $createdByUserId,
+        ':erfasst_von_benutzer_id' => $createdByUserId,
     ]);
 
     return (int)$pdo->lastInsertId();
 }
 
-function update_note(PDO $pdo, int $noteId, array $data): void
+function update_note(PDO $pdo, int $noteId, array $data, ?int $updatedByUserId = null): void
 {
+    $modulBelegungId = $data['modul_belegung_id'] ?? ($data['modul_id'] ?? null);
+
     $stmt = $pdo->prepare(
         'UPDATE noten
          SET lernender_id = :lernender_id,
              kategorie_id = :kategorie_id,
              semester_id = :semester_id,
              fach_id = :fach_id,
-             modul_id = :modul_id,
+             modul_belegung_id = :modul_belegung_id,
+             gruppe_id = :gruppe_id,
+             titel = :titel,
              pruefungsdatum = :pruefungsdatum,
              note_wert = :note_wert,
-             gewichtung_prozent = :gewichtung_prozent
+             gewichtung_prozent = :gewichtung_prozent,
+             aktualisiert_von_benutzer_id = :aktualisiert_von_benutzer_id
          WHERE note_id = :id AND geloescht_am IS NULL
          LIMIT 1'
     );
@@ -113,11 +180,14 @@ function update_note(PDO $pdo, int $noteId, array $data): void
         ':lernender_id' => (int)$data['lernender_id'],
         ':kategorie_id' => (int)$data['kategorie_id'],
         ':semester_id' => (int)$data['semester_id'],
-        ':fach_id' => $data['fach_id'] ? (int)$data['fach_id'] : null,
-        ':modul_id' => $data['modul_id'] ? (int)$data['modul_id'] : null,
+        ':fach_id' => !empty($data['fach_id']) ? (int)$data['fach_id'] : null,
+        ':modul_belegung_id' => !empty($modulBelegungId) ? (int)$modulBelegungId : null,
+        ':gruppe_id' => !empty($data['gruppe_id']) ? (int)$data['gruppe_id'] : null,
+        ':titel' => (isset($data['titel']) && $data['titel'] !== '') ? (string)$data['titel'] : null,
         ':pruefungsdatum' => (string)$data['pruefungsdatum'],
         ':note_wert' => (string)$data['note_wert'],
         ':gewichtung_prozent' => ($data['gewichtung_prozent'] === null ? null : (string)$data['gewichtung_prozent']),
+        ':aktualisiert_von_benutzer_id' => $updatedByUserId,
     ]);
 }
 
@@ -140,51 +210,50 @@ function soft_delete_note(PDO $pdo, int $noteId): void
  */
 function fetch_note_detail_for_ctx(PDO $pdo, array $ctx, int $noteId): ?array
 {
+    $baseSelect = '
+        SELECT n.note_id, n.lernender_id, n.kategorie_id, n.semester_id,
+               n.fach_id, n.modul_belegung_id, n.gruppe_id, n.titel,
+               n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+               k.name AS kategorie,
+               s.bezeichnung AS semester,
+               f.name AS fach_name,
+               m.modul_nummer AS modul_nummer,
+               m.titel AS modul_titel,
+               g.bezeichnung AS gruppen_name,
+               %s
+               %s AS gelesen_am
+        FROM noten n
+        JOIN kategorien k ON k.kategorie_id = n.kategorie_id
+        JOIN semester s ON s.semester_id = n.semester_id
+        LEFT JOIN faecher f ON f.fach_id = n.fach_id
+        LEFT JOIN modul_belegungen mb ON mb.modul_belegung_id = n.modul_belegung_id
+        LEFT JOIN module m ON m.modul_id = mb.modul_id
+        LEFT JOIN modul_note_gruppen g ON g.gruppe_id = n.gruppe_id AND g.modul_belegung_id = n.modul_belegung_id
+    ';
+
     if (!empty($ctx['is_admin'])) {
-        $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.lernender_id, n.kategorie_id, n.semester_id, n.fach_id, n.modul_id,
-                    n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    s.bezeichnung AS semester,
-                    f.name AS fach_name,
-                    m.titel AS modul_titel,
-                    b.benutzername AS lernender_username,
-                    NULL AS gelesen_am
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             JOIN lernende l ON l.lernender_id = n.lernender_id
-             JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             WHERE n.note_id = :id AND n.geloescht_am IS NULL
-             LIMIT 1'
-        );
+        $sql = sprintf($baseSelect, 'b.benutzername AS lernender_username,', 'NULL');
+        $sql .= '
+            JOIN lernende l ON l.lernender_id = n.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            WHERE n.note_id = :id AND n.geloescht_am IS NULL
+            LIMIT 1
+        ';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $noteId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ?: null;
     }
 
     if (!empty($ctx['lernender_id'])) {
-        $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.lernender_id, n.kategorie_id, n.semester_id, n.fach_id, n.modul_id,
-                    n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    s.bezeichnung AS semester,
-                    f.name AS fach_name,
-                    m.titel AS modul_titel,
-                    NULL AS lernender_username,
-                    NULL AS gelesen_am
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             WHERE n.note_id = :id
-               AND n.geloescht_am IS NULL
-               AND n.lernender_id = :lid
-             LIMIT 1'
-        );
+        $sql = sprintf($baseSelect, 'NULL AS lernender_username,', 'NULL');
+        $sql .= '
+            WHERE n.note_id = :id
+              AND n.geloescht_am IS NULL
+              AND n.lernender_id = :lid
+            LIMIT 1
+        ';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':id' => $noteId,
             ':lid' => (int)$ctx['lernender_id'],
@@ -194,38 +263,26 @@ function fetch_note_detail_for_ctx(PDO $pdo, array $ctx, int $noteId): ?array
     }
 
     if (!empty($ctx['berufsbildner_id'])) {
-        $stmt = $pdo->prepare(
-            'SELECT n.note_id, n.lernender_id, n.kategorie_id, n.semester_id, n.fach_id, n.modul_id,
-                    n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                    k.name AS kategorie,
-                    s.bezeichnung AS semester,
-                    f.name AS fach_name,
-                    m.titel AS modul_titel,
-                    b.benutzername AS lernender_username,
-                    ng.gesehen_am AS gelesen_am
-             FROM noten n
-             JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-             JOIN semester s ON s.semester_id = n.semester_id
-             JOIN lernende l ON l.lernender_id = n.lernender_id
-             JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-             JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
-             LEFT JOIN faecher f ON f.fach_id = n.fach_id
-             LEFT JOIN module m ON m.modul_id = n.modul_id
-             LEFT JOIN (
+        $sql = sprintf($baseSelect, 'b.benutzername AS lernender_username,', 'ng.gesehen_am');
+        $sql .= '
+            JOIN lernende l ON l.lernender_id = n.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
+            LEFT JOIN (
                 SELECT note_id, berufsbildner_id, MAX(gesehen_am) AS gesehen_am
                 FROM noten_gesehen
                 GROUP BY note_id, berufsbildner_id
-             ) ng
-             ON ng.note_id = n.note_id
+            ) ng
+              ON ng.note_id = n.note_id
              AND ng.berufsbildner_id = :bbid_join
-
-             WHERE n.note_id = :id
-               AND n.geloescht_am IS NULL
-               AND bt.berufsbildner_id = :bbid_where
-               AND bt.gueltig_von <= CURDATE()
-               AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
-             LIMIT 1'
-        );
+            WHERE n.note_id = :id
+              AND n.geloescht_am IS NULL
+              AND bt.berufsbildner_id = :bbid_where
+              AND bt.gueltig_von <= CURDATE()
+              AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
+            LIMIT 1
+        ';
+        $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':id' => $noteId,
             ':bbid_join' => (int)$ctx['berufsbildner_id'],
@@ -252,7 +309,6 @@ function fetch_note_comments(PDO $pdo, int $noteId): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 }
 
-
 function add_note_comment(PDO $pdo, int $noteId, int $authorUserId, string $text): void
 {
     $stmt = $pdo->prepare(
@@ -265,7 +321,6 @@ function add_note_comment(PDO $pdo, int $noteId, int $authorUserId, string $text
         ':txt' => $text,
     ]);
 }
-
 
 function mark_note_seen(PDO $pdo, int $noteId, int $berufsbildnerId): void
 {
@@ -291,12 +346,25 @@ function load_note_filter_options(PDO $pdo, array $ctx): array
         'kategorien' => $pdo->query('SELECT kategorie_id, name FROM kategorien ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [],
         'semester'   => $pdo->query('SELECT semester_id, bezeichnung FROM semester ORDER BY semester_id')->fetchAll(PDO::FETCH_ASSOC) ?: [],
         'faecher'    => $pdo->query('SELECT fach_id, name FROM faecher ORDER BY name')->fetchAll(PDO::FETCH_ASSOC) ?: [],
-        'module'     => $pdo->query('SELECT modul_id, titel FROM module ORDER BY titel')->fetchAll(PDO::FETCH_ASSOC) ?: [],
+        // Für Filter: wir liefern Modul-Belegungen (weil Noten darauf referenzieren)
+        'modul_belegungen' => [],
         'lernende'   => [],
     ];
 
-    // Admin: alle Lernenden
     if (!empty($ctx['is_admin'])) {
+        $sql = '
+            SELECT mb.modul_belegung_id, mb.lernender_id,
+                   m.modul_nummer, m.titel,
+                   CONCAT(m.modul_nummer, " ", m.titel, " (", b.benutzername, ")") AS label
+            FROM modul_belegungen mb
+            JOIN module m ON m.modul_id = mb.modul_id
+            JOIN lernende l ON l.lernender_id = mb.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            WHERE l.geloescht_am IS NULL
+            ORDER BY m.modul_nummer, m.titel, b.benutzername
+        ';
+        $opt['modul_belegungen'] = $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
         $stmt = $pdo->query(
             'SELECT l.lernender_id, b.benutzername
              FROM lernende l
@@ -308,9 +376,27 @@ function load_note_filter_options(PDO $pdo, array $ctx): array
         return $opt;
     }
 
-    // Berufsbildner: nur betreute Lernende
     if (!empty($ctx['berufsbildner_id'])) {
         $stmt = $pdo->prepare(
+            'SELECT DISTINCT mb.modul_belegung_id, mb.lernender_id,
+                    m.modul_nummer, m.titel,
+                    CONCAT(m.modul_nummer, " ", m.titel, " (", b.benutzername, ")") AS label
+             FROM betreuungen bt
+             JOIN lernende l ON l.lernender_id = bt.lernender_id
+             JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+             LEFT JOIN modul_belegungen mb ON mb.lernender_id = l.lernender_id
+             LEFT JOIN module m ON m.modul_id = mb.modul_id
+             WHERE l.geloescht_am IS NULL
+               AND bt.berufsbildner_id = :bbid
+               AND bt.gueltig_von <= CURDATE()
+               AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
+             ORDER BY b.benutzername, m.modul_nummer, m.titel'
+        );
+        $stmt->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
+        $opt['modul_belegungen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+        // Lernende-Liste wie vorher (für Berufsbildner Filter)
+        $stmt2 = $pdo->prepare(
             'SELECT DISTINCT l.lernender_id, b.benutzername
              FROM betreuungen bt
              JOIN lernende l ON l.lernender_id = bt.lernender_id
@@ -321,8 +407,23 @@ function load_note_filter_options(PDO $pdo, array $ctx): array
                AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
              ORDER BY b.benutzername'
         );
-        $stmt->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
-        $opt['lernende'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        $stmt2->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
+        $opt['lernende'] = $stmt2->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    // Lernender: eigene Belegungen (nice-to-have fürs Filter-UI)
+    if (!empty($ctx['lernender_id'])) {
+        $stmt = $pdo->prepare(
+            'SELECT mb.modul_belegung_id, mb.lernender_id,
+                    m.modul_nummer, m.titel,
+                    CONCAT(m.modul_nummer, " ", m.titel) AS label
+             FROM modul_belegungen mb
+             JOIN module m ON m.modul_id = mb.modul_id
+             WHERE mb.lernender_id = :lid
+             ORDER BY m.modul_nummer, m.titel'
+        );
+        $stmt->execute([':lid' => (int)$ctx['lernender_id']]);
+        $opt['modul_belegungen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     return $opt;
@@ -347,7 +448,7 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
     $where = ['n.geloescht_am IS NULL'];
     $params = [];
 
-    // Dynamische Filter (jeder Placeholder nur 1x -> kein HY093)
+    // Filter
     if (!empty($filters['kategorie_id'])) {
         $where[] = 'n.kategorie_id = :kategorie_id';
         $params[':kategorie_id'] = (int)$filters['kategorie_id'];
@@ -360,9 +461,16 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
         $where[] = 'n.fach_id = :fach_id';
         $params[':fach_id'] = (int)$filters['fach_id'];
     }
-    if (!empty($filters['modul_id'])) {
-        $where[] = 'n.modul_id = :modul_id';
-        $params[':modul_id'] = (int)$filters['modul_id'];
+
+    // neues Feld: modul_belegung_id
+    $filterBelegung = $filters['modul_belegung_id'] ?? null;
+
+    // Backward-Compat: falls UI noch "modul_id" sendet -> filtert über JOIN module
+    $filterModulId = $filters['modul_id'] ?? null;
+
+    if (!empty($filterBelegung)) {
+        $where[] = 'n.modul_belegung_id = :mbid';
+        $params[':mbid'] = (int)$filterBelegung;
     }
 
     $seenFilter = (string)($filters['seen'] ?? 'all');
@@ -379,23 +487,30 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
         LEFT JOIN benutzer cb ON cb.benutzer_id = nk.autor_benutzer_id
     ';
 
-    $baseSelect = '
-        SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-               k.name AS kategorie,
-               COALESCE(f.name, m.titel) AS objekt_name,
-               s.bezeichnung AS semester,
-               %s
-               ng.gesehen_am AS gesehen_am,
-               nk.kommentar_text AS last_comment_text,
-               nk.erstellt_am AS last_comment_at,
-               cb.benutzername AS last_comment_author
+    // Objektname: Fachname oder Modulnummer+Titel (aus Belegung)
+    $objektExpr = '
+        CASE
+          WHEN n.fach_id IS NOT NULL THEN f.name
+          ELSE CONCAT(m.modul_nummer, " ", m.titel)
+        END
+    ';
+
+    $baseFrom = '
         FROM noten n
         JOIN kategorien k ON k.kategorie_id = n.kategorie_id
         JOIN semester s ON s.semester_id = n.semester_id
         LEFT JOIN faecher f ON f.fach_id = n.fach_id
-        LEFT JOIN module m ON m.modul_id = n.modul_id
+        LEFT JOIN modul_belegungen mb ON mb.modul_belegung_id = n.modul_belegung_id
+        LEFT JOIN module m ON m.modul_id = mb.modul_id
     ';
 
+    // Falls alter Filter modul_id genutzt wird
+    if (!empty($filterModulId)) {
+        $where[] = 'm.modul_id = :modul_id';
+        $params[':modul_id'] = (int)$filterModulId;
+    }
+
+    // Seen-Joins
     if ($isAdmin) {
         $seenJoin = '
             LEFT JOIN (
@@ -404,12 +519,6 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
                 GROUP BY note_id
             ) ng ON ng.note_id = n.note_id
         ';
-        $join = '
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-        ' . $seenJoin . $lastCommentJoin;
-
-        $learnerSelect = 'b.benutzername AS lernender_username,';
 
         if (!empty($filters['lernender_id'])) {
             $where[] = 'n.lernender_id = :lid_filter';
@@ -419,10 +528,24 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
         if ($seenFilter === 'yes') $where[] = 'ng.gesehen_am IS NOT NULL';
         if ($seenFilter === 'no')  $where[] = 'ng.gesehen_am IS NULL';
 
-        $sql = sprintf($baseSelect, $learnerSelect) . $join .
-            ' WHERE ' . implode(' AND ', $where) .
-            ' ORDER BY ' . $orderBy .
-            ' LIMIT 200';
+        $sql = '
+            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+                   k.name AS kategorie,
+                   ' . $objektExpr . ' AS objekt_name,
+                   s.bezeichnung AS semester,
+                   b.benutzername AS lernender_username,
+                   ng.gesehen_am AS gesehen_am,
+                   nk.kommentar_text AS last_comment_text,
+                   nk.erstellt_am AS last_comment_at,
+                   cb.benutzername AS last_comment_author
+            ' . $baseFrom . '
+            JOIN lernende l ON l.lernender_id = n.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            ' . $seenJoin . $lastCommentJoin . '
+            WHERE ' . implode(' AND ', $where) . '
+            ORDER BY ' . $orderBy . '
+            LIMIT 200
+        ';
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -430,7 +553,6 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
     }
 
     if ($isLearner) {
-        // Lernender sieht nur sich, egal was im Filter steht
         $where[] = 'n.lernender_id = :lid_role';
         $params[':lid_role'] = (int)$ctx['lernender_id'];
 
@@ -445,11 +567,22 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
         if ($seenFilter === 'yes') $where[] = 'ng.gesehen_am IS NOT NULL';
         if ($seenFilter === 'no')  $where[] = 'ng.gesehen_am IS NULL';
 
-        $sql = sprintf($baseSelect, 'NULL AS lernender_username,') .
-            $seenJoin . $lastCommentJoin .
-            ' WHERE ' . implode(' AND ', $where) .
-            ' ORDER BY ' . $orderBy .
-            ' LIMIT 200';
+        $sql = '
+            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+                   k.name AS kategorie,
+                   ' . $objektExpr . ' AS objekt_name,
+                   s.bezeichnung AS semester,
+                   NULL AS lernender_username,
+                   ng.gesehen_am AS gesehen_am,
+                   nk.kommentar_text AS last_comment_text,
+                   nk.erstellt_am AS last_comment_at,
+                   cb.benutzername AS last_comment_author
+            ' . $baseFrom . '
+            ' . $seenJoin . $lastCommentJoin . '
+            WHERE ' . implode(' AND ', $where) . '
+            ORDER BY ' . $orderBy . '
+            LIMIT 200
+        ';
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -457,7 +590,6 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
     }
 
     if ($isBb) {
-        // Berufsbildner sieht nur betreute Lernende
         $seenJoin = '
             LEFT JOIN (
                 SELECT note_id, MAX(gesehen_am) AS gesehen_am
@@ -467,12 +599,6 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
             ) ng ON ng.note_id = n.note_id
         ';
         $params[':bbid_seen'] = (int)$ctx['berufsbildner_id'];
-
-        $join = '
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-            JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
-        ' . $seenJoin . $lastCommentJoin;
 
         $where[] = 'bt.berufsbildner_id = :bbid_where';
         $params[':bbid_where'] = (int)$ctx['berufsbildner_id'];
@@ -487,10 +613,25 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
         if ($seenFilter === 'yes') $where[] = 'ng.gesehen_am IS NOT NULL';
         if ($seenFilter === 'no')  $where[] = 'ng.gesehen_am IS NULL';
 
-        $sql = sprintf($baseSelect, 'b.benutzername AS lernender_username,') . $join .
-            ' WHERE ' . implode(' AND ', $where) .
-            ' ORDER BY ' . $orderBy .
-            ' LIMIT 200';
+        $sql = '
+            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
+                   k.name AS kategorie,
+                   ' . $objektExpr . ' AS objekt_name,
+                   s.bezeichnung AS semester,
+                   b.benutzername AS lernender_username,
+                   ng.gesehen_am AS gesehen_am,
+                   nk.kommentar_text AS last_comment_text,
+                   nk.erstellt_am AS last_comment_at,
+                   cb.benutzername AS last_comment_author
+            ' . $baseFrom . '
+            JOIN lernende l ON l.lernender_id = n.lernender_id
+            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
+            JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
+            ' . $seenJoin . $lastCommentJoin . '
+            WHERE ' . implode(' AND ', $where) . '
+            ORDER BY ' . $orderBy . '
+            LIMIT 200
+        ';
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
@@ -500,115 +641,10 @@ function fetch_notes_list_for_ctx_filtered(PDO $pdo, array $ctx, array $filters,
     return [];
 }
 
-
+/**
+ * Simple default list (ohne Filter). Beibehalten für Kompatibilität.
+ */
 function fetch_notes_list_for_ctx(PDO $pdo, array $ctx): array
 {
-    // Letzter Kommentar pro Note (über kommentar_id, stabil)
-    $lastCommentJoin = '
-        LEFT JOIN (
-            SELECT note_id, MAX(kommentar_id) AS last_kommentar_id
-            FROM noten_kommentare
-            GROUP BY note_id
-        ) lk ON lk.note_id = n.note_id
-        LEFT JOIN noten_kommentare nk ON nk.kommentar_id = lk.last_kommentar_id
-        LEFT JOIN benutzer cb ON cb.benutzer_id = nk.autor_benutzer_id
-    ';
-
-    if (!empty($ctx['is_admin'])) {
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   s.bezeichnung AS semester,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   b.benutzername AS lernender_username,
-                   NULL AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-        return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    }
-
-    if (!empty($ctx['lernender_id'])) {
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   s.bezeichnung AS semester,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   NULL AS lernender_username,
-                   NULL AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-              AND n.lernender_id = :lid
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':lid' => (int)$ctx['lernender_id']]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    }
-
-    if (!empty($ctx['berufsbildner_id'])) {
-        // Seen-Status pro Note für diesen Berufsbildner (stabil via MAX)
-        $seenJoin = '
-            LEFT JOIN (
-                SELECT note_id, berufsbildner_id, MAX(gesehen_am) AS gesehen_am
-                FROM noten_gesehen
-                GROUP BY note_id, berufsbildner_id
-            ) ng ON ng.note_id = n.note_id AND ng.berufsbildner_id = :bbid
-        ';
-
-        $sql = '
-            SELECT n.note_id, n.lernender_id, n.pruefungsdatum, n.note_wert, n.gewichtung_prozent,
-                   k.name AS kategorie,
-                   s.bezeichnung AS semester,
-                   COALESCE(f.name, m.titel) AS objekt_name,
-                   b.benutzername AS lernender_username,
-                   ng.gesehen_am AS gesehen_am,
-                   nk.kommentar_text AS last_comment_text,
-                   nk.erstellt_am AS last_comment_at,
-                   cb.benutzername AS last_comment_author
-            FROM noten n
-            JOIN kategorien k ON k.kategorie_id = n.kategorie_id
-            JOIN semester s ON s.semester_id = n.semester_id
-            JOIN lernende l ON l.lernender_id = n.lernender_id
-            JOIN benutzer b ON b.benutzer_id = l.benutzer_id
-            JOIN betreuungen bt ON bt.lernender_id = n.lernender_id
-            LEFT JOIN faecher f ON f.fach_id = n.fach_id
-            LEFT JOIN module m ON m.modul_id = n.modul_id
-            ' . $seenJoin . '
-            ' . $lastCommentJoin . '
-            WHERE n.geloescht_am IS NULL
-              AND bt.berufsbildner_id = :bbid
-              AND bt.gueltig_von <= CURDATE()
-              AND (bt.gueltig_bis IS NULL OR bt.gueltig_bis >= CURDATE())
-            ORDER BY n.pruefungsdatum DESC
-            LIMIT 200
-        ';
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([':bbid' => (int)$ctx['berufsbildner_id']]);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
-    }
-
-    return [];
+    return fetch_notes_list_for_ctx_filtered($pdo, $ctx, [], 'date_desc');
 }
-

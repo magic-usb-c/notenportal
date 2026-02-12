@@ -18,13 +18,29 @@ require_once __DIR__ . '/flash.php';
 require_once __DIR__ . '/validate.php';
 require_once __DIR__ . '/user_context.php';
 
-// Security-basics (du hast einiges bereits im Apache; hier als Backup)
+// Security headers (Apache kann das auch setzen; hier als Fallback)
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: DENY');
 header('Referrer-Policy: no-referrer');
+header('Permissions-Policy: geolocation=(), microphone=(), camera=()');
+
+// Für Auth/Noten-Seiten sinnvoll: nicht cachen
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+
+// CSP Baseline (vorsichtig, damit dein CSS/JS nicht unerwartet bricht)
+// Falls du später Inline-Skripte brauchst: lieber nonce-basiert lösen.
+if (!headers_sent()) {
+    header("Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'");
+}
 
 // Session + CSRF
 start_secure_session();
+
+// Optionales Timeout-Backup (wenn du Seiten hast, die kein require_login() nutzen)
+if (is_logged_in()) {
+    enforce_idle_timeout();
+}
 
 if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -32,7 +48,8 @@ if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
 
 // HTML escaping helper
 if (!function_exists('h')) {
-    function h(string $s): string {
+    function h(string $s): string
+    {
         return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
 }
@@ -57,6 +74,7 @@ try {
     app_log('error', 'Loading user context failed', [
         'exception' => get_class($e),
     ]);
+
     $ctx = [
         'user_id' => 0,
         'username' => '',
