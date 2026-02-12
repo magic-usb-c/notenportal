@@ -21,7 +21,12 @@ if (!$noteId) {
 
 $isAdmin = !empty($ctx['is_admin']);
 
-function load_note_edit_options(PDO $pdo, bool $isAdmin, int $lernenderId): array
+/**
+ * Lädt Auswahlwerte für Edit.
+ * Wichtig: gruppen werden optional nach $onlyForModulBelegungId gefiltert,
+ * damit im UI nie „falsche“ Gruppen auswählbar sind.
+ */
+function load_note_edit_options(PDO $pdo, bool $isAdmin, int $lernenderId, ?int $onlyForModulBelegungId = null): array
 {
     $opt = [
         'kategorien' => [],
@@ -30,7 +35,7 @@ function load_note_edit_options(PDO $pdo, bool $isAdmin, int $lernenderId): arra
         'lernende' => [],
         'modul_belegungen' => [],
         'gruppen' => [],
-        // defensive: falls im Template noch irgendwo opt['module'] vorkommt
+        // defensive: falls irgendwo noch opt['module'] verwendet wird
         'module' => [],
     ];
 
@@ -53,7 +58,7 @@ function load_note_edit_options(PDO $pdo, bool $isAdmin, int $lernenderId): arra
         )->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
-    // Modul-Belegungen nur für den (ausgewählten) Lernenden
+    // Modul-Belegungen nur für den Lernenden
     $stmt = $pdo->prepare(
         'SELECT mb.modul_belegung_id, mb.modul_id, m.modul_nummer, m.titel
          FROM modul_belegungen mb
@@ -64,17 +69,19 @@ function load_note_edit_options(PDO $pdo, bool $isAdmin, int $lernenderId): arra
     $stmt->execute([':lid' => $lernenderId]);
     $opt['modul_belegungen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
-    // Gruppen für diese Modul-Belegungen
-    // FIX: keine Spalten 'name' / 'ziel_summe_punkte' selektieren
-    $stmt = $pdo->prepare(
-        'SELECT g.gruppe_id, g.modul_belegung_id, g.bezeichnung
-         FROM modul_note_gruppen g
-         JOIN modul_belegungen mb ON mb.modul_belegung_id = g.modul_belegung_id
-         WHERE mb.lernender_id = :lid
-         ORDER BY g.modul_belegung_id, g.gruppe_id'
-    );
-    $stmt->execute([':lid' => $lernenderId]);
-    $opt['gruppen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    // Gruppen – NUR für die gewählte Modul-Belegung (wenn gesetzt), sonst leer
+    if ($onlyForModulBelegungId !== null) {
+        $stmt = $pdo->prepare(
+            'SELECT g.gruppe_id, g.modul_belegung_id, g.bezeichnung
+             FROM modul_note_gruppen g
+             WHERE g.modul_belegung_id = :mbid
+             ORDER BY g.gruppe_id'
+        );
+        $stmt->execute([':mbid' => $onlyForModulBelegungId]);
+        $opt['gruppen'] = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    } else {
+        $opt['gruppen'] = [];
+    }
 
     return $opt;
 }
@@ -118,7 +125,9 @@ try {
         'gewichtung_prozent' => (string)($note['gewichtung_prozent'] ?? '100'),
     ];
 
-    $opt = load_note_edit_options($pdo, $isAdmin, (int)$note['lernender_id']);
+    $mbidForGroups = v_int_id($note['modul_belegung_id'] ?? null);
+    $opt = load_note_edit_options($pdo, $isAdmin, (int)$note['lernender_id'], $mbidForGroups);
+
 } catch (Throwable $e) {
     app_log_exception('Load note edit failed', $e, ['note_id' => $noteId, 'user_id' => $ctx['user_id'] ?? null]);
     http_response_code(500);
@@ -133,12 +142,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $values[$k] = trim((string)($_POST[$k] ?? $v));
     }
 
+    // Lernender: Admin kann wechseln, Lernender nicht
     $selectedLernenderId = $isAdmin
         ? (v_int_id($_POST['lernender_id'] ?? null) ?? (int)$note['lernender_id'])
         : (int)$note['lernender_id'];
 
+    // Aktuell gewählte Modul-Belegung (für gruppen-options)
+    $selectedModulBelegungId = v_int_id($_POST['modul_belegung_id'] ?? null);
+
     try {
-        $opt = load_note_edit_options($pdo, $isAdmin, $selectedLernenderId);
+        $opt = load_note_edit_options($pdo, $isAdmin, $selectedLernenderId, $selectedModulBelegungId);
     } catch (Throwable $e) {
         app_log_exception('Reload note edit options failed', $e, ['note_id' => $noteId, 'user_id' => $ctx['user_id'] ?? null]);
         $errors['form'] = 'Interner Fehler beim Laden der Auswahlwerte.';
@@ -176,16 +189,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     elseif (mb_strlen($data['titel'], 'UTF-8') > 150) $errors['titel'] = 'Titel zu lang (max. 150 Zeichen).';
 
     $data['fach_id'] = v_int_id($_POST['fach_id'] ?? null);
-    $data['modul_belegung_id'] = v_int_id($_POST['modul_belegung_id'] ?? null);
+    $data['modul_belegung_id'] = $selectedModulBelegungId;
     $data['gruppe_id'] = v_int_id($_POST['gruppe_id'] ?? null);
 
+    // XOR: Fach vs Modul-Belegung
     if (!$data['fach_id'] && !$data['modul_belegung_id']) $errors['objekt'] = 'Wähle ein Fach oder eine Modul-Belegung.';
     if ($data['fach_id'] && $data['modul_belegung_id']) $errors['objekt'] = 'Wähle entweder Fach oder Modul-Belegung, nicht beides.';
 
-    if ($data['fach_id']) $data['gruppe_id'] = null;
+    // Wenn Fach gewählt: Gruppe muss leer sein
+    if ($data['fach_id']) {
+        $data['gruppe_id'] = null;
+    }
 
+    // Modul-Belegung muss zum Lernenden passen, und Gruppe muss zur Belegung passen.
     if (!$errors && $data['modul_belegung_id']) {
         try {
+            // gehört die Belegung dem Lernenden?
             $stmt = $pdo->prepare(
                 'SELECT lernender_id
                  FROM modul_belegungen
@@ -201,6 +220,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors['objekt'] = 'Diese Modul-Belegung gehört nicht zu diesem Lernenden.';
             }
 
+            // Auto: wenn keine Gruppe gewählt und es gibt genau 1 Gruppe → setzen
+            if (!$errors && !$data['gruppe_id']) {
+                $stmt = $pdo->prepare(
+                    'SELECT gruppe_id
+                     FROM modul_note_gruppen
+                     WHERE modul_belegung_id = :mbid
+                     ORDER BY gruppe_id
+                     LIMIT 2'
+                );
+                $stmt->execute([':mbid' => (int)$data['modul_belegung_id']]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+                if (count($rows) === 1 && isset($rows[0]['gruppe_id'])) {
+                    $data['gruppe_id'] = (int)$rows[0]['gruppe_id'];
+                    $values['gruppe_id'] = (string)$data['gruppe_id'];
+                }
+            }
+
+            // Gruppe validieren (wenn gesetzt)
             if (!$errors && $data['gruppe_id']) {
                 $stmt = $pdo->prepare(
                     'SELECT gruppe_id
@@ -216,6 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors['gruppe_id'] = 'Ungültige Gruppe für diese Modul-Belegung.';
                 }
             }
+
         } catch (Throwable $e) {
             app_log_exception('Validate modul_belegung/gruppe failed (edit)', $e, [
                 'user_id' => $ctx['user_id'] ?? null,
@@ -257,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':titel' => $data['titel'],
                 ':pruefungsdatum' => (string)$data['pruefungsdatum'],
                 ':note_wert' => (string)$data['note_wert'],
-                ':gewichtung_prozent' => (string)$data['gewichtung_prozent'],
+                ':gewichtung_prozent' => $data['gewichtung_prozent'] === null ? null : (string)$data['gewichtung_prozent'],
                 ':aktualisiert_von' => (int)($ctx['user_id'] ?? 0),
             ]);
 
@@ -268,13 +307,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             flash_add('success', 'Note gespeichert.');
             redirect('/noten.php');
+
         } catch (Throwable $e) {
             app_log_exception('Update note failed', $e, ['note_id' => $noteId, 'by_user_id' => $ctx['user_id'] ?? null]);
             $errors['form'] = 'Interner Fehler beim Speichern.';
         }
     }
 }
-
 ?>
 <!doctype html>
 <html lang="de">
@@ -411,7 +450,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $gid = (string)$g['gruppe_id'];
             $glabel = (string)($g['bezeichnung'] ?? '');
             if ($glabel === '') $glabel = 'Gruppe ' . $gid;
-            $glabel .= ' (Belegung ' . (string)$g['modul_belegung_id'] . ')';
           ?>
           <option value="<?= h($gid) ?>" <?= ($values['gruppe_id'] === $gid ? 'selected' : '') ?>>
             <?= h($glabel) ?>
