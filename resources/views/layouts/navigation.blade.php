@@ -21,8 +21,19 @@
                                 Noten
                             </x-nav-link>
                         @endif
-                    @endauth
 
+                        @if(auth()->user()->hasRole('Berufsbildner') || auth()->user()->hasRole('Admin'))
+                            <x-nav-link :href="route('berufsbildner')" :active="request()->routeIs('berufsbildner*')">
+                                Lernende
+                            </x-nav-link>
+                        @endif
+
+                        @if(auth()->user()->hasRole('Admin'))
+                            <x-nav-link :href="route('admin.noten.index')" :active="request()->routeIs('admin.noten.*')">
+                                Noten
+                            </x-nav-link>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -51,7 +62,7 @@
                             @csrf
 
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
+                                onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
@@ -97,7 +108,7 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>
