@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,13 +13,33 @@ class Note extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Tabellen-Mapping (DB-Schema).
+     */
     protected $table = 'noten';
     protected $primaryKey = 'note_id';
 
+    /**
+     * Custom Timestamp-Spalten gemäss Schema.
+     */
     public const CREATED_AT = 'erstellt_am';
     public const UPDATED_AT = 'aktualisiert_am';
     public const DELETED_AT = 'geloescht_am';
 
+    /**
+     * Relations, die fast jede Noten-Übersicht braucht (Index, Admin-Views, Berufsbildner-Views).
+     */
+    public const OVERVIEW_RELATIONS = [
+        'kategorie',
+        'semester',
+        'fach',
+        'modulBelegung.modul',
+        'gruppe',
+    ];
+
+    /**
+     * Felder, die via create()/update() gesetzt werden dürfen.
+     */
     protected $fillable = [
         'lernender_id',
         'kategorie_id',
@@ -32,6 +55,9 @@ class Note extends Model
         'aktualisiert_von_benutzer_id',
     ];
 
+    /**
+     * Typ-Casts für korrekte Datentypen in PHP.
+     */
     protected $casts = [
         'pruefungsdatum' => 'date',
         'note_wert' => 'decimal:1',
@@ -40,6 +66,17 @@ class Note extends Model
         'aktualisiert_am' => 'datetime',
         'geloescht_am' => 'datetime',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Beziehungen
+    |--------------------------------------------------------------------------
+    */
+
+    public function lernender(): BelongsTo
+    {
+        return $this->belongsTo(Lernender::class, 'lernender_id', 'lernender_id');
+    }
 
     public function kategorie(): BelongsTo
     {
@@ -64,5 +101,77 @@ class Note extends Model
     public function gruppe(): BelongsTo
     {
         return $this->belongsTo(ModulNoteGruppe::class, 'gruppe_id', 'gruppe_id');
+    }
+
+    /**
+     * Wer hat die Note erfasst (für Audit / Admin später).
+     */
+    public function erfasstVonBenutzer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'erfasst_von_benutzer_id', 'benutzer_id');
+    }
+
+    /**
+     * Wer hat die Note zuletzt aktualisiert (optional).
+     */
+    public function aktualisiertVonBenutzer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'aktualisiert_von_benutzer_id', 'benutzer_id');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Query-Scopes (damit Controller sauber bleiben)
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Noten nur für einen Lernenden.
+     */
+    public function scopeForLernender(Builder $query, int $lernenderId): Builder
+    {
+        return $query->where('lernender_id', $lernenderId);
+    }
+
+    /**
+     * Optional nach Kategorie filtern.
+     */
+    public function scopeFilterKategorie(Builder $query, ?int $kategorieId): Builder
+    {
+        if (!$kategorieId) {
+            return $query;
+        }
+
+        return $query->where('kategorie_id', $kategorieId);
+    }
+
+    /**
+     * Optional nach Semester filtern.
+     */
+    public function scopeFilterSemester(Builder $query, ?int $semesterId): Builder
+    {
+        if (!$semesterId) {
+            return $query;
+        }
+
+        return $query->where('semester_id', $semesterId);
+    }
+
+    /**
+     * Standard-Sortierung für Noten-Listen.
+     */
+    public function scopeOrdered(Builder $query): Builder
+    {
+        return $query
+            ->orderByDesc('pruefungsdatum')
+            ->orderByDesc('note_id');
+    }
+
+    /**
+     * Standard-Relations für Listen laden.
+     */
+    public function scopeWithOverview(Builder $query): Builder
+    {
+        return $query->with(self::OVERVIEW_RELATIONS);
     }
 }

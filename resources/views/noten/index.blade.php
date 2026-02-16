@@ -1,32 +1,50 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100">Meine Noten</h2>
+            <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100">
+                @if(($mode ?? 'lernender') === 'admin')
+                    Alle Noten
+                @elseif(($mode ?? 'lernender') === 'berufsbildner')
+                    Noten meiner Lernenden
+                @else
+                    Meine Noten
+                @endif
+            </h2>
 
-            <a href="{{ route('noten.create') }}"
-               class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Neue Note
-            </a>
+            @if(($mode ?? 'lernender') === 'lernender')
+                <a href="{{ route('noten.create') }}"
+                   class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                    Neue Note
+                </a>
+            @endif
         </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Summary --}}
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
-                <div class="text-sm space-y-1">
-                    <div>Noten total (Filter berücksichtigt): <span class="font-semibold">{{ $count }}</span></div>
-                    <div>Durchschnitt (ungewichtet): <span class="font-semibold">{{ $avgUnweighted ?? '-' }}</span></div>
-                    <div>Durchschnitt (gewichtet, nur Noten mit Gewichtung): <span class="font-semibold">{{ $avgWeighted ?? '-' }}</span></div>
-
-                    @if(($missingWeights ?? 0) > 0)
-                        <div class="mt-2 rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-2">
-                            Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung sind nicht im gewichteten Schnitt.
-                        </div>
-                    @endif
+            @if (session('status'))
+                <div class="bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 px-4 py-3 rounded-md">
+                    {{ session('status') }}
                 </div>
-            </div>
+            @endif
+
+            {{-- Summary nur für Lernender --}}
+            @if(($mode ?? 'lernender') === 'lernender')
+                <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
+                    <div class="text-sm space-y-1">
+                        <div>Noten total (Filter berücksichtigt): <span class="font-semibold">{{ $count }}</span></div>
+                        <div>Durchschnitt (ungewichtet): <span class="font-semibold">{{ $avgUnweighted ?? '-' }}</span></div>
+                        <div>Durchschnitt (gewichtet, nur Noten mit Gewichtung): <span class="font-semibold">{{ $avgWeighted ?? '-' }}</span></div>
+
+                        @if(($missingWeights ?? 0) > 0)
+                            <div class="mt-2 rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-2">
+                                Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung sind nicht im gewichteten Schnitt.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
 
             {{-- Filter --}}
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
@@ -77,11 +95,17 @@
                         <thead class="bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-200">
                             <tr>
                                 <th class="text-left p-3 whitespace-nowrap">Datum</th>
+
+                                @if(($mode ?? 'lernender') !== 'lernender')
+                                    <th class="text-left p-3 whitespace-nowrap">Lernender</th>
+                                @endif
+
                                 <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
                                 <th class="text-left p-3">Fach / Modul</th>
                                 <th class="text-left p-3">Titel</th>
                                 <th class="text-right p-3 whitespace-nowrap">Note</th>
                                 <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
+
                                 <th class="text-right p-3 whitespace-nowrap">Aktionen</th>
                             </tr>
                         </thead>
@@ -92,6 +116,17 @@
                                     <td class="p-3 whitespace-nowrap">
                                         {{ optional($n->pruefungsdatum)->format('d.m.Y') }}
                                     </td>
+
+                                    @if(($mode ?? 'lernender') !== 'lernender')
+                                        <td class="p-3 whitespace-nowrap">
+                                            <div class="font-medium">
+                                                {{ $n->lernender_vorname }} {{ $n->lernender_nachname }}
+                                            </div>
+                                            <div class="text-xs text-gray-600 dark:text-gray-300">
+                                                {{ $n->lernender_email }}
+                                            </div>
+                                        </td>
+                                    @endif
 
                                     <td class="p-3 whitespace-nowrap">
                                         {{ $n->kategorie?->name ?? '-' }}
@@ -115,9 +150,7 @@
                                     </td>
 
                                     <td class="p-3">
-                                        <span class="text-gray-900 dark:text-gray-100">
-                                            {{ $n->titel ?? '-' }}
-                                        </span>
+                                        {{ $n->titel ?? '-' }}
                                     </td>
 
                                     <td class="p-3 text-right font-semibold whitespace-nowrap">
@@ -129,26 +162,40 @@
                                     </td>
 
                                     <td class="p-3 text-right whitespace-nowrap">
-                                        <a class="text-blue-600 hover:underline dark:text-blue-400"
-                                           href="{{ route('noten.edit', $n->note_id) }}">
-                                            Bearbeiten
-                                        </a>
+                                        {{-- Lernender: bearbeiten/löschen --}}
+                                        @if(($mode ?? 'lernender') === 'lernender')
+                                            <a class="text-blue-600 hover:underline" href="{{ route('noten.edit', $n->note_id) }}">Bearbeiten</a>
 
-                                        <form class="inline"
-                                              method="POST"
-                                              action="{{ route('noten.destroy', $n->note_id) }}"
-                                              onsubmit="return confirm('Note wirklich löschen?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="ml-3 text-red-600 hover:underline dark:text-red-400">
-                                                Löschen
-                                            </button>
-                                        </form>
+                                            <form method="POST" action="{{ route('noten.destroy', $n->note_id) }}" class="inline"
+                                                  onsubmit="return confirm('Note wirklich löschen?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="text-red-600 hover:underline ms-3">Löschen</button>
+                                            </form>
+                                        @endif
+
+                                        {{-- Berufsbildner: gesehen --}}
+                                        @if(($mode ?? 'lernender') === 'berufsbildner')
+                                            @if(!empty($n->gesehen_am))
+                                                <span class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
+                                                    Gesehen
+                                                </span>
+                                            @else
+                                                <form method="POST" action="{{ route('noten.gesehen', $n->note_id) }}" class="inline">
+                                                    @csrf
+                                                    <button class="inline-flex items-center px-3 py-1 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600">
+                                                        Gesehen
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+
+                                        {{-- Admin: vorerst keine Aktionen --}}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="p-4 text-gray-700 dark:text-gray-200" colspan="7">
+                                    <td class="p-4 text-gray-700 dark:text-gray-200" colspan="8">
                                         Keine Noten gefunden.
                                     </td>
                                 </tr>
