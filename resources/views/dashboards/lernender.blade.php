@@ -1,0 +1,14 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl">Lernender Dashboard</h2>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg p-6">
+                Eingeloggt als: {{ auth()->user()->vorname }} {{ auth()->user()->nachname }}
+                ({{ auth()->user()->email }})
+            </div>
+        </div>
+    </div>
+</x-app-layout>
