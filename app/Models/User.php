@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -40,13 +41,11 @@ class User extends Authenticatable
         'passwort_hash' => 'hashed',
     ];
 
-    // Laravel liest den Hash aus passwort_hash
     public function getAuthPassword(): string
     {
         return (string) $this->passwort_hash;
     }
 
-    // Laravel soll beim Update/Rehash passwort_hash verwenden (nicht "password")
     public function getAuthPasswordName(): string
     {
         return 'passwort_hash';
@@ -69,5 +68,15 @@ class User extends Authenticatable
         return $this->rollen()
             ->whereRaw('LOWER(name) = LOWER(?)', [$roleName])
             ->exists();
+    }
+
+    public function lernender(): HasOne
+    {
+        return $this->hasOne(Lernender::class, 'benutzer_id', 'benutzer_id');
+    }
+
+    public function berufsbildner(): HasOne
+    {
+        return $this->hasOne(Berufsbildner::class, 'benutzer_id', 'benutzer_id');
     }
 }
