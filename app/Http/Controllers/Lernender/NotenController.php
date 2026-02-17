@@ -1,20 +1,22 @@
 <?php
 
-namespace App\Http\Controllers\Noten;
+namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kategorie;
 use App\Models\Note;
+use App\Models\Semester;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\Request;
 
-class NoteController extends Controller
+class NotenController extends Controller
 {
     public function __construct(
         private readonly NoteService $noteService
     ) {}
 
     /**
-     * Liste der Noten (nur eigene Noten des Lernenden).
+     * Liste der eigenen Noten (nur Lernender).
      */
     public function index(Request $request)
     {
@@ -37,10 +39,10 @@ class NoteController extends Controller
         $allForAvg = (clone $q)->get(['note_wert', 'gewichtung_prozent']);
         [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages($allForAvg);
 
-        $kategorien = \App\Models\Kategorie::query()->orderBy('sortierung')->get();
-        $semester   = \App\Models\Semester::query()->orderBy('sortierung')->get();
+        $kategorien = Kategorie::query()->orderBy('sortierung')->get();
+        $semester   = Semester::query()->orderBy('sortierung')->get();
 
-        return view('noten.index', compact(
+        return view('lernender.noten.index', compact(
             'notes',
             'kategorien',
             'semester',
@@ -63,7 +65,10 @@ class NoteController extends Controller
             abort(403);
         }
 
-        return view('noten.create', $this->noteService->formOptionsForLernender((int) $lernender->lernender_id));
+        return view(
+            'lernender.noten.create',
+            $this->noteService->formOptionsForLernender((int) $lernender->lernender_id)
+        );
     }
 
     /**
@@ -107,7 +112,7 @@ class NoteController extends Controller
             'aktualisiert_von_benutzer_id' => null,
         ]);
 
-        return redirect()->route('noten.index')->with('status', 'Note gespeichert.');
+        return redirect()->route('lernender.noten.index')->with('status', 'Note gespeichert.');
     }
 
     /**
@@ -128,7 +133,7 @@ class NoteController extends Controller
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();
 
-        return view('noten.edit', array_merge(
+        return view('lernender.noten.edit', array_merge(
             ['note' => $note],
             $this->noteService->formOptionsForLernender((int) $lernender->lernender_id)
         ));
@@ -178,7 +183,7 @@ class NoteController extends Controller
             'aktualisiert_von_benutzer_id' => (int) $user->benutzer_id,
         ]);
 
-        return redirect()->route('noten.index')->with('status', 'Note aktualisiert.');
+        return redirect()->route('lernender.noten.index')->with('status', 'Note aktualisiert.');
     }
 
     /**
@@ -200,6 +205,6 @@ class NoteController extends Controller
 
         $note->delete();
 
-        return redirect()->route('noten.index')->with('status', 'Note gelöscht.');
+        return redirect()->route('lernender.noten.index')->with('status', 'Note gelöscht.');
     }
 }

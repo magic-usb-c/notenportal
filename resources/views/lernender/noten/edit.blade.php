@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100">Note bearbeiten</h2>
 
-            <a href="{{ route('noten.index') }}"
+            <a href="{{ route('lernender.noten.index') }}"
                class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
                 Zur Übersicht
             </a>
@@ -25,7 +25,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('noten.update', $note->note_id) }}" class="space-y-5">
+                <form method="POST" action="{{ route('lernender.noten.update', $note->note_id) }}" class="space-y-5">
                     @csrf
                     @method('PUT')
 
@@ -58,9 +58,6 @@
                                 <span>Modul</span>
                             </label>
                         </div>
-                        <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                            Fach = Schulfach/BMS/ABU. Modul = ÜK/Fachunterricht-Modulbelegung.
-                        </div>
                     </div>
 
                     <div id="fachBlock">
@@ -88,9 +85,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Es werden nur Modul-Belegungen angezeigt, die dir als Lernender zugeordnet sind.
-                            </div>
                         </div>
 
                         <div>
@@ -106,9 +100,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Gruppen helfen, Modulnoten später separat zu gewichten oder zu gruppieren.
-                            </div>
                         </div>
                     </div>
 
@@ -131,9 +122,6 @@
                             <input type="number" name="note_wert" step="0.1" min="1" max="6" required
                                    value="{{ old('note_wert', $note->note_wert) }}"
                                    class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                            <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Schweizer Notenskala 1.0 bis 6.0
-                            </div>
                         </div>
 
                         <div>
@@ -141,19 +129,15 @@
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent) }}"
                                    class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                            <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                                Wenn leer, zählt die Note nur im ungewichteten Schnitt.
-                            </div>
                         </div>
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button
-                            class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <button class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
                             Speichern
                         </button>
 
-                        <a href="{{ route('noten.index') }}"
+                        <a href="{{ route('lernender.noten.index') }}"
                            class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
                             Abbrechen
                         </a>
@@ -193,10 +177,8 @@
                         syncBlocks();
                         filterGruppen();
                     }));
-
                     mbel?.addEventListener('change', filterGruppen);
 
-                    // wichtig: erst blocks setzen, dann gruppen filtern
                     syncBlocks();
                     filterGruppen();
                 </script>
