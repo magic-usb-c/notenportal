@@ -21,22 +21,14 @@
                 </div>
             @endif
 
-            {{-- Summary --}}
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
                 <div class="text-sm space-y-1">
                     <div>Noten total (Filter berücksichtigt): <span class="font-semibold">{{ $count }}</span></div>
                     <div>Durchschnitt (ungewichtet): <span class="font-semibold">{{ $avgUnweighted ?? '-' }}</span></div>
-                    <div>Durchschnitt (gewichtet, nur Noten mit Gewichtung): <span class="font-semibold">{{ $avgWeighted ?? '-' }}</span></div>
-
-                    @if(($missingWeights ?? 0) > 0)
-                        <div class="mt-2 rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 px-3 py-2">
-                            Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung sind nicht im gewichteten Schnitt.
-                        </div>
-                    @endif
+                    <div>Durchschnitt (gewichtet): <span class="font-semibold">{{ $avgWeighted ?? '-' }}</span></div>
                 </div>
             </div>
 
-            {{-- Filter --}}
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
                 <form method="GET" action="{{ route('lernender.noten.index') }}" class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                     <div>
@@ -78,7 +70,6 @@
                 </form>
             </div>
 
-            {{-- Tabelle (MVP flach; gruppiert/accordion kommt als nächstes) --}}
             <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-gray-900 dark:text-gray-100">
@@ -112,11 +103,6 @@
                                             <div class="font-medium">
                                                 {{ $n->modulBelegung->modul->modul_nummer }} – {{ $n->modulBelegung->modul->titel }}
                                             </div>
-                                            @if($n->gruppe)
-                                                <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                    Gruppe: {{ $n->gruppe->bezeichnung }}
-                                                </div>
-                                            @endif
                                         @else
                                             -
                                         @endif
@@ -124,7 +110,7 @@
 
                                     <td class="p-3">{{ $n->titel ?? '-' }}</td>
                                     <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
-                                    <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? '-' }}</td>
+                                    <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? 100 }}</td>
 
                                     <td class="p-3 text-right whitespace-nowrap">
                                         <a class="text-blue-600 hover:underline" href="{{ route('lernender.noten.edit', $n->note_id) }}">Bearbeiten</a>

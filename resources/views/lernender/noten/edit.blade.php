@@ -25,6 +25,12 @@
                     </div>
                 @endif
 
+                @php
+                    $typDefault = $note->fach_id ? 'fach' : 'modul';
+                    $typ = old('typ', $typDefault);
+                    $currentModulId = $note->modulBelegung?->modul_id;
+                @endphp
+
                 <form method="POST" action="{{ route('lernender.noten.update', $note->note_id) }}" class="space-y-5">
                     @csrf
                     @method('PUT')
@@ -41,11 +47,6 @@
                         </select>
                     </div>
 
-                    @php
-                        $typDefault = $note->fach_id ? 'fach' : 'modul';
-                        $typ = old('typ', $typDefault);
-                    @endphp
-
                     <div>
                         <label class="text-sm font-medium">Typ</label>
                         <div class="mt-2 flex gap-6">
@@ -58,6 +59,9 @@
                                 <span>Modul</span>
                             </label>
                         </div>
+                        <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                            Semester wird automatisch anhand Prüfungsdatum gesetzt.
+                        </div>
                     </div>
 
                     <div id="fachBlock">
@@ -67,40 +71,29 @@
                             <option value="">Bitte wählen</option>
                             @foreach($faecher as $f)
                                 <option value="{{ $f->fach_id }}" @selected(old('fach_id', $note->fach_id) == $f->fach_id)>
-                                    {{ $f->track_typ }} – {{ $f->name }}
+                                    {{ $f->name }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div id="modulBlock" class="hidden space-y-4">
-                        <div>
-                            <label class="text-sm font-medium">Modul-Belegung</label>
-                            <select name="modul_belegung_id" id="mbel"
-                                    class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                                <option value="">Bitte wählen</option>
-                                @foreach($modulBelegungen as $mb)
-                                    <option value="{{ $mb->modul_belegung_id }}" @selected(old('modul_belegung_id', $note->modul_belegung_id) == $mb->modul_belegung_id)>
-                                        {{ $mb->modul->modul_nummer ?? 'Modul' }} – {{ $mb->modul->titel ?? '' }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="text-sm font-medium">Gewichtungsgruppe (optional)</label>
-                            <select name="gruppe_id" id="gruppe"
-                                    class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-                                <option value="">Keine</option>
-                                @foreach($gruppen as $g)
-                                    <option value="{{ $g->gruppe_id }}"
-                                            data-mbel="{{ $g->modul_belegung_id }}"
-                                            @selected(old('gruppe_id', $note->gruppe_id) == $g->gruppe_id)>
-                                        {{ $g->bezeichnung }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                    <div id="modulBlock" class="hidden">
+                        <label class="text-sm font-medium">Modul</label>
+                        <select name="modul_id"
+                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                            <option value="">Bitte wählen</option>
+                            @foreach($module as $m)
+                                @php
+                                    $selected = old('modul_id', $currentModulId);
+                                @endphp
+                                <option value="{{ $m->modul_id }}" @selected((int)$selected === (int)$m->modul_id)>
+                                    @if((int)($m->has_open_belegung ?? 0) === 1)
+                                        ★
+                                    @endif
+                                    {{ $m->modul_nummer }} – {{ $m->titel }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div>
@@ -125,9 +118,9 @@
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium">Gewichtung % (optional)</label>
+                            <label class="text-sm font-medium">Gewichtung %</label>
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
-                                   value="{{ old('gewichtung_prozent', $note->gewichtung_prozent) }}"
+                                   value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
                                    class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
                         </div>
                     </div>
@@ -149,9 +142,6 @@
                     const modulBlock = document.getElementById('modulBlock');
                     const typRadios = document.querySelectorAll('input[name="typ"]');
 
-                    const mbel = document.getElementById('mbel');
-                    const gruppe = document.getElementById('gruppe');
-
                     function syncBlocks() {
                         const typ = document.querySelector('input[name="typ"]:checked')?.value;
                         if (typ === 'modul') {
@@ -163,24 +153,8 @@
                         }
                     }
 
-                    function filterGruppen() {
-                        if (!gruppe) return;
-                        const mbelVal = mbel?.value || '';
-                        [...gruppe.options].forEach(opt => {
-                            if (!opt.value) return;
-                            opt.hidden = (opt.dataset.mbel !== mbelVal);
-                        });
-                        if (gruppe.selectedOptions[0]?.hidden) gruppe.value = '';
-                    }
-
-                    typRadios.forEach(r => r.addEventListener('change', () => {
-                        syncBlocks();
-                        filterGruppen();
-                    }));
-                    mbel?.addEventListener('change', filterGruppen);
-
+                    typRadios.forEach(r => r.addEventListener('change', syncBlocks));
                     syncBlocks();
-                    filterGruppen();
                 </script>
 
             </div>

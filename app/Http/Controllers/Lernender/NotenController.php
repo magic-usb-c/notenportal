@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Lernender;
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Models\Note;
-use App\Models\Semester;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\Request;
 
@@ -15,9 +14,6 @@ class NotenController extends Controller
         private readonly NoteService $noteService
     ) {}
 
-    /**
-     * Liste der eigenen Noten (nur Lernender).
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -40,7 +36,7 @@ class NotenController extends Controller
         [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages($allForAvg);
 
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
-        $semester   = Semester::query()->orderBy('sortierung')->get();
+        $semester = $this->noteService->semestersForLernender((int) $lernender->lernender_id);
 
         return view('lernender.noten.index', compact(
             'notes',
@@ -53,9 +49,6 @@ class NotenController extends Controller
         ));
     }
 
-    /**
-     * Formular "Neue Note".
-     */
     public function create(Request $request)
     {
         $user = $request->user();
@@ -71,9 +64,6 @@ class NotenController extends Controller
         );
     }
 
-    /**
-     * Note speichern (nur eigene).
-     */
     public function store(Request $request)
     {
         $user = $request->user();
@@ -86,9 +76,12 @@ class NotenController extends Controller
         $validated = $request->validate([
             'kategorie_id' => ['required', 'integer', 'exists:kategorien,kategorie_id'],
             'typ' => ['required', 'in:fach,modul'],
+
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
-            'modul_belegung_id' => ['nullable', 'integer', 'exists:modul_belegungen,modul_belegung_id'],
-            'gruppe_id' => ['nullable', 'integer', 'exists:modul_note_gruppen,gruppe_id'],
+
+            // ✅ neu: modul_id statt modul_belegung_id
+            'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
+
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
             'note_wert' => ['required', 'numeric', 'min:1', 'max:6'],
@@ -107,7 +100,7 @@ class NotenController extends Controller
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
-            'gewichtung_prozent' => $data['gewichtung_prozent'],
+            'gewichtung_prozent' => $data['gewichtung_prozent'], // default 100
             'erfasst_von_benutzer_id' => (int) $user->benutzer_id,
             'aktualisiert_von_benutzer_id' => null,
         ]);
@@ -115,9 +108,6 @@ class NotenController extends Controller
         return redirect()->route('lernender.noten.index')->with('status', 'Note gespeichert.');
     }
 
-    /**
-     * Formular "Note bearbeiten" (nur eigene).
-     */
     public function edit(Request $request, int $note_id)
     {
         $user = $request->user();
@@ -139,9 +129,6 @@ class NotenController extends Controller
         ));
     }
 
-    /**
-     * Note updaten (nur eigene).
-     */
     public function update(Request $request, int $note_id)
     {
         $user = $request->user();
@@ -159,9 +146,12 @@ class NotenController extends Controller
         $validated = $request->validate([
             'kategorie_id' => ['required', 'integer', 'exists:kategorien,kategorie_id'],
             'typ' => ['required', 'in:fach,modul'],
+
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
-            'modul_belegung_id' => ['nullable', 'integer', 'exists:modul_belegungen,modul_belegung_id'],
-            'gruppe_id' => ['nullable', 'integer', 'exists:modul_note_gruppen,gruppe_id'],
+
+            // ✅ neu: modul_id statt modul_belegung_id
+            'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
+
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
             'note_wert' => ['required', 'numeric', 'min:1', 'max:6'],
@@ -186,9 +176,6 @@ class NotenController extends Controller
         return redirect()->route('lernender.noten.index')->with('status', 'Note aktualisiert.');
     }
 
-    /**
-     * Note löschen (Soft-Delete, nur eigene).
-     */
     public function destroy(Request $request, int $note_id)
     {
         $user = $request->user();
