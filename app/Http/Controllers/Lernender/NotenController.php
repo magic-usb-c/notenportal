@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
-use App\Models\Note;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class NotenController extends Controller
 {
@@ -23,30 +23,115 @@ class NotenController extends Controller
             abort(403);
         }
 
-        $q = $this->noteService->learnerNotesQuery((int) $lernender->lernender_id);
+        $lernenderId = (int) $lernender->lernender_id;
 
+        // Semester-Liste (nur Lehrbeginn -> Lehrende/heute)
+        $semester = $this->noteService->semestersForLernender($lernenderId);
+
+        // Default-Semester: aktuelles (heute liegt drin), sonst das letzte in der Liste
+        $selectedSemesterId = $request->filled('semester_id')
+            ? (int) $request->input('semester_id')
+            : (int) ($semester->firstWhere(function ($s) {
+                $today = Carbon::today()->toDateString();
+                return (string)$s->start_datum <= $today && (string)$s->end_datum >= $today;
+            })->semester_id ?? ($semester->last()->semester_id ?? 0));
+
+        // prev/next Semester (für Pfeile)
+        $semesterIds = $semester->pluck('semester_id')->map(fn ($v) => (int) $v)->values();
+        $idx = $semesterIds->search($selectedSemesterId);
+        $prevSemesterId = ($idx !== false && $idx > 0) ? $semesterIds[$idx - 1] : null;
+        $nextSemesterId = ($idx !== false && $idx < ($semesterIds->count() - 1)) ? $semesterIds[$idx + 1] : null;
+
+        // Filter
         $kategorieId = $request->filled('kategorie_id') ? (int) $request->input('kategorie_id') : null;
-        $semesterId  = $request->filled('semester_id') ? (int) $request->input('semester_id') : null;
 
-        $this->noteService->applyIndexFilters($q, $kategorieId, $semesterId);
+        // Notes Query (immer fürs ausgewählte Semester; Kategorie optional)
+        $q = $this->noteService->learnerNotesQuery($lernenderId);
 
-        $notes = (clone $q)->paginate(25)->withQueryString();
+        // Semester default immer gesetzt (wenn vorhanden)
+        if ($selectedSemesterId > 0) {
+            $q->where('semester_id', $selectedSemesterId);
+        }
 
-        $allForAvg = (clone $q)->get(['note_wert', 'gewichtung_prozent']);
-        [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages($allForAvg);
+        $this->noteService->applyIndexFilters($q, $kategorieId, null);
+
+        // Für Accordions: alle Noten als Collection (keine Pagination)
+        $notes = (clone $q)->get();
+
+        // Summary
+        [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages(
+            $notes->map(fn ($n) => (object)[
+                'note_wert' => $n->note_wert,
+                'gewichtung_prozent' => $n->gewichtung_prozent,
+            ])
+        );
 
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
-        $semester = $this->noteService->semestersForLernender((int) $lernender->lernender_id);
 
-        return view('lernender.noten.index', compact(
-            'notes',
-            'kategorien',
-            'semester',
-            'avgUnweighted',
-            'avgWeighted',
-            'missingWeights',
-            'count'
-        ));
+        // Gruppierung: Fächer und Module (Modul gruppiert nach modul_belegung_id, damit’s logisch bleibt)
+        $fachGroups = $notes
+            ->filter(fn ($n) => !empty($n->fach_id) && $n->fach)
+            ->groupBy(fn ($n) => (int) $n->fach_id)
+            ->map(function ($items) {
+                $fach = $items->first()->fach;
+                [$u, $w] = $this->noteService->calcAverages($items->map(fn ($n) => (object)[
+                    'note_wert' => $n->note_wert,
+                    'gewichtung_prozent' => $n->gewichtung_prozent,
+                ]));
+                return [
+                    'key' => 'fach_' . (int)$fach->fach_id,
+                    'title' => (string) $fach->name,
+                    'avg' => $w ?? $u,
+                    'count' => $items->count(),
+                    'items' => $items->values(),
+                ];
+            })
+            ->sortBy('title')
+            ->values();
+
+        $modulGroups = $notes
+            ->filter(fn ($n) => !empty($n->modul_belegung_id) && $n->modulBelegung && $n->modulBelegung->modul)
+            ->groupBy(fn ($n) => (int) $n->modul_belegung_id)
+            ->map(function ($items) {
+                $mb = $items->first()->modulBelegung;
+                $modul = $mb->modul;
+
+                [$u, $w] = $this->noteService->calcAverages($items->map(fn ($n) => (object)[
+                    'note_wert' => $n->note_wert,
+                    'gewichtung_prozent' => $n->gewichtung_prozent,
+                ]));
+
+                $title = trim(($modul->modul_nummer ?? '') . ' – ' . ($modul->titel ?? ''));
+                if ($title === '–') $title = 'Modul';
+
+                return [
+                    'key' => 'modul_' . (int)$mb->modul_belegung_id,
+                    'title' => $title,
+                    'avg' => $w ?? $u,
+                    'count' => $items->count(),
+                    'items' => $items->values(),
+                ];
+            })
+            ->sortBy('title')
+            ->values();
+
+        return view('lernender.noten.index', [
+            'notes' => $notes, // (falls du es irgendwo noch brauchst)
+            'fachGroups' => $fachGroups,
+            'modulGroups' => $modulGroups,
+
+            'kategorien' => $kategorien,
+            'semester' => $semester,
+
+            'selectedSemesterId' => $selectedSemesterId,
+            'prevSemesterId' => $prevSemesterId,
+            'nextSemesterId' => $nextSemesterId,
+
+            'avgUnweighted' => $avgUnweighted,
+            'avgWeighted' => $avgWeighted,
+            'missingWeights' => $missingWeights,
+            'count' => $count,
+        ]);
     }
 
     public function create(Request $request)
@@ -76,12 +161,8 @@ class NotenController extends Controller
         $validated = $request->validate([
             'kategorie_id' => ['required', 'integer', 'exists:kategorien,kategorie_id'],
             'typ' => ['required', 'in:fach,modul'],
-
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
-
-            // ✅ neu: modul_id statt modul_belegung_id
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
-
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
             'note_wert' => ['required', 'numeric', 'min:1', 'max:6'],
@@ -90,7 +171,7 @@ class NotenController extends Controller
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
-        Note::create([
+        \App\Models\Note::create([
             'lernender_id' => (int) $lernender->lernender_id,
             'kategorie_id' => $data['kategorie_id'],
             'semester_id' => $data['semester_id'],
@@ -100,7 +181,7 @@ class NotenController extends Controller
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
-            'gewichtung_prozent' => $data['gewichtung_prozent'], // default 100
+            'gewichtung_prozent' => $data['gewichtung_prozent'],
             'erfasst_von_benutzer_id' => (int) $user->benutzer_id,
             'aktualisiert_von_benutzer_id' => null,
         ]);
@@ -117,7 +198,7 @@ class NotenController extends Controller
             abort(403);
         }
 
-        $note = Note::query()
+        $note = \App\Models\Note::query()
             ->with(['fach', 'modulBelegung.modul', 'gruppe'])
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
@@ -138,7 +219,7 @@ class NotenController extends Controller
             abort(403);
         }
 
-        $note = Note::query()
+        $note = \App\Models\Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();
@@ -146,12 +227,8 @@ class NotenController extends Controller
         $validated = $request->validate([
             'kategorie_id' => ['required', 'integer', 'exists:kategorien,kategorie_id'],
             'typ' => ['required', 'in:fach,modul'],
-
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
-
-            // ✅ neu: modul_id statt modul_belegung_id
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
-
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
             'note_wert' => ['required', 'numeric', 'min:1', 'max:6'],
@@ -185,7 +262,7 @@ class NotenController extends Controller
             abort(403);
         }
 
-        $note = Note::query()
+        $note = \App\Models\Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();

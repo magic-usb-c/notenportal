@@ -7,11 +7,17 @@ use App\Http\Controllers\Berufsbildner\LernendeController as BerufsbildnerLernen
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return Auth::check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
 });
+
+// Safety-Net: Registrierung ist deaktiviert
+Route::get('/register', fn () => redirect()->route('login'));
 
 Route::get('/dashboard', function (Request $request) {
     $u = $request->user();

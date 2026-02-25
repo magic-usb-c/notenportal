@@ -29,7 +29,6 @@
 
         $selectedSemLabel = $semester?->firstWhere('semester_id', (int)$selectedSemesterId)?->bezeichnung ?? 'Semester';
 
-        // Query-Helfer (Semester/Kategorie behalten, Pagination resetten)
         $queryBase = request()->except('page');
         $queryWith = function(array $extra) use ($queryBase) {
             return array_merge($queryBase, $extra);
@@ -40,7 +39,7 @@
             $wSum = 0.0; $sum = 0.0;
             foreach ($items as $n) {
                 $w = $n->gewichtung_prozent;
-                if ($w === null || $w === '') { $w = 100.0; }
+                if ($w === null || $w === '') $w = 100.0;
                 $w = (float)$w;
                 $wSum += $w;
                 $sum  += ((float)$n->note_wert) * $w;
@@ -59,16 +58,14 @@
     @endphp
 
     <x-slot name="header">
-        {{-- Header: garantiert 1 Zeile / 3 Bereiche --}}
+        {{-- 1 Zeile / 3 Spalten, ohne Umbruch --}}
         <div class="w-full flex items-center justify-between gap-4">
-            {{-- Links: Titel --}}
             <div class="flex-none">
                 <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100 whitespace-nowrap">
                     Meine Noten
                 </h2>
             </div>
 
-            {{-- Mitte: Semester Switch --}}
             <div class="flex-1 flex items-center justify-center gap-2 min-w-0">
                 <a
                     @class([
@@ -86,7 +83,8 @@
                 </a>
 
                 <div class="px-4 py-2 h-10 flex items-center rounded-xl border border-gray-300 dark:border-gray-700
-                            bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm font-medium whitespace-nowrap">
+                            bg-white/80 dark:bg-gray-900/70 text-gray-900 dark:text-gray-100 text-sm font-semibold
+                            whitespace-nowrap">
                     {{ $selectedSemLabel }}
                 </div>
 
@@ -106,10 +104,9 @@
                 </a>
             </div>
 
-            {{-- Rechts: CTA --}}
             <div class="flex-none">
                 <a href="{{ route('lernender.noten.create') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 whitespace-nowrap">
+                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm whitespace-nowrap">
                     <span class="text-lg leading-none">+</span>
                     Neue Note
                 </a>
@@ -127,20 +124,25 @@
                 </div>
             @endif
 
-            {{-- Filter + Summary: zwei getrennte Kacheln nebeneinander (2/3 + 1/3) --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+            {{-- Filter + Summary: gleiche Zeile, zwei Cards (2/3 + 1/3) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
                 {{-- Filter (2/3) --}}
                 <div class="lg:col-span-8">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 h-full">
-                        <form method="GET" action="{{ route('lernender.noten.index') }}" class="h-full flex flex-col gap-3">
+                    <div class="bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="font-semibold text-gray-900 dark:text-gray-100">Filter</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Semester bleibt aktiv</div>
+                        </div>
+
+                        <form method="GET" action="{{ route('lernender.noten.index') }}" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                             <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
 
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                            <div class="md:col-span-8 min-w-0">
-                                <label class="text-sm font-medium text-muted">Kategorie</label>
+                            <div class="md:col-span-8">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">Kategorie</label>
                                 <select name="kategorie_id"
-                                        class="mt-1 w-full min-w-0 rounded-xl border border-border bg-input text-text
-                                            focus:ring-2 focus:ring-ring focus:border-ring">
+                                        class="mt-1 w-full rounded-xl border border-gray-300 dark:border-gray-700
+                                               bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100
+                                               focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                                     <option value="">Alle</option>
                                     @foreach($kategorien as $k)
                                         <option value="{{ $k->kategorie_id }}" @selected(request('kategorie_id') == $k->kategorie_id)>
@@ -150,34 +152,36 @@
                                 </select>
                             </div>
 
-                            <div class="md:col-span-4 flex gap-2 justify-end flex-nowrap">
-                                <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
+                            <div class="md:col-span-4 flex gap-2">
+                                <button
+                                    class="w-full px-4 py-2 h-10 rounded-xl bg-gray-900 text-white hover:bg-black
+                                           dark:bg-gray-700 dark:hover:bg-gray-600 shadow-sm">
                                     Anwenden
                                 </button>
 
                                 <a href="{{ route('lernender.noten.index', ['semester_id' => $selectedSemesterId]) }}"
-                                class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 text-center whitespace-nowrap">
+                                   class="w-full px-4 py-2 h-10 rounded-xl bg-gray-100 text-gray-900 hover:bg-gray-200
+                                          dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950 text-center shadow-sm">
                                     Reset
                                 </a>
                             </div>
-                        </div>
 
                             @if(($missingWeights ?? 0) > 0)
-                                <div class="rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800 px-4 py-2
+                                <div class="md:col-span-12 rounded-xl border border-yellow-200 bg-yellow-50 text-yellow-800 px-4 py-2
                                             dark:border-yellow-900/40 dark:bg-yellow-900/30 dark:text-yellow-200 text-sm">
                                     Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung werden logisch mit 100% behandelt.
                                 </div>
                             @endif
-
-                            <div class="flex-1"></div>
                         </form>
                     </div>
                 </div>
 
                 {{-- Summary (1/3) --}}
                 <div class="lg:col-span-4">
-                    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-2xl border border-gray-200 dark:border-gray-700 p-4 h-full">
-                        <div class="grid grid-cols-3 lg:grid-cols-3 gap-3 h-full">
+                    <div class="bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-4 h-full">
+                        <div class="font-semibold text-gray-900 dark:text-gray-100 mb-3">Summary</div>
+
+                        <div class="grid grid-cols-3 lg:grid-cols-1 gap-3">
                             <div class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-3">
                                 <div class="text-[11px] text-gray-600 dark:text-gray-300">Noten</div>
                                 <div class="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{{ $count }}</div>
@@ -197,7 +201,6 @@
                 </div>
             </div>
 
-
             {{-- Fächer --}}
             <div class="space-y-2">
                 <div class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1">Fächer</div>
@@ -208,26 +211,26 @@
                         $avg = $weightedAvg($items);
                     @endphp
 
-                    <details class="group bg-white dark:bg-gray-800 shadow-sm sm:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <details class="group bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
                         <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between
-                                        hover:bg-gray-50 dark:hover:bg-gray-700/40 list-none">
-                            <div class="flex items-center gap-3">
-                                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-90">
+                                        hover:bg-gray-50/80 dark:hover:bg-gray-700/30 list-none">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-90 shrink-0">
                                     <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                                     </svg>
                                 </span>
 
-                                <div>
-                                    <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $fachName }}</div>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $fachName }}</div>
                                     <div class="text-xs text-gray-600 dark:text-gray-300">{{ $items->count() }} Note(n)</div>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 shrink-0">
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Ø</span>
-                                <span class="inline-flex items-center justify-center min-w-[3.75rem] px-3 py-1 rounded-xl
-                                             bg-gray-900 text-white dark:bg-gray-950">
+                                <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl
+                                             bg-gray-900 text-white dark:bg-gray-950 shadow-sm">
                                     {{ $avg ?? '-' }}
                                 </span>
                             </div>
@@ -247,7 +250,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                         @foreach($items as $n)
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                                            <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-700/20">
                                                 <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
                                                 <td class="p-3">{{ $n->titel ?? '-' }}</td>
                                                 <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? 100 }}</td>
@@ -284,26 +287,26 @@
                         $avg = $weightedAvg($items);
                     @endphp
 
-                    <details class="group bg-white dark:bg-gray-800 shadow-sm sm:rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                    <details class="group bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
                         <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between
-                                        hover:bg-gray-50 dark:hover:bg-gray-700/40 list-none">
-                            <div class="flex items-center gap-3">
-                                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-90">
+                                        hover:bg-gray-50/80 dark:hover:bg-gray-700/30 list-none">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <span class="text-gray-400 transition-transform duration-200 group-open:rotate-90 shrink-0">
                                     <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                                     </svg>
                                 </span>
 
-                                <div>
-                                    <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $modulTitle }}</div>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $modulTitle }}</div>
                                     <div class="text-xs text-gray-600 dark:text-gray-300">{{ $items->count() }} Note(n)</div>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 shrink-0">
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Ø</span>
-                                <span class="inline-flex items-center justify-center min-w-[3.75rem] px-3 py-1 rounded-xl
-                                             bg-gray-900 text-white dark:bg-gray-950">
+                                <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl
+                                             bg-gray-900 text-white dark:bg-gray-950 shadow-sm">
                                     {{ $avg ?? '-' }}
                                 </span>
                             </div>
@@ -323,7 +326,7 @@
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                         @foreach($items as $n)
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40">
+                                            <tr class="hover:bg-gray-50/70 dark:hover:bg-gray-700/20">
                                                 <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
                                                 <td class="p-3">{{ $n->titel ?? '-' }}</td>
                                                 <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? 100 }}</td>
@@ -349,9 +352,8 @@
                 @endforelse
             </div>
 
-            {{-- Pagination --}}
             @if($notesPaginator)
-                <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-xl border border-gray-200 dark:border-gray-700 p-3">
+                <div class="bg-white dark:bg-gray-800/70 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-3">
                     {{ $notesPaginator->links() }}
                 </div>
             @endif
