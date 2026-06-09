@@ -82,9 +82,10 @@
             font-size: 11pt;
         }
 
-        .note-pass { color: #166534; }
-        .note-warn { color: #854d0e; }
-        .note-fail { color: #991b1b; }
+        .note-top  { color: #14532d; }   /* >= 5.0 dark green */
+        .note-pass { color: #166534; }   /* >= 4.0 green */
+        .note-warn { color: #854d0e; }   /* >= 3.5 yellow */
+        .note-fail { color: #991b1b; }   /* < 3.5 red */
 
         .sem-footer {
             display: flex;
@@ -196,7 +197,10 @@
                         @php
                             $thema = $n->fach_name ?? ($n->modul_nummer ? $n->modul_nummer . ' – ' . $n->modul_titel : '–');
                             $nw = (float)$n->note_wert;
-                            $nc = $nw >= 4.0 ? 'note-pass' : ($nw >= 3.5 ? 'note-warn' : 'note-fail');
+                            $nc = $nw >= 5.0 ? 'note-top'
+                                : ($nw >= 4.0 ? 'note-pass'
+                                : ($nw >= 3.5 ? 'note-warn'
+                                : 'note-fail'));
                         @endphp
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</td>
@@ -241,7 +245,7 @@
             </div>
             <div class="total-item">
                 <div class="label">Gesamtdurchschnitt</div>
-                <div class="value" style="color: {{ $globalAvg !== null && $globalAvg >= 4.0 ? '#166534' : ($globalAvg !== null && $globalAvg >= 3.5 ? '#854d0e' : '#991b1b') }}">
+                <div class="value" style="color: {{ $globalAvg === null ? '#777' : ($globalAvg >= 5.0 ? '#14532d' : ($globalAvg >= 4.0 ? '#166534' : ($globalAvg >= 3.5 ? '#854d0e' : '#991b1b'))) }}">
                     {{ $globalAvg !== null ? number_format($globalAvg, 2) : '–' }}
                 </div>
             </div>
