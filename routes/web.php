@@ -90,6 +90,10 @@ Route::middleware(['auth', 'role:Berufsbildner'])
         // BB markiert eine Note als gesehen
         Route::post('/lernende/{lernender_id}/noten/{note_id}/gesehen', [BerufsbildnerNotenController::class, 'markGesehen'])
             ->name('noten.gesehen');
+
+        // BB markiert alle neuen Noten eines Lernenden als gesehen
+        Route::post('/lernende/{lernender_id}/noten/alle-gesehen', [BerufsbildnerNotenController::class, 'markAlleGesehen'])
+            ->name('noten.alle_gesehen');
     });
 
 /**
@@ -114,6 +118,12 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('lernende.noten.update');
         Route::delete('/lernende/{lernender_id}/noten/{note_id}', [AdminNotenController::class, 'destroy'])
             ->name('lernende.noten.destroy');
+
+        // Profil (Lehrberuf, Lehrbeginn, Lehrende)
+        Route::get('/lernende/{lernender_id}/profil/edit', [AdminLernendeController::class, 'editProfil'])
+            ->name('lernende.profil.edit');
+        Route::put('/lernende/{lernender_id}/profil', [AdminLernendeController::class, 'updateProfil'])
+            ->name('lernende.profil.update');
 
         // Betreuungen je Lernender
         Route::get('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuung'])

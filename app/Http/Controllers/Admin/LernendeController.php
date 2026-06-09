@@ -142,6 +142,53 @@ class LernendeController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | Lernenden-Profil bearbeiten (Lehrberuf, Lehrbeginn, Lehrende)
+    |--------------------------------------------------------------------------
+    */
+
+    public function editProfil(int $lernender_id)
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+
+        $profil = DB::table('lernende')
+            ->where('lernender_id', $lernender_id)
+            ->select(['lehrberuf_id', 'lehrbeginn', 'lehrende'])
+            ->first();
+
+        $lehrberufe = DB::table('lehrberufe')
+            ->where('aktiv', 1)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.lernende.profil_edit', compact('lernender', 'profil', 'lehrberufe', 'lernender_id'));
+    }
+
+    public function updateProfil(Request $request, int $lernender_id): RedirectResponse
+    {
+        $this->lernenderOr404($lernender_id);
+
+        $validated = $request->validate([
+            'lehrberuf_id' => ['nullable', 'integer', 'exists:lehrberufe,lehrberuf_id'],
+            'lehrbeginn'   => ['nullable', 'date'],
+            'lehrende'     => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
+        ]);
+
+        DB::table('lernende')
+            ->where('lernender_id', $lernender_id)
+            ->update([
+                'lehrberuf_id'   => $validated['lehrberuf_id'] ?? null,
+                'lehrbeginn'     => $validated['lehrbeginn']   ?? null,
+                'lehrende'       => $validated['lehrende']     ?? null,
+                'aktualisiert_am' => now(),
+            ]);
+
+        return redirect()
+            ->route('admin.lernende.show', $lernender_id)
+            ->with('status', 'Lernenden-Profil aktualisiert.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Betreuungen
     |--------------------------------------------------------------------------
     */

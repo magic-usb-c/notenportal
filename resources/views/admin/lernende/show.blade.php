@@ -17,6 +17,12 @@
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
+            @if(session('status'))
+                <div class="rounded-xl border border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 px-4 py-3 text-sm text-green-800 dark:text-green-200" data-autohide>
+                    {{ session('status') }}
+                </div>
+            @endif
+
             {{-- Profil + BB --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-2">
@@ -40,6 +46,8 @@
                         </div>
                     </dl>
                     <div class="pt-2 flex flex-wrap gap-2">
+                        <a href="{{ route('admin.lernende.profil.edit', $lernender_id) }}"
+                           class="px-3 py-1.5 rounded-xl border border-accent text-accent text-xs hover:bg-accent hover:text-white transition-colors">Profil bearbeiten</a>
                         <a href="{{ route('admin.lernende.betreuung', $lernender_id) }}"
                            class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg">Betreuungen</a>
                         <a href="{{ route('admin.lernende.tracks', $lernender_id) }}"

@@ -1,14 +1,38 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
+        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
             <h2 class="font-semibold text-xl text-text">
                 Noten:
                 <span class="text-muted">{{ $selectedLernender->nachname ?? '' }} {{ $selectedLernender->vorname ?? '' }}</span>
             </h2>
-            <a href="{{ route('berufsbildner.lernende.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap">
-                Lernenden wechseln
-            </a>
+            <div class="flex items-center gap-2">
+                @php
+                    $bbBenutzerId = auth()->user()->benutzer_id;
+                    $hasNeuInView = $notes->getCollection()->contains(function ($n) use ($bbBenutzerId) {
+                        $gr = $n->gesehen->first();
+                        return !$gr
+                            || $n->erstellt_am > $gr->gesehen_am
+                            || $n->kommentare->filter(fn($k) => $k->erstellt_am > $gr->gesehen_am)->isNotEmpty();
+                    });
+                @endphp
+                @if($hasNeuInView)
+                    <form method="POST"
+                          action="{{ route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $selectedLernenderId]) }}">
+                        @csrf
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium whitespace-nowrap">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                            </svg>
+                            Alle gesehen
+                        </button>
+                    </form>
+                @endif
+                <a href="{{ route('berufsbildner.lernende.index') }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap">
+                    Lernenden wechseln
+                </a>
+            </div>
         </div>
     </x-slot>
 

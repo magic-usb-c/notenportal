@@ -119,6 +119,49 @@ class NotenController extends Controller
         ]);
     }
 
+    public function markAlleGesehen(Request $request, int $lernender_id): RedirectResponse
+    {
+        $user = $request->user();
+        $bb   = $user?->berufsbildner;
+
+        if (!$bb) {
+            abort(403);
+        }
+
+        $today = now()->toDateString();
+        $betreut = DB::table('betreuungen')
+            ->where('berufsbildner_id', $bb->berufsbildner_id)
+            ->where('lernender_id', $lernender_id)
+            ->where('gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today))
+            ->exists();
+
+        abort_if(!$betreut, 403);
+
+        // Alle aktiven Noten dieses Lernenden laden
+        $noteIds = DB::table('noten')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('geloescht_am')
+            ->pluck('note_id');
+
+        $bbBenutzerId = (int) $user->benutzer_id;
+        $now = now();
+
+        $rows = $noteIds->map(fn($id) => [
+            'note_id'            => $id,
+            'viewer_benutzer_id' => $bbBenutzerId,
+            'gesehen_am'         => $now,
+        ])->all();
+
+        if (!empty($rows)) {
+            DB::table('noten_gesehen')->upsert($rows, ['note_id', 'viewer_benutzer_id'], ['gesehen_am']);
+        }
+
+        return redirect()
+            ->route('berufsbildner.lernende.noten.index', ['lernender_id' => $lernender_id])
+            ->with('status', 'Alle Noten als gesehen markiert.');
+    }
+
     public function markGesehen(Request $request, int $lernender_id, int $note_id): RedirectResponse
     {
         $user = $request->user();

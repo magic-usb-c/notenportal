@@ -43,9 +43,40 @@
                             <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                                 Benutzer
                             </x-nav-link>
-                            <x-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.*')">
-                                Stammdaten
-                            </x-nav-link>
+                            {{-- Stammdaten-Dropdown --}}
+                            <div class="relative" x-data="{ stammdatenOpen: false }" @click.outside="stammdatenOpen = false">
+                                <button @click="stammdatenOpen = !stammdatenOpen"
+                                    class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                                        {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
+                                    Stammdaten
+                                    <svg class="h-3.5 w-3.5 transition-transform" :class="{ 'rotate-180': stammdatenOpen }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
+                                    </svg>
+                                </button>
+                                <div x-show="stammdatenOpen" x-transition
+                                     class="absolute left-0 top-full mt-1 w-44 rounded-xl bg-card border border-border shadow-lg z-50 py-1">
+                                    <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Lehrberufe
+                                    </a>
+                                    <a href="{{ route('admin.stammdaten.faecher.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Fächer
+                                    </a>
+                                    <a href="{{ route('admin.stammdaten.module.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Module
+                                    </a>
+                                    <a href="{{ route('admin.stammdaten.semester.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Semester
+                                    </a>
+                                    <a href="{{ route('admin.stammdaten.kategorien.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.kategorien.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Kategorien
+                                    </a>
+                                </div>
+                            </div>
                         @endif
                     @endauth
                 </div>
@@ -159,9 +190,24 @@
                     <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                         Benutzer
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.*')">
-                        Stammdaten
-                    </x-responsive-nav-link>
+                    <div class="border-t border-border pt-1 mt-1">
+                        <div class="px-4 py-1 text-xs font-semibold text-muted uppercase tracking-wide">Stammdaten</div>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.lehrberufe.*')">
+                            Lehrberufe
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.faecher.index')" :active="request()->routeIs('admin.stammdaten.faecher.*')">
+                            Fächer
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.module.index')" :active="request()->routeIs('admin.stammdaten.module.*')">
+                            Module
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.semester.index')" :active="request()->routeIs('admin.stammdaten.semester.*')">
+                            Semester
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.kategorien.index')" :active="request()->routeIs('admin.stammdaten.kategorien.*')">
+                            Kategorien
+                        </x-responsive-nav-link>
+                    </div>
                 @endif
             @endauth
         </div>
