@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
 use App\Http\Controllers\Berufsbildner\LernendeController as BerufsbildnerLernendeController;
+use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use Illuminate\Http\Request;
@@ -93,10 +94,33 @@ Route::middleware(['auth', 'role:Admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // Lernende: Übersicht + Noten
         Route::get('/lernende', [AdminLernendeController::class, 'index'])->name('lernende.index');
-
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
+
+        // Betreuungen je Lernender
+        Route::get('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuung'])
+            ->name('lernende.betreuung');
+        Route::post('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuungStore'])
+            ->name('lernende.betreuung.store');
+        Route::post('/betreuungen/{betreuung_id}/beenden', [AdminLernendeController::class, 'betreuungEnd'])
+            ->name('betreuungen.beenden');
+
+        // Tracks je Lernender
+        Route::get('/lernende/{lernender_id}/tracks', [AdminLernendeController::class, 'tracks'])
+            ->name('lernende.tracks');
+        Route::post('/lernende/{lernender_id}/tracks', [AdminLernendeController::class, 'trackStore'])
+            ->name('lernende.tracks.store');
+        Route::post('/tracks/{track_id}/beenden', [AdminLernendeController::class, 'trackEnd'])
+            ->name('tracks.beenden');
+
+        // Benutzerverwaltung
+        Route::get('/benutzer', [AdminBenutzerController::class, 'index'])->name('benutzer.index');
+        Route::get('/benutzer/create', [AdminBenutzerController::class, 'create'])->name('benutzer.create');
+        Route::post('/benutzer', [AdminBenutzerController::class, 'store'])->name('benutzer.store');
+        Route::post('/benutzer/{benutzer_id}/toggle-aktiv', [AdminBenutzerController::class, 'toggleAktiv'])
+            ->name('benutzer.toggle-aktiv');
     });
 
 /**

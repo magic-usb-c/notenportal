@@ -19,10 +19,20 @@
                             </div>
                             <div class="text-xs text-muted">{{ $l->email }}</div>
                         </div>
-                        <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
-                           class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
-                            Noten öffnen
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <a href="{{ route('admin.lernende.betreuung', $l->lernender_id) }}"
+                               class="px-3 py-2 rounded-xl bg-card text-text border border-border text-sm hover:bg-bg whitespace-nowrap">
+                                Betreuung
+                            </a>
+                            <a href="{{ route('admin.lernende.tracks', $l->lernender_id) }}"
+                               class="px-3 py-2 rounded-xl bg-card text-text border border-border text-sm hover:bg-bg whitespace-nowrap">
+                                Tracks
+                            </a>
+                            <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
+                               class="px-3 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                Noten
+                            </a>
+                        </div>
                     </div>
                 @empty
                     <div class="px-5 py-6 text-sm text-muted text-center">

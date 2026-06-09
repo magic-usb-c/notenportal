@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class LernendeController extends Controller
 {
     /**
-     * Admin: Liste aller aktiven Lernenden (für Auswahl/Switcher).
-     *
-     * Regeln:
-     * - Nur aktive Benutzer, nicht gelöscht
+     * Admin: Liste aller aktiven Lernenden.
      */
     public function index(Request $request)
     {
@@ -23,18 +21,178 @@ class LernendeController extends Controller
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
-            ->select([
-                'l.lernender_id',
-                'b.vorname',
-                'b.nachname',
-                'b.email',
-            ])
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')
             ->get();
 
-        return view('admin.lernende.index', [
-            'lernende' => $lernende,
+        return view('admin.lernende.index', compact('lernende'));
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Betreuungen
+    |--------------------------------------------------------------------------
+    */
+
+    public function betreuung(Request $request, int $lernender_id)
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+
+        // Aktive und abgeschlossene Betreuungen
+        $betreuungen = DB::table('betreuungen as bt')
+            ->join('berufsbildner as bb', 'bb.berufsbildner_id', '=', 'bt.berufsbildner_id')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->where('bt.lernender_id', $lernender_id)
+            ->select([
+                'bt.betreuung_id',
+                'bt.gueltig_von',
+                'bt.gueltig_bis',
+                'b.vorname',
+                'b.nachname',
+                'b.email',
+            ])
+            ->orderByDesc('bt.gueltig_von')
+            ->get();
+
+        // Alle aktiven Berufsbildner für Auswahl-Dropdown
+        $berufsbildner = DB::table('berufsbildner as bb')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->whereNull('bb.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->select(['bb.berufsbildner_id', 'b.vorname', 'b.nachname', 'b.email'])
+            ->orderBy('b.nachname')
+            ->orderBy('b.vorname')
+            ->get();
+
+        return view('admin.lernende.betreuung', compact('lernender', 'betreuungen', 'berufsbildner', 'lernender_id'));
+    }
+
+    public function betreuungStore(Request $request, int $lernender_id): RedirectResponse
+    {
+        $this->lernenderOr404($lernender_id);
+
+        $validated = $request->validate([
+            'berufsbildner_id' => ['required', 'integer', 'exists:berufsbildner,berufsbildner_id'],
+            'gueltig_von'      => ['required', 'date'],
         ]);
+
+        DB::table('betreuungen')->insert([
+            'lernender_id'    => $lernender_id,
+            'berufsbildner_id' => $validated['berufsbildner_id'],
+            'gueltig_von'     => $validated['gueltig_von'],
+            'gueltig_bis'     => null,
+        ]);
+
+        return redirect()
+            ->route('admin.lernende.betreuung', $lernender_id)
+            ->with('status', 'Betreuung eingetragen.');
+    }
+
+    public function betreuungEnd(Request $request, int $betreuung_id): RedirectResponse
+    {
+        $bt = DB::table('betreuungen')->where('betreuung_id', $betreuung_id)->first();
+        abort_if(!$bt, 404);
+
+        DB::table('betreuungen')
+            ->where('betreuung_id', $betreuung_id)
+            ->whereNull('gueltig_bis')  // nur aktive Betreuungen beenden
+            ->update(['gueltig_bis' => now()->toDateString()]);
+
+        return redirect()
+            ->route('admin.lernende.betreuung', $bt->lernender_id)
+            ->with('status', 'Betreuung beendet.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tracks (BMS / ABU)
+    |--------------------------------------------------------------------------
+    */
+
+    public function tracks(Request $request, int $lernender_id)
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+
+        $tracks = DB::table('lernender_tracks as lt')
+            ->leftJoin('semester as ss', 'ss.semester_id', '=', 'lt.start_semester_id')
+            ->leftJoin('semester as es', 'es.semester_id', '=', 'lt.end_semester_id')
+            ->where('lt.lernender_id', $lernender_id)
+            ->select([
+                'lt.lernender_track_id',
+                'lt.track_typ',
+                'lt.start_datum',
+                'lt.end_datum',
+                'ss.bezeichnung as start_semester',
+                'es.bezeichnung as end_semester',
+            ])
+            ->orderByDesc('lt.start_datum')
+            ->get();
+
+        $semester = DB::table('semester')->orderBy('sortierung')->get();
+
+        return view('admin.lernende.tracks', compact('lernender', 'tracks', 'semester', 'lernender_id'));
+    }
+
+    public function trackStore(Request $request, int $lernender_id): RedirectResponse
+    {
+        $this->lernenderOr404($lernender_id);
+
+        $validated = $request->validate([
+            'track_typ'         => ['required', 'in:BMS,ABU'],
+            'start_datum'       => ['required', 'date'],
+            'start_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
+        ]);
+
+        DB::table('lernender_tracks')->insert([
+            'lernender_id'      => $lernender_id,
+            'track_typ'         => $validated['track_typ'],
+            'start_datum'       => $validated['start_datum'],
+            'end_datum'         => null,
+            'start_semester_id' => $validated['start_semester_id'],
+            'end_semester_id'   => null,
+        ]);
+
+        return redirect()
+            ->route('admin.lernende.tracks', $lernender_id)
+            ->with('status', 'Track hinzugefügt.');
+    }
+
+    public function trackEnd(Request $request, int $track_id): RedirectResponse
+    {
+        $track = DB::table('lernender_tracks')->where('lernender_track_id', $track_id)->first();
+        abort_if(!$track, 404);
+
+        $validated = $request->validate([
+            'end_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
+        ]);
+
+        DB::table('lernender_tracks')
+            ->where('lernender_track_id', $track_id)
+            ->whereNull('end_datum')
+            ->update([
+                'end_datum'        => now()->toDateString(),
+                'end_semester_id'  => $validated['end_semester_id'],
+            ]);
+
+        return redirect()
+            ->route('admin.lernende.tracks', $track->lernender_id)
+            ->with('status', 'Track beendet.');
+    }
+
+    // ---------------------------------------------------------------------------
+
+    private function lernenderOr404(int $lernender_id): object
+    {
+        $lernender = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->whereNull('l.geloescht_am')
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
+            ->first();
+
+        abort_if(!$lernender, 404);
+        return $lernender;
     }
 }

@@ -37,8 +37,11 @@
                         @endif
 
                         @if(auth()->user()->hasRole('Admin'))
-                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*') || request()->routeIs('admin.lernende.noten.*')">
+                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                                 Lernende
+                            </x-nav-link>
+                            <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
+                                Benutzer
                             </x-nav-link>
                         @endif
                     @endauth
@@ -134,8 +137,11 @@
                 @endif
 
                 @if(auth()->user()->hasRole('Admin'))
-                    <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*') || request()->routeIs('admin.lernende.noten.*')">
+                    <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                         Lernende
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
+                        Benutzer
                     </x-responsive-nav-link>
                 @endif
             @endauth
