@@ -109,7 +109,11 @@
                                         @endif
                                     </td>
                                     <td class="p-3 text-right">
-                                        <div class="flex items-center justify-end gap-3">
+                                        <div class="flex items-center justify-end gap-3 flex-wrap">
+                                            @if($b->lernender_id)
+                                                <a href="{{ route('admin.lernende.show', $b->lernender_id) }}"
+                                                   class="text-xs text-muted hover:text-accent whitespace-nowrap">Lernenden-Profil</a>
+                                            @endif
                                             <a href="{{ route('admin.benutzer.edit', $b->benutzer_id) }}"
                                                class="text-sm text-accent hover:underline">Bearbeiten</a>
                                             <form method="POST"

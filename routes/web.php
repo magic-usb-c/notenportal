@@ -96,6 +96,10 @@ Route::middleware(['auth', 'role:Berufsbildner'])
         // BB markiert alle neuen Noten eines Lernenden als gesehen
         Route::post('/lernende/{lernender_id}/noten/alle-gesehen', [BerufsbildnerNotenController::class, 'markAlleGesehen'])
             ->name('noten.alle_gesehen');
+
+        // BB: Druckansicht Notenblatt für einen Lernenden
+        Route::get('/lernende/{lernender_id}/noten/drucken', [BerufsbildnerNotenController::class, 'drucken'])
+            ->name('lernende.noten.drucken');
     });
 
 /**

@@ -119,6 +119,72 @@ class NotenController extends Controller
         ]);
     }
 
+    public function drucken(Request $request, int $lernender_id)
+    {
+        $user = $request->user();
+        $bb   = $user?->berufsbildner;
+
+        if (!$bb) {
+            abort(403);
+        }
+
+        // Betreuung prüfen
+        $today = now()->toDateString();
+        $selectedLernender = DB::table('betreuungen as bt')
+            ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->where('bt.berufsbildner_id', $bb->berufsbildner_id)
+            ->where('bt.lernender_id', $lernender_id)
+            ->where('bt.gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->whereNull('l.geloescht_am')
+            ->select(['b.vorname', 'b.nachname'])
+            ->first();
+
+        abort_if(!$selectedLernender, 404);
+
+        $profil = DB::table('lernende as l')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
+            ->first();
+
+        $noten = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->orderBy('s.sortierung')
+            ->orderBy('n.pruefungsdatum')
+            ->orderBy('n.note_id')
+            ->select([
+                'n.note_id', 'n.pruefungsdatum', 'n.note_wert', 'n.gewichtung_prozent', 'n.titel',
+                's.semester_id', 's.bezeichnung as semester_bezeichnung', 's.sortierung',
+                'k.name as kategorie_name',
+                'f.name as fach_name',
+                'm.modul_nummer', 'm.titel as modul_titel',
+            ])
+            ->get();
+
+        $semesterNoten = $noten
+            ->groupBy('semester_id')
+            ->map(fn($items) => [
+                'bezeichnung' => $items->first()->semester_bezeichnung,
+                'noten'       => $items,
+            ])
+            ->values()
+            ->toArray();
+
+        return response()->view('lernender.noten.drucken', [
+            'lernender'     => $selectedLernender,
+            'profil'        => $profil,
+            'semesterNoten' => $semesterNoten,
+        ]);
+    }
+
     public function markAlleGesehen(Request $request, int $lernender_id): RedirectResponse
     {
         $user = $request->user();

@@ -21,6 +21,9 @@ class BenutzerController extends Controller
         $q = DB::table('benutzer as b')
             ->leftJoin('benutzer_rollen as br', 'br.benutzer_id', '=', 'b.benutzer_id')
             ->leftJoin('rollen as r', 'r.rolle_id', '=', 'br.rolle_id')
+            ->leftJoin('lernende as l', function ($j) {
+                $j->on('l.benutzer_id', '=', 'b.benutzer_id')->whereNull('l.geloescht_am');
+            })
             ->whereNull('b.geloescht_am')
             ->select([
                 'b.benutzer_id',
@@ -30,9 +33,10 @@ class BenutzerController extends Controller
                 'b.benutzername',
                 'b.aktiv',
                 'b.erstellt_am',
+                'l.lernender_id',
                 DB::raw('GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") as rollen'),
             ])
-            ->groupBy('b.benutzer_id', 'b.vorname', 'b.nachname', 'b.email', 'b.benutzername', 'b.aktiv', 'b.erstellt_am');
+            ->groupBy('b.benutzer_id', 'b.vorname', 'b.nachname', 'b.email', 'b.benutzername', 'b.aktiv', 'b.erstellt_am', 'l.lernender_id');
 
         if ($suche !== '') {
             $like = '%' . $suche . '%';
