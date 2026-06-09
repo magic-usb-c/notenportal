@@ -64,7 +64,7 @@
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
-                        <thead class="bg-bg text-muted">
+                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">
                             <tr>
                                 <th class="text-left p-3">Name / Hinweise</th>
                                 <th class="text-left p-3 whitespace-nowrap">Berufsbildner</th>
@@ -98,8 +98,14 @@
                                     $lehrDaysLeft  = $lehrende ? (int) now()->diffInDays($lehrende, false) : null;
                                     $showLehrBadge = $lehrDaysLeft !== null && $lehrDaysLeft >= 0 && $lehrDaysLeft <= 60;
                                 @endphp
-                                <tr class="group hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
+                                @php $initials = strtoupper(mb_substr($l->vorname ?? '', 0, 1) . mb_substr($l->nachname ?? '', 0, 1)); @endphp
+                                <tr class="group even:bg-bg/30 hover:bg-accent/5 transition-colors duration-100 {{ !$l->aktiv ? 'opacity-60' : '' }}">
                                     <td class="p-3">
+                                        <div class="flex items-start gap-3 min-w-0">
+                                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                                {{ $initials ?: '?' }}
+                                            </div>
+                                            <div class="min-w-0">
                                         <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
                                            class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
                                         <div class="text-xs text-muted mt-0.5">{{ $l->email }}</div>
@@ -132,6 +138,8 @@
                                                 @endif
                                             </div>
                                         @endif
+                                            </div>{{-- /min-w-0 --}}
+                                        </div>{{-- /flex --}}
                                     </td>
                                     <td class="p-3 text-muted text-sm">
                                         @if($s?->betreuer)

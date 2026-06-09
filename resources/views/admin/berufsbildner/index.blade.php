@@ -28,7 +28,7 @@
                 <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-text">
-                            <thead class="bg-bg text-muted">
+                            <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">
                                 <tr>
                                     <th class="text-left p-3">Berufsbildner</th>
                                     <th class="text-center p-3 whitespace-nowrap">Lernende</th>
@@ -44,10 +44,18 @@
                                         $warnOhneNoten = ($st?->ohne_noten ?? 0) > 0;
                                         $warnTiefAvg   = ($st?->tief_avg ?? 0) > 0;
                                     @endphp
-                                    <tr class="hover:bg-bg">
+                                    @php $bbInitials = strtoupper(mb_substr($bb->vorname ?? '', 0, 1) . mb_substr($bb->nachname ?? '', 0, 1)); @endphp
+                                    <tr class="even:bg-bg/30 hover:bg-accent/5 transition-colors duration-100">
                                         <td class="p-3">
-                                            <div class="font-medium text-text">{{ $bb->nachname }} {{ $bb->vorname }}</div>
-                                            <div class="text-xs text-muted">{{ $bb->email }}</div>
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                                    {{ $bbInitials ?: '?' }}
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <div class="font-medium text-text truncate">{{ $bb->nachname }} {{ $bb->vorname }}</div>
+                                                    <div class="text-xs text-muted truncate">{{ $bb->email }}</div>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="p-3 text-center">
                                             @if(($st?->lernende ?? 0) > 0)

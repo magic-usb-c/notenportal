@@ -76,10 +76,9 @@
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
-                        <thead class="bg-bg text-muted">
+                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">
                             <tr>
-                                <th class="text-left p-3">Name</th>
-                                <th class="text-left p-3">E-Mail</th>
+                                <th class="text-left p-3">Benutzer</th>
                                 <th class="text-left p-3 whitespace-nowrap">Benutzername</th>
                                 <th class="text-left p-3">Rollen</th>
                                 <th class="text-center p-3 whitespace-nowrap">Status</th>
@@ -88,9 +87,21 @@
                         </thead>
                         <tbody class="divide-y divide-border">
                             @forelse($benutzer as $b)
-                                <tr class="hover:bg-bg">
-                                    <td class="p-3 font-medium">{{ $b->nachname }} {{ $b->vorname }}</td>
-                                    <td class="p-3 text-muted">{{ $b->email }}</td>
+                                @php
+                                    $initials = strtoupper(mb_substr($b->vorname ?? '', 0, 1) . mb_substr($b->nachname ?? '', 0, 1));
+                                @endphp
+                                <tr class="even:bg-bg/30 hover:bg-accent/5 transition-colors duration-100">
+                                    <td class="p-3">
+                                        <div class="flex items-center gap-3 min-w-0">
+                                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                                {{ $initials ?: '?' }}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <div class="font-medium text-text truncate">{{ $b->nachname }} {{ $b->vorname }}</div>
+                                                <div class="text-xs text-muted truncate">{{ $b->email }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td class="p-3 font-mono text-xs">{{ $b->benutzername }}</td>
                                     <td class="p-3">
                                         <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">
@@ -130,7 +141,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="p-5 text-center text-muted">
+                                    <td colspan="5" class="p-5 text-center text-muted">
                                         @if($suche || $rolleId || $status)
                                             Keine Benutzer für diese Filtereinstellungen gefunden.
                                         @else
