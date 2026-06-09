@@ -146,4 +146,33 @@ class StammdatenLehrberufeController extends Controller
 
         return back()->with('status', 'Fach entfernt.');
     }
+
+    public function edit(int $lehrberuf_id)
+    {
+        $lehrberuf = DB::table('lehrberufe')->where('lehrberuf_id', $lehrberuf_id)->firstOrFail();
+        return view('admin.stammdaten.lehrberufe.edit', compact('lehrberuf'));
+    }
+
+    public function update(Request $request, int $lehrberuf_id): RedirectResponse
+    {
+        DB::table('lehrberufe')->where('lehrberuf_id', $lehrberuf_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'kuerzel' => ['required', 'string', 'max:10',
+                \Illuminate\Validation\Rule::unique('lehrberufe', 'kuerzel')->ignore($lehrberuf_id, 'lehrberuf_id')],
+            'name'    => ['required', 'string', 'max:200',
+                \Illuminate\Validation\Rule::unique('lehrberufe', 'name')->ignore($lehrberuf_id, 'lehrberuf_id')],
+            'aktiv'   => ['sometimes', 'boolean'],
+        ]);
+
+        DB::table('lehrberufe')->where('lehrberuf_id', $lehrberuf_id)->update([
+            'kuerzel'         => strtoupper($validated['kuerzel']),
+            'name'            => $validated['name'],
+            'aktiv'           => (int) ($validated['aktiv'] ?? 1),
+            'aktualisiert_am' => now(),
+        ]);
+
+        return redirect()->route('admin.stammdaten.lehrberufe.index')
+            ->with('status', 'Lehrberuf aktualisiert.');
+    }
 }

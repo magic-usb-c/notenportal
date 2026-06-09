@@ -138,6 +138,10 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.lehrberufe.store');
         Route::get('/stammdaten/lehrberufe/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'show'])
             ->name('stammdaten.lehrberufe.show');
+        Route::get('/stammdaten/lehrberufe/{lehrberuf_id}/edit', [StammdatenLehrberufeController::class, 'edit'])
+            ->name('stammdaten.lehrberufe.edit');
+        Route::put('/stammdaten/lehrberufe/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'update'])
+            ->name('stammdaten.lehrberufe.update');
         Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/module', [StammdatenLehrberufeController::class, 'assignModul'])
             ->name('stammdaten.lehrberufe.module.assign');
         Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'removeModul'])

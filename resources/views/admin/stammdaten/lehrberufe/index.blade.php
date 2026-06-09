@@ -41,8 +41,12 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.stammdaten.lehrberufe.show', $lb->lehrberuf_id) }}"
-                                       class="text-accent hover:underline text-xs">Module & Fächer</a>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <a href="{{ route('admin.stammdaten.lehrberufe.edit', $lb->lehrberuf_id) }}"
+                                           class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                        <a href="{{ route('admin.stammdaten.lehrberufe.show', $lb->lehrberuf_id) }}"
+                                           class="text-sm text-accent hover:underline whitespace-nowrap">Module & Fächer</a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
