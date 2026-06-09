@@ -31,12 +31,13 @@ class NotenController extends Controller
         $semester = $this->noteService->semestersForLernender($lernenderId);
 
         // Default-Semester: aktuelles (heute liegt drin), sonst das letzte in der Liste
+        // Nullsafe-Operator verhindert Crash wenn kein Semester konfiguriert ist
         $selectedSemesterId = $request->filled('semester_id')
             ? (int) $request->input('semester_id')
             : (int) ($semester->firstWhere(function ($s) {
                 $today = Carbon::today()->toDateString();
                 return (string)$s->start_datum <= $today && (string)$s->end_datum >= $today;
-            })->semester_id ?? ($semester->last()->semester_id ?? 0));
+            })?->semester_id ?? ($semester->last()?->semester_id ?? 0));
 
         // prev/next Semester (für Pfeile)
         $semesterIds = $semester->pluck('semester_id')->map(fn ($v) => (int) $v)->values();
@@ -74,20 +75,20 @@ class NotenController extends Controller
             ])
         );
 
-        $kategorien = Kategorie::query()->orderBy(‘sortierung’)->get();
+        $kategorien = Kategorie::query()->orderBy('sortierung')->get();
 
         // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
-        return view(‘lernender.noten.index’, [
-            ‘notes’              => $notes,
-            ‘kategorien’         => $kategorien,
-            ‘semester’           => $semester,
-            ‘selectedSemesterId’ => $selectedSemesterId,
-            ‘prevSemesterId’     => $prevSemesterId,
-            ‘nextSemesterId’     => $nextSemesterId,
-            ‘avgUnweighted’      => $avgUnweighted,
-            ‘avgWeighted’        => $avgWeighted,
-            ‘missingWeights’     => $missingWeights,
-            ‘count’              => $count,
+        return view('lernender.noten.index', [
+            'notes'              => $notes,
+            'kategorien'         => $kategorien,
+            'semester'           => $semester,
+            'selectedSemesterId' => $selectedSemesterId,
+            'prevSemesterId'     => $prevSemesterId,
+            'nextSemesterId'     => $nextSemesterId,
+            'avgUnweighted'      => $avgUnweighted,
+            'avgWeighted'        => $avgWeighted,
+            'missingWeights'     => $missingWeights,
+            'count'              => $count,
         ]);
     }
 

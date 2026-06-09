@@ -171,9 +171,10 @@
                 'destroyUrl' => $destroyUrl,
             ])
 
-            @if($notesPaginator)
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-3">
-                    {{ $notesPaginator->links() }}
+            @if($notes->isEmpty())
+                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-10 text-center text-muted text-sm">
+                    Noch keine Noten für dieses Semester.
+                    <a href="{{ route('lernender.noten.create') }}" class="text-accent hover:underline ml-1">Erste Note erfassen</a>
                 </div>
             @endif
 

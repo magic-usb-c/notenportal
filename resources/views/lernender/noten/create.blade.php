@@ -26,6 +26,13 @@
                     </div>
                 @endif
 
+                @if($faecher->isEmpty() && $module->isEmpty())
+                    <div class="mb-5 rounded-xl border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700 px-4 py-3 text-sm text-yellow-800 dark:text-yellow-200">
+                        Noch kein Track (BMS/ABU) und kein Lehrberuf mit Modulen konfiguriert.
+                        Bitte den Admin bitten, Tracks und Module einzurichten, bevor eine Note erfasst werden kann.
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('lernender.noten.store') }}" class="space-y-5">
                     @csrf
 

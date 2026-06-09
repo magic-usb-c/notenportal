@@ -131,7 +131,8 @@ class NoteService
             ->where('lernender_id', $lernenderId)
             ->first();
 
-        if (!$l) {
+        // Kein Lernender oder kein Lehrbeginn → leere Liste (verhindert Crash)
+        if (!$l || !$l->lehrbeginn) {
             return collect();
         }
 
