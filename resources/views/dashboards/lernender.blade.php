@@ -27,28 +27,26 @@
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="flex flex-wrap gap-3">
+                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
                     <div class="text-xs text-muted">Noten gesamt</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $noteCount }}</div>
                 </div>
-
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
                     <div class="text-xs text-muted">Ø gesamt</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $globalAvg ?? '–' }}</div>
                 </div>
-
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[140px]">
                     <div class="text-xs text-muted">Aktuelles Semester</div>
                     <div class="mt-1 text-sm font-semibold text-text">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
                 </div>
-
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
                     <div class="text-xs text-muted">Ø akt. Semester</div>
-                    <div class="mt-1 text-2xl font-bold text-text
+                    <div class="mt-1 text-2xl font-bold
                         @if($currentAvg !== null && $currentAvg >= 4.0) text-green-600 dark:text-green-400
                         @elseif($currentAvg !== null && $currentAvg >= 3.5) text-yellow-600 dark:text-yellow-400
                         @elseif($currentAvg !== null) text-red-600 dark:text-red-400
+                        @else text-text
                         @endif">
                         {{ $currentAvg ?? '–' }}
                     </div>

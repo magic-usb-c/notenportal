@@ -15,69 +15,29 @@
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="flex flex-wrap gap-3">
+                <a href="{{ route('admin.lernende.index') }}"
+                   class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px] hover:border-accent/40 transition-colors">
                     <div class="text-xs text-muted">Lernende</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $lernendCount }}</div>
-                    <a href="{{ route('admin.lernende.index') }}" class="text-xs text-accent hover:underline mt-1 block">Übersicht</a>
-                </div>
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                </a>
+                <a href="{{ route('admin.berufsbildner.index') }}"
+                   class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px] hover:border-accent/40 transition-colors">
                     <div class="text-xs text-muted">Berufsbildner</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $berufsbildnerCount }}</div>
-                    <a href="{{ route('admin.berufsbildner.index') }}" class="text-xs text-accent hover:underline mt-1 block">Übersicht</a>
-                </div>
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                </a>
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px]">
                     <div class="text-xs text-muted">Noten gesamt</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $noteCount }}</div>
                 </div>
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
-                    <div class="text-xs text-muted">Noten {{ $currentSemester?->bezeichnung ?? 'akt. Semester' }}</div>
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px]">
+                    <div class="text-xs text-muted">{{ $currentSemester?->bezeichnung ?? 'Akt. Semester' }}</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $notesThisSemester }}</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                {{-- Schnellzugriff --}}
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-3">
-                    <h3 class="font-semibold text-text">Verwaltung</h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('admin.benutzer.create') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            <span class="text-accent font-bold">+</span> Benutzer anlegen
-                        </a>
-                        <a href="{{ route('admin.benutzer.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Alle Benutzer
-                        </a>
-                        <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Lehrberufe
-                        </a>
-                        <a href="{{ route('admin.stammdaten.semester.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Semester
-                        </a>
-                        <a href="{{ route('admin.stammdaten.module.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Module
-                        </a>
-                        <a href="{{ route('admin.stammdaten.faecher.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Fächer
-                        </a>
-                        <a href="{{ route('admin.stammdaten.kategorien.index') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
-                            Kategorien
-                        </a>
-                        <a href="{{ route('admin.berichte.noten') }}"
-                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-accent text-accent hover:bg-accent hover:text-white transition-colors text-sm">
-                            <span class="font-bold">↗</span> Notenübersicht
-                        </a>
-                    </div>
-                </div>
-
-                {{-- Letzte Noten --}}
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            {{-- Letzte Noten --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                     <div class="px-5 py-4 border-b border-border">
                         <h3 class="font-semibold text-text">Zuletzt erfasste Noten</h3>
                     </div>
