@@ -13,7 +13,7 @@
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
+            <div class="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8">
 
                 @if ($errors->any())
                     <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-500">
@@ -36,19 +36,40 @@
                     @csrf
                     @method('PUT')
 
-                    {{-- Note + Gewichtung (Hero) --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-4 items-end">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Note</label>
-                            <input type="number" name="note_wert" step="0.1" min="1" max="6" required
-                                   value="{{ old('note_wert', $note->note_wert) }}" autofocus
-                                   class="w-[100px] max-w-[100px] text-2xl text-center font-bold rounded-xl border border-border bg-input text-text py-2.5
-                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
-                        </div>
+                    {{-- Note (Hero, zentral, mit Live-Farbwechsel) --}}
+                    <div x-data="{
+                            wert: '{{ old('note_wert', $note->note_wert) }}',
+                            get color() {
+                                const v = parseFloat(this.wert);
+                                if (!Number.isFinite(v)) return '';
+                                if (v >= 5.0) return 'text-green-600 dark:text-green-400';
+                                if (v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+                                if (v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                                return 'text-red-600 dark:text-red-400';
+                            }
+                         }"
+                         class="flex flex-col items-center gap-2 py-2">
+                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0)</label>
+                        <input type="number" name="note_wert" step="0.1" min="1" max="6" required
+                               x-model="wert" :class="color"
+                               value="{{ old('note_wert', $note->note_wert) }}" autofocus
+                               class="w-32 h-20 text-4xl font-extrabold text-center tabular-nums rounded-2xl border-2 border-border bg-input text-text
+                                      focus:border-accent focus:outline-none focus:ring-0 transition-colors duration-200">
+                    </div>
+
+                    {{-- Gewichtung + Datum --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Gewichtung %</label>
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
+                                   class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
+                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum</label>
+                            <input type="date" name="pruefungsdatum" required
+                                   value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
                         </div>
@@ -85,16 +106,8 @@
                         </div>
                     </div>
 
-                    {{-- Datum + Fach/Modul --}}
+                    {{-- Fach/Modul --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum</label>
-                            <input type="date" name="pruefungsdatum" required
-                                   value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
-                                   class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
-                        </div>
-
                         <div id="fachBlock">
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Fach</label>
                             <select name="fach_id"
