@@ -92,6 +92,17 @@ class NotenController extends Controller
             ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
             ->first();
 
+        // Aktueller Semester-Ø für Warning-Banner
+        $today = now()->toDateString();
+        $currentSemAvg = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->where('s.start_datum', '<=', $today)
+            ->where('s.end_datum', '>=', $today)
+            ->selectRaw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg')
+            ->value('avg');
+
         // Semester-Schnitte für Übersichtstabelle
         $semStats = DB::table('noten as n')
             ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
@@ -116,6 +127,7 @@ class NotenController extends Controller
             'semester'           => $semester,
             'lernenderProfil'    => $lernenderProfil,
             'semStats'           => $semStats,
+            'currentSemAvg'      => $currentSemAvg !== null ? (float) $currentSemAvg : null,
         ]);
     }
 

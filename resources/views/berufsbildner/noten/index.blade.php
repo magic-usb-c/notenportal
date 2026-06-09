@@ -66,6 +66,21 @@
                 </div>
             @endif
 
+            {{-- Warning: aktueller Semester-Ø unter 4.0 --}}
+            @if($currentSemAvg !== null && $currentSemAvg < 4.0)
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+                    </svg>
+                    <div>
+                        <div class="font-medium text-red-800 dark:text-red-300 text-sm">Aktueller Semester-Ø unter 4.0</div>
+                        <div class="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                            {{ $selectedLernender->vorname }} {{ $selectedLernender->nachname }} hat im aktuellen Semester einen Durchschnitt von {{ number_format($currentSemAvg, 2) }}.
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Lernenden-Zusammenfassung --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {{-- Profil --}}
