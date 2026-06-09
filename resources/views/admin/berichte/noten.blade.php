@@ -21,6 +21,15 @@
         </div>
     </x-slot>
 
+    <style>
+        @media print {
+            nav, .no-print, button[onclick*="print"] { display: none !important; }
+            body { background: #fff !important; color: #000 !important; }
+            .bg-card { background: #fff !important; box-shadow: none !important; }
+            details[open] summary ~ * { animation: none !important; }
+        }
+    </style>
+
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
