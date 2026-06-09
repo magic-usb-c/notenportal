@@ -214,19 +214,40 @@
             $m = $items->first()->modulBelegung->modul ?? null;
             $modulTitle = $m ? ($m->modul_nummer . ' – ' . $m->titel) : 'Modul';
             $avg = $weightedAvg($items);
+
+            // Fortschritt: aktuelle Gewichtungs-Summe vs. Ziel-Summe aus module-Tabelle
+            $gewSumme = 0.0;
+            foreach ($items as $n) {
+                $gewSumme += ($n->gewichtung_prozent === null || $n->gewichtung_prozent === '') ? 100.0 : (float)$n->gewichtung_prozent;
+            }
+            $zielSumme = $m && $m->ziel_gewicht_summe_default ? (float)$m->ziel_gewicht_summe_default : null;
+            $progressPct = $zielSumme && $zielSumme > 0 ? min(100, (int) round($gewSumme / $zielSumme * 100)) : null;
         @endphp
 
         <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
             <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-card/60">
-                <div class="flex items-center gap-3 min-w-0">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                         </svg>
                     </span>
-                    <div class="min-w-0">
+                    <div class="min-w-0 flex-1">
                         <div class="font-semibold text-text truncate">{{ $modulTitle }}</div>
-                        <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-xs text-muted whitespace-nowrap">
+                                @if($progressPct !== null)
+                                    {{ $progressPct }}% &middot; {{ $items->count() }} Note(n)
+                                @else
+                                    {{ $items->count() }} Note(n)
+                                @endif
+                            </span>
+                            @if($progressPct !== null)
+                                <div class="flex-1 max-w-[160px] h-1 rounded-full bg-accent/20 overflow-hidden">
+                                    <div class="h-full bg-accent" style="width: {{ $progressPct }}%"></div>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-baseline gap-2 shrink-0">
