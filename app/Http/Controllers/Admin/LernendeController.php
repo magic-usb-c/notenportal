@@ -82,7 +82,7 @@ class LernendeController extends Controller
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
             ->where('l.lernender_id', $lernender_id)
-            ->select(['l.*', 'b.vorname', 'b.nachname', 'b.email', 'lb.bezeichnung as lehrberuf'])
+            ->select(['l.*', 'b.vorname', 'b.nachname', 'b.email', 'lb.name as lehrberuf'])
             ->first();
 
         // Aktueller Berufsbildner
