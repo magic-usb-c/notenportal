@@ -157,10 +157,11 @@
                         </div>
                     </div>
 
-                    {{-- Titel --}}
+                    {{-- Titel / Notiz --}}
                     <div>
-                        <label class="block text-xs uppercase tracking-wide text-muted mb-1">Titel (optional)</label>
+                        <label class="block text-xs uppercase tracking-wide text-muted mb-1">Notiz / Titel (optional)</label>
                         <input name="titel" maxlength="150" value="{{ old('titel') }}"
+                               placeholder="z. B. Vokabeltest oder Praxisprüfung"
                                class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                       focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
                     </div>
