@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\DB;
 class LernendeController extends Controller
 {
     /**
-     * Admin: Liste aller aktiven Lernenden.
+     * Admin: Liste aller aktiven Lernenden mit Notenzahl, letztem Datum und Ø.
      */
     public function index(Request $request)
     {
+        $today = now()->toDateString();
+
         $lernende = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
@@ -26,7 +28,105 @@ class LernendeController extends Controller
             ->orderBy('b.vorname')
             ->get();
 
-        return view('admin.lernende.index', compact('lernende'));
+        if ($lernende->isEmpty()) {
+            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect()]);
+        }
+
+        $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int)$v)->all();
+
+        // Noten-Stats: Anzahl, letztes Datum, gewichteter Schnitt
+        $notenStats = DB::table('noten')
+            ->whereIn('lernender_id', $ids)
+            ->whereNull('geloescht_am')
+            ->groupBy('lernender_id')
+            ->select([
+                'lernender_id',
+                DB::raw('COUNT(*) as noten_count'),
+                DB::raw('MAX(pruefungsdatum) as last_note'),
+                DB::raw('ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0),2) as avg_all'),
+            ])
+            ->get()
+            ->keyBy('lernender_id');
+
+        // Aktueller Berufsbildner je Lernender
+        $betreuer = DB::table('betreuungen as bt')
+            ->join('berufsbildner as bb', 'bb.berufsbildner_id', '=', 'bt.berufsbildner_id')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->whereIn('bt.lernender_id', $ids)
+            ->where('bt.gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->select(['bt.lernender_id', 'b.vorname', 'b.nachname'])
+            ->get()
+            ->keyBy('lernender_id');
+
+        $stats = collect($ids)->mapWithKeys(fn($id) => [$id => (object)[
+            'noten_count' => (int) ($notenStats->get($id)?->noten_count ?? 0),
+            'last_note'   => $notenStats->get($id)?->last_note,
+            'avg_all'     => $notenStats->get($id)?->avg_all,
+            'betreuer'    => $betreuer->get($id),
+        ]]);
+
+        return view('admin.lernende.index', compact('lernende', 'stats'));
+    }
+
+    /**
+     * Admin: Detailseite eines Lernenden (Profil, Betreuung, Tracks, Notenstats).
+     */
+    public function show(Request $request, int $lernender_id)
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+        $today     = now()->toDateString();
+
+        // Erweitertes Profil
+        $profil = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->select(['l.*', 'b.vorname', 'b.nachname', 'b.email', 'lb.bezeichnung as lehrberuf'])
+            ->first();
+
+        // Aktueller Berufsbildner
+        $aktuellerBB = DB::table('betreuungen as bt')
+            ->join('berufsbildner as bb', 'bb.berufsbildner_id', '=', 'bt.berufsbildner_id')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->where('bt.lernender_id', $lernender_id)
+            ->where('bt.gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->select(['b.vorname', 'b.nachname', 'b.email'])
+            ->first();
+
+        // Semester-Statistiken (pro Semester: Anzahl, gewichteter Schnitt)
+        $semStats = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
+            ->select([
+                'n.semester_id',
+                's.bezeichnung as sem_label',
+                's.sortierung',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
+            ])
+            ->orderBy('s.sortierung')
+            ->get();
+
+        // Letzte 5 Noten
+        $letzteNoten = DB::table('noten as n')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->orderByDesc('n.pruefungsdatum')
+            ->orderByDesc('n.note_id')
+            ->limit(5)
+            ->select(['n.note_id','n.note_wert','n.pruefungsdatum','n.titel','f.name as fach_name','m.modul_nummer','m.titel as modul_titel'])
+            ->get();
+
+        return view('admin.lernende.show', compact(
+            'lernender', 'profil', 'aktuellerBB', 'semStats', 'letzteNoten', 'lernender_id'
+        ));
     }
 
     /*

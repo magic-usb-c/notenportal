@@ -98,8 +98,9 @@ Route::middleware(['auth', 'role:Admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        // Lernende: Übersicht + Noten
+        // Lernende: Übersicht + Detail + Noten
         Route::get('/lernende', [AdminLernendeController::class, 'index'])->name('lernende.index');
+        Route::get('/lernende/{lernender_id}', [AdminLernendeController::class, 'show'])->name('lernende.show');
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
 
