@@ -23,6 +23,7 @@
                             <option value="" @selected($warnung === '')>Alle anzeigen</option>
                             <option value="keine_noten" @selected($warnung === 'keine_noten')>Kein Eintrag (30 Tage)</option>
                             <option value="tief_avg" @selected($warnung === 'tief_avg')>Ø unter 4.0</option>
+                            <option value="ohne_betreuung" @selected($warnung === 'ohne_betreuung')>Ohne Berufsbildner</option>
                         </select>
                     </div>
                     <div>
@@ -71,10 +72,11 @@
                                         : 'text-muted';
 
                                     // Warnungen berechnen
-                                    $lastNote   = $s?->last_note ? \Carbon\Carbon::parse($s->last_note) : null;
-                                    $daysSince  = $lastNote ? (int) $lastNote->diffInDays(now()) : null;
-                                    $warnGelb   = $daysSince === null || $daysSince > 30;
-                                    $warnRot    = $avg !== null && $avg < 4.0;
+                                    $lastNote      = $s?->last_note ? \Carbon\Carbon::parse($s->last_note) : null;
+                                    $daysSince     = $lastNote ? (int) $lastNote->diffInDays(now()) : null;
+                                    $warnGelb      = $daysSince === null || $daysSince > 30;
+                                    $warnRot       = $avg !== null && $avg < 4.0;
+                                    $ohneBetreuer  = !$s?->betreuer;
                                 @endphp
                                 <tr class="hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
                                     <td class="p-3">
@@ -85,6 +87,12 @@
                                             @if(!$l->aktiv)
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">
                                                     Inaktiv
+                                                </span>
+                                            @endif
+
+                                            @if($ohneBetreuer && $l->aktiv)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap" title="Kein aktiver Berufsbildner">
+                                                    Ohne BB
                                                 </span>
                                             @endif
 

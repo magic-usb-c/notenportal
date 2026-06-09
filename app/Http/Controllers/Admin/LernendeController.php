@@ -94,6 +94,11 @@ class LernendeController extends Controller
                 $s = $stats->get((int) $l->lernender_id);
                 return $s && $s->avg_all !== null && (float) $s->avg_all < 4.0;
             });
+        } elseif ($warnung === 'ohne_betreuung') {
+            $lernende = $lernende->filter(function ($l) use ($stats) {
+                $s = $stats->get((int) $l->lernender_id);
+                return !$s?->betreuer;
+            });
         }
 
         return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive'));

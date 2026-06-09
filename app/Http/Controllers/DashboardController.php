@@ -241,8 +241,18 @@ class DashboardController extends Controller
     {
         $today = now()->toDateString();
 
-        $lernendCount     = DB::table('lernende')->whereNull('geloescht_am')->count();
-        $berufsbildnerCount = DB::table('berufsbildner')->whereNull('geloescht_am')->count();
+        $lernendCount     = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->whereNull('l.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->count();
+        $berufsbildnerCount = DB::table('berufsbildner as bb')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->whereNull('bb.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->count();
         $noteCount        = Note::query()->count();
 
         // Noten im aktuellen Semester
