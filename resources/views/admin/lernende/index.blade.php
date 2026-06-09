@@ -1,6 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Admin: Lernende</h2>
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text">Admin: Lernende</h2>
+            <div class="text-sm text-muted">
+                <span class="text-lg font-bold text-text tabular-nums">{{ $lernende->count() }}</span>
+                {{ $lernende->count() === 1 ? 'Lernender' : 'Lernende' }}
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-6">

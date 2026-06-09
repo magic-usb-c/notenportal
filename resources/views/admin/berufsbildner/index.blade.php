@@ -1,7 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Admin: Berufsbildner</h2>
+            <div class="flex items-center gap-4">
+                <h2 class="font-semibold text-xl text-text">Admin: Berufsbildner</h2>
+                <div class="text-sm text-muted pl-4 border-l border-border">
+                    <span class="text-lg font-bold text-text tabular-nums">{{ $berufsbildner->count() }}</span>
+                    {{ $berufsbildner->count() === 1 ? 'Berufsbildner' : 'Berufsbildner' }}
+                </div>
+            </div>
             <a href="{{ route('admin.benutzer.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
                 <span class="text-lg leading-none">+</span>

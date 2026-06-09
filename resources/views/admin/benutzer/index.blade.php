@@ -1,7 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Benutzerverwaltung</h2>
+            <div class="flex items-center gap-4">
+                <h2 class="font-semibold text-xl text-text">Benutzerverwaltung</h2>
+                <div class="text-sm text-muted pl-4 border-l border-border">
+                    <span class="text-lg font-bold text-text tabular-nums">{{ $benutzer->count() }}</span>
+                    Benutzer
+                </div>
+            </div>
             <a href="{{ route('admin.benutzer.create') }}"
                class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
                 + Benutzer anlegen
