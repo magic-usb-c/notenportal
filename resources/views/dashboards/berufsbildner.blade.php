@@ -1,6 +1,31 @@
+@php
+    $totalUnread = $stats?->sum('unread') ?? 0;
+    $warningsCount = $stats?->filter(fn($s) => $s->warningGelb || $s->warningRot)->count() ?? 0;
+@endphp
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Dashboard</h2>
+        <div class="w-full flex items-center justify-between gap-6">
+            <div>
+                <h2 class="font-semibold text-xl text-text">Dashboard</h2>
+                <p class="text-xs text-muted mt-0.5">{{ \Carbon\Carbon::now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-4 text-right">
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Lernende</div>
+                    <div class="text-lg font-bold text-text tabular-nums">{{ $lernende->count() }}</div>
+                </div>
+                <div class="w-px h-8 bg-border"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Neue Noten</div>
+                    <div class="text-lg font-bold tabular-nums {{ $totalUnread > 0 ? 'text-accent' : 'text-muted' }}">{{ $totalUnread }}</div>
+                </div>
+                <div class="w-px h-8 bg-border"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Warnungen</div>
+                    <div class="text-lg font-bold tabular-nums {{ $warningsCount > 0 ? 'text-orange-500' : 'text-muted' }}">{{ $warningsCount }}</div>
+                </div>
+            </div>
+        </div>
     </x-slot>
 
     @php
@@ -16,19 +41,10 @@
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
-            {{-- Begrüssung + Quick-Stats --}}
-            <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4">
-                <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-accent/5 pointer-events-none"></div>
-                <div class="relative">
-                    <p class="text-text font-medium text-lg">
-                        Willkommen, {{ auth()->user()->vorname }} {{ auth()->user()->nachname }}
-                    </p>
-                    <p class="text-muted text-sm mt-0.5">Berufsbildner</p>
-                </div>
-                <div class="relative text-right">
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Lernende</div>
-                    <div class="text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $lernende->count() }}</div>
-                </div>
+            {{-- Begrüssung (kompakt, ohne Panel) --}}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-base font-semibold text-text">Willkommen, {{ auth()->user()->vorname }}</h3>
+                <span class="text-xs text-muted">Berufsbildner</span>
             </div>
 
             {{-- Betreute Lernende als Card-Grid --}}
