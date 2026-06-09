@@ -90,6 +90,66 @@ class NotenController extends Controller
     }
 
     /**
+     * Admin: Formular zum Bearbeiten einer Note laden.
+     */
+    public function edit(int $lernender_id, int $note_id)
+    {
+        $note = Note::query()
+            ->with(['fach', 'modulBelegung.modul', 'gruppe'])
+            ->where('note_id', $note_id)
+            ->where('lernender_id', $lernender_id)
+            ->firstOrFail();
+
+        $formOptions = $this->noteService->formOptionsForLernender($lernender_id);
+
+        return view('admin.noten.edit', array_merge(
+            ['note' => $note, 'lernender_id' => $lernender_id],
+            $formOptions
+        ));
+    }
+
+    /**
+     * Admin: Note-Daten speichern (Korrekturen).
+     */
+    public function update(Request $request, int $lernender_id, int $note_id): RedirectResponse
+    {
+        $note = Note::query()
+            ->where('note_id', $note_id)
+            ->where('lernender_id', $lernender_id)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'kategorie_id'      => ['required', 'integer', 'exists:kategorien,kategorie_id'],
+            'typ'               => ['required', 'in:fach,modul'],
+            'fach_id'           => ['nullable', 'integer', 'exists:faecher,fach_id'],
+            'modul_id'          => ['nullable', 'integer', 'exists:module,modul_id'],
+            'titel'             => ['nullable', 'string', 'max:150'],
+            'pruefungsdatum'    => ['required', 'date'],
+            'note_wert'         => ['required', 'numeric', 'min:1', 'max:6'],
+            'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $data = $this->noteService->normalizeForSave($validated, $lernender_id);
+
+        $note->update([
+            'kategorie_id'               => $data['kategorie_id'],
+            'semester_id'                => $data['semester_id'],
+            'fach_id'                    => $data['fach_id'],
+            'modul_belegung_id'          => $data['modul_belegung_id'],
+            'gruppe_id'                  => $data['gruppe_id'],
+            'titel'                      => $data['titel'],
+            'pruefungsdatum'             => $data['pruefungsdatum'],
+            'note_wert'                  => $data['note_wert'],
+            'gewichtung_prozent'         => $data['gewichtung_prozent'],
+            'aktualisiert_von_benutzer_id' => (int) $request->user()->benutzer_id,
+        ]);
+
+        return redirect()
+            ->route('admin.lernende.noten.index', ['lernender_id' => $lernender_id])
+            ->with('status', 'Note aktualisiert.');
+    }
+
+    /**
      * Admin: Note soft-löschen (geloescht_am setzen).
      */
     public function destroy(int $lernender_id, int $note_id): RedirectResponse

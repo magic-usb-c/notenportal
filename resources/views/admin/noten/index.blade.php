@@ -191,14 +191,18 @@
                             </div>
 
                             {{-- Admin-Aktionen --}}
-                            <div class="border-t border-border px-5 py-3 flex justify-end">
+                            <div class="border-t border-border px-5 py-3 flex items-center justify-end gap-3">
+                                <a href="{{ route('admin.lernende.noten.edit', [$selectedLernenderId, $n->note_id]) }}"
+                                   class="px-3 py-1.5 rounded-xl text-xs text-accent border border-accent/20 hover:bg-accent/10">
+                                    Bearbeiten
+                                </a>
                                 <form method="POST"
                                       action="{{ route('admin.lernende.noten.destroy', [$selectedLernenderId, $n->note_id]) }}"
                                       onsubmit="return confirm('Note wirklich löschen?')">
                                     @csrf @method('DELETE')
                                     <button type="submit"
                                             class="px-3 py-1.5 rounded-xl text-xs text-red-500 border border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20">
-                                        Note löschen
+                                        Löschen
                                     </button>
                                 </form>
                             </div>
