@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
+use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use Illuminate\Http\Request;
@@ -196,6 +197,18 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.semester.edit');
         Route::put('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'update'])
             ->name('stammdaten.semester.update');
+
+        // Stammdaten: Kategorien
+        Route::get('/stammdaten/kategorien', [StammdatenKategorieController::class, 'index'])
+            ->name('stammdaten.kategorien.index');
+        Route::get('/stammdaten/kategorien/create', [StammdatenKategorieController::class, 'create'])
+            ->name('stammdaten.kategorien.create');
+        Route::post('/stammdaten/kategorien', [StammdatenKategorieController::class, 'store'])
+            ->name('stammdaten.kategorien.store');
+        Route::get('/stammdaten/kategorien/{kategorie_id}/edit', [StammdatenKategorieController::class, 'edit'])
+            ->name('stammdaten.kategorien.edit');
+        Route::put('/stammdaten/kategorien/{kategorie_id}', [StammdatenKategorieController::class, 'update'])
+            ->name('stammdaten.kategorien.update');
     });
 
 /**

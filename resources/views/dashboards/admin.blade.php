@@ -65,6 +65,10 @@
                            class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
                             Fächer
                         </a>
+                        <a href="{{ route('admin.stammdaten.kategorien.index') }}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
+                            Kategorien
+                        </a>
                     </div>
                 </div>
 
