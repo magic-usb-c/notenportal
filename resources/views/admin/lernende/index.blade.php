@@ -13,7 +13,17 @@
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
             {{-- Suche + Filter --}}
+            @php
+                $activeFilterCount = collect([$suche, $bbFilterId, $warnung, $inaktive === '1' ? '1' : ''])->filter()->count();
+            @endphp
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                @if($activeFilterCount > 0)
+                    <div class="mb-3 flex items-center gap-2 text-xs text-muted">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white text-[10px] font-bold">{{ $activeFilterCount }}</span>
+                        {{ $activeFilterCount === 1 ? 'aktiver Filter' : 'aktive Filter' }}
+                        <a href="{{ route('admin.lernende.index') }}" class="text-accent hover:underline ml-2">alle zurücksetzen</a>
+                    </div>
+                @endif
                 <form method="GET" action="{{ route('admin.lernende.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div class="lg:col-span-1">
