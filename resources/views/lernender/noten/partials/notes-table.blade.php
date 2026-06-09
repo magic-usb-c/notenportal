@@ -51,7 +51,7 @@
         @endphp
 
         <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-card/60">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -79,7 +79,7 @@
                     @endphp
 
                     <details class="np-note-detail group" data-note-id="{{ $n->note_id }}">
-                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
+                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-accent/5 transition-colors duration-100">
                             {{-- Linke Seite --}}
                             <div class="flex items-start gap-2 min-w-0">
                                 <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1">
@@ -225,7 +225,7 @@
         @endphp
 
         <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-card/60">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -266,7 +266,7 @@
                     @endphp
 
                     <details class="np-note-detail" data-note-id="{{ $n->note_id }}">
-                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
+                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-accent/5 transition-colors duration-100">
                             <div class="flex items-start gap-2 min-w-0">
                                 <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

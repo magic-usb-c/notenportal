@@ -210,7 +210,7 @@
                                     {{ $isNeu ? 'ring-1 ring-accent/40' : '' }}"
                              data-note-id="{{ $n->note_id }}">
 
-                        <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-bg">
+                        <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-accent/5 transition-colors duration-100">
                             {{-- Linke Seite: Chevron + Infos --}}
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="np-chevron text-muted transition-transform duration-200 shrink-0 mt-0.5">
