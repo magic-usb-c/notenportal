@@ -30,14 +30,8 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-bg">
-            <div>
-                <a href="{{ route('login') }}">
-                    <x-application-logo class="w-20 h-20 fill-current text-muted" />
-                </a>
-            </div>
-
-            <div class="w-full sm:max-w-md mt-6 px-6 py-6 bg-card border border-border shadow-sm overflow-hidden rounded-2xl">
+        <div class="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-bg">
+            <div class="w-full max-w-sm bg-card border border-border shadow-xl rounded-2xl overflow-hidden px-6 py-8">
                 {{ $slot }}
             </div>
         </div>
