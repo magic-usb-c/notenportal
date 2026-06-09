@@ -65,6 +65,7 @@ Route::middleware(['auth', 'role:Lernender'])
     ->name('lernender.noten.')
     ->group(function () {
         Route::get('/', [LernenderNotenController::class, 'index'])->name('index');
+        Route::get('/drucken', [LernenderNotenController::class, 'drucken'])->name('drucken');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
 
@@ -111,6 +112,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('lernende.noten.index');
         Route::get('/lernende/{lernender_id}/noten/export', [AdminNotenController::class, 'export'])
             ->name('lernende.noten.export');
+        Route::get('/lernende/{lernender_id}/noten/drucken', [AdminNotenController::class, 'drucken'])
+            ->name('lernende.noten.drucken');
         Route::get('/lernende/{lernender_id}/noten/create', [AdminNotenController::class, 'create'])
             ->name('lernende.noten.create');
         Route::post('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'store'])

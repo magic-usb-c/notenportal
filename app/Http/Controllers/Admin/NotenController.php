@@ -220,6 +220,55 @@ class NotenController extends Controller
     }
 
     /**
+     * Admin: Druckansicht aller Noten eines Lernenden (alle Semester, ohne Filter).
+     */
+    public function drucken(int $lernender_id)
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+
+        $profil = DB::table('lernende as l')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
+            ->first();
+
+        $noten = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->orderBy('s.sortierung')
+            ->orderBy('n.pruefungsdatum')
+            ->orderBy('n.note_id')
+            ->select([
+                'n.note_id', 'n.pruefungsdatum', 'n.note_wert', 'n.gewichtung_prozent', 'n.titel',
+                's.semester_id', 's.bezeichnung as semester_bezeichnung', 's.sortierung',
+                'k.name as kategorie_name',
+                'f.name as fach_name',
+                'm.modul_nummer', 'm.titel as modul_titel',
+            ])
+            ->get();
+
+        $semesterNoten = $noten
+            ->groupBy('semester_id')
+            ->map(fn($items) => [
+                'bezeichnung' => $items->first()->semester_bezeichnung,
+                'noten'       => $items,
+            ])
+            ->values()
+            ->toArray();
+
+        return response()->view('lernender.noten.drucken', [
+            'lernender'     => $lernender,
+            'profil'        => $profil,
+            'semesterNoten' => $semesterNoten,
+        ]);
+    }
+
+    /**
      * Admin: CSV-Export aller Noten eines Lernenden (mit optionalem Filter).
      */
     public function export(Request $request, int $lernender_id): StreamedResponse
