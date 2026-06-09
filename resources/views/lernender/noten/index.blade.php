@@ -36,11 +36,35 @@
         $destroyUrl = fn(int $id) => route('lernender.noten.destroy', $id);
     @endphp
 
+    @php
+        $headerAvgColor = function ($val) {
+            if ($val === null || $val === '') return 'text-muted';
+            $v = (float) $val;
+            if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
+            if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+            if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+            return 'text-red-600 dark:text-red-400';
+        };
+    @endphp
     <x-slot name="header">
         {{-- 1 Zeile / 3 Bereiche --}}
         <div class="w-full flex items-center justify-between gap-4">
-            <div class="flex-none">
+            <div class="flex-none flex items-center gap-5">
                 <h2 class="font-semibold text-xl text-text whitespace-nowrap">Meine Noten</h2>
+                <div class="hidden md:flex items-center gap-3 pl-4 border-l border-border">
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest text-muted">Ø Sem</div>
+                        <div class="text-lg font-bold tabular-nums {{ $headerAvgColor($avgWeighted) }}">{{ $avgWeighted ?? '–' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest text-muted">Ø Gesamt</div>
+                        <div class="text-lg font-bold tabular-nums {{ $headerAvgColor($globalAvgWeighted ?? null) }}">{{ $globalAvgWeighted ?? '–' }}</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] uppercase tracking-widest text-muted">Noten</div>
+                        <div class="text-lg font-bold text-text tabular-nums">{{ $count }}</div>
+                    </div>
+                </div>
             </div>
 
             <div class="flex-1 flex items-center justify-center gap-2 min-w-0">
@@ -128,77 +152,56 @@
                 };
             @endphp
 
-            {{-- Filter + Summary --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-                {{-- Filter --}}
-                <div class="lg:col-span-8">
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full">
-                        <form method="GET" action="{{ route('lernender.noten.index') }}" class="h-full flex flex-col gap-3">
-                            <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
+            {{-- Filter (volle Breite, kompakt) --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <form method="GET" action="{{ route('lernender.noten.index') }}"
+                      class="flex flex-wrap items-end gap-3">
+                    <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
 
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                                <div class="md:col-span-8 min-w-0">
-                                    <label class="text-sm font-medium text-muted">Kategorie</label>
-                                    <select name="kategorie_id"
-                                            class="mt-1 w-full min-w-0 rounded-xl border border-border bg-input text-text
-                                                   focus:ring-2 focus:ring-ring focus:border-ring">
-                                        <option value="">Alle</option>
-                                        @foreach($kategorien as $k)
-                                            <option value="{{ $k->kategorie_id }}" @selected(request('kategorie_id') == $k->kategorie_id)>
-                                                {{ $k->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="md:col-span-4 flex gap-2 justify-end flex-nowrap">
-                                    <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
-                                        Anwenden
-                                    </button>
-
-                                    <a href="{{ route('lernender.noten.index', ['semester_id' => $selectedSemesterId]) }}"
-                                       class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 text-center whitespace-nowrap">
-                                        Reset
-                                    </a>
-                                </div>
-                            </div>
-
-                            @if(($missingWeights ?? 0) > 0)
-                                <div class="rounded-xl border border-border bg-card p-3 text-sm text-muted">
-                                    Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung werden logisch mit 100% behandelt.
-                                </div>
-                            @endif
-
-                            <div class="flex-1"></div>
-                        </form>
+                    <div class="flex-1 min-w-[180px]">
+                        <label class="text-xs uppercase tracking-wide text-muted">Kategorie</label>
+                        <select name="kategorie_id"
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text
+                                       focus:ring-2 focus:ring-ring focus:border-ring">
+                            <option value="">Alle</option>
+                            @foreach($kategorien as $k)
+                                <option value="{{ $k->kategorie_id }}" @selected(request('kategorie_id') == $k->kategorie_id)>
+                                    {{ $k->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
-                </div>
 
-                {{-- Summary --}}
-                <div class="lg:col-span-4">
-                    <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-4 h-full grid grid-cols-2 gap-2 items-center text-center np-card-lift">
-                        <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-accent/5 pointer-events-none"></div>
-                        <div class="relative flex flex-col items-center justify-center">
-                            <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø Semester</div>
-                            <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($avgWeighted) }}">
-                                {{ $avgWeighted ?? '–' }}
-                            </div>
-                            <div class="text-[11px] text-muted mt-0.5">
-                                {{ $count }} {{ $count === 1 ? 'Note' : 'Noten' }}
-                            </div>
+                    <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
+                        Anwenden
+                    </button>
+                    <a href="{{ route('lernender.noten.index', ['semester_id' => $selectedSemesterId]) }}"
+                       class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 whitespace-nowrap">
+                        Reset
+                    </a>
+
+                    @if(($missingWeights ?? 0) > 0)
+                        <div class="w-full text-xs text-muted">
+                            Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung werden mit 100% gerechnet.
                         </div>
-                        <div class="relative flex flex-col items-center justify-center border-l border-border">
-                            <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
-                            <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($globalAvgWeighted ?? null) }}">
-                                {{ $globalAvgWeighted ?? '–' }}
-                            </div>
-                            <div class="text-[11px] text-muted mt-0.5">
-                                {{ $globalCount ?? 0 }} {{ ($globalCount ?? 0) === 1 ? 'Note' : 'Noten' }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    @endif
+                </form>
             </div>
+
+            {{-- Warning-Banner: Ø unter 4.0 (Trigger aus PDF) --}}
+            @if($avgWeighted !== null && (float)$avgWeighted < 4.0)
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex items-start gap-3">
+                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
+                    </svg>
+                    <div>
+                        <div class="font-medium text-red-800 dark:text-red-300 text-sm">Achtung: Durchschnitt unter 4.0</div>
+                        <div class="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                            Dein aktueller Semesterdurchschnitt beträgt {{ $avgWeighted }}. Sprich mit deinem Berufsbildner.
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             {{-- Kategorie-Übersicht (Stats getrennt pro Kategorie für gewähltes Semester) --}}
             @if($kategorieStats->isNotEmpty())
