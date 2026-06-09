@@ -72,11 +72,20 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">
                             <tr>
-                                <th class="text-left p-3">Name / Hinweise</th>
+                                @php
+                                    $sortLink = function ($col, $label) use ($sortBy, $sortDir) {
+                                        $isActive = $sortBy === $col;
+                                        $nextDir = $isActive && $sortDir === 'asc' ? 'desc' : 'asc';
+                                        $arrow = !$isActive ? '<span class="text-muted/50">⇅</span>' : ($sortDir === 'asc' ? '↑' : '↓');
+                                        $url = request()->fullUrlWithQuery(['sort' => $col, 'dir' => $nextDir]);
+                                        return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text '.($isActive ? 'text-text font-semibold' : '').'">'.$label.' '.$arrow.'</a>';
+                                    };
+                                @endphp
+                                <th class="text-left p-3">{!! $sortLink('name', 'Name / Hinweise') !!}</th>
                                 <th class="text-left p-3 whitespace-nowrap">Berufsbildner</th>
                                 <th class="text-center p-3 whitespace-nowrap">Noten</th>
-                                <th class="text-center p-3 whitespace-nowrap">Letzte Note</th>
-                                <th class="text-center p-3 whitespace-nowrap">Ø gesamt</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('last_note', 'Letzte Note') !!}</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('avg', 'Ø gesamt') !!}</th>
                                 <th class="text-right p-3">Aktionen</th>
                             </tr>
                         </thead>

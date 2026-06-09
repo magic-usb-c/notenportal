@@ -21,13 +21,15 @@ class LernendeController extends Controller
         $warnung      = $request->input('warnung', '');    // 'keine_noten' | 'tief_avg' | ''
         $inaktive     = $request->input('inaktive', '0'); // '1' = auch inaktive zeigen
         $bbFilterId   = $request->input('berufsbildner_id', ''); // BB-Filter
+        $sortBy       = $request->input('sort', 'name');     // name | avg | last_note
+        $sortDir      = $request->input('dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
         $q = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email', 'b.aktiv', 'l.lehrende'])
-            ->orderBy('b.nachname')
+            ->orderBy('b.nachname', $sortBy === 'name' ? $sortDir : 'asc')
             ->orderBy('b.vorname');
 
         if ($inaktive !== '1') {
@@ -109,6 +111,19 @@ class LernendeController extends Controller
             'betreuer'    => $betreuer->get($id),
         ]]);
 
+        // Post-Sort wenn nach avg oder last_note (abhängig von stats)
+        if ($sortBy === 'avg') {
+            $lernende = $lernende->sortBy(function ($l) use ($stats) {
+                $s = $stats->get((int) $l->lernender_id);
+                return $s?->avg_all !== null ? (float) $s->avg_all : -1;
+            }, SORT_REGULAR, $sortDir === 'desc');
+        } elseif ($sortBy === 'last_note') {
+            $lernende = $lernende->sortBy(function ($l) use ($stats) {
+                $s = $stats->get((int) $l->lernender_id);
+                return $s?->last_note ?? '0000-00-00';
+            }, SORT_STRING, $sortDir === 'desc');
+        }
+
         // Warnungs-Filter (post-query, da stats abhängig)
         if ($warnung === 'keine_noten') {
             $lernende = $lernende->filter(function ($l) use ($stats, $cutoff) {
@@ -127,7 +142,7 @@ class LernendeController extends Controller
             });
         }
 
-        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive', 'bbFilterId', 'berufsbildnerListe'));
+        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive', 'bbFilterId', 'berufsbildnerListe', 'sortBy', 'sortDir'));
     }
 
     /**
