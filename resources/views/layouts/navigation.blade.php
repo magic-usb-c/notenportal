@@ -43,6 +43,9 @@
                             <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                                 Benutzer
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
+                                Berichte
+                            </x-nav-link>
                             {{-- Stammdaten-Dropdown --}}
                             <div class="relative" x-data="{ stammdatenOpen: false }" @click.outside="stammdatenOpen = false">
                                 <button @click="stammdatenOpen = !stammdatenOpen"
@@ -189,6 +192,9 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                         Benutzer
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
+                        Berichte
                     </x-responsive-nav-link>
                     <div class="border-t border-border pt-1 mt-1">
                         <div class="px-4 py-1 text-xs font-semibold text-muted uppercase tracking-wide">Stammdaten</div>

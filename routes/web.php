@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
+use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -108,6 +109,8 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/lernende/{lernender_id}', [AdminLernendeController::class, 'show'])->name('lernende.show');
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
+        Route::get('/lernende/{lernender_id}/noten/export', [AdminNotenController::class, 'export'])
+            ->name('lernende.noten.export');
         Route::get('/lernende/{lernender_id}/noten/create', [AdminNotenController::class, 'create'])
             ->name('lernende.noten.create');
         Route::post('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'store'])
@@ -207,6 +210,12 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.semester.edit');
         Route::put('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'update'])
             ->name('stammdaten.semester.update');
+
+        // Berichte
+        Route::get('/berichte/noten', [AdminBerichtController::class, 'noten'])
+            ->name('berichte.noten');
+        Route::get('/berichte/noten/export', [AdminBerichtController::class, 'notenExport'])
+            ->name('berichte.noten.export');
 
         // Stammdaten: Kategorien
         Route::get('/stammdaten/kategorien', [StammdatenKategorieController::class, 'index'])

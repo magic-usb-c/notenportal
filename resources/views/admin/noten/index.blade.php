@@ -5,10 +5,17 @@
                 Noten:
                 <span class="text-muted">{{ $selectedLernender->nachname ?? '' }} {{ $selectedLernender->vorname ?? '' }}</span>
             </h2>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
                 <a href="{{ route('admin.lernende.noten.create', ['lernender_id' => $selectedLernenderId]) }}"
                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
                     + Note erfassen
+                </a>
+                <a href="{{ route('admin.lernende.noten.export', array_merge(['lernender_id' => $selectedLernenderId], request()->only(['semester_id', 'kategorie_id']))) }}"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    CSV
                 </a>
                 <a href="{{ route('admin.lernende.show', $selectedLernenderId) }}"
                    class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
@@ -86,6 +93,35 @@
                     </div>
                 </form>
             </div>
+
+            {{-- Statistik-Leiste --}}
+            @if($statsRow && $statsRow->total > 0)
+                @php
+                    $avg = $statsRow->avg_weighted !== null ? (float)$statsRow->avg_weighted : null;
+                    $passRate = $statsRow->total > 0 ? round($statsRow->passed / $statsRow->total * 100) : null;
+                    $avgColor = $avg === null ? 'text-muted' : ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'));
+                @endphp
+                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-3 flex flex-wrap gap-6 text-sm">
+                    <div class="text-center">
+                        <div class="text-xs text-muted">Noten</div>
+                        <div class="font-bold text-text text-lg">{{ $statsRow->total }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xs text-muted">Ø gewichtet</div>
+                        <div class="font-bold text-lg {{ $avgColor }}">{{ $avg !== null ? number_format($avg, 2) : '–' }}</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-xs text-muted">Bestanden</div>
+                        <div class="font-bold text-lg text-text">{{ $statsRow->passed }} / {{ $statsRow->total }}</div>
+                    </div>
+                    @if($passRate !== null)
+                        <div class="text-center">
+                            <div class="text-xs text-muted">Bestehensquote</div>
+                            <div class="font-bold text-lg {{ $passRate >= 75 ? 'text-green-600 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400') }}">{{ $passRate }} %</div>
+                        </div>
+                    @endif
+                </div>
+            @endif
 
             {{-- Noten-Accordion --}}
             <div class="space-y-2">

@@ -69,6 +69,10 @@
                            class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-border hover:bg-bg text-sm text-text">
                             Kategorien
                         </a>
+                        <a href="{{ route('admin.berichte.noten') }}"
+                           class="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-accent text-accent hover:bg-accent hover:text-white transition-colors text-sm">
+                            <span class="font-bold">↗</span> Notenübersicht
+                        </a>
                     </div>
                 </div>
 

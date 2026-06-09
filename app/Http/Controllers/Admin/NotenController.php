@@ -11,6 +11,7 @@ use App\Services\Noten\NoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotenController extends Controller
 {
@@ -69,6 +70,19 @@ class NotenController extends Controller
 
         $notes = $q->paginate(25)->withQueryString();
 
+        // Statistik über den gesamten gefilterten Datensatz (nicht nur aktuelle Seite)
+        $statsRow = DB::table('noten as n')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->when($request->filled('kategorie_id'), fn($q) => $q->where('n.kategorie_id', (int) $request->input('kategorie_id')))
+            ->when($request->filled('semester_id'),  fn($q) => $q->where('n.semester_id',  (int) $request->input('semester_id')))
+            ->selectRaw('
+                COUNT(*) as total,
+                ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0), 2) as avg_weighted,
+                SUM(CASE WHEN note_wert >= 4.0 THEN 1 ELSE 0 END) as passed
+            ')
+            ->first();
+
         // 4) Filter Stammdaten
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
 
@@ -77,6 +91,7 @@ class NotenController extends Controller
 
         return view('admin.noten.index', [
             'notes' => $notes,
+            'statsRow' => $statsRow,
 
             // Switcher
             'lernende' => $lernende,
@@ -202,6 +217,76 @@ class NotenController extends Controller
         return redirect()
             ->route('admin.lernende.noten.index', ['lernender_id' => $lernender_id])
             ->with('status', 'Note aktualisiert.');
+    }
+
+    /**
+     * Admin: CSV-Export aller Noten eines Lernenden (mit optionalem Filter).
+     */
+    public function export(Request $request, int $lernender_id): StreamedResponse
+    {
+        $lernender = $this->lernenderOr404($lernender_id);
+
+        $q = DB::table('noten as n')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->leftJoin('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->orderBy('n.pruefungsdatum')
+            ->orderBy('n.note_id')
+            ->select([
+                'n.note_id',
+                'n.pruefungsdatum',
+                's.bezeichnung as semester',
+                'k.name as kategorie',
+                'f.name as fach',
+                'm.modul_nummer',
+                'm.titel as modul_titel',
+                'n.titel',
+                'n.note_wert',
+                'n.gewichtung_prozent',
+            ]);
+
+        if ($request->filled('semester_id')) {
+            $q->where('n.semester_id', (int) $request->input('semester_id'));
+        }
+
+        if ($request->filled('kategorie_id')) {
+            $q->where('n.kategorie_id', (int) $request->input('kategorie_id'));
+        }
+
+        $rows = $q->get();
+
+        $filename = 'noten_' . str($lernender->nachname . '_' . $lernender->vorname)->slug('_') . '_' . now()->format('Ymd') . '.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            // BOM for Excel UTF-8 compatibility
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'], ';');
+
+            foreach ($rows as $r) {
+                $fachModul = $r->fach
+                    ?? ($r->modul_nummer ? $r->modul_nummer . ' – ' . $r->modul_titel : '');
+
+                fputcsv($out, [
+                    $r->pruefungsdatum,
+                    $r->semester ?? '',
+                    $r->kategorie ?? '',
+                    $fachModul,
+                    $r->titel ?? '',
+                    number_format((float) $r->note_wert, 1, '.', ''),
+                    $r->gewichtung_prozent ?? '',
+                ], ';');
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     /**
