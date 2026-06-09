@@ -47,5 +47,18 @@
                 {{ $slot }}
             </main>
         </div>
+
+        <script>
+            // Erfolgsmeldungen nach 3 Sekunden ausblenden
+            document.addEventListener('DOMContentLoaded', function () {
+                document.querySelectorAll('[data-autohide]').forEach(function (el) {
+                    setTimeout(function () {
+                        el.style.transition = 'opacity 0.5s';
+                        el.style.opacity = '0';
+                        setTimeout(function () { el.style.display = 'none'; }, 500);
+                    }, 3000);
+                });
+            });
+        </script>
     </body>
 </html>

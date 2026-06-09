@@ -43,6 +43,9 @@
                             <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                                 Benutzer
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.*')">
+                                Stammdaten
+                            </x-nav-link>
                         @endif
                     @endauth
                 </div>
@@ -142,6 +145,9 @@
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                         Benutzer
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.*')">
+                        Stammdaten
                     </x-responsive-nav-link>
                 @endif
             @endauth
