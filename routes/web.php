@@ -87,6 +87,8 @@ Route::middleware(['auth', 'role:Berufsbildner'])
     ->name('berufsbildner.')
     ->group(function () {
         Route::get('/lernende', [BerufsbildnerLernendeController::class, 'index'])->name('lernende.index');
+        Route::get('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'show'])
+            ->whereNumber('lernender_id')->name('lernende.show');
 
         Route::get('/lernende/{lernender_id}/noten', [BerufsbildnerNotenController::class, 'index'])
             ->name('lernende.noten.index');

@@ -130,4 +130,95 @@ class LernendeController extends Controller
 
         return view('berufsbildner.lernende.index', compact('lernende', 'stats'));
     }
+
+    /**
+     * Read-only Profil-Ansicht für Berufsbildner.
+     * Zeigt Stammdaten + Semester-Statistiken. Keine Edit-Aktionen.
+     */
+    public function show(Request $request, int $lernender_id)
+    {
+        $bb = $request->user()?->berufsbildner;
+        if (!$bb) {
+            abort(403);
+        }
+
+        $today = now()->toDateString();
+
+        // Authorization: BB darf nur aktuell betreute Lernende sehen
+        $betreut = DB::table('betreuungen')
+            ->where('berufsbildner_id', $bb->berufsbildner_id)
+            ->where('lernender_id', $lernender_id)
+            ->where('gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today))
+            ->exists();
+
+        if (!$betreut) {
+            abort(403, 'Sie betreuen diesen Lernenden nicht.');
+        }
+
+        $profil = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->whereNull('l.geloescht_am')
+            ->select([
+                'l.lernender_id', 'l.lehrbeginn', 'l.lehrende',
+                'b.vorname', 'b.nachname', 'b.email',
+                'lb.name as lehrberuf',
+            ])
+            ->first();
+
+        if (!$profil) {
+            abort(404);
+        }
+
+        // Tracks (BMS / ABU)
+        $tracks = DB::table('lernender_tracks')
+            ->where('lernender_id', $lernender_id)
+            ->select(['track_typ', 'start_datum', 'end_datum'])
+            ->orderBy('start_datum')
+            ->get();
+
+        // Semester-Statistiken
+        $semStats = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
+            ->select([
+                'n.semester_id',
+                's.bezeichnung as sem_label',
+                's.sortierung',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
+            ])
+            ->orderBy('s.sortierung')
+            ->get();
+
+        // Letzter Eintrag und Gesamt-Ø
+        $lastEntry = DB::table('noten')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('geloescht_am')
+            ->max('pruefungsdatum');
+
+        $globalAvg = DB::table('noten')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('geloescht_am')
+            ->selectRaw('ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0),2) as avg')
+            ->value('avg');
+
+        $noteCount = DB::table('noten')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('geloescht_am')
+            ->count();
+
+        return view('berufsbildner.lernende.show', [
+            'profil'      => $profil,
+            'tracks'      => $tracks,
+            'semStats'    => $semStats,
+            'lastEntry'   => $lastEntry ? Carbon::parse($lastEntry) : null,
+            'globalAvg'   => $globalAvg !== null ? (float) $globalAvg : null,
+            'noteCount'   => $noteCount,
+        ]);
+    }
 }

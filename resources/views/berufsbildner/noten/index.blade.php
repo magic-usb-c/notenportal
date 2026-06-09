@@ -44,6 +44,11 @@
                     </svg>
                     CSV
                 </a>
+                <a href="{{ route('berufsbildner.lernende.show', ['lernender_id' => $selectedLernenderId]) }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap"
+                   title="Profil ansehen">
+                    Profil
+                </a>
                 <a href="{{ route('berufsbildner.lernende.index') }}"
                    class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap">
                     Lernenden wechseln
