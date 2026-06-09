@@ -221,7 +221,10 @@
                 $gewSumme += ($n->gewichtung_prozent === null || $n->gewichtung_prozent === '') ? 100.0 : (float)$n->gewichtung_prozent;
             }
             $zielSumme = $m && $m->ziel_gewicht_summe_default ? (float)$m->ziel_gewicht_summe_default : null;
-            $progressPct = $zielSumme && $zielSumme > 0 ? min(100, (int) round($gewSumme / $zielSumme * 100)) : null;
+            // Fallback: wenn kein Ziel-Gewicht konfiguriert ist, nutze "10 Noten = 100%" als groben Indikator.
+            $progressPct = $zielSumme && $zielSumme > 0
+                ? min(100, (int) round($gewSumme / $zielSumme * 100))
+                : min(100, (int) round($items->count() / 10 * 100));
         @endphp
 
         <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
