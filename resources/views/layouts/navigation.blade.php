@@ -37,41 +37,54 @@
                         @endif
 
                         @if(auth()->user()->hasRole('Admin'))
-                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
-                                Lernende
-                            </x-nav-link>
-                            <x-nav-link :href="route('admin.berufsbildner.index')" :active="request()->routeIs('admin.berufsbildner.*')">
-                                Berufsbildner
-                            </x-nav-link>
-                            <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
-                                Benutzer
-                            </x-nav-link>
-                            <x-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
-                                Berichte
-                            </x-nav-link>
-                            {{-- Stammdaten-Dropdown --}}
-                            <div class="relative" x-data="{ stammdatenOpen: false }" @click.outside="stammdatenOpen = false">
-                                <button @click="stammdatenOpen = !stammdatenOpen"
-                                    class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
-                                        {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
-                                    Stammdaten
-                                    <svg class="h-3.5 w-3.5 transition-transform" :class="{ 'rotate-180': stammdatenOpen }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
+                            {{-- Dropdown: Benutzer --}}
+                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                <button class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                                    {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
+                                    Benutzer
+                                    <svg class="h-3.5 w-3.5" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
                                     </svg>
                                 </button>
-                                <div x-show="stammdatenOpen" x-transition
-                                     class="absolute left-0 top-full mt-1 w-44 rounded-xl bg-card border border-border shadow-lg z-50 py-1">
+                                <div x-show="open" x-transition.origin.top.left
+                                     class="absolute left-0 top-full w-44 rounded-xl bg-card border border-border shadow-lg z-50 py-1">
+                                    <a href="{{ route('admin.lernende.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Lernende
+                                    </a>
+                                    <a href="{{ route('admin.berufsbildner.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.berufsbildner.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Berufsbildner
+                                    </a>
+                                    <a href="{{ route('admin.benutzer.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.benutzer.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Systembenutzer
+                                    </a>
+                                </div>
+                            </div>
+
+                            {{-- Dropdown: Stammdaten --}}
+                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                <button class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                                    {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
+                                    Stammdaten
+                                    <svg class="h-3.5 w-3.5" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
+                                    </svg>
+                                </button>
+                                <div x-show="open" x-transition.origin.top.left
+                                     class="absolute left-0 top-full w-44 rounded-xl bg-card border border-border shadow-lg z-50 py-1">
                                     <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
                                        class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
                                         Lehrberufe
                                     </a>
-                                    <a href="{{ route('admin.stammdaten.faecher.index') }}"
-                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
-                                        Fächer
-                                    </a>
                                     <a href="{{ route('admin.stammdaten.module.index') }}"
                                        class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
                                         Module
+                                    </a>
+                                    <a href="{{ route('admin.stammdaten.faecher.index') }}"
+                                       class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
+                                        Fächer
                                     </a>
                                     <a href="{{ route('admin.stammdaten.semester.index') }}"
                                        class="block px-4 py-2 text-sm {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium' : 'text-text hover:bg-bg' }}">
@@ -83,6 +96,11 @@
                                     </a>
                                 </div>
                             </div>
+
+                            {{-- Berichte (Direktlink) --}}
+                            <x-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
+                                Berichte
+                            </x-nav-link>
                         @endif
                     @endauth
                 </div>
@@ -190,6 +208,7 @@
                 @endif
 
                 @if(auth()->user()->hasRole('Admin'))
+                    <div class="px-4 py-1 text-xs font-semibold text-muted uppercase tracking-wide mt-1">Benutzer</div>
                     <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                         Lernende
                     </x-responsive-nav-link>
@@ -197,27 +216,29 @@
                         Berufsbildner
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
-                        Benutzer
-                    </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
-                        Berichte
+                        Systembenutzer
                     </x-responsive-nav-link>
                     <div class="border-t border-border pt-1 mt-1">
                         <div class="px-4 py-1 text-xs font-semibold text-muted uppercase tracking-wide">Stammdaten</div>
                         <x-responsive-nav-link :href="route('admin.stammdaten.lehrberufe.index')" :active="request()->routeIs('admin.stammdaten.lehrberufe.*')">
                             Lehrberufe
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('admin.stammdaten.faecher.index')" :active="request()->routeIs('admin.stammdaten.faecher.*')">
-                            Fächer
-                        </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('admin.stammdaten.module.index')" :active="request()->routeIs('admin.stammdaten.module.*')">
                             Module
+                        </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.stammdaten.faecher.index')" :active="request()->routeIs('admin.stammdaten.faecher.*')">
+                            Fächer
                         </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('admin.stammdaten.semester.index')" :active="request()->routeIs('admin.stammdaten.semester.*')">
                             Semester
                         </x-responsive-nav-link>
                         <x-responsive-nav-link :href="route('admin.stammdaten.kategorien.index')" :active="request()->routeIs('admin.stammdaten.kategorien.*')">
                             Kategorien
+                        </x-responsive-nav-link>
+                    </div>
+                    <div class="border-t border-border pt-1 mt-1">
+                        <x-responsive-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
+                            Berichte
                         </x-responsive-nav-link>
                     </div>
                 @endif
