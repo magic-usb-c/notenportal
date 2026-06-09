@@ -129,6 +129,12 @@
                                     ?? $n->titel
                                     ?? '–';
                                 $noteWert = (float) $n->note_wert;
+                                $datum = \Carbon\Carbon::parse($n->pruefungsdatum);
+                                $daysAgo = (int) $datum->diffInDays(now());
+                                $relativeDate = $daysAgo === 0 ? 'heute'
+                                    : ($daysAgo === 1 ? 'gestern'
+                                    : ($daysAgo < 7 ? 'vor '.$daysAgo.' Tagen'
+                                    : $datum->format('d.m.Y')));
                                 $noteColor = $noteWert >= 5.0
                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
                                     : ($noteWert >= 4.0
@@ -141,7 +147,7 @@
                                class="block px-5 py-3 flex items-center justify-between gap-4 hover:bg-accent/5 transition-colors duration-100">
                                 <div>
                                     <div class="text-sm font-medium text-text">{{ $label }}</div>
-                                    <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
+                                    <div class="text-xs text-muted">{{ $relativeDate }}</div>
                                 </div>
                                 <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
