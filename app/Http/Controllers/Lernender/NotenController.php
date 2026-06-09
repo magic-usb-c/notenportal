@@ -139,6 +139,61 @@ class NotenController extends Controller
         );
     }
 
+    /**
+     * Noten-Rechner: "Welche Note brauche ich, um Ziel-Ø zu erreichen?"
+     * Übergibt sowohl die Noten des aktuellen Semesters als auch alle Noten an die View,
+     * damit die Berechnung live im Browser (Alpine.js) erfolgen kann.
+     */
+    public function rechner(Request $request)
+    {
+        $lernender = $request->user()?->lernender;
+        if (!$lernender) {
+            abort(403);
+        }
+
+        $lernenderId = (int) $lernender->lernender_id;
+        $today = Carbon::today()->toDateString();
+
+        $currentSemester = DB::table('semester')
+            ->where('start_datum', '<=', $today)
+            ->where('end_datum', '>=', $today)
+            ->first();
+
+        $allNotes = DB::table('noten')
+            ->where('lernender_id', $lernenderId)
+            ->whereNull('geloescht_am')
+            ->select(['note_wert', 'gewichtung_prozent'])
+            ->get()
+            ->map(fn ($n) => [
+                'wert' => (float) $n->note_wert,
+                'gew'  => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
+            ])
+            ->values()
+            ->all();
+
+        $currentNotes = [];
+        if ($currentSemester) {
+            $currentNotes = DB::table('noten')
+                ->where('lernender_id', $lernenderId)
+                ->where('semester_id', $currentSemester->semester_id)
+                ->whereNull('geloescht_am')
+                ->select(['note_wert', 'gewichtung_prozent'])
+                ->get()
+                ->map(fn ($n) => [
+                    'wert' => (float) $n->note_wert,
+                    'gew'  => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
+                ])
+                ->values()
+                ->all();
+        }
+
+        return view('lernender.noten.rechner', [
+            'allNotes'        => $allNotes,
+            'currentNotes'    => $currentNotes,
+            'currentSemester' => $currentSemester,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user();

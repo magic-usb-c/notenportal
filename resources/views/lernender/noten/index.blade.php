@@ -91,6 +91,14 @@
                     </svg>
                     <span class="hidden sm:inline">CSV</span>
                 </a>
+                <a href="{{ route('lernender.noten.rechner') }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm"
+                   title="Noten-Rechner: Welche Note brauche ich?">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="hidden sm:inline">Rechner</span>
+                </a>
                 <a href="{{ route('lernender.noten.create') }}"
                    class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
                     <span class="text-lg leading-none">+</span>
