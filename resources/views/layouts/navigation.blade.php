@@ -40,6 +40,9 @@
                             <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                                 Lernende
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.berufsbildner.index')" :active="request()->routeIs('admin.berufsbildner.*')">
+                                Berufsbildner
+                            </x-nav-link>
                             <x-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                                 Benutzer
                             </x-nav-link>
@@ -189,6 +192,9 @@
                 @if(auth()->user()->hasRole('Admin'))
                     <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                         Lernende
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('admin.berufsbildner.index')" :active="request()->routeIs('admin.berufsbildner.*')">
+                        Berufsbildner
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('admin.benutzer.index')" :active="request()->routeIs('admin.benutzer.*')">
                         Benutzer

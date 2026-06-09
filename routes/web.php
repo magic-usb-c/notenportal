@@ -7,6 +7,7 @@ use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
 use App\Http\Controllers\Berufsbildner\LernendeController as BerufsbildnerLernendeController;
 use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
+use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
@@ -155,6 +156,9 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('lernende.tracks.store');
         Route::post('/tracks/{track_id}/beenden', [AdminLernendeController::class, 'trackEnd'])
             ->name('tracks.beenden');
+
+        // Berufsbildner-Übersicht
+        Route::get('/berufsbildner', [AdminBerufsbildnerController::class, 'index'])->name('berufsbildner.index');
 
         // Benutzerverwaltung
         Route::get('/benutzer', [AdminBenutzerController::class, 'index'])->name('benutzer.index');

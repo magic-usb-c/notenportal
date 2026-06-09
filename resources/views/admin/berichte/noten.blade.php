@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4 flex-wrap">
             <h2 class="font-semibold text-xl text-text">Schulweite Notenübersicht</h2>
-            <a href="{{ route('admin.berichte.noten.export', request()->only(['semester_id','lehrberuf_id'])) }}"
+            <a href="{{ route('admin.berichte.noten.export', request()->only(['semester_id','lehrberuf_id','berufsbildner_id'])) }}"
                class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -18,12 +18,12 @@
             {{-- Filter --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                 <form method="GET" action="{{ route('admin.berichte.noten') }}"
-                      class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
 
                     <div>
                         <label class="text-sm font-medium text-muted">Semester</label>
                         <select name="semester_id"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Semester</option>
                             @foreach($semester as $s)
                                 <option value="{{ $s->semester_id }}" @selected($semesterId == $s->semester_id)>
@@ -36,7 +36,7 @@
                     <div>
                         <label class="text-sm font-medium text-muted">Lehrberuf</label>
                         <select name="lehrberuf_id"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Lehrberufe</option>
                             @foreach($lehrberufe as $lb)
                                 <option value="{{ $lb->lehrberuf_id }}" @selected($lehrberufId == $lb->lehrberuf_id)>
@@ -46,14 +46,29 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="text-sm font-medium text-muted">Berufsbildner</label>
+                        <select name="berufsbildner_id"
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                            <option value="">Alle BB</option>
+                            @foreach($berufsbildner as $bb)
+                                <option value="{{ $bb->berufsbildner_id }}" @selected($berufsbildnerId == $bb->berufsbildner_id)>
+                                    {{ $bb->nachname }} {{ $bb->vorname }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 text-sm">
                             Filtern
                         </button>
-                        <a href="{{ route('admin.berichte.noten') }}"
-                           class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg">
-                            Reset
-                        </a>
+                        @if($semesterId || $lehrberufId || $berufsbildnerId)
+                            <a href="{{ route('admin.berichte.noten') }}"
+                               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm flex items-center">
+                                ×
+                            </a>
+                        @endif
                     </div>
                 </form>
             </div>
