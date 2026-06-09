@@ -1,0 +1,61 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text">Semester</h2>
+            <a href="{{ route('admin.stammdaten.semester.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                <span class="text-lg leading-none">+</span> Neues Semester
+            </a>
+        </div>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
+
+            @if(session('status'))
+                <div class="rounded-xl border border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 px-4 py-3 text-sm text-green-800 dark:text-green-200">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-bg border-b border-border text-muted">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium">Bezeichnung</th>
+                            <th class="px-4 py-3 text-left font-medium">Von</th>
+                            <th class="px-4 py-3 text-left font-medium">Bis</th>
+                            <th class="px-4 py-3 text-left font-medium">Sortierung</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        @php $today = now()->toDateString(); @endphp
+                        @forelse($semester as $s)
+                            @php
+                                $isAktiv = $s->start_datum <= $today && $s->end_datum >= $today;
+                            @endphp
+                            <tr class="hover:bg-bg/50 {{ $isAktiv ? 'bg-accent/5' : '' }}">
+                                <td class="px-4 py-3 font-semibold text-text">
+                                    {{ $s->bezeichnung }}
+                                    @if($isAktiv)
+                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktuell</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3 text-muted font-mono">{{ $s->start_datum }}</td>
+                                <td class="px-4 py-3 text-muted font-mono">{{ $s->end_datum }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-4 py-8 text-center text-muted">
+                                    Noch keine Semester erfasst.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</x-app-layout>

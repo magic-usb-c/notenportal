@@ -7,6 +7,10 @@ use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
 use App\Http\Controllers\Berufsbildner\LernendeController as BerufsbildnerLernendeController;
 use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
+use App\Http\Controllers\Admin\StammdatenLehrberufeController;
+use App\Http\Controllers\Admin\StammdatenModuleController;
+use App\Http\Controllers\Admin\StammdatenFaecherController;
+use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use Illuminate\Http\Request;
@@ -121,6 +125,48 @@ Route::middleware(['auth', 'role:Admin'])
         Route::post('/benutzer', [AdminBenutzerController::class, 'store'])->name('benutzer.store');
         Route::post('/benutzer/{benutzer_id}/toggle-aktiv', [AdminBenutzerController::class, 'toggleAktiv'])
             ->name('benutzer.toggle-aktiv');
+
+        // Stammdaten: Lehrberufe (inkl. Modul- & Fach-Zuweisung)
+        Route::get('/stammdaten/lehrberufe', [StammdatenLehrberufeController::class, 'index'])
+            ->name('stammdaten.lehrberufe.index');
+        Route::get('/stammdaten/lehrberufe/create', [StammdatenLehrberufeController::class, 'create'])
+            ->name('stammdaten.lehrberufe.create');
+        Route::post('/stammdaten/lehrberufe', [StammdatenLehrberufeController::class, 'store'])
+            ->name('stammdaten.lehrberufe.store');
+        Route::get('/stammdaten/lehrberufe/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'show'])
+            ->name('stammdaten.lehrberufe.show');
+        Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/module', [StammdatenLehrberufeController::class, 'assignModul'])
+            ->name('stammdaten.lehrberufe.module.assign');
+        Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'removeModul'])
+            ->name('stammdaten.lehrberufe.module.remove');
+        Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/faecher', [StammdatenLehrberufeController::class, 'assignFach'])
+            ->name('stammdaten.lehrberufe.faecher.assign');
+        Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/faecher/{fach_id}', [StammdatenLehrberufeController::class, 'removeFach'])
+            ->name('stammdaten.lehrberufe.faecher.remove');
+
+        // Stammdaten: Module
+        Route::get('/stammdaten/module', [StammdatenModuleController::class, 'index'])
+            ->name('stammdaten.module.index');
+        Route::get('/stammdaten/module/create', [StammdatenModuleController::class, 'create'])
+            ->name('stammdaten.module.create');
+        Route::post('/stammdaten/module', [StammdatenModuleController::class, 'store'])
+            ->name('stammdaten.module.store');
+
+        // Stammdaten: Fächer
+        Route::get('/stammdaten/faecher', [StammdatenFaecherController::class, 'index'])
+            ->name('stammdaten.faecher.index');
+        Route::get('/stammdaten/faecher/create', [StammdatenFaecherController::class, 'create'])
+            ->name('stammdaten.faecher.create');
+        Route::post('/stammdaten/faecher', [StammdatenFaecherController::class, 'store'])
+            ->name('stammdaten.faecher.store');
+
+        // Stammdaten: Semester
+        Route::get('/stammdaten/semester', [StammdatenSemesterController::class, 'index'])
+            ->name('stammdaten.semester.index');
+        Route::get('/stammdaten/semester/create', [StammdatenSemesterController::class, 'create'])
+            ->name('stammdaten.semester.create');
+        Route::post('/stammdaten/semester', [StammdatenSemesterController::class, 'store'])
+            ->name('stammdaten.semester.store');
     });
 
 /**

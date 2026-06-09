@@ -1,0 +1,64 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text">Module</h2>
+            <a href="{{ route('admin.stammdaten.module.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                <span class="text-lg leading-none">+</span> Neues Modul
+            </a>
+        </div>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
+
+            @if(session('status'))
+                <div class="rounded-xl border border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 px-4 py-3 text-sm text-green-800 dark:text-green-200">
+                    {{ session('status') }}
+                </div>
+            @endif
+
+            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-bg border-b border-border text-muted">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-medium">Nummer</th>
+                            <th class="px-4 py-3 text-left font-medium">Titel</th>
+                            <th class="px-4 py-3 text-left font-medium">Lehrberufe</th>
+                            <th class="px-4 py-3 text-left font-medium">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-border">
+                        @forelse($module as $m)
+                            <tr class="hover:bg-bg/50">
+                                <td class="px-4 py-3 font-mono font-semibold text-text">{{ $m->modul_nummer }}</td>
+                                <td class="px-4 py-3 text-text">{{ $m->titel }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $m->lehrberuf_count }}</td>
+                                <td class="px-4 py-3">
+                                    @if($m->aktiv)
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="4" class="px-4 py-8 text-center text-muted">
+                                    Noch keine Module erfasst.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <p class="text-xs text-muted px-1">
+                Module werden über die
+                <a href="{{ route('admin.stammdaten.lehrberufe.index') }}" class="text-accent hover:underline">Lehrberuf-Detailseite</a>
+                einem Lehrberuf zugewiesen.
+            </p>
+
+        </div>
+    </div>
+</x-app-layout>
