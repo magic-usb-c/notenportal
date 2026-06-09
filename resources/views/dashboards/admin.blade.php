@@ -1,43 +1,41 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Admin Dashboard</h2>
+        <div class="w-full flex items-center justify-between gap-6">
+            <div>
+                <h2 class="font-semibold text-xl text-text">Admin Dashboard</h2>
+                <p class="text-xs text-muted mt-0.5">{{ \Carbon\Carbon::now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
+            </div>
+            <div class="hidden sm:flex items-center gap-4 text-right">
+                <a href="{{ route('admin.lernende.index') }}" class="hover:text-accent group">
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Lernende</div>
+                    <div class="text-lg font-bold text-text tabular-nums group-hover:text-accent">{{ $lernendCount }}</div>
+                </a>
+                <div class="w-px h-8 bg-border"></div>
+                <a href="{{ route('admin.berufsbildner.index') }}" class="hover:text-accent group">
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Berufsbildner</div>
+                    <div class="text-lg font-bold text-text tabular-nums group-hover:text-accent">{{ $berufsbildnerCount }}</div>
+                </a>
+                <div class="w-px h-8 bg-border"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-muted">Noten gesamt</div>
+                    <div class="text-lg font-bold text-text tabular-nums">{{ $noteCount }}</div>
+                </div>
+                <div class="w-px h-8 bg-border"></div>
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-muted">{{ $currentSemester?->bezeichnung ?? 'Akt. Sem.' }}</div>
+                    <div class="text-lg font-bold text-text tabular-nums">{{ $notesThisSemester }}</div>
+                </div>
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
-            {{-- Begrüssung --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
-                <p class="text-text font-medium text-lg">
-                    Willkommen, {{ auth()->user()->vorname }} {{ auth()->user()->nachname }}
-                </p>
-                <p class="text-muted text-sm mt-0.5">Administrator</p>
-            </div>
-
-            {{-- Kennzahlen --}}
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <a href="{{ route('admin.lernende.index') }}"
-                   class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift hover:border-accent/40">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Lernende</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $lernendCount }}</div>
-                </a>
-                <a href="{{ route('admin.berufsbildner.index') }}"
-                   class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift hover:border-accent/40">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Berufsbildner</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $berufsbildnerCount }}</div>
-                </a>
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Noten gesamt</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $noteCount }}</div>
-                </div>
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">{{ $currentSemester?->bezeichnung ?? 'Akt. Semester' }}</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $notesThisSemester }}</div>
-                </div>
+            {{-- Begrüssung kompakt --}}
+            <div class="flex items-baseline gap-2">
+                <h3 class="text-base font-semibold text-text">Willkommen, {{ auth()->user()->vorname }}</h3>
+                <span class="text-xs text-muted">Administrator</span>
             </div>
 
             {{-- Letzte Noten --}}
