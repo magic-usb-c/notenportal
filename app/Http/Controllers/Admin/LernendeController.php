@@ -16,10 +16,11 @@ class LernendeController extends Controller
      */
     public function index(Request $request)
     {
-        $today    = now()->toDateString();
-        $suche    = $request->input('suche', '');
-        $warnung  = $request->input('warnung', '');   // 'keine_noten' | 'tief_avg' | ''
-        $inaktive = $request->input('inaktive', '0'); // '1' = auch inaktive zeigen
+        $today        = now()->toDateString();
+        $suche        = $request->input('suche', '');
+        $warnung      = $request->input('warnung', '');    // 'keine_noten' | 'tief_avg' | ''
+        $inaktive     = $request->input('inaktive', '0'); // '1' = auch inaktive zeigen
+        $bbFilterId   = $request->input('berufsbildner_id', ''); // BB-Filter
 
         $q = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
@@ -42,10 +43,35 @@ class LernendeController extends Controller
             );
         }
 
+        if ($bbFilterId !== '') {
+            $q->whereIn('l.lernender_id', function ($sub) use ($bbFilterId, $today) {
+                $sub->select('lernender_id')
+                    ->from('betreuungen')
+                    ->where('berufsbildner_id', (int) $bbFilterId)
+                    ->where('gueltig_von', '<=', $today)
+                    ->where(fn($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
+            });
+        }
+
+        // Für BB-Dropdown: alle aktiven Berufsbildner
+        $berufsbildnerListe = DB::table('berufsbildner as bb')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->whereNull('bb.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->select(['bb.berufsbildner_id', 'b.vorname', 'b.nachname'])
+            ->orderBy('b.nachname')
+            ->orderBy('b.vorname')
+            ->get();
+
         $lernende = $q->get();
 
         if ($lernende->isEmpty()) {
-            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche, 'warnung' => $warnung, 'inaktive' => $inaktive]);
+            return view('admin.lernende.index', [
+                'lernende' => collect(), 'stats' => collect(),
+                'suche' => $suche, 'warnung' => $warnung, 'inaktive' => $inaktive,
+                'bbFilterId' => $bbFilterId, 'berufsbildnerListe' => $berufsbildnerListe,
+            ]);
         }
 
         $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int)$v)->all();
@@ -101,7 +127,7 @@ class LernendeController extends Controller
             });
         }
 
-        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive'));
+        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive', 'bbFilterId', 'berufsbildnerListe'));
     }
 
     /**

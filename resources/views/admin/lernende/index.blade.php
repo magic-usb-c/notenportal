@@ -9,12 +9,24 @@
             {{-- Suche + Filter --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                 <form method="GET" action="{{ route('admin.lernende.index') }}"
-                      class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
-                    <div class="sm:col-span-1">
+                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                    <div class="lg:col-span-1">
                         <label class="text-sm font-medium text-muted">Suche</label>
                         <input type="text" name="suche" value="{{ $suche }}"
                                placeholder="Name oder E-Mail…"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-muted">Berufsbildner</label>
+                        <select name="berufsbildner_id"
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                            <option value="" @selected($bbFilterId === '')>Alle</option>
+                            @foreach($berufsbildnerListe as $bb)
+                                <option value="{{ $bb->berufsbildner_id }}" @selected($bbFilterId == $bb->berufsbildner_id)>
+                                    {{ $bb->nachname }} {{ $bb->vorname }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div>
                         <label class="text-sm font-medium text-muted">Warnung</label>
@@ -39,7 +51,7 @@
                                 class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm shrink-0">
                             Filtern
                         </button>
-                        @if($suche || $warnung || $inaktive === '1')
+                        @if($suche || $warnung || $inaktive === '1' || $bbFilterId !== '')
                             <a href="{{ route('admin.lernende.index') }}"
                                class="px-3 py-2 h-10 rounded-xl bg-card border border-border text-text hover:bg-bg flex items-center text-sm shrink-0">
                                 ×
