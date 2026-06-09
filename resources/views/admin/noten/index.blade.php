@@ -5,10 +5,16 @@
                 Noten:
                 <span class="text-muted">{{ $selectedLernender->nachname ?? '' }} {{ $selectedLernender->vorname ?? '' }}</span>
             </h2>
-            <a href="{{ route('admin.lernende.show', $selectedLernenderId) }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
-                Zum Profil
-            </a>
+            <div class="flex gap-2">
+                <a href="{{ route('admin.lernende.noten.create', ['lernender_id' => $selectedLernenderId]) }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
+                    + Note erfassen
+                </a>
+                <a href="{{ route('admin.lernende.show', $selectedLernenderId) }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
+                    Zum Profil
+                </a>
+            </div>
         </div>
     </x-slot>
 

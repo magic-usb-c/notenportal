@@ -103,6 +103,10 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/lernende/{lernender_id}', [AdminLernendeController::class, 'show'])->name('lernende.show');
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
+        Route::get('/lernende/{lernender_id}/noten/create', [AdminNotenController::class, 'create'])
+            ->name('lernende.noten.create');
+        Route::post('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'store'])
+            ->name('lernende.noten.store');
         Route::get('/lernende/{lernender_id}/noten/{note_id}/edit', [AdminNotenController::class, 'edit'])
             ->name('lernende.noten.edit');
         Route::put('/lernende/{lernender_id}/noten/{note_id}', [AdminNotenController::class, 'update'])
