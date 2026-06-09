@@ -27,29 +27,39 @@
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="flex flex-wrap gap-3">
-                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
-                    <div class="text-xs text-muted">Noten gesamt</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $noteCount }}</div>
+            @php
+                $kennColor = function ($v) {
+                    if ($v === null) return 'text-text';
+                    if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
+                    if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+                    if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                    return 'text-red-600 dark:text-red-400';
+                };
+            @endphp
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Noten gesamt</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $noteCount }}</div>
                 </div>
-                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
-                    <div class="text-xs text-muted">Ø gesamt</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $globalAvg ?? '–' }}</div>
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight tabular-nums {{ $kennColor($globalAvg) }}">
+                        {{ $globalAvg ?? '–' }}
+                    </div>
                 </div>
-                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[140px]">
-                    <div class="text-xs text-muted">Aktuelles Semester</div>
-                    <div class="mt-1 text-sm font-semibold text-text">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
-                </div>
-                <div class="bg-card border border-border rounded-2xl shadow-md p-4 min-w-[120px]">
-                    <div class="text-xs text-muted">Ø akt. Semester</div>
-                    <div class="mt-1 text-2xl font-bold
-                        @if($currentAvg !== null && $currentAvg >= 4.0) text-green-600 dark:text-green-400
-                        @elseif($currentAvg !== null && $currentAvg >= 3.5) text-yellow-600 dark:text-yellow-400
-                        @elseif($currentAvg !== null) text-red-600 dark:text-red-400
-                        @else text-text
-                        @endif">
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø akt. Semester</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight tabular-nums {{ $kennColor($currentAvg) }}">
                         {{ $currentAvg ?? '–' }}
                     </div>
+                </div>
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Aktuelles Semester</div>
+                    <div class="mt-2 text-base font-semibold text-text leading-tight">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
                 </div>
             </div>
 
@@ -119,11 +129,13 @@
                                     ?? $n->titel
                                     ?? '–';
                                 $noteWert = (float) $n->note_wert;
-                                $noteColor = $noteWert >= 4.0
+                                $noteColor = $noteWert >= 5.0
                                     ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                                    : ($noteWert >= 3.5
-                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                                    : ($noteWert >= 4.0
+                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                        : ($noteWert >= 3.5
+                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
                             @endphp
                             <div class="px-5 py-3 flex items-center justify-between gap-4">
                                 <div>

@@ -15,55 +15,59 @@
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="flex flex-wrap gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <a href="{{ route('admin.lernende.index') }}"
-                   class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px] hover:border-accent/40 transition-colors">
-                    <div class="text-xs text-muted">Lernende</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $lernendCount }}</div>
+                   class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift hover:border-accent/40">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Lernende</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $lernendCount }}</div>
                 </a>
                 <a href="{{ route('admin.berufsbildner.index') }}"
-                   class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px] hover:border-accent/40 transition-colors">
-                    <div class="text-xs text-muted">Berufsbildner</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $berufsbildnerCount }}</div>
+                   class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift hover:border-accent/40">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Berufsbildner</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $berufsbildnerCount }}</div>
                 </a>
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px]">
-                    <div class="text-xs text-muted">Noten gesamt</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $noteCount }}</div>
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Noten gesamt</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $noteCount }}</div>
                 </div>
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-4 min-w-[130px]">
-                    <div class="text-xs text-muted">{{ $currentSemester?->bezeichnung ?? 'Akt. Semester' }}</div>
-                    <div class="mt-1 text-2xl font-bold text-text">{{ $notesThisSemester }}</div>
+                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
+                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">{{ $currentSemester?->bezeichnung ?? 'Akt. Semester' }}</div>
+                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $notesThisSemester }}</div>
                 </div>
             </div>
 
             {{-- Letzte Noten --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-                    <div class="px-5 py-4 border-b border-border">
-                        <h3 class="font-semibold text-text">Zuletzt erfasste Noten</h3>
-                    </div>
-                    @forelse($letzteNoten as $n)
-                        <div class="px-5 py-3 border-b border-border last:border-0 flex items-center justify-between gap-3">
-                            <div>
-                                <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $n->lernender_id]) }}"
-                                   class="text-sm text-text hover:text-accent font-medium">
-                                    {{ $n->nachname }} {{ $n->vorname }}
-                                </a>
-                                <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
-                            </div>
-                            @php
-                                $nw = (float) $n->note_wert;
-                                $nc = $nw >= 4.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                                    : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                    : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
-                            @endphp
-                            <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $nc }}">
-                                {{ number_format($nw, 1) }}
-                            </span>
-                        </div>
-                    @empty
-                        <div class="px-5 py-6 text-sm text-muted text-center">Noch keine Noten erfasst.</div>
-                    @endforelse
+                <div class="px-5 py-4 border-b border-border">
+                    <h3 class="font-semibold text-text">Zuletzt erfasste Noten</h3>
                 </div>
+                @forelse($letzteNoten as $n)
+                    <div class="px-5 py-3 border-b border-border last:border-0 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors duration-100">
+                        <div>
+                            <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $n->lernender_id]) }}"
+                               class="text-sm text-text hover:text-accent font-medium">
+                                {{ $n->nachname }} {{ $n->vorname }}
+                            </a>
+                            <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
+                        </div>
+                        @php
+                            $nw = (float) $n->note_wert;
+                            $nc = $nw >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                                : ($nw >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
+                        @endphp
+                        <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $nc }}">
+                            {{ number_format($nw, 1) }}
+                        </span>
+                    </div>
+                @empty
+                    <div class="px-5 py-6 text-sm text-muted text-center">Noch keine Noten erfasst.</div>
+                @endforelse
             </div>
 
             {{-- Hinweis: Lehrende in den nächsten 60 Tagen --}}
