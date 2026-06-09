@@ -12,9 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class BenutzerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $benutzer = DB::table('benutzer as b')
+        $suche   = $request->input('suche', '');
+        $rolleId = $request->input('rolle_id', '');
+        $status  = $request->input('status', '');
+
+        $q = DB::table('benutzer as b')
             ->leftJoin('benutzer_rollen as br', 'br.benutzer_id', '=', 'b.benutzer_id')
             ->leftJoin('rollen as r', 'r.rolle_id', '=', 'br.rolle_id')
             ->whereNull('b.geloescht_am')
@@ -28,12 +32,32 @@ class BenutzerController extends Controller
                 'b.erstellt_am',
                 DB::raw('GROUP_CONCAT(r.name ORDER BY r.name SEPARATOR ", ") as rollen'),
             ])
-            ->groupBy('b.benutzer_id', 'b.vorname', 'b.nachname', 'b.email', 'b.benutzername', 'b.aktiv', 'b.erstellt_am')
-            ->orderBy('b.nachname')
-            ->orderBy('b.vorname')
-            ->get();
+            ->groupBy('b.benutzer_id', 'b.vorname', 'b.nachname', 'b.email', 'b.benutzername', 'b.aktiv', 'b.erstellt_am');
 
-        return view('admin.benutzer.index', compact('benutzer'));
+        if ($suche !== '') {
+            $like = '%' . $suche . '%';
+            $q->where(fn($w) => $w
+                ->where('b.vorname', 'like', $like)
+                ->orWhere('b.nachname', 'like', $like)
+                ->orWhere('b.email', 'like', $like)
+                ->orWhere('b.benutzername', 'like', $like)
+            );
+        }
+
+        if ($rolleId !== '') {
+            $q->where('br.rolle_id', (int) $rolleId);
+        }
+
+        if ($status === 'aktiv') {
+            $q->where('b.aktiv', 1);
+        } elseif ($status === 'inaktiv') {
+            $q->where('b.aktiv', 0);
+        }
+
+        $benutzer = $q->orderBy('b.nachname')->orderBy('b.vorname')->get();
+        $rollen   = DB::table('rollen')->orderBy('rolle_id')->get();
+
+        return view('admin.benutzer.index', compact('benutzer', 'rollen', 'suche', 'rolleId', 'status'));
     }
 
     public function create()
@@ -151,7 +175,17 @@ class BenutzerController extends Controller
         $user   = User::whereNull('geloescht_am')->findOrFail($benutzer_id);
         $rollen = DB::table('rollen')->orderBy('rolle_id')->get();
 
-        return view('admin.benutzer.edit', compact('user', 'rollen'));
+        // Lernenden-Profil laden (falls vorhanden)
+        $lernendeProfil = DB::table('lernende')
+            ->where('benutzer_id', $benutzer_id)
+            ->whereNull('geloescht_am')
+            ->first();
+
+        $lehrberufe = $lernendeProfil
+            ? DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get()
+            : collect();
+
+        return view('admin.benutzer.edit', compact('user', 'rollen', 'lernendeProfil', 'lehrberufe'));
     }
 
     public function update(Request $request, int $benutzer_id): RedirectResponse
@@ -181,6 +215,30 @@ class BenutzerController extends Controller
         }
 
         $user->save();
+
+        // Lernenden-Profil aktualisieren (falls vorhanden)
+        $lernende = DB::table('lernende')
+            ->where('benutzer_id', $benutzer_id)
+            ->whereNull('geloescht_am')
+            ->first();
+
+        if ($lernende && $request->filled('lehrberuf_id')) {
+            $lernendeRules = [
+                'lehrberuf_id' => ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'],
+                'lehrbeginn'   => ['required', 'date'],
+                'lehrende'     => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
+            ];
+            $lernendeData = $request->validate($lernendeRules);
+
+            DB::table('lernende')
+                ->where('lernender_id', $lernende->lernender_id)
+                ->update([
+                    'lehrberuf_id'    => (int) $lernendeData['lehrberuf_id'],
+                    'lehrbeginn'      => $lernendeData['lehrbeginn'],
+                    'lehrende'        => $lernendeData['lehrende'] ?? null,
+                    'aktualisiert_am' => now(),
+                ]);
+        }
 
         return redirect()->route('admin.benutzer.index')
             ->with('status', 'Benutzer aktualisiert.');

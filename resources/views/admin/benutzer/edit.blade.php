@@ -5,17 +5,36 @@
                 <h2 class="font-semibold text-xl text-text">Benutzer bearbeiten</h2>
                 <p class="text-sm text-muted mt-0.5">{{ $user->nachname }} {{ $user->vorname }}</p>
             </div>
-            <a href="{{ route('admin.benutzer.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
-                Zurück
-            </a>
+            <div class="flex gap-2">
+                @if($lernendeProfil)
+                    <a href="{{ route('admin.lernende.show', $lernendeProfil->lernender_id) }}"
+                       class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap">
+                        Lernenden-Profil
+                    </a>
+                @endif
+                <a href="{{ route('admin.benutzer.index') }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+                    Zurück
+                </a>
+            </div>
         </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-5">
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
 
+            @if ($errors->any())
+                <div class="rounded-xl border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-3 text-sm text-red-800 dark:text-red-200">
+                    <div class="font-semibold mb-1">Bitte prüfen:</div>
+                    <ul class="list-disc pl-5 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
                 <form method="POST" action="{{ route('admin.benutzer.update', $user->benutzer_id) }}" class="space-y-5">
                     @csrf
                     @method('PUT')
@@ -71,6 +90,50 @@
                         <p class="mt-1 text-xs text-muted">Rollen können hier nicht geändert werden.</p>
                     </div>
 
+                    {{-- Lernenden-Profil (nur wenn Lernender) --}}
+                    @if($lernendeProfil)
+                        <div class="border-t border-border pt-5 space-y-4">
+                            <div class="text-sm font-semibold text-text">Lehrausbildung</div>
+
+                            <div>
+                                <label class="text-sm font-medium text-muted">Lehrberuf *</label>
+                                <select name="lehrberuf_id" required
+                                        class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrberuf_id') border-red-400 @enderror">
+                                    @foreach($lehrberufe as $lb)
+                                        <option value="{{ $lb->lehrberuf_id }}"
+                                                @selected(old('lehrberuf_id', $lernendeProfil->lehrberuf_id) == $lb->lehrberuf_id)>
+                                            {{ $lb->name }} ({{ $lb->kuerzel }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('lehrberuf_id')
+                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-sm font-medium text-muted">Lehrbeginn *</label>
+                                    <input type="date" name="lehrbeginn"
+                                           value="{{ old('lehrbeginn', $lernendeProfil->lehrbeginn) }}" required
+                                           class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
+                                    @error('lehrbeginn')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-muted">Lehrende</label>
+                                    <input type="date" name="lehrende"
+                                           value="{{ old('lehrende', $lernendeProfil->lehrende) }}"
+                                           class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
+                                    @error('lehrende')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="border-t border-border pt-5">
                         <label class="text-sm font-medium text-muted">
                             Neues Passwort <span class="text-xs font-normal">(leer lassen = nicht ändern)</span>
@@ -96,6 +159,7 @@
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
 </x-app-layout>

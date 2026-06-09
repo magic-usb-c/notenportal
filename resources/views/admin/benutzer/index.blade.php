@@ -24,6 +24,55 @@
                 </div>
             @endif
 
+            {{-- Filter --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <form method="GET" action="{{ route('admin.benutzer.index') }}"
+                      class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+
+                    <div class="sm:col-span-2">
+                        <label class="text-sm font-medium text-muted">Suche</label>
+                        <input type="text" name="suche" value="{{ $suche }}"
+                               placeholder="Name, E-Mail oder Benutzername…"
+                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium text-muted">Rolle</label>
+                        <select name="rolle_id"
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                            <option value="">Alle Rollen</option>
+                            @foreach($rollen as $r)
+                                <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ $r->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-sm font-medium text-muted">Status</label>
+                        <div class="flex gap-2 mt-1">
+                            <select name="status"
+                                    class="flex-1 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                                <option value="" @selected($status === '')>Alle</option>
+                                <option value="aktiv" @selected($status === 'aktiv')>Aktiv</option>
+                                <option value="inaktiv" @selected($status === 'inaktiv')>Inaktiv</option>
+                            </select>
+                            <button type="submit"
+                                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm shrink-0">
+                                Suchen
+                            </button>
+                            @if($suche || $rolleId || $status)
+                                <a href="{{ route('admin.benutzer.index') }}"
+                                   class="px-3 py-2 h-10 rounded-xl bg-card border border-border text-text hover:bg-bg whitespace-nowrap text-sm shrink-0 flex items-center">
+                                    ×
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            {{-- Tabelle --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
@@ -77,12 +126,24 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="p-5 text-center text-muted">Keine Benutzer gefunden.</td>
+                                    <td colspan="6" class="p-5 text-center text-muted">
+                                        @if($suche || $rolleId || $status)
+                                            Keine Benutzer für diese Filtereinstellungen gefunden.
+                                        @else
+                                            Keine Benutzer gefunden.
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if($benutzer->isNotEmpty())
+                    <div class="px-4 py-2 border-t border-border text-xs text-muted">
+                        {{ $benutzer->count() }} Benutzer
+                    </div>
+                @endif
             </div>
 
         </div>
