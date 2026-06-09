@@ -95,49 +95,40 @@
                                     $lehrDaysLeft  = $lehrende ? (int) now()->diffInDays($lehrende, false) : null;
                                     $showLehrBadge = $lehrDaysLeft !== null && $lehrDaysLeft >= 0 && $lehrDaysLeft <= 60;
                                 @endphp
-                                <tr class="hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
+                                <tr class="group hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
                                     <td class="p-3">
-                                        <div class="flex flex-wrap items-center gap-1.5">
-                                            <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
-                                               class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
-
-                                            @if(!$l->aktiv)
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">
-                                                    Inaktiv
-                                                </span>
-                                            @endif
-
-                                            @if($ohneBetreuer && $l->aktiv)
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap" title="Kein aktiver Berufsbildner">
-                                                    Ohne BB
-                                                </span>
-                                            @endif
-
-                                            @if($showLehrBadge)
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap
-                                                    {{ $lehrDaysLeft <= 14
-                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
-                                                        : ($lehrDaysLeft <= 30
-                                                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
-                                                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300') }}"
-                                                    title="Lehrende: {{ $lehrende->format('d.m.Y') }}">
-                                                    Lehrende in {{ $lehrDaysLeft }}d
-                                                </span>
-                                            @endif
-
-                                            @if($warnGelb)
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap" title="Kein aktueller Noteneintrag">
-                                                    {{ $daysSince === null ? 'Keine Noten' : $daysSince . 'd kein Eintrag' }}
-                                                </span>
-                                            @endif
-
-                                            @if($warnRot)
-                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 whitespace-nowrap" title="Durchschnitt unter 4.0">
-                                                    Ø {{ number_format($avg, 1) }}
-                                                </span>
-                                            @endif
-                                        </div>
+                                        <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
+                                           class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
                                         <div class="text-xs text-muted mt-0.5">{{ $l->email }}</div>
+                                        {{-- Badges: eigene Zeile --}}
+                                        @if(!$l->aktiv || $ohneBetreuer || $showLehrBadge || $warnGelb || $warnRot)
+                                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                                @if(!$l->aktiv)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">Inaktiv</span>
+                                                @endif
+                                                @if($ohneBetreuer && $l->aktiv)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap">Ohne BB</span>
+                                                @endif
+                                                @if($showLehrBadge)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap
+                                                        {{ $lehrDaysLeft <= 14 ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                                                            : ($lehrDaysLeft <= 30 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+                                                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300') }}">
+                                                        Lehrende in {{ $lehrDaysLeft }}d
+                                                    </span>
+                                                @endif
+                                                @if($warnGelb)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap">
+                                                        {{ $daysSince === null ? 'Keine Noten' : $daysSince . 'd kein Eintrag' }}
+                                                    </span>
+                                                @endif
+                                                @if($warnRot)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 whitespace-nowrap">
+                                                        Ø {{ number_format($avg, 1) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
                                     </td>
                                     <td class="p-3 text-muted text-sm">
                                         @if($s?->betreuer)
@@ -160,7 +151,7 @@
                                         {{ $avg !== null ? number_format($avg, 2) : '–' }}
                                     </td>
                                     <td class="p-3 text-right">
-                                        <div class="flex items-center justify-end gap-2">
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
                                             <a href="{{ route('admin.lernende.betreuung', $l->lernender_id) }}"
                                                class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                 Betreuung
