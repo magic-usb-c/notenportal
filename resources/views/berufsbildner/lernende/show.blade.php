@@ -1,9 +1,16 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <h2 class="font-semibold text-xl text-text">
-                {{ $profil->nachname }} {{ $profil->vorname }}
-            </h2>
+            <div>
+                <nav class="text-xs text-muted flex items-center gap-1 mb-1">
+                    <a href="{{ route('berufsbildner.lernende.index') }}" class="hover:text-text transition-colors">Lernende</a>
+                    <span class="text-muted/40">›</span>
+                    <span class="text-text">{{ $profil->nachname }} {{ $profil->vorname }}</span>
+                </nav>
+                <h2 class="font-semibold text-xl text-text">
+                    {{ $profil->nachname }} {{ $profil->vorname }}
+                </h2>
+            </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $profil->lernender_id]) }}"
                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">

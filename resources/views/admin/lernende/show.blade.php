@@ -2,10 +2,15 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <div>
+                <nav class="text-xs text-muted flex items-center gap-1 mb-1">
+                    <a href="{{ route('admin.lernende.index') }}" class="hover:text-text transition-colors">Lernende</a>
+                    <span class="text-muted/40">›</span>
+                    <span class="text-text">{{ $lernender->nachname }} {{ $lernender->vorname }}</span>
+                </nav>
                 <h2 class="font-semibold text-xl text-text">
                     {{ $lernender->nachname }} {{ $lernender->vorname }}
                 </h2>
-                <p class="text-sm text-muted mt-0.5">{{ $lernender->email }}</p>
+                <p class="text-xs text-muted mt-0.5">{{ $lernender->email }}</p>
             </div>
             <a href="{{ route('admin.lernende.index') }}"
                class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap">

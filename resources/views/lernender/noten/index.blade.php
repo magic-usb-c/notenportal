@@ -124,9 +124,11 @@
                     <span class="hidden sm:inline">Rechner</span>
                 </a>
                 <a href="{{ route('lernender.noten.create') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
+                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap"
+                   title="Neue Note erfassen (Shortcut: N)">
                     <span class="text-lg leading-none">+</span>
                     Neue Note
+                    <kbd class="hidden lg:inline-flex items-center justify-center text-[10px] font-mono bg-white/20 px-1.5 py-0.5 rounded ml-1">N</kbd>
                 </a>
             </div>
         </div>
@@ -310,6 +312,16 @@
     </div>
 
     <script>
+        // Keyboard-Shortcut: "N" öffnet das Note-Create-Formular
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'n' && e.key !== 'N') return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            const tag = (document.activeElement?.tagName ?? '').toUpperCase();
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+            if (document.activeElement?.isContentEditable) return;
+            window.location.href = '{{ route("lernender.noten.create") }}';
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('details.np-details-semester').forEach((d) => {
                 const chevron = d.querySelector('.np-chevron-semester');

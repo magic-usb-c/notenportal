@@ -122,7 +122,7 @@
                                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">Inaktiv</span>
                                                 @endif
                                                 @if($ohneBetreuer && $l->aktiv)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap">Ohne BB</span>
+                                                    <span title="Kein aktiver Berufsbildner zugewiesen. Unter «Betreuung» einen Berufsbildner zuteilen." class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap cursor-help">Ohne BB</span>
                                                 @endif
                                                 @if($showLehrBadge)
                                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap
@@ -133,12 +133,12 @@
                                                     </span>
                                                 @endif
                                                 @if($warnGelb)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap">
+                                                    <span title="{{ $daysSince === null ? 'Diese Lernende hat noch keine Noten erfasst.' : 'Letzter Noteneintrag vor '.$daysSince.' Tagen. Lernender bitte zur Erfassung anhalten.' }}" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap cursor-help">
                                                         {{ $daysSince === null ? 'Keine Noten' : $daysSince . 'd kein Eintrag' }}
                                                     </span>
                                                 @endif
                                                 @if($warnRot)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 whitespace-nowrap">
+                                                    <span title="Gesamtdurchschnitt liegt unter 4.0 — kritisch für Lehrabschluss." class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 whitespace-nowrap cursor-help">
                                                         Ø {{ number_format($avg, 1) }}
                                                     </span>
                                                 @endif
