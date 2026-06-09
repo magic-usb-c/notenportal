@@ -33,6 +33,9 @@ class KommentarController extends Controller
                 ->exists();
             abort_if(!$betreut, 403);
 
+        } elseif ($user->hasRole('Admin')) {
+            // Admin darf alle Noten kommentieren – keine weitere Prüfung nötig
+
         } else {
             abort(403);
         }

@@ -18,7 +18,7 @@ class NotenController extends Controller
     ) {}
 
     /**
-     * Admin: Noten eines ausgewählten Lernenden (read-only MVP).
+     * Admin: Noten eines ausgewählten Lernenden mit vollständigem Kommentar-Thread.
      *
      * Regeln:
      * - Admin darf alle Lernenden auswählen
@@ -48,11 +48,11 @@ class NotenController extends Controller
             abort(404);
         }
 
-        // 3) Noten laden (inkl. neuesten Kommentar für Übersicht)
+        // 3) Noten laden (inkl. vollständigem Kommentar-Thread für Accordion)
         $q = Note::query()
             ->with([
                 'kategorie', 'semester', 'fach', 'modulBelegung.modul', 'gruppe',
-                'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'desc')->limit(1),
+                'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'asc'),
             ])
             ->where('lernender_id', $lernender_id)
             ->orderByDesc('pruefungsdatum')
