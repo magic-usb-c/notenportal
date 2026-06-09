@@ -17,19 +17,30 @@ class LernendeController extends Controller
     public function index(Request $request)
     {
         $today = now()->toDateString();
+        $suche = $request->input('suche', '');
 
-        $lernende = DB::table('lernende as l')
+        $q = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
             ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
             ->orderBy('b.nachname')
-            ->orderBy('b.vorname')
-            ->get();
+            ->orderBy('b.vorname');
+
+        if ($suche !== '') {
+            $like = '%' . $suche . '%';
+            $q->where(fn($w) => $w
+                ->where('b.vorname', 'like', $like)
+                ->orWhere('b.nachname', 'like', $like)
+                ->orWhere('b.email', 'like', $like)
+            );
+        }
+
+        $lernende = $q->get();
 
         if ($lernende->isEmpty()) {
-            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect()]);
+            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche]);
         }
 
         $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int)$v)->all();
@@ -66,7 +77,7 @@ class LernendeController extends Controller
             'betreuer'    => $betreuer->get($id),
         ]]);
 
-        return view('admin.lernende.index', compact('lernende', 'stats'));
+        return view('admin.lernende.index', compact('lernende', 'stats', 'suche'));
     }
 
     /**
