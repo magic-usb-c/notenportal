@@ -16,8 +16,9 @@ class LernendeController extends Controller
      */
     public function index(Request $request)
     {
-        $today = now()->toDateString();
-        $suche = $request->input('suche', '');
+        $today   = now()->toDateString();
+        $suche   = $request->input('suche', '');
+        $warnung = $request->input('warnung', ''); // 'keine_noten' | 'tief_avg' | ''
 
         $q = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
@@ -40,7 +41,7 @@ class LernendeController extends Controller
         $lernende = $q->get();
 
         if ($lernende->isEmpty()) {
-            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche]);
+            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche, 'warnung' => $warnung]);
         }
 
         $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int)$v)->all();
@@ -70,6 +71,7 @@ class LernendeController extends Controller
             ->get()
             ->keyBy('lernender_id');
 
+        $cutoff = now()->subDays(30)->toDateString();
         $stats = collect($ids)->mapWithKeys(fn($id) => [$id => (object)[
             'noten_count' => (int) ($notenStats->get($id)?->noten_count ?? 0),
             'last_note'   => $notenStats->get($id)?->last_note,
@@ -77,7 +79,20 @@ class LernendeController extends Controller
             'betreuer'    => $betreuer->get($id),
         ]]);
 
-        return view('admin.lernende.index', compact('lernende', 'stats', 'suche'));
+        // Warnungs-Filter (post-query, da stats abhängig)
+        if ($warnung === 'keine_noten') {
+            $lernende = $lernende->filter(function ($l) use ($stats, $cutoff) {
+                $s = $stats->get((int) $l->lernender_id);
+                return !$s || !$s->last_note || $s->last_note < $cutoff;
+            });
+        } elseif ($warnung === 'tief_avg') {
+            $lernende = $lernende->filter(function ($l) use ($stats) {
+                $s = $stats->get((int) $l->lernender_id);
+                return $s && $s->avg_all !== null && (float) $s->avg_all < 4.0;
+            });
+        }
+
+        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung'));
     }
 
     /**
