@@ -66,6 +66,7 @@ Route::middleware(['auth', 'role:Lernender'])
     ->group(function () {
         Route::get('/', [LernenderNotenController::class, 'index'])->name('index');
         Route::get('/drucken', [LernenderNotenController::class, 'drucken'])->name('drucken');
+        Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
 

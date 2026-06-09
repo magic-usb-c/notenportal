@@ -83,6 +83,14 @@
                     </svg>
                     <span class="hidden sm:inline">Drucken</span>
                 </a>
+                <a href="{{ route('lernender.noten.export') }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm"
+                   title="Noten als CSV exportieren">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <span class="hidden sm:inline">CSV</span>
+                </a>
                 <a href="{{ route('lernender.noten.create') }}"
                    class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
                     <span class="text-lg leading-none">+</span>

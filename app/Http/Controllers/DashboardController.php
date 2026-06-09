@@ -220,7 +220,20 @@ class DashboardController extends Controller
             ];
         })->keyBy('lernender_id');
 
-        return view('dashboards.berufsbildner', compact('lernende', 'stats'));
+        // Lernende mit Lehrende in den nächsten 60 Tagen
+        $lehrEndeBaldIds = $lernende->filter(fn($l) => isset($l->lernende_lehrende))->pluck('lernender_id');
+
+        // Wir holen die Lehrende-Daten für alle betreuten Lernenden
+        $lernendeProfile = DB::table('lernende')
+            ->whereIn('lernender_id', $lernenderIds)
+            ->whereNotNull('lehrende')
+            ->where('lehrende', '>=', $today)
+            ->where('lehrende', '<=', now()->addDays(60)->toDateString())
+            ->select(['lernender_id', 'lehrende'])
+            ->get()
+            ->keyBy('lernender_id');
+
+        return view('dashboards.berufsbildner', compact('lernende', 'stats', 'lernendeProfile'));
     }
 
     /** Admin-Dashboard */

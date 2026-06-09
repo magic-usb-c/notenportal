@@ -25,6 +25,8 @@
                 @forelse($lernende as $l)
                     @php
                         $st = $stats->get((int) $l->lernender_id);
+                        $lehrProfil = $lernendeProfile->get((int) $l->lernender_id);
+                        $daysLeft = $lehrProfil ? (int) \Carbon\Carbon::parse($lehrProfil->lehrende)->diffInDays(now()) : null;
                     @endphp
                     <div class="px-5 py-4 border-b border-border last:border-0 hover:bg-bg/60">
                         <div class="flex items-start justify-between gap-4">
@@ -46,6 +48,13 @@
                                     @if($st?->warningRot)
                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
                                             Ø {{ $st->semAvg }} &lt; 4.0
+                                        </span>
+                                    @endif
+
+                                    @if($daysLeft !== null)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+                                            {{ $daysLeft <= 14 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
+                                            Lehrende in {{ $daysLeft }} Tagen
                                         </span>
                                     @endif
                                 </div>

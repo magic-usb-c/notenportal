@@ -310,6 +310,62 @@ class NotenController extends Controller
         ]);
     }
 
+    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $user = $request->user();
+        $lernender = $user?->lernender;
+        abort_if(!$lernender, 403);
+
+        $lernenderId = (int) $lernender->lernender_id;
+
+        $rows = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->orderBy('s.sortierung')
+            ->orderBy('n.pruefungsdatum')
+            ->select([
+                'n.pruefungsdatum',
+                's.bezeichnung as semester',
+                'k.name as kategorie',
+                'f.name as fach_name',
+                'm.modul_nummer', 'm.titel as modul_titel',
+                'n.titel',
+                'n.note_wert',
+                'n.gewichtung_prozent',
+            ])
+            ->get();
+
+        $filename = 'meine_noten_' . now()->format('Ymd') . '.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'], ';');
+            foreach ($rows as $r) {
+                $fachModul = $r->fach_name
+                    ?? ($r->modul_nummer ? $r->modul_nummer . ' – ' . $r->modul_titel : '');
+                fputcsv($out, [
+                    $r->pruefungsdatum,
+                    $r->semester,
+                    $r->kategorie ?? '',
+                    $fachModul,
+                    $r->titel ?? '',
+                    number_format((float) $r->note_wert, 2, '.', ''),
+                    $r->gewichtung_prozent ?? 100,
+                ], ';');
+            }
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     public function destroy(Request $request, int $note_id)
     {
         $user = $request->user();
