@@ -2,3 +2,53 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Globale, dezente Transitions für ein "lebendigeres" Gefühl. Nur Farben + Schatten,
+     damit Layout-Properties (z. B. width, transform) explizit pro Element gesteuert werden. */
+  *, *::before, *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
+
+  /* Reduced Motion respektieren */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+}
+
+@layer components {
+  /* Akkordeon Slide-In (für <details>-Inhalte) */
+  details[open] > summary ~ * {
+    animation: np-slide-down 200ms ease;
+  }
+
+  /* Card-Lift Utility – kann via .np-card-lift verwendet werden */
+  .np-card-lift {
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 150ms ease;
+  }
+  .np-card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -10px rgb(var(--accent) / 0.25);
+  }
+
+  /* Tactile button feedback */
+  .np-btn-tactile {
+    transition: transform 100ms ease, background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+  }
+  .np-btn-tactile:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  .np-btn-tactile:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+@keyframes np-slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
