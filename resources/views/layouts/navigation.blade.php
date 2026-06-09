@@ -8,7 +8,7 @@
                     </a>
                 </div>
 
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex sm:items-stretch">
                     {{-- Dashboard aktiv auch auf /lernender, /berufsbildner, /admin --}}
                     <x-nav-link
                         :href="route('dashboard')"
@@ -38,16 +38,24 @@
 
                         @if(auth()->user()->hasRole('Admin'))
                             {{-- Dropdown: Benutzer --}}
-                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                                <button class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                            <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                <button type="button"
+                                        class="inline-flex items-center h-full gap-1 px-1 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none
                                     {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
                                     Benutzer
-                                    <svg class="h-3.5 w-3.5" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
+                                    <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
                                     </svg>
                                 </button>
-                                <div x-show="open" x-transition.origin.top.left
-                                     class="absolute left-0 top-full w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1">
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                     class="absolute left-0 w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1"
+                                     style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.lernende.index') }}"
                                        class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
                                         Lernende
@@ -64,16 +72,24 @@
                             </div>
 
                             {{-- Dropdown: Stammdaten --}}
-                            <div class="relative" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
-                                <button class="inline-flex items-center gap-1 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out focus:outline-none
+                            <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                                <button type="button"
+                                        class="inline-flex items-center h-full gap-1 px-1 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none
                                     {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
                                     Stammdaten
-                                    <svg class="h-3.5 w-3.5" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
+                                    <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
                                     </svg>
                                 </button>
-                                <div x-show="open" x-transition.origin.top.left
-                                     class="absolute left-0 top-full w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1">
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                                     class="absolute left-0 w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1"
+                                     style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
                                        class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
                                         Lehrberufe
