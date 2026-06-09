@@ -26,6 +26,7 @@
                             <th class="px-4 py-3 text-left font-medium">Von</th>
                             <th class="px-4 py-3 text-left font-medium">Bis</th>
                             <th class="px-4 py-3 text-left font-medium">Sortierung</th>
+                            <th class="px-4 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
@@ -44,6 +45,10 @@
                                 <td class="px-4 py-3 text-muted font-mono">{{ $s->start_datum }}</td>
                                 <td class="px-4 py-3 text-muted font-mono">{{ $s->end_datum }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('admin.stammdaten.semester.edit', $s->semester_id) }}"
+                                       class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                </td>
                             </tr>
                         @empty
                             <tr>

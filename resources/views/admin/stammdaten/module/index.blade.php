@@ -26,6 +26,7 @@
                             <th class="px-4 py-3 text-left font-medium">Titel</th>
                             <th class="px-4 py-3 text-left font-medium">Lehrberufe</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
+                            <th class="px-4 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
@@ -40,6 +41,10 @@
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>
                                     @endif
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="{{ route('admin.stammdaten.module.edit', $m->modul_id) }}"
+                                       class="text-sm text-accent hover:underline">Bearbeiten</a>
                                 </td>
                             </tr>
                         @empty

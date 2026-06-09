@@ -51,4 +51,28 @@ class StammdatenSemesterController extends Controller
         return redirect()->route('admin.stammdaten.semester.index')
             ->with('status', 'Semester angelegt.');
     }
+
+    public function edit(int $semester_id)
+    {
+        $semester = DB::table('semester')->where('semester_id', $semester_id)->firstOrFail();
+        return view('admin.stammdaten.semester.edit', compact('semester'));
+    }
+
+    public function update(Request $request, int $semester_id): RedirectResponse
+    {
+        DB::table('semester')->where('semester_id', $semester_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'bezeichnung' => ['required', 'string', 'max:20',
+                \Illuminate\Validation\Rule::unique('semester', 'bezeichnung')->ignore($semester_id, 'semester_id')],
+            'start_datum' => ['required', 'date'],
+            'end_datum'   => ['required', 'date', 'after:start_datum'],
+            'sortierung'  => ['required', 'integer', 'min:0'],
+        ]);
+
+        DB::table('semester')->where('semester_id', $semester_id)->update($validated);
+
+        return redirect()->route('admin.stammdaten.semester.index')
+            ->with('status', 'Semester aktualisiert.');
+    }
 }

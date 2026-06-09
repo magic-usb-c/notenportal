@@ -52,4 +52,33 @@ class StammdatenFaecherController extends Controller
         return redirect()->route('admin.stammdaten.faecher.index')
             ->with('status', 'Fach angelegt.');
     }
+
+    public function edit(int $fach_id)
+    {
+        $fach = DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
+        return view('admin.stammdaten.faecher.edit', compact('fach'));
+    }
+
+    public function update(Request $request, int $fach_id): RedirectResponse
+    {
+        DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
+
+        $validated = $request->validate([
+            'name'      => ['required', 'string', 'max:200'],
+            'kurzname'  => ['required', 'string', 'max:50'],
+            'track_typ' => ['required', 'in:BMS,ABU'],
+            'aktiv'     => ['sometimes', 'boolean'],
+        ]);
+
+        DB::table('faecher')->where('fach_id', $fach_id)->update([
+            'name'            => $validated['name'],
+            'kurzname'        => strtoupper($validated['kurzname']),
+            'track_typ'       => $validated['track_typ'],
+            'aktiv'           => (int) ($validated['aktiv'] ?? 1),
+            'aktualisiert_am' => now(),
+        ]);
+
+        return redirect()->route('admin.stammdaten.faecher.index')
+            ->with('status', 'Fach aktualisiert.');
+    }
 }

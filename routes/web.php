@@ -154,6 +154,10 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.module.create');
         Route::post('/stammdaten/module', [StammdatenModuleController::class, 'store'])
             ->name('stammdaten.module.store');
+        Route::get('/stammdaten/module/{modul_id}/edit', [StammdatenModuleController::class, 'edit'])
+            ->name('stammdaten.module.edit');
+        Route::put('/stammdaten/module/{modul_id}', [StammdatenModuleController::class, 'update'])
+            ->name('stammdaten.module.update');
 
         // Stammdaten: Fächer
         Route::get('/stammdaten/faecher', [StammdatenFaecherController::class, 'index'])
@@ -162,6 +166,10 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.faecher.create');
         Route::post('/stammdaten/faecher', [StammdatenFaecherController::class, 'store'])
             ->name('stammdaten.faecher.store');
+        Route::get('/stammdaten/faecher/{fach_id}/edit', [StammdatenFaecherController::class, 'edit'])
+            ->name('stammdaten.faecher.edit');
+        Route::put('/stammdaten/faecher/{fach_id}', [StammdatenFaecherController::class, 'update'])
+            ->name('stammdaten.faecher.update');
 
         // Stammdaten: Semester
         Route::get('/stammdaten/semester', [StammdatenSemesterController::class, 'index'])
@@ -170,6 +178,10 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.semester.create');
         Route::post('/stammdaten/semester', [StammdatenSemesterController::class, 'store'])
             ->name('stammdaten.semester.store');
+        Route::get('/stammdaten/semester/{semester_id}/edit', [StammdatenSemesterController::class, 'edit'])
+            ->name('stammdaten.semester.edit');
+        Route::put('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'update'])
+            ->name('stammdaten.semester.update');
     });
 
 /**
