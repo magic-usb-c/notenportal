@@ -21,6 +21,45 @@
                 </div>
             @endif
 
+            {{-- Lernenden-Zusammenfassung --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Profil --}}
+                @if($lernenderProfil)
+                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Ausbildung</div>
+                        <div class="text-sm text-text font-medium">{{ $lernenderProfil->lehrberuf_name ?? '–' }}</div>
+                        <div class="mt-1 text-xs text-muted">
+                            Lehrbeginn:
+                            {{ $lernenderProfil->lehrbeginn ? \Carbon\Carbon::parse($lernenderProfil->lehrbeginn)->format('d.m.Y') : '–' }}
+                            @if($lernenderProfil->lehrende)
+                                · Ende: {{ \Carbon\Carbon::parse($lernenderProfil->lehrende)->format('d.m.Y') }}
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Semester-Schnitte --}}
+                @if($semStats->isNotEmpty())
+                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Ø pro Semester</div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($semStats as $ss)
+                                @php
+                                    $a = $ss->avg !== null ? (float)$ss->avg : null;
+                                    $c = $a === null ? 'bg-bg text-muted' : ($a >= 4.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : ($a >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
+                                @endphp
+                                <div class="text-center">
+                                    <div class="text-[11px] text-muted whitespace-nowrap">{{ $ss->sem_label }}</div>
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-lg text-xs font-bold {{ $c }}">
+                                        {{ $a !== null ? number_format($a, 2) : '–' }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             {{-- Lernenden-Switcher --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                 <label class="text-sm font-medium text-muted">Lernenden wechseln</label>

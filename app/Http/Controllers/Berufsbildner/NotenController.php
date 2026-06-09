@@ -85,6 +85,28 @@ class NotenController extends Controller
         // Nur Semester während der Lehrzeit dieses Lernenden
         $semester = $this->noteService->semestersForLernender($lernender_id);
 
+        // Kurzprofil: Lehrberuf + Lehrbeginn für Übersicht
+        $lernenderProfil = DB::table('lernende as l')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernender_id)
+            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
+            ->first();
+
+        // Semester-Schnitte für Übersichtstabelle
+        $semStats = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
+            ->select([
+                's.bezeichnung as sem_label',
+                's.sortierung',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
+            ])
+            ->orderBy('s.sortierung')
+            ->get();
+
         return view('berufsbildner.noten.index', [
             'notes'              => $notes,
             'lernende'           => $lernende,
@@ -92,6 +114,8 @@ class NotenController extends Controller
             'selectedLernenderId' => $lernender_id,
             'kategorien'         => $kategorien,
             'semester'           => $semester,
+            'lernenderProfil'    => $lernenderProfil,
+            'semStats'           => $semStats,
         ]);
     }
 
