@@ -16,6 +16,15 @@
                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
                     Noten ansehen
                 </a>
+                <a href="{{ route('berufsbildner.lernende.noten.drucken', ['lernender_id' => $profil->lernender_id]) }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap"
+                   title="Notenblatt drucken">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                    </svg>
+                    Drucken
+                </a>
                 <a href="{{ route('berufsbildner.lernende.index') }}"
                    class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap">
                     Zurück
@@ -83,14 +92,28 @@
                     </dl>
                 </div>
 
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center text-center">
-                    <div class="text-xs uppercase tracking-wide text-muted">Ø gesamt</div>
-                    <div class="text-4xl font-bold tabular-nums mt-1 {{ $avgColor($globalAvg) }}">
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center text-center np-card-lift">
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
+                    <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($globalAvg) }}">
                         {{ $globalAvg !== null ? number_format($globalAvg, 2) : '–' }}
                     </div>
                     <div class="text-xs text-muted mt-1">
                         {{ $noteCount }} {{ $noteCount === 1 ? 'Note' : 'Noten' }}
                     </div>
+                    @if($profil->lehrende)
+                        @php
+                            $daysLeft = (int) \Carbon\Carbon::parse($profil->lehrende)->diffInDays(now(), false);
+                        @endphp
+                        @if($daysLeft >= 0)
+                            <div class="mt-3 pt-3 border-t border-border w-full">
+                                <div class="text-[10px] uppercase tracking-widest text-muted">Lehrende</div>
+                                <div class="text-sm font-semibold mt-0.5
+                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-text') }}">
+                                    in {{ $daysLeft }} Tagen
+                                </div>
+                            </div>
+                        @endif
+                    @endif
                 </div>
             </div>
 
