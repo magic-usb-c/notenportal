@@ -106,6 +106,28 @@ class NotenController extends Controller
             ->whereNull('geloescht_am')
             ->count();
 
+        // Kategorie-Stats (für das ausgewählte Semester, nur Kategorien mit Noten)
+        $kategorieStatsQ = DB::table('noten as n')
+            ->join('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('k.kategorie_id', 'k.name', 'k.sortierung')
+            ->select([
+                'k.kategorie_id',
+                'k.name as kategorie_name',
+                'k.sortierung',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
+                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
+            ])
+            ->orderBy('k.sortierung');
+
+        if ($selectedSemesterId > 0) {
+            $kategorieStatsQ->where('n.semester_id', $selectedSemesterId);
+        }
+
+        $kategorieStats = $kategorieStatsQ->get();
+
         // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
         return view('lernender.noten.index', [
             'notes'              => $notes,
@@ -121,6 +143,7 @@ class NotenController extends Controller
             'semesterStats'      => $semesterStats,
             'globalAvgWeighted'  => $globalAvgWeighted,
             'globalCount'        => $globalCount,
+            'kategorieStats'     => $kategorieStats,
         ]);
     }
 

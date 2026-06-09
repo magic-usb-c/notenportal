@@ -200,6 +200,36 @@
                 </div>
             </div>
 
+            {{-- Kategorie-Übersicht (Stats getrennt pro Kategorie für gewähltes Semester) --}}
+            @if($kategorieStats->isNotEmpty())
+                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+                        <h3 class="text-sm font-semibold text-text">Auswertung nach Kategorie</h3>
+                        <span class="text-[11px] text-muted">{{ $selectedSemLabel }}</span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-border">
+                        @foreach($kategorieStats as $ks)
+                            @php
+                                $ksAvg = $ks->avg_weighted !== null ? (float) $ks->avg_weighted : null;
+                                $ksQuote = $ks->total > 0 ? round($ks->passed / $ks->total * 100) : null;
+                            @endphp
+                            <div class="p-4">
+                                <div class="text-[11px] uppercase tracking-widest text-muted font-medium">{{ $ks->kategorie_name }}</div>
+                                <div class="mt-1 text-2xl font-extrabold tabular-nums tracking-tight {{ $avgColor($ksAvg) }}">
+                                    {{ $ksAvg !== null ? number_format($ksAvg, 2) : '–' }}
+                                </div>
+                                <div class="mt-0.5 text-[11px] text-muted">
+                                    {{ $ks->total }} {{ $ks->total === 1 ? 'Note' : 'Noten' }}
+                                    @if($ksQuote !== null)
+                                        · {{ $ksQuote }}% best.
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             {{-- Tabelle/Groups --}}
             @include('lernender.noten.partials.notes-table', [
                 'fachGroups' => $fachGroups,
