@@ -380,9 +380,10 @@ class NoteService
     /**
      * Durchschnitt berechnen:
      * - ungewichtet = simple avg(note_wert)
-     * - gewichtet = (sum(note_wert * gewichtung) / sum(gewichtung))
+     * - gewichtet   = sum(note_wert * gewichtung) / sum(gewichtung)
+     * - missingWeights = Anzahl Noten ohne explizite Gewichtung (null/leer → 100% als Fallback)
      *
-     * Leere Gewichtung behandeln wir als 100.00 (Default-Logik).
+     * Rückgabe: [avgUnweighted, avgWeighted, missingWeights, count]
      */
     public function calcAverages(Collection $notes): array
     {
@@ -393,22 +394,24 @@ class NoteService
 
         $avgUnweighted = round((float) $notes->avg('note_wert'), 2);
 
-        $wSum = 0.0;
-        $weightedSum = 0.0;
+        $wSum          = 0.0;
+        $weightedSum   = 0.0;
+        $missingWeights = 0;
 
         foreach ($notes as $n) {
             $w = $n->gewichtung_prozent;
             if ($w === null || $w === '') {
                 $w = 100.0;
+                $missingWeights++;
             }
             $w = (float) $w;
 
-            $wSum += $w;
-            $weightedSum += ((float) $n->note_wert) * $w;
+            $wSum        += $w;
+            $weightedSum += (float) $n->note_wert * $w;
         }
 
         $avgWeighted = $wSum > 0 ? round($weightedSum / $wSum, 2) : null;
 
-        return [$avgUnweighted, $avgWeighted, 0, $count];
+        return [$avgUnweighted, $avgWeighted, $missingWeights, $count];
     }
 }

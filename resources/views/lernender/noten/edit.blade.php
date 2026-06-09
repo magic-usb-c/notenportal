@@ -1,10 +1,11 @@
+{{-- resources/views/lernender/noten/edit.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100">Note bearbeiten</h2>
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text whitespace-nowrap">Note bearbeiten</h2>
 
             <a href="{{ route('lernender.noten.index') }}"
-               class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
+               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 whitespace-nowrap">
                 Zur Übersicht
             </a>
         </div>
@@ -12,12 +13,12 @@
 
     <div class="py-6">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 text-gray-900 dark:text-gray-100">
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded-md bg-red-50 dark:bg-red-900/30 text-red-800 dark:text-red-200 px-4 py-3">
+                    <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-500">
                         <div class="font-semibold mb-2">Bitte prüfen:</div>
-                        <ul class="list-disc pl-5 space-y-1">
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -36,9 +37,9 @@
                     @method('PUT')
 
                     <div>
-                        <label class="text-sm font-medium">Kategorie</label>
+                        <label class="text-sm font-medium text-muted">Kategorie</label>
                         <select name="kategorie_id" required
-                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             @foreach($kategorien as $k)
                                 <option value="{{ $k->kategorie_id }}" @selected(old('kategorie_id', $note->kategorie_id) == $k->kategorie_id)>
                                     {{ $k->name }}
@@ -48,26 +49,28 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium">Typ</label>
+                        <label class="text-sm font-medium text-muted">Typ</label>
                         <div class="mt-2 flex gap-6">
                             <label class="flex items-center gap-2">
-                                <input type="radio" name="typ" value="fach" @checked($typ === 'fach')>
-                                <span>Fach</span>
+                                <input type="radio" name="typ" value="fach" @checked($typ === 'fach')
+                                       class="text-accent focus:ring-ring">
+                                <span class="text-text">Fach</span>
                             </label>
                             <label class="flex items-center gap-2">
-                                <input type="radio" name="typ" value="modul" @checked($typ === 'modul')>
-                                <span>Modul</span>
+                                <input type="radio" name="typ" value="modul" @checked($typ === 'modul')
+                                       class="text-accent focus:ring-ring">
+                                <span class="text-text">Modul</span>
                             </label>
                         </div>
-                        <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
+                        <div class="mt-1 text-xs text-muted">
                             Semester wird automatisch anhand Prüfungsdatum gesetzt.
                         </div>
                     </div>
 
                     <div id="fachBlock">
-                        <label class="text-sm font-medium">Fach</label>
+                        <label class="text-sm font-medium text-muted">Fach</label>
                         <select name="fach_id"
-                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Bitte wählen</option>
                             @foreach($faecher as $f)
                                 <option value="{{ $f->fach_id }}" @selected(old('fach_id', $note->fach_id) == $f->fach_id)>
@@ -78,18 +81,14 @@
                     </div>
 
                     <div id="modulBlock" class="hidden">
-                        <label class="text-sm font-medium">Modul</label>
+                        <label class="text-sm font-medium text-muted">Modul</label>
                         <select name="modul_id"
-                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Bitte wählen</option>
                             @foreach($module as $m)
-                                @php
-                                    $selected = old('modul_id', $currentModulId);
-                                @endphp
+                                @php $selected = old('modul_id', $currentModulId); @endphp
                                 <option value="{{ $m->modul_id }}" @selected((int)$selected === (int)$m->modul_id)>
-                                    @if((int)($m->has_open_belegung ?? 0) === 1)
-                                        ★
-                                    @endif
+                                    @if((int)($m->has_open_belegung ?? 0) === 1) ★ @endif
                                     {{ $m->modul_nummer }} – {{ $m->titel }}
                                 </option>
                             @endforeach
@@ -97,41 +96,41 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium">Titel (optional)</label>
+                        <label class="text-sm font-medium text-muted">Titel (optional)</label>
                         <input name="titel" maxlength="150" value="{{ old('titel', $note->titel) }}"
-                               class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                               class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="text-sm font-medium">Prüfungsdatum</label>
+                            <label class="text-sm font-medium text-muted">Prüfungsdatum</label>
                             <input type="date" name="pruefungsdatum" required
                                    value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
-                                   class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium">Note</label>
+                            <label class="text-sm font-medium text-muted">Note</label>
                             <input type="number" name="note_wert" step="0.1" min="1" max="6" required
                                    value="{{ old('note_wert', $note->note_wert) }}"
-                                   class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium">Gewichtung %</label>
+                            <label class="text-sm font-medium text-muted">Gewichtung %</label>
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
-                                   class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button class="inline-flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+                        <button class="inline-flex items-center px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
                             Speichern
                         </button>
 
                         <a href="{{ route('lernender.noten.index') }}"
-                           class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
+                           class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60">
                             Abbrechen
                         </a>
                     </div>

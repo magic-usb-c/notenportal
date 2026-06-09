@@ -66,71 +66,20 @@ class NotenController extends Controller
             ])
         );
 
-        $kategorien = Kategorie::query()->orderBy('sortierung')->get();
+        $kategorien = Kategorie::query()->orderBy(‘sortierung’)->get();
 
-        // Gruppierung: Fächer und Module (Modul gruppiert nach modul_belegung_id, damit’s logisch bleibt)
-        $fachGroups = $notes
-            ->filter(fn ($n) => !empty($n->fach_id) && $n->fach)
-            ->groupBy(fn ($n) => (int) $n->fach_id)
-            ->map(function ($items) {
-                $fach = $items->first()->fach;
-                [$u, $w] = $this->noteService->calcAverages($items->map(fn ($n) => (object)[
-                    'note_wert' => $n->note_wert,
-                    'gewichtung_prozent' => $n->gewichtung_prozent,
-                ]));
-                return [
-                    'key' => 'fach_' . (int)$fach->fach_id,
-                    'title' => (string) $fach->name,
-                    'avg' => $w ?? $u,
-                    'count' => $items->count(),
-                    'items' => $items->values(),
-                ];
-            })
-            ->sortBy('title')
-            ->values();
-
-        $modulGroups = $notes
-            ->filter(fn ($n) => !empty($n->modul_belegung_id) && $n->modulBelegung && $n->modulBelegung->modul)
-            ->groupBy(fn ($n) => (int) $n->modul_belegung_id)
-            ->map(function ($items) {
-                $mb = $items->first()->modulBelegung;
-                $modul = $mb->modul;
-
-                [$u, $w] = $this->noteService->calcAverages($items->map(fn ($n) => (object)[
-                    'note_wert' => $n->note_wert,
-                    'gewichtung_prozent' => $n->gewichtung_prozent,
-                ]));
-
-                $title = trim(($modul->modul_nummer ?? '') . ' – ' . ($modul->titel ?? ''));
-                if ($title === '–') $title = 'Modul';
-
-                return [
-                    'key' => 'modul_' . (int)$mb->modul_belegung_id,
-                    'title' => $title,
-                    'avg' => $w ?? $u,
-                    'count' => $items->count(),
-                    'items' => $items->values(),
-                ];
-            })
-            ->sortBy('title')
-            ->values();
-
-        return view('lernender.noten.index', [
-            'notes' => $notes, // (falls du es irgendwo noch brauchst)
-            'fachGroups' => $fachGroups,
-            'modulGroups' => $modulGroups,
-
-            'kategorien' => $kategorien,
-            'semester' => $semester,
-
-            'selectedSemesterId' => $selectedSemesterId,
-            'prevSemesterId' => $prevSemesterId,
-            'nextSemesterId' => $nextSemesterId,
-
-            'avgUnweighted' => $avgUnweighted,
-            'avgWeighted' => $avgWeighted,
-            'missingWeights' => $missingWeights,
-            'count' => $count,
+        // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
+        return view(‘lernender.noten.index’, [
+            ‘notes’              => $notes,
+            ‘kategorien’         => $kategorien,
+            ‘semester’           => $semester,
+            ‘selectedSemesterId’ => $selectedSemesterId,
+            ‘prevSemesterId’     => $prevSemesterId,
+            ‘nextSemesterId’     => $nextSemesterId,
+            ‘avgUnweighted’      => $avgUnweighted,
+            ‘avgWeighted’        => $avgWeighted,
+            ‘missingWeights’     => $missingWeights,
+            ‘count’              => $count,
         ]);
     }
 
