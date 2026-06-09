@@ -196,8 +196,11 @@
 
             @auth
                 @if(auth()->user()->hasRole('Lernender'))
-                    <x-responsive-nav-link :href="route('lernender.noten.index')" :active="request()->routeIs('lernender.noten.*')">
+                    <x-responsive-nav-link :href="route('lernender.noten.index')" :active="request()->routeIs('lernender.noten.index') || request()->routeIs('lernender.noten.create') || request()->routeIs('lernender.noten.edit')">
                         Noten
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('lernender.noten.rechner')" :active="request()->routeIs('lernender.noten.rechner')">
+                        Rechner
                     </x-responsive-nav-link>
                 @endif
 
