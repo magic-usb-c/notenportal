@@ -37,7 +37,7 @@
     @endphp
 
     @php
-        $headerAvgColor = function ($val) {
+        $avgColor = function ($val) {
             if ($val === null || $val === '') return 'text-muted';
             $v = (float) $val;
             if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
@@ -54,11 +54,11 @@
                 <div class="hidden md:flex items-center gap-3 pl-4 border-l border-border">
                     <div>
                         <div class="text-[10px] uppercase tracking-widest text-muted">Ø Sem</div>
-                        <div class="text-lg font-bold tabular-nums {{ $headerAvgColor($avgWeighted) }}">{{ $avgWeighted ?? '–' }}</div>
+                        <div class="text-lg font-bold tabular-nums {{ $avgColor($avgWeighted) }}">{{ $avgWeighted ?? '–' }}</div>
                     </div>
                     <div>
                         <div class="text-[10px] uppercase tracking-widest text-muted">Ø Gesamt</div>
-                        <div class="text-lg font-bold tabular-nums {{ $headerAvgColor($globalAvgWeighted ?? null) }}">{{ $globalAvgWeighted ?? '–' }}</div>
+                        <div class="text-lg font-bold tabular-nums {{ $avgColor($globalAvgWeighted ?? null) }}">{{ $globalAvgWeighted ?? '–' }}</div>
                     </div>
                     <div>
                         <div class="text-[10px] uppercase tracking-widest text-muted">Noten</div>
@@ -142,17 +142,6 @@
                     {{ session('status') }}
                 </div>
             @endif
-
-            @php
-                $avgColor = function ($val) {
-                    if ($val === null || $val === '') return 'text-muted';
-                    $v = (float) $val;
-                    if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
-                    if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-                    if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
-                    return 'text-red-600 dark:text-red-400';
-                };
-            @endphp
 
             {{-- Filter (volle Breite, kompakt) --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
