@@ -131,9 +131,10 @@
                                     $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry) : null;
 
                                     $avgColor = $avg === null ? 'text-muted'
-                                        : ($avg >= 4.0 ? 'text-green-600 dark:text-green-400'
+                                        : ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                                        : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
                                         : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
-                                        : 'text-red-600 dark:text-red-400'));
+                                        : 'text-red-600 dark:text-red-400')));
                                     $quoteColor = $quote === null ? 'text-muted'
                                         : ($quote >= 75 ? 'text-green-600 dark:text-green-400'
                                         : ($quote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
@@ -234,9 +235,10 @@
                                         $ksAvg    = $ks->avg_weighted !== null ? (float) $ks->avg_weighted : null;
                                         $ksQuote  = $ks->total > 0 ? round($ks->passed / $ks->total * 100) : null;
                                         $ksAvgCol = $ksAvg === null ? 'text-muted'
-                                            : ($ksAvg >= 4.0 ? 'text-green-600 dark:text-green-400'
+                                            : ($ksAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                                            : ($ksAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
                                             : ($ksAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
-                                            : 'text-red-600 dark:text-red-400'));
+                                            : 'text-red-600 dark:text-red-400')));
                                         $ksQCol   = $ksQuote === null ? 'text-muted'
                                             : ($ksQuote >= 75 ? 'text-green-600 dark:text-green-400'
                                             : ($ksQuote >= 50 ? 'text-yellow-600 dark:text-yellow-400'

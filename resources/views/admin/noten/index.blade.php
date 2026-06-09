@@ -107,7 +107,11 @@
                 @php
                     $avg = $statsRow->avg_weighted !== null ? (float)$statsRow->avg_weighted : null;
                     $passRate = $statsRow->total > 0 ? round($statsRow->passed / $statsRow->total * 100) : null;
-                    $avgColor = $avg === null ? 'text-muted' : ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'));
+                    $avgColor = $avg === null ? 'text-muted'
+                        : ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                        : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
+                        : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                        : 'text-red-600 dark:text-red-400')));
                 @endphp
                 <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-3 flex flex-wrap gap-6 text-sm">
                     <div class="text-center">
@@ -147,11 +151,13 @@
                         }
 
                         $noteWert = (float) $n->note_wert;
-                        $noteColor = $noteWert >= 4.0
+                        $noteColor = $noteWert >= 5.0
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                            : ($noteWert >= 3.5
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                            : ($noteWert >= 4.0
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                : ($noteWert >= 3.5
+                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
                     @endphp
 
                     <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden"
