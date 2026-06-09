@@ -76,6 +76,30 @@ class BerichtController extends Controller
             ->orderBy('b.vorname')
             ->get();
 
+        // Kategorie-Übersicht (aggregiert über die aktuelle Auswahl)
+        $kategorieStatsQ = DB::table('noten as n')
+            ->join('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->whereIn('n.lernender_id', $ids)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.kategorie_id', 'k.name', 'k.sortierung')
+            ->select([
+                'n.kategorie_id',
+                'k.name as kategorie_name',
+                'k.sortierung',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
+                DB::raw('MIN(n.note_wert) as note_min'),
+                DB::raw('MAX(n.note_wert) as note_max'),
+            ])
+            ->orderBy('k.sortierung');
+
+        if ($semesterId) {
+            $kategorieStatsQ->where('n.semester_id', $semesterId);
+        }
+
+        $kategorieStats = $kategorieStatsQ->get();
+
         $alleNoten    = $stats->values();
         $gesamtTotal  = $alleNoten->sum('total');
         $gesamtPassed = $alleNoten->sum('passed');
@@ -90,6 +114,7 @@ class BerichtController extends Controller
             'semesterId'      => $semesterId,
             'lehrberufId'     => $lehrberufId,
             'berufsbildnerId' => $berufsbildnerId,
+            'kategorieStats'  => $kategorieStats,
             'gesamtTotal'     => $gesamtTotal,
             'gesamtPassed'    => $gesamtPassed,
             'gesamtAvg'       => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,

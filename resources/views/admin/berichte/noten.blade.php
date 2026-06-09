@@ -203,6 +203,62 @@
                 @endif
             </div>
 
+            {{-- Kategorie-Übersicht --}}
+            @if($kategorieStats->isNotEmpty())
+                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-border">
+                        <h3 class="font-semibold text-text">Übersicht nach Kategorie</h3>
+                        <p class="text-xs text-muted mt-0.5">Aggregiert über alle angezeigten Lernenden{{ $semesterId ? ' im gewählten Semester' : '' }}</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm text-text">
+                            <thead class="bg-bg text-muted">
+                                <tr>
+                                    <th class="text-left p-3">Kategorie</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Noten</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Ø gewichtet</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Bestanden</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Quote</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Min / Max</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @foreach($kategorieStats as $ks)
+                                    @php
+                                        $ksAvg    = $ks->avg_weighted !== null ? (float) $ks->avg_weighted : null;
+                                        $ksQuote  = $ks->total > 0 ? round($ks->passed / $ks->total * 100) : null;
+                                        $ksAvgCol = $ksAvg === null ? 'text-muted'
+                                            : ($ksAvg >= 4.0 ? 'text-green-600 dark:text-green-400'
+                                            : ($ksAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : 'text-red-600 dark:text-red-400'));
+                                        $ksQCol   = $ksQuote === null ? 'text-muted'
+                                            : ($ksQuote >= 75 ? 'text-green-600 dark:text-green-400'
+                                            : ($ksQuote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : 'text-red-600 dark:text-red-400'));
+                                    @endphp
+                                    <tr class="hover:bg-bg">
+                                        <td class="p-3 font-medium">{{ $ks->kategorie_name }}</td>
+                                        <td class="p-3 text-center text-muted">{{ $ks->total }}</td>
+                                        <td class="p-3 text-center font-semibold {{ $ksAvgCol }}">
+                                            {{ $ksAvg !== null ? number_format($ksAvg, 2) : '–' }}
+                                        </td>
+                                        <td class="p-3 text-center text-muted">
+                                            {{ $ks->passed }} / {{ $ks->total }}
+                                        </td>
+                                        <td class="p-3 text-center font-semibold {{ $ksQCol }}">
+                                            {{ $ksQuote !== null ? $ksQuote . ' %' : '–' }}
+                                        </td>
+                                        <td class="p-3 text-center text-muted">
+                                            {{ number_format((float)$ks->note_min, 1) }} / {{ number_format((float)$ks->note_max, 1) }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+
         </div>
     </div>
 </x-app-layout>
