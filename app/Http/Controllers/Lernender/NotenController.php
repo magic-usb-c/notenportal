@@ -144,7 +144,8 @@ class NotenController extends Controller
             'aktualisiert_von_benutzer_id' => null,
         ]);
 
-        return redirect()->route('lernender.noten.index')->with('status', 'Note gespeichert.');
+        $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
+        return redirect()->route('lernender.noten.index', $params)->with('status', 'Note gespeichert.');
     }
 
     public function edit(Request $request, int $note_id)
@@ -208,7 +209,8 @@ class NotenController extends Controller
             'aktualisiert_von_benutzer_id' => (int) $user->benutzer_id,
         ]);
 
-        return redirect()->route('lernender.noten.index')->with('status', 'Note aktualisiert.');
+        $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
+        return redirect()->route('lernender.noten.index', $params)->with('status', 'Note aktualisiert.');
     }
 
     /**

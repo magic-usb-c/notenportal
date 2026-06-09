@@ -56,8 +56,13 @@
 
                         <div class="mt-3">
                             <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
-                               class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs hover:opacity-90 whitespace-nowrap">
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white text-xs hover:opacity-90 whitespace-nowrap">
                                 Noten öffnen
+                                @if($st?->unread > 0)
+                                    <span class="inline-flex items-center justify-center min-w-[1.25rem] px-1 py-0.5 rounded-full text-[10px] font-bold bg-white text-accent leading-none">
+                                        {{ $st->unread }}
+                                    </span>
+                                @endif
                             </a>
                         </div>
                     </div>

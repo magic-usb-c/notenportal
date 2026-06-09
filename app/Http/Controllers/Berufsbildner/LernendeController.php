@@ -85,19 +85,43 @@ class LernendeController extends Controller
             ->get()
             ->keyBy('lernender_id');
 
-        $stats = $lernende->map(function ($l) use ($lastEntries, $currentSemAvg) {
+        $bbBenutzerId = (int) $user->benutzer_id;
+
+        $unreadCounts = DB::table('noten as n')
+            ->leftJoin('noten_gesehen as ng', function ($j) use ($bbBenutzerId) {
+                $j->on('ng.note_id', '=', 'n.note_id')
+                  ->where('ng.viewer_benutzer_id', '=', $bbBenutzerId);
+            })
+            ->leftJoin('noten_kommentare as nk', function ($j) {
+                $j->on('nk.note_id', '=', 'n.note_id');
+            })
+            ->whereIn('n.lernender_id', $ids)
+            ->whereNull('n.geloescht_am')
+            ->where(function ($q) {
+                $q->whereNull('ng.gesehen_am')
+                  ->orWhereColumn('n.erstellt_am', '>', 'ng.gesehen_am')
+                  ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
+            })
+            ->groupBy('n.lernender_id')
+            ->select(['n.lernender_id', DB::raw('COUNT(DISTINCT n.note_id) as unread')])
+            ->get()
+            ->keyBy('lernender_id');
+
+        $stats = $lernende->map(function ($l) use ($lastEntries, $currentSemAvg, $unreadCounts) {
             $lid       = (int) $l->lernender_id;
             $lastRow   = $lastEntries->get($lid);
             $avgRow    = $currentSemAvg->get($lid);
             $lastEntry = $lastRow ? Carbon::parse($lastRow->last_entry) : null;
             $daysSince = $lastEntry ? (int) $lastEntry->diffInDays(now()) : null;
             $semAvg    = $avgRow ? round((float) $avgRow->avg, 2) : null;
+            $unread    = (int) ($unreadCounts->get($lid)?->unread ?? 0);
 
             return (object) [
                 'lernender_id' => $lid,
                 'lastEntry'    => $lastEntry,
                 'daysSince'    => $daysSince,
                 'semAvg'       => $semAvg,
+                'unread'       => $unread,
                 'warningGelb'  => $daysSince === null || $daysSince > 30,
                 'warningRot'   => $semAvg !== null && $semAvg < 4.0,
             ];
