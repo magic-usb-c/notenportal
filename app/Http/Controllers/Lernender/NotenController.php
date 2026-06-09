@@ -77,6 +77,23 @@ class NotenController extends Controller
 
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
 
+        // Semester-Übersicht (alle Semester dieses Lernenden)
+        $semesterStats = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
+            ->select([
+                'n.semester_id',
+                's.bezeichnung as sem_label',
+                's.sortierung',
+                DB::raw('COUNT(*) as total'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
+                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
+            ])
+            ->orderBy('s.sortierung')
+            ->get();
+
         // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
         return view('lernender.noten.index', [
             'notes'              => $notes,
@@ -89,6 +106,7 @@ class NotenController extends Controller
             'avgWeighted'        => $avgWeighted,
             'missingWeights'     => $missingWeights,
             'count'              => $count,
+            'semesterStats'      => $semesterStats,
         ]);
     }
 

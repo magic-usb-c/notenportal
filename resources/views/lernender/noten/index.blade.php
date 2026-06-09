@@ -195,6 +195,62 @@
                 </div>
             @endif
 
+            {{-- Semester-Übersicht --}}
+            @if($semesterStats->isNotEmpty())
+                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                    <details>
+                        <summary class="cursor-pointer select-none list-none px-5 py-4 flex items-center justify-between hover:bg-bg/60">
+                            <span class="font-semibold text-text text-sm">Alle Semester im Überblick</span>
+                            <svg class="w-4 h-4 text-muted transition-transform details-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </summary>
+                        <div class="border-t border-border overflow-x-auto">
+                            <table class="min-w-full text-sm text-text">
+                                <thead class="bg-bg text-muted">
+                                    <tr>
+                                        <th class="text-left px-4 py-2.5">Semester</th>
+                                        <th class="text-center px-4 py-2.5">Noten</th>
+                                        <th class="text-center px-4 py-2.5">Ø gewichtet</th>
+                                        <th class="text-center px-4 py-2.5 whitespace-nowrap">Bestanden</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    @foreach($semesterStats as $ss)
+                                        @php
+                                            $ssAvg = $ss->avg_weighted !== null ? (float) $ss->avg_weighted : null;
+                                            $ssColor = $ssAvg === null ? 'text-muted'
+                                                : ($ssAvg >= 4.0 ? 'text-green-600 dark:text-green-400'
+                                                : ($ssAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                                : 'text-red-600 dark:text-red-400'));
+                                            $isSelected = (int)$ss->semester_id === (int)$selectedSemesterId;
+                                        @endphp
+                                        <tr class="hover:bg-bg {{ $isSelected ? 'bg-accent/5' : '' }}">
+                                            <td class="px-4 py-2.5">
+                                                <a href="{{ route('lernender.noten.index', ['semester_id' => $ss->semester_id]) }}"
+                                                   class="hover:text-accent {{ $isSelected ? 'font-semibold text-accent' : 'text-text' }}">
+                                                    {{ $ss->sem_label }}
+                                                    @if($isSelected)
+                                                        <span class="ml-1 text-xs">(aktuell)</span>
+                                                    @endif
+                                                </a>
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center text-muted">{{ $ss->total }}</td>
+                                            <td class="px-4 py-2.5 text-center font-semibold {{ $ssColor }}">
+                                                {{ $ssAvg !== null ? number_format($ssAvg, 2) : '–' }}
+                                            </td>
+                                            <td class="px-4 py-2.5 text-center text-muted">
+                                                {{ $ss->passed }} / {{ $ss->total }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+            @endif
+
         </div>
     </div>
 </x-app-layout>
