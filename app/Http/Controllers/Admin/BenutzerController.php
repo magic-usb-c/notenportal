@@ -244,7 +244,7 @@ class BenutzerController extends Controller
                 ]);
         }
 
-        return redirect()->route('admin.benutzer.index')
+        return redirect()->route('admin.benutzer.edit', $benutzer_id)
             ->with('status', 'Benutzer aktualisiert.');
     }
 
