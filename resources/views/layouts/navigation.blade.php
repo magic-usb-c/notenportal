@@ -22,34 +22,22 @@
                     </x-nav-link>
 
                     @auth
-                        {{-- Noten: Ziel hängt von Rolle ab --}}
+                        {{-- Lernender: direkt zu den eigenen Noten --}}
                         @if(auth()->user()->hasRole('Lernender'))
                             <x-nav-link :href="route('lernender.noten.index')" :active="request()->routeIs('lernender.noten.*')">
                                 Noten
                             </x-nav-link>
                         @endif
 
+                        {{-- Berufsbildner/Admin: Einstieg über Lernenden-Auswahl --}}
                         @if(auth()->user()->hasRole('Berufsbildner'))
-                            <x-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.*')">
-                                Noten
-                            </x-nav-link>
-                        @endif
-
-                        @if(auth()->user()->hasRole('Admin'))
-                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.*')">
-                                Noten
-                            </x-nav-link>
-                        @endif
-
-                        {{-- Lernende: nur Berufsbildner/Admin --}}
-                        @if(auth()->user()->hasRole('Berufsbildner'))
-                            <x-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.lernende.*')">
+                            <x-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.lernende.*') || request()->routeIs('berufsbildner.lernende.noten.*')">
                                 Lernende
                             </x-nav-link>
                         @endif
 
                         @if(auth()->user()->hasRole('Admin'))
-                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
+                            <x-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*') || request()->routeIs('admin.lernende.noten.*')">
                                 Lernende
                             </x-nav-link>
                         @endif
@@ -140,21 +128,13 @@
                 @endif
 
                 @if(auth()->user()->hasRole('Berufsbildner'))
-                    <x-responsive-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.*')">
-                        Noten
-                    </x-responsive-nav-link>
-
-                    <x-responsive-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.lernende.*')">
+                    <x-responsive-nav-link :href="route('berufsbildner.lernende.index')" :active="request()->routeIs('berufsbildner.lernende.*') || request()->routeIs('berufsbildner.lernende.noten.*')">
                         Lernende
                     </x-responsive-nav-link>
                 @endif
 
                 @if(auth()->user()->hasRole('Admin'))
-                    <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.*')">
-                        Noten
-                    </x-responsive-nav-link>
-
-                    <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
+                    <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*') || request()->routeIs('admin.lernende.noten.*')">
                         Lernende
                     </x-responsive-nav-link>
                 @endif

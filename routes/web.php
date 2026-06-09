@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
@@ -34,19 +35,19 @@ Route::get('/dashboard', function (Request $request) {
 })->middleware(['auth'])->name('dashboard');
 
 /**
- * Rollen-Dashboards (Landing-Pages)
+ * Rollen-Dashboards mit Datenbeschaffung via DashboardController
  */
-Route::get('/lernender', function () {
-    return view('dashboards.lernender');
-})->middleware(['auth', 'role:Lernender'])->name('lernender.dashboard');
+Route::get('/lernender', [DashboardController::class, 'lernender'])
+    ->middleware(['auth', 'role:Lernender'])
+    ->name('lernender.dashboard');
 
-Route::get('/berufsbildner', function () {
-    return view('dashboards.berufsbildner');
-})->middleware(['auth', 'role:Berufsbildner'])->name('berufsbildner.dashboard');
+Route::get('/berufsbildner', [DashboardController::class, 'berufsbildner'])
+    ->middleware(['auth', 'role:Berufsbildner'])
+    ->name('berufsbildner.dashboard');
 
-Route::get('/admin', function () {
-    return view('dashboards.admin');
-})->middleware(['auth', 'role:Admin'])->name('admin.dashboard');
+Route::get('/admin', [DashboardController::class, 'admin'])
+    ->middleware(['auth', 'role:Admin'])
+    ->name('admin.dashboard');
 
 /**
  * Lernender: eigene Noten CRUD (URL bleibt /noten, aber Route-Namen sind jetzt lernender.noten.*)

@@ -1,66 +1,46 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <h2 class="font-semibold text-xl text-gray-900 dark:text-gray-100">
-                Noten von
-                <span class="text-gray-700 dark:text-gray-200">
-                    {{ $selectedLernender->nachname ?? '' }} {{ $selectedLernender->vorname ?? '' }}
-                </span>
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text">
+                Noten:
+                <span class="text-muted">{{ $selectedLernender->nachname ?? '' }} {{ $selectedLernender->vorname ?? '' }}</span>
             </h2>
-
-            <div class="flex items-center gap-2">
-                <a href="{{ route('berufsbildner.lernende.index') }}"
-                   class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
-                    Lernenden wechseln
-                </a>
-            </div>
+            <a href="{{ route('berufsbildner.lernende.index') }}"
+               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap">
+                Lernenden wechseln
+            </a>
         </div>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Lernenden-Switcher direkt auf der Seite (ohne zurück zum Dashboard) --}}
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                    <div>
-                        <label class="text-sm font-medium">Lernender wechseln</label>
-                        <select
-                            class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
-                            onchange="if(this.value) window.location.href=this.value"
+            {{-- Lernenden-Switcher --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <label class="text-sm font-medium text-muted">Lernenden wechseln</label>
+                <select class="mt-1 w-full sm:w-80 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring"
+                        onchange="if(this.value) window.location.href=this.value">
+                    @foreach($lernende as $l)
+                        <option
+                            value="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
+                            @selected((int)$l->lernender_id === (int)$selectedLernenderId)
                         >
-                            @foreach($lernende as $l)
-                                <option
-                                    value="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
-                                    @selected((int)$l->lernender_id === (int)$selectedLernenderId)
-                                >
-                                    {{ $l->nachname }} {{ $l->vorname }} ({{ $l->email }})
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="mt-1 text-xs text-gray-600 dark:text-gray-300">
-                            Wechseln passiert sofort beim Auswählen.
-                        </div>
-                    </div>
-
-                    <div class="flex gap-2 md:justify-end">
-                        <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
-                           class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
-                            Filter reset
-                        </a>
-                    </div>
-                </div>
+                            {{ $l->nachname }} {{ $l->vorname }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            {{-- Filter (Kategorie/Semester) --}}
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-4 text-gray-900 dark:text-gray-100">
-                <form method="GET" action="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
-                      class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+            {{-- Filter --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                <form method="GET"
+                      action="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
+                      class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
 
                     <div>
-                        <label class="text-sm font-medium">Kategorie</label>
+                        <label class="text-sm font-medium text-muted">Kategorie</label>
                         <select name="kategorie_id"
-                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($kategorien as $k)
                                 <option value="{{ $k->kategorie_id }}" @selected(request('kategorie_id') == $k->kategorie_id)>
@@ -71,9 +51,9 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium">Semester</label>
+                        <label class="text-sm font-medium text-muted">Semester</label>
                         <select name="semester_id"
-                                class="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($semester as $s)
                                 <option value="{{ $s->semester_id }}" @selected(request('semester_id') == $s->semester_id)>
@@ -84,74 +64,66 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 rounded-md bg-gray-800 text-white hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600">
+                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
                             Filtern
                         </button>
-
                         <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
-                           class="px-4 py-2 rounded-md bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:hover:bg-gray-950">
+                           class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg">
                             Reset
                         </a>
                     </div>
                 </form>
             </div>
 
-            {{-- Tabelle (MVP: flach; später gruppieren/accordion nach Fach/Modul + Durchschnitt im Header) --}}
-            <div class="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
+            {{-- Noten-Tabelle --}}
+            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-gray-900 dark:text-gray-100">
-                        <thead class="bg-gray-50 dark:bg-gray-900/60 text-gray-700 dark:text-gray-200">
-                        <tr>
-                            <th class="text-left p-3 whitespace-nowrap">Datum</th>
-                            <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
-                            <th class="text-left p-3">Fach / Modul</th>
-                            <th class="text-left p-3">Titel</th>
-                            <th class="text-right p-3 whitespace-nowrap">Note</th>
-                            <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
-                        </tr>
-                        </thead>
-
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse($notes as $n)
-                            <tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/40">
-                                <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
-                                <td class="p-3 whitespace-nowrap">{{ $n->kategorie?->name ?? '-' }}</td>
-
-                                <td class="p-3">
-                                    @if($n->fach)
-                                        <div class="font-medium">{{ $n->fach->name }}</div>
-                                    @elseif($n->modulBelegung && $n->modulBelegung->modul)
-                                        <div class="font-medium">
-                                            {{ $n->modulBelegung->modul->modul_nummer }} – {{ $n->modulBelegung->modul->titel }}
-                                        </div>
-                                        @if($n->gruppe)
-                                            <div class="text-xs text-gray-600 dark:text-gray-300">
-                                                Gruppe: {{ $n->gruppe->bezeichnung }}
-                                            </div>
-                                        @endif
-                                    @else
-                                        -
-                                    @endif
-                                </td>
-
-                                <td class="p-3">{{ $n->titel ?? '-' }}</td>
-                                <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
-                                <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? '-' }}</td>
-                            </tr>
-                        @empty
+                    <table class="min-w-full text-sm text-text">
+                        <thead class="bg-bg text-muted">
                             <tr>
-                                <td class="p-4 text-gray-700 dark:text-gray-200" colspan="6">
-                                    Keine Noten gefunden.
-                                </td>
+                                <th class="text-left p-3 whitespace-nowrap">Datum</th>
+                                <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
+                                <th class="text-left p-3">Fach / Modul</th>
+                                <th class="text-left p-3">Titel</th>
+                                <th class="text-right p-3 whitespace-nowrap">Note</th>
+                                <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
                             </tr>
-                        @endforelse
+                        </thead>
+                        <tbody class="divide-y divide-border">
+                            @forelse($notes as $n)
+                                <tr class="hover:bg-bg">
+                                    <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
+                                    <td class="p-3 whitespace-nowrap">{{ $n->kategorie?->name ?? '-' }}</td>
+                                    <td class="p-3">
+                                        @if($n->fach)
+                                            {{ $n->fach->name }}
+                                        @elseif($n->modulBelegung?->modul)
+                                            {{ $n->modulBelegung->modul->modul_nummer }} – {{ $n->modulBelegung->modul->titel }}
+                                            @if($n->gruppe)
+                                                <div class="text-xs text-muted">Gruppe: {{ $n->gruppe->bezeichnung }}</div>
+                                            @endif
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td class="p-3">{{ $n->titel ?? '-' }}</td>
+                                    <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
+                                    <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="p-5 text-center text-muted">Keine Noten gefunden.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
 
-                <div class="p-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                    {{ $notes->links() }}
-                </div>
+                @if($notes->hasPages())
+                    <div class="p-3 border-t border-border">
+                        {{ $notes->links() }}
+                    </div>
+                @endif
             </div>
 
         </div>
