@@ -139,18 +139,6 @@
                 </div>
             @endif
 
-            {{-- Aktions-Karte --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <div class="flex-1">
-                    <div class="font-medium text-text">Noten verwalten</div>
-                    <div class="text-sm text-muted mt-0.5">Noten erfassen, bearbeiten und nach Semester filtern.</div>
-                </div>
-                <a href="{{ route('lernender.noten.index') }}"
-                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap shrink-0">
-                    Zu den Noten
-                </a>
-            </div>
-
         </div>
     </div>
 </x-app-layout>

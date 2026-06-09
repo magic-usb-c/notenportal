@@ -19,7 +19,6 @@
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">
                     <h3 class="font-semibold text-text">Meine Lernenden</h3>
-                    <p class="text-xs text-muted mt-0.5">Aktuell betreute Personen</p>
                 </div>
 
                 @forelse($lernende as $l)
