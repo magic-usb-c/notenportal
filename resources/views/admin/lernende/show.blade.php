@@ -48,6 +48,8 @@
                     <div class="pt-2 flex flex-wrap gap-2">
                         <a href="{{ route('admin.lernende.profil.edit', $lernender_id) }}"
                            class="px-3 py-1.5 rounded-xl border border-accent text-accent text-xs hover:bg-accent hover:text-white transition-colors">Profil bearbeiten</a>
+                        <a href="{{ route('admin.benutzer.edit', $profil->benutzer_id) }}"
+                           class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg">Benutzer bearbeiten</a>
                         <a href="{{ route('admin.lernende.betreuung', $lernender_id) }}"
                            class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg">Betreuungen</a>
                         <a href="{{ route('admin.lernende.tracks', $lernender_id) }}"

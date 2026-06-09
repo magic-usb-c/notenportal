@@ -51,6 +51,25 @@ class KommentarController extends Controller
             'erstellt_am'       => now(),
         ]);
 
-        return back()->with('status', 'Kommentar gespeichert.');
+        return back()
+            ->with('status', 'Kommentar gespeichert.')
+            ->with('opened_note', $note_id);
+    }
+
+    public function destroy(Request $request, int $kommentar_id)
+    {
+        $kommentar = DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->first();
+        abort_if(!$kommentar, 404);
+
+        $user = $request->user();
+
+        // Eigener Kommentar oder Admin darf löschen
+        $isOwn  = (int) $kommentar->autor_benutzer_id === (int) $user->benutzer_id;
+        $isAdmin = $user->hasRole('Admin');
+        abort_if(!$isOwn && !$isAdmin, 403);
+
+        DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->delete();
+
+        return back()->with('status', 'Kommentar gelöscht.');
     }
 }

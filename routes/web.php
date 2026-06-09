@@ -240,9 +240,12 @@ Route::middleware(['auth', 'role:Admin'])
 /**
  * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)
  */
-Route::middleware('auth')
-    ->post('/noten/{note_id}/kommentare', [KommentarController::class, 'store'])
-    ->name('noten.kommentare.store');
+Route::middleware('auth')->group(function () {
+    Route::post('/noten/{note_id}/kommentare', [KommentarController::class, 'store'])
+        ->name('noten.kommentare.store');
+    Route::delete('/kommentare/{kommentar_id}', [KommentarController::class, 'destroy'])
+        ->name('noten.kommentare.destroy');
+});
 
 /**
  * Profil (Breeze)

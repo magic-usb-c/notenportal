@@ -187,7 +187,8 @@
                     @endphp
 
                     <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden
-                                    {{ $isNeu ? 'ring-1 ring-accent/40' : '' }}">
+                                    {{ $isNeu ? 'ring-1 ring-accent/40' : '' }}"
+                             data-note-id="{{ $n->note_id }}">
 
                         <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-bg">
                             {{-- Linke Seite: Chevron + Infos --}}
@@ -305,11 +306,27 @@
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
 
                                 @forelse($n->kommentare as $k)
+                                    @php
+                                        $canDeleteKommentar = (int)$k->autor_benutzer_id === (int)auth()->user()->benutzer_id
+                                            || auth()->user()->hasRole('Admin');
+                                    @endphp
                                     <div class="bg-bg rounded-xl p-3 space-y-0.5">
-                                        <div class="text-xs text-muted">
-                                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
-                                            &middot;
-                                            {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="text-xs text-muted">
+                                                <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                                &middot;
+                                                {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                            </div>
+                                            @if($canDeleteKommentar)
+                                                <form method="POST"
+                                                      action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
+                                                      class="shrink-0"
+                                                      onsubmit="return confirm('Kommentar wirklich löschen?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                </form>
+                                            @endif
                                         </div>
                                         <div class="text-sm text-text whitespace-pre-line">{{ $k->kommentar_text }}</div>
                                     </div>
@@ -363,6 +380,15 @@
     </style>
 
     <script>
+        const openedNoteId = {{ session('opened_note') ? (int)session('opened_note') : 'null' }};
+
+        const openNoteAccordion = (noteId) => {
+            const noteEl = document.querySelector(`details.np-details[data-note-id="${noteId}"]`);
+            if (!noteEl) return;
+            if (!noteEl.open) noteEl.open = true;
+            setTimeout(() => noteEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('details.np-details').forEach((d) => {
                 const chevron = d.querySelector('.np-chevron');
@@ -373,6 +399,8 @@
                 sync();
                 d.addEventListener('toggle', sync);
             });
+
+            if (openedNoteId) openNoteAccordion(openedNoteId);
         });
     </script>
 

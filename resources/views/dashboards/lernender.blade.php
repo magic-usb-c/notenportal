@@ -55,6 +55,55 @@
                 </div>
             </div>
 
+            {{-- Lehrausbildung: Restlaufzeit --}}
+            @if($lehrProfil && $lehrProfil->lehrende)
+                @php
+                    $lehrEnde = \Carbon\Carbon::parse($lehrProfil->lehrende);
+                    $daysLeft = (int) now()->diffInDays($lehrEnde, false);
+                    $isExpired = $daysLeft < 0;
+                    $progressPct = null;
+                    if ($lehrProfil->lehrbeginn) {
+                        $start = \Carbon\Carbon::parse($lehrProfil->lehrbeginn);
+                        $total = $start->diffInDays($lehrEnde);
+                        $elapsed = $start->diffInDays(now());
+                        $progressPct = $total > 0 ? min(100, round($elapsed / $total * 100)) : null;
+                    }
+                @endphp
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <div class="text-xs text-muted">Lehrausbildung</div>
+                            <div class="text-sm font-medium text-text mt-0.5">{{ $lehrProfil->lehrberuf_name ?? '–' }}</div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            @if($isExpired)
+                                <div class="text-sm font-semibold text-muted">Abgeschlossen</div>
+                                <div class="text-xs text-muted">{{ $lehrEnde->format('d.m.Y') }}</div>
+                            @else
+                                <div class="text-sm font-semibold
+                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-text') }}">
+                                    noch {{ $daysLeft }} Tage
+                                </div>
+                                <div class="text-xs text-muted">Lehrende: {{ $lehrEnde->format('d.m.Y') }}</div>
+                            @endif
+                        </div>
+                    </div>
+                    @if($progressPct !== null && !$isExpired)
+                        <div class="mt-3">
+                            <div class="flex items-center justify-between text-xs text-muted mb-1">
+                                <span>{{ \Carbon\Carbon::parse($lehrProfil->lehrbeginn)->format('d.m.Y') }}</span>
+                                <span>{{ $progressPct }}% absolviert</span>
+                                <span>{{ $lehrEnde->format('d.m.Y') }}</span>
+                            </div>
+                            <div class="h-1.5 bg-bg rounded-full overflow-hidden border border-border">
+                                <div class="h-full bg-accent rounded-full transition-all"
+                                     style="width: {{ $progressPct }}%"></div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             {{-- Letzte 3 Noten --}}
             @if($letzteDreiNoten->isNotEmpty())
                 <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">

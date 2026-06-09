@@ -142,11 +142,27 @@
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
 
                                 @forelse($n->kommentare as $k)
+                                    @php
+                                        $canDeleteKommentar = (int)$k->autor_benutzer_id === $currentBenutzerId
+                                            || auth()->user()->hasRole('Admin');
+                                    @endphp
                                     <div class="bg-card rounded-xl p-3 space-y-0.5">
-                                        <div class="text-xs text-muted">
-                                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
-                                            &middot;
-                                            {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="text-xs text-muted">
+                                                <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                                &middot;
+                                                {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                            </div>
+                                            @if($canDeleteKommentar)
+                                                <form method="POST"
+                                                      action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
+                                                      class="shrink-0"
+                                                      onsubmit="return confirm('Kommentar wirklich löschen?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                </form>
+                                            @endif
                                         </div>
                                         <div class="text-sm text-text whitespace-pre-line">{{ $k->kommentar_text }}</div>
                                     </div>
@@ -290,11 +306,27 @@
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
 
                                 @forelse($n->kommentare as $k)
+                                    @php
+                                        $canDeleteKommentar = (int)$k->autor_benutzer_id === $currentBenutzerId
+                                            || auth()->user()->hasRole('Admin');
+                                    @endphp
                                     <div class="bg-card rounded-xl p-3 space-y-0.5">
-                                        <div class="text-xs text-muted">
-                                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
-                                            &middot;
-                                            {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                        <div class="flex items-start justify-between gap-2">
+                                            <div class="text-xs text-muted">
+                                                <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                                &middot;
+                                                {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                            </div>
+                                            @if($canDeleteKommentar)
+                                                <form method="POST"
+                                                      action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
+                                                      class="shrink-0"
+                                                      onsubmit="return confirm('Kommentar wirklich löschen?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                </form>
+                                            @endif
                                         </div>
                                         <div class="text-sm text-text whitespace-pre-line">{{ $k->kommentar_text }}</div>
                                     </div>
@@ -339,6 +371,8 @@
 <script>
 (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const openedNoteId = {{ session('opened_note') ? (int)session('opened_note') : 'null' }};
+
     const markGesehen = (noteId) => {
         fetch('/noten/' + noteId + '/gesehen', {
             method: 'POST',
@@ -347,6 +381,17 @@
                 'Accept': 'application/json',
             },
         }).catch(() => {});
+    };
+
+    const openNoteDetail = (noteDetail) => {
+        if (!noteDetail) return;
+        // Eltern-Accordion (Fach/Modul) öffnen
+        const parent = noteDetail.closest('details.np-details');
+        if (parent && !parent.open) parent.open = true;
+        // Note selbst öffnen
+        if (!noteDetail.open) noteDetail.open = true;
+        // Smooth scrollen
+        setTimeout(() => noteDetail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
     };
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -377,6 +422,12 @@
             sync();
             d.addEventListener('toggle', sync);
         });
+
+        // Kommentar-Accordion: nach Kommentar-Absenden automatisch öffnen
+        if (openedNoteId) {
+            const target = document.querySelector(`details.np-note-detail[data-note-id="${openedNoteId}"]`);
+            openNoteDetail(target);
+        }
     });
 }());
 </script>

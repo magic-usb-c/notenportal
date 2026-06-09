@@ -90,6 +90,13 @@ class DashboardController extends Controller
             ->distinct()
             ->count('n.note_id');
 
+        // Lehrausbildungs-Profil für Restlaufzeit-Anzeige
+        $lehrProfil = DB::table('lernende as l')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.lernender_id', $lernenderId)
+            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
+            ->first();
+
         return view('dashboards.lernender', compact(
             'lernender',
             'currentSemester',
@@ -98,6 +105,7 @@ class DashboardController extends Controller
             'globalAvg',
             'letzteDreiNoten',
             'ungeleseneKommentarNoten',
+            'lehrProfil',
         ));
     }
 
@@ -270,6 +278,20 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        // Lernende mit Lehrende in den nächsten 60 Tagen
+        $lehrEndeBald = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->whereNull('l.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->whereNotNull('l.lehrende')
+            ->where('l.lehrende', '>=', $today)
+            ->where('l.lehrende', '<=', now()->addDays(60)->toDateString())
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'l.lehrende', 'lb.name as lehrberuf'])
+            ->orderBy('l.lehrende')
+            ->get();
+
         return view('dashboards.admin', compact(
             'lernendCount',
             'berufsbildnerCount',
@@ -278,6 +300,7 @@ class DashboardController extends Controller
             'currentSemester',
             'letzteNoten',
             'lernendeOhneNoten',
+            'lehrEndeBald',
         ));
     }
 }

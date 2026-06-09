@@ -106,6 +106,44 @@
                 </div>
             </div>
 
+            {{-- Hinweis: Lehrende in den nächsten 60 Tagen --}}
+            @if($lehrEndeBald->isNotEmpty())
+                <div class="bg-card border border-blue-300 dark:border-blue-700 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+                        <h3 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">
+                            Lehrende in den nächsten 60 Tagen
+                        </h3>
+                    </div>
+                    <div class="divide-y divide-border">
+                        @foreach($lehrEndeBald as $l)
+                            @php
+                                $daysLeft = (int) \Carbon\Carbon::parse($l->lehrende)->diffInDays(now());
+                                $urgency  = $daysLeft <= 14
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : ($daysLeft <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted');
+                            @endphp
+                            <div class="px-5 py-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
+                                       class="text-sm text-text hover:text-accent font-medium">
+                                        {{ $l->nachname }} {{ $l->vorname }}
+                                    </a>
+                                    @if($l->lehrberuf)
+                                        <div class="text-xs text-muted">{{ $l->lehrberuf }}</div>
+                                    @endif
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <div class="text-sm font-medium {{ $urgency }}">
+                                        {{ \Carbon\Carbon::parse($l->lehrende)->format('d.m.Y') }}
+                                    </div>
+                                    <div class="text-xs {{ $urgency }}">in {{ $daysLeft }} Tagen</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             {{-- Warnung: Lernende ohne aktuellen Noteneintrag --}}
             @if($lernendeOhneNoten->isNotEmpty())
                 <div class="bg-card border border-yellow-300 dark:border-yellow-700 rounded-2xl shadow-sm overflow-hidden">
