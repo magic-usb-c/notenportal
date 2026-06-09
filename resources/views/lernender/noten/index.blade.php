@@ -168,18 +168,29 @@
 
                 {{-- Summary --}}
                 <div class="lg:col-span-4">
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full flex flex-col items-center justify-center text-center">
-                        <div class="text-3xl font-bold tabular-nums {{ $avgColor($avgWeighted) }}">
-                            {{ $avgWeighted ?? '–' }}
-                        </div>
-                        <div class="mt-1 text-xs text-muted">
-                            Ø gewichtet, {{ $count }} {{ $count === 1 ? 'Note' : 'Noten' }}
-                        </div>
-                        @if($avgUnweighted !== null)
-                            <div class="mt-2 text-[11px] text-muted">
-                                Ø ungewichtet: <span class="font-medium text-text tabular-nums">{{ $avgUnweighted }}</span>
+                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full grid grid-cols-2 gap-2 items-center text-center">
+                        <div class="flex flex-col items-center justify-center">
+                            <div class="text-3xl font-bold tabular-nums {{ $avgColor($avgWeighted) }}">
+                                {{ $avgWeighted ?? '–' }}
                             </div>
-                        @endif
+                            <div class="mt-1 text-[11px] uppercase tracking-wide text-muted">
+                                Ø Semester
+                            </div>
+                            <div class="text-[11px] text-muted">
+                                {{ $count }} {{ $count === 1 ? 'Note' : 'Noten' }}
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center border-l border-border">
+                            <div class="text-3xl font-bold tabular-nums {{ $avgColor($globalAvgWeighted ?? null) }}">
+                                {{ $globalAvgWeighted ?? '–' }}
+                            </div>
+                            <div class="mt-1 text-[11px] uppercase tracking-wide text-muted">
+                                Ø gesamt
+                            </div>
+                            <div class="text-[11px] text-muted">
+                                {{ $globalCount ?? 0 }} {{ ($globalCount ?? 0) === 1 ? 'Note' : 'Noten' }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -211,10 +222,10 @@
             {{-- Semester-Übersicht --}}
             @if($semesterStats->isNotEmpty())
                 <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
-                    <details>
+                    <details class="np-details-semester">
                         <summary class="cursor-pointer select-none list-none px-5 py-4 flex items-center justify-between hover:bg-bg/60">
                             <span class="font-semibold text-text text-sm">Alle Semester im Überblick</span>
-                            <svg class="w-4 h-4 text-muted transition-transform details-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <svg class="np-chevron-semester w-4 h-4 text-muted transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </summary>
@@ -266,4 +277,18 @@
 
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('details.np-details-semester').forEach((d) => {
+                const chevron = d.querySelector('.np-chevron-semester');
+                if (!chevron) return;
+                const sync = () => d.open
+                    ? chevron.classList.add('rotate-180')
+                    : chevron.classList.remove('rotate-180');
+                sync();
+                d.addEventListener('toggle', sync);
+            });
+        });
+    </script>
 </x-app-layout>

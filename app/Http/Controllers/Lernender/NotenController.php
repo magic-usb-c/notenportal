@@ -94,6 +94,18 @@ class NotenController extends Controller
             ->orderBy('s.sortierung')
             ->get();
 
+        // Gesamtdurchschnitt über alle Semester (gewichtet)
+        $globalAvgWeighted = DB::table('noten')
+            ->where('lernender_id', $lernenderId)
+            ->whereNull('geloescht_am')
+            ->selectRaw('ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0), 2) as avg')
+            ->value('avg');
+
+        $globalCount = DB::table('noten')
+            ->where('lernender_id', $lernenderId)
+            ->whereNull('geloescht_am')
+            ->count();
+
         // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
         return view('lernender.noten.index', [
             'notes'              => $notes,
@@ -107,6 +119,8 @@ class NotenController extends Controller
             'missingWeights'     => $missingWeights,
             'count'              => $count,
             'semesterStats'      => $semesterStats,
+            'globalAvgWeighted'  => $globalAvgWeighted,
+            'globalCount'        => $globalCount,
         ]);
     }
 

@@ -102,7 +102,10 @@
                                     @php
                                         $avg = $s->avg !== null ? (float)$s->avg : null;
                                         $nc = $avg !== null
-                                            ? ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'))
+                                            ? ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                                                : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
+                                                : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                                : 'text-red-600 dark:text-red-400')))
                                             : 'text-muted';
                                         $passed = (int) ($s->passed ?? 0);
                                         $quote = $s->count > 0 ? round($passed / $s->count * 100) : null;
@@ -149,9 +152,10 @@
                         </div>
                         @php
                             $nw = (float)$n->note_wert;
-                            $c = $nw >= 4.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                            $c = $nw >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                               : ($nw >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                                : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                               : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                               : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
                         @endphp
                         <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $c }}">
                             {{ number_format($nw, 1) }}

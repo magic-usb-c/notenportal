@@ -80,7 +80,10 @@
                                     $s = $stats[(int)$l->lernender_id] ?? null;
                                     $avg = $s?->avg_all ? (float)$s->avg_all : null;
                                     $nc = $avg !== null
-                                        ? ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'))
+                                        ? ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                                            : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
+                                            : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : 'text-red-600 dark:text-red-400')))
                                         : 'text-muted';
 
                                     // Warnungen berechnen
