@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KommentarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
@@ -63,6 +64,9 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/{note_id}/edit', [LernenderNotenController::class, 'edit'])->name('edit');
         Route::put('/{note_id}', [LernenderNotenController::class, 'update'])->name('update');
         Route::delete('/{note_id}', [LernenderNotenController::class, 'destroy'])->name('destroy');
+
+        // AJAX: Note als gelesen markieren (beim Öffnen des Detail-Accordions)
+        Route::post('/{note_id}/gesehen', [LernenderNotenController::class, 'markGesehen'])->name('gesehen.mark');
     });
 
 /**
@@ -76,6 +80,10 @@ Route::middleware(['auth', 'role:Berufsbildner'])
 
         Route::get('/lernende/{lernender_id}/noten', [BerufsbildnerNotenController::class, 'index'])
             ->name('lernende.noten.index');
+
+        // BB markiert eine Note als gesehen
+        Route::post('/lernende/{lernender_id}/noten/{note_id}/gesehen', [BerufsbildnerNotenController::class, 'markGesehen'])
+            ->name('noten.gesehen');
     });
 
 /**
@@ -90,6 +98,13 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
     });
+
+/**
+ * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)
+ */
+Route::middleware('auth')
+    ->post('/noten/{note_id}/kommentare', [KommentarController::class, 'store'])
+    ->name('noten.kommentare.store');
 
 /**
  * Profil (Breeze)

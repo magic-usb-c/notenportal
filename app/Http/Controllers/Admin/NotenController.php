@@ -44,9 +44,12 @@ class NotenController extends Controller
             abort(404);
         }
 
-        // 3) Noten laden
+        // 3) Noten laden (inkl. neuesten Kommentar für Übersicht)
         $q = Note::query()
-            ->with(['kategorie', 'semester', 'fach', 'modulBelegung.modul', 'gruppe'])
+            ->with([
+                'kategorie', 'semester', 'fach', 'modulBelegung.modul', 'gruppe',
+                'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'desc')->limit(1),
+            ])
             ->where('lernender_id', $lernender_id)
             ->orderByDesc('pruefungsdatum')
             ->orderByDesc('note_id');

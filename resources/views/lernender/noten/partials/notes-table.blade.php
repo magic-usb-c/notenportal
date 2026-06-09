@@ -2,11 +2,33 @@
 @props([
     'fachGroups',
     'modulGroups',
-    'weightedAvg',      // callable
+    'weightedAvg',       // callable($items): string|null
     'canManage' => false,
-    'editUrl' => null,  // callable(note_id): string
+    'editUrl'   => null,  // callable(note_id): string
     'destroyUrl' => null, // callable(note_id): string
 ])
+
+@php
+    $currentBenutzerId = (int) auth()->user()->benutzer_id;
+
+    /**
+     * Badge-Berechnung pro Note:
+     * - $bbHatGesehen:  mind. ein gesehen-Eintrag von jemand anderem als dem Lernenden
+     * - $neuerKommentar: Kommentar existiert, der nach dem letzten gesehen-Eintrag des Lernenden kam
+     */
+    $noteInfo = function(\App\Models\Note $n) use ($currentBenutzerId): array {
+        $lernenderGesehen = $n->gesehen
+            ->firstWhere('viewer_benutzer_id', $currentBenutzerId);
+        $bbHatGesehen = $n->gesehen
+            ->where('viewer_benutzer_id', '!=', $currentBenutzerId)
+            ->isNotEmpty();
+        $neuerKommentar = $lernenderGesehen
+            ? $n->kommentare->filter(fn($k) => $k->erstellt_am > $lernenderGesehen->gesehen_am)->isNotEmpty()
+            : $n->kommentare->isNotEmpty();
+        $newestKommentar = $n->kommentare->last();
+        return compact('bbHatGesehen', 'neuerKommentar', 'newestKommentar');
+    };
+@endphp
 
 {{-- Fächer --}}
 <div class="space-y-2">
@@ -26,13 +48,11 @@
                             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                         </svg>
                     </span>
-
                     <div class="min-w-0">
                         <div class="font-semibold text-text truncate">{{ $fachName }}</div>
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
                     <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl bg-bg text-text border border-border">
@@ -41,45 +61,122 @@
                 </div>
             </summary>
 
-            <div class="border-t border-border">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="bg-bg text-muted">
-                            <tr>
-                                <th class="text-left p-3 whitespace-nowrap">Datum</th>
-                                <th class="text-left p-3">Titel</th>
-                                <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
-                                <th class="text-right p-3 whitespace-nowrap">Note</th>
-                                @if($canManage)
-                                    <th class="text-right p-3 whitespace-nowrap">Aktionen</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border">
-                            @foreach($items as $n)
-                                <tr class="hover:bg-card/60">
-                                    <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
-                                    <td class="p-3">{{ $n->titel ?? '-' }}</td>
-                                    <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? 100 }}</td>
-                                    <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
+            <div class="border-t border-border divide-y divide-border">
+                @foreach($items as $n)
+                    @php
+                        ['bbHatGesehen' => $bbHatGesehen, 'neuerKommentar' => $neuerKommentar, 'newestKommentar' => $newestKommentar] = $noteInfo($n);
+                        $noteWert = (float) $n->note_wert;
+                        $noteColor = $noteWert >= 4.0
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                            : ($noteWert >= 3.5
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                    @endphp
 
-                                    @if($canManage)
-                                        <td class="p-3 text-right whitespace-nowrap">
-                                            <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                    <details class="np-note-detail group" data-note-id="{{ $n->note_id }}">
+                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
+                            {{-- Linke Seite --}}
+                            <div class="flex items-start gap-2 min-w-0">
+                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0 space-y-0.5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm text-muted">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
+                                        <span class="text-sm text-text font-medium">{{ $n->titel ?? '–' }}</span>
 
-                                            <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
-                                                  onsubmit="return confirm('Note wirklich löschen?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="text-red-500 hover:underline ms-3">Löschen</button>
-                                            </form>
-                                        </td>
+                                        {{-- BB-gesehen Icon --}}
+                                        @if($bbHatGesehen)
+                                            <span title="Berufsbildner hat diese Note gesehen" class="text-green-500">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                            </span>
+                                        @endif
+
+                                        {{-- "Neu" Badge: neuer Kommentar --}}
+                                        @if($neuerKommentar)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-accent text-white">
+                                                Neu
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Kommentar-Vorschau --}}
+                                    @if($newestKommentar)
+                                        <div class="text-xs text-muted italic truncate max-w-xs">
+                                            <span class="font-medium not-italic">{{ $newestKommentar->autor?->vorname }}</span>:
+                                            {{ Str::limit($newestKommentar->kommentar_text, 70) }}
+                                        </div>
                                     @endif
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                                </div>
+                            </div>
+
+                            {{-- Rechte Seite --}}
+                            <div class="shrink-0 flex items-center gap-3">
+                                <span class="text-xs text-muted">{{ $n->gewichtung_prozent ?? 100 }}%</span>
+                                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                    {{ number_format($noteWert, 1) }}
+                                </span>
+                                @if($canManage)
+                                    <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
+                                        <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                                        <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
+                                              onsubmit="return confirm('Note wirklich löschen?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-500 hover:underline">Löschen</button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+                        </summary>
+
+                        {{-- Ausgeklappter Bereich: Kommentar-Thread --}}
+                        <div class="border-t border-border bg-bg">
+                            {{-- Kommentare --}}
+                            <div class="px-5 py-4 space-y-2">
+                                <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
+
+                                @forelse($n->kommentare as $k)
+                                    <div class="bg-card rounded-xl p-3 space-y-0.5">
+                                        <div class="text-xs text-muted">
+                                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                            &middot;
+                                            {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                        </div>
+                                        <div class="text-sm text-text whitespace-pre-line">{{ $k->kommentar_text }}</div>
+                                    </div>
+                                @empty
+                                    <div class="text-sm text-muted">Noch keine Kommentare.</div>
+                                @endforelse
+                            </div>
+
+                            {{-- Neuer Kommentar (Lernender kann kommentieren) --}}
+                            <div class="border-t border-border px-5 py-4">
+                                <form method="POST"
+                                      action="{{ route('noten.kommentare.store', $n->note_id) }}">
+                                    @csrf
+                                    <div class="flex gap-2">
+                                        <input type="text"
+                                               name="kommentar_text"
+                                               placeholder="Kommentar schreiben…"
+                                               class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
+                                               maxlength="2000"
+                                               required>
+                                        <button type="submit"
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                            Senden
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </details>
+                @endforeach
             </div>
         </details>
     @empty
@@ -106,13 +203,11 @@
                             <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                         </svg>
                     </span>
-
                     <div class="min-w-0">
                         <div class="font-semibold text-text truncate">{{ $modulTitle }}</div>
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
-
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
                     <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl bg-bg text-text border border-border">
@@ -121,45 +216,114 @@
                 </div>
             </summary>
 
-            <div class="border-t border-border">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="bg-bg text-muted">
-                            <tr>
-                                <th class="text-left p-3 whitespace-nowrap">Datum</th>
-                                <th class="text-left p-3">Titel</th>
-                                <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
-                                <th class="text-right p-3 whitespace-nowrap">Note</th>
-                                @if($canManage)
-                                    <th class="text-right p-3 whitespace-nowrap">Aktionen</th>
-                                @endif
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border">
-                            @foreach($items as $n)
-                                <tr class="hover:bg-card/60">
-                                    <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
-                                    <td class="p-3">{{ $n->titel ?? '-' }}</td>
-                                    <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? 100 }}</td>
-                                    <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
+            <div class="border-t border-border divide-y divide-border">
+                @foreach($items as $n)
+                    @php
+                        ['bbHatGesehen' => $bbHatGesehen, 'neuerKommentar' => $neuerKommentar, 'newestKommentar' => $newestKommentar] = $noteInfo($n);
+                        $noteWert = (float) $n->note_wert;
+                        $noteColor = $noteWert >= 4.0
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                            : ($noteWert >= 3.5
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                    @endphp
 
-                                    @if($canManage)
-                                        <td class="p-3 text-right whitespace-nowrap">
-                                            <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                    <details class="np-note-detail" data-note-id="{{ $n->note_id }}">
+                        <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
+                            <div class="flex items-start gap-2 min-w-0">
+                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
+                                    </svg>
+                                </span>
+                                <div class="min-w-0 space-y-0.5">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="text-sm text-muted">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
+                                        <span class="text-sm text-text font-medium">{{ $n->titel ?? '–' }}</span>
 
-                                            <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
-                                                  onsubmit="return confirm('Note wirklich löschen?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="text-red-500 hover:underline ms-3">Löschen</button>
-                                            </form>
-                                        </td>
+                                        @if($bbHatGesehen)
+                                            <span title="Berufsbildner hat diese Note gesehen" class="text-green-500">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                            </span>
+                                        @endif
+
+                                        @if($neuerKommentar)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-accent text-white">
+                                                Neu
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if($newestKommentar)
+                                        <div class="text-xs text-muted italic truncate max-w-xs">
+                                            <span class="font-medium not-italic">{{ $newestKommentar->autor?->vorname }}</span>:
+                                            {{ Str::limit($newestKommentar->kommentar_text, 70) }}
+                                        </div>
                                     @endif
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                                </div>
+                            </div>
+
+                            <div class="shrink-0 flex items-center gap-3">
+                                <span class="text-xs text-muted">{{ $n->gewichtung_prozent ?? 100 }}%</span>
+                                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                    {{ number_format($noteWert, 1) }}
+                                </span>
+                                @if($canManage)
+                                    <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
+                                        <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                                        <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
+                                              onsubmit="return confirm('Note wirklich löschen?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-500 hover:underline">Löschen</button>
+                                        </form>
+                                    </div>
+                                @endif
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-border bg-bg">
+                            <div class="px-5 py-4 space-y-2">
+                                <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
+
+                                @forelse($n->kommentare as $k)
+                                    <div class="bg-card rounded-xl p-3 space-y-0.5">
+                                        <div class="text-xs text-muted">
+                                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                            &middot;
+                                            {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
+                                        </div>
+                                        <div class="text-sm text-text whitespace-pre-line">{{ $k->kommentar_text }}</div>
+                                    </div>
+                                @empty
+                                    <div class="text-sm text-muted">Noch keine Kommentare.</div>
+                                @endforelse
+                            </div>
+
+                            <div class="border-t border-border px-5 py-4">
+                                <form method="POST"
+                                      action="{{ route('noten.kommentare.store', $n->note_id) }}">
+                                    @csrf
+                                    <div class="flex gap-2">
+                                        <input type="text"
+                                               name="kommentar_text"
+                                               placeholder="Kommentar schreiben…"
+                                               class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
+                                               maxlength="2000"
+                                               required>
+                                        <button type="submit"
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                            Senden
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </details>
+                @endforeach
             </div>
         </details>
     @empty
@@ -167,25 +331,52 @@
     @endforelse
 </div>
 
-{{-- Details Marker ausblenden + Chevron zuverlässig drehen --}}
 <style>
     summary::-webkit-details-marker { display: none; }
     summary { list-style: none; }
 </style>
 
 <script>
+(function () {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const markGesehen = (noteId) => {
+        fetch('/noten/' + noteId + '/gesehen', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+            },
+        }).catch(() => {});
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
+        // Chevron-Animation für Fach/Modul-Gruppen
         document.querySelectorAll('details.np-details').forEach((d) => {
-            const chevron = d.querySelector('.np-chevron');
+            const chevron = d.querySelector(':scope > summary .np-chevron');
             if (!chevron) return;
+            const sync = () => d.open
+                ? chevron.classList.add('rotate-90')
+                : chevron.classList.remove('rotate-90');
+            sync();
+            d.addEventListener('toggle', sync);
+        });
+
+        // Chevron-Animation für einzelne Noten + "gesehen"-Markierung beim Öffnen
+        document.querySelectorAll('details.np-note-detail').forEach((d) => {
+            const chevron = d.querySelector('.np-chevron-note');
+            const noteId  = d.dataset.noteId;
 
             const sync = () => {
-                if (d.open) chevron.classList.add('rotate-90');
-                else chevron.classList.remove('rotate-90');
+                if (d.open) {
+                    chevron?.classList.add('rotate-90');
+                    if (noteId) markGesehen(noteId);
+                } else {
+                    chevron?.classList.remove('rotate-90');
+                }
             };
-
             sync();
             d.addEventListener('toggle', sync);
         });
     });
+}());
 </script>

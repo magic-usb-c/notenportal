@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Note extends Model
@@ -101,6 +102,17 @@ class Note extends Model
     public function gruppe(): BelongsTo
     {
         return $this->belongsTo(ModulNoteGruppe::class, 'gruppe_id', 'gruppe_id');
+    }
+
+    public function gesehen(): HasMany
+    {
+        return $this->hasMany(NotenGesehen::class, 'note_id', 'note_id');
+    }
+
+    public function kommentare(): HasMany
+    {
+        return $this->hasMany(NotenKommentar::class, 'note_id', 'note_id')
+            ->orderBy('erstellt_am', 'asc');
     }
 
     /**

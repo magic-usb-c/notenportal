@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Lernender;
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Services\Noten\NoteService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class NotenController extends Controller
 {
@@ -56,7 +58,13 @@ class NotenController extends Controller
         $this->noteService->applyIndexFilters($q, $kategorieId, null);
 
         // Für Accordions: alle Noten als Collection (keine Pagination)
-        $notes = (clone $q)->get();
+        // Kommentare + gesehen-Status für Badges werden mitgeladen
+        $notes = (clone $q)
+            ->with([
+                'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'asc'),
+                'gesehen',
+            ])
+            ->get();
 
         // Summary
         [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages(
@@ -200,6 +208,42 @@ class NotenController extends Controller
         ]);
 
         return redirect()->route('lernender.noten.index')->with('status', 'Note aktualisiert.');
+    }
+
+    /**
+     * AJAX-Endpunkt: Note als gelesen markieren (feuert beim Öffnen des Detail-Accordions).
+     * Gibt JSON zurück, damit kein Seiten-Reload nötig ist.
+     */
+    public function markGesehen(Request $request, int $note_id): JsonResponse
+    {
+        $user      = $request->user();
+        $lernender = $user?->lernender;
+
+        if (!$lernender) {
+            return response()->json(['ok' => false], 403);
+        }
+
+        // Sicherstellen, dass die Note dem angemeldeten Lernenden gehört
+        $exists = \App\Models\Note::query()
+            ->where('note_id', $note_id)
+            ->where('lernender_id', (int) $lernender->lernender_id)
+            ->exists();
+
+        if (!$exists) {
+            return response()->json(['ok' => false], 404);
+        }
+
+        DB::table('noten_gesehen')->upsert(
+            [[
+                'note_id'            => $note_id,
+                'viewer_benutzer_id' => (int) $user->benutzer_id,
+                'gesehen_am'         => now(),
+            ]],
+            ['note_id', 'viewer_benutzer_id'],
+            ['gesehen_am']
+        );
+
+        return response()->json(['ok' => true]);
     }
 
     public function destroy(Request $request, int $note_id)

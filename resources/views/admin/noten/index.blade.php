@@ -87,10 +87,12 @@
                                 <th class="text-left p-3">Titel</th>
                                 <th class="text-right p-3 whitespace-nowrap">Note</th>
                                 <th class="text-right p-3 whitespace-nowrap">Gew. %</th>
+                                <th class="text-left p-3">Letzter Kommentar</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
                             @forelse($notes as $n)
+                                @php $latestKommentar = $n->kommentare->first(); @endphp
                                 <tr class="hover:bg-bg">
                                     <td class="p-3 whitespace-nowrap">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</td>
                                     <td class="p-3 whitespace-nowrap">{{ $n->kategorie?->name ?? '-' }}</td>
@@ -109,10 +111,20 @@
                                     <td class="p-3">{{ $n->titel ?? '-' }}</td>
                                     <td class="p-3 text-right font-semibold whitespace-nowrap">{{ $n->note_wert }}</td>
                                     <td class="p-3 text-right whitespace-nowrap">{{ $n->gewichtung_prozent ?? '-' }}</td>
+                                    <td class="p-3 max-w-xs">
+                                        @if($latestKommentar)
+                                            <div class="text-xs text-muted">
+                                                {{ $latestKommentar->autor?->vorname }} · {{ $latestKommentar->erstellt_am->format('d.m.Y') }}
+                                            </div>
+                                            <div class="text-sm text-text truncate">{{ Str::limit($latestKommentar->kommentar_text, 60) }}</div>
+                                        @else
+                                            <span class="text-muted text-xs">–</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="p-5 text-center text-muted">Keine Noten gefunden.</td>
+                                    <td colspan="7" class="p-5 text-center text-muted">Keine Noten gefunden.</td>
                                 </tr>
                             @endforelse
                         </tbody>
