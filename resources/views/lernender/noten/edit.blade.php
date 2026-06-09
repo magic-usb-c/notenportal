@@ -32,7 +32,8 @@
                     $currentModulId = $note->modulBelegung?->modul_id;
                 @endphp
 
-                <form method="POST" action="{{ route('lernender.noten.update', $note->note_id) }}" class="space-y-5">
+                <form method="POST" action="{{ route('lernender.noten.update', $note->note_id) }}" class="space-y-5"
+                      x-data="{ loading: false }" @submit="loading = true">
                     @csrf
                     @method('PUT')
 
@@ -149,10 +150,15 @@
 
                     {{-- Submit --}}
                     <div class="pt-2 space-y-2">
-                        <button type="submit"
+                        <button type="submit" :disabled="loading"
                                 class="w-full h-12 rounded-xl bg-accent text-white text-base font-semibold hover:opacity-90
-                                       focus:outline-none focus:ring-2 focus:ring-accent/50">
-                            Speichern
+                                       disabled:opacity-60 disabled:cursor-not-allowed
+                                       focus:outline-none focus:ring-2 focus:ring-accent/50 inline-flex items-center justify-center gap-2">
+                            <svg x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span x-text="loading ? 'Wird gespeichert…' : 'Speichern'"></span>
                         </button>
                         <a href="{{ route('lernender.noten.index') }}"
                            class="block w-full text-center px-4 py-2 rounded-xl text-muted hover:text-text text-sm">
