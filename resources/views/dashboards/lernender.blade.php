@@ -151,6 +151,29 @@
                 </div>
             @endif
 
+            {{-- Quick-Actions --}}
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('lernender.noten.create') }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm hover:opacity-90 inline-flex items-center gap-2">
+                    <span class="text-lg leading-none">+</span>
+                    Neue Note erfassen
+                </a>
+                <a href="{{ route('lernender.noten.rechner') }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/>
+                    </svg>
+                    Noten-Rechner
+                </a>
+                <a href="{{ route('lernender.noten.export') }}"
+                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    CSV exportieren
+                </a>
+            </div>
+
         </div>
     </div>
 </x-app-layout>
