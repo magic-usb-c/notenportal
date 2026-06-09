@@ -1,59 +1,226 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Notenportal
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Webbasiertes Noten-Verwaltungssystem für Lernende in der Berufslehre (Schweiz).
+Entwickelt mit Laravel 11, MariaDB, Tailwind CSS.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Überblick
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Das Notenportal unterstützt drei Rollen:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Rolle | Funktion |
+|---|---|
+| **Lernender** | Eigene Noten erfassen, bearbeiten, löschen; Kommentare schreiben; Durchschnitte je Fach/Modul einsehen |
+| **Berufsbildner** | Noten der betreuten Lernenden einsehen; Noten als „gesehen" markieren; Kommentare schreiben |
+| **Admin** | Alle Noten aller Lernenden einsehen; Benutzer verwalten; Betreuungen zuweisen; BMS/ABU-Tracks setzen |
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Technischer Stack
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- **Backend**: Laravel 11, PHP 8.2+
+- **Datenbank**: MariaDB (keine MySQL-Annahmen; CHECK-Constraints via `DB::statement`)
+- **Frontend**: Tailwind CSS mit CSS-Custom-Properties-Theming (`--bg`, `--card`, `--text`, `--accent`, …)
+- **Auth**: Breeze (Form-basiert), angepasste Spalten (`passwort_hash`, `benutzer_id`, …)
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Installation
 
-### Premium Partners
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Datenbank einrichten (als DB-Admin):
+```sql
+-- .env auf np_web konfigurieren, dann:
+source database/setup_migrations_table.sql
+```
 
-## Contributing
+Danach Migrations als bereits ausgeführt markieren (Tabellen existieren bereits):
+```bash
+php artisan migrate:status   # sollte alle grün zeigen
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Erster Admin-Benutzer
 
-## Code of Conduct
+Den ersten Admin-Benutzer direkt in der DB anlegen:
+```sql
+INSERT INTO benutzer (benutzername, email, vorname, nachname, passwort_hash, aktiv, erstellt_am, aktualisiert_am)
+VALUES ('admin', 'admin@example.com', 'Admin', 'User', '<bcrypt-hash>', 1, NOW(), NOW());
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+INSERT INTO benutzer_rollen (benutzer_id, rolle_id)
+SELECT b.benutzer_id, r.rolle_id
+FROM benutzer b, rollen r
+WHERE b.benutzername = 'admin' AND r.name = 'Admin';
+```
 
-## Security Vulnerabilities
+Danach können weitere Benutzer über `/admin/benutzer/create` angelegt werden.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## Datenbankschema (Übersicht)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### Benutzerverwaltung
+
+```
+benutzer          – Alle Nutzer (Lernende, BB, Admin)
+benutzer_rollen   – n:m Verknüpfung (ein Nutzer kann mehrere Rollen haben)
+rollen            – Admin | Berufsbildner | Lernender
+lernende          – Lernender-Profil (lehrberuf_id, lehrbeginn)
+berufsbildner     – Berufsbildner-Profil (benutzer_id)
+betreuungen       – Welcher BB betreut welchen Lernenden (gueltig_von/bis)
+lernender_tracks  – BMS/ABU-Track-Zuweisung pro Lernender
+```
+
+### Noten
+
+```
+noten               – Haupttabelle (note_wert, gewichtung_prozent, pruefungsdatum, …)
+kategorien          – Prüfungstyp (z.B. Semesterprüfung, Erfahrungsnote)
+faecher             – Schulfächer (abhängig von Track / Lehrberuf)
+module              – ÜK-Module (mit modul_nummer, titel)
+lehrberuf_module    – Welche Module gehören zu welchem Lehrberuf
+modul_belegungen    – Belegung eines Moduls durch einen Lernenden
+modul_note_gruppen  – Optionale Gruppierung innerhalb eines Moduls
+semester            – Semesterliste (start_datum, end_datum, sortierung)
+```
+
+### Kommunikation
+
+```
+noten_gesehen     – Wer hat eine Note wann gesehen (viewer_benutzer_id, gesehen_am)
+                    UNIQUE(note_id, viewer_benutzer_id); gesehen_am wird bei
+                    erneuter Markierung aktualisiert (Upsert)
+noten_kommentare  – Kommentare zu Noten (autor_benutzer_id, kommentar_text, erstellt_am)
+                    Immutable – keine Bearbeitungsmöglichkeit
+```
+
+---
+
+## Benutzerdefiniertes Auth-Setup
+
+Das Standard-Laravel-Auth wurde für das Schweizer Namensschema angepasst:
+
+| Standard Laravel | Notenportal |
+|---|---|
+| `users` | `benutzer` |
+| `id` | `benutzer_id` |
+| `created_at` | `erstellt_am` |
+| `updated_at` | `aktualisiert_am` |
+| `deleted_at` | `geloescht_am` |
+| `password` | `passwort_hash` |
+
+Das `User`-Modell überschreibt `getAuthPassword()` und `getAuthPasswordName()` entsprechend.
+
+---
+
+## Routen-Übersicht
+
+| Methode | URL | Beschreibung |
+|---|---|---|
+| GET | `/noten` | Lernender: eigene Noten (Accordion, je Fach/Modul) |
+| GET | `/noten/create` | Lernender: neue Note erfassen |
+| POST | `/noten/{id}/kommentare` | Lernender + BB: Kommentar schreiben |
+| POST | `/noten/{id}/gesehen` | Lernender: Note als gelesen markieren (AJAX/JSON) |
+| GET | `/berufsbildner/lernende/{id}/noten` | BB: Noten eines betreuten Lernenden |
+| POST | `/berufsbildner/lernende/{lid}/noten/{nid}/gesehen` | BB: Note als gesehen markieren |
+| GET | `/admin/benutzer` | Admin: Benutzerliste |
+| GET | `/admin/benutzer/create` | Admin: Neuen Benutzer anlegen |
+| GET | `/admin/lernende/{id}/betreuung` | Admin: Betreuungen verwalten |
+| GET | `/admin/lernende/{id}/tracks` | Admin: BMS/ABU-Tracks verwalten |
+
+---
+
+## Bekannte Einschränkungen / Offene Punkte
+
+- **Passwort-Reset durch Admin**: Noch nicht implementiert. Passwörter müssen derzeit direkt in der DB zurückgesetzt werden (`bcrypt`-Hash).
+- **Kein E-Mail-Versand**: Badges sind UI-only; keine Benachrichtigung bei neuen Kommentaren oder Gesehen-Markierungen.
+- **Keine Bulk-Aktionen im Admin**: Benutzer müssen einzeln angelegt werden.
+
+---
+
+## Geplante Erweiterung: Bewertungsregeln (`bewertungsregeln`)
+
+Die Tabelle `bewertungsregeln` ist im Datenbankschema vorhanden, wird aber von der Applikation noch **nicht ausgewertet**.
+
+### Schema
+
+```sql
+CREATE TABLE bewertungsregeln (
+    regel_id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    scope_typ        ENUM('GLOBAL','KATEGORIE','FACH','MODUL') NOT NULL,
+    kategorie_id     INT UNSIGNED NULL,   -- nur wenn scope_typ = 'KATEGORIE'
+    fach_id          INT UNSIGNED NULL,   -- nur wenn scope_typ = 'FACH'
+    modul_id         INT UNSIGNED NULL,   -- nur wenn scope_typ = 'MODUL'
+    grenzwert_note   DECIMAL(3,1) NOT NULL,  -- z.B. 4.0 = bestanden
+    gueltig_ab       DATE NOT NULL,
+    gueltig_bis      DATE NULL,
+    erstellt_am      DATETIME NOT NULL,
+    aktualisiert_am  DATETIME NOT NULL
+);
+```
+
+### Geplante Semantik
+
+Bewertungsregeln legen fest, ab welcher Note ein Prüfungsergebnis als „bestanden" gilt – auf verschiedenen Granularitätsstufen:
+
+| `scope_typ` | Bedeutung |
+|---|---|
+| `GLOBAL` | Gilt für alle Noten (Default: 4.0 in CH) |
+| `KATEGORIE` | Überschreibt für eine bestimmte Prüfungskategorie |
+| `FACH` | Überschreibt für ein bestimmtes Schulfach |
+| `MODUL` | Überschreibt für ein bestimmtes ÜK-Modul |
+
+**Auflösungsreihenfolge** (spezifischste Regel gewinnt):
+`MODUL` > `FACH` > `KATEGORIE` > `GLOBAL`
+
+### Geplante UX-Integration
+
+- Noten unterhalb des Grenzwerts werden rot hervorgehoben (aktuell fest auf 4.0/3.5 kodiert – durch DB-Abfrage ersetzen)
+- Durchschnittswerte zeigen visuell an, ob der Lernende im grünen Bereich liegt
+- Admin-Seite `/admin/bewertungsregeln` zur Verwaltung der Regeln
+
+### Implementierungshinweise
+
+1. `BewertungsregelService::geltenderGrenzwert(note_id)` – löst die Regel für eine konkrete Note auf (berücksichtigt `gueltig_ab`/`gueltig_bis` und `scope_typ`-Priorität)
+2. `Note::scopeUnterGrenzwert()` – Eloquent-Scope für gefährdete Noten
+3. Bestehende `NoteService::calcAverages()` kann erweitert werden, um einen „bestanden/nicht bestanden"-Status zurückzugeben
+4. Views: Die Farbkodierung (`bg-green-100`, `bg-yellow-100`, `bg-red-100`) ist bereits in allen Notenansichten vorbereitet – die Schwellwerte müssen nur aus der DB kommen statt hardcodiert zu sein
+
+---
+
+## Entwicklungsnotizen
+
+### Theming
+
+CSS-Custom-Properties-basiertes Theming über Tailwind-Tokens:
+
+```
+--bg       Hintergrundfarbe (body)
+--card     Kartenhintergrund
+--text     Primärtext
+--muted    Sekundärtext / Placeholder
+--border   Rahmenfarbe
+--input    Eingabefeldhintergrund
+--accent   Primärfarbe (Buttons, Links, Badges)
+--ring     Focus-Ring-Farbe
+```
+
+Alle Komponenten verwenden ausschliesslich diese Tokens – kein hartes `bg-white dark:bg-gray-800`.
+
+### Migrations
+
+Die Migrations wurden nachträglich erstellt (Tabellen existierten bereits). Sie sind in der `migrations`-Tabelle als ausgeführt markiert. `php artisan migrate:fresh` ist auf produktiven Instanzen **nicht** zu verwenden – die Migrations dienen als Dokumentation und für neue Dev-Umgebungen.
+
+### Noten-Gesehen-Logik
+
+Der „Neu"-Badge für den Berufsbildner erscheint wenn:
+- Noch kein `noten_gesehen`-Eintrag für diese Note existiert, **oder**
+- `note.erstellt_am > gesehen_am` (Note neuer als letzte Markierung), **oder**
+- Ein Kommentar mit `erstellt_am > gesehen_am` existiert (neue Kommentare nach Markierung)
+
+Beim Klick auf „Als gesehen markieren" wird `gesehen_am` via Upsert aktualisiert, sodass neu hinzugekommene Kommentare erneut den Badge auslösen können.
