@@ -137,7 +137,8 @@
                                             ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
                                             : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
                             @endphp
-                            <div class="px-5 py-3 flex items-center justify-between gap-4">
+                            <a href="{{ route('lernender.noten.index') }}?_open={{ $n->note_id }}"
+                               class="block px-5 py-3 flex items-center justify-between gap-4 hover:bg-accent/5 transition-colors duration-100">
                                 <div>
                                     <div class="text-sm font-medium text-text">{{ $label }}</div>
                                     <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
@@ -145,7 +146,7 @@
                                 <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
-                            </div>
+                            </a>
                         @endforeach
                     </div>
                 </div>
