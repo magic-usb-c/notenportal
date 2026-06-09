@@ -11,7 +11,7 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="bg-bg text-muted">
                             <tr>
-                                <th class="text-left p-3">Name / E-Mail</th>
+                                <th class="text-left p-3">Name / Hinweise</th>
                                 <th class="text-left p-3 whitespace-nowrap">Berufsbildner</th>
                                 <th class="text-center p-3 whitespace-nowrap">Noten</th>
                                 <th class="text-center p-3 whitespace-nowrap">Letzte Note</th>
@@ -27,26 +27,46 @@
                                     $nc = $avg !== null
                                         ? ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'))
                                         : 'text-muted';
+
+                                    // Warnungen berechnen
+                                    $lastNote   = $s?->last_note ? \Carbon\Carbon::parse($s->last_note) : null;
+                                    $daysSince  = $lastNote ? (int) $lastNote->diffInDays(now()) : null;
+                                    $warnGelb   = $daysSince === null || $daysSince > 30;
+                                    $warnRot    = $avg !== null && $avg < 4.0;
                                 @endphp
                                 <tr class="hover:bg-bg">
                                     <td class="p-3">
-                                        <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
-                                           class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
-                                        <div class="text-xs text-muted">{{ $l->email }}</div>
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
+                                               class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
+
+                                            @if($warnGelb)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap" title="Kein aktueller Noteneintrag">
+                                                    {{ $daysSince === null ? 'Keine Noten' : $daysSince . 'd kein Eintrag' }}
+                                                </span>
+                                            @endif
+
+                                            @if($warnRot)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 whitespace-nowrap" title="Durchschnitt unter 4.0">
+                                                    Ø {{ number_format($avg, 1) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="text-xs text-muted mt-0.5">{{ $l->email }}</div>
                                     </td>
-                                    <td class="p-3 text-muted">
+                                    <td class="p-3 text-muted text-sm">
                                         @if($s?->betreuer)
                                             {{ $s->betreuer->nachname }} {{ $s->betreuer->vorname }}
                                         @else
-                                            <span class="italic">–</span>
+                                            <span class="italic text-muted">–</span>
                                         @endif
                                     </td>
                                     <td class="p-3 text-center">
                                         {{ $s?->noten_count ?? 0 }}
                                     </td>
                                     <td class="p-3 text-center text-muted whitespace-nowrap">
-                                        @if($s?->last_note)
-                                            {{ \Carbon\Carbon::parse($s->last_note)->format('d.m.Y') }}
+                                        @if($lastNote)
+                                            {{ $lastNote->format('d.m.Y') }}
                                         @else
                                             –
                                         @endif
