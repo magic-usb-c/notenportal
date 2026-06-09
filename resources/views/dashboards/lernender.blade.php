@@ -7,45 +7,96 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
             {{-- Begrüssung --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
-                <p class="text-text font-medium text-lg">
-                    Willkommen, {{ auth()->user()->vorname }}
-                    {{ auth()->user()->nachname }}
-                </p>
-                <p class="text-muted text-sm mt-1">
-                    {{ auth()->user()->email }}
-                </p>
+            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4">
+                <div>
+                    <p class="text-text font-medium text-lg">
+                        Willkommen, {{ auth()->user()->vorname }}
+                        {{ auth()->user()->nachname }}
+                    </p>
+                    <p class="text-muted text-sm mt-0.5">{{ auth()->user()->email }}</p>
+                </div>
+                @if($ungeleseneKommentarNoten > 0)
+                    <a href="{{ route('lernender.noten.index') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-xl bg-accent/10 text-accent border border-accent/20 text-sm hover:bg-accent/20">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent text-white text-xs font-bold">
+                            {{ $ungeleseneKommentarNoten }}
+                        </span>
+                        neue Kommentare
+                    </a>
+                @endif
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
-                    <div class="text-xs uppercase tracking-wider text-muted">Noten gesamt</div>
-                    <div class="mt-2 text-3xl font-bold text-text">{{ $noteCount }}</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="text-xs text-muted">Noten gesamt</div>
+                    <div class="mt-1 text-2xl font-bold text-text">{{ $noteCount }}</div>
                 </div>
 
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
-                    <div class="text-xs uppercase tracking-wider text-muted">Aktuelles Semester</div>
-                    <div class="mt-2 text-lg font-semibold text-text">
-                        {{ $currentSemester?->bezeichnung ?? '–' }}
-                    </div>
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="text-xs text-muted">Ø gesamt</div>
+                    <div class="mt-1 text-2xl font-bold text-text">{{ $globalAvg ?? '–' }}</div>
                 </div>
 
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
-                    <div class="text-xs uppercase tracking-wider text-muted">Ø akt. Semester</div>
-                    <div class="mt-2 text-3xl font-bold text-text">
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="text-xs text-muted">Aktuelles Semester</div>
+                    <div class="mt-1 text-sm font-semibold text-text">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
+                </div>
+
+                <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="text-xs text-muted">Ø akt. Semester</div>
+                    <div class="mt-1 text-2xl font-bold text-text
+                        @if($currentAvg !== null && $currentAvg >= 4.0) text-green-600 dark:text-green-400
+                        @elseif($currentAvg !== null && $currentAvg >= 3.5) text-yellow-600 dark:text-yellow-400
+                        @elseif($currentAvg !== null) text-red-600 dark:text-red-400
+                        @endif">
                         {{ $currentAvg ?? '–' }}
                     </div>
                 </div>
             </div>
 
+            {{-- Letzte 3 Noten --}}
+            @if($letzteDreiNoten->isNotEmpty())
+                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+                        <h3 class="font-semibold text-text">Letzte Noten</h3>
+                        <a href="{{ route('lernender.noten.index') }}" class="text-xs text-accent hover:underline">
+                            Alle anzeigen
+                        </a>
+                    </div>
+                    <div class="divide-y divide-border">
+                        @foreach($letzteDreiNoten as $n)
+                            @php
+                                $label = $n->fach_name
+                                    ?? ($n->modul_nummer ? ($n->modul_nummer . ' ' . $n->modul_titel) : null)
+                                    ?? $n->titel
+                                    ?? '–';
+                                $noteWert = (float) $n->note_wert;
+                                $noteColor = $noteWert >= 4.0
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                                    : ($noteWert >= 3.5
+                                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                            @endphp
+                            <div class="px-5 py-3 flex items-center justify-between gap-4">
+                                <div>
+                                    <div class="text-sm font-medium text-text">{{ $label }}</div>
+                                    <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
+                                </div>
+                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                    {{ number_format($noteWert, 1) }}
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             {{-- Aktions-Karte --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div class="flex-1">
                     <div class="font-medium text-text">Noten verwalten</div>
-                    <div class="text-sm text-muted mt-0.5">
-                        Noten erfassen, bearbeiten und nach Semester filtern.
-                    </div>
+                    <div class="text-sm text-muted mt-0.5">Noten erfassen, bearbeiten und nach Semester filtern.</div>
                 </div>
                 <a href="{{ route('lernender.noten.index') }}"
                    class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap shrink-0">

@@ -7,11 +7,12 @@ namespace App\Http\Controllers;
 use App\Models\Note;
 use App\Models\Semester;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    /** Lernender-Dashboard: Kurzstatistik + Einstieg in Noten */
+    /** Lernender-Dashboard */
     public function lernender(Request $request)
     {
         $lernender = $request->user()?->lernender;
@@ -20,49 +21,87 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $lernenderId = (int) $lernender->lernender_id;
-        $today = now()->toDateString();
+        $lernenderId  = (int) $lernender->lernender_id;
+        $benutzerId   = (int) $request->user()->benutzer_id;
+        $today        = now()->toDateString();
 
-        // Aktuelles Semester (null wenn keines aktiv ist)
+        // Aktuelles Semester
         $currentSemester = Semester::query()
             ->where('start_datum', '<=', $today)
             ->where('end_datum', '>=', $today)
             ->first();
 
-        // Gesamtzahl Noten (nicht gelöscht)
+        // Gesamtzahl Noten
         $noteCount = Note::query()
             ->where('lernender_id', $lernenderId)
             ->count();
 
-        // Durchschnitt im aktuellen Semester (gewichtet; null/leer → 100%)
+        // Durchschnitt aktuelles Semester (gewichtet)
         $currentAvg = null;
         if ($currentSemester) {
-            $noten = Note::query()
+            $row = DB::table('noten')
                 ->where('lernender_id', $lernenderId)
                 ->where('semester_id', $currentSemester->semester_id)
-                ->get(['note_wert', 'gewichtung_prozent']);
-
-            if ($noten->isNotEmpty()) {
-                $wSum = 0.0;
-                $sum  = 0.0;
-                foreach ($noten as $n) {
-                    $w = ($n->gewichtung_prozent === null) ? 100.0 : (float) $n->gewichtung_prozent;
-                    $wSum += $w;
-                    $sum  += (float) $n->note_wert * $w;
-                }
-                $currentAvg = $wSum > 0 ? round($sum / $wSum, 2) : null;
-            }
+                ->whereNull('geloescht_am')
+                ->selectRaw('SUM(note_wert * COALESCE(gewichtung_prozent, 100)) / NULLIF(SUM(COALESCE(gewichtung_prozent, 100)), 0) as avg')
+                ->first();
+            $currentAvg = $row?->avg !== null ? round((float) $row->avg, 2) : null;
         }
+
+        // Gesamtdurchschnitt über alle Semester (gewichtet)
+        $globalRow = DB::table('noten')
+            ->where('lernender_id', $lernenderId)
+            ->whereNull('geloescht_am')
+            ->selectRaw('SUM(note_wert * COALESCE(gewichtung_prozent, 100)) / NULLIF(SUM(COALESCE(gewichtung_prozent, 100)), 0) as avg')
+            ->first();
+        $globalAvg = $globalRow?->avg !== null ? round((float) $globalRow->avg, 2) : null;
+
+        // Letzte 3 Noten (Preview)
+        $letzteDreiNoten = DB::table('noten as n')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->orderByDesc('n.pruefungsdatum')
+            ->orderByDesc('n.note_id')
+            ->limit(3)
+            ->select([
+                'n.note_id', 'n.pruefungsdatum', 'n.titel', 'n.note_wert',
+                'f.name as fach_name',
+                'm.modul_nummer', 'm.titel as modul_titel',
+            ])
+            ->get();
+
+        // Badge: Anzahl Noten mit ungelesenen BB-Kommentaren
+        $ungeleseneKommentarNoten = DB::table('noten as n')
+            ->join('noten_kommentare as nk', 'nk.note_id', '=', 'n.note_id')
+            ->leftJoin('noten_gesehen as ng', function ($j) use ($benutzerId) {
+                $j->on('ng.note_id', '=', 'n.note_id')
+                  ->where('ng.viewer_benutzer_id', '=', $benutzerId);
+            })
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->where('nk.autor_benutzer_id', '!=', $benutzerId)
+            ->where(function ($q) {
+                $q->whereNull('ng.gesehen_am')
+                  ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
+            })
+            ->distinct()
+            ->count('n.note_id');
 
         return view('dashboards.lernender', compact(
             'lernender',
             'currentSemester',
             'noteCount',
             'currentAvg',
+            'globalAvg',
+            'letzteDreiNoten',
+            'ungeleseneKommentarNoten',
         ));
     }
 
-    /** Berufsbildner-Dashboard: aktuell betreute Lernende auf einen Blick */
+    /** Berufsbildner-Dashboard */
     public function berufsbildner(Request $request)
     {
         $bb = $request->user()?->berufsbildner;
@@ -71,16 +110,16 @@ class DashboardController extends Controller
             abort(403);
         }
 
-        $today = now()->toDateString();
+        $today   = now()->toDateString();
+        $bbId    = (int) $bb->berufsbildner_id;
 
+        // Betreute Lernende
         $lernende = DB::table('betreuungen as bt')
             ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
-            ->where('bt.berufsbildner_id', $bb->berufsbildner_id)
+            ->where('bt.berufsbildner_id', $bbId)
             ->where('bt.gueltig_von', '<=', $today)
-            ->where(function ($q) use ($today) {
-                $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today);
-            })
+            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
@@ -89,10 +128,69 @@ class DashboardController extends Controller
             ->orderBy('b.vorname')
             ->get();
 
-        return view('dashboards.berufsbildner', compact('lernende'));
+        if ($lernende->isEmpty()) {
+            return view('dashboards.berufsbildner', [
+                'lernende' => collect(),
+                'stats'    => collect(),
+            ]);
+        }
+
+        $lernenderIds = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
+
+        // Letztes Eintrags-Datum je Lernender
+        $lastEntries = DB::table('noten')
+            ->whereIn('lernender_id', $lernenderIds)
+            ->whereNull('geloescht_am')
+            ->groupBy('lernender_id')
+            ->select(['lernender_id', DB::raw('MAX(pruefungsdatum) as last_entry')])
+            ->get()
+            ->keyBy('lernender_id');
+
+        // Aktueller Semester-Durchschnitt je Lernender (gewichtet)
+        $currentSemAvg = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->whereIn('n.lernender_id', $lernenderIds)
+            ->whereNull('n.geloescht_am')
+            ->where('s.start_datum', '<=', $today)
+            ->where('s.end_datum', '>=', $today)
+            ->groupBy('n.lernender_id')
+            ->select([
+                'n.lernender_id',
+                DB::raw('SUM(n.note_wert * COALESCE(n.gewichtung_prozent, 100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent, 100)), 0) as avg'),
+                DB::raw('COUNT(*) as count'),
+            ])
+            ->get()
+            ->keyBy('lernender_id');
+
+        // Stats pro Lernender berechnen
+        $stats = $lernende->map(function ($l) use ($lastEntries, $currentSemAvg, $today) {
+            $lid        = (int) $l->lernender_id;
+            $lastRow    = $lastEntries->get($lid);
+            $avgRow     = $currentSemAvg->get($lid);
+
+            $lastEntry  = $lastRow ? Carbon::parse($lastRow->last_entry) : null;
+            $daysSince  = $lastEntry ? (int) $lastEntry->diffInDays(now()) : null;
+            $semAvg     = $avgRow ? round((float) $avgRow->avg, 2) : null;
+            $semCount   = $avgRow ? (int) $avgRow->count : 0;
+
+            $warningGelb = $daysSince === null || $daysSince > 30;
+            $warningRot  = $semAvg !== null && $semAvg < 4.0;
+
+            return (object) [
+                'lernender_id' => $lid,
+                'lastEntry'    => $lastEntry,
+                'daysSince'    => $daysSince,
+                'semAvg'       => $semAvg,
+                'semCount'     => $semCount,
+                'warningGelb'  => $warningGelb,
+                'warningRot'   => $warningRot,
+            ];
+        })->keyBy('lernender_id');
+
+        return view('dashboards.berufsbildner', compact('lernende', 'stats'));
     }
 
-    /** Admin-Dashboard: Übersicht aller Lernenden + Kennzahlen */
+    /** Admin-Dashboard */
     public function admin(Request $request)
     {
         $lernende = DB::table('lernende as l')
@@ -105,8 +203,8 @@ class DashboardController extends Controller
             ->orderBy('b.vorname')
             ->get();
 
-        $noteCount     = Note::query()->count();
-        $lernendCount  = $lernende->count();
+        $noteCount    = Note::query()->count();
+        $lernendCount = $lernende->count();
 
         return view('dashboards.admin', compact('lernende', 'noteCount', 'lernendCount'));
     }
