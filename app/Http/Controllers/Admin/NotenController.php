@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Models\Note;
 use App\Services\Noten\NoteService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -86,5 +87,22 @@ class NotenController extends Controller
             'kategorien' => $kategorien,
             'semester' => $semester,
         ]);
+    }
+
+    /**
+     * Admin: Note soft-löschen (geloescht_am setzen).
+     */
+    public function destroy(int $lernender_id, int $note_id): RedirectResponse
+    {
+        $note = Note::query()
+            ->where('note_id', $note_id)
+            ->where('lernender_id', $lernender_id)
+            ->firstOrFail();
+
+        $note->delete();
+
+        return redirect()
+            ->route('admin.lernende.noten.index', ['lernender_id' => $lernender_id])
+            ->with('status', 'Note gelöscht.');
     }
 }

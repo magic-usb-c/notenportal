@@ -76,7 +76,10 @@
                     @forelse($letzteNoten as $n)
                         <div class="px-5 py-3 border-b border-border last:border-0 flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-sm text-text">{{ $n->nachname }} {{ $n->vorname }}</div>
+                                <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $n->lernender_id]) }}"
+                                   class="text-sm text-text hover:text-accent font-medium">
+                                    {{ $n->nachname }} {{ $n->vorname }}
+                                </a>
                                 <div class="text-xs text-muted">{{ \Carbon\Carbon::parse($n->pruefungsdatum)->format('d.m.Y') }}</div>
                             </div>
                             @php
@@ -94,6 +97,34 @@
                     @endforelse
                 </div>
             </div>
+
+            {{-- Warnung: Lernende ohne aktuellen Noteneintrag --}}
+            @if($lernendeOhneNoten->isNotEmpty())
+                <div class="bg-card border border-yellow-300 dark:border-yellow-700 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+                        <h3 class="font-semibold text-yellow-800 dark:text-yellow-300 text-sm">
+                            Kein Noteneintrag in den letzten 30 Tagen
+                        </h3>
+                    </div>
+                    <div class="divide-y divide-border">
+                        @foreach($lernendeOhneNoten as $l)
+                            <div class="px-5 py-3 flex items-center justify-between gap-3">
+                                <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
+                                   class="text-sm text-text hover:text-accent font-medium">
+                                    {{ $l->nachname }} {{ $l->vorname }}
+                                </a>
+                                <span class="text-xs text-muted">
+                                    @if($l->last_entry)
+                                        Letzte Note: {{ \Carbon\Carbon::parse($l->last_entry)->format('d.m.Y') }}
+                                    @else
+                                        Noch keine Noten
+                                    @endif
+                                </span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
         </div>
     </div>

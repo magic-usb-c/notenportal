@@ -216,7 +216,7 @@ class DashboardController extends Controller
             ->whereNull('n.geloescht_am')
             ->orderByDesc('n.erstellt_am')
             ->limit(5)
-            ->select(['n.note_id', 'n.note_wert', 'n.pruefungsdatum', 'n.erstellt_am', 'b.vorname', 'b.nachname'])
+            ->select(['n.note_id', 'n.note_wert', 'n.pruefungsdatum', 'n.erstellt_am', 'b.vorname', 'b.nachname', 'l.lernender_id'])
             ->get();
 
         // Benutzer ohne Noten im letzten Monat (Warnung)
@@ -227,6 +227,24 @@ class DashboardController extends Controller
             ->get()
             ->keyBy('lernender_id');
 
+        // Lernende ohne Noteneintrag in den letzten 30 Tagen (Warnung auf Dashboard)
+        $cutoff = now()->subDays(30)->toDateString();
+        $lernendeOhneNoten = DB::table('lernende as l')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->leftJoin(DB::raw(
+                '(SELECT lernender_id, MAX(pruefungsdatum) as last_entry
+                  FROM noten WHERE geloescht_am IS NULL
+                  GROUP BY lernender_id) as nn'
+            ), 'nn.lernender_id', '=', 'l.lernender_id')
+            ->whereNull('l.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->where(fn($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'nn.last_entry'])
+            ->orderBy('b.nachname')
+            ->limit(10)
+            ->get();
+
         return view('dashboards.admin', compact(
             'lernendCount',
             'berufsbildnerCount',
@@ -234,6 +252,7 @@ class DashboardController extends Controller
             'notesThisSemester',
             'currentSemester',
             'letzteNoten',
+            'lernendeOhneNoten',
         ));
     }
 }

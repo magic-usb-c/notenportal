@@ -103,6 +103,8 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/lernende/{lernender_id}', [AdminLernendeController::class, 'show'])->name('lernende.show');
         Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
             ->name('lernende.noten.index');
+        Route::delete('/lernende/{lernender_id}/noten/{note_id}', [AdminNotenController::class, 'destroy'])
+            ->name('lernende.noten.destroy');
 
         // Betreuungen je Lernender
         Route::get('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuung'])

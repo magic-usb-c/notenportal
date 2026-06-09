@@ -190,6 +190,19 @@
                                 @endif
                             </div>
 
+                            {{-- Admin-Aktionen --}}
+                            <div class="border-t border-border px-5 py-3 flex justify-end">
+                                <form method="POST"
+                                      action="{{ route('admin.lernende.noten.destroy', [$selectedLernenderId, $n->note_id]) }}"
+                                      onsubmit="return confirm('Note wirklich löschen?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            class="px-3 py-1.5 rounded-xl text-xs text-red-500 border border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20">
+                                        Note löschen
+                                    </button>
+                                </form>
+                            </div>
+
                             {{-- Kommentar-Thread --}}
                             <div class="border-t border-border px-5 py-4 space-y-3">
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>

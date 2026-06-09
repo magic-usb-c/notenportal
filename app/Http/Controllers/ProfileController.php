@@ -8,6 +8,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -15,7 +16,17 @@ class ProfileController extends Controller
 {
     public function edit(Request $request): View
     {
-        return view('profile.edit', ['user' => $request->user()]);
+        $user = $request->user();
+
+        // Lernenden-Profil für zusätzliche Anzeige (read-only)
+        $lernendeProfil = DB::table('lernende as l')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
+            ->where('l.benutzer_id', $user->benutzer_id)
+            ->whereNull('l.geloescht_am')
+            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name', 'lb.kuerzel'])
+            ->first();
+
+        return view('profile.edit', compact('user', 'lernendeProfil'));
     }
 
     public function update(ProfileUpdateRequest $request): RedirectResponse
