@@ -176,26 +176,23 @@
 
                 {{-- Summary --}}
                 <div class="lg:col-span-4">
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full grid grid-cols-2 gap-2 items-center text-center">
-                        <div class="flex flex-col items-center justify-center">
-                            <div class="text-3xl font-bold tabular-nums {{ $avgColor($avgWeighted) }}">
+                    <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-4 h-full grid grid-cols-2 gap-2 items-center text-center np-card-lift">
+                        <div class="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-accent/5 pointer-events-none"></div>
+                        <div class="relative flex flex-col items-center justify-center">
+                            <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø Semester</div>
+                            <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($avgWeighted) }}">
                                 {{ $avgWeighted ?? '–' }}
                             </div>
-                            <div class="mt-1 text-[11px] uppercase tracking-wide text-muted">
-                                Ø Semester
-                            </div>
-                            <div class="text-[11px] text-muted">
+                            <div class="text-[11px] text-muted mt-0.5">
                                 {{ $count }} {{ $count === 1 ? 'Note' : 'Noten' }}
                             </div>
                         </div>
-                        <div class="flex flex-col items-center justify-center border-l border-border">
-                            <div class="text-3xl font-bold tabular-nums {{ $avgColor($globalAvgWeighted ?? null) }}">
+                        <div class="relative flex flex-col items-center justify-center border-l border-border">
+                            <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
+                            <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($globalAvgWeighted ?? null) }}">
                                 {{ $globalAvgWeighted ?? '–' }}
                             </div>
-                            <div class="mt-1 text-[11px] uppercase tracking-wide text-muted">
-                                Ø gesamt
-                            </div>
-                            <div class="text-[11px] text-muted">
+                            <div class="text-[11px] text-muted mt-0.5">
                                 {{ $globalCount ?? 0 }} {{ ($globalCount ?? 0) === 1 ? 'Note' : 'Noten' }}
                             </div>
                         </div>
