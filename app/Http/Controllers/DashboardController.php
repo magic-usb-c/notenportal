@@ -193,19 +193,47 @@ class DashboardController extends Controller
     /** Admin-Dashboard */
     public function admin(Request $request)
     {
-        $lernende = DB::table('lernende as l')
+        $today = now()->toDateString();
+
+        $lernendCount     = DB::table('lernende')->whereNull('geloescht_am')->count();
+        $berufsbildnerCount = DB::table('berufsbildner')->whereNull('geloescht_am')->count();
+        $noteCount        = Note::query()->count();
+
+        // Noten im aktuellen Semester
+        $currentSemester = Semester::query()
+            ->where('start_datum', '<=', $today)
+            ->where('end_datum', '>=', $today)
+            ->first();
+
+        $notesThisSemester = $currentSemester
+            ? Note::query()->where('semester_id', $currentSemester->semester_id)->count()
+            : 0;
+
+        // Letzte 5 Noten (für Activity-Feed)
+        $letzteNoten = DB::table('noten as n')
+            ->join('lernende as l', 'l.lernender_id', '=', 'n.lernender_id')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
-            ->whereNull('l.geloescht_am')
-            ->whereNull('b.geloescht_am')
-            ->where('b.aktiv', 1)
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
-            ->orderBy('b.nachname')
-            ->orderBy('b.vorname')
+            ->whereNull('n.geloescht_am')
+            ->orderByDesc('n.erstellt_am')
+            ->limit(5)
+            ->select(['n.note_id', 'n.note_wert', 'n.pruefungsdatum', 'n.erstellt_am', 'b.vorname', 'b.nachname'])
             ->get();
 
-        $noteCount    = Note::query()->count();
-        $lernendCount = $lernende->count();
+        // Benutzer ohne Noten im letzten Monat (Warnung)
+        $lernendeMitLetzterNote = DB::table('noten as n')
+            ->whereNull('n.geloescht_am')
+            ->groupBy('n.lernender_id')
+            ->select(['n.lernender_id', DB::raw('MAX(n.pruefungsdatum) as last_entry')])
+            ->get()
+            ->keyBy('lernender_id');
 
-        return view('dashboards.admin', compact('lernende', 'noteCount', 'lernendCount'));
+        return view('dashboards.admin', compact(
+            'lernendCount',
+            'berufsbildnerCount',
+            'noteCount',
+            'notesThisSemester',
+            'currentSemester',
+            'letzteNoten',
+        ));
     }
 }

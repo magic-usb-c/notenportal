@@ -60,15 +60,19 @@
                                         @endif
                                     </td>
                                     <td class="p-3 text-right">
-                                        <form method="POST"
-                                              action="{{ route('admin.benutzer.toggle-aktiv', $b->benutzer_id) }}"
-                                              class="inline"
-                                              onsubmit="return confirm('Status wirklich ändern?');">
-                                            @csrf
-                                            <button class="text-sm {{ $b->aktiv ? 'text-red-500 hover:underline' : 'text-green-600 hover:underline' }}">
-                                                {{ $b->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
-                                            </button>
-                                        </form>
+                                        <div class="flex items-center justify-end gap-3">
+                                            <a href="{{ route('admin.benutzer.edit', $b->benutzer_id) }}"
+                                               class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                            <form method="POST"
+                                                  action="{{ route('admin.benutzer.toggle-aktiv', $b->benutzer_id) }}"
+                                                  class="inline"
+                                                  onsubmit="return confirm('Status wirklich ändern?');">
+                                                @csrf
+                                                <button class="text-sm {{ $b->aktiv ? 'text-red-500 hover:underline' : 'text-green-600 hover:underline' }}">
+                                                    {{ $b->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @empty

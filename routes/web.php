@@ -123,6 +123,8 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/benutzer', [AdminBenutzerController::class, 'index'])->name('benutzer.index');
         Route::get('/benutzer/create', [AdminBenutzerController::class, 'create'])->name('benutzer.create');
         Route::post('/benutzer', [AdminBenutzerController::class, 'store'])->name('benutzer.store');
+        Route::get('/benutzer/{benutzer_id}/edit', [AdminBenutzerController::class, 'edit'])->name('benutzer.edit');
+        Route::put('/benutzer/{benutzer_id}', [AdminBenutzerController::class, 'update'])->name('benutzer.update');
         Route::post('/benutzer/{benutzer_id}/toggle-aktiv', [AdminBenutzerController::class, 'toggleAktiv'])
             ->name('benutzer.toggle-aktiv');
 

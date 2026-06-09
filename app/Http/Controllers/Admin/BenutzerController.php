@@ -146,6 +146,46 @@ class BenutzerController extends Controller
             ->with('status', 'Benutzer angelegt.');
     }
 
+    public function edit(int $benutzer_id)
+    {
+        $user   = User::whereNull('geloescht_am')->findOrFail($benutzer_id);
+        $rollen = DB::table('rollen')->orderBy('rolle_id')->get();
+
+        return view('admin.benutzer.edit', compact('user', 'rollen'));
+    }
+
+    public function update(Request $request, int $benutzer_id): RedirectResponse
+    {
+        $user = User::whereNull('geloescht_am')->findOrFail($benutzer_id);
+
+        $rules = [
+            'vorname'  => ['required', 'string', 'max:100'],
+            'nachname' => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'max:255',
+                           \Illuminate\Validation\Rule::unique('benutzer', 'email')->ignore($benutzer_id, 'benutzer_id')],
+        ];
+
+        // Optional: neues Passwort nur wenn ausgefüllt
+        if ($request->filled('passwort')) {
+            $rules['passwort'] = ['string', 'min:8', 'confirmed'];
+        }
+
+        $validated = $request->validate($rules);
+
+        $user->vorname  = $validated['vorname'];
+        $user->nachname = $validated['nachname'];
+        $user->email    = $validated['email'];
+
+        if ($request->filled('passwort')) {
+            $user->passwort_hash = $validated['passwort'];
+        }
+
+        $user->save();
+
+        return redirect()->route('admin.benutzer.index')
+            ->with('status', 'Benutzer aktualisiert.');
+    }
+
     public function toggleAktiv(Request $request, int $benutzer_id): RedirectResponse
     {
         $user = User::whereNull('geloescht_am')->findOrFail($benutzer_id);
