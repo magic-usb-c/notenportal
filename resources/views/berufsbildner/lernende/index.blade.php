@@ -9,12 +9,29 @@
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
 
                 @forelse($lernende as $l)
-                    @php $st = $stats->get((int) $l->lernender_id); @endphp
+                    @php
+                        $st = $stats->get((int) $l->lernender_id);
+                        $lehrende     = $l->lehrende ? \Carbon\Carbon::parse($l->lehrende) : null;
+                        $lehrDaysLeft = $lehrende ? (int) now()->diffInDays($lehrende, false) : null;
+                        $showLehrBadge = $lehrDaysLeft !== null && $lehrDaysLeft >= 0 && $lehrDaysLeft <= 60;
+                    @endphp
                     <div class="px-5 py-4 border-b border-border last:border-0 hover:bg-bg/60">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="font-medium text-text">{{ $l->nachname }} {{ $l->vorname }}</span>
+
+                                    @if($showLehrBadge)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap
+                                            {{ $lehrDaysLeft <= 14
+                                                ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                                                : ($lehrDaysLeft <= 30
+                                                    ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300'
+                                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300') }}"
+                                            title="Lehrende: {{ $lehrende->format('d.m.Y') }}">
+                                            Lehrende in {{ $lehrDaysLeft }} Tagen
+                                        </span>
+                                    @endif
 
                                     @if($st?->warningGelb)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300">

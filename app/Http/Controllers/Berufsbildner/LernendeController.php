@@ -46,6 +46,7 @@ class LernendeController extends Controller
                 'b.vorname',
                 'b.nachname',
                 'b.email',
+                'l.lehrende',
             ])
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')

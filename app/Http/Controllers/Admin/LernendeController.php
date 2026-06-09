@@ -25,7 +25,7 @@ class LernendeController extends Controller
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email', 'b.aktiv'])
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email', 'b.aktiv', 'l.lehrende'])
             ->orderBy('b.nachname')
             ->orderBy('b.vorname');
 

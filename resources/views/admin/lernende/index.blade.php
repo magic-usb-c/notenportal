@@ -77,6 +77,11 @@
                                     $warnGelb      = $daysSince === null || $daysSince > 30;
                                     $warnRot       = $avg !== null && $avg < 4.0;
                                     $ohneBetreuer  = !$s?->betreuer;
+
+                                    // Lehrende-Badge
+                                    $lehrende      = $l->lehrende ? \Carbon\Carbon::parse($l->lehrende) : null;
+                                    $lehrDaysLeft  = $lehrende ? (int) now()->diffInDays($lehrende, false) : null;
+                                    $showLehrBadge = $lehrDaysLeft !== null && $lehrDaysLeft >= 0 && $lehrDaysLeft <= 60;
                                 @endphp
                                 <tr class="hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
                                     <td class="p-3">
@@ -93,6 +98,18 @@
                                             @if($ohneBetreuer && $l->aktiv)
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap" title="Kein aktiver Berufsbildner">
                                                     Ohne BB
+                                                </span>
+                                            @endif
+
+                                            @if($showLehrBadge)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap
+                                                    {{ $lehrDaysLeft <= 14
+                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'
+                                                        : ($lehrDaysLeft <= 30
+                                                            ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300'
+                                                            : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300') }}"
+                                                    title="Lehrende: {{ $lehrende->format('d.m.Y') }}">
+                                                    Lehrende in {{ $lehrDaysLeft }}d
                                                 </span>
                                             @endif
 

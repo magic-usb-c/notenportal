@@ -54,6 +54,8 @@ class NotenController extends Controller
         $q = Note::query()
             ->with([
                 'kategorie', 'semester', 'fach', 'modulBelegung.modul', 'gruppe',
+                'erfasstVonBenutzer',
+                'aktualisiertVonBenutzer',
                 'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'asc'),
             ])
             ->where('lernender_id', $lernender_id)

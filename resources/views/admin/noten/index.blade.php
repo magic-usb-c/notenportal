@@ -239,6 +239,18 @@
                                         <div class="text-text">{{ $n->gruppe->bezeichnung }}</div>
                                     </div>
                                 @endif
+                                @if($n->erfasstVonBenutzer)
+                                    <div>
+                                        <div class="text-xs text-muted">Erfasst von</div>
+                                        <div class="text-text">{{ $n->erfasstVonBenutzer->vorname }} {{ $n->erfasstVonBenutzer->nachname }}</div>
+                                    </div>
+                                @endif
+                                @if($n->aktualisiertVonBenutzer && $n->aktualisiert_von_benutzer_id !== $n->erfasst_von_benutzer_id)
+                                    <div>
+                                        <div class="text-xs text-muted">Zuletzt geändert von</div>
+                                        <div class="text-text">{{ $n->aktualisiertVonBenutzer->vorname }} {{ $n->aktualisiertVonBenutzer->nachname }}</div>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- Admin-Aktionen --}}
