@@ -7,13 +7,17 @@ namespace App\Http\Controllers\Berufsbildner;
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Models\Note;
-use App\Models\Semester;
+use App\Services\Noten\NoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class NotenController extends Controller
 {
+    public function __construct(
+        private readonly NoteService $noteService
+    ) {}
+
     public function index(Request $request, int $lernender_id)
     {
         $user = $request->user();
@@ -77,7 +81,9 @@ class NotenController extends Controller
         $notes = $q->paginate(25)->withQueryString();
 
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
-        $semester   = Semester::query()->orderBy('sortierung')->get();
+
+        // Nur Semester während der Lehrzeit dieses Lernenden
+        $semester = $this->noteService->semestersForLernender($lernender_id);
 
         return view('berufsbildner.noten.index', [
             'notes'              => $notes,

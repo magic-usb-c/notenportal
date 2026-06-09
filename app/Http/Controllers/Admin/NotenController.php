@@ -7,12 +7,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Models\Note;
-use App\Models\Semester;
+use App\Services\Noten\NoteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class NotenController extends Controller
 {
+    public function __construct(
+        private readonly NoteService $noteService
+    ) {}
+
     /**
      * Admin: Noten eines ausgewählten Lernenden (read-only MVP).
      *
@@ -66,7 +70,9 @@ class NotenController extends Controller
 
         // 4) Filter Stammdaten
         $kategorien = Kategorie::query()->orderBy('sortierung')->get();
-        $semester   = Semester::query()->orderBy('sortierung')->get();
+
+        // Nur Semester während der Lehrzeit dieses Lernenden
+        $semester = $this->noteService->semestersForLernender($lernender_id);
 
         return view('admin.noten.index', [
             'notes' => $notes,
