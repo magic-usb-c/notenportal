@@ -121,17 +121,18 @@ class DashboardController extends Controller
         $today   = now()->toDateString();
         $bbId    = (int) $bb->berufsbildner_id;
 
-        // Betreute Lernende
+        // Betreute Lernende (inkl. Lehrberuf-Name für Card-Darstellung)
         $lernende = DB::table('betreuungen as bt')
             ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
             ->where('bt.berufsbildner_id', $bbId)
             ->where('bt.gueltig_von', '<=', $today)
             ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email', 'lb.name as lehrberuf'])
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')
             ->get();
