@@ -24,7 +24,7 @@
                 <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                     <div class="text-xs text-muted">Berufsbildner</div>
                     <div class="mt-1 text-2xl font-bold text-text">{{ $berufsbildnerCount }}</div>
-                    <a href="{{ route('admin.benutzer.index') }}" class="text-xs text-accent hover:underline mt-1 block">Benutzer</a>
+                    <a href="{{ route('admin.berufsbildner.index') }}" class="text-xs text-accent hover:underline mt-1 block">Übersicht</a>
                 </div>
                 <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                     <div class="text-xs text-muted">Noten gesamt</div>

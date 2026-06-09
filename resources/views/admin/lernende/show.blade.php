@@ -64,8 +64,16 @@
                     @if($aktuellerBB)
                         <p class="text-text font-medium">{{ $aktuellerBB->nachname }} {{ $aktuellerBB->vorname }}</p>
                         <p class="text-sm text-muted">{{ $aktuellerBB->email }}</p>
+                        <div class="pt-1">
+                            <a href="{{ route('admin.lernende.index', ['berufsbildner_id' => $aktuellerBB->berufsbildner_id]) }}"
+                               class="text-xs text-accent hover:underline">Lernende dieses BB anzeigen</a>
+                        </div>
                     @else
                         <p class="text-sm text-muted italic">Kein aktiver Berufsbildner erfasst.</p>
+                        <div class="pt-1">
+                            <a href="{{ route('admin.lernende.betreuung', $lernender_id) }}"
+                               class="text-xs text-accent hover:underline">Betreuung einrichten</a>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -84,7 +92,9 @@
                                 <tr>
                                     <th class="text-left p-3">Semester</th>
                                     <th class="text-center p-3">Noten</th>
-                                    <th class="text-center p-3">Ø gewichtet</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Ø gewichtet</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Bestanden</th>
+                                    <th class="text-center p-3 whitespace-nowrap">Quote</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
@@ -94,12 +104,25 @@
                                         $nc = $avg !== null
                                             ? ($avg >= 4.0 ? 'text-green-600 dark:text-green-400' : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'))
                                             : 'text-muted';
+                                        $passed = (int) ($s->passed ?? 0);
+                                        $quote = $s->count > 0 ? round($passed / $s->count * 100) : null;
+                                        $qc = $quote === null ? 'text-muted'
+                                            : ($quote >= 75 ? 'text-green-600 dark:text-green-400'
+                                            : ($quote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : 'text-red-600 dark:text-red-400'));
                                     @endphp
                                     <tr class="hover:bg-bg">
-                                        <td class="p-3 font-medium">{{ $s->sem_label }}</td>
+                                        <td class="p-3 font-medium">
+                                            <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $lernender_id, 'semester_id' => $s->semester_id]) }}"
+                                               class="hover:text-accent">{{ $s->sem_label }}</a>
+                                        </td>
                                         <td class="p-3 text-center text-muted">{{ $s->count }}</td>
                                         <td class="p-3 text-center font-semibold {{ $nc }}">
                                             {{ $avg !== null ? number_format($avg, 2) : '–' }}
+                                        </td>
+                                        <td class="p-3 text-center text-muted">{{ $passed }} / {{ $s->count }}</td>
+                                        <td class="p-3 text-center font-semibold {{ $qc }}">
+                                            {{ $quote !== null ? $quote . ' %' : '–' }}
                                         </td>
                                     </tr>
                                 @endforeach

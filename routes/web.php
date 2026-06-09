@@ -26,8 +26,7 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-// Safety-Net: Registrierung ist deaktiviert
-Route::get('/register', fn () => redirect()->route('login'));
+// Register-Route ist in routes/auth.php als 'register' benannt definiert
 
 Route::get('/dashboard', function (Request $request) {
     $u = $request->user();

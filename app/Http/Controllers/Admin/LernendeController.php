@@ -153,10 +153,10 @@ class LernendeController extends Controller
             ->where('bt.lernender_id', $lernender_id)
             ->where('bt.gueltig_von', '<=', $today)
             ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
-            ->select(['b.vorname', 'b.nachname', 'b.email'])
+            ->select(['bb.berufsbildner_id', 'b.vorname', 'b.nachname', 'b.email'])
             ->first();
 
-        // Semester-Statistiken (pro Semester: Anzahl, gewichteter Schnitt)
+        // Semester-Statistiken (pro Semester: Anzahl, gewichteter Schnitt, Bestanden)
         $semStats = DB::table('noten as n')
             ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
             ->where('n.lernender_id', $lernender_id)
@@ -168,6 +168,7 @@ class LernendeController extends Controller
                 's.sortierung',
                 DB::raw('COUNT(*) as count'),
                 DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
+                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
             ])
             ->orderBy('s.sortierung')
             ->get();

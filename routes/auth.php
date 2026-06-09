@@ -18,7 +18,7 @@ Route::middleware('guest')->group(function () {
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     // Registrierung ist deaktiviert (Accounts werden intern erstellt)
-    Route::get('register', fn () => redirect()->route('login'));
+    Route::get('register', fn () => redirect()->route('login'))->name('register');
     Route::post('register', fn () => abort(404));
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
