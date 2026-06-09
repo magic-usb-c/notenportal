@@ -188,8 +188,14 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="p-6 text-center text-muted">
-                                        Keine Lernenden gefunden.
+                                    <td colspan="8" class="p-10 text-center">
+                                        <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <p class="mt-3 text-sm text-muted">Keine Lernenden für diese Filter gefunden.</p>
+                                        @if($semesterId || $lehrberufId || ($bbFilterId ?? ''))
+                                            <a href="{{ route('admin.berichte.noten') }}" class="mt-3 inline-block text-xs text-accent hover:underline">Filter zurücksetzen</a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforelse

@@ -76,8 +76,9 @@
                                class="group relative overflow-hidden block bg-card border border-border rounded-2xl p-4 np-card-lift hover:border-accent/40">
                                 {{-- Unread-Badge oben rechts --}}
                                 @if($st?->unread > 0)
-                                    <span class="absolute top-3 right-3 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent text-white">
-                                        {{ $st->unread }} neu
+                                    <span class="absolute top-3 right-3 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent text-white shadow-sm">
+                                        <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-30"></span>
+                                        <span class="relative">{{ $st->unread }} neu</span>
                                     </span>
                                 @endif
 
