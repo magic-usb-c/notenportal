@@ -267,47 +267,40 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                             </svg>
                         </summary>
-                        <div class="border-t border-border overflow-x-auto">
-                            <table class="min-w-full text-sm text-text">
-                                <thead class="bg-bg text-muted">
-                                    <tr>
-                                        <th class="text-left px-4 py-2.5">Semester</th>
-                                        <th class="text-center px-4 py-2.5">Noten</th>
-                                        <th class="text-center px-4 py-2.5">Ø gewichtet</th>
-                                        <th class="text-center px-4 py-2.5 whitespace-nowrap">Bestanden</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-border">
-                                    @foreach($semesterStats as $ss)
-                                        @php
-                                            $ssAvg = $ss->avg_weighted !== null ? (float) $ss->avg_weighted : null;
-                                            $ssColor = $ssAvg === null ? 'text-muted'
-                                                : ($ssAvg >= 4.0 ? 'text-green-600 dark:text-green-400'
-                                                : ($ssAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
-                                                : 'text-red-600 dark:text-red-400'));
-                                            $isSelected = (int)$ss->semester_id === (int)$selectedSemesterId;
-                                        @endphp
-                                        <tr class="hover:bg-bg {{ $isSelected ? 'bg-accent/5' : '' }}">
-                                            <td class="px-4 py-2.5">
-                                                <a href="{{ route('lernender.noten.index', ['semester_id' => $ss->semester_id]) }}"
-                                                   class="hover:text-accent {{ $isSelected ? 'font-semibold text-accent' : 'text-text' }}">
-                                                    {{ $ss->sem_label }}
-                                                    @if($isSelected)
-                                                        <span class="ml-1 text-xs">(aktuell)</span>
-                                                    @endif
-                                                </a>
-                                            </td>
-                                            <td class="px-4 py-2.5 text-center text-muted">{{ $ss->total }}</td>
-                                            <td class="px-4 py-2.5 text-center font-semibold {{ $ssColor }}">
-                                                {{ $ssAvg !== null ? number_format($ssAvg, 2) : '–' }}
-                                            </td>
-                                            <td class="px-4 py-2.5 text-center text-muted">
-                                                {{ $ss->passed }} / {{ $ss->total }}
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                        <div class="border-t border-border divide-y divide-border">
+                            @foreach($semesterStats as $ss)
+                                @php
+                                    $ssAvg = $ss->avg_weighted !== null ? (float) $ss->avg_weighted : null;
+                                    $ssColor = $ssAvg === null ? 'text-muted'
+                                        : ($ssAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                                        : ($ssAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
+                                        : ($ssAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                        : 'text-red-600 dark:text-red-400')));
+                                    $ssBarBg = $ssAvg === null ? 'bg-muted/30'
+                                        : ($ssAvg >= 5.0 ? 'bg-green-500'
+                                        : ($ssAvg >= 4.0 ? 'bg-emerald-500'
+                                        : ($ssAvg >= 3.5 ? 'bg-yellow-500'
+                                        : 'bg-red-500')));
+                                    $ssBarWidth = $ssAvg !== null ? min(100, round(($ssAvg / 6) * 100)) : 0;
+                                    $isSelected = (int)$ss->semester_id === (int)$selectedSemesterId;
+                                @endphp
+                                <a href="{{ route('lernender.noten.index', ['semester_id' => $ss->semester_id]) }}"
+                                   class="flex items-center gap-3 px-5 py-3 hover:bg-accent/5 transition-colors duration-100 {{ $isSelected ? 'bg-accent/5' : '' }}">
+                                    <span class="text-xs w-28 shrink-0 {{ $isSelected ? 'font-semibold text-accent' : 'text-text' }}">
+                                        {{ $ss->sem_label }}
+                                        @if($isSelected)<span class="text-[10px] text-muted">(aktuell)</span>@endif
+                                    </span>
+                                    <div class="flex-1 bg-bg rounded-full h-2 overflow-hidden border border-border">
+                                        <div class="h-full rounded-full {{ $ssBarBg }} transition-all duration-300" style="width: {{ $ssBarWidth }}%"></div>
+                                    </div>
+                                    <span class="text-sm font-semibold tabular-nums {{ $ssColor }} w-12 text-right">
+                                        {{ $ssAvg !== null ? number_format($ssAvg, 2) : '–' }}
+                                    </span>
+                                    <span class="text-[11px] text-muted tabular-nums w-20 text-right shrink-0">
+                                        {{ $ss->passed }}/{{ $ss->total }} best.
+                                    </span>
+                                </a>
+                            @endforeach
                         </div>
                     </details>
                 </div>
