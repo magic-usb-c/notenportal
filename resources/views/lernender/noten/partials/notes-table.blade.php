@@ -236,7 +236,14 @@
                         </svg>
                     </span>
                     <div class="min-w-0 flex-1">
-                        <div class="font-semibold text-text truncate">{{ $modulTitle }}</div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-text truncate">{{ $modulTitle }}</span>
+                            @if($progressPct !== null && $progressPct >= 100)
+                                <span title="Modul vollständig abgeschlossen" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                                    ✓ Abgeschlossen
+                                </span>
+                            @endif
+                        </div>
                         <div class="flex items-center gap-2 mt-0.5">
                             <span class="text-xs text-muted whitespace-nowrap">
                                 @if($progressPct !== null)
@@ -247,7 +254,7 @@
                             </span>
                             @if($progressPct !== null)
                                 <div class="flex-1 max-w-[160px] h-1 rounded-full bg-accent/20 overflow-hidden">
-                                    <div class="h-full bg-accent" style="width: {{ $progressPct }}%"></div>
+                                    <div class="h-full {{ $progressPct >= 100 ? 'bg-green-500' : 'bg-accent' }}" style="width: {{ $progressPct }}%"></div>
                                 </div>
                             @endif
                         </div>
