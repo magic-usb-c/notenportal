@@ -84,8 +84,12 @@
                         </div>
                     </div>
                 @empty
-                    <div class="px-5 py-6 text-sm text-muted text-center">
-                        Keine Lernenden gefunden (noch keine Betreuung erfasst oder nicht aktiv).
+                    <div class="px-5 py-12 text-center">
+                        <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <p class="mt-3 text-sm text-muted">Keine Lernenden zugewiesen.</p>
+                        <p class="mt-1 text-xs text-muted">Falls das ein Fehler ist, bitte beim Admin melden.</p>
                     </div>
                 @endforelse
 

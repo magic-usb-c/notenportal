@@ -109,6 +109,17 @@
                 </div>
             @endif
 
+            @php
+                $avgColor = function ($val) {
+                    if ($val === null || $val === '') return 'text-muted';
+                    $v = (float) $val;
+                    if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
+                    if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+                    if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                    return 'text-red-600 dark:text-red-400';
+                };
+            @endphp
+
             {{-- Filter + Summary --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
                 {{-- Filter --}}
@@ -157,23 +168,18 @@
 
                 {{-- Summary --}}
                 <div class="lg:col-span-4">
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full">
-                        <div class="grid grid-cols-3 gap-3 h-full">
-                            <div class="rounded-2xl border border-border bg-bg p-3">
-                                <div class="text-[11px] text-muted">Noten</div>
-                                <div class="mt-1 text-2xl font-semibold text-text">{{ $count }}</div>
-                            </div>
-
-                            <div class="rounded-2xl border border-border bg-bg p-3">
-                                <div class="text-[11px] text-muted">Ø ungewichtet</div>
-                                <div class="mt-1 text-2xl font-semibold text-text">{{ $avgUnweighted ?? '-' }}</div>
-                            </div>
-
-                            <div class="rounded-2xl border border-border bg-bg p-3">
-                                <div class="text-[11px] text-muted">Ø gewichtet</div>
-                                <div class="mt-1 text-2xl font-semibold text-text">{{ $avgWeighted ?? '-' }}</div>
-                            </div>
+                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4 h-full flex flex-col items-center justify-center text-center">
+                        <div class="text-3xl font-bold tabular-nums {{ $avgColor($avgWeighted) }}">
+                            {{ $avgWeighted ?? '–' }}
                         </div>
+                        <div class="mt-1 text-xs text-muted">
+                            Ø gewichtet, {{ $count }} {{ $count === 1 ? 'Note' : 'Noten' }}
+                        </div>
+                        @if($avgUnweighted !== null)
+                            <div class="mt-2 text-[11px] text-muted">
+                                Ø ungewichtet: <span class="font-medium text-text tabular-nums">{{ $avgUnweighted }}</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -189,9 +195,16 @@
             ])
 
             @if($notes->isEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-10 text-center text-muted text-sm">
-                    Noch keine Noten für dieses Semester.
-                    <a href="{{ route('lernender.noten.create') }}" class="text-accent hover:underline ml-1">Erste Note erfassen</a>
+                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-12 text-center">
+                    <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                    <p class="mt-3 text-sm text-muted">Noch keine Noten für dieses Semester.</p>
+                    <a href="{{ route('lernender.noten.create') }}"
+                       class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-semibold hover:opacity-90">
+                        <span class="text-lg leading-none">+</span>
+                        Erste Note erfassen
+                    </a>
                 </div>
             @endif
 
