@@ -16,18 +16,22 @@ class LernendeController extends Controller
      */
     public function index(Request $request)
     {
-        $today   = now()->toDateString();
-        $suche   = $request->input('suche', '');
-        $warnung = $request->input('warnung', ''); // 'keine_noten' | 'tief_avg' | ''
+        $today    = now()->toDateString();
+        $suche    = $request->input('suche', '');
+        $warnung  = $request->input('warnung', '');   // 'keine_noten' | 'tief_avg' | ''
+        $inaktive = $request->input('inaktive', '0'); // '1' = auch inaktive zeigen
 
         $q = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
-            ->where('b.aktiv', 1)
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email'])
+            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'b.email', 'b.aktiv'])
             ->orderBy('b.nachname')
             ->orderBy('b.vorname');
+
+        if ($inaktive !== '1') {
+            $q->where('b.aktiv', 1);
+        }
 
         if ($suche !== '') {
             $like = '%' . $suche . '%';
@@ -41,7 +45,7 @@ class LernendeController extends Controller
         $lernende = $q->get();
 
         if ($lernende->isEmpty()) {
-            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche, 'warnung' => $warnung]);
+            return view('admin.lernende.index', ['lernende' => collect(), 'stats' => collect(), 'suche' => $suche, 'warnung' => $warnung, 'inaktive' => $inaktive]);
         }
 
         $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int)$v)->all();
@@ -92,7 +96,7 @@ class LernendeController extends Controller
             });
         }
 
-        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung'));
+        return view('admin.lernende.index', compact('lernende', 'stats', 'suche', 'warnung', 'inaktive'));
     }
 
     /**

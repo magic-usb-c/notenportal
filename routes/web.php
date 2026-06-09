@@ -101,6 +101,10 @@ Route::middleware(['auth', 'role:Berufsbildner'])
         // BB: Druckansicht Notenblatt für einen Lernenden
         Route::get('/lernende/{lernender_id}/noten/drucken', [BerufsbildnerNotenController::class, 'drucken'])
             ->name('lernende.noten.drucken');
+
+        // BB: CSV-Export Noten für einen betreuten Lernenden
+        Route::get('/lernende/{lernender_id}/noten/export', [BerufsbildnerNotenController::class, 'export'])
+            ->name('lernende.noten.export');
     });
 
 /**

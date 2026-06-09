@@ -185,6 +185,74 @@ class NotenController extends Controller
         ]);
     }
 
+    public function export(Request $request, int $lernender_id): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $user = $request->user();
+        $bb   = $user?->berufsbildner;
+        abort_if(!$bb, 403);
+
+        $today = now()->toDateString();
+        $lernender = DB::table('betreuungen as bt')
+            ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+            ->where('bt.berufsbildner_id', $bb->berufsbildner_id)
+            ->where('bt.lernender_id', $lernender_id)
+            ->where('bt.gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->whereNull('l.geloescht_am')
+            ->select(['b.vorname', 'b.nachname'])
+            ->first();
+
+        abort_if(!$lernender, 403);
+
+        $rows = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->orderBy('s.sortierung')
+            ->orderBy('n.pruefungsdatum')
+            ->select([
+                'n.pruefungsdatum',
+                's.bezeichnung as semester',
+                'k.name as kategorie',
+                'f.name as fach_name',
+                'm.modul_nummer', 'm.titel as modul_titel',
+                'n.titel',
+                'n.note_wert',
+                'n.gewichtung_prozent',
+            ])
+            ->get();
+
+        $filename = 'noten_' . str($lernender->nachname . '_' . $lernender->vorname)->slug('_') . '_' . now()->format('Ymd') . '.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF");
+            fputcsv($out, ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'], ';');
+            foreach ($rows as $r) {
+                $fachModul = $r->fach_name
+                    ?? ($r->modul_nummer ? $r->modul_nummer . ' – ' . $r->modul_titel : '');
+                fputcsv($out, [
+                    $r->pruefungsdatum,
+                    $r->semester,
+                    $r->kategorie ?? '',
+                    $fachModul,
+                    $r->titel ?? '',
+                    number_format((float) $r->note_wert, 2, '.', ''),
+                    $r->gewichtung_prozent ?? 100,
+                ], ';');
+            }
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
     public function markAlleGesehen(Request $request, int $lernender_id): RedirectResponse
     {
         $user = $request->user();

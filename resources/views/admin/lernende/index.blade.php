@@ -9,7 +9,7 @@
             {{-- Suche + Filter --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                 <form method="GET" action="{{ route('admin.lernende.index') }}"
-                      class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                      class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                     <div class="sm:col-span-1">
                         <label class="text-sm font-medium text-muted">Suche</label>
                         <input type="text" name="suche" value="{{ $suche }}"
@@ -25,12 +25,20 @@
                             <option value="tief_avg" @selected($warnung === 'tief_avg')>Ø unter 4.0</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="text-sm font-medium text-muted">Status</label>
+                        <select name="inaktive"
+                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                            <option value="0" @selected($inaktive !== '1')>Nur aktive</option>
+                            <option value="1" @selected($inaktive === '1')>Inkl. inaktive</option>
+                        </select>
+                    </div>
                     <div class="flex gap-2">
                         <button type="submit"
                                 class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm shrink-0">
                             Filtern
                         </button>
-                        @if($suche || $warnung)
+                        @if($suche || $warnung || $inaktive === '1')
                             <a href="{{ route('admin.lernende.index') }}"
                                class="px-3 py-2 h-10 rounded-xl bg-card border border-border text-text hover:bg-bg flex items-center text-sm shrink-0">
                                 ×
@@ -68,11 +76,17 @@
                                     $warnGelb   = $daysSince === null || $daysSince > 30;
                                     $warnRot    = $avg !== null && $avg < 4.0;
                                 @endphp
-                                <tr class="hover:bg-bg">
+                                <tr class="hover:bg-bg {{ !$l->aktiv ? 'opacity-60' : '' }}">
                                     <td class="p-3">
                                         <div class="flex flex-wrap items-center gap-1.5">
                                             <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
                                                class="font-medium hover:text-accent">{{ $l->nachname }} {{ $l->vorname }}</a>
+
+                                            @if(!$l->aktiv)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">
+                                                    Inaktiv
+                                                </span>
+                                            @endif
 
                                             @if($warnGelb)
                                                 <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 whitespace-nowrap" title="Kein aktueller Noteneintrag">
