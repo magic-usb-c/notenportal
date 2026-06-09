@@ -185,13 +185,15 @@
                             $thema = '–';
                         }
 
-                        // Note farblich kodieren (Schweizer Schulnoten: ≥ 4 = bestanden)
+                        // Note farblich kodieren (Schweizer Schulnoten)
                         $noteWert = (float) $n->note_wert;
-                        $noteColor = $noteWert >= 4.0
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                            : ($noteWert >= 3.5
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
+                        $noteColor = $noteWert >= 5.0
+                            ? 'text-green-600 dark:text-green-400'
+                            : ($noteWert >= 4.0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : ($noteWert >= 3.5
+                                    ? 'text-yellow-600 dark:text-yellow-400'
+                                    : 'text-red-600 dark:text-red-400'));
                     @endphp
 
                     <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden
@@ -234,13 +236,13 @@
                                 </div>
                             </div>
 
-                            {{-- Rechte Seite: Note-Badge --}}
-                            <div class="shrink-0 flex flex-col items-end gap-1">
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                            {{-- Rechte Seite: Note --}}
+                            <div class="shrink-0 flex flex-col items-end gap-0.5">
+                                <span class="text-2xl font-bold tabular-nums leading-none {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($n->gewichtung_prozent !== null)
-                                    <span class="text-xs text-muted">{{ $n->gewichtung_prozent }}%</span>
+                                    <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent }}%</span>
                                 @endif
                             </div>
                         </summary>

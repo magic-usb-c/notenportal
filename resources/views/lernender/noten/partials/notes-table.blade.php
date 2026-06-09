@@ -28,6 +28,16 @@
         $newestKommentar = $n->kommentare->last();
         return compact('bbHatGesehen', 'neuerKommentar', 'newestKommentar');
     };
+
+    // Farblogik (text-only): Note/Durchschnitt
+    $noteColorClass = function ($val): string {
+        if ($val === null || $val === '') return 'text-muted';
+        $v = (float) $val;
+        if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
+        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+        return 'text-red-600 dark:text-red-400';
+    };
 @endphp
 
 {{-- Fächer --}}
@@ -53,10 +63,10 @@
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-baseline gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl bg-bg text-text border border-border">
-                        {{ $avg ?? '-' }}
+                    <span class="text-xl font-bold tabular-nums {{ $noteColorClass($avg) }}">
+                        {{ $avg ?? '–' }}
                     </span>
                 </div>
             </summary>
@@ -66,26 +76,21 @@
                     @php
                         ['bbHatGesehen' => $bbHatGesehen, 'neuerKommentar' => $neuerKommentar, 'newestKommentar' => $newestKommentar] = $noteInfo($n);
                         $noteWert = (float) $n->note_wert;
-                        $noteColor = $noteWert >= 4.0
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                            : ($noteWert >= 3.5
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
                     @endphp
 
                     <details class="np-note-detail group" data-note-id="{{ $n->note_id }}">
                         <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
                             {{-- Linke Seite --}}
                             <div class="flex items-start gap-2 min-w-0">
-                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-0.5">
+                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                                     </svg>
                                 </span>
                                 <div class="min-w-0 space-y-0.5">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="text-sm text-muted">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
-                                        <span class="text-sm text-text font-medium">{{ $n->titel ?? '–' }}</span>
+                                        <span class="text-sm text-muted tabular-nums">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
+                                        <span class="text-sm text-muted truncate">{{ $n->titel ?? '–' }}</span>
 
                                         {{-- BB-gesehen Icon --}}
                                         @if($bbHatGesehen)
@@ -117,8 +122,8 @@
 
                             {{-- Rechte Seite --}}
                             <div class="shrink-0 flex items-center gap-3">
-                                <span class="text-xs text-muted">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
+                                <span class="text-lg font-semibold tabular-nums min-w-[2.5rem] text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
@@ -224,10 +229,10 @@
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-baseline gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="inline-flex items-center justify-center min-w-[4rem] px-3 py-1 rounded-xl bg-bg text-text border border-border">
-                        {{ $avg ?? '-' }}
+                    <span class="text-xl font-bold tabular-nums {{ $noteColorClass($avg) }}">
+                        {{ $avg ?? '–' }}
                     </span>
                 </div>
             </summary>
@@ -237,25 +242,20 @@
                     @php
                         ['bbHatGesehen' => $bbHatGesehen, 'neuerKommentar' => $neuerKommentar, 'newestKommentar' => $newestKommentar] = $noteInfo($n);
                         $noteWert = (float) $n->note_wert;
-                        $noteColor = $noteWert >= 4.0
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                            : ($noteWert >= 3.5
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300');
                     @endphp
 
                     <details class="np-note-detail" data-note-id="{{ $n->note_id }}">
                         <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-bg">
                             <div class="flex items-start gap-2 min-w-0">
-                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-0.5">
+                                <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1">
                                     <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                         <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/>
                                     </svg>
                                 </span>
                                 <div class="min-w-0 space-y-0.5">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="text-sm text-muted">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
-                                        <span class="text-sm text-text font-medium">{{ $n->titel ?? '–' }}</span>
+                                        <span class="text-sm text-muted tabular-nums">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
+                                        <span class="text-sm text-muted truncate">{{ $n->titel ?? '–' }}</span>
 
                                         @if($bbHatGesehen)
                                             <span title="Berufsbildner hat diese Note gesehen" class="text-green-500">
@@ -283,8 +283,8 @@
                             </div>
 
                             <div class="shrink-0 flex items-center gap-3">
-                                <span class="text-xs text-muted">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
+                                <span class="text-lg font-semibold tabular-nums min-w-[2.5rem] text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
