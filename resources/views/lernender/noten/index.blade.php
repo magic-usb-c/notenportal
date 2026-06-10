@@ -152,6 +152,7 @@
                     <div class="flex-1 min-w-[180px]">
                         <label class="text-xs uppercase tracking-wide text-muted">Kategorie</label>
                         <select name="kategorie_id"
+                                onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text
                                        focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>

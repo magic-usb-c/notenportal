@@ -44,7 +44,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Rolle</label>
-                        <select name="rolle_id"
+                        <select name="rolle_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Rollen</option>
                             @foreach($rollen as $r)
@@ -56,7 +56,7 @@
                     <div>
                         <label class="text-sm font-medium text-muted">Status</label>
                         <div class="flex gap-2 mt-1">
-                            <select name="status"
+                            <select name="status" onchange="this.form.submit()"
                                     class="flex-1 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                                 <option value="" @selected($status === '')>Alle</option>
                                 <option value="aktiv" @selected($status === 'aktiv')>Aktiv</option>

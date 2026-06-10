@@ -40,7 +40,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Semester</label>
-                        <select name="semester_id"
+                        <select name="semester_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Semester</option>
                             @foreach($semester as $s)
@@ -53,7 +53,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Lehrberuf</label>
-                        <select name="lehrberuf_id"
+                        <select name="lehrberuf_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Lehrberufe</option>
                             @foreach($lehrberufe as $lb)
@@ -66,7 +66,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Berufsbildner</label>
-                        <select name="berufsbildner_id"
+                        <select name="berufsbildner_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle BB</option>
                             @foreach($berufsbildner as $bb)

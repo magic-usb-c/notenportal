@@ -66,7 +66,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Kategorie</label>
-                        <select name="kategorie_id"
+                        <select name="kategorie_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($kategorien as $k)
@@ -79,7 +79,7 @@
 
                     <div>
                         <label class="text-sm font-medium text-muted">Semester</label>
-                        <select name="semester_id"
+                        <select name="semester_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($semester as $s)

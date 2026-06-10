@@ -34,7 +34,7 @@
                     </div>
                     <div>
                         <label class="text-sm font-medium text-muted">Berufsbildner</label>
-                        <select name="berufsbildner_id"
+                        <select name="berufsbildner_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($bbFilterId === '')>Alle</option>
                             @foreach($berufsbildnerListe as $bb)
@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <label class="text-sm font-medium text-muted">Warnung</label>
-                        <select name="warnung"
+                        <select name="warnung" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($warnung === '')>Alle anzeigen</option>
                             <option value="keine_noten" @selected($warnung === 'keine_noten')>Kein Eintrag (30 Tage)</option>
@@ -56,7 +56,7 @@
                     </div>
                     <div>
                         <label class="text-sm font-medium text-muted">Status</label>
-                        <select name="inaktive"
+                        <select name="inaktive" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="0" @selected($inaktive !== '1')>Nur aktive</option>
                             <option value="1" @selected($inaktive === '1')>Inkl. inaktive</option>
