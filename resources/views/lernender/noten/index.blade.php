@@ -68,34 +68,37 @@
                 </div>
             </div>
 
-            <div class="flex-1 flex items-center justify-center gap-2 min-w-0">
-                <a
-                    @class([
-                        'inline-flex items-center justify-center shrink-0 w-12 h-10 rounded-xl border border-border',
-                        'text-text hover:bg-card/60',
-                        !$prevSemesterId ? 'pointer-events-none opacity-40' : ''
-                    ])
-                    href="{{ $prevSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $prevSemesterId])) : '#' }}"
-                    title="Vorheriges Semester (Pfeiltaste links)"
-                >
-                    <span class="text-2xl leading-none">‹</span>
-                </a>
+            <div class="flex-1 flex items-center justify-center min-w-0">
+                {{-- Floating Semester-Pill --}}
+                <div class="inline-flex items-center glass rounded-full p-1 gap-1">
+                    <a
+                        @class([
+                            'inline-flex items-center justify-center shrink-0 w-9 h-8 rounded-full',
+                            'text-text hover:bg-accent/10 transition-colors',
+                            !$prevSemesterId ? 'pointer-events-none opacity-30' : ''
+                        ])
+                        href="{{ $prevSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $prevSemesterId])) : '#' }}"
+                        title="Vorheriges Semester (Pfeiltaste links)"
+                    >
+                        <span class="text-xl leading-none">‹</span>
+                    </a>
 
-                <div class="px-4 py-2 h-10 flex items-center rounded-xl border border-border bg-card text-text text-sm font-semibold whitespace-nowrap">
-                    {{ $selectedSemLabel }}
+                    <div class="px-4 h-8 flex items-center rounded-full bg-accent/10 text-accent text-sm font-semibold whitespace-nowrap">
+                        {{ $selectedSemLabel }}
+                    </div>
+
+                    <a
+                        @class([
+                            'inline-flex items-center justify-center shrink-0 w-9 h-8 rounded-full',
+                            'text-text hover:bg-accent/10 transition-colors',
+                            !$nextSemesterId ? 'pointer-events-none opacity-30' : ''
+                        ])
+                        href="{{ $nextSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $nextSemesterId])) : '#' }}"
+                        title="Nächstes Semester (Pfeiltaste rechts)"
+                    >
+                        <span class="text-xl leading-none">›</span>
+                    </a>
                 </div>
-
-                <a
-                    @class([
-                        'inline-flex items-center justify-center shrink-0 w-12 h-10 rounded-xl border border-border',
-                        'text-text hover:bg-card/60',
-                        !$nextSemesterId ? 'pointer-events-none opacity-40' : ''
-                    ])
-                    href="{{ $nextSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $nextSemesterId])) : '#' }}"
-                    title="Nächstes Semester (Pfeiltaste rechts)"
-                >
-                    <span class="text-2xl leading-none">›</span>
-                </a>
             </div>
 
             <div class="flex-none flex gap-2">
@@ -198,7 +201,7 @@
 
             {{-- Kategorie-Übersicht (Stats getrennt pro Kategorie für gewähltes Semester) --}}
             @if($kategorieStats->isNotEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <div class="px-5 py-3 border-b border-border flex items-center justify-between">
                         <h3 class="text-sm font-semibold text-text">Auswertung nach Kategorie</h3>
                         <span class="text-[11px] text-muted">{{ $selectedSemLabel }}</span>

@@ -50,7 +50,7 @@
             $avg = $weightedAvg($items);
         @endphp
 
-        <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <details class="np-details glass rounded-2xl overflow-hidden">
             <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
@@ -123,7 +123,7 @@
                             {{-- Rechte Seite --}}
                             <div class="shrink-0 flex items-center gap-3">
                                 <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="text-lg font-semibold tabular-nums min-w-[2.5rem] text-right {{ $noteColorClass($noteWert) }}">
+                                <span class="text-xl font-bold tabular-nums min-w-[2.75rem] text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
@@ -227,7 +227,7 @@
                 : min(100, (int) round($items->count() / 10 * 100));
         @endphp
 
-        <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+        <details class="np-details glass rounded-2xl overflow-hidden">
             <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
@@ -315,7 +315,7 @@
 
                             <div class="shrink-0 flex items-center gap-3">
                                 <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="text-lg font-semibold tabular-nums min-w-[2.5rem] text-right {{ $noteColorClass($noteWert) }}">
+                                <span class="text-xl font-bold tabular-nums min-w-[2.75rem] text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
