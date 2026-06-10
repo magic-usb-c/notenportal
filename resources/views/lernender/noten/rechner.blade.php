@@ -43,10 +43,10 @@
                         <select x-model="basis"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text py-2.5 focus:ring-2 focus:ring-accent/50 focus:border-accent">
                             <option value="current" :disabled="!hasCurrentSemester">
-                                Aktuelles Semester (<span x-text="currentNotes.length"></span> Noten)
+                                Aktuelles Semester ({{ collect($currentNotes)->count() }} Noten)
                             </option>
                             <option value="all">
-                                Alle Semester (<span x-text="allNotes.length"></span> Noten)
+                                Alle Semester ({{ collect($allNotes)->count() }} Noten)
                             </option>
                         </select>
                     </div>
