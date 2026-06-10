@@ -123,6 +123,38 @@
                 </div>
             @endif
 
+            {{-- Notenverteilung (Histogramm 1.0–6.0) --}}
+            @php $maxBucket = $notenVerteilung->max('count'); @endphp
+            @if($gesamtTotal > 0 && $maxBucket > 0)
+                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+                        <h3 class="font-semibold text-text">Notenverteilung</h3>
+                        <span class="text-[11px] text-muted">{{ $gesamtTotal }} Noten in 0.5er-Schritten</span>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-end gap-1.5 h-36">
+                            @foreach($notenVerteilung as $nv)
+                                @php
+                                    $bVal = (float) $nv->bucket;
+                                    $hPct = $maxBucket > 0 ? round($nv->count / $maxBucket * 100) : 0;
+                                    $barColor = $bVal >= 5.0 ? 'bg-green-500'
+                                        : ($bVal >= 4.0 ? 'bg-emerald-500'
+                                        : ($bVal >= 3.5 ? 'bg-yellow-500'
+                                        : 'bg-red-500'));
+                                @endphp
+                                <div class="flex-1 flex flex-col items-center justify-end h-full gap-1"
+                                     title="Note {{ $nv->bucket }}: {{ $nv->count }} {{ $nv->count === 1 ? 'Note' : 'Noten' }}">
+                                    <span class="text-[10px] text-muted tabular-nums leading-none">{{ $nv->count > 0 ? $nv->count : '' }}</span>
+                                    <div class="w-full rounded-t {{ $barColor }} {{ $nv->count === 0 ? 'opacity-20' : 'opacity-90' }}"
+                                         style="height: {{ max($hPct, $nv->count > 0 ? 3 : 1) }}%"></div>
+                                    <span class="text-[10px] text-muted tabular-nums leading-none">{{ $nv->bucket }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Tabelle --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">

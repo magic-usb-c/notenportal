@@ -105,6 +105,32 @@ class BerichtController extends Controller
         $gesamtPassed = $alleNoten->sum('passed');
         $gesamtAvg    = $alleNoten->filter(fn($s) => $s->avg_weighted !== null)->avg('avg_weighted');
 
+        // Notenverteilung in 0.5er-Schritten (Histogramm, gleiche Filter)
+        $verteilungQ = DB::table('noten as n')
+            ->whereIn('n.lernender_id', $ids)
+            ->whereNull('n.geloescht_am')
+            ->groupBy(DB::raw('ROUND(n.note_wert * 2) / 2'))
+            ->select([
+                DB::raw('ROUND(n.note_wert * 2) / 2 as bucket'),
+                DB::raw('COUNT(*) as count'),
+            ]);
+
+        if ($semesterId) {
+            $verteilungQ->where('n.semester_id', $semesterId);
+        }
+
+        $verteilungRaw = $verteilungQ->get()->keyBy(fn($r) => number_format((float) $r->bucket, 1));
+
+        // Alle Buckets 1.0–6.0 auffüllen, damit das Histogramm lückenlos ist
+        $notenVerteilung = collect();
+        for ($b = 1.0; $b <= 6.0; $b += 0.5) {
+            $key = number_format($b, 1);
+            $notenVerteilung->push((object) [
+                'bucket' => $key,
+                'count'  => (int) ($verteilungRaw->get($key)?->count ?? 0),
+            ]);
+        }
+
         return view('admin.berichte.noten', [
             'lernende'        => $lernende,
             'stats'           => $stats,
@@ -118,6 +144,7 @@ class BerichtController extends Controller
             'gesamtTotal'     => $gesamtTotal,
             'gesamtPassed'    => $gesamtPassed,
             'gesamtAvg'       => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,
+            'notenVerteilung' => $notenVerteilung,
         ]);
     }
 
