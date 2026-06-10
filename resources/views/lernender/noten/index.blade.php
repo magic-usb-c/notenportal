@@ -76,7 +76,7 @@
                         !$prevSemesterId ? 'pointer-events-none opacity-40' : ''
                     ])
                     href="{{ $prevSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $prevSemesterId])) : '#' }}"
-                    title="Vorheriges Semester"
+                    title="Vorheriges Semester (Pfeiltaste links)"
                 >
                     <span class="text-2xl leading-none">‹</span>
                 </a>
@@ -92,7 +92,7 @@
                         !$nextSemesterId ? 'pointer-events-none opacity-40' : ''
                     ])
                     href="{{ $nextSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $nextSemesterId])) : '#' }}"
-                    title="Nächstes Semester"
+                    title="Nächstes Semester (Pfeiltaste rechts)"
                 >
                     <span class="text-2xl leading-none">›</span>
                 </a>
@@ -303,14 +303,23 @@
     </div>
 
     <script>
-        // Keyboard-Shortcut: "N" öffnet das Note-Create-Formular
+        // Keyboard-Shortcuts: "N" = neue Note, ←/→ = Semester wechseln
+        const prevSemUrl = {!! $prevSemesterId ? json_encode(route('lernender.noten.index', $queryWith(['semester_id' => $prevSemesterId]))) : 'null' !!};
+        const nextSemUrl = {!! $nextSemesterId ? json_encode(route('lernender.noten.index', $queryWith(['semester_id' => $nextSemesterId]))) : 'null' !!};
+
         document.addEventListener('keydown', (e) => {
-            if (e.key !== 'n' && e.key !== 'N') return;
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             const tag = (document.activeElement?.tagName ?? '').toUpperCase();
             if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
             if (document.activeElement?.isContentEditable) return;
-            window.location.href = '{{ route("lernender.noten.create") }}';
+
+            if (e.key === 'n' || e.key === 'N') {
+                window.location.href = '{{ route("lernender.noten.create") }}';
+            } else if (e.key === 'ArrowLeft' && prevSemUrl) {
+                window.location.href = prevSemUrl;
+            } else if (e.key === 'ArrowRight' && nextSemUrl) {
+                window.location.href = nextSemUrl;
+            }
         });
 
         document.addEventListener('DOMContentLoaded', () => {
