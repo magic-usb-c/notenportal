@@ -45,6 +45,30 @@ class NoteService
     }
 
     /**
+     * Notenverlauf: letzte $limit Noten chronologisch (für x-noten-verlauf Liniendiagramm).
+     */
+    public function notenVerlauf(int $lernenderId, int $limit = 20): Collection
+    {
+        return DB::table('noten as n')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->orderByDesc('n.pruefungsdatum')
+            ->orderByDesc('n.note_id')
+            ->limit($limit)
+            ->select([
+                'n.pruefungsdatum as datum',
+                'n.note_wert as wert',
+                DB::raw("COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel) as label"),
+            ])
+            ->get()
+            ->reverse()
+            ->values();
+    }
+
+    /**
      * Standard-Filter für Index-Seite.
      */
     public function applyIndexFilters(Builder $q, ?int $kategorieId, ?int $semesterId): Builder

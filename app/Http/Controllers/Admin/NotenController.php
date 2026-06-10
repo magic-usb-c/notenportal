@@ -91,9 +91,13 @@ class NotenController extends Controller
         // Nur Semester während der Lehrzeit dieses Lernenden
         $semester = $this->noteService->semestersForLernender($lernender_id);
 
+        // Notenverlauf für Liniendiagramm
+        $notenVerlauf = $this->noteService->notenVerlauf($lernender_id);
+
         return view('admin.noten.index', [
             'notes' => $notes,
             'statsRow' => $statsRow,
+            'notenVerlauf' => $notenVerlauf,
 
             // Switcher
             'lernende' => $lernende,

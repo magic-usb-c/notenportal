@@ -42,6 +42,11 @@
                 </div>
             @endif
 
+            {{-- Notenverlauf (Liniendiagramm der letzten 20 Noten) --}}
+            <x-noten-verlauf :points="$notenVerlauf"
+                             title="Notenverlauf"
+                             subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
+
             {{-- Lernenden-Switcher --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
                 <label class="text-sm font-medium text-muted">Lernenden wechseln</label>

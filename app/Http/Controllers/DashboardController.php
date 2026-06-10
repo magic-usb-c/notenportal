@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function __construct(
+        private readonly \App\Services\Noten\NoteService $noteService
+    ) {}
+
     /** Lernender-Dashboard */
     public function lernender(Request $request)
     {
@@ -98,23 +102,7 @@ class DashboardController extends Controller
             ->first();
 
         // Notenverlauf: letzte 20 Noten chronologisch (für Liniendiagramm)
-        $notenVerlauf = DB::table('noten as n')
-            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
-            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
-            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->orderByDesc('n.pruefungsdatum')
-            ->orderByDesc('n.note_id')
-            ->limit(20)
-            ->select([
-                'n.pruefungsdatum as datum',
-                'n.note_wert as wert',
-                DB::raw("COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel) as label"),
-            ])
-            ->get()
-            ->reverse()
-            ->values();
+        $notenVerlauf = $this->noteService->notenVerlauf($lernenderId);
 
         return view('dashboards.lernender', compact(
             'lernender',

@@ -48,7 +48,7 @@
     @endphp
     <x-slot name="header">
         {{-- 1 Zeile / 3 Bereiche --}}
-        <div class="w-full flex items-center justify-between gap-4">
+        <div class="w-full flex flex-wrap items-center justify-between gap-4">
             <div class="flex-none flex items-center gap-5">
                 <h2 class="font-semibold text-xl text-text whitespace-nowrap">Meine Noten</h2>
                 <div class="hidden md:flex items-center gap-3 pl-4 border-l border-border">
