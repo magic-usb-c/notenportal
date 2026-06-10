@@ -1,13 +1,20 @@
 <x-app-layout>
     <x-slot name="title">Lernende</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Lernende (meine Betreuung)</h2>
+        <div class="w-full flex items-center justify-between gap-4">
+            <h2 class="font-semibold text-xl text-text">Lernende (meine Betreuung)</h2>
+            <a href="{{ route('berufsbildner.lernende.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
+                <span class="text-lg leading-none">+</span>
+                Lernenden erfassen
+            </a>
+        </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
 
                 @forelse($lernende as $l)
                     @php
@@ -20,7 +27,10 @@
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1 min-w-0">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="font-medium text-text">{{ $l->nachname }} {{ $l->vorname }}</span>
+                                    <a href="{{ route('berufsbildner.lernende.show', ['lernender_id' => $l->lernender_id]) }}"
+                                       class="font-medium text-text hover:text-accent transition-colors">
+                                        {{ $l->nachname }} {{ $l->vorname }}
+                                    </a>
 
                                     @if($showLehrBadge)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap
@@ -73,7 +83,7 @@
                             @endif
                         </div>
 
-                        <div class="mt-3">
+                        <div class="mt-3 flex flex-wrap items-center gap-2">
                             <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
                                 Noten öffnen
@@ -82,6 +92,23 @@
                                         {{ $st->unread }}
                                     </span>
                                 @endif
+                            </a>
+                            <a href="{{ route('berufsbildner.lernende.show', ['lernender_id' => $l->lernender_id]) }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-text text-xs hover:bg-bg whitespace-nowrap"
+                               title="Profil ansehen und bearbeiten (Lehrzeit, Tracks)">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                Profil
+                            </a>
+                            <a href="{{ route('berufsbildner.lernende.noten.drucken', ['lernender_id' => $l->lernender_id]) }}"
+                               target="_blank"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-text text-xs hover:bg-bg whitespace-nowrap"
+                               title="Notenblatt drucken">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                </svg>
+                                Drucken
                             </a>
                         </div>
                     </div>

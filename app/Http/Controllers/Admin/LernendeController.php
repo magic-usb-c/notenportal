@@ -399,11 +399,15 @@ class LernendeController extends Controller
             'end_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
         ]);
 
+        // DB-Constraint: end_datum >= start_datum. Startet der Track erst in der
+        // Zukunft, wird er per end = start "storniert" statt mit heutigem Datum.
+        $endDatum = max(now()->toDateString(), (string) $track->start_datum);
+
         DB::table('lernender_tracks')
             ->where('lernender_track_id', $track_id)
             ->whereNull('end_datum')
             ->update([
-                'end_datum'        => now()->toDateString(),
+                'end_datum'        => $endDatum,
                 'end_semester_id'  => $validated['end_semester_id'],
             ]);
 

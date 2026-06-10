@@ -160,6 +160,103 @@
                 </div>
             </div>
 
+            {{-- Schul-Tracks (BMS/ABU) verwalten --}}
+            <div class="glass rounded-2xl overflow-hidden" x-data="{ neuerTrack: false }">
+                <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+                    <h3 class="font-semibold text-text text-sm">Schul-Tracks (BMS / ABU)</h3>
+                    <button type="button" @click="neuerTrack = !neuerTrack"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs np-btn-primary bg-accent text-white">
+                        <span class="text-sm leading-none">+</span>
+                        Track starten
+                    </button>
+                </div>
+
+                {{-- Neuen Track starten --}}
+                <div x-show="neuerTrack" x-cloak
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 -translate-y-2"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="px-5 py-4 border-b border-border bg-bg/40">
+                    <form method="POST" action="{{ route('berufsbildner.lernende.tracks.store', ['lernender_id' => $profil->lernender_id]) }}"
+                          class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                        @csrf
+                        <div>
+                            <label class="text-xs font-medium text-muted">Track *</label>
+                            <select name="track_typ" required
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
+                                <option value="BMS">BMS</option>
+                                <option value="ABU">ABU</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-muted">Startdatum *</label>
+                            <input type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}"
+                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-muted">Startsemester *</label>
+                            <select name="start_semester_id" required
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
+                                @foreach($semesterListe as $s)
+                                    <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit"
+                                class="px-4 py-2 h-[38px] rounded-xl bg-accent text-white text-sm np-btn-primary">
+                            Starten
+                        </button>
+                    </form>
+                    @error('track_typ')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                    @error('start_datum')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                    @error('start_semester_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- Bestehende Tracks --}}
+                <div class="divide-y divide-border">
+                    @forelse($tracks as $t)
+                        <div class="px-5 py-3 flex flex-wrap items-center gap-3">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold
+                                {{ $t->end_datum ? 'bg-bg text-muted border border-border' : 'bg-accent/10 text-accent' }}">
+                                {{ $t->track_typ }}
+                            </span>
+                            <div class="flex-1 min-w-0 text-sm text-text">
+                                ab {{ \Carbon\Carbon::parse($t->start_datum)->format('d.m.Y') }}
+                                @if($t->start_semester)
+                                    <span class="text-muted">({{ $t->start_semester }})</span>
+                                @endif
+                                @if($t->end_datum)
+                                    <span class="text-muted">— beendet am {{ \Carbon\Carbon::parse($t->end_datum)->format('d.m.Y') }}{{ $t->end_semester ? ' (' . $t->end_semester . ')' : '' }}</span>
+                                @else
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 ml-1">läuft</span>
+                                @endif
+                            </div>
+                            @if(!$t->end_datum)
+                                <form method="POST" action="{{ route('berufsbildner.tracks.beenden', ['track_id' => $t->lernender_track_id]) }}"
+                                      class="flex items-center gap-2"
+                                      onsubmit="return confirm('Track {{ $t->track_typ }} wirklich beenden?');">
+                                    @csrf
+                                    <select name="end_semester_id" required
+                                            class="rounded-lg border border-border bg-input text-text text-xs px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
+                                        @foreach($semesterListe as $s)
+                                            <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="submit"
+                                            class="px-3 py-1 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-50 dark:hover:bg-red-900/20">
+                                        Beenden
+                                    </button>
+                                </form>
+                            @endif
+                        </div>
+                    @empty
+                        <div class="px-5 py-6 text-center text-sm text-muted">
+                            Noch kein Track eingerichtet. Ohne Track stehen keine Fächer (BMS/ABU) zur Notenerfassung zur Verfügung.
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
             {{-- Notenverlauf (Liniendiagramm der letzten 20 Noten) --}}
             <x-noten-verlauf :points="$notenVerlauf"
                              title="Notenverlauf"

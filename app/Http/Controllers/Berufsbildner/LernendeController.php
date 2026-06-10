@@ -12,8 +12,30 @@ use Illuminate\Support\Facades\DB;
 class LernendeController extends Controller
 {
     public function __construct(
-        private readonly \App\Services\Noten\NoteService $noteService
+        private readonly \App\Services\Noten\NoteService $noteService,
+        private readonly \App\Services\Benutzer\LernendeErfassungService $lernendeErfassung
     ) {}
+
+    /**
+     * Prüft, ob der eingeloggte BB den Lernenden aktuell betreut. 403 sonst.
+     */
+    private function betreuungOrAbort(Request $request, int $lernender_id): object
+    {
+        $bb = $request->user()?->berufsbildner;
+        abort_if(!$bb, 403);
+
+        $today = now()->toDateString();
+        $betreut = DB::table('betreuungen')
+            ->where('berufsbildner_id', $bb->berufsbildner_id)
+            ->where('lernender_id', $lernender_id)
+            ->where('gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today))
+            ->exists();
+
+        abort_if(!$betreut, 403, 'Sie betreuen diesen Lernenden nicht.');
+
+        return $bb;
+    }
 
     /**
      * Liste der aktuell betreuten Lernenden mit Notenstats.
@@ -176,12 +198,20 @@ class LernendeController extends Controller
             abort(404);
         }
 
-        // Tracks (BMS / ABU)
-        $tracks = DB::table('lernender_tracks')
-            ->where('lernender_id', $lernender_id)
-            ->select(['track_typ', 'start_datum', 'end_datum'])
-            ->orderBy('start_datum')
+        // Tracks (BMS / ABU) inkl. IDs und Semester-Labels für Verwaltung
+        $tracks = DB::table('lernender_tracks as t')
+            ->leftJoin('semester as s1', 's1.semester_id', '=', 't.start_semester_id')
+            ->leftJoin('semester as s2', 's2.semester_id', '=', 't.end_semester_id')
+            ->where('t.lernender_id', $lernender_id)
+            ->select([
+                't.lernender_track_id', 't.track_typ', 't.start_datum', 't.end_datum',
+                's1.bezeichnung as start_semester', 's2.bezeichnung as end_semester',
+            ])
+            ->orderBy('t.start_datum')
             ->get();
+
+        // Semester-Liste für Track-Start/-Ende-Formulare
+        $semesterListe = DB::table('semester')->orderBy('sortierung')->get();
 
         // Semester-Statistiken
         $semStats = DB::table('noten as n')
@@ -217,13 +247,14 @@ class LernendeController extends Controller
             ->count();
 
         return view('berufsbildner.lernende.show', [
-            'profil'       => $profil,
-            'tracks'       => $tracks,
-            'semStats'     => $semStats,
-            'lastEntry'    => $lastEntry ? Carbon::parse($lastEntry) : null,
-            'globalAvg'    => $globalAvg !== null ? (float) $globalAvg : null,
-            'noteCount'    => $noteCount,
-            'notenVerlauf' => $this->noteService->notenVerlauf($lernender_id),
+            'profil'        => $profil,
+            'tracks'        => $tracks,
+            'semesterListe' => $semesterListe,
+            'semStats'      => $semStats,
+            'lastEntry'     => $lastEntry ? Carbon::parse($lastEntry) : null,
+            'globalAvg'     => $globalAvg !== null ? (float) $globalAvg : null,
+            'noteCount'     => $noteCount,
+            'notenVerlauf'  => $this->noteService->notenVerlauf($lernender_id),
         ]);
     }
 
@@ -270,5 +301,117 @@ class LernendeController extends Controller
         return redirect()
             ->route('berufsbildner.lernende.show', ['lernender_id' => $lernender_id])
             ->with('status', 'Profil aktualisiert.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Neuen Lernenden erfassen (Betreuung wird automatisch dem BB zugewiesen)
+    |--------------------------------------------------------------------------
+    */
+
+    public function create(Request $request)
+    {
+        abort_if(!$request->user()?->berufsbildner, 403);
+
+        $lehrberufe = DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get();
+        $semester   = DB::table('semester')->orderBy('sortierung')->get();
+
+        return view('berufsbildner.lernende.create', compact('lehrberufe', 'semester'));
+    }
+
+    public function store(Request $request)
+    {
+        $bb = $request->user()?->berufsbildner;
+        abort_if(!$bb, 403);
+
+        $validated = $request->validate([
+            'vorname'           => ['required', 'string', 'max:100'],
+            'nachname'          => ['required', 'string', 'max:100'],
+            'email'             => ['required', 'email', 'max:255', 'unique:benutzer,email'],
+            'benutzername'      => ['required', 'string', 'max:50', 'unique:benutzer,benutzername', 'alpha_num'],
+            'passwort'          => ['required', 'string', 'min:8', 'confirmed'],
+            'lehrberuf_id'      => ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'],
+            'lehrbeginn'        => ['required', 'date'],
+            'lehrende'          => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
+            'track_typ'         => ['nullable', 'in:BMS,ABU'],
+            'track_semester_id' => ['required_if:track_typ,BMS', 'required_if:track_typ,ABU',
+                                    'nullable', 'integer', 'exists:semester,semester_id'],
+        ]);
+
+        // Betreuung automatisch dem eingeloggten BB zuweisen
+        $lernenderId = $this->lernendeErfassung->erstellen($validated, (int) $bb->berufsbildner_id);
+
+        return redirect()
+            ->route('berufsbildner.lernende.show', ['lernender_id' => $lernenderId])
+            ->with('status', 'Lernender angelegt und deiner Betreuung zugewiesen.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tracks (BMS/ABU) betreuter Lernender verwalten
+    |--------------------------------------------------------------------------
+    */
+
+    public function trackStore(Request $request, int $lernender_id)
+    {
+        $this->betreuungOrAbort($request, $lernender_id);
+
+        $validated = $request->validate([
+            'track_typ'         => ['required', 'in:BMS,ABU'],
+            'start_datum'       => ['required', 'date'],
+            'start_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
+        ]);
+
+        // Kein zweiter offener Track desselben Typs
+        $offenExistiert = DB::table('lernender_tracks')
+            ->where('lernender_id', $lernender_id)
+            ->where('track_typ', $validated['track_typ'])
+            ->whereNull('end_datum')
+            ->exists();
+
+        if ($offenExistiert) {
+            return back()->with('error', 'Es läuft bereits ein offener ' . $validated['track_typ'] . '-Track.');
+        }
+
+        DB::table('lernender_tracks')->insert([
+            'lernender_id'      => $lernender_id,
+            'track_typ'         => $validated['track_typ'],
+            'start_datum'       => $validated['start_datum'],
+            'end_datum'         => null,
+            'start_semester_id' => $validated['start_semester_id'],
+            'end_semester_id'   => null,
+        ]);
+
+        return redirect()
+            ->route('berufsbildner.lernende.show', ['lernender_id' => $lernender_id])
+            ->with('status', 'Track gestartet.');
+    }
+
+    public function trackEnd(Request $request, int $track_id)
+    {
+        $track = DB::table('lernender_tracks')->where('lernender_track_id', $track_id)->first();
+        abort_if(!$track, 404);
+
+        $this->betreuungOrAbort($request, (int) $track->lernender_id);
+
+        $validated = $request->validate([
+            'end_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
+        ]);
+
+        // DB-Constraint: end_datum >= start_datum. Startet der Track erst in der
+        // Zukunft, wird er per end = start "storniert" statt mit heutigem Datum.
+        $endDatum = max(now()->toDateString(), (string) $track->start_datum);
+
+        DB::table('lernender_tracks')
+            ->where('lernender_track_id', $track_id)
+            ->whereNull('end_datum')
+            ->update([
+                'end_datum'       => $endDatum,
+                'end_semester_id' => $validated['end_semester_id'],
+            ]);
+
+        return redirect()
+            ->route('berufsbildner.lernende.show', ['lernender_id' => $track->lernender_id])
+            ->with('status', 'Track beendet.');
     }
 }

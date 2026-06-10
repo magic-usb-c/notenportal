@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 
 class BenutzerController extends Controller
 {
+    public function __construct(
+        private readonly \App\Services\Benutzer\LernendeErfassungService $lernendeErfassung
+    ) {}
+
     public function index(Request $request)
     {
         $suche   = $request->input('suche', '');
@@ -85,7 +89,8 @@ class BenutzerController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $rolleId = (int) $request->input('rolle_id');
+        $rolleId          = (int) $request->input('rolle_id');
+        $lernenderRolleId = (int) DB::table('rollen')->where('name', 'Lernender')->value('rolle_id');
 
         $rules = [
             'vorname'      => ['required', 'string', 'max:100'],
@@ -97,7 +102,7 @@ class BenutzerController extends Controller
         ];
 
         // Zusatzfelder für Lernende
-        if ($rolleId === 3) {
+        if ($rolleId === $lernenderRolleId) {
             $rules['lehrberuf_id']    = ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'];
             $rules['lehrbeginn']      = ['required', 'date'];
             $rules['berufsbildner_id'] = ['nullable', 'integer', 'exists:berufsbildner,berufsbildner_id'];
@@ -108,67 +113,38 @@ class BenutzerController extends Controller
 
         $validated = $request->validate($rules);
 
-        DB::transaction(function () use ($validated, $rolleId) {
-            // 1) Benutzer anlegen
-            $user = User::create([
-                'vorname'       => $validated['vorname'],
-                'nachname'      => $validated['nachname'],
-                'email'         => $validated['email'],
-                'benutzername'  => $validated['benutzername'],
-                'passwort_hash' => $validated['passwort'],
-                'aktiv'         => true,
-            ]);
-
-            $benutzerId = (int) $user->benutzer_id;
-
-            // 2) Rolle zuweisen
-            DB::table('benutzer_rollen')->insert([
-                'benutzer_id' => $benutzerId,
-                'rolle_id'    => $rolleId,
-            ]);
-
-            // 3) Typ-spezifische Profil-Einträge
-            if ($rolleId === 3) {
-                // Lernender-Profil
-                $lernenderId = DB::table('lernende')->insertGetId([
-                    'benutzer_id'     => $benutzerId,
-                    'lehrberuf_id'    => $validated['lehrberuf_id'],
-                    'lehrbeginn'      => $validated['lehrbeginn'],
-                    'erstellt_am'     => now(),
-                    'aktualisiert_am' => now(),
+        if ($rolleId === $lernenderRolleId) {
+            // Lernende: geteilte Erfassungslogik (auch vom BB-Flow genutzt)
+            $this->lernendeErfassung->erstellen(
+                $validated,
+                !empty($validated['berufsbildner_id']) ? (int) $validated['berufsbildner_id'] : null
+            );
+        } else {
+            DB::transaction(function () use ($validated, $rolleId) {
+                $user = User::create([
+                    'vorname'       => $validated['vorname'],
+                    'nachname'      => $validated['nachname'],
+                    'email'         => $validated['email'],
+                    'benutzername'  => $validated['benutzername'],
+                    'passwort_hash' => $validated['passwort'],
+                    'aktiv'         => true,
                 ]);
 
-                // Optional: Berufsbildner zuweisen
-                if (!empty($validated['berufsbildner_id'])) {
-                    DB::table('betreuungen')->insert([
-                        'lernender_id'     => $lernenderId,
-                        'berufsbildner_id' => $validated['berufsbildner_id'],
-                        'gueltig_von'      => $validated['lehrbeginn'],
-                        'gueltig_bis'      => null,
-                    ]);
-                }
+                DB::table('benutzer_rollen')->insert([
+                    'benutzer_id' => (int) $user->benutzer_id,
+                    'rolle_id'    => $rolleId,
+                ]);
 
-                // Optional: BMS/ABU-Track anlegen
-                if (!empty($validated['track_typ'])) {
-                    DB::table('lernender_tracks')->insert([
-                        'lernender_id'      => $lernenderId,
-                        'track_typ'         => $validated['track_typ'],
-                        'start_datum'       => $validated['lehrbeginn'],
-                        'end_datum'         => null,
-                        'start_semester_id' => $validated['track_semester_id'],
-                        'end_semester_id'   => null,
-                    ]);
-                }
-
-            } elseif ($rolleId === 2) {
                 // Berufsbildner-Profil
-                DB::table('berufsbildner')->insert([
-                    'benutzer_id'     => $benutzerId,
-                    'erstellt_am'     => now(),
-                    'aktualisiert_am' => now(),
-                ]);
-            }
-        });
+                if ($rolleId === 2) {
+                    DB::table('berufsbildner')->insert([
+                        'benutzer_id'     => (int) $user->benutzer_id,
+                        'erstellt_am'     => now(),
+                        'aktualisiert_am' => now(),
+                    ]);
+                }
+            });
+        }
 
         return redirect()->route('admin.benutzer.index')
             ->with('status', 'Benutzer angelegt.');

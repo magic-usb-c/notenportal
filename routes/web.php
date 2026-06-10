@@ -90,12 +90,25 @@ Route::middleware(['auth', 'role:Berufsbildner'])
     ->name('berufsbildner.')
     ->group(function () {
         Route::get('/lernende', [BerufsbildnerLernendeController::class, 'index'])->name('lernende.index');
+
+        // BB erfasst einen neuen Lernenden (Betreuung wird automatisch zugewiesen)
+        Route::get('/lernende/erfassen', [BerufsbildnerLernendeController::class, 'create'])
+            ->name('lernende.create');
+        Route::post('/lernende', [BerufsbildnerLernendeController::class, 'store'])
+            ->name('lernende.store');
+
         Route::get('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'show'])
             ->whereNumber('lernender_id')->name('lernende.show');
 
         // BB darf begrenzte Profilfelder (Lehrbeginn, Lehrende) seiner Lernenden pflegen
         Route::patch('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'update'])
             ->whereNumber('lernender_id')->name('lernende.update');
+
+        // BB verwaltet Tracks (BMS/ABU) betreuter Lernender
+        Route::post('/lernende/{lernender_id}/tracks', [BerufsbildnerLernendeController::class, 'trackStore'])
+            ->whereNumber('lernender_id')->name('lernende.tracks.store');
+        Route::post('/tracks/{track_id}/beenden', [BerufsbildnerLernendeController::class, 'trackEnd'])
+            ->whereNumber('track_id')->name('tracks.beenden');
 
         Route::get('/lernende/{lernender_id}/noten', [BerufsbildnerNotenController::class, 'index'])
             ->name('lernende.noten.index');
