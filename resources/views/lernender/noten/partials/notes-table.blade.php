@@ -78,7 +78,8 @@
                         $noteWert = (float) $n->note_wert;
                     @endphp
 
-                    <details class="np-note-detail group" data-note-id="{{ $n->note_id }}">
+                    <details class="np-note-detail group" data-note-id="{{ $n->note_id }}"
+                             x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('lernender.noten.titel.update', $n->note_id) }}')">
                         <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-accent/5 transition-colors duration-100">
                             {{-- Linke Seite --}}
                             <div class="flex items-start gap-2 min-w-0">
@@ -90,7 +91,7 @@
                                 <div class="min-w-0 space-y-0.5">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-sm text-muted tabular-nums">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
-                                        <span class="text-sm text-muted truncate">{{ $n->titel ?? '–' }}</span>
+                                        <span class="text-sm text-muted truncate" x-text="titel || '–'">{{ $n->titel ?? '–' }}</span>
 
                                         {{-- BB-gesehen Icon --}}
                                         @if($bbHatGesehen)
@@ -142,6 +143,38 @@
 
                         {{-- Ausgeklappter Bereich: Kommentar-Thread --}}
                         <div class="border-t border-border bg-bg">
+                            {{-- Notiz inline bearbeiten (AJAX, kein Seitenneuladen) --}}
+                            <div class="px-5 pt-3 flex items-center gap-2 text-sm">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-muted shrink-0">Notiz</span>
+                                <template x-if="!editingTitel">
+                                    <button type="button" @click="startTitelEdit()"
+                                            class="inline-flex items-center gap-1.5 text-left hover:text-accent min-w-0"
+                                            :class="titel ? 'text-text' : 'text-muted italic'"
+                                            title="Notiz bearbeiten">
+                                        <span class="truncate" x-text="titel || 'Klicke zum Ergänzen…'"></span>
+                                        <svg class="w-3.5 h-3.5 shrink-0 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                </template>
+                                <template x-if="editingTitel">
+                                    <div class="flex-1 flex items-center gap-2">
+                                        <input type="text" x-model="titelDraft" maxlength="150"
+                                               @keydown.enter.prevent="saveTitel()" @keydown.escape.stop="editingTitel = false"
+                                               x-init="$el.focus()"
+                                               class="flex-1 rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
+                                        <button type="button" @click="saveTitel()" :disabled="savingTitel"
+                                                class="px-2.5 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary disabled:opacity-60">
+                                            OK
+                                        </button>
+                                        <button type="button" @click="editingTitel = false"
+                                                class="px-2 py-1 rounded-lg border border-border text-xs text-muted hover:text-text">
+                                            ×
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
                             {{-- Kommentare --}}
                             <div class="px-5 py-4 space-y-2">
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
@@ -275,7 +308,8 @@
                         $noteWert = (float) $n->note_wert;
                     @endphp
 
-                    <details class="np-note-detail" data-note-id="{{ $n->note_id }}">
+                    <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
+                             x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('lernender.noten.titel.update', $n->note_id) }}')">
                         <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-accent/5 transition-colors duration-100">
                             <div class="flex items-start gap-2 min-w-0">
                                 <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1">
@@ -286,7 +320,7 @@
                                 <div class="min-w-0 space-y-0.5">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-sm text-muted tabular-nums">{{ optional($n->pruefungsdatum)->format('d.m.Y') }}</span>
-                                        <span class="text-sm text-muted truncate">{{ $n->titel ?? '–' }}</span>
+                                        <span class="text-sm text-muted truncate" x-text="titel || '–'">{{ $n->titel ?? '–' }}</span>
 
                                         @if($bbHatGesehen)
                                             <span title="Berufsbildner hat diese Note gesehen" class="text-green-500">
@@ -333,6 +367,38 @@
                         </summary>
 
                         <div class="border-t border-border bg-bg">
+                            {{-- Notiz inline bearbeiten (AJAX, kein Seitenneuladen) --}}
+                            <div class="px-5 pt-3 flex items-center gap-2 text-sm">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-muted shrink-0">Notiz</span>
+                                <template x-if="!editingTitel">
+                                    <button type="button" @click="startTitelEdit()"
+                                            class="inline-flex items-center gap-1.5 text-left hover:text-accent min-w-0"
+                                            :class="titel ? 'text-text' : 'text-muted italic'"
+                                            title="Notiz bearbeiten">
+                                        <span class="truncate" x-text="titel || 'Klicke zum Ergänzen…'"></span>
+                                        <svg class="w-3.5 h-3.5 shrink-0 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </button>
+                                </template>
+                                <template x-if="editingTitel">
+                                    <div class="flex-1 flex items-center gap-2">
+                                        <input type="text" x-model="titelDraft" maxlength="150"
+                                               @keydown.enter.prevent="saveTitel()" @keydown.escape.stop="editingTitel = false"
+                                               x-init="$el.focus()"
+                                               class="flex-1 rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
+                                        <button type="button" @click="saveTitel()" :disabled="savingTitel"
+                                                class="px-2.5 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary disabled:opacity-60">
+                                            OK
+                                        </button>
+                                        <button type="button" @click="editingTitel = false"
+                                                class="px-2 py-1 rounded-lg border border-border text-xs text-muted hover:text-text">
+                                            ×
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+
                             <div class="px-5 py-4 space-y-2">
                                 <div class="text-xs font-semibold uppercase tracking-wider text-muted">Kommentare</div>
 
@@ -400,6 +466,41 @@
 </style>
 
 <script>
+// Alpine-Komponente: Notiz/Titel einer Note inline bearbeiten (PATCH-AJAX)
+function npTitelEdit(initial, url) {
+    return {
+        titel: initial,
+        titelDraft: initial ?? '',
+        editingTitel: false,
+        savingTitel: false,
+        startTitelEdit() {
+            this.titelDraft = this.titel ?? '';
+            this.editingTitel = true;
+        },
+        async saveTitel() {
+            this.savingTitel = true;
+            try {
+                const res = await fetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ titel: this.titelDraft }),
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.titel = data.titel;
+                    this.editingTitel = false;
+                }
+            } finally {
+                this.savingTitel = false;
+            }
+        },
+    };
+}
+
 (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const openedNoteId = {{ session('opened_note')

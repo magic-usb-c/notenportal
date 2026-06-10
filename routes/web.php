@@ -77,6 +77,9 @@ Route::middleware(['auth', 'role:Lernender'])
 
         // AJAX: Note als gelesen markieren (beim Öffnen des Detail-Accordions)
         Route::post('/{note_id}/gesehen', [LernenderNotenController::class, 'markGesehen'])->name('gesehen.mark');
+
+        // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
+        Route::patch('/{note_id}/titel', [LernenderNotenController::class, 'updateTitel'])->name('titel.update');
     });
 
 /**

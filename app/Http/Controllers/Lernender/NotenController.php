@@ -394,6 +394,38 @@ class NotenController extends Controller
     }
 
     /**
+     * AJAX: Notiz/Titel einer eigenen Note inline aktualisieren.
+     */
+    public function updateTitel(Request $request, int $note_id): JsonResponse
+    {
+        $user      = $request->user();
+        $lernender = $user?->lernender;
+
+        if (!$lernender) {
+            return response()->json(['ok' => false], 403);
+        }
+
+        $note = \App\Models\Note::query()
+            ->where('note_id', $note_id)
+            ->where('lernender_id', (int) $lernender->lernender_id)
+            ->first();
+
+        if (!$note) {
+            return response()->json(['ok' => false], 404);
+        }
+
+        $validated = $request->validate([
+            'titel' => ['nullable', 'string', 'max:150'],
+        ]);
+
+        $note->titel = ($validated['titel'] ?? '') !== '' ? $validated['titel'] : null;
+        $note->aktualisiert_von_benutzer_id = (int) $user->benutzer_id;
+        $note->save();
+
+        return response()->json(['ok' => true, 'titel' => $note->titel]);
+    }
+
+    /**
      * Druckansicht: alle Noten sortiert nach Semester, ohne Layout-Shell.
      */
     public function drucken(Request $request)
