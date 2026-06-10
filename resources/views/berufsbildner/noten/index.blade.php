@@ -265,6 +265,15 @@
                                             {{ optional($n->pruefungsdatum)->format('d.m.Y') }}
                                         </span>
                                         <span class="text-xs text-muted">{{ $n->kategorie?->name ?? '–' }}</span>
+                                        @if($n->kommentare->isNotEmpty())
+                                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[11px] bg-bg border border-border text-muted"
+                                                  title="{{ $n->kommentare->count() }} {{ $n->kommentare->count() === 1 ? 'Kommentar' : 'Kommentare' }}">
+                                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                                </svg>
+                                                {{ $n->kommentare->count() }}
+                                            </span>
+                                        @endif
                                         @if($isNeu)
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-accent text-white">
                                                 Neu
