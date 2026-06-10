@@ -4,7 +4,7 @@
 @props(['stats'])
 
 @if($stats->count() > 1)
-    <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+    <div class="glass rounded-2xl overflow-hidden">
         <details class="np-fachstats">
             <summary class="cursor-pointer select-none list-none px-5 py-4 flex items-center justify-between hover:bg-bg/60">
                 <span class="font-semibold text-text text-sm">Ø pro Fach / Modul</span>

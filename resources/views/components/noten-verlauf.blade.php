@@ -48,7 +48,7 @@
         $lastDate  = \Carbon\Carbon::parse($pts->last()->datum)->format('d.m.y');
     @endphp
 
-    <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+    <div class="glass rounded-2xl overflow-hidden">
         <div class="px-5 py-4 border-b border-border flex items-center justify-between">
             <h3 class="font-semibold text-text">{{ $title }}</h3>
             @if($subtitle)

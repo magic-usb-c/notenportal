@@ -85,7 +85,7 @@
 
             {{-- Erfassungs-Aktivität: Noten pro Woche --}}
             @php $maxAkt = $aktivitaet->max('count'); @endphp
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border flex items-center justify-between">
                     <h3 class="font-semibold text-text">Erfassungs-Aktivität</h3>
                     <span class="text-[11px] text-muted">neue Noten pro Woche, letzte 8 Wochen</span>

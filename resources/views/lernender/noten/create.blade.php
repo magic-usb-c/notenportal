@@ -14,7 +14,7 @@
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-card border border-border rounded-3xl shadow-sm p-6 sm:p-8">
+            <div class="glass rounded-3xl p-6 sm:p-8">
 
                 @if ($errors->any())
                     <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-500">
