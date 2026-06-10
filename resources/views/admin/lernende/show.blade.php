@@ -83,6 +83,11 @@
                 </div>
             </div>
 
+            {{-- Notenverlauf (Liniendiagramm der letzten 20 Noten) --}}
+            <x-noten-verlauf :points="$notenVerlauf"
+                             title="Notenverlauf"
+                             subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
+
             {{-- Semester-Übersicht --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">

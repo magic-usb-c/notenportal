@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class LernendeController extends Controller
 {
+    public function __construct(
+        private readonly \App\Services\Noten\NoteService $noteService
+    ) {}
+
     /**
      * Admin: Liste aller aktiven Lernenden mit Notenzahl, letztem Datum und Ø.
      */
@@ -201,8 +205,11 @@ class LernendeController extends Controller
             ->select(['n.note_id','n.note_wert','n.pruefungsdatum','n.titel','f.name as fach_name','m.modul_nummer','m.titel as modul_titel'])
             ->get();
 
+        // Notenverlauf für Liniendiagramm
+        $notenVerlauf = $this->noteService->notenVerlauf($lernender_id);
+
         return view('admin.lernende.show', compact(
-            'lernender', 'profil', 'aktuellerBB', 'semStats', 'letzteNoten', 'lernender_id'
+            'lernender', 'profil', 'aktuellerBB', 'semStats', 'letzteNoten', 'lernender_id', 'notenVerlauf'
         ));
     }
 

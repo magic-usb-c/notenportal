@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class LernendeController extends Controller
 {
+    public function __construct(
+        private readonly \App\Services\Noten\NoteService $noteService
+    ) {}
+
     /**
      * Liste der aktuell betreuten Lernenden mit Notenstats.
      *
@@ -213,12 +217,13 @@ class LernendeController extends Controller
             ->count();
 
         return view('berufsbildner.lernende.show', [
-            'profil'      => $profil,
-            'tracks'      => $tracks,
-            'semStats'    => $semStats,
-            'lastEntry'   => $lastEntry ? Carbon::parse($lastEntry) : null,
-            'globalAvg'   => $globalAvg !== null ? (float) $globalAvg : null,
-            'noteCount'   => $noteCount,
+            'profil'       => $profil,
+            'tracks'       => $tracks,
+            'semStats'     => $semStats,
+            'lastEntry'    => $lastEntry ? Carbon::parse($lastEntry) : null,
+            'globalAvg'    => $globalAvg !== null ? (float) $globalAvg : null,
+            'noteCount'    => $noteCount,
+            'notenVerlauf' => $this->noteService->notenVerlauf($lernender_id),
         ]);
     }
 }
