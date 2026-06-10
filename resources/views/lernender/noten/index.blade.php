@@ -336,6 +336,27 @@
                 window.location.href = prevSemUrl;
             } else if (e.key === 'ArrowRight' && nextSemUrl) {
                 window.location.href = nextSemUrl;
+            } else if (e.key === 'Escape') {
+                // Alle offenen Accordions schliessen
+                document.querySelectorAll('details[open]').forEach(d => d.open = false);
+            } else if (e.key === 'j' || e.key === 'k') {
+                // J = nächste Note öffnen, K = vorherige
+                const all = [...document.querySelectorAll('details.np-note-detail')];
+                if (!all.length) return;
+                const openIdx = all.findIndex(d => d.open);
+                let next;
+                if (openIdx === -1) {
+                    next = e.key === 'j' ? 0 : all.length - 1;
+                } else {
+                    next = e.key === 'j' ? openIdx + 1 : openIdx - 1;
+                }
+                if (next < 0 || next >= all.length) return;
+                all.forEach(d => { if (d.open) d.open = false; });
+                const target = all[next];
+                const parent = target.closest('details.np-details');
+                if (parent && !parent.open) parent.open = true;
+                target.open = true;
+                target.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         });
 
