@@ -49,48 +49,90 @@
 
             {{-- Stammdaten + Gesamt-Ø --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div class="lg:col-span-2 bg-card border border-border rounded-2xl shadow-sm p-5">
-                    <div class="text-xs font-semibold uppercase tracking-wider text-muted mb-3">Stammdaten</div>
-                    <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
-                        <div>
-                            <dt class="text-xs text-muted">E-Mail</dt>
-                            <dd class="text-text">{{ $profil->email }}</dd>
+                <div class="lg:col-span-2 glass rounded-2xl p-5" x-data="{ editing: false }">
+                    <form method="POST" action="{{ route('berufsbildner.lernende.update', ['lernender_id' => $profil->lernender_id]) }}">
+                        @csrf
+                        @method('PATCH')
+
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="text-xs font-semibold uppercase tracking-wider text-muted">Stammdaten</div>
+                            <button type="button" x-show="!editing" @click="editing = true"
+                                    class="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+                                    title="Lehrbeginn und Lehrende anpassen">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                                Bearbeiten
+                            </button>
+                            <div x-show="editing" x-cloak class="flex items-center gap-2">
+                                <button type="submit"
+                                        class="px-3 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary">
+                                    Speichern
+                                </button>
+                                <button type="button" @click="editing = false"
+                                        class="px-3 py-1 rounded-lg border border-border text-xs text-muted hover:text-text">
+                                    Abbrechen
+                                </button>
+                            </div>
                         </div>
-                        <div>
-                            <dt class="text-xs text-muted">Lehrberuf</dt>
-                            <dd class="text-text">{{ $profil->lehrberuf ?? '–' }}</dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs text-muted">Lehrbeginn</dt>
-                            <dd class="text-text">
-                                {{ $profil->lehrbeginn ? \Carbon\Carbon::parse($profil->lehrbeginn)->format('d.m.Y') : '–' }}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs text-muted">Lehrende</dt>
-                            <dd class="text-text">
-                                {{ $profil->lehrende ? \Carbon\Carbon::parse($profil->lehrende)->format('d.m.Y') : '–' }}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt class="text-xs text-muted">Letzte Note</dt>
-                            <dd class="text-text">
-                                {{ $lastEntry ? $lastEntry->format('d.m.Y') : '–' }}
-                            </dd>
-                        </div>
-                        @if($tracks->isNotEmpty())
+
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
                             <div>
-                                <dt class="text-xs text-muted">Tracks</dt>
+                                <dt class="text-xs text-muted">E-Mail</dt>
+                                <dd class="text-text">{{ $profil->email }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-muted">Lehrberuf</dt>
+                                <dd class="text-text">{{ $profil->lehrberuf ?? '–' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-muted">Lehrbeginn</dt>
                                 <dd class="text-text">
-                                    @foreach($tracks as $t)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-text mr-1">
-                                            {{ $t->track_typ }}
-                                        </span>
-                                    @endforeach
+                                    <span x-show="!editing">
+                                        {{ $profil->lehrbeginn ? \Carbon\Carbon::parse($profil->lehrbeginn)->format('d.m.Y') : '–' }}
+                                    </span>
+                                    <input x-show="editing" x-cloak type="date" name="lehrbeginn" required
+                                           value="{{ old('lehrbeginn', $profil->lehrbeginn) }}"
+                                           class="mt-0.5 w-full rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
+                                    @error('lehrbeginn')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
                                 </dd>
                             </div>
-                        @endif
-                    </dl>
+                            <div>
+                                <dt class="text-xs text-muted">Lehrende</dt>
+                                <dd class="text-text">
+                                    <span x-show="!editing">
+                                        {{ $profil->lehrende ? \Carbon\Carbon::parse($profil->lehrende)->format('d.m.Y') : '–' }}
+                                    </span>
+                                    <input x-show="editing" x-cloak type="date" name="lehrende"
+                                           value="{{ old('lehrende', $profil->lehrende) }}"
+                                           class="mt-0.5 w-full rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
+                                    @error('lehrende')
+                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </dd>
+                            </div>
+                            <div>
+                                <dt class="text-xs text-muted">Letzte Note</dt>
+                                <dd class="text-text">
+                                    {{ $lastEntry ? $lastEntry->format('d.m.Y') : '–' }}
+                                </dd>
+                            </div>
+                            @if($tracks->isNotEmpty())
+                                <div>
+                                    <dt class="text-xs text-muted">Tracks</dt>
+                                    <dd class="text-text">
+                                        @foreach($tracks as $t)
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-text mr-1">
+                                                {{ $t->track_typ }}
+                                            </span>
+                                        @endforeach
+                                    </dd>
+                                </div>
+                            @endif
+                        </dl>
+                    </form>
                 </div>
 
                 <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center text-center np-card-lift">

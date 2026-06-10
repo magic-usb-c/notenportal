@@ -226,4 +226,49 @@ class LernendeController extends Controller
             'notenVerlauf' => $this->noteService->notenVerlauf($lernender_id),
         ]);
     }
+
+    /**
+     * BB aktualisiert begrenzte Profilfelder eines betreuten Lernenden.
+     *
+     * Erlaubt: lehrbeginn, lehrende.
+     * Nicht erlaubt: E-Mail, Passwort, Rolle, Benutzername (nur Admin).
+     * Hinweis: Ein Bemerkungs-/Notizfeld existiert im Schema der Tabelle
+     * `lernende` nicht und kann ohne ALTER-Rechte nicht ergänzt werden.
+     */
+    public function update(Request $request, int $lernender_id)
+    {
+        $bb = $request->user()?->berufsbildner;
+        if (!$bb) {
+            abort(403);
+        }
+
+        // Authorization: BB darf nur aktuell betreute Lernende bearbeiten
+        $today = now()->toDateString();
+        $betreut = DB::table('betreuungen')
+            ->where('berufsbildner_id', $bb->berufsbildner_id)
+            ->where('lernender_id', $lernender_id)
+            ->where('gueltig_von', '<=', $today)
+            ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today))
+            ->exists();
+
+        abort_if(!$betreut, 403, 'Sie betreuen diesen Lernenden nicht.');
+
+        $validated = $request->validate([
+            'lehrbeginn' => ['required', 'date'],
+            'lehrende'   => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
+        ]);
+
+        DB::table('lernende')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('geloescht_am')
+            ->update([
+                'lehrbeginn'      => $validated['lehrbeginn'],
+                'lehrende'        => $validated['lehrende'] ?? null,
+                'aktualisiert_am' => now(),
+            ]);
+
+        return redirect()
+            ->route('berufsbildner.lernende.show', ['lernender_id' => $lernender_id])
+            ->with('status', 'Profil aktualisiert.');
+    }
 }

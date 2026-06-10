@@ -90,6 +90,10 @@ Route::middleware(['auth', 'role:Berufsbildner'])
         Route::get('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'show'])
             ->whereNumber('lernender_id')->name('lernende.show');
 
+        // BB darf begrenzte Profilfelder (Lehrbeginn, Lehrende) seiner Lernenden pflegen
+        Route::patch('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'update'])
+            ->whereNumber('lernender_id')->name('lernende.update');
+
         Route::get('/lernende/{lernender_id}/noten', [BerufsbildnerNotenController::class, 'index'])
             ->name('lernende.noten.index');
 
