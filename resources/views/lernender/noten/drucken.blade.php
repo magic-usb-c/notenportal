@@ -111,6 +111,24 @@
         .total-item .label { font-size: 8pt; color: #777; }
         .total-item .value { font-size: 14pt; font-weight: 700; }
 
+        .signature-section {
+            margin-top: 36px;
+            display: flex;
+            gap: 40px;
+            page-break-inside: avoid;
+        }
+
+        .signature-block { flex: 1; }
+        .signature-line {
+            border-bottom: 1px solid #1a1a1a;
+            height: 36px;
+        }
+        .signature-label {
+            font-size: 8pt;
+            color: #777;
+            margin-top: 4px;
+        }
+
         .footer-print {
             margin-top: 20px;
             font-size: 8pt;
@@ -251,6 +269,18 @@
             </div>
         </div>
     @endif
+
+    {{-- Unterschriften (Kenntnisnahme) --}}
+    <div class="signature-section">
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Datum / Unterschrift Lernende(r)</div>
+        </div>
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="signature-label">Datum / Unterschrift Berufsbildner(in)</div>
+        </div>
+    </div>
 
     <div class="footer-print">
         Gedruckt am {{ now()->format('d.m.Y H:i') }} Uhr &nbsp;·&nbsp; {{ config('app.name') }}
