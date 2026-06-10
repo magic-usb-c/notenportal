@@ -324,6 +324,23 @@ class DashboardController extends Controller
             ->orderBy('l.lehrende')
             ->get();
 
+        // Erfassungs-Aktivität: Noten pro Woche, letzte 8 Wochen (nach Erfassungsdatum)
+        $wochenStart = now()->startOfWeek()->subWeeks(7);
+        $aktivitaetRaw = DB::table('noten')
+            ->whereNull('geloescht_am')
+            ->where('erstellt_am', '>=', $wochenStart)
+            ->selectRaw('YEARWEEK(erstellt_am, 3) as kw, COUNT(*) as count')
+            ->groupBy('kw')
+            ->pluck('count', 'kw');
+
+        $aktivitaet = collect(range(0, 7))->map(function ($i) use ($wochenStart, $aktivitaetRaw) {
+            $w = $wochenStart->copy()->addWeeks($i);
+            return (object) [
+                'label' => 'KW ' . $w->isoWeek(),
+                'count' => (int) ($aktivitaetRaw->get((int) $w->format('oW')) ?? 0),
+            ];
+        });
+
         return view('dashboards.admin', compact(
             'lernendCount',
             'berufsbildnerCount',
@@ -333,6 +350,7 @@ class DashboardController extends Controller
             'letzteNoten',
             'lernendeOhneNoten',
             'lehrEndeBald',
+            'aktivitaet',
         ));
     }
 }

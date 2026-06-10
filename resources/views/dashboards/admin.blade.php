@@ -39,6 +39,29 @@
                 <span class="text-xs text-muted">Administrator</span>
             </div>
 
+            {{-- Erfassungs-Aktivität: Noten pro Woche --}}
+            @php $maxAkt = $aktivitaet->max('count'); @endphp
+            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="px-5 py-4 border-b border-border flex items-center justify-between">
+                    <h3 class="font-semibold text-text">Erfassungs-Aktivität</h3>
+                    <span class="text-[11px] text-muted">neue Noten pro Woche, letzte 8 Wochen</span>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-end gap-2 h-24">
+                        @foreach($aktivitaet as $w)
+                            @php $hPct = $maxAkt > 0 ? round($w->count / $maxAkt * 100) : 0; @endphp
+                            <div class="flex-1 flex flex-col items-center justify-end h-full gap-1"
+                                 title="{{ $w->label }}: {{ $w->count }} {{ $w->count === 1 ? 'Note' : 'Noten' }}">
+                                <span class="text-[10px] text-muted tabular-nums leading-none">{{ $w->count > 0 ? $w->count : '' }}</span>
+                                <div class="w-full rounded-t bg-accent {{ $w->count === 0 ? 'opacity-15' : 'opacity-80' }}"
+                                     style="height: {{ max($hPct, $w->count > 0 ? 4 : 2) }}%"></div>
+                                <span class="text-[10px] text-muted leading-none whitespace-nowrap">{{ $w->label }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             {{-- Letzte Noten --}}
             <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">
