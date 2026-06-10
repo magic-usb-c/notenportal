@@ -48,6 +48,80 @@
                 <span class="text-xs text-muted">Berufsbildner</span>
             </div>
 
+            {{-- "Zu tun": Lernende die Aufmerksamkeit brauchen --}}
+            @php
+                $todos = collect();
+                foreach ($lernende as $l) {
+                    $lid = (int) $l->lernender_id;
+                    $st  = $stats->get($lid);
+                    $lp  = $lernendeProfile->get($lid);
+
+                    if ($st?->warningGelb) {
+                        $mailBody = rawurlencode("Hallo {$l->vorname}\n\nMir ist aufgefallen, dass du seit längerem keine Noten mehr im Notenportal erfasst hast. Bitte trage deine aktuellen Noten nach.\n\nDanke und Gruss\n" . auth()->user()->vorname);
+                        $todos->push((object) [
+                            'lernender' => $l,
+                            'text'      => $st->daysSince === null ? 'Noch keine Noten erfasst' : 'Kein Eintrag seit ' . $st->daysSince . ' Tagen',
+                            'farbe'     => 'yellow',
+                            'aktion'    => 'mailto:' . $l->email . '?subject=' . rawurlencode('Notenportal: Bitte Noten nachtragen') . '&body=' . $mailBody,
+                            'aktionText' => 'Erinnerung senden',
+                            'extern'    => true,
+                        ]);
+                    }
+                    if ($st?->warningRot) {
+                        $todos->push((object) [
+                            'lernender' => $l,
+                            'text'      => 'Semester-Ø ' . number_format($st->semAvg, 2) . ' — unter 4.0',
+                            'farbe'     => 'red',
+                            'aktion'    => route('berufsbildner.lernende.noten.index', ['lernender_id' => $lid]),
+                            'aktionText' => 'Noten ansehen',
+                            'extern'    => false,
+                        ]);
+                    }
+                    if ($lp && \Carbon\Carbon::parse($lp->lehrende)->diffInDays(now(), false) >= -30) {
+                        $todos->push((object) [
+                            'lernender' => $l,
+                            'text'      => 'Lehrende am ' . \Carbon\Carbon::parse($lp->lehrende)->format('d.m.Y'),
+                            'farbe'     => 'blue',
+                            'aktion'    => route('berufsbildner.lernende.show', ['lernender_id' => $lid]),
+                            'aktionText' => 'Profil öffnen',
+                            'extern'    => false,
+                        ]);
+                    }
+                }
+            @endphp
+            @if($todos->isNotEmpty())
+                <div class="glass rounded-2xl overflow-hidden">
+                    <div class="px-5 py-3 border-b border-border flex items-center justify-between">
+                        <h3 class="font-semibold text-text text-sm">Zu tun</h3>
+                        <span class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent/15 text-accent">
+                            {{ $todos->count() }}
+                        </span>
+                    </div>
+                    <div class="divide-y divide-border">
+                        @foreach($todos as $todo)
+                            @php
+                                $dot = match ($todo->farbe) {
+                                    'red'    => 'bg-red-500',
+                                    'yellow' => 'bg-yellow-500',
+                                    default  => 'bg-blue-500',
+                                };
+                            @endphp
+                            <div class="px-5 py-2.5 flex items-center gap-3">
+                                <span class="w-2 h-2 rounded-full shrink-0 {{ $dot }}"></span>
+                                <div class="flex-1 min-w-0 text-sm">
+                                    <span class="font-medium text-text">{{ $todo->lernender->nachname }} {{ $todo->lernender->vorname }}</span>
+                                    <span class="text-muted"> — {{ $todo->text }}</span>
+                                </div>
+                                <a href="{{ $todo->aktion }}"
+                                   class="shrink-0 text-xs text-accent hover:underline whitespace-nowrap">
+                                    {{ $todo->aktionText }} →
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             {{-- Betreute Lernende als Card-Grid --}}
             <div>
                 <div class="flex items-center justify-between mb-3">
