@@ -141,6 +141,9 @@
                 </div>
             @endif
 
+            {{-- Ø pro Fach / Modul (berücksichtigt aktive Filter) --}}
+            <x-fach-modul-stats :stats="$fachStats" />
+
             {{-- Noten-Accordion --}}
             <div class="space-y-2">
                 @forelse($notes as $n)

@@ -94,10 +94,18 @@ class NotenController extends Controller
         // Notenverlauf für Liniendiagramm
         $notenVerlauf = $this->noteService->notenVerlauf($lernender_id);
 
+        // Ø pro Fach/Modul (berücksichtigt aktive Filter)
+        $fachStats = $this->noteService->fachModulStats(
+            $lernender_id,
+            $request->filled('kategorie_id') ? (int) $request->input('kategorie_id') : null,
+            $request->filled('semester_id') ? (int) $request->input('semester_id') : null,
+        );
+
         return view('admin.noten.index', [
             'notes' => $notes,
             'statsRow' => $statsRow,
             'notenVerlauf' => $notenVerlauf,
+            'fachStats' => $fachStats,
 
             // Switcher
             'lernende' => $lernende,

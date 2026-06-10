@@ -69,6 +69,31 @@ class NoteService
     }
 
     /**
+     * Ø pro Fach/Modul (gewichtet), optional auf Kategorie/Semester gefiltert.
+     */
+    public function fachModulStats(int $lernenderId, ?int $kategorieId = null, ?int $semesterId = null): Collection
+    {
+        $fachLabel = "COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel, '–')";
+
+        return DB::table('noten as n')
+            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->when($kategorieId, fn($q) => $q->where('n.kategorie_id', $kategorieId))
+            ->when($semesterId, fn($q) => $q->where('n.semester_id', $semesterId))
+            ->groupBy(DB::raw($fachLabel))
+            ->select([
+                DB::raw("$fachLabel as label"),
+                DB::raw('COUNT(*) as count'),
+                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
+            ])
+            ->orderBy('label')
+            ->get();
+    }
+
+    /**
      * Standard-Filter für Index-Seite.
      */
     public function applyIndexFilters(Builder $q, ?int $kategorieId, ?int $semesterId): Builder

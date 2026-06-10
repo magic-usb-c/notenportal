@@ -122,23 +122,11 @@ class NotenController extends Controller
         $notenVerlauf = $this->noteService->notenVerlauf($lernender_id);
 
         // Ø pro Fach/Modul (berücksichtigt aktive Filter)
-        $fachLabel = "COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel, '–')";
-        $fachStats = DB::table('noten as n')
-            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
-            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
-            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
-            ->where('n.lernender_id', $lernender_id)
-            ->whereNull('n.geloescht_am')
-            ->when($request->filled('kategorie_id'), fn($q) => $q->where('n.kategorie_id', (int) $request->input('kategorie_id')))
-            ->when($request->filled('semester_id'), fn($q) => $q->where('n.semester_id', (int) $request->input('semester_id')))
-            ->groupBy(DB::raw($fachLabel))
-            ->select([
-                DB::raw("$fachLabel as label"),
-                DB::raw('COUNT(*) as count'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
-            ])
-            ->orderBy('label')
-            ->get();
+        $fachStats = $this->noteService->fachModulStats(
+            $lernender_id,
+            $request->filled('kategorie_id') ? (int) $request->input('kategorie_id') : null,
+            $request->filled('semester_id') ? (int) $request->input('semester_id') : null,
+        );
 
         return view('berufsbildner.noten.index', [
             'notes'              => $notes,
