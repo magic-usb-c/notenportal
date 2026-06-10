@@ -402,7 +402,9 @@
 <script>
 (function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-    const openedNoteId = {{ session('opened_note') ? (int)session('opened_note') : 'null' }};
+    const openedNoteId = {{ session('opened_note')
+        ? (int) session('opened_note')
+        : ((int) request()->input('_open', 0) > 0 ? (int) request()->input('_open') : 'null') }};
 
     const markGesehen = (noteId) => {
         fetch('/noten/' + noteId + '/gesehen', {

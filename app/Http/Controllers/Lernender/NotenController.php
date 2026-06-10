@@ -30,6 +30,20 @@ class NotenController extends Controller
         // Semester-Liste (nur Lehrbeginn -> Lehrende/heute)
         $semester = $this->noteService->semestersForLernender($lernenderId);
 
+        // Deep-Link: ?_open=<note_id> wählt automatisch das Semester dieser Note,
+        // damit der Accordion-Eintrag sichtbar ist (z.B. von Dashboard "Letzte Noten")
+        $openNoteId = (int) $request->input('_open', 0);
+        if ($openNoteId > 0 && !$request->filled('semester_id')) {
+            $openSemId = DB::table('noten')
+                ->where('note_id', $openNoteId)
+                ->where('lernender_id', $lernenderId)
+                ->whereNull('geloescht_am')
+                ->value('semester_id');
+            if ($openSemId) {
+                $request->merge(['semester_id' => (int) $openSemId]);
+            }
+        }
+
         // Default-Semester: aktuelles (heute liegt drin), sonst das letzte in der Liste
         // Nullsafe-Operator verhindert Crash wenn kein Semester konfiguriert ist
         $selectedSemesterId = $request->filled('semester_id')
