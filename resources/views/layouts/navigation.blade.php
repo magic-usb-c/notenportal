@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-card border-b border-border">
+<nav x-data="{ open: false }" class="glass-subtle sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -8,7 +8,7 @@
                     </a>
                 </div>
 
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex sm:items-stretch">
+                <div class="hidden space-x-1 sm:-my-px sm:ms-8 sm:flex sm:items-stretch">
                     {{-- Dashboard aktiv auch auf /lernender, /berufsbildner, /admin --}}
                     <x-nav-link
                         :href="route('dashboard')"
@@ -40,8 +40,8 @@
                             {{-- Dropdown: Benutzer --}}
                             <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                                 <button type="button"
-                                        class="inline-flex items-center h-full gap-1 px-1 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none
-                                    {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
+                                        class="inline-flex items-center h-full gap-1 px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none rounded-sm
+                                    {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Benutzer
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>
@@ -74,8 +74,8 @@
                             {{-- Dropdown: Stammdaten --}}
                             <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
                                 <button type="button"
-                                        class="inline-flex items-center h-full gap-1 px-1 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none
-                                    {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text hover:border-border' }}">
+                                        class="inline-flex items-center h-full gap-1 px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none rounded-sm
+                                    {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Stammdaten
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/>

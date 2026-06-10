@@ -8,6 +8,17 @@
 
   --accent: 37 99 235;
   --ring: 59 130 246;
+
+  /* Aliase für rgba()-Nutzung in Glass-Utilities (Werte sind bereits RGB-Tripel) */
+  --bg-rgb: var(--bg);
+  --card-rgb: var(--card);
+  --accent-rgb: var(--accent);
+
+  /* Glass-Tuning: Hell-Modus braucht andere Border/Schatten als Dunkel-Modus */
+  --glass-border: 15 23 42;        /* dunkle Kante auf hellem Grund */
+  --glass-border-alpha: 0.08;
+  --glass-highlight-alpha: 0.9;    /* obere Lichtkante */
+  --glass-shadow-alpha: 0.10;
 }
 
 .dark {
@@ -20,4 +31,13 @@
 
   --accent: 59 130 246;
   --ring: 96 165 250;
+
+  --bg-rgb: var(--bg);
+  --card-rgb: var(--card);
+  --accent-rgb: var(--accent);
+
+  --glass-border: 255 255 255;     /* helle Kante auf dunklem Grund */
+  --glass-border-alpha: 0.09;
+  --glass-highlight-alpha: 0.15;
+  --glass-shadow-alpha: 0.30;
 }

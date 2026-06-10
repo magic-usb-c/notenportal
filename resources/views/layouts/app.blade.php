@@ -31,12 +31,15 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
-        <div class="min-h-screen bg-bg">
+        {{-- Page-Progress-Bar (accent, 2px, oben) --}}
+        <div id="np-progress"></div>
+
+        <div class="min-h-screen bg-bg flex flex-col">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-card border-b border-border shadow">
+                <header class="bg-card/70 backdrop-blur-sm border-b border-border">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -44,9 +47,13 @@
             @endisset
 
             <!-- Page Content -->
-            <main>
+            <main class="flex-1">
                 {{ $slot }}
             </main>
+
+            <footer class="py-4 text-center text-xs text-muted/70">
+                Notenportal · Hamilton Bonaduz AG · {{ now()->year }}
+            </footer>
         </div>
 
         {{-- Globale Flash-Messages (Toast unten rechts) --}}
@@ -94,6 +101,39 @@
                     }, 3000);
                 });
             });
+
+            // Page-Progress-Bar: startet bei Navigation/Submit, endet beim (Re-)Load
+            (function () {
+                const bar = document.getElementById('np-progress');
+                if (!bar) return;
+
+                const start = () => {
+                    bar.classList.remove('np-done');
+                    // Reflow erzwingen, damit die Transition neu startet
+                    void bar.offsetWidth;
+                    bar.classList.add('np-loading');
+                };
+
+                document.addEventListener('click', (e) => {
+                    const a = e.target.closest('a[href]');
+                    if (!a) return;
+                    if (a.target === '_blank' || a.hasAttribute('download')) return;
+                    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+                    const href = a.getAttribute('href');
+                    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:')) return;
+                    if (a.origin && a.origin !== window.location.origin) return;
+                    start();
+                });
+
+                document.addEventListener('submit', () => start());
+
+                // Bei Back/Forward-Cache-Restore zurücksetzen
+                window.addEventListener('pageshow', () => {
+                    bar.classList.remove('np-loading');
+                    bar.classList.add('np-done');
+                    setTimeout(() => bar.classList.remove('np-done'), 300);
+                });
+            })();
         </script>
     </body>
 </html>
