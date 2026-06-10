@@ -139,7 +139,7 @@
                                         @if(!$l->aktiv || $ohneBetreuer || $showLehrBadge || $warnGelb || $warnRot)
                                             <div class="flex flex-wrap gap-1 mt-1.5">
                                                 @if(!$l->aktiv)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 whitespace-nowrap">Inaktiv</span>
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-bg text-muted border border-border whitespace-nowrap">Inaktiv</span>
                                                 @endif
                                                 @if($ohneBetreuer && $l->aktiv)
                                                     <span title="Kein aktiver Berufsbildner zugewiesen. Unter «Betreuung» einen Berufsbildner zuteilen." class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 whitespace-nowrap cursor-help">Ohne BB</span>
