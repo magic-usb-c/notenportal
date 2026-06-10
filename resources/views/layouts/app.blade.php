@@ -135,5 +135,19 @@
                 });
             })();
         </script>
+
+        @auth
+            @if(auth()->user()->hasRole('Admin'))
+                <script>
+                    // Ctrl+K / Cmd+K: Schnellsuche nach Benutzern (Admin)
+                    document.addEventListener('keydown', (e) => {
+                        if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+                            e.preventDefault();
+                            window.location.href = '{{ route('admin.benutzer.index') }}#suche';
+                        }
+                    });
+                </script>
+            @endif
+        @endauth
     </body>
 </html>

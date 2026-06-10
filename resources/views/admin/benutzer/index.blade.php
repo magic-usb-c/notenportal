@@ -38,7 +38,7 @@
 
                     <div class="sm:col-span-2">
                         <label class="text-sm font-medium text-muted">Suche</label>
-                        <input type="text" name="suche" value="{{ $suche }}"
+                        <input type="text" name="suche" id="suche" value="{{ $suche }}"
                                placeholder="Name, E-Mail oder Benutzername…"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                     </div>
@@ -170,4 +170,13 @@
 
         </div>
     </div>
+
+    <script>
+        // Schnellsuche (Ctrl+K aus der Nav): #suche-Hash fokussiert das Suchfeld
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.location.hash === '#suche') {
+                document.getElementById('suche')?.focus();
+            }
+        });
+    </script>
 </x-app-layout>
