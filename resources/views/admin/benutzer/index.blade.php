@@ -10,7 +10,7 @@
                 </div>
             </div>
             <a href="{{ route('admin.benutzer.create') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
+               class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                 + Benutzer anlegen
             </a>
         </div>
@@ -64,7 +64,7 @@
                                 <option value="inaktiv" @selected($status === 'inaktiv')>Inaktiv</option>
                             </select>
                             <button type="submit"
-                                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm shrink-0">
+                                    class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm shrink-0">
                                 Suchen
                             </button>
                             @if($suche || $rolleId || $status)

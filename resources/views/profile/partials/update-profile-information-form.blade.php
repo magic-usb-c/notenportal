@@ -42,7 +42,7 @@
 
         <div class="pt-1 flex items-center gap-4">
             <button type="submit"
-                    class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium hover:opacity-90">
+                    class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
                 Speichern
             </button>
             @if(session('status') === 'profile-updated')

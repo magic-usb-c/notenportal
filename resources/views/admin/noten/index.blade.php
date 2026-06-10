@@ -8,7 +8,7 @@
             </h2>
             <div class="flex gap-2 flex-wrap">
                 <a href="{{ route('admin.lernende.noten.create', ['lernender_id' => $selectedLernenderId]) }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
+                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                     + Note erfassen
                 </a>
                 <a href="{{ route('admin.lernende.noten.drucken', ['lernender_id' => $selectedLernenderId]) }}"
@@ -97,7 +97,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                             Filtern
                         </button>
                         <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
@@ -326,7 +326,7 @@
                                                maxlength="2000"
                                                required>
                                         <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
                                             Senden
                                         </button>
                                     </div>

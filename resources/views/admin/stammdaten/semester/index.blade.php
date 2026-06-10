@@ -3,7 +3,7 @@
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Semester</h2>
             <a href="{{ route('admin.stammdaten.semester.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neues Semester
             </a>
         </div>

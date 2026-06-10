@@ -10,7 +10,7 @@
                 </div>
             </div>
             <a href="{{ route('admin.benutzer.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm">
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                 <span class="text-lg leading-none">+</span>
                 Neuer Benutzer
             </a>
@@ -103,7 +103,7 @@
                                                     Lernende
                                                 </a>
                                                 <a href="{{ route('admin.benutzer.edit', $bb->benutzer_id) }}"
-                                                   class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs hover:opacity-90 whitespace-nowrap">
+                                                   class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
                                                     Bearbeiten
                                                 </a>
                                             </div>

@@ -65,7 +65,7 @@
 
         <div class="pt-2">
             <button type="submit"
-                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold hover:opacity-90
+                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
                            focus:outline-none focus:ring-2 focus:ring-accent/50">
                 Anmelden
             </button>

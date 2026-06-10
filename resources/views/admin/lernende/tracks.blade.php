@@ -115,7 +115,7 @@
                     </div>
 
                     <button type="submit"
-                            class="w-full px-4 py-2 rounded-xl bg-accent text-white hover:opacity-90 font-medium">
+                            class="w-full px-4 py-2 rounded-xl bg-accent text-white np-btn-primary font-medium">
                         Track speichern
                     </button>
                 </form>

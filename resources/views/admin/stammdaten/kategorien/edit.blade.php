@@ -60,7 +60,7 @@
 
                     <div class="pt-2 flex gap-3">
                         <button type="submit"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                             Speichern
                         </button>
                         <a href="{{ route('admin.stammdaten.kategorien.index') }}"

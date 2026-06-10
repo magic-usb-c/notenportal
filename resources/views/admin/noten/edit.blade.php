@@ -137,7 +137,7 @@
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button class="inline-flex items-center px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                        <button class="inline-flex items-center px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                             Speichern
                         </button>
                         <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $lernender_id]) }}"

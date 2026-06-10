@@ -101,7 +101,7 @@
                         </div>
                         <div class="md:col-span-2">
                             <button type="submit"
-                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 text-sm">
+                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">
                                 Zuweisen
                             </button>
                         </div>
@@ -172,7 +172,7 @@
                             </select>
                         </div>
                         <button type="submit"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 text-sm whitespace-nowrap">
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm whitespace-nowrap">
                             Zuweisen
                         </button>
                     </form>

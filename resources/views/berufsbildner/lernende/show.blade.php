@@ -14,7 +14,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $profil->lernender_id]) }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
                     Noten ansehen
                 </a>
                 <a href="{{ route('berufsbildner.lernende.noten.drucken', ['lernender_id' => $profil->lernender_id]) }}"

@@ -174,12 +174,12 @@
                                     : ($daysAgo < 7 ? 'vor '.$daysAgo.' Tagen'
                                     : $datum->format('d.m.Y')));
                                 $noteColor = $noteWert >= 5.0
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 np-glow-green'
                                     : ($noteWert >= 4.0
-                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                        ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 np-glow-emerald'
                                         : ($noteWert >= 3.5
-                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
+                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red'));
                             @endphp
                             <a href="{{ route('lernender.noten.index') }}?_open={{ $n->note_id }}"
                                class="block px-5 py-3 flex items-center justify-between gap-4 hover:bg-accent/5 transition-colors duration-100">
@@ -187,7 +187,7 @@
                                     <div class="text-sm font-medium text-text">{{ $label }}</div>
                                     <div class="text-xs text-muted">{{ $relativeDate }}</div>
                                 </div>
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm np-fade-in {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                             </a>
@@ -199,7 +199,7 @@
             {{-- Quick-Actions --}}
             <div class="flex flex-wrap gap-2">
                 <a href="{{ route('lernender.noten.create') }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm hover:opacity-90 inline-flex items-center gap-2">
+                   class="px-4 py-2 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary inline-flex items-center gap-2">
                     <span class="text-lg leading-none">+</span>
                     Neue Note erfassen
                 </a>

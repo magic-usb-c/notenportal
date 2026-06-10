@@ -189,7 +189,7 @@
                                                maxlength="2000"
                                                required>
                                         <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
                                             Senden
                                         </button>
                                     </div>
@@ -378,7 +378,7 @@
                                                maxlength="2000"
                                                required>
                                         <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
                                             Senden
                                         </button>
                                     </div>

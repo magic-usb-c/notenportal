@@ -20,7 +20,7 @@
 
         <div class="pt-1">
             <button type="submit"
-                    class="w-full flex justify-center px-4 py-2 h-10 rounded-xl bg-accent text-white font-medium hover:opacity-90">
+                    class="w-full flex justify-center px-4 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
                 Link zusenden
             </button>
         </div>

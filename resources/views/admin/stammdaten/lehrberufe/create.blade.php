@@ -35,7 +35,7 @@
 
                     <div class="pt-2">
                         <button type="submit"
-                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 font-medium">
+                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary font-medium">
                             Lehrberuf anlegen
                         </button>
                     </div>

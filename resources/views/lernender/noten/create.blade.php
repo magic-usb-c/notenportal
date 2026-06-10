@@ -180,7 +180,7 @@
                     {{-- Submit --}}
                     <div class="pt-2 space-y-2">
                         <button type="submit" :disabled="loading"
-                                class="w-full h-12 rounded-xl bg-accent text-white text-base font-semibold hover:opacity-90
+                                class="w-full h-12 rounded-xl bg-accent text-white text-base font-semibold np-btn-primary
                                        disabled:opacity-60 disabled:cursor-not-allowed
                                        focus:outline-none focus:ring-2 focus:ring-accent/50 inline-flex items-center justify-center gap-2">
                             <svg x-show="loading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">

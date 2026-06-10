@@ -14,7 +14,7 @@
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
             <button type="submit"
-                    class="px-4 py-2 rounded-xl bg-accent text-white hover:opacity-90 text-sm font-medium">
+                    class="px-4 py-2 rounded-xl bg-accent text-white np-btn-primary text-sm font-medium">
                 Bestätigungs-E-Mail erneut senden
             </button>
         </form>

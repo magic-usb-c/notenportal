@@ -60,7 +60,7 @@
                         <a href="{{ route('admin.lernende.tracks', $lernender_id) }}"
                            class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg">Tracks</a>
                         <a href="{{ route('admin.lernende.noten.index', $lernender_id) }}"
-                           class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs hover:opacity-90">Alle Noten</a>
+                           class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary">Alle Noten</a>
                     </div>
                 </div>
 
@@ -162,12 +162,12 @@
                         </div>
                         @php
                             $nw = (float)$n->note_wert;
-                            $c = $nw >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                               : ($nw >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                               : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                               : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
+                            $c = $nw >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 np-glow-green'
+                               : ($nw >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 np-glow-emerald'
+                               : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow'
+                               : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red'));
                         @endphp
-                        <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm {{ $c }}">
+                        <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm np-fade-in {{ $c }}">
                             {{ number_format($nw, 1) }}
                         </span>
                     </div>

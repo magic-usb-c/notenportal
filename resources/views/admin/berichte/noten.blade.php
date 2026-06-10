@@ -79,7 +79,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 text-sm">
+                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">
                             Filtern
                         </button>
                         @if($semesterId || $lehrberufId || $berufsbildnerId)

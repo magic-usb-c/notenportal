@@ -128,7 +128,7 @@
                     <span class="hidden sm:inline">Rechner</span>
                 </a>
                 <a href="{{ route('lernender.noten.create') }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap"
+                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap"
                    title="Neue Note erfassen (Shortcut: N)">
                     <span class="text-lg leading-none">+</span>
                     Neue Note
@@ -168,7 +168,7 @@
                         </select>
                     </div>
 
-                    <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap">
+                    <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap">
                         Anwenden
                     </button>
                     <a href="{{ route('lernender.noten.index', ['semester_id' => $selectedSemesterId]) }}"
@@ -260,7 +260,7 @@
                     </svg>
                     <p class="mt-3 text-sm text-muted">Noch keine Noten für dieses Semester.</p>
                     <a href="{{ route('lernender.noten.create') }}"
-                       class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-semibold hover:opacity-90">
+                       class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                         <span class="text-lg leading-none">+</span>
                         Erste Note erfassen
                     </a>

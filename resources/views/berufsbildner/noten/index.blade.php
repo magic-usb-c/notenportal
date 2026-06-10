@@ -109,10 +109,10 @@
                                     $a = $ss->avg !== null ? (float)$ss->avg : null;
                                     $c = $a === null
                                         ? 'bg-bg text-muted'
-                                        : ($a >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                                        : ($a >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                        : ($a >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                        : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300')));
+                                        : ($a >= 5.0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 np-glow-green'
+                                        : ($a >= 4.0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 np-glow-emerald'
+                                        : ($a >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow'
+                                        : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red')));
                                 @endphp
                                 <div class="text-center">
                                     <div class="text-[11px] text-muted whitespace-nowrap">{{ $ss->sem_label }}</div>
@@ -182,7 +182,7 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90">
+                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                             Filtern
                         </button>
                         <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
@@ -408,7 +408,7 @@
                                                maxlength="2000"
                                                required>
                                         <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:opacity-90 whitespace-nowrap">
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
                                             Senden
                                         </button>
                                     </div>

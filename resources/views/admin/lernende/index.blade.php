@@ -65,7 +65,7 @@
                     </div>
                     <div class="flex gap-2">
                         <button type="submit"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 whitespace-nowrap text-sm shrink-0">
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm shrink-0">
                             Filtern
                         </button>
                         @if($suche || $warnung || $inaktive === '1' || $bbFilterId !== '')
@@ -198,7 +198,7 @@
                                                 Tracks
                                             </a>
                                             <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
-                                               class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs hover:opacity-90 whitespace-nowrap">
+                                               class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
                                                 Noten
                                             </a>
                                         </div>

@@ -22,12 +22,12 @@
         <div class="pt-2">
             @auth
                 <a href="{{ url('/') }}"
-                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white hover:opacity-90">
+                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white np-btn-primary">
                     Zum Dashboard
                 </a>
             @else
                 <a href="{{ route('login') }}"
-                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white hover:opacity-90">
+                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white np-btn-primary">
                     Zur Anmeldung
                 </a>
             @endauth
