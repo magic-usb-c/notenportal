@@ -11,9 +11,13 @@
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
+            <div class="glass rounded-2xl p-6 space-y-6">
 
-                <form method="POST" action="{{ route('admin.benutzer.store') }}" class="space-y-5">
+                @php
+                    $lernenderRolleId = $rollen->firstWhere('name', 'Lernender')->rolle_id ?? 3;
+                @endphp
+                <form method="POST" action="{{ route('admin.benutzer.store') }}" class="space-y-5"
+                      x-data="{ rolle: '{{ old('rolle_id') }}', track: '{{ old('track_typ') }}' }">
                     @csrf
 
                     {{-- ---- Stammdaten ---- --}}
@@ -97,28 +101,51 @@
                         </div>
                     </div>
 
-                    {{-- ---- Rolle ---- --}}
+                    {{-- ---- Rolle: visuelle Card-Auswahl ---- --}}
                     <div>
                         <label class="text-sm font-medium text-muted">Rolle *</label>
-                        <select name="rolle_id" id="rolle_select" required
-                                onchange="onRolleChange()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('rolle_id') border-red-400 @enderror">
-                            <option value="">Bitte wählen…</option>
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
                             @foreach($rollen as $r)
-                                <option value="{{ $r->rolle_id }}" @selected(old('rolle_id') == $r->rolle_id)>
-                                    {{ $r->name }}
-                                </option>
+                                @php
+                                    $rolleMeta = match ($r->name) {
+                                        'Lernender'     => ['desc' => 'Erfasst eigene Noten', 'icon' => 'M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z'],
+                                        'Berufsbildner' => ['desc' => 'Betreut Lernende', 'icon' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z'],
+                                        default         => ['desc' => 'Volle Verwaltung', 'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'],
+                                    };
+                                @endphp
+                                <label class="cursor-pointer rounded-2xl border-2 p-4 text-center transition-all duration-150 select-none"
+                                       :class="rolle == '{{ $r->rolle_id }}'
+                                           ? 'border-accent bg-accent/10 shadow-[0_0_16px_-4px_rgba(var(--accent-rgb),0.4)]'
+                                           : 'border-border bg-input hover:border-accent/40'">
+                                    <input type="radio" name="rolle_id" value="{{ $r->rolle_id }}"
+                                           x-model="rolle" class="sr-only" required>
+                                    <svg class="w-6 h-6 mx-auto mb-1.5 transition-colors"
+                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent' : 'text-muted'"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ $rolleMeta['icon'] }}"/>
+                                        @if($r->name !== 'Lernender' && $r->name !== 'Berufsbildner')
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        @endif
+                                    </svg>
+                                    <div class="font-semibold text-sm"
+                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent' : 'text-text'">{{ $r->name }}</div>
+                                    <div class="text-[11px] text-muted mt-0.5">{{ $rolleMeta['desc'] }}</div>
+                                </label>
                             @endforeach
-                        </select>
+                        </div>
                         @error('rolle_id')
                             <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
                         @enderror
                     </div>
 
                     {{-- ======================================================
-                         Lernender-spezifische Felder (rolle_id = 3)
+                         Lernender-spezifische Felder
                          ====================================================== --}}
-                    <div id="felder_lernender" class="hidden space-y-5">
+                    <div x-show="rolle == '{{ $lernenderRolleId }}'" x-cloak
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 -translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="space-y-5">
                         <div class="border-t border-border pt-5">
                             <div class="text-sm font-semibold text-text mb-4">Lernenden-Profil</div>
 
@@ -169,16 +196,15 @@
                         {{-- BMS/ABU-Track --}}
                         <div>
                             <label class="text-sm font-medium text-muted">Schul-Track</label>
-                            <select name="track_typ" id="track_typ_select"
-                                    onchange="onTrackChange()"
+                            <select name="track_typ" x-model="track"
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="">Kein Track (später einrichten)</option>
-                                <option value="BMS" @selected(old('track_typ') === 'BMS')>BMS</option>
-                                <option value="ABU" @selected(old('track_typ') === 'ABU')>ABU</option>
+                                <option value="BMS">BMS</option>
+                                <option value="ABU">ABU</option>
                             </select>
 
                             {{-- Startsemester – nur wenn Track ausgewählt --}}
-                            <div id="track_semester_block" class="mt-3 hidden">
+                            <div x-show="track" x-cloak class="mt-3">
                                 <label class="text-sm font-medium text-muted">Startsemester für Track *</label>
                                 <select name="track_semester_id"
                                         class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_semester_id') border-red-400 @enderror">
@@ -198,7 +224,7 @@
 
                     <div class="pt-2">
                         <button type="submit"
-                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white hover:opacity-90 font-medium">
+                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
                             Benutzer anlegen
                         </button>
                     </div>
@@ -207,21 +233,4 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function onRolleChange() {
-            const rolleId = parseInt(document.getElementById('rolle_select').value);
-            document.getElementById('felder_lernender').classList.toggle('hidden', rolleId !== 3);
-        }
-
-        function onTrackChange() {
-            const typ = document.getElementById('track_typ_select').value;
-            document.getElementById('track_semester_block').classList.toggle('hidden', !typ);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            onRolleChange();
-            onTrackChange();
-        });
-    </script>
 </x-app-layout>

@@ -4,6 +4,9 @@
 @tailwind utilities;
 
 @layer base {
+  /* Alpine.js: Elemente mit x-cloak bis zur Initialisierung verstecken */
+  [x-cloak] { display: none !important; }
+
   /* Globale, dezente Transitions für ein "lebendigeres" Gefühl. Nur Farben + Schatten,
      damit Layout-Properties (z. B. width, transform) explizit pro Element gesteuert werden. */
   *, *::before, *::after {
