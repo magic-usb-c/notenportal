@@ -36,33 +36,67 @@
                     if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
                     return 'text-red-600 dark:text-red-400';
                 };
+                $kennGlow = function ($v) {
+                    if ($v === null) return '';
+                    if ($v >= 5.0) return 'np-glow-green';
+                    if ($v >= 4.0) return 'np-glow-emerald';
+                    if ($v >= 3.5) return 'np-glow-yellow';
+                    return 'np-glow-red';
+                };
             @endphp
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Noten gesamt</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight text-text tabular-nums">{{ $noteCount }}</div>
-                </div>
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight tabular-nums {{ $kennColor($globalAvg) }}">
-                        {{ $globalAvg ?? '–' }}
+
+            @if($globalAvg !== null)
+                {{-- Score-Card: der Gesamtdurchschnitt als Held der Seite --}}
+                <div class="glass rounded-3xl p-8 text-center relative overflow-hidden"
+                     x-data="{ shown: 0, target: {{ $globalAvg }} }"
+                     x-init="
+                        const start = performance.now();
+                        const tick = (t) => {
+                            const p = Math.min(1, (t - start) / 700);
+                            shown = (target * (1 - Math.pow(1 - p, 3))).toFixed(2);
+                            if (p < 1) requestAnimationFrame(tick);
+                        };
+                        requestAnimationFrame(tick);
+                     ">
+                    <div class="absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
+                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium relative">Gesamtdurchschnitt</div>
+                    <div class="mt-2 text-6xl font-extrabold tracking-tight tabular-nums relative {{ $kennColor($globalAvg) }}"
+                         x-text="shown">{{ number_format($globalAvg, 2) }}</div>
+                    <div class="mt-1.5 text-xs text-muted relative">von 6.0 möglichen Punkten</div>
+
+                    {{-- Supporting Stats --}}
+                    <div class="mt-6 pt-5 border-t border-border/60 grid grid-cols-3 gap-4 relative">
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest text-muted">Noten gesamt</div>
+                            <div class="mt-1 text-xl font-bold text-text tabular-nums">{{ $noteCount }}</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest text-muted">Ø akt. Semester</div>
+                            <div class="mt-1 text-xl font-bold tabular-nums {{ $kennColor($currentAvg) }}">
+                                {{ $currentAvg ?? '–' }}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest text-muted">Semester</div>
+                            <div class="mt-1 text-sm font-semibold text-text leading-tight pt-1">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
+                        </div>
                     </div>
                 </div>
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø akt. Semester</div>
-                    <div class="mt-2 text-4xl font-extrabold tracking-tight tabular-nums {{ $kennColor($currentAvg) }}">
-                        {{ $currentAvg ?? '–' }}
-                    </div>
+            @else
+                {{-- Noch keine Noten: Empty-State mit Charakter --}}
+                <div class="glass rounded-3xl px-8 py-12 text-center">
+                    <svg class="mx-auto w-20 h-20 text-muted/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <h3 class="mt-4 font-semibold text-text">Dein Notenspiegel wartet auf dich</h3>
+                    <p class="mt-1 text-sm text-muted">Erfasse deine erste Note und sieh zu, wie dein Durchschnitt Gestalt annimmt.</p>
+                    <a href="{{ route('lernender.noten.create') }}"
+                       class="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                        <span class="text-lg leading-none">+</span>
+                        Erste Note erfassen
+                    </a>
                 </div>
-                <div class="relative overflow-hidden bg-card border border-border rounded-2xl shadow-sm p-5 np-card-lift">
-                    <div class="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-accent/5 pointer-events-none"></div>
-                    <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Aktuelles Semester</div>
-                    <div class="mt-2 text-base font-semibold text-text leading-tight">{{ $currentSemester?->bezeichnung ?? '–' }}</div>
-                </div>
-            </div>
+            @endif
 
             {{-- Lehrausbildung: Restlaufzeit --}}
             @if($lehrProfil && $lehrProfil->lehrende)
