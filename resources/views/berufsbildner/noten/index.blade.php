@@ -236,6 +236,20 @@
             @endif
 
             {{-- Noten-Accordion --}}
+            @if($notes->isNotEmpty())
+                <div class="flex justify-end gap-2 text-xs">
+                    <button type="button"
+                            onclick="document.querySelectorAll('details.np-details').forEach(d => d.open = true)"
+                            class="px-3 py-1.5 rounded-lg border border-border text-muted hover:text-text hover:bg-card">
+                        Alle aufklappen
+                    </button>
+                    <button type="button"
+                            onclick="document.querySelectorAll('details.np-details').forEach(d => d.open = false)"
+                            class="px-3 py-1.5 rounded-lg border border-border text-muted hover:text-text hover:bg-card">
+                        Alle zuklappen
+                    </button>
+                </div>
+            @endif
             <div class="space-y-2">
                 @forelse($notes as $n)
                     @php
