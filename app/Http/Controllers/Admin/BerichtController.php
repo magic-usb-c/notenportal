@@ -233,7 +233,7 @@ class BerichtController extends Controller
                 $passed = $s?->passed ?? 0;
                 $avg    = $s?->avg_weighted !== null ? number_format((float) $s->avg_weighted, 2, '.', '') : '';
                 $quote  = $total > 0 ? round($passed / $total * 100) : '';
-                $last   = $s?->last_entry ?? '';
+                $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry)->format('d.m.Y') : '';
 
                 fputcsv($out, [
                     $l->nachname, $l->vorname, $l->lehrberuf ?? '',

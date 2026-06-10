@@ -460,7 +460,7 @@ class NotenController extends Controller
                 $fachModul = $r->fach_name
                     ?? ($r->modul_nummer ? $r->modul_nummer . ' – ' . $r->modul_titel : '');
                 fputcsv($out, [
-                    $r->pruefungsdatum,
+                    $r->pruefungsdatum ? \Carbon\Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
                     $r->semester,
                     $r->kategorie ?? '',
                     $fachModul,
