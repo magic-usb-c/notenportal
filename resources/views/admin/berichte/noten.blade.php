@@ -161,13 +161,22 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="bg-bg text-muted">
                             <tr>
-                                <th class="text-left p-3">Lernender</th>
+                                @php
+                                    $sortLink = function ($col, $label) use ($sortBy, $sortDir) {
+                                        $isActive = $sortBy === $col;
+                                        $nextDir = $isActive && $sortDir === 'asc' ? 'desc' : 'asc';
+                                        $arrow = !$isActive ? '<span class="text-muted/50">⇅</span>' : ($sortDir === 'asc' ? '↑' : '↓');
+                                        $url = request()->fullUrlWithQuery(['sort' => $col, 'dir' => $nextDir]);
+                                        return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text '.($isActive ? 'text-text font-semibold' : '').'">'.$label.' '.$arrow.'</a>';
+                                    };
+                                @endphp
+                                <th class="text-left p-3">{!! $sortLink('name', 'Lernender') !!}</th>
                                 <th class="text-left p-3">Lehrberuf</th>
-                                <th class="text-center p-3 whitespace-nowrap">Noten</th>
-                                <th class="text-center p-3 whitespace-nowrap">Ø gewichtet</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('total', 'Noten') !!}</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('avg', 'Ø gewichtet') !!}</th>
                                 <th class="text-center p-3 whitespace-nowrap">Bestanden</th>
-                                <th class="text-center p-3 whitespace-nowrap">Quote</th>
-                                <th class="text-center p-3 whitespace-nowrap">Letzte Note</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('quote', 'Quote') !!}</th>
+                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('last', 'Letzte Note') !!}</th>
                                 <th class="text-right p-3"></th>
                             </tr>
                         </thead>

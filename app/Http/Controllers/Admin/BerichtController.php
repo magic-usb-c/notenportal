@@ -64,6 +64,25 @@ class BerichtController extends Controller
 
         $stats = $statsQ->get()->keyBy('lernender_id');
 
+        // Sortierung der Berichtstabelle (Name | total | avg | quote | last)
+        $sortBy  = $request->input('sort', 'name');
+        $sortDir = $request->input('dir', 'asc') === 'desc' ? 'desc' : 'asc';
+
+        $sortValue = function ($l) use ($stats, $sortBy) {
+            $s = $stats->get((int) $l->lernender_id);
+            return match ($sortBy) {
+                'total' => (int) ($s?->total ?? 0),
+                'avg'   => $s?->avg_weighted !== null ? (float) $s->avg_weighted : -1,
+                'quote' => ($s && $s->total > 0) ? $s->passed / $s->total : -1,
+                'last'  => $s?->last_entry ?? '',
+                default => mb_strtolower($l->nachname . ' ' . $l->vorname),
+            };
+        };
+
+        $lernende = ($sortDir === 'desc'
+            ? $lernende->sortByDesc($sortValue)
+            : $lernende->sortBy($sortValue))->values();
+
         $semester        = DB::table('semester')->orderBy('sortierung')->get();
         $lehrberufe      = DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get();
         $berufsbildner   = DB::table('berufsbildner as bb')
@@ -145,6 +164,8 @@ class BerichtController extends Controller
             'gesamtPassed'    => $gesamtPassed,
             'gesamtAvg'       => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,
             'notenVerteilung' => $notenVerteilung,
+            'sortBy'          => $sortBy,
+            'sortDir'         => $sortDir,
         ]);
     }
 
