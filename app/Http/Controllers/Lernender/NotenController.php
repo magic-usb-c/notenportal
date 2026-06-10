@@ -170,9 +170,29 @@ class NotenController extends Controller
             abort(403);
         }
 
+        // Basis für die Live-Ø-Vorschau: gewichtete Summen des aktuellen Semesters
+        $today = now()->toDateString();
+        $avgBasis = DB::table('noten as n')
+            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
+            ->where('n.lernender_id', (int) $lernender->lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->where('s.start_datum', '<=', $today)
+            ->where('s.end_datum', '>=', $today)
+            ->selectRaw('
+                COALESCE(SUM(COALESCE(n.gewichtung_prozent, 100)), 0) as wsum,
+                COALESCE(SUM(n.note_wert * COALESCE(n.gewichtung_prozent, 100)), 0) as nsum
+            ')
+            ->first();
+
         return view(
             'lernender.noten.create',
-            $this->noteService->formOptionsForLernender((int) $lernender->lernender_id)
+            array_merge(
+                $this->noteService->formOptionsForLernender((int) $lernender->lernender_id),
+                [
+                    'avgBasisWsum' => (float) ($avgBasis->wsum ?? 0),
+                    'avgBasisNsum' => (float) ($avgBasis->nsum ?? 0),
+                ]
+            )
         );
     }
 

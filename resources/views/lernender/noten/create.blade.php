@@ -177,6 +177,17 @@
                                       focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
                     </div>
 
+                    {{-- Live-Vorschau: neuer Ø im aktuellen Semester --}}
+                    <div x-data="npAvgPreview({{ $avgBasisWsum }}, {{ $avgBasisNsum }})" x-init="init()">
+                        <div x-show="newAvg !== null" x-cloak
+                             class="flex items-center justify-center gap-2 text-sm rounded-xl border border-border bg-bg/60 px-4 py-2.5">
+                            <span class="text-muted">Neuer Ø im aktuellen Semester:</span>
+                            <span class="font-bold tabular-nums text-base" :class="avgColor" x-text="newAvg !== null ? newAvg.toFixed(2) : ''"></span>
+                            <span x-show="delta !== null && delta > 0.004" class="text-green-600 dark:text-green-400 text-xs">▲ <span x-text="'+' + delta.toFixed(2)"></span></span>
+                            <span x-show="delta !== null && delta < -0.004" class="text-red-600 dark:text-red-400 text-xs">▼ <span x-text="delta.toFixed(2)"></span></span>
+                        </div>
+                    </div>
+
                     {{-- Submit --}}
                     <div class="pt-2 space-y-2">
                         <button type="submit" :disabled="loading"
@@ -197,6 +208,50 @@
                 </form>
 
                 <script>
+                    // Live-Ø-Vorschau: gewichteter Schnitt inkl. der gerade eingegebenen Note
+                    function npAvgPreview(wsum, nsum) {
+                        return {
+                            note: NaN,
+                            gew: 100,
+                            init() {
+                                const noteEl = document.querySelector('input[name="note_wert"]');
+                                const gewEl  = document.querySelector('input[name="gewichtung_prozent"]');
+                                const sync = () => {
+                                    this.note = parseFloat(noteEl?.value);
+                                    this.gew  = parseFloat(gewEl?.value);
+                                };
+                                noteEl?.addEventListener('input', sync);
+                                gewEl?.addEventListener('input', sync);
+                                // Gewichtungs-Schnellwahl setzt den Wert programmatisch
+                                document.querySelectorAll('button[type="button"]').forEach(b =>
+                                    b.addEventListener('click', () => setTimeout(sync, 0)));
+                                sync();
+                            },
+                            get currentAvg() {
+                                return wsum > 0 ? nsum / wsum : null;
+                            },
+                            get newAvg() {
+                                if (!Number.isFinite(this.note)) return null;
+                                const g = Number.isFinite(this.gew) && this.gew > 0 ? this.gew : 100;
+                                const w = wsum + g;
+                                if (w <= 0) return null;
+                                return (nsum + this.note * g) / w;
+                            },
+                            get delta() {
+                                if (this.newAvg === null || this.currentAvg === null) return null;
+                                return this.newAvg - this.currentAvg;
+                            },
+                            get avgColor() {
+                                const v = this.newAvg;
+                                if (v === null) return 'text-muted';
+                                if (v >= 5.0) return 'text-green-600 dark:text-green-400';
+                                if (v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
+                                if (v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                                return 'text-red-600 dark:text-red-400';
+                            },
+                        };
+                    }
+
                     const fachBlock = document.getElementById('fachBlock');
                     const modulBlock = document.getElementById('modulBlock');
                     const typRadios = document.querySelectorAll('input[name="typ"]');
