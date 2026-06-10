@@ -31,9 +31,17 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
-        <div class="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-bg">
-            <div class="w-full max-w-sm bg-card border border-border shadow-xl rounded-2xl overflow-hidden px-6 py-8">
+        <div class="relative min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-bg overflow-hidden">
+            {{-- Dekorative Accent-Orbs für Tiefe hinter dem Glass-Panel --}}
+            <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-accent/15 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-40 -right-24 w-[28rem] h-[28rem] rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
+
+            <div class="relative w-full max-w-sm glass rounded-2xl overflow-hidden px-6 py-8">
                 {{ $slot }}
+            </div>
+
+            <div class="relative mt-6 text-xs text-muted/70">
+                Notenportal · Hamilton Bonaduz AG · {{ now()->year }}
             </div>
         </div>
     </body>
