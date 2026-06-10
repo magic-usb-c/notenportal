@@ -40,6 +40,14 @@
     @endphp
 
     <div class="py-6">
+            {{-- Dekorative Accent-Orbs im Hintergrund (Tiefe) --}}
+            <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10" aria-hidden="true">
+                <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full"
+                     style="background:radial-gradient(circle,rgba(var(--accent-rgb),0.08) 0%,transparent 70%)"></div>
+                <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full"
+                     style="background:radial-gradient(circle,rgba(var(--accent-rgb),0.05) 0%,transparent 70%)"></div>
+            </div>
+
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
             {{-- Begrüssung (kompakt, ohne Panel) --}}

@@ -34,7 +34,7 @@
         {{-- Page-Progress-Bar (accent, 2px, oben) --}}
         <div id="np-progress"></div>
 
-        <div class="min-h-screen bg-bg flex flex-col">
+        <div class="min-h-screen flex flex-col">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
