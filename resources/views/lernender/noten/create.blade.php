@@ -75,8 +75,18 @@
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Gewichtung %</label>
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', 100) }}"
+                                   x-ref="gewichtInput"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                            <div class="mt-1.5 flex gap-1.5">
+                                @foreach([25, 50, 100] as $g)
+                                    <button type="button"
+                                            @click="$refs.gewichtInput.value = {{ $g }}"
+                                            class="px-2 py-0.5 rounded-lg border border-border text-[11px] text-muted hover:text-text hover:bg-bg">
+                                        {{ $g }}%
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
                         <div>
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum</label>

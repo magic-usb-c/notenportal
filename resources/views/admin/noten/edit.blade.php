@@ -124,6 +124,15 @@
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
+                            <div class="mt-1.5 flex gap-1.5">
+                                @foreach([25, 50, 100] as $g)
+                                    <button type="button"
+                                            onclick="this.closest('div').parentElement.querySelector('input[name=gewichtung_prozent]').value = {{ $g }}"
+                                            class="px-2 py-0.5 rounded-lg border border-border text-[11px] text-muted hover:text-text hover:bg-bg">
+                                        {{ $g }}%
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 
