@@ -56,7 +56,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-muted">
+                                <td colspan="6" class="px-4 py-8 text-center text-muted">
                                     Noch keine Fächer erfasst.
                                 </td>
                             </tr>

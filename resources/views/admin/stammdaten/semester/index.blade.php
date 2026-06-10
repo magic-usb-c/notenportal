@@ -42,8 +42,8 @@
                                         <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktuell</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-muted font-mono">{{ $s->start_datum }}</td>
-                                <td class="px-4 py-3 text-muted font-mono">{{ $s->end_datum }}</td>
+                                <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
+                                <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('admin.stammdaten.semester.edit', $s->semester_id) }}"
@@ -52,7 +52,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-4 py-8 text-center text-muted">
+                                <td colspan="5" class="px-4 py-8 text-center text-muted">
                                     Noch keine Semester erfasst.
                                 </td>
                             </tr>
