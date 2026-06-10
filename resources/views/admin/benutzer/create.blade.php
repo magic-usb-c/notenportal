@@ -16,9 +16,11 @@
 
                 @php
                     $lernenderRolleId = $rollen->firstWhere('name', 'Lernender')->rolle_id ?? 3;
+                    // ?rolle=lernender (z.B. vom "Neuer Lernender"-Button) waehlt die Rolle vor
+                    $vorgewaehlteRolle = old('rolle_id', request('rolle') === 'lernender' ? $lernenderRolleId : '');
                 @endphp
                 <form method="POST" action="{{ route('admin.benutzer.store') }}" class="space-y-5"
-                      x-data="{ rolle: '{{ old('rolle_id') }}', track: '{{ old('track_typ') }}' }">
+                      x-data="{ rolle: '{{ $vorgewaehlteRolle }}', track: '{{ old('track_typ') }}' }">
                     @csrf
 
                     {{-- ---- Stammdaten ---- --}}

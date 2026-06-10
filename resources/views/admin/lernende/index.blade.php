@@ -2,11 +2,18 @@
     <x-slot name="title">Lernende</x-slot>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Admin: Lernende</h2>
-            <div class="text-sm text-muted">
-                <span class="text-lg font-bold text-text tabular-nums">{{ $lernende->count() }}</span>
-                {{ $lernende->count() === 1 ? 'Lernender' : 'Lernende' }}
+            <div class="flex items-center gap-4">
+                <h2 class="font-semibold text-xl text-text">Admin: Lernende</h2>
+                <div class="text-sm text-muted pl-4 border-l border-border">
+                    <span class="text-lg font-bold text-text tabular-nums">{{ $lernende->count() }}</span>
+                    {{ $lernende->count() === 1 ? 'Lernender' : 'Lernende' }}
+                </div>
             </div>
+            <a href="{{ route('admin.benutzer.create', ['rolle' => 'lernender']) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
+                <span class="text-lg leading-none">+</span>
+                Neuer Lernender
+            </a>
         </div>
     </x-slot>
 
@@ -188,13 +195,19 @@
                                         {{ $avg !== null ? number_format($avg, 2) : '–' }}
                                     </td>
                                     <td class="p-3 text-right">
-                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                                        {{-- Aktionen permanent sichtbar (Touch-Geräte!), dezent bis hover --}}
+                                        <div class="flex items-center justify-end gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-150">
+                                            <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
+                                               class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap"
+                                               title="Profil mit Notenverlauf, Betreuung und allen Aktionen">
+                                                Profil
+                                            </a>
                                             <a href="{{ route('admin.lernende.betreuung', $l->lernender_id) }}"
-                                               class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
+                                               class="hidden lg:inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                 Betreuung
                                             </a>
                                             <a href="{{ route('admin.lernende.tracks', $l->lernender_id) }}"
-                                               class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
+                                               class="hidden lg:inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                 Tracks
                                             </a>
                                             <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"
