@@ -18,7 +18,7 @@
                 hasCurrentSemester: {{ $currentSemester ? 'true' : 'false' }}
              })">
 
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-4">
+            <div class="glass rounded-2xl p-5 space-y-4">
                 <div>
                     <h3 class="font-semibold text-text">Welche Note brauche ich?</h3>
                     <p class="text-sm text-muted mt-1">
@@ -72,7 +72,7 @@
             </div>
 
             {{-- Ergebnis-Karte --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6 text-center">
+            <div class="glass rounded-2xl p-6 text-center">
                 <div class="text-xs uppercase tracking-wide text-muted">Benötigte Note</div>
 
                 <template x-if="status === 'ok'">

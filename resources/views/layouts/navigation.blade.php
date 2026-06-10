@@ -242,6 +242,9 @@
                 @endif
 
                 @if(auth()->user()->hasRole('Admin'))
+                    <x-responsive-nav-link :href="route('admin.benutzer.index') . '#suche'">
+                        Benutzer suchen
+                    </x-responsive-nav-link>
                     <div class="px-4 py-1 text-xs font-semibold text-muted uppercase tracking-wide mt-1">Benutzer</div>
                     <x-responsive-nav-link :href="route('admin.lernende.index')" :active="request()->routeIs('admin.lernende.*')">
                         Lernende
