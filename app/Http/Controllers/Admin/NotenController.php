@@ -332,7 +332,7 @@ class NotenController extends Controller
                     $r->kategorie ?? '',
                     $fachModul,
                     $r->titel ?? '',
-                    number_format((float) $r->note_wert, 1, '.', ''),
+                    number_format((float) $r->note_wert, 2, '.', ''),
                     $r->gewichtung_prozent ?? '',
                 ], ';');
             }
