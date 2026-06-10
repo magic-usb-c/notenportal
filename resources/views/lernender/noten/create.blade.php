@@ -1,5 +1,6 @@
 {{-- resources/views/lernender/noten/create.blade.php --}}
 <x-app-layout>
+    <x-slot name="title">Neue Note</x-slot>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text whitespace-nowrap">Neue Note</h2>

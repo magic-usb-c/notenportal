@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-slot name="title">Lernende</x-slot>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-text">Lernende (meine Betreuung)</h2>
     </x-slot>

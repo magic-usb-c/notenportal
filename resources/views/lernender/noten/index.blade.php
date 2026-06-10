@@ -1,5 +1,6 @@
 {{-- resources/views/lernender/noten/index.blade.php --}}
 <x-app-layout>
+    <x-slot name="title">Meine Noten</x-slot>
     @php
         // ---------- Semester-Label für Anzeige (selectedSemesterId kommt vom Controller) ----------
         $selectedSemLabel = $semester?->firstWhere('semester_id', (int)$selectedSemesterId)?->bezeichnung ?? 'Semester';

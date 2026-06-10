@@ -3,6 +3,7 @@
     $warningsCount = $stats?->filter(fn($s) => $s->warningGelb || $s->warningRot)->count() ?? 0;
 @endphp
 <x-app-layout>
+    <x-slot name="title">Dashboard</x-slot>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-6">
             <div>
