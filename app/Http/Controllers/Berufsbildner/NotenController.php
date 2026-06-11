@@ -386,9 +386,7 @@ class NotenController extends Controller
             DB::table('noten_gesehen')->upsert($rows, ['note_id', 'viewer_benutzer_id'], ['gesehen_am']);
         }
 
-        return redirect()
-            ->route('berufsbildner.lernende.noten.index', ['lernender_id' => $lernender_id])
-            ->with('status', 'Alle Noten als gesehen markiert.');
+        return back()->with('status', 'Alle Noten als gesehen markiert.');
     }
 
     public function markGesehen(Request $request, int $lernender_id, int $note_id): RedirectResponse
@@ -428,8 +426,8 @@ class NotenController extends Controller
             ['gesehen_am']
         );
 
-        return redirect()
-            ->route('berufsbildner.lernende.noten.index', ['lernender_id' => $lernender_id])
-            ->with('status', 'Note als gesehen markiert.');
+        return back()
+            ->with('status', 'Note als gesehen markiert.')
+            ->with('opened_note', $note_id);
     }
 }
