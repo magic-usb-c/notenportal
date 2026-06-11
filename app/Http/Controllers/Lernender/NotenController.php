@@ -558,6 +558,8 @@ class NotenController extends Controller
 
         $note->delete();
 
-        return redirect()->route('lernender.noten.index')->with('status', 'Note gelöscht.');
+        return redirect()
+            ->route('lernender.noten.index', ['semester_id' => $note->semester_id])
+            ->with('status', 'Note gelöscht.');
     }
 }

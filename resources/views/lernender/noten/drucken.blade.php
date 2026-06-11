@@ -154,7 +154,7 @@
                 style="padding: 8px 20px; background: #2563eb; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;">
             Drucken / Als PDF speichern
         </button>
-        <a href="javascript:history.back()"
+        <a href="{{ route('lernender.noten.index') }}" onclick="if (history.length > 1) { history.back(); return false; }"
            style="margin-left: 10px; padding: 8px 16px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 8px; text-decoration: none; font-size: 13px;">
             Zurück
         </a>
