@@ -321,7 +321,7 @@
                                     <div class="flex gap-2">
                                         <input type="text"
                                                name="kommentar_text"
-                                               placeholder="Kommentar schreiben…"
+                                               placeholder="Kommentar schreiben…" aria-label="Kommentar schreiben"
                                                class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
                                                maxlength="2000"
                                                required>

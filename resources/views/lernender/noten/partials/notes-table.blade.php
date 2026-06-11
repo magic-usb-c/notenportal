@@ -177,8 +177,8 @@
                                                 class="px-2.5 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary disabled:opacity-60">
                                             OK
                                         </button>
-                                        <button type="button" @click="editingTitel = false"
-                                                class="px-2 py-1 rounded-lg border border-border text-xs text-muted hover:text-text">
+                                        <button type="button" @click="editingTitel = false" aria-label="Bearbeitung abbrechen"
+                                                class="min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-lg border border-border text-sm text-muted hover:text-text">
                                             ×
                                         </button>
                                     </div>
@@ -227,7 +227,7 @@
                                     <div class="flex gap-2">
                                         <input type="text"
                                                name="kommentar_text"
-                                               placeholder="Kommentar schreiben…"
+                                               placeholder="Kommentar schreiben…" aria-label="Kommentar schreiben"
                                                class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
                                                maxlength="2000"
                                                required>
@@ -401,8 +401,8 @@
                                                 class="px-2.5 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary disabled:opacity-60">
                                             OK
                                         </button>
-                                        <button type="button" @click="editingTitel = false"
-                                                class="px-2 py-1 rounded-lg border border-border text-xs text-muted hover:text-text">
+                                        <button type="button" @click="editingTitel = false" aria-label="Bearbeitung abbrechen"
+                                                class="min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-lg border border-border text-sm text-muted hover:text-text">
                                             ×
                                         </button>
                                     </div>
@@ -449,7 +449,7 @@
                                     <div class="flex gap-2">
                                         <input type="text"
                                                name="kommentar_text"
-                                               placeholder="Kommentar schreiben…"
+                                               placeholder="Kommentar schreiben…" aria-label="Kommentar schreiben"
                                                class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
                                                maxlength="2000"
                                                required>

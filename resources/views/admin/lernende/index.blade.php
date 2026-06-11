@@ -196,18 +196,18 @@
                                     </td>
                                     <td class="p-3 text-right">
                                         {{-- Aktionen permanent sichtbar (Touch-Geräte!), dezent bis hover --}}
-                                        <div class="flex items-center justify-end gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-150">
+                                        <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
                                                class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap"
                                                title="Profil mit Notenverlauf, Betreuung und allen Aktionen">
                                                 Profil
                                             </a>
                                             <a href="{{ route('admin.lernende.betreuung', $l->lernender_id) }}"
-                                               class="hidden lg:inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
+                                               class="inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                 Betreuung
                                             </a>
                                             <a href="{{ route('admin.lernende.tracks', $l->lernender_id) }}"
-                                               class="hidden lg:inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
+                                               class="inline-flex px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                 Tracks
                                             </a>
                                             <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $l->lernender_id]) }}"

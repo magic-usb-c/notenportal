@@ -20,6 +20,7 @@
             @endif
 
             <div class="glass rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-bg border-b border-border text-muted">
                         <tr>
@@ -64,6 +65,7 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
             </div>
 
             <p class="text-xs text-muted px-1">
