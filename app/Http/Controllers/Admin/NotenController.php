@@ -141,7 +141,7 @@ class NotenController extends Controller
         $this->lernenderOr404($lernender_id);
 
         $validated = $request->validate([
-            'kategorie_id'      => ['required', 'integer', 'exists:kategorien,kategorie_id'],
+            'kategorie_id'      => ['required', 'integer', \Illuminate\Validation\Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
             'typ'               => ['required', 'in:fach,modul'],
             'fach_id'           => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id'          => ['nullable', 'integer', 'exists:module,modul_id'],

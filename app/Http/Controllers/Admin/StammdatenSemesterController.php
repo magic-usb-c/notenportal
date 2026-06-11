@@ -34,6 +34,19 @@ class StammdatenSemesterController extends Controller
             'sortierung'  => ['nullable', 'integer', 'min:0'],
         ]);
 
+
+        // Ueberlappende Semester fuehren zu mehrdeutiger Notenzuordnung
+        // (NoteService::semesterForDate nimmt das erste Resultat).
+        $overlap = DB::table('semester')
+            ->where('start_datum', '<=', $validated['end_datum'])
+            ->where('end_datum', '>=', $validated['start_datum'])
+            ->first();
+        if ($overlap) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «' . $overlap->bezeichnung . '».',
+            ]);
+        }
+
         // Sortierung auto-berechnen falls nicht angegeben
         $sortierung = $validated['sortierung'] ?? null;
         if ($sortierung === null) {
@@ -69,6 +82,17 @@ class StammdatenSemesterController extends Controller
             'end_datum'   => ['required', 'date', 'after:start_datum'],
             'sortierung'  => ['required', 'integer', 'min:0'],
         ]);
+
+        $overlap = DB::table('semester')
+            ->where('semester_id', '!=', $semester_id)
+            ->where('start_datum', '<=', $validated['end_datum'])
+            ->where('end_datum', '>=', $validated['start_datum'])
+            ->first();
+        if ($overlap) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «' . $overlap->bezeichnung . '».',
+            ]);
+        }
 
         DB::table('semester')->where('semester_id', $semester_id)->update($validated);
 

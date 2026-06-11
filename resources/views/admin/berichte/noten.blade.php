@@ -96,9 +96,10 @@
             @if($gesamtTotal > 0)
                 @php
                     $avgColor = $gesamtAvg === null ? 'text-muted'
-                        : ($gesamtAvg >= 4.0 ? 'text-green-600 dark:text-green-400'
+                        : ($gesamtAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
+                        : ($gesamtAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
                         : ($gesamtAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
-                        : 'text-red-600 dark:text-red-400'));
+                        : 'text-red-600 dark:text-red-400')));
                     $passRate = $gesamtTotal > 0 ? round($gesamtPassed / $gesamtTotal * 100) : null;
                 @endphp
                 <div class="glass rounded-2xl px-5 py-3 flex flex-wrap gap-6 text-sm">
@@ -254,7 +255,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                         </svg>
                                         <p class="mt-3 text-sm text-muted">Keine Lernenden für diese Filter gefunden.</p>
-                                        @if($semesterId || $lehrberufId || ($bbFilterId ?? ''))
+                                        @if($semesterId || $lehrberufId || $berufsbildnerId)
                                             <a href="{{ route('admin.berichte.noten') }}" class="mt-3 inline-block text-xs text-accent hover:underline">Filter zurücksetzen</a>
                                         @endif
                                     </td>

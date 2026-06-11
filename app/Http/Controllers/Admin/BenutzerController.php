@@ -91,6 +91,7 @@ class BenutzerController extends Controller
     {
         $rolleId          = (int) $request->input('rolle_id');
         $lernenderRolleId = (int) DB::table('rollen')->where('name', 'Lernender')->value('rolle_id');
+        $bbRolleId = (int) DB::table('rollen')->where('name', 'Berufsbildner')->value('rolle_id');
 
         $rules = [
             'vorname'      => ['required', 'string', 'max:100'],
@@ -120,7 +121,7 @@ class BenutzerController extends Controller
                 !empty($validated['berufsbildner_id']) ? (int) $validated['berufsbildner_id'] : null
             );
         } else {
-            DB::transaction(function () use ($validated, $rolleId) {
+            DB::transaction(function () use ($validated, $rolleId, $bbRolleId) {
                 $user = User::create([
                     'vorname'       => $validated['vorname'],
                     'nachname'      => $validated['nachname'],
@@ -136,7 +137,7 @@ class BenutzerController extends Controller
                 ]);
 
                 // Berufsbildner-Profil
-                if ($rolleId === 2) {
+                if ($rolleId === $bbRolleId) {
                     DB::table('berufsbildner')->insert([
                         'benutzer_id'     => (int) $user->benutzer_id,
                         'erstellt_am'     => now(),

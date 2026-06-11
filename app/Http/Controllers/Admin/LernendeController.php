@@ -241,8 +241,8 @@ class LernendeController extends Controller
         $this->lernenderOr404($lernender_id);
 
         $validated = $request->validate([
-            'lehrberuf_id' => ['nullable', 'integer', 'exists:lehrberufe,lehrberuf_id'],
-            'lehrbeginn'   => ['nullable', 'date'],
+            'lehrberuf_id' => ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'],
+            'lehrbeginn'   => ['required', 'date'],
             'lehrende'     => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
         ]);
 

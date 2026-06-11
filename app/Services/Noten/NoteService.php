@@ -120,7 +120,7 @@ class NoteService
      */
     public function formOptionsForLernender(int $lernenderId): array
     {
-        $kategorien = Kategorie::query()->orderBy('sortierung')->get();
+        $kategorien = Kategorie::query()->where('aktiv', 1)->orderBy('sortierung')->get();
 
         // ✅ Track-abhängige Fächer (nur aktive Tracks des Lernenden)
         $trackTyps = $this->activeTrackTypesForLernender($lernenderId);
