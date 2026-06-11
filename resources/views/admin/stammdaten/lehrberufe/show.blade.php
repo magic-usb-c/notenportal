@@ -23,7 +23,7 @@
             @endif
 
             {{-- ========== MODULE ========== --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-4">
+            <div class="glass rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">Module</h3>
                     <span class="text-xs text-muted">{{ $zugewieseneModule->count() }} zugewiesen</span>
@@ -111,7 +111,7 @@
             </div>
 
             {{-- ========== FÄCHER ========== --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-4">
+            <div class="glass rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">Fächer (BMS/ABU)</h3>
                     <span class="text-xs text-muted">{{ $zugewieseneFaecher->count() }} zugewiesen</span>

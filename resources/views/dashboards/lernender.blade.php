@@ -16,7 +16,7 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
             {{-- Begrüssung --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex items-center justify-between gap-4">
+            <div class="glass rounded-2xl p-5 flex items-center justify-between gap-4">
                 <div>
                     <p class="text-text font-medium text-lg">
                         Willkommen, {{ auth()->user()->vorname }}
@@ -120,7 +120,7 @@
                         $progressPct = $total > 0 ? min(100, round($elapsed / $total * 100)) : null;
                     }
                 @endphp
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
+                <div class="glass rounded-2xl p-5">
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <div class="text-xs text-muted">Lehrausbildung</div>
@@ -160,7 +160,7 @@
 
             {{-- Letzte 3 Noten --}}
             @if($letzteDreiNoten->isNotEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-border flex items-center justify-between">
                         <h3 class="font-semibold text-text">Letzte Noten</h3>
                         <a href="{{ route('lernender.noten.index') }}" class="text-xs text-accent hover:underline">

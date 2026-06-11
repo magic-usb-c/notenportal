@@ -24,7 +24,7 @@
             @php
                 $activeFilterCount = collect([$suche, $bbFilterId, $warnung, $inaktive === '1' ? '1' : ''])->filter()->count();
             @endphp
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 @if($activeFilterCount > 0)
                     <div class="mb-3 flex items-center gap-2 text-xs text-muted">
                         <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white text-[10px] font-bold">{{ $activeFilterCount }}</span>
@@ -85,7 +85,7 @@
                 </form>
             </div>
 
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">

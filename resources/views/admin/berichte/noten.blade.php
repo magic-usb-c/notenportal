@@ -35,7 +35,7 @@
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
             {{-- Filter --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <form method="GET" action="{{ route('admin.berichte.noten') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
 
@@ -101,7 +101,7 @@
                         : 'text-red-600 dark:text-red-400'));
                     $passRate = $gesamtTotal > 0 ? round($gesamtPassed / $gesamtTotal * 100) : null;
                 @endphp
-                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-3 flex flex-wrap gap-6 text-sm">
+                <div class="glass rounded-2xl px-5 py-3 flex flex-wrap gap-6 text-sm">
                     <div class="text-center">
                         <div class="text-xs text-muted">Lernende</div>
                         <div class="font-bold text-text text-lg">{{ $lernende->count() }}</div>
@@ -126,7 +126,7 @@
             {{-- Notenverteilung (Histogramm 1.0–6.0) --}}
             @php $maxBucket = $notenVerteilung->max('count'); @endphp
             @if($gesamtTotal > 0 && $maxBucket > 0)
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-border flex items-center justify-between">
                         <h3 class="font-semibold text-text">Notenverteilung</h3>
                         <span class="text-[11px] text-muted">{{ $gesamtTotal }} Noten in 0.5er-Schritten</span>
@@ -156,7 +156,7 @@
             @endif
 
             {{-- Tabelle --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="bg-bg text-muted">
@@ -272,7 +272,7 @@
 
             {{-- Kategorie-Übersicht --}}
             @if($kategorieStats->isNotEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-border">
                         <h3 class="font-semibold text-text">Übersicht nach Kategorie</h3>
                         <p class="text-xs text-muted mt-0.5">Aggregiert über alle angezeigten Lernenden{{ $semesterId ? ' im gewählten Semester' : '' }}</p>

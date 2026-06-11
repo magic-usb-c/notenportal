@@ -29,7 +29,7 @@
             @endif
 
             {{-- Bestehende Tracks --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border font-semibold text-text">Aktive und abgeschlossene Tracks</div>
 
                 @forelse($tracks as $t)
@@ -79,7 +79,7 @@
             </div>
 
             {{-- Neuen Track hinzufügen --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
+            <div class="glass rounded-2xl p-5">
                 <div class="font-semibold text-text mb-4">Neuen Track hinzufügen</div>
 
                 <form method="POST"

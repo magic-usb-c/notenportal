@@ -135,7 +135,7 @@
                     </form>
                 </div>
 
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 flex flex-col items-center justify-center text-center np-card-lift">
+                <div class="glass rounded-2xl p-5 flex flex-col items-center justify-center text-center np-card-lift">
                     <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Ø gesamt</div>
                     <div class="text-4xl font-extrabold tracking-tight tabular-nums mt-1 {{ $avgColor($globalAvg) }}">
                         {{ $globalAvg !== null ? number_format($globalAvg, 2) : '–' }}
@@ -263,7 +263,7 @@
                              subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
 
             {{-- Semester-Statistiken --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">
                     <h3 class="font-semibold text-text text-sm">Ø pro Semester</h3>
                 </div>

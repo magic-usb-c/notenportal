@@ -41,7 +41,7 @@
                 </div>
             @endif
 
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
+            <div class="glass rounded-2xl p-6">
                 <form method="POST" action="{{ route('admin.benutzer.update', $user->benutzer_id) }}" class="space-y-5">
                     @csrf
                     @method('PUT')

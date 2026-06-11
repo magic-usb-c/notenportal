@@ -9,7 +9,7 @@
 
             {{-- Lehrausbildung (nur für Lernende sichtbar) --}}
             @if($lernendeProfil)
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5">
+                <div class="glass rounded-2xl p-5">
                     <h3 class="font-semibold text-text text-sm">Lehrausbildung</h3>
                     <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         <div>
@@ -40,12 +40,12 @@
             @endif
 
             {{-- Profil bearbeiten --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
+            <div class="glass rounded-2xl p-6">
                 @include('profile.partials.update-profile-information-form')
             </div>
 
             {{-- Passwort ändern --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
+            <div class="glass rounded-2xl p-6">
                 @include('profile.partials.update-password-form')
             </div>
 

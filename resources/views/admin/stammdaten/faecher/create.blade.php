@@ -11,7 +11,7 @@
 
     <div class="py-6">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-6">
+            <div class="glass rounded-2xl p-6">
                 <form method="POST" action="{{ route('admin.stammdaten.faecher.store') }}" class="space-y-5">
                     @csrf
 

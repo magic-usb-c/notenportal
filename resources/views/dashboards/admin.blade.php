@@ -107,7 +107,7 @@
             </div>
 
             {{-- Letzte Noten --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">
                     <h3 class="font-semibold text-text">Zuletzt erfasste Noten</h3>
                 </div>

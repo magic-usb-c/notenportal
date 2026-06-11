@@ -27,12 +27,12 @@
             @endif
 
             @if($berufsbildner->isEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-10 text-center text-muted text-sm">
+                <div class="glass rounded-2xl px-5 py-10 text-center text-muted text-sm">
                     Keine aktiven Berufsbildner gefunden.
                 </div>
             @else
                 {{-- Übersicht-Tabelle --}}
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-text">
                             <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">

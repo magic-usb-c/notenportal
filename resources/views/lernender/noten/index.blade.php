@@ -148,7 +148,7 @@
             @endif
 
             {{-- Filter (volle Breite, kompakt) --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <form method="GET" action="{{ route('lernender.noten.index') }}"
                       class="flex flex-wrap items-end gap-3">
                     <input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">
@@ -254,7 +254,7 @@
             ])
 
             @if($notes->isEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-12 text-center">
+                <div class="glass rounded-2xl px-5 py-12 text-center">
                     <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
@@ -269,7 +269,7 @@
 
             {{-- Semester-Übersicht --}}
             @if($semesterStats->isNotEmpty())
-                <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass rounded-2xl overflow-hidden">
                     <details class="np-details-semester">
                         <summary class="cursor-pointer select-none list-none px-5 py-4 flex items-center justify-between hover:bg-bg/60">
                             <span class="font-semibold text-text text-sm">Alle Semester im Überblick</span>

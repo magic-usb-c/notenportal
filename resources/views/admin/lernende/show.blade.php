@@ -31,7 +31,7 @@
 
             {{-- Profil + BB --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-2">
+                <div class="glass rounded-2xl p-5 space-y-2">
                     <h3 class="font-semibold text-text">Profil</h3>
                     <dl class="text-sm space-y-1.5">
                         <div class="flex justify-between gap-4">
@@ -65,7 +65,7 @@
                     </div>
                 </div>
 
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-5 space-y-2">
+                <div class="glass rounded-2xl p-5 space-y-2">
                     <h3 class="font-semibold text-text">Aktueller Berufsbildner</h3>
                     @if($aktuellerBB)
                         <p class="text-text font-medium">{{ $aktuellerBB->nachname }} {{ $aktuellerBB->vorname }}</p>
@@ -90,7 +90,7 @@
                              subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
 
             {{-- Semester-Übersicht --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border">
                     <h3 class="font-semibold text-text">Noten nach Semester</h3>
                 </div>
@@ -147,7 +147,7 @@
             </div>
 
             {{-- Letzte 5 Noten --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-border flex items-center justify-between">
                     <h3 class="font-semibold text-text">Zuletzt erfasste Noten</h3>
                     <a href="{{ route('admin.lernende.noten.index', $lernender_id) }}"

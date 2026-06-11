@@ -32,7 +32,7 @@
             @endif
 
             {{-- Filter --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <form method="GET" action="{{ route('admin.benutzer.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
 
@@ -80,7 +80,7 @@
             </div>
 
             {{-- Tabelle --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">

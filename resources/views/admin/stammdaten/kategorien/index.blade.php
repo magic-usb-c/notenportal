@@ -19,7 +19,7 @@
                 </div>
             @endif
 
-            <div class="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
+            <div class="glass rounded-2xl overflow-hidden">
                 <table class="w-full text-sm">
                     <thead class="bg-bg border-b border-border text-muted">
                         <tr>
