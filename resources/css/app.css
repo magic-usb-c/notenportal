@@ -26,8 +26,8 @@
   /* Subtiler Tiefen-Gradient hinter dem Content, damit Glass-Transparenz sichtbar wird */
   body {
     background-image:
-      radial-gradient(ellipse at 20% 50%, rgba(var(--accent-rgb), 0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgba(var(--accent-rgb), 0.03) 0%, transparent 50%);
+      radial-gradient(ellipse at 20% 50%, rgb(var(--accent-rgb) / 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgb(var(--accent-rgb) / 0.03) 0%, transparent 50%);
     background-attachment: fixed;
   }
 }
@@ -67,11 +67,11 @@
 
   /* Primäre Variante: Hero-Panels, Dashboard-Kacheln, Formulare */
   .glass {
-    background: rgba(var(--card-rgb), 0.65);
+    background: rgb(var(--card-rgb) / 0.65);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(var(--glass-border), var(--glass-border-alpha));
-    border-top-color: rgba(var(--glass-border), calc(var(--glass-border-alpha) * 1.6));
+    border: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
+    border-top-color: rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.6));
     box-shadow:
       0 4px 24px -4px rgba(0, 0, 0, var(--glass-shadow-alpha)),
       0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.35)) inset,
@@ -80,10 +80,10 @@
 
   /* Subtile Variante: Navigation, Leisten — deutlich transparent, schwebend */
   .glass-subtle {
-    background: rgba(var(--bg-rgb), 0.65);
+    background: rgb(var(--bg-rgb) / 0.65);
     backdrop-filter: blur(28px) saturate(180%);
     -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border-bottom: 1px solid rgba(var(--glass-border), calc(var(--glass-border-alpha) * 0.8));
+    border-bottom: 1px solid rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 0.8));
     box-shadow:
       0 8px 32px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.7)),
       0 1px 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.3)) inset;
@@ -91,16 +91,16 @@
 
   /* Button-Variante */
   .glass-btn {
-    background: rgba(var(--card-rgb), 0.7);
+    background: rgb(var(--card-rgb) / 0.7);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(var(--glass-border), calc(var(--glass-border-alpha) * 1.4));
+    border: 1px solid rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.4));
     transition: all 150ms ease;
   }
   .glass-btn:hover {
-    background: rgba(var(--accent-rgb), 0.16);
-    border-color: rgba(var(--accent-rgb), 0.4);
-    box-shadow: 0 0 16px -4px rgba(var(--accent-rgb), 0.3);
+    background: rgb(var(--accent-rgb) / 0.16);
+    border-color: rgb(var(--accent-rgb) / 0.4);
+    box-shadow: 0 0 16px -4px rgb(var(--accent-rgb) / 0.3);
   }
   .glass-btn:focus-visible,
   .np-btn-primary:focus-visible {
@@ -111,8 +111,8 @@
   /* Accent-Glow für wichtige Elemente (Primär-Buttons, Score-Card) */
   .accent-glow {
     box-shadow:
-      0 0 20px -5px rgba(var(--accent-rgb), 0.4),
-      0 0 40px -10px rgba(var(--accent-rgb), 0.2);
+      0 0 20px -5px rgb(var(--accent-rgb) / 0.4),
+      0 0 40px -10px rgb(var(--accent-rgb) / 0.2);
   }
 
   /* Hover-Lift mit Glass-Tiefe */
@@ -139,8 +139,8 @@
   .np-btn-primary:hover:not(:disabled) {
     transform: scale(1.02);
     box-shadow:
-      0 0 20px -5px rgba(var(--accent-rgb), 0.5),
-      0 0 40px -10px rgba(var(--accent-rgb), 0.25);
+      0 0 20px -5px rgb(var(--accent-rgb) / 0.5),
+      0 0 40px -10px rgb(var(--accent-rgb) / 0.25);
   }
   .np-btn-primary:active:not(:disabled) {
     transform: scale(0.97);

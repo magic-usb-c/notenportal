@@ -118,7 +118,7 @@
                                 @endphp
                                 <label class="cursor-pointer rounded-2xl border-2 p-4 text-center transition-all duration-150 select-none"
                                        :class="rolle == '{{ $r->rolle_id }}'
-                                           ? 'border-accent bg-accent/10 shadow-[0_0_16px_-4px_rgba(var(--accent-rgb),0.4)]'
+                                           ? 'border-accent bg-accent/10 shadow-[0_0_16px_-4px_rgb(var(--accent-rgb) / 0.4)]'
                                            : 'border-border bg-input hover:border-accent/40'">
                                     <input type="radio" name="rolle_id" value="{{ $r->rolle_id }}"
                                            x-model="rolle" class="sr-only" required>
