@@ -529,8 +529,8 @@ class NotenController extends Controller
                     $r->pruefungsdatum ? \Carbon\Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
                     $r->semester,
                     $r->kategorie ?? '',
-                    $fachModul,
-                    $r->titel ?? '',
+                    \App\Support\Csv::safe($fachModul),
+                    \App\Support\Csv::safe($r->titel ?? ''),
                     number_format((float) $r->note_wert, 2, '.', ''),
                     $r->gewichtung_prozent ?? 100,
                 ], ';');

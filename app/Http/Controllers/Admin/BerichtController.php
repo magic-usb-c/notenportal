@@ -236,7 +236,7 @@ class BerichtController extends Controller
                 $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry)->format('d.m.Y') : '';
 
                 fputcsv($out, [
-                    $l->nachname, $l->vorname, $l->lehrberuf ?? '',
+                    \App\Support\Csv::safe($l->nachname), \App\Support\Csv::safe($l->vorname), $l->lehrberuf ?? '',
                     $total, $avg, $passed, $quote, $last,
                 ], ';');
             }
