@@ -2,7 +2,7 @@
   --bg: 248 250 252;
   --card: 255 255 255;
   --text: 15 23 42;
-  --muted: 100 116 139;
+  --muted: 71 85 105;   /* Slate-600: 4.5:1+ auch auf Glass/bg (Slate-500 war grenzwertig) */
   --border: 226 232 240;
   --input: 255 255 255;
 
