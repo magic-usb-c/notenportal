@@ -26,7 +26,7 @@
 
                 <form method="POST"
                       action="{{ route('admin.stammdaten.kategorien.update', $kategorie->kategorie_id) }}"
-                      class="space-y-4">
+                      class="space-y-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
 
@@ -60,8 +60,8 @@
                     </div>
 
                     <div class="pt-2 flex gap-3">
-                        <button type="submit"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
+                        <button type="submit" :disabled="loading"
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                             Speichern
                         </button>
                         <a href="{{ route('admin.stammdaten.kategorien.index') }}"

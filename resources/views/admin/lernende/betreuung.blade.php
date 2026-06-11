@@ -41,9 +41,10 @@
                         @if(!$bt->gueltig_bis)
                             <form method="POST"
                                   action="{{ route('admin.betreuungen.beenden', $bt->betreuung_id) }}"
+                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                   onsubmit="return confirm('Betreuung wirklich beenden?');">
                                 @csrf
-                                <button class="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 text-sm hover:opacity-80">
+                                <button :disabled="loading" class="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 text-sm hover:opacity-80 disabled:opacity-60 disabled:cursor-not-allowed">
                                     Beenden
                                 </button>
                             </form>
@@ -62,7 +63,8 @@
 
                 <form method="POST"
                       action="{{ route('admin.lernende.betreuung.store', $lernender_id) }}"
-                      class="space-y-4">
+                      class="space-y-4"
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     <div>
@@ -84,8 +86,8 @@
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                     </div>
 
-                    <button type="submit"
-                            class="w-full px-4 py-2 rounded-xl bg-accent text-white np-btn-primary font-medium">
+                    <button type="submit" :disabled="loading"
+                            class="w-full px-4 py-2 rounded-xl bg-accent text-white np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
                         Betreuung speichern
                     </button>
                 </form>

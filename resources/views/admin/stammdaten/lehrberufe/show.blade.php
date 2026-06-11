@@ -53,9 +53,10 @@
                                         <td class="py-2 text-right">
                                             <form method="POST"
                                                   action="{{ route('admin.stammdaten.lehrberufe.module.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
-                                                  onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')">
+                                                  onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
+                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button class="text-xs text-red-500 hover:underline">Entfernen</button>
+                                                <button :disabled="loading" class="text-xs text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -71,7 +72,8 @@
                 @if($verfuegbareModule->isNotEmpty())
                     <form method="POST"
                           action="{{ route('admin.stammdaten.lehrberufe.module.assign', $lehrberuf->lehrberuf_id) }}"
-                          class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                          class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="md:col-span-5">
                             <label class="text-xs font-medium text-muted">Modul hinzufügen</label>
@@ -96,8 +98,8 @@
                             </label>
                         </div>
                         <div class="md:col-span-2">
-                            <button type="submit"
-                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">
+                            <button type="submit" :disabled="loading"
+                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
                                 Zuweisen
                             </button>
                         </div>
@@ -137,9 +139,10 @@
                                         <td class="py-2 text-right">
                                             <form method="POST"
                                                   action="{{ route('admin.stammdaten.lehrberufe.faecher.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
-                                                  onsubmit="return confirm('Fach {{ $f->name }} entfernen?')">
+                                                  onsubmit="return confirm('Fach {{ $f->name }} entfernen?')"
+                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button class="text-xs text-red-500 hover:underline">Entfernen</button>
+                                                <button :disabled="loading" class="text-xs text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -155,7 +158,8 @@
                 @if($verfuegbareFaecher->isNotEmpty())
                     <form method="POST"
                           action="{{ route('admin.stammdaten.lehrberufe.faecher.assign', $lehrberuf->lehrberuf_id) }}"
-                          class="border-t border-border pt-4 flex gap-3 items-end">
+                          class="border-t border-border pt-4 flex gap-3 items-end"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="flex-1">
                             <label class="text-xs font-medium text-muted">Fach hinzufügen</label>
@@ -167,8 +171,8 @@
                                 @endforeach
                             </select>
                         </div>
-                        <button type="submit"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm whitespace-nowrap">
+                        <button type="submit" :disabled="loading"
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                             Zuweisen
                         </button>
                     </form>

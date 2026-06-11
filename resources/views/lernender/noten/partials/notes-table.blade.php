@@ -141,10 +141,11 @@
                                     <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
                                         <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
                                         <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
+                                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="text-red-500 hover:underline">Löschen</button>
+                                            <button :disabled="loading" class="text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif
@@ -208,10 +209,11 @@
                                                 <form method="POST"
                                                       action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
                                                       class="shrink-0"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                    <button :disabled="loading" class="text-xs text-red-400 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -225,7 +227,8 @@
                             {{-- Neuer Kommentar (Lernender kann kommentieren) --}}
                             <div class="border-t border-border px-5 py-4">
                                 <form method="POST"
-                                      action="{{ route('noten.kommentare.store', $n->note_id) }}">
+                                      action="{{ route('noten.kommentare.store', $n->note_id) }}"
+                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                     @csrf
                                     <div class="flex gap-2">
                                         <input type="text"
@@ -234,8 +237,8 @@
                                                class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
                                                maxlength="2000"
                                                required>
-                                        <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
+                                        <button type="submit" :disabled="loading"
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                                             Senden
                                         </button>
                                     </div>
@@ -369,10 +372,11 @@
                                     <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
                                         <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
                                         <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
+                                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="text-red-500 hover:underline">Löschen</button>
+                                            <button :disabled="loading" class="text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif
@@ -434,10 +438,11 @@
                                                 <form method="POST"
                                                       action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
                                                       class="shrink-0"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                    <button :disabled="loading" class="text-xs text-red-400 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -450,7 +455,8 @@
 
                             <div class="border-t border-border px-5 py-4">
                                 <form method="POST"
-                                      action="{{ route('noten.kommentare.store', $n->note_id) }}">
+                                      action="{{ route('noten.kommentare.store', $n->note_id) }}"
+                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                     @csrf
                                     <div class="flex gap-2">
                                         <input type="text"
@@ -459,8 +465,8 @@
                                                class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring"
                                                maxlength="2000"
                                                required>
-                                        <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
+                                        <button type="submit" :disabled="loading"
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                                             Senden
                                         </button>
                                     </div>

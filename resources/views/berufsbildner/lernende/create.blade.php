@@ -23,7 +23,7 @@
             <div class="glass rounded-2xl p-6 space-y-6">
 
                 <form method="POST" action="{{ route('berufsbildner.lernende.store') }}" class="space-y-5"
-                      x-data="{ track: '{{ old('track_typ') }}', loading: false }" @submit="loading = true">
+                      x-data="{ track: '{{ old('track_typ') }}', loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     {{-- ---- Person ---- --}}

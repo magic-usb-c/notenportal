@@ -19,7 +19,7 @@
     <div class="py-6">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
-                <form method="POST" action="{{ route('admin.stammdaten.lehrberufe.update', $lehrberuf->lehrberuf_id) }}" class="space-y-5">
+                <form method="POST" action="{{ route('admin.stammdaten.lehrberufe.update', $lehrberuf->lehrberuf_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
 
@@ -49,8 +49,8 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit"
-                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary font-medium">
+                        <button type="submit" :disabled="loading"
+                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
                             Änderungen speichern
                         </button>
                     </div>

@@ -51,6 +51,7 @@
                             <form method="POST"
                                   action="{{ route('admin.tracks.beenden', $t->lernender_track_id) }}"
                                   class="flex items-center gap-2"
+                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                   onsubmit="return confirm('Track wirklich beenden?');">
                                 @csrf
                                 <select name="end_semester_id" required
@@ -60,7 +61,7 @@
                                         <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                     @endforeach
                                 </select>
-                                <button class="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 text-sm hover:opacity-80 whitespace-nowrap">
+                                <button :disabled="loading" class="px-3 py-1.5 rounded-xl bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 text-sm hover:opacity-80 whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                                     Beenden
                                 </button>
                             </form>
@@ -79,7 +80,8 @@
 
                 <form method="POST"
                       action="{{ route('admin.lernende.tracks.store', $lernender_id) }}"
-                      class="space-y-4">
+                      class="space-y-4"
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     <div class="grid grid-cols-3 gap-4">
@@ -110,8 +112,8 @@
                         </div>
                     </div>
 
-                    <button type="submit"
-                            class="w-full px-4 py-2 rounded-xl bg-accent text-white np-btn-primary font-medium">
+                    <button type="submit" :disabled="loading"
+                            class="w-full px-4 py-2 rounded-xl bg-accent text-white np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
                         Track speichern
                     </button>
                 </form>

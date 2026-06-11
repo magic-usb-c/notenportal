@@ -20,7 +20,8 @@
                     $vorgewaehlteRolle = old('rolle_id', request('rolle') === 'lernender' ? $lernenderRolleId : '');
                 @endphp
                 <form method="POST" action="{{ route('admin.benutzer.store') }}" class="space-y-5"
-                      x-data="{ rolle: '{{ $vorgewaehlteRolle }}', track: '{{ old('track_typ') }}' }">
+                      x-data="{ rolle: '{{ $vorgewaehlteRolle }}', track: '{{ old('track_typ') }}', loading: false }"
+                      @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     {{-- ---- Stammdaten ---- --}}
@@ -226,8 +227,8 @@
                     </div>
 
                     <div class="pt-2">
-                        <button type="submit"
-                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
+                        <button type="submit" :disabled="loading"
+                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                             Benutzer anlegen
                         </button>
                     </div>

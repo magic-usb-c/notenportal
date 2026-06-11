@@ -49,8 +49,9 @@
 
             {{-- Stammdaten + Gesamt-Ø --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div class="lg:col-span-2 glass rounded-2xl p-5" x-data="{ editing: false }">
-                    <form method="POST" action="{{ route('berufsbildner.lernende.update', ['lernender_id' => $profil->lernender_id]) }}">
+                <div class="lg:col-span-2 glass rounded-2xl p-5" x-data="{ editing: false, loading: false }">
+                    <form method="POST" action="{{ route('berufsbildner.lernende.update', ['lernender_id' => $profil->lernender_id]) }}"
+                          @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         @method('PATCH')
 
@@ -65,8 +66,8 @@
                                 Bearbeiten
                             </button>
                             <div x-show="editing" x-cloak class="flex items-center gap-2">
-                                <button type="submit"
-                                        class="px-3 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary">
+                                <button type="submit" :disabled="loading"
+                                        class="px-3 py-1 rounded-lg bg-accent text-white text-xs np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                                     Speichern
                                 </button>
                                 <button type="button" @click="editing = false"
@@ -178,7 +179,8 @@
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="px-5 py-4 border-b border-border bg-bg/40">
                     <form method="POST" action="{{ route('berufsbildner.lernende.tracks.store', ['lernender_id' => $profil->lernender_id]) }}"
-                          class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                          class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div>
                             <label class="text-xs font-medium text-muted">Track *</label>
@@ -202,8 +204,8 @@
                                 @endforeach
                             </select>
                         </div>
-                        <button type="submit"
-                                class="px-4 py-2 h-[38px] rounded-xl bg-accent text-white text-sm np-btn-primary">
+                        <button type="submit" :disabled="loading"
+                                class="px-4 py-2 h-[38px] rounded-xl bg-accent text-white text-sm np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                             Starten
                         </button>
                     </form>
@@ -234,6 +236,7 @@
                             @if(!$t->end_datum)
                                 <form method="POST" action="{{ route('berufsbildner.tracks.beenden', ['track_id' => $t->lernender_track_id]) }}"
                                       class="flex items-center gap-2"
+                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                       onsubmit="return confirm('Track {{ $t->track_typ }} wirklich beenden?');">
                                     @csrf
                                     <select name="end_semester_id" required
@@ -242,8 +245,8 @@
                                             <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                         @endforeach
                                     </select>
-                                    <button type="submit"
-                                            class="px-3 py-1 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    <button type="submit" :disabled="loading"
+                                            class="px-3 py-1 rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60 disabled:cursor-not-allowed">
                                         Beenden
                                     </button>
                                 </form>

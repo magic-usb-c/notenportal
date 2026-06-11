@@ -37,7 +37,8 @@
 
                 <form method="POST"
                       action="{{ route('admin.lernende.noten.store', ['lernender_id' => $lernender_id]) }}"
-                      class="space-y-5">
+                      class="space-y-5"
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     <div>
@@ -136,7 +137,7 @@
                     </div>
 
                     <div class="flex gap-3 pt-2">
-                        <button class="inline-flex items-center px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
+                        <button :disabled="loading" class="inline-flex items-center px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                             Note speichern
                         </button>
                         <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $lernender_id]) }}"

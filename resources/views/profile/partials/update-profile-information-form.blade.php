@@ -2,7 +2,8 @@
     <h2 class="text-base font-semibold text-text">Profildaten</h2>
     <p class="mt-1 text-sm text-muted">Name und E-Mail-Adresse ändern.</p>
 
-    <form method="POST" action="{{ route('profile.update') }}" class="mt-5 space-y-4">
+    <form method="POST" action="{{ route('profile.update') }}" class="mt-5 space-y-4"
+          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         @method('patch')
 
@@ -41,8 +42,8 @@
         </div>
 
         <div class="pt-1 flex items-center gap-4">
-            <button type="submit"
-                    class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
+            <button type="submit" :disabled="loading"
+                    class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                 Speichern
             </button>
         </div>

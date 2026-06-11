@@ -18,10 +18,11 @@
                 @endphp
                 @if($hasNeuInView)
                     <form method="POST"
-                          action="{{ route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $selectedLernenderId]) }}">
+                          action="{{ route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $selectedLernenderId]) }}"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
-                        <button type="submit"
-                                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium whitespace-nowrap">
+                        <button type="submit" :disabled="loading"
+                                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
@@ -345,10 +346,11 @@
                                 @if($isNeu)
                                     <form method="POST"
                                           action="{{ route('berufsbildner.noten.gesehen', ['lernender_id' => $selectedLernenderId, 'note_id' => $n->note_id]) }}"
-                                          class="inline">
+                                          class="inline"
+                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium">
+                                        <button type="submit" :disabled="loading"
+                                                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed">
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                             </svg>
@@ -385,10 +387,11 @@
                                                 <form method="POST"
                                                       action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
                                                       class="shrink-0"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button class="text-xs text-red-400 hover:text-red-600">Löschen</button>
+                                                    <button :disabled="loading" class="text-xs text-red-400 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -402,7 +405,8 @@
                             {{-- Neuer Kommentar --}}
                             <div class="border-t border-border px-5 py-4">
                                 <form method="POST"
-                                      action="{{ route('noten.kommentare.store', $n->note_id) }}">
+                                      action="{{ route('noten.kommentare.store', $n->note_id) }}"
+                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                     @csrf
                                     <div class="flex gap-2 items-end">
                                         <textarea name="kommentar_text"
@@ -412,8 +416,8 @@
                                                   maxlength="2000"
                                                   onkeydown="if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') this.form.requestSubmit()"
                                                   required></textarea>
-                                        <button type="submit"
-                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">
+                                        <button type="submit" :disabled="loading"
+                                                class="px-4 py-2 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                                             Senden
                                         </button>
                                     </div>
