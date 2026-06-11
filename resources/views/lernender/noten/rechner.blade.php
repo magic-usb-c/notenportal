@@ -55,8 +55,8 @@
                         <label class="text-xs uppercase tracking-wide text-muted">Gewichtung der nächsten Note (%)</label>
                         <input type="number"
                                step="5"
-                               min="0"
-                               max="200"
+                               min="5"
+                               max="100"
                                x-model.number="naechsteGewicht"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text py-2.5 focus:ring-2 focus:ring-accent/50 focus:border-accent">
                     </div>
@@ -122,6 +122,15 @@
                         </p>
                     </div>
                 </template>
+
+                    <template x-if="status === 'gewicht0'">
+                        <div class="mt-2">
+                            <div class="text-2xl font-semibold text-muted">Gewichtung fehlt</div>
+                            <p class="mt-3 text-sm text-muted">
+                                Die Gewichtung der naechsten Note muss groesser als 0 sein.
+                            </p>
+                        </div>
+                    </template>
             </div>
 
             <div class="text-xs text-muted px-1">
@@ -174,6 +183,8 @@
 
                 get status() {
                     if (!this.basisNotes.length) return 'leer';
+                    const g = Number(this.naechsteGewicht) || 0;
+                    if (g <= 0) return 'gewicht0';
                     const b = this.benoetigt;
                     if (!Number.isFinite(b)) return 'leer';
                     if (b > 6.0) return 'unerreichbar';
