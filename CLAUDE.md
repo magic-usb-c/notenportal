@@ -45,6 +45,13 @@ Node:       für Vite/Tailwind Build
 
 ---
 
+## Plugins aktiv in diesem Projekt
+- Caveman: aktiviere mit /caveman full zu Beginn jeder Session
+- UI-UX-Pro-Max: nutze für Style-Inspiration und Komponentenmuster,
+  NIEMALS für Farb-Tokens — bestehende CSS Custom Properties
+  (--bg, --card, --accent etc.) haben absolute Priorität
+
+
 ## Datenbank-Constraints (KRITISCH)
 
 ```

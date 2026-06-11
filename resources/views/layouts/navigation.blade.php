@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="glass-subtle sticky top-0 z-50">
+<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-subtle sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
@@ -38,9 +38,12 @@
 
                         @if(auth()->user()->hasRole('Admin'))
                             {{-- Dropdown: Benutzer --}}
-                            <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                            <div class="relative flex" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @click.outside="open = false" @keydown.escape.window="open = false">
                                 <button type="button"
-                                        class="inline-flex items-center h-full gap-1 px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none rounded-sm
+                                        @click="open = !open"
+                                        :aria-expanded="open"
+                                        aria-haspopup="true"
+                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-sm
                                     {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Benutzer
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
@@ -54,27 +57,30 @@
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                                     class="absolute left-0 w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1"
+                                     class="absolute left-0 w-48 rounded-xl bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/60 shadow-2xl z-50 p-1"
                                      style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.lernende.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Lernende
                                     </a>
                                     <a href="{{ route('admin.berufsbildner.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.berufsbildner.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.berufsbildner.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Berufsbildner
                                     </a>
                                     <a href="{{ route('admin.benutzer.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.benutzer.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.benutzer.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Systembenutzer
                                     </a>
                                 </div>
                             </div>
 
                             {{-- Dropdown: Stammdaten --}}
-                            <div class="relative inline-flex items-center h-full" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                            <div class="relative flex" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false" @click.outside="open = false" @keydown.escape.window="open = false">
                                 <button type="button"
-                                        class="inline-flex items-center h-full gap-1 px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none rounded-sm
+                                        @click="open = !open"
+                                        :aria-expanded="open"
+                                        aria-haspopup="true"
+                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-sm
                                     {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Stammdaten
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
@@ -88,26 +94,26 @@
                                      x-transition:leave="transition ease-in duration-100"
                                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                                     class="absolute left-0 w-48 rounded-xl bg-card/95 backdrop-blur-sm border border-border/60 shadow-xl z-50 p-1"
+                                     class="absolute left-0 w-48 rounded-xl bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/60 shadow-2xl z-50 p-1"
                                      style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Lehrberufe
                                     </a>
                                     <a href="{{ route('admin.stammdaten.module.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Module
                                     </a>
                                     <a href="{{ route('admin.stammdaten.faecher.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Fächer
                                     </a>
                                     <a href="{{ route('admin.stammdaten.semester.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Semester
                                     </a>
                                     <a href="{{ route('admin.stammdaten.kategorien.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.kategorien.*') ? 'text-accent font-medium bg-accent/10' : 'text-text hover:bg-accent/5 hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.kategorien.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
                                         Kategorien
                                     </a>
                                 </div>
