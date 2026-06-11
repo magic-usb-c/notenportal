@@ -29,24 +29,24 @@
         return compact('bbHatGesehen', 'neuerKommentar', 'newestKommentar');
     };
 
-    // Farblogik (text-only): Note/Durchschnitt
+    // Farblogik (text-only, mit subtilem Glow): Zeilen-Noten
     $noteColorClass = function ($val): string {
         if ($val === null || $val === '') return 'text-muted';
         $v = (float) $val;
-        if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
-        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
-        return 'text-red-600 dark:text-red-400';
+        if ($v >= 5.0) return 'text-green-600 dark:text-green-400 np-text-glow-green';
+        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400 np-text-glow-emerald';
+        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400 np-text-glow-yellow';
+        return 'text-red-600 dark:text-red-400 np-text-glow-red';
     };
 
-    // Badge-Logik (Pille mit Glow): Ø in den Accordion-Headern
-    $avgBadgeClass = function ($val): string {
-        if ($val === null || $val === '') return 'bg-bg text-muted';
+    // Hero-Ø in den Accordion-Headern: grosse Zahl mit Farb-Glow
+    $avgHeroClass = function ($val): string {
+        if ($val === null || $val === '') return 'text-muted';
         $v = (float) $val;
-        if ($v >= 5.0) return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 np-glow-green';
-        if ($v >= 4.0) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 np-glow-emerald';
-        if ($v >= 3.5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow';
-        return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red';
+        if ($v >= 5.0) return 'text-green-600 dark:text-green-400 np-text-glow-green';
+        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400 np-text-glow-emerald';
+        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400 np-text-glow-yellow';
+        return 'text-red-600 dark:text-red-400 np-text-glow-red';
     };
 @endphp
 
@@ -61,7 +61,7 @@
         @endphp
 
         <details class="np-details glass rounded-2xl overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/[0.08] transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -69,13 +69,13 @@
                         </svg>
                     </span>
                     <div class="min-w-0">
-                        <div class="font-semibold text-text truncate">{{ $fachName }}</div>
+                        <div class="font-semibold text-base text-text truncate">{{ $fachName }}</div>
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm tabular-nums {{ $avgBadgeClass($avg) }}">
+                    <span class="text-2xl font-extrabold tabular-nums min-w-[3rem] text-right {{ $avgHeroClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>
@@ -271,7 +271,7 @@
         @endphp
 
         <details class="np-details glass rounded-2xl overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none hover:bg-accent/5 transition-colors duration-100">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/[0.08] transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -280,7 +280,7 @@
                     </span>
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
-                            <span class="font-semibold text-text truncate">{{ $modulTitle }}</span>
+                            <span class="font-semibold text-base text-text truncate">{{ $modulTitle }}</span>
                             @if($progressPct !== null && $progressPct >= 100)
                                 <span title="Modul vollständig abgeschlossen" class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">
                                     ✓ Abgeschlossen
@@ -296,7 +296,7 @@
                                 @endif
                             </span>
                             @if($progressPct !== null)
-                                <div class="flex-1 max-w-[160px] h-1 rounded-full bg-accent/20 overflow-hidden">
+                                <div class="flex-1 max-w-[160px] h-0.5 rounded-full bg-accent/20 overflow-hidden">
                                     <div class="h-full {{ $progressPct >= 100 ? 'bg-green-500' : 'bg-accent' }}" style="width: {{ $progressPct }}%"></div>
                                 </div>
                             @endif
@@ -305,7 +305,7 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm tabular-nums {{ $avgBadgeClass($avg) }}">
+                    <span class="text-2xl font-extrabold tabular-nums min-w-[3rem] text-right {{ $avgHeroClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>
