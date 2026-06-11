@@ -309,6 +309,16 @@ class LernendeController extends Controller
             'gueltig_von'      => ['required', 'date'],
         ]);
 
+        // BB-Wechsel: bestehende offene Betreuungen automatisch beenden,
+        // sonst entstehen stillschweigend parallel aktive Betreuungen
+        // (alter BB sieht weiter alle Noten, Warnzaehler zaehlen doppelt).
+        $beendet = DB::table('betreuungen')
+            ->where('lernender_id', $lernender_id)
+            ->whereNull('gueltig_bis')
+            ->update([
+                'gueltig_bis' => \Carbon\Carbon::parse($validated['gueltig_von'])->subDay()->toDateString(),
+            ]);
+
         DB::table('betreuungen')->insert([
             'lernender_id'    => $lernender_id,
             'berufsbildner_id' => $validated['berufsbildner_id'],
@@ -318,7 +328,9 @@ class LernendeController extends Controller
 
         return redirect()
             ->route('admin.lernende.betreuung', $lernender_id)
-            ->with('status', 'Betreuung eingetragen.');
+            ->with('status', $beendet > 0
+                ? 'Betreuung eingetragen. Die bisherige Betreuung wurde beendet.'
+                : 'Betreuung eingetragen.');
     }
 
     public function betreuungEnd(Request $request, int $betreuung_id): RedirectResponse

@@ -181,6 +181,9 @@
                                                 class="min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-lg border border-border text-sm text-muted hover:text-text">
                                             ×
                                         </button>
+                                        <span x-show="titelError" x-cloak class="text-xs text-red-600 dark:text-red-400 shrink-0">
+                                            Speichern fehlgeschlagen — bitte Seite neu laden.
+                                        </span>
                                     </div>
                                 </template>
                             </div>
@@ -405,6 +408,9 @@
                                                 class="min-h-[36px] min-w-[36px] inline-flex items-center justify-center rounded-lg border border-border text-sm text-muted hover:text-text">
                                             ×
                                         </button>
+                                        <span x-show="titelError" x-cloak class="text-xs text-red-600 dark:text-red-400 shrink-0">
+                                            Speichern fehlgeschlagen — bitte Seite neu laden.
+                                        </span>
                                     </div>
                                 </template>
                             </div>
@@ -483,12 +489,15 @@ function npTitelEdit(initial, url) {
         titelDraft: initial ?? '',
         editingTitel: false,
         savingTitel: false,
+        titelError: false,
         startTitelEdit() {
             this.titelDraft = this.titel ?? '';
+            this.titelError = false;
             this.editingTitel = true;
         },
         async saveTitel() {
             this.savingTitel = true;
+            this.titelError = false;
             try {
                 const res = await fetch(url, {
                     method: 'PATCH',
@@ -503,7 +512,11 @@ function npTitelEdit(initial, url) {
                     const data = await res.json();
                     this.titel = data.titel;
                     this.editingTitel = false;
+                } else {
+                    this.titelError = true;
                 }
+            } catch (e) {
+                this.titelError = true;
             } finally {
                 this.savingTitel = false;
             }
