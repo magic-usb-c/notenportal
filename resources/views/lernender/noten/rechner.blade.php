@@ -29,8 +29,9 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="text-xs uppercase tracking-wide text-muted">Ziel-Durchschnitt</label>
+                        <label for="ziel" class="text-xs uppercase tracking-wide text-muted">Ziel-Durchschnitt</label>
                         <input type="number"
+                               id="ziel"
                                step="0.05"
                                min="1.0"
                                max="6.0"
@@ -39,8 +40,8 @@
                     </div>
 
                     <div>
-                        <label class="text-xs uppercase tracking-wide text-muted">Basis</label>
-                        <select x-model="basis"
+                        <label for="basis" class="text-xs uppercase tracking-wide text-muted">Basis</label>
+                        <select id="basis" x-model="basis"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text py-2.5 focus:ring-2 focus:ring-accent/50 focus:border-accent">
                             <option value="current" :disabled="!hasCurrentSemester">
                                 Aktuelles Semester ({{ collect($currentNotes)->count() }} Noten)
@@ -52,8 +53,9 @@
                     </div>
 
                     <div>
-                        <label class="text-xs uppercase tracking-wide text-muted">Gewichtung der nächsten Note (%)</label>
+                        <label for="naechste_gewichtung" class="text-xs uppercase tracking-wide text-muted">Gewichtung der nächsten Note (%)</label>
                         <input type="number"
+                               id="naechste_gewichtung"
                                step="5"
                                min="5"
                                max="100"

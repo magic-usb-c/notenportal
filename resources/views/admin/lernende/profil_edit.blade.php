@@ -35,8 +35,8 @@
                     @method('PUT')
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Lehrberuf</label>
-                        <select name="lehrberuf_id"
+                        <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf</label>
+                        <select name="lehrberuf_id" id="lehrberuf_id"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">– kein Lehrberuf –</option>
                             @foreach($lehrberufe as $lb)
@@ -51,15 +51,15 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-muted">Lehrbeginn</label>
-                            <input type="date" name="lehrbeginn"
+                            <label for="lehrbeginn" class="text-sm font-medium text-muted">Lehrbeginn</label>
+                            <input type="date" name="lehrbeginn" id="lehrbeginn"
                                    value="{{ old('lehrbeginn', $profil?->lehrbeginn) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
                             @error('lehrbeginn')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-muted">Lehrende</label>
-                            <input type="date" name="lehrende"
+                            <label for="lehrende" class="text-sm font-medium text-muted">Lehrende</label>
+                            <input type="date" name="lehrende" id="lehrende"
                                    value="{{ old('lehrende', $profil?->lehrende) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
                             @error('lehrende')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror

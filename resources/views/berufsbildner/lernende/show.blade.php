@@ -183,21 +183,21 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div>
-                            <label class="text-xs font-medium text-muted">Track *</label>
-                            <select name="track_typ" required
+                            <label for="track_typ" class="text-xs font-medium text-muted">Track *</label>
+                            <select id="track_typ" name="track_typ" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="BMS">BMS</option>
                                 <option value="ABU">ABU</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-medium text-muted">Startdatum *</label>
-                            <input type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}"
+                            <label for="start_datum" class="text-xs font-medium text-muted">Startdatum *</label>
+                            <input id="start_datum" type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
                         <div>
-                            <label class="text-xs font-medium text-muted">Startsemester *</label>
-                            <select name="start_semester_id" required
+                            <label for="start_semester_id" class="text-xs font-medium text-muted">Startsemester *</label>
+                            <select id="start_semester_id" name="start_semester_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 @foreach($semesterListe as $s)
                                     <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>

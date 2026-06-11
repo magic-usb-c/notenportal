@@ -51,8 +51,8 @@
                             }
                          }"
                          class="flex flex-col items-center gap-2 py-2">
-                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0) <span class="text-red-600 dark:text-red-400">*</span></label>
-                        <input type="number" name="note_wert" step="0.05" min="1" max="6" required
+                        <label for="note_wert" class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0) <span class="text-red-600 dark:text-red-400">*</span></label>
+                        <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required
                                x-model="wert" :class="color"
                                value="{{ old('note_wert', $note->note_wert) }}" autofocus
                                class="w-32 h-20 text-4xl font-extrabold text-center tabular-nums rounded-2xl border-2 border-border bg-input text-text
@@ -73,8 +73,8 @@
                             }
                          }">
                         <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Gewichtung %</label>
-                            <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
+                            <label for="gewichtung_prozent" class="block text-xs uppercase tracking-wide text-muted mb-1">Gewichtung %</label>
+                            <input type="number" id="gewichtung_prozent" name="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
                                    x-ref="gewichtInput"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
@@ -91,8 +91,8 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum <span class="text-red-600 dark:text-red-400">*</span></label>
-                            <input type="date" name="pruefungsdatum" required x-model="datum"
+                            <label for="pruefungsdatum" class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum <span class="text-red-600 dark:text-red-400">*</span></label>
+                            <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum"
                                    value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('pruefungsdatum') ? 'border-red-500' : '' }}">
@@ -109,8 +109,8 @@
                     {{-- Kategorie + Typ --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Kategorie <span class="text-red-600 dark:text-red-400">*</span></label>
-                            <select name="kategorie_id" required
+                            <label for="kategorie_id" class="block text-xs uppercase tracking-wide text-muted mb-1">Kategorie <span class="text-red-600 dark:text-red-400">*</span></label>
+                            <select id="kategorie_id" name="kategorie_id" required
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                            focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('kategorie_id') ? 'border-red-500' : '' }}">
                                 @foreach($kategorien as $k)
@@ -141,8 +141,8 @@
                     {{-- Fach/Modul --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div id="fachBlock">
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Fach</label>
-                            <select name="fach_id"
+                            <label for="fach_id" class="block text-xs uppercase tracking-wide text-muted mb-1">Fach</label>
+                            <select id="fach_id" name="fach_id"
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                            focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('fach_id') ? 'border-red-500' : '' }}">
                                 <option value="">Bitte wählen</option>
@@ -156,8 +156,8 @@
                         </div>
 
                         <div id="modulBlock" class="hidden">
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Modul</label>
-                            <select name="modul_id"
+                            <label for="modul_id" class="block text-xs uppercase tracking-wide text-muted mb-1">Modul</label>
+                            <select id="modul_id" name="modul_id"
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                            focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('modul_id') ? 'border-red-500' : '' }}">
                                 <option value="">Bitte wählen</option>
@@ -175,8 +175,8 @@
 
                     {{-- Titel --}}
                     <div>
-                        <label class="block text-xs uppercase tracking-wide text-muted mb-1">Notiz / Titel (optional)</label>
-                        <input name="titel" maxlength="150" value="{{ old('titel', $note->titel) }}"
+                        <label for="titel" class="block text-xs uppercase tracking-wide text-muted mb-1">Notiz / Titel (optional)</label>
+                        <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $note->titel) }}"
                                placeholder="z. B. Vokabeltest oder Praxisprüfung"
                                class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                       focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('titel') ? 'border-red-500' : '' }}">

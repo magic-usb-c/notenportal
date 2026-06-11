@@ -35,14 +35,14 @@
                 <form method="GET" action="{{ route('admin.lernende.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div class="lg:col-span-1">
-                        <label class="text-sm font-medium text-muted">Suche</label>
-                        <input type="text" name="suche" value="{{ $suche }}"
+                        <label for="suche" class="text-sm font-medium text-muted">Suche</label>
+                        <input type="text" name="suche" id="suche" value="{{ $suche }}"
                                placeholder="Name oder E-Mail…"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-muted">Berufsbildner</label>
-                        <select name="berufsbildner_id" onchange="this.form.submit()"
+                        <label for="berufsbildner_id" class="text-sm font-medium text-muted">Berufsbildner</label>
+                        <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($bbFilterId === '')>Alle</option>
                             @foreach($berufsbildnerListe as $bb)
@@ -53,8 +53,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-muted">Warnung</label>
-                        <select name="warnung" onchange="this.form.submit()"
+                        <label for="warnung" class="text-sm font-medium text-muted">Warnung</label>
+                        <select name="warnung" id="warnung" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($warnung === '')>Alle anzeigen</option>
                             <option value="keine_noten" @selected($warnung === 'keine_noten')>Kein Eintrag (30 Tage)</option>
@@ -63,8 +63,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="text-sm font-medium text-muted">Status</label>
-                        <select name="inaktive" onchange="this.form.submit()"
+                        <label for="inaktive" class="text-sm font-medium text-muted">Status</label>
+                        <select name="inaktive" id="inaktive" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="0" @selected($inaktive !== '1')>Nur aktive</option>
                             <option value="1" @selected($inaktive === '1')>Inkl. inaktive</option>

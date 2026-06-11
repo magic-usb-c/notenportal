@@ -27,16 +27,16 @@
                     {{-- ---- Stammdaten ---- --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-muted">Vorname *</label>
-                            <input type="text" name="vorname" value="{{ old('vorname') }}" required
+                            <label for="vorname" class="text-sm font-medium text-muted">Vorname *</label>
+                            <input type="text" name="vorname" id="vorname" value="{{ old('vorname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-red-400 @enderror">
                             @error('vorname')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-muted">Nachname *</label>
-                            <input type="text" name="nachname" value="{{ old('nachname') }}" required
+                            <label for="nachname" class="text-sm font-medium text-muted">Nachname *</label>
+                            <input type="text" name="nachname" id="nachname" value="{{ old('nachname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-red-400 @enderror">
                             @error('nachname')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -45,8 +45,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">E-Mail *</label>
-                        <input type="email" name="email" value="{{ old('email') }}" required
+                        <label for="email" class="text-sm font-medium text-muted">E-Mail *</label>
+                        <input type="email" name="email" id="email" value="{{ old('email') }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-red-400 @enderror">
                         @error('email')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -54,10 +54,10 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">
+                        <label for="benutzername" class="text-sm font-medium text-muted">
                             Benutzername * <span class="text-xs font-normal">(nur Buchstaben und Ziffern)</span>
                         </label>
-                        <input type="text" name="benutzername" value="{{ old('benutzername') }}" required
+                        <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername') }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('benutzername') border-red-400 @enderror">
                         @error('benutzername')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -79,13 +79,13 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label class="text-sm font-medium text-muted">Passwort * <span class="text-xs font-normal">(mind. 8 Zeichen)</span></label>
+                                <label for="passwort" class="text-sm font-medium text-muted">Passwort * <span class="text-xs font-normal">(mind. 8 Zeichen)</span></label>
                                 <button type="button" @click="generieren()"
                                         class="text-xs text-accent hover:underline">
                                     Generieren
                                 </button>
                             </div>
-                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" required minlength="8"
+                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" required minlength="8"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('passwort') border-red-400 @enderror">
                             @error('passwort')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -93,14 +93,14 @@
                         </div>
                         <div>
                             <div class="flex items-center justify-between">
-                                <label class="text-sm font-medium text-muted">Passwort bestätigen *</label>
+                                <label for="passwort_confirmation" class="text-sm font-medium text-muted">Passwort bestätigen *</label>
                                 <button type="button" @click="show = !show"
                                         class="text-xs text-muted hover:text-text">
                                     <span x-show="!show">Anzeigen</span>
                                     <span x-show="show" x-cloak>Verbergen</span>
                                 </button>
                             </div>
-                            <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" required
+                            <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
                     </div>
@@ -155,8 +155,8 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-sm font-medium text-muted">Lehrberuf *</label>
-                                    <select name="lehrberuf_id"
+                                    <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf *</label>
+                                    <select name="lehrberuf_id" id="lehrberuf_id"
                                             class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrberuf_id') border-red-400 @enderror">
                                         <option value="">Bitte wählen…</option>
                                         @foreach($lehrberufe as $lb)
@@ -170,8 +170,8 @@
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-muted">Lehrbeginn *</label>
-                                    <input type="date" name="lehrbeginn" value="{{ old('lehrbeginn') }}"
+                                    <label for="lehrbeginn" class="text-sm font-medium text-muted">Lehrbeginn *</label>
+                                    <input type="date" name="lehrbeginn" id="lehrbeginn" value="{{ old('lehrbeginn') }}"
                                            class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
                                     @error('lehrbeginn')
                                         <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -182,8 +182,8 @@
 
                         {{-- Berufsbildner zuweisen --}}
                         <div>
-                            <label class="text-sm font-medium text-muted">Berufsbildner zuweisen</label>
-                            <select name="berufsbildner_id"
+                            <label for="berufsbildner_id" class="text-sm font-medium text-muted">Berufsbildner zuweisen</label>
+                            <select name="berufsbildner_id" id="berufsbildner_id"
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="">Kein Berufsbildner (später zuweisen)</option>
                                 @foreach($berufsbildner as $bb)
@@ -199,8 +199,8 @@
 
                         {{-- BMS/ABU-Track --}}
                         <div>
-                            <label class="text-sm font-medium text-muted">Schul-Track</label>
-                            <select name="track_typ" x-model="track"
+                            <label for="track_typ" class="text-sm font-medium text-muted">Schul-Track</label>
+                            <select name="track_typ" id="track_typ" x-model="track"
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="">Kein Track (später einrichten)</option>
                                 <option value="BMS">BMS</option>
@@ -209,8 +209,8 @@
 
                             {{-- Startsemester – nur wenn Track ausgewählt --}}
                             <div x-show="track" x-cloak class="mt-3">
-                                <label class="text-sm font-medium text-muted">Startsemester für Track *</label>
-                                <select name="track_semester_id"
+                                <label for="track_semester_id" class="text-sm font-medium text-muted">Startsemester für Track *</label>
+                                <select name="track_semester_id" id="track_semester_id"
                                         class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_semester_id') border-red-400 @enderror">
                                     <option value="">Bitte wählen…</option>
                                     @foreach($semester as $s)

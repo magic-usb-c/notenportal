@@ -45,8 +45,8 @@
 
             {{-- Lernenden-Switcher --}}
             <div class="glass rounded-2xl p-4">
-                <label class="text-sm font-medium text-muted">Lernenden wechseln</label>
-                <select class="mt-1 w-full sm:w-80 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring"
+                <label for="lernenden_wechseln" class="text-sm font-medium text-muted">Lernenden wechseln</label>
+                <select id="lernenden_wechseln" class="mt-1 w-full sm:w-80 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring"
                         onchange="if(this.value) window.location.href=this.value">
                     @foreach($lernende as $l)
                         <option
@@ -66,8 +66,8 @@
                       class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Kategorie</label>
-                        <select name="kategorie_id" onchange="this.form.submit()"
+                        <label for="kategorie_id" class="text-sm font-medium text-muted">Kategorie</label>
+                        <select name="kategorie_id" id="kategorie_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($kategorien as $k)
@@ -79,8 +79,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Semester</label>
-                        <select name="semester_id" onchange="this.form.submit()"
+                        <label for="semester_id" class="text-sm font-medium text-muted">Semester</label>
+                        <select name="semester_id" id="semester_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Alle</option>
                             @foreach($semester as $s)

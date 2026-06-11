@@ -27,15 +27,15 @@
                       class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
 
                     <div class="sm:col-span-2">
-                        <label class="text-sm font-medium text-muted">Suche</label>
+                        <label for="suche" class="text-sm font-medium text-muted">Suche</label>
                         <input type="text" name="suche" id="suche" value="{{ $suche }}"
                                placeholder="Name, E-Mail oder Benutzername…"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Rolle</label>
-                        <select name="rolle_id" onchange="this.form.submit()"
+                        <label for="rolle_id" class="text-sm font-medium text-muted">Rolle</label>
+                        <select name="rolle_id" id="rolle_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Rollen</option>
                             @foreach($rollen as $r)
@@ -45,9 +45,9 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Status</label>
+                        <label for="status" class="text-sm font-medium text-muted">Status</label>
                         <div class="flex gap-2 mt-1">
-                            <select name="status" onchange="this.form.submit()"
+                            <select name="status" id="status" onchange="this.form.submit()"
                                     class="flex-1 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                                 <option value="" @selected($status === '')>Alle</option>
                                 <option value="aktiv" @selected($status === 'aktiv')>Aktiv</option>

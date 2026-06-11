@@ -17,8 +17,8 @@
                     @csrf
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Name *</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required maxlength="200"
+                        <label for="name" class="text-sm font-medium text-muted">Name *</label>
+                        <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
                         @error('name')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -26,8 +26,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Kürzel * <span class="text-xs font-normal">(wird gross gespeichert)</span></label>
-                        <input type="text" name="kurzname" value="{{ old('kurzname') }}" required maxlength="50"
+                        <label for="kurzname" class="text-sm font-medium text-muted">Kürzel * <span class="text-xs font-normal">(wird gross gespeichert)</span></label>
+                        <input type="text" id="kurzname" name="kurzname" value="{{ old('kurzname') }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kurzname') border-red-400 @enderror">
                         @error('kurzname')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -35,8 +35,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Track *</label>
-                        <select name="track_typ" required
+                        <label for="track_typ" class="text-sm font-medium text-muted">Track *</label>
+                        <select id="track_typ" name="track_typ" required
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
                             <option value="">Bitte wählen…</option>
                             <option value="BMS" @selected(old('track_typ') === 'BMS')>BMS</option>

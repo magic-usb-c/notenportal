@@ -40,8 +40,8 @@
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Semester</label>
-                        <select name="semester_id" onchange="this.form.submit()"
+                        <label for="semester_id" class="text-sm font-medium text-muted">Semester</label>
+                        <select name="semester_id" id="semester_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Semester</option>
                             @foreach($semester as $s)
@@ -53,8 +53,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Lehrberuf</label>
-                        <select name="lehrberuf_id" onchange="this.form.submit()"
+                        <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf</label>
+                        <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle Lehrberufe</option>
                             @foreach($lehrberufe as $lb)
@@ -66,8 +66,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Berufsbildner</label>
-                        <select name="berufsbildner_id" onchange="this.form.submit()"
+                        <label for="berufsbildner_id" class="text-sm font-medium text-muted">Berufsbildner</label>
+                        <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="">Alle BB</option>
                             @foreach($berufsbildner as $bb)

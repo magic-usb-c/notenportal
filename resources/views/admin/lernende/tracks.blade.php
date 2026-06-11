@@ -86,16 +86,16 @@
 
                     <div class="grid grid-cols-3 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-muted">Track-Typ</label>
-                            <select name="track_typ" required
+                            <label for="track_typ" class="text-sm font-medium text-muted">Track-Typ</label>
+                            <select name="track_typ" id="track_typ" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="BMS" @selected(old('track_typ') === 'BMS')>BMS</option>
                                 <option value="ABU" @selected(old('track_typ') === 'ABU')>ABU</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-muted">Startsemester</label>
-                            <select name="start_semester_id" required
+                            <label for="start_semester_id" class="text-sm font-medium text-muted">Startsemester</label>
+                            <select name="start_semester_id" id="start_semester_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                                 <option value="">Bitte wählen…</option>
                                 @foreach($semester as $s)
@@ -106,8 +106,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-muted">Startdatum</label>
-                            <input type="date" name="start_datum" value="{{ old('start_datum', now()->toDateString()) }}" required
+                            <label for="start_datum" class="text-sm font-medium text-muted">Startdatum</label>
+                            <input type="date" name="start_datum" id="start_datum" value="{{ old('start_datum', now()->toDateString()) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
                     </div>

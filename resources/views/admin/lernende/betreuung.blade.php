@@ -68,8 +68,8 @@
                     @csrf
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Berufsbildner</label>
-                        <select name="berufsbildner_id" required
+                        <label for="berufsbildner_id" class="text-sm font-medium text-muted">Berufsbildner</label>
+                        <select name="berufsbildner_id" id="berufsbildner_id" required
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Bitte wählen…</option>
                             @foreach($berufsbildner as $bb)
@@ -81,8 +81,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Gültig ab</label>
-                        <input type="date" name="gueltig_von" value="{{ old('gueltig_von', now()->toDateString()) }}" required
+                        <label for="gueltig_von" class="text-sm font-medium text-muted">Gültig ab</label>
+                        <input type="date" name="gueltig_von" id="gueltig_von" value="{{ old('gueltig_von', now()->toDateString()) }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                     </div>
 

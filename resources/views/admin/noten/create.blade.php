@@ -42,8 +42,8 @@
                     @csrf
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Kategorie</label>
-                        <select name="kategorie_id" required
+                        <label for="kategorie_id" class="text-sm font-medium text-muted">Kategorie</label>
+                        <select name="kategorie_id" id="kategorie_id" required
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             @foreach($kategorien as $k)
                                 <option value="{{ $k->kategorie_id }}" @selected(old('kategorie_id') == $k->kategorie_id)>
@@ -73,8 +73,8 @@
                     </div>
 
                     <div id="fachBlock">
-                        <label class="text-sm font-medium text-muted">Fach</label>
-                        <select name="fach_id"
+                        <label for="fach_id" class="text-sm font-medium text-muted">Fach</label>
+                        <select name="fach_id" id="fach_id"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Bitte wählen</option>
                             @foreach($faecher as $f)
@@ -86,8 +86,8 @@
                     </div>
 
                     <div id="modulBlock" class="hidden">
-                        <label class="text-sm font-medium text-muted">Modul</label>
-                        <select name="modul_id"
+                        <label for="modul_id" class="text-sm font-medium text-muted">Modul</label>
+                        <select name="modul_id" id="modul_id"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <option value="">Bitte wählen</option>
                             @foreach($module as $m)
@@ -101,27 +101,27 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Titel (optional)</label>
-                        <input name="titel" maxlength="150" value="{{ old('titel') }}"
+                        <label for="titel" class="text-sm font-medium text-muted">Titel (optional)</label>
+                        <input name="titel" id="titel" maxlength="150" value="{{ old('titel') }}"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-muted">Prüfungsdatum</label>
-                            <input type="date" name="pruefungsdatum" required value="{{ old('pruefungsdatum') }}"
+                            <label for="pruefungsdatum" class="text-sm font-medium text-muted">Prüfungsdatum</label>
+                            <input type="date" name="pruefungsdatum" id="pruefungsdatum" required value="{{ old('pruefungsdatum') }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium text-muted">Note</label>
-                            <input type="number" name="note_wert" step="0.1" min="1" max="6" required value="{{ old('note_wert') }}"
+                            <label for="note_wert" class="text-sm font-medium text-muted">Note</label>
+                            <input type="number" name="note_wert" id="note_wert" step="0.1" min="1" max="6" required value="{{ old('note_wert') }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium text-muted">Gewichtung %</label>
-                            <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
+                            <label for="gewichtung_prozent" class="text-sm font-medium text-muted">Gewichtung %</label>
+                            <input type="number" name="gewichtung_prozent" id="gewichtung_prozent" step="0.01" min="0" max="100"
                                    value="{{ old('gewichtung_prozent', 100) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                             <div class="mt-1.5 flex gap-1.5">

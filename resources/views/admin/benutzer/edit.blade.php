@@ -44,16 +44,16 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="text-sm font-medium text-muted">Vorname *</label>
-                            <input type="text" name="vorname" value="{{ old('vorname', $user->vorname) }}" required
+                            <label for="vorname" class="text-sm font-medium text-muted">Vorname *</label>
+                            <input type="text" name="vorname" id="vorname" value="{{ old('vorname', $user->vorname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-red-400 @enderror">
                             @error('vorname')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-muted">Nachname *</label>
-                            <input type="text" name="nachname" value="{{ old('nachname', $user->nachname) }}" required
+                            <label for="nachname" class="text-sm font-medium text-muted">Nachname *</label>
+                            <input type="text" name="nachname" id="nachname" value="{{ old('nachname', $user->nachname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-red-400 @enderror">
                             @error('nachname')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -62,8 +62,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">E-Mail *</label>
-                        <input type="email" name="email" value="{{ old('email', $user->email) }}" required
+                        <label for="email" class="text-sm font-medium text-muted">E-Mail *</label>
+                        <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-red-400 @enderror">
                         @error('email')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -71,8 +71,8 @@
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Benutzername</label>
-                        <input type="text" value="{{ $user->benutzername }}" disabled
+                        <label for="benutzername" class="text-sm font-medium text-muted">Benutzername</label>
+                        <input type="text" id="benutzername" value="{{ $user->benutzername }}" disabled
                                class="mt-1 w-full rounded-xl border border-border bg-bg text-muted font-mono px-3 py-2 cursor-not-allowed">
                         <p class="mt-1 text-xs text-muted">Benutzername kann nicht geändert werden.</p>
                     </div>
@@ -99,8 +99,8 @@
                             <div class="text-sm font-semibold text-text">Lehrausbildung</div>
 
                             <div>
-                                <label class="text-sm font-medium text-muted">Lehrberuf *</label>
-                                <select name="lehrberuf_id" required
+                                <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf *</label>
+                                <select name="lehrberuf_id" id="lehrberuf_id" required
                                         class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrberuf_id') border-red-400 @enderror">
                                     @foreach($lehrberufe as $lb)
                                         <option value="{{ $lb->lehrberuf_id }}"
@@ -116,8 +116,8 @@
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="text-sm font-medium text-muted">Lehrbeginn *</label>
-                                    <input type="date" name="lehrbeginn"
+                                    <label for="lehrbeginn" class="text-sm font-medium text-muted">Lehrbeginn *</label>
+                                    <input type="date" name="lehrbeginn" id="lehrbeginn"
                                            value="{{ old('lehrbeginn', $lernendeProfil->lehrbeginn) }}" required
                                            class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
                                     @error('lehrbeginn')
@@ -125,8 +125,8 @@
                                     @enderror
                                 </div>
                                 <div>
-                                    <label class="text-sm font-medium text-muted">Lehrende</label>
-                                    <input type="date" name="lehrende"
+                                    <label for="lehrende" class="text-sm font-medium text-muted">Lehrende</label>
+                                    <input type="date" name="lehrende" id="lehrende"
                                            value="{{ old('lehrende', $lernendeProfil->lehrende) }}"
                                            class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
                                     @error('lehrende')
@@ -152,7 +152,7 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label class="text-sm font-medium text-muted">
+                                <label for="passwort" class="text-sm font-medium text-muted">
                                     Neues Passwort <span class="text-xs font-normal">(leer lassen = nicht ändern)</span>
                                 </label>
                                 <div class="flex items-center gap-3">
@@ -167,7 +167,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" minlength="8"
+                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" minlength="8"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('passwort') border-red-400 @enderror">
                             @error('passwort')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -175,8 +175,8 @@
                         </div>
 
                         <div>
-                            <label class="text-sm font-medium text-muted">Passwort bestätigen</label>
-                            <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation"
+                            <label for="passwort_confirmation" class="text-sm font-medium text-muted">Passwort bestätigen</label>
+                            <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
                     </div>

@@ -76,8 +76,8 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="md:col-span-5">
-                            <label class="text-xs font-medium text-muted">Modul hinzufügen</label>
-                            <select name="modul_id" required
+                            <label for="modul_id" class="text-xs font-medium text-muted">Modul hinzufügen</label>
+                            <select id="modul_id" name="modul_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>
                                 @foreach($verfuegbareModule as $m)
@@ -86,8 +86,8 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="text-xs font-medium text-muted">Emph. Semester</label>
-                            <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" placeholder="z.B. 3"
+                            <label for="empfohlenes_lehrsemester_nr" class="text-xs font-medium text-muted">Emph. Semester</label>
+                            <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12" placeholder="z.B. 3"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                         </div>
                         <div class="md:col-span-3 flex items-end gap-2">
@@ -162,8 +162,8 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="flex-1">
-                            <label class="text-xs font-medium text-muted">Fach hinzufügen</label>
-                            <select name="fach_id" required
+                            <label for="fach_id" class="text-xs font-medium text-muted">Fach hinzufügen</label>
+                            <select id="fach_id" name="fach_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>
                                 @foreach($verfuegbareFaecher as $f)
