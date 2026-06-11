@@ -52,7 +52,7 @@
                          }"
                          class="flex flex-col items-center gap-2 py-2">
                         <label class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0)</label>
-                        <input type="number" name="note_wert" step="0.1" min="1" max="6" required
+                        <input type="number" name="note_wert" step="0.05" min="1" max="6" required
                                x-model="wert" :class="color"
                                value="{{ old('note_wert', $note->note_wert) }}" autofocus
                                class="w-32 h-20 text-4xl font-extrabold text-center tabular-nums rounded-2xl border-2 border-border bg-input text-text

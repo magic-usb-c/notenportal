@@ -31,7 +31,7 @@
                     <div>
                         <label class="text-xs uppercase tracking-wide text-muted">Ziel-Durchschnitt</label>
                         <input type="number"
-                               step="0.1"
+                               step="0.05"
                                min="1.0"
                                max="6.0"
                                x-model.number="ziel"
