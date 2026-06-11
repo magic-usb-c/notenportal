@@ -41,9 +41,9 @@
         $avgColor = function ($val) {
             if ($val === null || $val === '') return 'text-muted';
             $v = (float) $val;
-            if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
-            if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-            if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+            if ($v >= 5.0) return 'text-green-700 dark:text-green-400';
+            if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+            if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
             return 'text-red-600 dark:text-red-400';
         };
     @endphp
@@ -182,7 +182,7 @@
             {{-- Warning-Banner: Ø unter 4.0 (Trigger aus PDF) --}}
             @if($avgWeighted !== null && (float)$avgWeighted < 4.0)
                 <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex items-start gap-3">
-                    <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
                     </svg>
                     <div>
@@ -277,9 +277,9 @@
                                 @php
                                     $ssAvg = $ss->avg_weighted !== null ? (float) $ss->avg_weighted : null;
                                     $ssColor = $ssAvg === null ? 'text-muted'
-                                        : ($ssAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                                        : ($ssAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                                        : ($ssAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                        : ($ssAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                                        : ($ssAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                                        : ($ssAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                                         : 'text-red-600 dark:text-red-400')));
                                     $ssBarBg = $ssAvg === null ? 'bg-muted/30'
                                         : ($ssAvg >= 5.0 ? 'bg-green-500'

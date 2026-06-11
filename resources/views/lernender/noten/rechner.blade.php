@@ -103,7 +103,7 @@
 
                 <template x-if="status === 'erreicht'">
                     <div class="mt-2">
-                        <div class="text-3xl font-bold text-green-600 dark:text-green-400">Ziel bereits übertroffen</div>
+                        <div class="text-3xl font-bold text-green-700 dark:text-green-400">Ziel bereits übertroffen</div>
                         <p class="mt-3 text-sm text-muted">
                             Dein aktueller Ø liegt bereits über
                             <span class="font-semibold text-text" x-text="ziel.toFixed(1)"></span>.
@@ -194,9 +194,9 @@
 
                 colorFor(v) {
                     if (v === null || !Number.isFinite(v)) return 'text-muted';
-                    if (v >= 5.0) return 'text-green-600 dark:text-green-400';
-                    if (v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-                    if (v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                    if (v >= 5.0) return 'text-green-700 dark:text-green-400';
+                    if (v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+                    if (v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
                     return 'text-red-600 dark:text-red-400';
                 },
             };

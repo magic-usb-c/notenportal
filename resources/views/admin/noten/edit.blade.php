@@ -18,7 +18,7 @@
             <div class="glass rounded-2xl p-6">
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-500">
+                    <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-600 dark:text-red-400">
                         <div class="font-semibold mb-2">Bitte prüfen:</div>
                         <ul class="list-disc pl-5 space-y-1 text-sm">
                             @foreach ($errors->all() as $error)

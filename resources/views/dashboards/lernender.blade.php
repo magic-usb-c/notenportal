@@ -39,9 +39,9 @@
             @php
                 $kennColor = function ($v) {
                     if ($v === null) return 'text-text';
-                    if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
-                    if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-                    if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                    if ($v >= 5.0) return 'text-green-700 dark:text-green-400';
+                    if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+                    if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
                     return 'text-red-600 dark:text-red-400';
                 };
                 $kennGlow = function ($v) {
@@ -132,7 +132,7 @@
                                 <div class="text-xs text-muted">{{ $lehrEnde->format('d.m.Y') }}</div>
                             @else
                                 <div class="text-sm font-semibold
-                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-text') }}">
+                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-700 dark:text-yellow-400' : 'text-text') }}">
                                     noch {{ $daysLeft }} Tage
                                 </div>
                                 <div class="text-xs text-muted">Lehrende: {{ $lehrEnde->format('d.m.Y') }}</div>

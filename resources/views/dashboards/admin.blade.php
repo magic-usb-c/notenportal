@@ -150,7 +150,7 @@
                                 $daysLeft = (int) \Carbon\Carbon::parse($l->lehrende)->diffInDays(now());
                                 $urgency  = $daysLeft <= 14
                                     ? 'text-red-600 dark:text-red-400'
-                                    : ($daysLeft <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted');
+                                    : ($daysLeft <= 30 ? 'text-yellow-700 dark:text-yellow-400' : 'text-muted');
                             @endphp
                             <div class="px-5 py-3 flex items-center justify-between gap-3">
                                 <div>

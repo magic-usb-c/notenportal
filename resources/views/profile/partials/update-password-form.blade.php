@@ -13,7 +13,7 @@
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @if($errors->updatePassword->get('current_password')) border-red-400 @endif">
             @foreach($errors->updatePassword->get('current_password') as $msg)
-                <p class="mt-1 text-xs text-red-500">{{ $msg }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $msg }}</p>
             @endforeach
         </div>
 
@@ -23,7 +23,7 @@
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @if($errors->updatePassword->get('password')) border-red-400 @endif">
             @foreach($errors->updatePassword->get('password') as $msg)
-                <p class="mt-1 text-xs text-red-500">{{ $msg }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $msg }}</p>
             @endforeach
         </div>
 

@@ -109,9 +109,9 @@
                     $avg = $statsRow->avg_weighted !== null ? (float)$statsRow->avg_weighted : null;
                     $passRate = $statsRow->total > 0 ? round($statsRow->passed / $statsRow->total * 100) : null;
                     $avgColor = $avg === null ? 'text-muted'
-                        : ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                        : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                        : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                        : ($avg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                        : ($avg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                        : ($avg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                         : 'text-red-600 dark:text-red-400')));
                 @endphp
                 <div class="glass rounded-2xl px-5 py-3 flex flex-wrap gap-6 text-sm">
@@ -130,7 +130,7 @@
                     @if($passRate !== null)
                         <div class="text-center">
                             <div class="text-xs text-muted">Bestehensquote</div>
-                            <div class="font-bold text-lg {{ $passRate >= 75 ? 'text-green-600 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400') }}">{{ $passRate }} %</div>
+                            <div class="font-bold text-lg {{ $passRate >= 75 ? 'text-green-700 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-700 dark:text-yellow-400' : 'text-red-600 dark:text-red-400') }}">{{ $passRate }} %</div>
                         </div>
                     @endif
                 </div>
@@ -275,7 +275,7 @@
                                       onsubmit="return confirm('Note wirklich löschen?')">
                                     @csrf @method('DELETE')
                                     <button type="submit" :disabled="loading"
-                                            class="px-3 py-1.5 rounded-xl text-xs text-red-500 border border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20 disabled:opacity-60 disabled:cursor-not-allowed">
+                                            class="px-3 py-1.5 rounded-xl text-xs text-red-600 dark:text-red-400 border border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20 disabled:opacity-60 disabled:cursor-not-allowed">
                                         Löschen
                                     </button>
                                 </form>

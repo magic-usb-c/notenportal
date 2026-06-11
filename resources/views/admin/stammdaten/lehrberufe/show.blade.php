@@ -44,7 +44,7 @@
                                         <td class="py-2 pr-4 text-text">{{ $m->titel }}</td>
                                         <td class="py-2 pr-4">
                                             @if($m->pflicht)
-                                                <span class="text-xs text-green-600 dark:text-green-400">Ja</span>
+                                                <span class="text-xs text-green-700 dark:text-green-400">Ja</span>
                                             @else
                                                 <span class="text-xs text-muted">Nein</span>
                                             @endif
@@ -56,7 +56,7 @@
                                                   onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="text-xs text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -142,7 +142,7 @@
                                                   onsubmit="return confirm('Fach {{ $f->name }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="text-xs text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>

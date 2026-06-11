@@ -82,7 +82,7 @@
                  x-transition:leave-start="opacity-100 translate-y-0"
                  x-transition:leave-end="opacity-0 translate-y-2"
                  class="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-card border border-red-500/30 text-red-700 dark:text-red-300 rounded-xl shadow-lg text-sm max-w-md">
-                <svg class="w-5 h-5 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 shrink-0 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                 </svg>
                 <span>{{ $flashError }}</span>

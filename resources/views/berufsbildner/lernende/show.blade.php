@@ -37,9 +37,9 @@
     @php
         $avgColor = function ($v) {
             if ($v === null) return 'text-muted';
-            if ($v >= 5.0) return 'text-green-600 dark:text-green-400';
-            if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-            if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+            if ($v >= 5.0) return 'text-green-700 dark:text-green-400';
+            if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+            if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
             return 'text-red-600 dark:text-red-400';
         };
     @endphp
@@ -96,7 +96,7 @@
                                            value="{{ old('lehrbeginn', $profil->lehrbeginn) }}"
                                            class="mt-0.5 w-full rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
                                     @error('lehrbeginn')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
                                 </dd>
                             </div>
@@ -110,7 +110,7 @@
                                            value="{{ old('lehrende', $profil->lehrende) }}"
                                            class="mt-0.5 w-full rounded-lg border border-border bg-input text-text text-sm px-2 py-1 focus:ring-2 focus:ring-ring focus:border-ring">
                                     @error('lehrende')
-                                        <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                                     @enderror
                                 </dd>
                             </div>
@@ -152,7 +152,7 @@
                             <div class="mt-3 pt-3 border-t border-border w-full">
                                 <div class="text-[10px] uppercase tracking-widest text-muted">Lehrende</div>
                                 <div class="text-sm font-semibold mt-0.5
-                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-text') }}">
+                                    {{ $daysLeft <= 30 ? 'text-red-600 dark:text-red-400' : ($daysLeft <= 90 ? 'text-yellow-700 dark:text-yellow-400' : 'text-text') }}">
                                     in {{ $daysLeft }} Tagen
                                 </div>
                             </div>
@@ -209,9 +209,9 @@
                             Starten
                         </button>
                     </form>
-                    @error('track_typ')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                    @error('start_datum')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
-                    @error('start_semester_id')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                    @error('track_typ')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('start_datum')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('start_semester_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                 </div>
 
                 {{-- Bestehende Tracks --}}

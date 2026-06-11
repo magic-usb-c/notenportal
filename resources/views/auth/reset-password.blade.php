@@ -10,7 +10,7 @@
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-red-400 @enderror">
             @error('email')
-                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
 
@@ -20,7 +20,7 @@
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @error('password') border-red-400 @enderror">
             @error('password')
-                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
 
@@ -31,7 +31,7 @@
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @error('password_confirmation') border-red-400 @enderror">
             @error('password_confirmation')
-                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
 

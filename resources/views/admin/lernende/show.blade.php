@@ -108,16 +108,16 @@
                                     @php
                                         $avg = $s->avg !== null ? (float)$s->avg : null;
                                         $nc = $avg !== null
-                                            ? ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                                                : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                                                : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                            ? ($avg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                                                : ($avg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                                                : ($avg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                                                 : 'text-red-600 dark:text-red-400')))
                                             : 'text-muted';
                                         $passed = (int) ($s->passed ?? 0);
                                         $quote = $s->count > 0 ? round($passed / $s->count * 100) : null;
                                         $qc = $quote === null ? 'text-muted'
-                                            : ($quote >= 75 ? 'text-green-600 dark:text-green-400'
-                                            : ($quote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : ($quote >= 75 ? 'text-green-700 dark:text-green-400'
+                                            : ($quote >= 50 ? 'text-yellow-700 dark:text-yellow-400'
                                             : 'text-red-600 dark:text-red-400'));
                                     @endphp
                                     <tr class="hover:bg-bg">

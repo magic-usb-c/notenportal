@@ -22,7 +22,7 @@
                         <input type="text" name="bezeichnung" value="{{ old('bezeichnung', $semester->bezeichnung) }}" required maxlength="20"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('bezeichnung') border-red-400 @enderror">
                         @error('bezeichnung')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -32,7 +32,7 @@
                             <input type="date" name="start_datum" value="{{ old('start_datum', $semester->start_datum) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('start_datum') border-red-400 @enderror">
                             @error('start_datum')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
@@ -40,7 +40,7 @@
                             <input type="date" name="end_datum" value="{{ old('end_datum', $semester->end_datum) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('end_datum') border-red-400 @enderror">
                             @error('end_datum')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -50,7 +50,7 @@
                         <input type="number" name="sortierung" value="{{ old('sortierung', $semester->sortierung) }}" required min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('sortierung') border-red-400 @enderror">
                         @error('sortierung')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 

@@ -33,9 +33,9 @@
     $noteColorClass = function ($val): string {
         if ($val === null || $val === '') return 'text-muted';
         $v = (float) $val;
-        if ($v >= 5.0) return 'text-green-600 dark:text-green-400 np-text-glow-green';
-        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400 np-text-glow-emerald';
-        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400 np-text-glow-yellow';
+        if ($v >= 5.0) return 'text-green-700 dark:text-green-400 np-text-glow-green';
+        if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400 np-text-glow-emerald';
+        if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400 np-text-glow-yellow';
         return 'text-red-600 dark:text-red-400 np-text-glow-red';
     };
 
@@ -43,9 +43,9 @@
     $avgHeroClass = function ($val): string {
         if ($val === null || $val === '') return 'text-muted';
         $v = (float) $val;
-        if ($v >= 5.0) return 'text-green-600 dark:text-green-400 np-text-glow-green';
-        if ($v >= 4.0) return 'text-emerald-600 dark:text-emerald-400 np-text-glow-emerald';
-        if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400 np-text-glow-yellow';
+        if ($v >= 5.0) return 'text-green-700 dark:text-green-400 np-text-glow-green';
+        if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400 np-text-glow-emerald';
+        if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400 np-text-glow-yellow';
         return 'text-red-600 dark:text-red-400 np-text-glow-red';
     };
 @endphp
@@ -145,7 +145,7 @@
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button :disabled="loading" class="text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                            <button :disabled="loading" class="text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif
@@ -376,7 +376,7 @@
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button :disabled="loading" class="text-red-500 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                            <button :disabled="loading" class="text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif

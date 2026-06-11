@@ -22,7 +22,7 @@
                         <input type="text" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('modul_nummer') border-red-400 @enderror">
                         @error('modul_nummer')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -31,7 +31,7 @@
                         <input type="text" name="titel" value="{{ old('titel', $modul->titel) }}" required maxlength="255"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('titel') border-red-400 @enderror">
                         @error('titel')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -40,7 +40,7 @@
                         <textarea name="beschreibung" rows="3" maxlength="2000"
                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('beschreibung') border-red-400 @enderror">{{ old('beschreibung', $modul->beschreibung) }}</textarea>
                         @error('beschreibung')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -51,7 +51,7 @@
                                step="0.01" min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('ziel_gewicht_summe_default') border-red-400 @enderror">
                         @error('ziel_gewicht_summe_default')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 

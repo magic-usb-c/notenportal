@@ -55,14 +55,14 @@
                             <input type="date" name="lehrbeginn"
                                    value="{{ old('lehrbeginn', $profil?->lehrbeginn) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
-                            @error('lehrbeginn')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            @error('lehrbeginn')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="text-sm font-medium text-muted">Lehrende</label>
                             <input type="date" name="lehrende"
                                    value="{{ old('lehrende', $profil?->lehrende) }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
-                            @error('lehrende')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            @error('lehrende')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                     </div>
 

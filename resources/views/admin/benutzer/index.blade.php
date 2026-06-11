@@ -130,7 +130,7 @@
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                   onsubmit="return confirm('Status wirklich ändern?');">
                                                 @csrf
-                                                <button :disabled="loading" class="text-sm {{ $b->aktiv ? 'text-red-500 hover:underline' : 'text-green-600 hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <button :disabled="loading" class="text-sm {{ $b->aktiv ? 'text-red-600 dark:text-red-400 hover:underline' : 'text-green-600 hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
                                                     {{ $b->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
                                                 </button>
                                             </form>

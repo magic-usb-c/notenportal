@@ -17,7 +17,7 @@
             <div class="glass rounded-3xl p-6 sm:p-8">
 
                 @if ($errors->any())
-                    <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-500">
+                    <div class="mb-4 rounded-xl border border-red-500/30 bg-card px-4 py-3 text-red-600 dark:text-red-400">
                         <div class="font-semibold mb-2">Bitte prüfen:</div>
                         <ul class="list-disc pl-5 space-y-1 text-sm">
                             @foreach ($errors->all() as $error)
@@ -44,9 +44,9 @@
                             get color() {
                                 const v = parseFloat(this.wert);
                                 if (!Number.isFinite(v)) return '';
-                                if (v >= 5.0) return 'text-green-600 dark:text-green-400';
-                                if (v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-                                if (v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                                if (v >= 5.0) return 'text-green-700 dark:text-green-400';
+                                if (v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+                                if (v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
                                 return 'text-red-600 dark:text-red-400';
                             }
                          }"
@@ -190,7 +190,7 @@
                              class="flex items-center justify-center gap-2 text-sm rounded-xl border border-border bg-bg/60 px-4 py-2.5">
                             <span class="text-muted">Neuer Ø im aktuellen Semester:</span>
                             <span class="font-bold tabular-nums text-base" :class="avgColor" x-text="newAvg !== null ? newAvg.toFixed(2) : ''"></span>
-                            <span x-show="delta !== null && delta > 0.004" class="text-green-600 dark:text-green-400 text-xs">▲ <span x-text="'+' + delta.toFixed(2)"></span></span>
+                            <span x-show="delta !== null && delta > 0.004" class="text-green-700 dark:text-green-400 text-xs">▲ <span x-text="'+' + delta.toFixed(2)"></span></span>
                             <span x-show="delta !== null && delta < -0.004" class="text-red-600 dark:text-red-400 text-xs">▼ <span x-text="delta.toFixed(2)"></span></span>
                         </div>
                     </div>
@@ -251,9 +251,9 @@
                             get avgColor() {
                                 const v = this.newAvg;
                                 if (v === null) return 'text-muted';
-                                if (v >= 5.0) return 'text-green-600 dark:text-green-400';
-                                if (v >= 4.0) return 'text-emerald-600 dark:text-emerald-400';
-                                if (v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
+                                if (v >= 5.0) return 'text-green-700 dark:text-green-400';
+                                if (v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
+                                if (v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
                                 return 'text-red-600 dark:text-red-400';
                             },
                         };

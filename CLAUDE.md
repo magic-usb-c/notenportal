@@ -107,10 +107,11 @@ border-border
 
 ### Farb-Logik Noten (konsistent ÜBERALL verwenden)
 ```php
->= 5.0 → text-green-600 dark:text-green-400   / bg-green-500 (Balken)
->= 4.0 → text-emerald-600 dark:text-emerald-400 / bg-emerald-500
->= 3.5 → text-yellow-600 dark:text-yellow-400   / bg-yellow-500
+>= 5.0 → text-green-700 dark:text-green-400   / bg-green-500 (Balken)
+>= 4.0 → text-emerald-700 dark:text-emerald-400 / bg-emerald-500
+>= 3.5 → text-yellow-700 dark:text-yellow-400   / bg-yellow-500
 <  3.5 → text-red-600 dark:text-red-400         / bg-red-500
+(Hell-Stufen -700 wegen WCAG AA 4.5:1 auf weisser Card; red-600 besteht knapp)
 ```
 
 ---

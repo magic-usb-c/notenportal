@@ -33,7 +33,7 @@
                             <input type="text" name="vorname" value="{{ old('vorname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-red-400 @enderror">
                             @error('vorname')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
@@ -41,7 +41,7 @@
                             <input type="text" name="nachname" value="{{ old('nachname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-red-400 @enderror">
                             @error('nachname')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -51,7 +51,7 @@
                         <input type="email" name="email" value="{{ old('email') }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-red-400 @enderror">
                         @error('email')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -62,7 +62,7 @@
                         <input type="text" name="benutzername" value="{{ old('benutzername') }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('benutzername') border-red-400 @enderror">
                         @error('benutzername')
-                            <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -91,7 +91,7 @@
                             <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" required minlength="8"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('passwort') border-red-400 @enderror">
                             @error('passwort')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
                         <div>
@@ -124,7 +124,7 @@
                                 @endforeach
                             </select>
                             @error('lehrberuf_id')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                             @enderror
                         </div>
 
@@ -134,7 +134,7 @@
                                 <input type="date" name="lehrbeginn" value="{{ old('lehrbeginn') }}" required
                                        class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
                                 @error('lehrbeginn')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                             <div>
@@ -142,7 +142,7 @@
                                 <input type="date" name="lehrende" value="{{ old('lehrende') }}"
                                        class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
                                 @error('lehrende')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
@@ -169,7 +169,7 @@
                                     @endforeach
                                 </select>
                                 @error('track_semester_id')
-                                    <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>

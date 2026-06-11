@@ -71,9 +71,9 @@
                                         <div class="text-xs text-muted">Ø Sem.</div>
                                         <div class="text-sm font-bold
                                             @if($st->semAvg === null) text-muted
-                                            @elseif($st->semAvg >= 5.0) text-green-600 dark:text-green-400
-                                            @elseif($st->semAvg >= 4.0) text-emerald-600 dark:text-emerald-400
-                                            @elseif($st->semAvg >= 3.5) text-yellow-600 dark:text-yellow-400
+                                            @elseif($st->semAvg >= 5.0) text-green-700 dark:text-green-400
+                                            @elseif($st->semAvg >= 4.0) text-emerald-700 dark:text-emerald-400
+                                            @elseif($st->semAvg >= 3.5) text-yellow-700 dark:text-yellow-400
                                             @else text-red-600 dark:text-red-400
                                             @endif">
                                             {{ $st->semAvg ?? '–' }}

@@ -5,7 +5,7 @@
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600 dark:text-green-400">
+        <div class="mb-4 font-medium text-sm text-green-700 dark:text-green-400">
             Ein neuer Bestätigungslink wurde an deine E-Mail-Adresse geschickt.
         </div>
     @endif

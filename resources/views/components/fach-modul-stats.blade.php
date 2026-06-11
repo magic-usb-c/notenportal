@@ -15,9 +15,9 @@
                     @php
                         $fsAvg = $fs->avg !== null ? (float) $fs->avg : null;
                         $fsColor = $fsAvg === null ? 'text-muted'
-                            : ($fsAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                            : ($fsAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                            : ($fsAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                            : ($fsAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                            : ($fsAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                            : ($fsAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                             : 'text-red-600 dark:text-red-400')));
                         $fsBarBg = $fsAvg === null ? 'bg-muted/30'
                             : ($fsAvg >= 5.0 ? 'bg-green-500'

@@ -24,7 +24,7 @@
                               @error('email') border-red-400 @enderror">
             </div>
             @error('email')
-                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
 
@@ -43,7 +43,7 @@
                               @error('password') border-red-400 @enderror">
             </div>
             @error('password')
-                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
+                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
             @enderror
         </div>
 

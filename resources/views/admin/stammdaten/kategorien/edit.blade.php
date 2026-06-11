@@ -35,13 +35,13 @@
                             <label class="text-sm font-medium text-muted">Code *</label>
                             <input type="text" name="code" value="{{ old('code', $kategorie->code) }}" required maxlength="30"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('code') border-red-400 @enderror">
-                            @error('code')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            @error('code')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="text-sm font-medium text-muted">Name *</label>
                             <input type="text" name="name" value="{{ old('name', $kategorie->name) }}" required maxlength="50"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
-                            @error('name')<p class="mt-1 text-xs text-red-500">{{ $message }}</p>@enderror
+                            @error('name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                     </div>
 

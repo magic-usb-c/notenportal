@@ -96,9 +96,9 @@
             @if($gesamtTotal > 0)
                 @php
                     $avgColor = $gesamtAvg === null ? 'text-muted'
-                        : ($gesamtAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                        : ($gesamtAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                        : ($gesamtAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                        : ($gesamtAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                        : ($gesamtAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                        : ($gesamtAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                         : 'text-red-600 dark:text-red-400')));
                     $passRate = $gesamtTotal > 0 ? round($gesamtPassed / $gesamtTotal * 100) : null;
                 @endphp
@@ -117,7 +117,7 @@
                     </div>
                     <div class="text-center">
                         <div class="text-xs text-muted">Bestehensquote</div>
-                        <div class="font-bold text-lg {{ $passRate !== null ? ($passRate >= 75 ? 'text-green-600 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400')) : 'text-muted' }}">
+                        <div class="font-bold text-lg {{ $passRate !== null ? ($passRate >= 75 ? 'text-green-700 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-700 dark:text-yellow-400' : 'text-red-600 dark:text-red-400')) : 'text-muted' }}">
                             {{ $passRate !== null ? $passRate . ' %' : '–' }}
                         </div>
                     </div>
@@ -192,13 +192,13 @@
                                     $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry) : null;
 
                                     $avgColor = $avg === null ? 'text-muted'
-                                        : ($avg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                                        : ($avg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                                        : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                        : ($avg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                                        : ($avg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                                        : ($avg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                                         : 'text-red-600 dark:text-red-400')));
                                     $quoteColor = $quote === null ? 'text-muted'
-                                        : ($quote >= 75 ? 'text-green-600 dark:text-green-400'
-                                        : ($quote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
+                                        : ($quote >= 75 ? 'text-green-700 dark:text-green-400'
+                                        : ($quote >= 50 ? 'text-yellow-700 dark:text-yellow-400'
                                         : 'text-red-600 dark:text-red-400'));
                                 @endphp
                                 <tr class="hover:bg-bg">
@@ -296,13 +296,13 @@
                                         $ksAvg    = $ks->avg_weighted !== null ? (float) $ks->avg_weighted : null;
                                         $ksQuote  = $ks->total > 0 ? round($ks->passed / $ks->total * 100) : null;
                                         $ksAvgCol = $ksAvg === null ? 'text-muted'
-                                            : ($ksAvg >= 5.0 ? 'text-green-600 dark:text-green-400'
-                                            : ($ksAvg >= 4.0 ? 'text-emerald-600 dark:text-emerald-400'
-                                            : ($ksAvg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : ($ksAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
+                                            : ($ksAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
+                                            : ($ksAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
                                             : 'text-red-600 dark:text-red-400')));
                                         $ksQCol   = $ksQuote === null ? 'text-muted'
-                                            : ($ksQuote >= 75 ? 'text-green-600 dark:text-green-400'
-                                            : ($ksQuote >= 50 ? 'text-yellow-600 dark:text-yellow-400'
+                                            : ($ksQuote >= 75 ? 'text-green-700 dark:text-green-400'
+                                            : ($ksQuote >= 50 ? 'text-yellow-700 dark:text-yellow-400'
                                             : 'text-red-600 dark:text-red-400'));
                                     @endphp
                                     <tr class="hover:bg-bg">
