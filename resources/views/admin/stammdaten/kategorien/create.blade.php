@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-slot name="title">Neue Notenkategorie</x-slot>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Neue Notenkategorie</h2>

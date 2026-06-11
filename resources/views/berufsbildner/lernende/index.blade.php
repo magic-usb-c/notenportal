@@ -88,7 +88,7 @@
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
                                 Noten öffnen
                                 @if($st?->unread > 0)
-                                    <span class="inline-flex items-center justify-center min-w-[1.25rem] px-1 py-0.5 rounded-full text-[10px] font-bold bg-white text-accent leading-none">
+                                    <span class="inline-flex items-center justify-center min-w-[1.25rem] px-1 py-0.5 rounded-full text-[10px] font-bold bg-card text-accent leading-none">
                                         {{ $st->unread }}
                                     </span>
                                 @endif
