@@ -128,8 +128,31 @@ class NotenController extends Controller
             $request->filled('semester_id') ? (int) $request->input('semester_id') : null,
         );
 
+        // Ungelesene Noten gesamt (ungefiltert, alle Seiten) — Button-Anzeige
+        // sonst fehlt der "Alle gesehen"-Button, wenn die neuen Noten auf Seite 2 liegen
+        $bbBenutzerId = (int) auth()->user()->benutzer_id;
+        $neuCount = DB::table('noten as n')
+            ->leftJoin('noten_gesehen as g', function ($j) use ($bbBenutzerId) {
+                $j->on('g.note_id', '=', 'n.note_id')
+                  ->where('g.viewer_benutzer_id', '=', $bbBenutzerId);
+            })
+            ->where('n.lernender_id', $lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->where(function ($q) {
+                $q->whereNull('g.gesehen_am')
+                  ->orWhereColumn('n.erstellt_am', '>', 'g.gesehen_am')
+                  ->orWhereExists(function ($sq) {
+                      $sq->select(DB::raw(1))
+                         ->from('noten_kommentare as k')
+                         ->whereColumn('k.note_id', 'n.note_id')
+                         ->whereColumn('k.erstellt_am', '>', 'g.gesehen_am');
+                  });
+            })
+            ->count();
+
         return view('berufsbildner.noten.index', [
             'notes'              => $notes,
+            'neuCount'           => $neuCount,
             'notenVerlauf'       => $notenVerlauf,
             'fachStats'          => $fachStats,
             'lernende'           => $lernende,

@@ -138,14 +138,14 @@
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
-                                    <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
-                                        <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                                    <div class="flex gap-1 text-xs" onclick="event.stopPropagation()">
+                                        <a class="inline-flex items-center px-2.5 py-1.5 min-h-[36px] rounded-lg text-accent hover:bg-accent/10" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
                                         <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button :disabled="loading" class="text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                            <button :disabled="loading" class="inline-flex items-center px-2.5 py-1.5 min-h-[36px] rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif
@@ -213,7 +213,7 @@
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button :disabled="loading" class="text-xs text-red-400 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-[32px] rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -369,14 +369,14 @@
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
-                                    <div class="flex gap-2 text-xs" onclick="event.stopPropagation()">
-                                        <a class="text-accent hover:underline" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
+                                    <div class="flex gap-1 text-xs" onclick="event.stopPropagation()">
+                                        <a class="inline-flex items-center px-2.5 py-1.5 min-h-[36px] rounded-lg text-accent hover:bg-accent/10" href="{{ $editUrl ? $editUrl($n->note_id) : '#' }}">Bearbeiten</a>
                                         <form method="POST" action="{{ $destroyUrl ? $destroyUrl($n->note_id) : '#' }}" class="inline"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm('Note wirklich löschen?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button :disabled="loading" class="text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                            <button :disabled="loading" class="inline-flex items-center px-2.5 py-1.5 min-h-[36px] rounded-lg text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                         </form>
                                     </div>
                                 @endif
@@ -442,7 +442,7 @@
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button :disabled="loading" class="text-xs text-red-400 hover:text-red-600 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-[32px] rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
