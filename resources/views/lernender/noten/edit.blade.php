@@ -34,7 +34,7 @@
                 @endphp
 
                 <form method="POST" action="{{ route('lernender.noten.update', $note->note_id) }}" class="space-y-5"
-                      x-data="{ loading: false }" @submit="loading = true">
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
 
@@ -51,12 +51,13 @@
                             }
                          }"
                          class="flex flex-col items-center gap-2 py-2">
-                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0)</label>
+                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Note (1.0 – 6.0) <span class="text-red-600 dark:text-red-400">*</span></label>
                         <input type="number" name="note_wert" step="0.05" min="1" max="6" required
                                x-model="wert" :class="color"
                                value="{{ old('note_wert', $note->note_wert) }}" autofocus
                                class="w-32 h-20 text-4xl font-extrabold text-center tabular-nums rounded-2xl border-2 border-border bg-input text-text
                                       focus:border-accent focus:outline-none focus:ring-0 transition-colors duration-200">
+                        @error('note_wert')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
 
                     {{-- Gewichtung + Datum --}}
@@ -77,7 +78,8 @@
                                    value="{{ old('gewichtung_prozent', $note->gewichtung_prozent ?? 100) }}"
                                    x-ref="gewichtInput"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('gewichtung_prozent') ? 'border-red-500' : '' }}">
+                            @error('gewichtung_prozent')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             <div class="mt-1.5 flex gap-1.5">
                                 @foreach([25, 50, 100] as $g)
                                     <button type="button"
@@ -89,11 +91,12 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum</label>
+                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum <span class="text-red-600 dark:text-red-400">*</span></label>
                             <input type="date" name="pruefungsdatum" required x-model="datum"
                                    value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                          focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('pruefungsdatum') ? 'border-red-500' : '' }}">
+                            @error('pruefungsdatum')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                             <p class="text-xs text-muted mt-1" x-show="semesterLabel">
                                 → wird Semester <span class="font-semibold text-text" x-text="semesterLabel"></span> zugeordnet
                             </p>
@@ -106,16 +109,17 @@
                     {{-- Kategorie + Typ --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Kategorie</label>
+                            <label class="block text-xs uppercase tracking-wide text-muted mb-1">Kategorie <span class="text-red-600 dark:text-red-400">*</span></label>
                             <select name="kategorie_id" required
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('kategorie_id') ? 'border-red-500' : '' }}">
                                 @foreach($kategorien as $k)
                                     <option value="{{ $k->kategorie_id }}" @selected(old('kategorie_id', $note->kategorie_id) == $k->kategorie_id)>
                                         {{ $k->name }}
                                     </option>
                                 @endforeach
                             </select>
+                            @error('kategorie_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Typ</label>
@@ -140,7 +144,7 @@
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Fach</label>
                             <select name="fach_id"
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('fach_id') ? 'border-red-500' : '' }}">
                                 <option value="">Bitte wählen</option>
                                 @foreach($faecher as $f)
                                     <option value="{{ $f->fach_id }}" @selected(old('fach_id', $note->fach_id) == $f->fach_id)>
@@ -148,13 +152,14 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('fach_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
 
                         <div id="modulBlock" class="hidden">
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Modul</label>
                             <select name="modul_id"
                                     class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('modul_id') ? 'border-red-500' : '' }}">
                                 <option value="">Bitte wählen</option>
                                 @foreach($module as $m)
                                     @php $selected = old('modul_id', $currentModulId); @endphp
@@ -164,6 +169,7 @@
                                     </option>
                                 @endforeach
                             </select>
+                            @error('modul_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                     </div>
 
@@ -173,7 +179,8 @@
                         <input name="titel" maxlength="150" value="{{ old('titel', $note->titel) }}"
                                placeholder="z. B. Vokabeltest oder Praxisprüfung"
                                class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
-                                      focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                                      focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent {{ $errors->has('titel') ? 'border-red-500' : '' }}">
+                        @error('titel')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
 
                     {{-- Submit --}}
