@@ -102,6 +102,11 @@
     border-color: rgba(var(--accent-rgb), 0.4);
     box-shadow: 0 0 16px -4px rgba(var(--accent-rgb), 0.3);
   }
+  .glass-btn:focus-visible,
+  .np-btn-primary:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
 
   /* Accent-Glow für wichtige Elemente (Primär-Buttons, Score-Card) */
   .accent-glow {
