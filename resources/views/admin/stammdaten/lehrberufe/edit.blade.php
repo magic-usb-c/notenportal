@@ -4,11 +4,11 @@
             <h2 class="font-semibold text-xl text-text">Lehrberuf bearbeiten</h2>
             <div class="flex gap-2">
                 <a href="{{ route('admin.stammdaten.lehrberufe.show', $lehrberuf->lehrberuf_id) }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+                   class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Module/Fächer
                 </a>
                 <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+                   class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Zurück
                 </a>
             </div>

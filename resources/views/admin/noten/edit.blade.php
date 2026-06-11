@@ -7,7 +7,7 @@
                 <p class="text-sm text-muted mt-0.5">Datenkorrektion (Admin)</p>
             </div>
             <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $lernender_id]) }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
                 Zurück
             </a>
         </div>
@@ -142,7 +142,7 @@
                             Speichern
                         </button>
                         <a href="{{ route('admin.lernende.noten.index', ['lernender_id' => $lernender_id]) }}"
-                           class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg">
+                           class="px-4 py-2 h-10 rounded-xl glass-btn text-text">
                             Abbrechen
                         </a>
                     </div>

@@ -3,7 +3,7 @@
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Fach bearbeiten</h2>
             <a href="{{ route('admin.stammdaten.faecher.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
         </div>

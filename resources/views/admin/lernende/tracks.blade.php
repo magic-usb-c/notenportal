@@ -7,7 +7,7 @@
                 <span class="text-muted">{{ $lernender->nachname }} {{ $lernender->vorname }}</span>
             </h2>
             <a href="{{ route('admin.lernende.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
                 Zurück
             </a>
         </div>

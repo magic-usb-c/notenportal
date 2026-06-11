@@ -104,7 +104,7 @@
             <div class="flex-none flex gap-2">
                 <a href="{{ route('lernender.noten.drucken') }}"
                    target="_blank"
-                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm"
                    title="Notenblatt drucken">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
@@ -112,7 +112,7 @@
                     <span class="hidden sm:inline">Drucken</span>
                 </a>
                 <a href="{{ route('lernender.noten.export') }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm"
                    title="Noten als CSV exportieren">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -120,7 +120,7 @@
                     <span class="hidden sm:inline">CSV</span>
                 </a>
                 <a href="{{ route('lernender.noten.rechner') }}"
-                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm"
                    title="Noten-Rechner: Welche Note brauche ich?">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/>
@@ -172,7 +172,7 @@
                         Anwenden
                     </button>
                     <a href="{{ route('lernender.noten.index', ['semester_id' => $selectedSemesterId]) }}"
-                       class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 whitespace-nowrap">
+                       class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap">
                         Reset
                     </a>
 

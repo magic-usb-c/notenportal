@@ -14,7 +14,7 @@
                 <p class="text-xs text-muted mt-0.5">{{ $lernender->email }}</p>
             </div>
             <a href="{{ route('admin.lernende.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">
                 Zurück
             </a>
         </div>

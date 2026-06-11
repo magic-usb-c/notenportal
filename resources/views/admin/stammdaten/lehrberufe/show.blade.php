@@ -7,7 +7,7 @@
                 <span class="text-sm text-muted font-mono">{{ $lehrberuf->kuerzel }}</span>
             </div>
             <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
         </div>

@@ -9,12 +9,12 @@
             <div class="flex gap-2">
                 @if($lernendeProfil)
                     <a href="{{ route('admin.lernende.show', $lernendeProfil->lernender_id) }}"
-                       class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm whitespace-nowrap">
+                       class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">
                         Lernenden-Profil
                     </a>
                 @endif
                 <a href="{{ route('admin.benutzer.index') }}"
-                   class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+                   class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Zurück
                 </a>
             </div>

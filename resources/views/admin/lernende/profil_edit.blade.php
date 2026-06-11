@@ -7,7 +7,7 @@
                 <p class="text-sm text-muted mt-0.5">{{ $lernender->nachname }} {{ $lernender->vorname }}</p>
             </div>
             <a href="{{ route('admin.lernende.show', $lernender_id) }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
         </div>
@@ -71,7 +71,7 @@
                             Speichern
                         </button>
                         <a href="{{ route('admin.lernende.show', $lernender_id) }}"
-                           class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg">
+                           class="px-4 py-2 h-10 rounded-xl glass-btn text-text">
                             Abbrechen
                         </a>
                     </div>

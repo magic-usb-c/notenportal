@@ -4,7 +4,7 @@
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Neuen Benutzer anlegen</h2>
             <a href="{{ route('admin.benutzer.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-bg whitespace-nowrap text-sm">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
                 Zurück
             </a>
         </div>

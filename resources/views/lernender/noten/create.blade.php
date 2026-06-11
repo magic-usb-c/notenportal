@@ -6,7 +6,7 @@
             <h2 class="font-semibold text-xl text-text whitespace-nowrap">Neue Note</h2>
 
             <a href="{{ route('lernender.noten.index') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-card text-text border border-border hover:bg-card/60 whitespace-nowrap">
+               class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap">
                 Zur Übersicht
             </a>
         </div>
