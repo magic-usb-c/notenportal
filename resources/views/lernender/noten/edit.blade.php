@@ -60,7 +60,17 @@
                     </div>
 
                     {{-- Gewichtung + Datum --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                         x-data="{
+                            datum: '{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}',
+                            semesterList: @js($semester->map(fn($s) => ['id' => (int)$s->semester_id, 'label' => $s->bezeichnung, 'from' => (string)$s->start_datum, 'to' => (string)$s->end_datum])->values()),
+                            get semesterLabel() {
+                                if (!this.datum) return null;
+                                const d = this.datum;
+                                const m = this.semesterList.find(s => s.from <= d && s.to >= d);
+                                return m ? m.label : null;
+                            }
+                         }">
                         <div>
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Gewichtung %</label>
                             <input type="number" name="gewichtung_prozent" step="0.01" min="0" max="100"
@@ -80,10 +90,16 @@
                         </div>
                         <div>
                             <label class="block text-xs uppercase tracking-wide text-muted mb-1">Prüfungsdatum</label>
-                            <input type="date" name="pruefungsdatum" required
+                            <input type="date" name="pruefungsdatum" required x-model="datum"
                                    value="{{ old('pruefungsdatum', \Illuminate\Support\Carbon::parse($note->pruefungsdatum)->format('Y-m-d')) }}"
                                    class="w-full rounded-xl border border-border bg-input text-text py-2.5 px-3
                                           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent">
+                            <p class="text-xs text-muted mt-1" x-show="semesterLabel">
+                                → wird Semester <span class="font-semibold text-text" x-text="semesterLabel"></span> zugeordnet
+                            </p>
+                            <p class="text-xs text-orange-500 mt-1" x-show="datum && !semesterLabel">
+                                ⚠ Datum liegt ausserhalb deiner Lehrzeit — kein Semester zugeordnet.
+                            </p>
                         </div>
                     </div>
 
