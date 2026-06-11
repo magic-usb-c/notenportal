@@ -69,7 +69,7 @@
                             </button>
                             @if($suche || $rolleId || $status)
                                 <a href="{{ route('admin.benutzer.index') }}"
-                                   class="px-3 py-2 h-10 rounded-xl bg-card border border-border text-text hover:bg-bg whitespace-nowrap text-sm shrink-0 flex items-center">
+                                   class="px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm shrink-0 flex items-center">
                                     ×
                                 </a>
                             @endif

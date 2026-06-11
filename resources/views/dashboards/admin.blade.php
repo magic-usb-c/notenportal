@@ -138,7 +138,7 @@
 
             {{-- Hinweis: Lehrende in den nächsten 60 Tagen --}}
             @if($lehrEndeBald->isNotEmpty())
-                <div class="bg-card border border-blue-300 dark:border-blue-700 rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass border border-blue-300 dark:border-blue-700 rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
                         <h3 class="font-semibold text-blue-800 dark:text-blue-300 text-sm">
                             Lehrende in den nächsten 60 Tagen
@@ -176,7 +176,7 @@
 
             {{-- Warnung: Lernende ohne aktuellen Noteneintrag --}}
             @if($lernendeOhneNoten->isNotEmpty())
-                <div class="bg-card border border-yellow-300 dark:border-yellow-700 rounded-2xl shadow-sm overflow-hidden">
+                <div class="glass border border-yellow-300 dark:border-yellow-700 rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
                         <h3 class="font-semibold text-yellow-800 dark:text-yellow-300 text-sm">
                             Kein Noteneintrag in den letzten 30 Tagen

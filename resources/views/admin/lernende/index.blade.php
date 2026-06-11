@@ -77,7 +77,7 @@
                         </button>
                         @if($suche || $warnung || $inaktive === '1' || $bbFilterId !== '')
                             <a href="{{ route('admin.lernende.index') }}"
-                               class="px-3 py-2 h-10 rounded-xl bg-card border border-border text-text hover:bg-bg flex items-center text-sm shrink-0">
+                               class="px-3 py-2 h-10 rounded-xl glass-btn text-text flex items-center text-sm shrink-0">
                                 ×
                             </a>
                         @endif
