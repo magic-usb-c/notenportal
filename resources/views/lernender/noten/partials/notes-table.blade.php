@@ -38,6 +38,16 @@
         if ($v >= 3.5) return 'text-yellow-600 dark:text-yellow-400';
         return 'text-red-600 dark:text-red-400';
     };
+
+    // Badge-Logik (Pille mit Glow): Ø in den Accordion-Headern
+    $avgBadgeClass = function ($val): string {
+        if ($val === null || $val === '') return 'bg-bg text-muted';
+        $v = (float) $val;
+        if ($v >= 5.0) return 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 np-glow-green';
+        if ($v >= 4.0) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 np-glow-emerald';
+        if ($v >= 3.5) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow';
+        return 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red';
+    };
 @endphp
 
 {{-- Fächer --}}
@@ -63,9 +73,9 @@
                         <div class="text-xs text-muted">{{ $items->count() }} Note(n)</div>
                     </div>
                 </div>
-                <div class="flex items-baseline gap-2 shrink-0">
+                <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="text-xl font-bold tabular-nums {{ $noteColorClass($avg) }}">
+                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm tabular-nums {{ $avgBadgeClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>
@@ -293,9 +303,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-baseline gap-2 shrink-0">
+                <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="text-xl font-bold tabular-nums {{ $noteColorClass($avg) }}">
+                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm tabular-nums {{ $avgBadgeClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>

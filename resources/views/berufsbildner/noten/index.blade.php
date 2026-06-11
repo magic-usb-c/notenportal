@@ -86,7 +86,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {{-- Profil --}}
                 @if($lernenderProfil)
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="glass rounded-2xl p-4">
                         <div class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Ausbildung</div>
                         <div class="text-sm text-text font-medium">{{ $lernenderProfil->lehrberuf_name ?? '–' }}</div>
                         <div class="mt-1 text-xs text-muted">
@@ -101,7 +101,7 @@
 
                 {{-- Semester-Schnitte --}}
                 @if($semStats->isNotEmpty())
-                    <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+                    <div class="glass rounded-2xl p-4">
                         <div class="text-xs font-semibold uppercase tracking-wider text-muted mb-2">Ø pro Semester</div>
                         <div class="flex flex-wrap gap-2">
                             @foreach($semStats as $ss)
@@ -132,7 +132,7 @@
                              subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
 
             {{-- Lernenden-Switcher --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <label class="text-sm font-medium text-muted">Lernenden wechseln</label>
                 <select class="mt-1 w-full sm:w-80 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring"
                         onchange="if(this.value) window.location.href=this.value">
@@ -148,7 +148,7 @@
             </div>
 
             {{-- Filter --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <form method="GET"
                       action="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
                       class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
@@ -246,7 +246,7 @@
                                     : 'text-red-600 dark:text-red-400'));
                     @endphp
 
-                    <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden
+                    <details class="np-details glass rounded-2xl overflow-hidden
                                     {{ $isNeu ? 'ring-1 ring-accent/40' : '' }}"
                              data-note-id="{{ $n->note_id }}">
 
@@ -451,7 +451,7 @@
 
             {{-- Pagination --}}
             @if($notes->hasPages())
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-3">
+                <div class="glass rounded-2xl p-3">
                     {{ $notes->links() }}
                 </div>
             @endif

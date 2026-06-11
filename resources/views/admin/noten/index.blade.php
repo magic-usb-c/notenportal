@@ -49,7 +49,7 @@
                              subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
 
             {{-- Lernenden-Switcher --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <label class="text-sm font-medium text-muted">Lernenden wechseln</label>
                 <select class="mt-1 w-full sm:w-80 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring"
                         onchange="if(this.value) window.location.href=this.value">
@@ -65,7 +65,7 @@
             </div>
 
             {{-- Filter --}}
-            <div class="bg-card border border-border rounded-2xl shadow-sm p-4">
+            <div class="glass rounded-2xl p-4">
                 <form method="GET"
                       action="{{ route('admin.lernende.noten.index', ['lernender_id' => $selectedLernenderId]) }}"
                       class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
@@ -119,7 +119,7 @@
                         : ($avg >= 3.5 ? 'text-yellow-600 dark:text-yellow-400'
                         : 'text-red-600 dark:text-red-400')));
                 @endphp
-                <div class="bg-card border border-border rounded-2xl shadow-sm px-5 py-3 flex flex-wrap gap-6 text-sm">
+                <div class="glass rounded-2xl px-5 py-3 flex flex-wrap gap-6 text-sm">
                     <div class="text-center">
                         <div class="text-xs text-muted">Noten</div>
                         <div class="font-bold text-text text-lg">{{ $statsRow->total }}</div>
@@ -169,10 +169,10 @@
                                     : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'));
                     @endphp
 
-                    <details class="np-details bg-card border border-border rounded-2xl shadow-sm overflow-hidden"
+                    <details class="np-details glass rounded-2xl overflow-hidden"
                              data-note-id="{{ $n->note_id }}">
 
-                        <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-bg">
+                        <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-accent/5 transition-colors duration-100">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="np-chevron text-muted transition-transform duration-200 shrink-0 mt-0.5">
                                     <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -367,7 +367,7 @@
 
             {{-- Pagination --}}
             @if($notes->hasPages())
-                <div class="bg-card border border-border rounded-2xl shadow-sm p-3">
+                <div class="glass rounded-2xl p-3">
                     {{ $notes->links() }}
                 </div>
             @endif
