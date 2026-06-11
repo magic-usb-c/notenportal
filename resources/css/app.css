@@ -26,8 +26,8 @@
   /* Subtiler Tiefen-Gradient hinter dem Content, damit Glass-Transparenz sichtbar wird */
   body {
     background-image:
-      radial-gradient(ellipse at 20% 50%, rgb(var(--accent-rgb) / 0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 20%, rgb(var(--accent-rgb) / 0.03) 0%, transparent 50%);
+      radial-gradient(ellipse at 12% 38%, rgb(var(--accent-rgb) / 0.045) 0%, transparent 52%),
+      radial-gradient(ellipse at 88% 12%, rgb(var(--accent-rgb) / 0.03) 0%, transparent 48%);
     background-attachment: fixed;
   }
 }
@@ -67,23 +67,24 @@
 
   /* Primäre Variante: Hero-Panels, Dashboard-Kacheln, Formulare */
   .glass {
-    background: rgb(var(--card-rgb) / 0.65);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: rgb(var(--card-rgb) / var(--glass-bg-alpha));
+    backdrop-filter: blur(24px) saturate(180%) brightness(105%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(105%);
     border: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
-    border-top-color: rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.6));
+    border-top-color: rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.8));
     box-shadow:
-      0 4px 24px -4px rgba(0, 0, 0, var(--glass-shadow-alpha)),
+      0 0 0 1px rgba(0, 0, 0, 0.04),
+      0 8px 32px -8px rgba(0, 0, 0, var(--glass-shadow-alpha)),
       0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.35)) inset,
       0 -1px 0 0 rgba(0, 0, 0, 0.06) inset;
   }
 
   /* Subtile Variante: Navigation, Leisten — deutlich transparent, schwebend */
   .glass-subtle {
-    background: rgb(var(--bg-rgb) / 0.65);
-    backdrop-filter: blur(28px) saturate(180%);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    border-bottom: 1px solid rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 0.8));
+    background: rgb(var(--glass-subtle-rgb) / 0.62);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border-bottom: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
     box-shadow:
       0 8px 32px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.7)),
       0 1px 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.3)) inset;
