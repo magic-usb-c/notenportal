@@ -45,9 +45,6 @@
                     class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
                 Speichern
             </button>
-            @if(session('status') === 'profile-updated')
-                <span class="text-sm text-green-600 dark:text-green-400" data-autohide>Gespeichert.</span>
-            @endif
         </div>
     </form>
 </section>

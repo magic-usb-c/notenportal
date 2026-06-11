@@ -38,9 +38,6 @@
                     class="px-5 py-2 h-10 rounded-xl bg-accent text-white font-medium np-btn-primary">
                 Passwort ändern
             </button>
-            @if(session('status') === 'password-updated')
-                <span class="text-sm text-green-600 dark:text-green-400" data-autohide>Geändert.</span>
-            @endif
         </div>
     </form>
 </section>

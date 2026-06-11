@@ -19,17 +19,7 @@
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            @if(session('status'))
-                <div class="bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 text-green-800 dark:text-green-200 rounded-xl px-4 py-3 text-sm" data-autohide>
-                    {{ session('status') }}
-                </div>
-            @endif
 
-            @if(session('error'))
-                <div class="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 text-red-800 dark:text-red-200 rounded-xl px-4 py-3 text-sm">
-                    {{ session('error') }}
-                </div>
-            @endif
 
             {{-- Filter --}}
             <div class="glass rounded-2xl p-4">

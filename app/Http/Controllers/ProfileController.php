@@ -36,7 +36,7 @@ class ProfileController extends Controller
         $user->email    = $request->validated('email');
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        return Redirect::route('profile.edit')->with('status', 'Profil aktualisiert.');
     }
 
 }

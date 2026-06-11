@@ -23,11 +23,6 @@
     <div class="py-6">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
-            @if(session('status'))
-                <div class="rounded-xl border border-green-300 bg-green-50 dark:bg-green-900/20 dark:border-green-700 px-4 py-3 text-sm text-green-800 dark:text-green-200" data-autohide>
-                    {{ session('status') }}
-                </div>
-            @endif
 
             {{-- Profil + BB --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">

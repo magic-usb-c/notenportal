@@ -141,11 +141,6 @@
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
-            @if (session('status'))
-                <div class="rounded-xl border border-border bg-card p-3 text-text" data-autohide>
-                    {{ session('status') }}
-                </div>
-            @endif
 
             {{-- Filter (volle Breite, kompakt) --}}
             <div class="glass rounded-2xl p-4">
