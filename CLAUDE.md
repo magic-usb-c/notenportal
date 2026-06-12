@@ -302,6 +302,14 @@ git add -A && git commit -m "Kurze präzise Message" && git push
 - `bemerkung`-Feld auf `lernende`-Tabelle fehlt → braucht manuelles `sudo mysql`
 - Liquid-Glass SVG-Filter (echte Refraktion): nur Chromium → aktuell nur backdrop-filter
 - public/build ist gitignored → VM ist gleichzeitig Server, build lokal auf VM
+- Dateirechte: Apache liest als www-data über Gruppenrechte (Root-Dir 2750, others kein
+  Zugriff). Alle Dateien brauchen Gruppe www-data + g+r, Verzeichnisse zusätzlich g+x.
+  Setgid auf Verzeichnissen gesetzt, damit neue Dateien die Gruppe erben.
+  Symptom bei kaputten Rechten: HTTP 500 ohne Laravel-Log-Eintrag (Fehler vor Boot).
+  Fix ohne sudo (ubuntu ist Mitglied von www-data):
+  `find . -path './.git' -prune -o -type d -user ubuntu -exec chmod u+rwx,g+rxs {} \;`
+  `find . -path './.git' -prune -o -type f -user ubuntu -exec chmod u+rw,g+r {} +`
+  `find . -path './.git' -prune -o -user ubuntu ! -group www-data -exec chgrp www-data {} +`
 
 ---
 
