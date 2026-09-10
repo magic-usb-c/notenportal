@@ -23,7 +23,7 @@
                 <div class="w-px h-8 bg-border"></div>
                 <div>
                     <div class="text-[10px] uppercase tracking-widest text-muted">Warnungen</div>
-                    <div class="text-lg font-bold tabular-nums {{ $warningsCount > 0 ? 'text-orange-500' : 'text-muted' }}">{{ $warningsCount }}</div>
+                    <div class="text-lg font-bold tabular-nums {{ $warningsCount > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-muted' }}">{{ $warningsCount }}</div>
                 </div>
             </div>
         </div>
@@ -189,7 +189,7 @@
                                     </div>
                                     @if($st && ($st->daysSince === null || $st->daysSince > 30))
                                         <div class="flex-1 px-1">
-                                            <div class="text-[10px] text-orange-500 uppercase tracking-wide">Inaktiv</div>
+                                            <div class="text-[10px] text-orange-600 dark:text-orange-400 uppercase tracking-wide">Inaktiv</div>
                                             <div class="text-xs font-semibold text-orange-600 dark:text-orange-400 leading-6">
                                                 {{ $st->daysSince === null ? '∞' : $st->daysSince.'d' }}
                                             </div>

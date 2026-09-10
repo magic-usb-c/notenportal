@@ -218,7 +218,7 @@
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-[32px] rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -448,7 +448,7 @@
                                                       onsubmit="return confirm('Kommentar wirklich löschen?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-[32px] rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
+                                                    <button :disabled="loading" class="inline-flex items-center px-2 py-1.5 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Löschen</button>
                                                 </form>
                                             @endif
                                         </div>

@@ -29,13 +29,13 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="code" class="text-sm font-medium text-muted">Code * <span class="text-xs font-normal">(max. 30 Zeichen)</span></label>
+                            <label for="code" class="text-xs uppercase tracking-widest text-muted font-medium">Code * <span class="text-xs font-normal">(max. 30 Zeichen)</span></label>
                             <input type="text" id="code" name="code" value="{{ old('code') }}" required maxlength="30"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('code') border-red-400 @enderror">
                             @error('code')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="name" class="text-sm font-medium text-muted">Name * <span class="text-xs font-normal">(max. 50 Zeichen)</span></label>
+                            <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name * <span class="text-xs font-normal">(max. 50 Zeichen)</span></label>
                             <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="50"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
                             @error('name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
@@ -43,7 +43,7 @@
                     </div>
 
                     <div class="w-32">
-                        <label for="sortierung" class="text-sm font-medium text-muted">Sortierung</label>
+                        <label for="sortierung" class="text-xs uppercase tracking-widest text-muted font-medium">Sortierung</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung') }}" min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                     </div>

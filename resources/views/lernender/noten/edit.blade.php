@@ -84,7 +84,7 @@
                                 @foreach([25, 50, 100] as $g)
                                     <button type="button"
                                             @click="$refs.gewichtInput.value = {{ $g }}"
-                                            class="px-2 py-0.5 rounded-lg border border-border text-[11px] text-muted hover:text-text hover:bg-bg">
+                                            class="min-h-9 min-w-12 px-3 rounded-lg border border-border text-xs text-muted hover:text-text hover:bg-bg">
                                         {{ $g }}%
                                     </button>
                                 @endforeach

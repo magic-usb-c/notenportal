@@ -76,7 +76,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="md:col-span-5">
-                            <label for="modul_id" class="text-xs font-medium text-muted">Modul hinzufügen</label>
+                            <label for="modul_id" class="text-xs uppercase tracking-widest text-muted font-medium">Modul hinzufügen</label>
                             <select id="modul_id" name="modul_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>
@@ -86,7 +86,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-2">
-                            <label for="empfohlenes_lehrsemester_nr" class="text-xs font-medium text-muted">Emph. Semester</label>
+                            <label for="empfohlenes_lehrsemester_nr" class="text-xs uppercase tracking-widest text-muted font-medium">Emph. Semester</label>
                             <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12" placeholder="z.B. 3"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                         </div>
@@ -162,7 +162,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="flex-1">
-                            <label for="fach_id" class="text-xs font-medium text-muted">Fach hinzufügen</label>
+                            <label for="fach_id" class="text-xs uppercase tracking-widest text-muted font-medium">Fach hinzufügen</label>
                             <select id="fach_id" name="fach_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>

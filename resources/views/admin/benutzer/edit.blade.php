@@ -38,7 +38,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="vorname" class="text-sm font-medium text-muted">Vorname *</label>
+                            <label for="vorname" class="text-xs uppercase tracking-widest text-muted font-medium">Vorname *</label>
                             <input type="text" name="vorname" id="vorname" value="{{ old('vorname', $user->vorname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-red-400 @enderror">
                             @error('vorname')
@@ -46,7 +46,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="nachname" class="text-sm font-medium text-muted">Nachname *</label>
+                            <label for="nachname" class="text-xs uppercase tracking-widest text-muted font-medium">Nachname *</label>
                             <input type="text" name="nachname" id="nachname" value="{{ old('nachname', $user->nachname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-red-400 @enderror">
                             @error('nachname')
@@ -56,7 +56,7 @@
                     </div>
 
                     <div>
-                        <label for="email" class="text-sm font-medium text-muted">E-Mail *</label>
+                        <label for="email" class="text-xs uppercase tracking-widest text-muted font-medium">E-Mail *</label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-red-400 @enderror">
                         @error('email')
@@ -65,13 +65,13 @@
                     </div>
 
                     <div>
-                        <label for="benutzername" class="text-sm font-medium text-muted">Benutzername</label>
+                        <label for="benutzername" class="text-xs uppercase tracking-widest text-muted font-medium">Benutzername</label>
                         <input type="text" id="benutzername" value="{{ $user->benutzername }}" disabled
                                class="mt-1 w-full rounded-xl border border-border bg-bg text-muted font-mono px-3 py-2 cursor-not-allowed">
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-muted">Rollen</label>
+                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Rollen</label>
                         <div class="mt-1 flex flex-wrap gap-2">
                             
                             @foreach($rollen as $rolle)
@@ -99,7 +99,7 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label for="passwort" class="text-sm font-medium text-muted">
+                                <label for="passwort" class="text-xs uppercase tracking-widest text-muted font-medium">
                                     Neues Passwort <span class="text-xs font-normal">(leer lassen = nicht ändern)</span>
                                 </label>
                                 <div class="flex items-center gap-3">
@@ -122,7 +122,7 @@
                         </div>
 
                         <div>
-                            <label for="passwort_confirmation" class="text-sm font-medium text-muted">Passwort bestätigen</label>
+                            <label for="passwort_confirmation" class="text-xs uppercase tracking-widest text-muted font-medium">Passwort bestätigen</label>
                             <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>

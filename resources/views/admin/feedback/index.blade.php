@@ -17,7 +17,7 @@
                 <form method="GET" action="{{ route('admin.feedback.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
-                        <label for="status" class="text-sm font-medium text-muted">Status</label>
+                        <label for="status" class="text-xs uppercase tracking-widest text-muted font-medium">Status</label>
                         <select name="status" id="status" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($status === '')>Alle</option>
@@ -27,7 +27,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="kategorie" class="text-sm font-medium text-muted">Kategorie</label>
+                        <label for="kategorie" class="text-xs uppercase tracking-widest text-muted font-medium">Kategorie</label>
                         <select name="kategorie" id="kategorie" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($kategorie === '')>Alle</option>
@@ -37,7 +37,7 @@
                         </select>
                     </div>
                     <div>
-                        <label for="rolle" class="text-sm font-medium text-muted">Rolle</label>
+                        <label for="rolle" class="text-xs uppercase tracking-widest text-muted font-medium">Rolle</label>
                         <select name="rolle" id="rolle" onchange="this.form.submit()"
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                             <option value="" @selected($rolle === '')>Alle</option>

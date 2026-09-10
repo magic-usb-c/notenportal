@@ -18,7 +18,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="modul_nummer" class="text-sm font-medium text-muted">Modulnummer *</label>
+                        <label for="modul_nummer" class="text-xs uppercase tracking-widest text-muted font-medium">Modulnummer *</label>
                         <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('modul_nummer') border-red-400 @enderror">
                         @error('modul_nummer')
@@ -27,7 +27,7 @@
                     </div>
 
                     <div>
-                        <label for="titel" class="text-sm font-medium text-muted">Titel *</label>
+                        <label for="titel" class="text-xs uppercase tracking-widest text-muted font-medium">Titel *</label>
                         <input type="text" id="titel" name="titel" value="{{ old('titel', $modul->titel) }}" required maxlength="255"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('titel') border-red-400 @enderror">
                         @error('titel')
@@ -36,7 +36,7 @@
                     </div>
 
                     <div>
-                        <label for="beschreibung" class="text-sm font-medium text-muted">Beschreibung <span class="text-xs font-normal">(optional)</span></label>
+                        <label for="beschreibung" class="text-xs uppercase tracking-widest text-muted font-medium">Beschreibung <span class="text-xs font-normal">(optional)</span></label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('beschreibung') border-red-400 @enderror">{{ old('beschreibung', $modul->beschreibung) }}</textarea>
                         @error('beschreibung')
@@ -45,7 +45,7 @@
                     </div>
 
                     <div>
-                        <label for="ziel_gewicht_summe_default" class="text-sm font-medium text-muted">Ziel-Gewicht-Summe</label>
+                        <label for="ziel_gewicht_summe_default" class="text-xs uppercase tracking-widest text-muted font-medium">Ziel-Gewicht-Summe</label>
                         <input type="number" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default"
                                value="{{ old('ziel_gewicht_summe_default', $modul->ziel_gewicht_summe_default) }}"
                                step="0.01" min="0"

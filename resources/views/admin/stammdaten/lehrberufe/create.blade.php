@@ -17,7 +17,7 @@
                     @csrf
 
                     <div>
-                        <label for="kuerzel" class="text-sm font-medium text-muted">Kürzel * <span class="text-xs font-normal">(max. 10 Zeichen, wird gross gespeichert)</span></label>
+                        <label for="kuerzel" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel * <span class="text-xs font-normal">(max. 10 Zeichen, wird gross gespeichert)</span></label>
                         <input type="text" id="kuerzel" name="kuerzel" value="{{ old('kuerzel') }}" required maxlength="10"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kuerzel') border-red-400 @enderror">
                         @error('kuerzel')
@@ -26,7 +26,7 @@
                     </div>
 
                     <div>
-                        <label for="name" class="text-sm font-medium text-muted">Name *</label>
+                        <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name *</label>
                         <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
                         @error('name')

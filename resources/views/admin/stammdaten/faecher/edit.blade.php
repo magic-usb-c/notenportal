@@ -18,7 +18,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="name" class="text-sm font-medium text-muted">Name *</label>
+                        <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name *</label>
                         <input type="text" id="name" name="name" value="{{ old('name', $fach->name) }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
                         @error('name')
@@ -27,7 +27,7 @@
                     </div>
 
                     <div>
-                        <label for="kurzname" class="text-sm font-medium text-muted">Kürzel *</label>
+                        <label for="kurzname" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel *</label>
                         <input type="text" id="kurzname" name="kurzname" value="{{ old('kurzname', $fach->kurzname) }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kurzname') border-red-400 @enderror">
                         @error('kurzname')
@@ -36,7 +36,7 @@
                     </div>
 
                     <div>
-                        <label for="track_typ" class="text-sm font-medium text-muted">Track *</label>
+                        <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track *</label>
                         <select id="track_typ" name="track_typ" required
                                 class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
                             <option value="BMS" @selected(old('track_typ', $fach->track_typ) === 'BMS')>BMS</option>
