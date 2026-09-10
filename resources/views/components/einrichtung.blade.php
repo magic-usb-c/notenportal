@@ -13,9 +13,9 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
             <nav aria-label="Schritte der Einrichtung" class="lg:sticky lg:top-24 self-start min-w-0">
-                <ol class="flex lg:flex-col gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+                <ol class="relative flex lg:flex-col gap-1.5 overflow-x-auto pb-1 lg:pb-0">
                     @foreach($schritte as $key => $name)
                         @php
                             $aktiv = $key === $schritt;

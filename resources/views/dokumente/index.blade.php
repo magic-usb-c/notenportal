@@ -83,7 +83,7 @@
                         <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ $artName }} · {{ $gruppen[$art]->count() }}</h3>
                         <ul class="glass rounded-2xl divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
-                                <li class="flex items-center gap-4 px-4 py-3">
+                                <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">
                                     <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
                                     <div class="min-w-0 flex-1">
                                         <div class="text-sm font-medium text-text truncate">{{ $d->titel }}</div>
@@ -91,7 +91,7 @@
                                             {{ collect([$d->semester?->bezeichnung, $d->erstellt_am->format('d.m.Y'), $groesse($d->groesse), $d->hochgeladenVon ? $d->hochgeladenVon->vorname.' '.$d->hochgeladenVon->nachname : null])->filter()->implode(' · ') }}
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-1 shrink-0">
+                                    <div class="flex items-center justify-end gap-1 shrink-0 w-full sm:w-auto">
                                         @if($d->art === 'zeugnis' && $d->istPdf() && \Illuminate\Support\Facades\Route::has('lernender.dokumente.abgleich'))
                                             <a href="{{ $r('abgleich', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Abgleich</a>
                                         @endif
