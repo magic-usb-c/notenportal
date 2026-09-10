@@ -49,7 +49,7 @@
                                             <label for="lernort_{{ $m->modul_id }}" class="sr-only">Lernort für {{ $m->titel }}</label>
                                             <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
                                                     onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                    class="h-9 rounded-lg border border-border bg-input text-text px-2 text-xs focus:ring-2 focus:ring-ring">
+                                                    class="h-9 min-w-40 rounded-lg border border-border bg-input text-text pl-2 pr-8 text-xs focus:ring-2 focus:ring-ring">
                                                 @foreach($kategorien as $k)
                                                     <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
                                                 @endforeach

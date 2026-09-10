@@ -11,6 +11,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Notenrechner vorwärts (Was-wäre-wenn mit geplanten/angenommenen Noten, Vergleich vorher/nachher) und rückwärts (benötigte Note für ein Ziel, Kurve)
 - Notenblatt zum Drucken/PDF (Zeugnisnoten je Semester, Prüfungen, Promotion, Unterschriften), CSV-Export
 - Kommentare lesen, Titel inline bearbeiten, Deep-Link `?_open=<note_id>`
+- Modul wiederholen: aktuelle Belegung schliessen, ab der ersten neuen Note zählt nur der neue Versuch; zurücknehmbar, solange keine neue Note erfasst ist
 
 ## Berufsbildner
 - Dashboard: betreute Lernende nach Ampel sortiert (rot/gelb/grün mit Gründen: Promotion gefährdet, Semesterschnitt, ungenügende Zeugnisnoten, Einbrüche, Rückgang, fehlende Noten, Inaktivität), Brennpunkte, Vergleich, Prüfungen der nächsten 14 Tage, Lehrende bald
@@ -21,7 +22,9 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 ## Admin
 - Dashboard: Betriebskennzahlen, Einrichtungslücken (laufende Lehren ohne Betreuung, Lehrberuf, Track, Module), Last pro Berufsbildner, Aktivität 12 Wochen, Jahrgänge je Lehrberuf und Lehrjahr, kritische Lernende, Lehrende bald
 - Alles wie Berufsbildner für alle Lernenden, zusätzlich Noten anlegen und löschen
-- Benutzer, Betreuungen; Stammdaten: Lehrberufe (Module mit Lernort), Fächer (Kategorie, Track optional), Kategorien (Rundung, Gewicht im Gesamtschnitt, Promotionsregeln), Semester
+- Erstinbetriebnahme: `sudo ./install.sh` im geklonten Repo (Pakete, Datenbank, .env, Build, Apache, Rechte, erstes Admin-Konto mit Startpasswort), danach alles im Browser: erzwungener Passwortwechsel und geführte Einrichtung (Betrieb und Notengrenzen, Kategorien, Semester-Generator mit Vorschau, Lehrberufe und BMS/ABU-Fächer mit Vorauswahl, Module als Liste je Lernort, Berufsbildner/Admins und Lernende in Zeilen mit Startpasswörtern zum Drucken)
+- Betrieb: Name, Notengrenzen mit Live-Skala, Rundung Gesamtschnitt, Fristen
+- Benutzer (Rollen Admin/Berufsbildner und Benutzername änderbar), Betreuungen; Stammdaten: Lehrberufe (Module zeilenweise mit Lernort, Pflicht, empfohlenem Semester, aktiv), Fächer (Kategorie, Track optional), Kategorien (Rundung, Gewicht im Gesamtschnitt, Promotionsregeln), Semester (leere löschbar)
 - Notenbericht: Zeitraum (Semester/ganze Lehrzeit), Lehrberuf, Berufsbildner; Status, Kategorien, tiefste Fächer/Module, Verteilung der Zeugnisnoten, sortierbar, CSV, druckbar
 
 ## Global

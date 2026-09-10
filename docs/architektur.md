@@ -3,7 +3,8 @@
 ## Verzeichnisse
 ```
 app/Http/Controllers/
-  Admin/           Benutzer (nur Admin/BB-Konten), Berufsbildner, Stammdaten*, Bericht, Feedback
+  Admin/           Benutzer (nur Admin/BB-Konten), Berufsbildner, Stammdaten*, Bericht, Feedback,
+                   Einrichtung (geführte Ersteinrichtung), Betrieb (Einstellungen)
   Verwaltung/      Lernenden-Verwaltung für Admin + BB: Lernende (Cockpit), LernendeNoten, NotenGesehen,
                    NotenExport (Notenblatt, CSV), Rechner, Betreuung, Track, Konto
                    (routes/verwaltung.php, 2× eingebunden)
@@ -23,7 +24,10 @@ app/Services/
   Noten/NoteService  Bezug Fach/Modul, Kategorie ableiten, normalizeForSave
   Benutzer/        LernendeErfassungService, Startpasswort
 app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
-app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle)
+app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle),
+                   Einrichtung (Schritte, Stand, Vorlagen, Semesterplan, Modulparser), Betrieb, KategorieRegeln
+app/Console/Commands/  ErstesAdminKonto (Installer), PilotVorbereiten
+install.sh         Installation/Update auf Ubuntu 24.04 (--port, --db, --host, --ohne-firewall, --neues-admin-passwort)
 resources/views/
   layouts/         app, guest, navigation (Pills, Dropdowns, Befehlspalette, Mobile)
   dashboards/      admin, berufsbildner, lernender
