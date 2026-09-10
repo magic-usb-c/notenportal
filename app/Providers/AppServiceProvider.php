@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Password::defaults(fn () => Password::min(10)->letters()->numbers());
 
-        View::composer(['layouts.app', 'layouts.guest', 'auth.login'], function ($view) {
+        View::composer(['layouts.app', 'layouts.guest', 'layouts.navigation', 'auth.login'], function ($view) {
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));
         });
 

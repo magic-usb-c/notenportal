@@ -33,7 +33,7 @@
                            class="w-36 sm:w-48 rounded-lg border border-border bg-input text-text text-sm py-1.5 px-3 focus:ring-2 focus:ring-ring">
                     <div class="hidden sm:flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
                         @foreach(['alle' => 'Alle', 'rot' => 'Kritisch', 'gelb' => 'Beobachten', 'neu' => 'Neue Noten'] as $wert => $name)
-                            <button type="button" @click="filter = '{{ $wert }}'" class="px-2.5 min-h-8 rounded-md" :class="filter === '{{ $wert }}' ? 'bg-card text-accent shadow-sm' : 'text-muted'">{{ $name }}</button>
+                            <button type="button" @click="filter = '{{ $wert }}'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="filter === '{{ $wert }}' ? 'bg-card text-accent shadow-sm' : 'text-muted'">{{ $name }}</button>
                         @endforeach
                     </div>
                 </x-slot:aktionen>
@@ -135,8 +135,8 @@
                          x-data="{ modus: 'gesamt', d: {{ \Illuminate\Support\Js::from($vergleich) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
                     <x-slot:aktionen>
                         <div class="flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
-                            <button type="button" @click="modus = 'gesamt'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'gesamt' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Gesamt</button>
-                            <button type="button" @click="modus = 'semester'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Semester</button>
+                            <button type="button" @click="modus = 'gesamt'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'gesamt' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Gesamt</button>
+                            <button type="button" @click="modus = 'semester'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Semester</button>
                         </div>
                     </x-slot:aktionen>
                     <div x-data="npChart('balken')" style="height: {{ count($vergleich['labels']) * 28 + 40 }}px"

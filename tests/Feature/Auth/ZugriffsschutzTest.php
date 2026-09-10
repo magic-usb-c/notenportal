@@ -35,6 +35,7 @@ class ZugriffsschutzTest extends TestCase
         'noten.kommentare.destroy',
         'feedback.store',
         'feedback.index',
+        'suche',
     ];
 
     /** Öffentlich erreichbar. */

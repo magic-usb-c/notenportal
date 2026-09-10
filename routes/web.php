@@ -17,6 +17,7 @@ use App\Http\Controllers\Lernender\PruefungenController;
 use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
 use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SucheController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -215,6 +216,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store'])
         ->middleware('throttle:10,1')->name('feedback.store');
 });
+
+Route::get('/suche', SucheController::class)->middleware(['auth', 'throttle:60,1'])->name('suche');
 
 /**
  * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)

@@ -171,8 +171,8 @@
                          x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }">
                     <x-slot:aktionen>
                         <div class="flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
-                            <button type="button" @click="modus = 'kategorien'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'kategorien' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Kategorien</button>
-                            <button type="button" @click="modus = 'fach'" x-show="d.faecher.length" class="px-2.5 min-h-8 rounded-md" :class="modus === 'fach' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Fach</button>
+                            <button type="button" @click="modus = 'kategorien'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'kategorien' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Kategorien</button>
+                            <button type="button" @click="modus = 'fach'" x-show="d.faecher.length" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'fach' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Fach</button>
                         </div>
                         <select x-show="modus === 'fach'" x-model.number="fach" class="rounded-lg border border-border bg-input text-text text-xs py-1.5 pl-2 pr-7" aria-label="Fach">
                             <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
@@ -215,8 +215,8 @@
                          x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
                     <x-slot:aktionen>
                         <div class="flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
-                            <button type="button" @click="modus = 'semester'" x-show="d.semester.labels.length" class="px-2.5 min-h-8 rounded-md" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'" x-text="d.semester.name"></button>
-                            <button type="button" @click="modus = 'lehrzeit'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'lehrzeit' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Lehrzeit</button>
+                            <button type="button" @click="modus = 'semester'" x-show="d.semester.labels.length" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'" x-text="d.semester.name"></button>
+                            <button type="button" @click="modus = 'lehrzeit'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'lehrzeit' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Lehrzeit</button>
                         </div>
                     </x-slot:aktionen>
                     <div x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 28 + 40)}px`"

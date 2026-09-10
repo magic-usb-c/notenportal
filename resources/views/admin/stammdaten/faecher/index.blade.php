@@ -69,11 +69,6 @@
             </div>
             </div>
 
-            <p class="text-xs text-muted px-1">
-                Fächer werden über die
-                <a href="{{ route('admin.stammdaten.lehrberufe.index') }}" class="text-accent hover:underline">Lehrberuf-Detailseite</a>
-                einem Lehrberuf zugewiesen.
-            </p>
 
         </div>
     </div>

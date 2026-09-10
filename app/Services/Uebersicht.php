@@ -177,9 +177,65 @@ final class Uebersicht
         ];
     }
 
-    /** @return list<array<string, mixed>> */
-    private function zieleMitBedarf(Lernender $l, Auswertung $a): array
+    /** Lernenden-Detail für Admin und Berufsbildner. */
+    public function lernendenDetail(Lernender $l, string $bereich): array
     {
+        $id = (int) $l->lernender_id;
+        $stand = $this->lernstaende->fuer([$id])[$id];
+        $a = $stand->auswertung;
+        $pruefungen = $l->pruefungen()->with(['fach', 'modul'])->orderBy('datum')->get();
+
+        return [
+            'stand' => $stand,
+            'heatmap' => $this->heatmap($a),
+            'verlauf' => $this->verlaufDiagramm($a, $a->semesterIds()),
+            'ziele' => $this->zieleMitBedarf($l, $a, fn (string $ziel, float $wert) => route($bereich.'.lernende.rechner', ['lernender_id' => $id, 'ziel' => $ziel, 'zielwert' => $wert])),
+            'pruefungen' => $pruefungen,
+        ];
+    }
+
+    /**
+     * Zeugnisnoten als Matrix: Zeilen = Fächer und Module je Kategorie, Spalten = Semester.
+     *
+     * @return array{semester: list<array{id: int, name: string}>, gruppen: list<array<string, mixed>>, semesterschnitt: array<int, ?float>, gesamt: ?float}
+     */
+    public function heatmap(Auswertung $a): array
+    {
+        $k = $a->konfiguration;
+        $semesterIds = $a->semesterIds();
+        $gruppen = [];
+
+        foreach ($a->kategorien as $kid => $kat) {
+            $zeilen = [];
+            foreach ($a->elementeDerKategorie($kid) as $e) {
+                $schluessel = $e->typ === Element::FACH ? 'f'.$e->fachId : 'm'.$e->modulId;
+                $zeilen[$schluessel] ??= [
+                    'label' => $e->label,
+                    'typ' => $e->typ,
+                    'zellen' => [],
+                    'lehrzeit' => $e->typ === Element::FACH ? $a->fach($e->fachId)['note'] : $e->note,
+                    'offen' => $e->typ === Element::MODUL && ! $e->abgeschlossen() && $e->offenGewicht() !== null,
+                ];
+                if ($e->semesterId !== null) {
+                    $zeilen[$schluessel]['zellen'][$e->semesterId] = $e->note;
+                }
+            }
+            $gruppen[] = ['name' => $k->kategorieName($kid), 'note' => $kat['note'], 'zeilen' => array_values($zeilen),
+                'semester' => array_combine($semesterIds, array_map(fn ($s) => $a->semester($s, $kid)['note'], $semesterIds)) ?: []];
+        }
+
+        return [
+            'semester' => array_map(fn ($s) => ['id' => $s, 'name' => $k->semesterName($s)], $semesterIds),
+            'gruppen' => $gruppen,
+            'semesterschnitt' => array_combine($semesterIds, array_map(fn ($s) => $a->semester($s)['note'], $semesterIds)) ?: [],
+            'gesamt' => $a->gesamtNote,
+        ];
+    }
+
+    /** @return list<array<string, mixed>> */
+    private function zieleMitBedarf(Lernender $l, Auswertung $a, ?\Closure $link = null): array
+    {
+        $link ??= fn (string $ziel, float $wert) => route('lernender.noten.rechner', ['ziel' => $ziel, 'zielwert' => $wert]);
         $ziele = Ziel::query()->where('lernender_id', $l->lernender_id)->get();
         if ($ziele->isEmpty()) {
             return [];
@@ -188,7 +244,7 @@ final class Uebersicht
         $k = $a->konfiguration;
         $leistungen = [...$this->quelle->fuerLernenden((int) $l->lernender_id), ...$this->rechner->offeneLeistungen($l, $a)];
 
-        return $ziele->map(function (Ziel $z) use ($a, $k, $leistungen) {
+        return $ziele->map(function (Ziel $z) use ($a, $k, $leistungen, $link) {
             $g = $z->zielgroesse();
             $loesung = $this->zielrechner->loese($leistungen, $g, (float) $z->zielwert, $k);
 
@@ -197,7 +253,7 @@ final class Uebersicht
                 'zielwert' => (float) $z->zielwert,
                 'aktuell' => $a->wert($g),
                 'loesung' => $loesung,
-                'link' => route('lernender.noten.rechner', ['ziel' => (string) $g, 'zielwert' => $z->zielwert]),
+                'link' => $link((string) $g, (float) $z->zielwert),
             ];
         })->all();
     }

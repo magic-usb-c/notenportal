@@ -8,10 +8,10 @@ use App\Models\Berufsbildner;
 use App\Models\Lernender;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
-use App\Services\Noten\NoteService;
+use App\Services\Auswertung\LernstandRechner;
+use App\Services\Uebersicht;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -26,8 +26,9 @@ class LernendeController extends VerwaltungController
     private const array SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
 
     public function __construct(
-        private readonly NoteService $noteService,
         private readonly LernendeErfassungService $erfassung,
+        private readonly Uebersicht $uebersicht,
+        private readonly LernstandRechner $lernstaende,
     ) {}
 
     public function index(Request $request): View
@@ -161,34 +162,9 @@ class LernendeController extends VerwaltungController
             'betreuungen' => fn ($q) => $q->with('berufsbildner.benutzer')->orderByDesc('gueltig_von'),
         ]);
 
-        $semStats = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->where('n.lernender_id', $lernender_id)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
-            ->select([
-                'n.semester_id',
-                's.bezeichnung as sem_label',
-                DB::raw('COUNT(*) as count'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-            ])
-            ->orderBy('s.sortierung')
-            ->get();
-
-        $gesamt = DB::table('noten')
-            ->where('lernender_id', $lernender_id)
-            ->whereNull('geloescht_am')
-            ->selectRaw('COUNT(*) as anzahl, MAX(pruefungsdatum) as letzte, ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0),2) as avg')
-            ->first();
-
         return view('verwaltung.lernende.show', [
             'lernender' => $lernender,
-            'semStats' => $semStats,
-            'noteCount' => (int) $gesamt->anzahl,
-            'lastEntry' => $gesamt->letzte ? Carbon::parse($gesamt->letzte) : null,
-            'globalAvg' => $gesamt->avg !== null ? (float) $gesamt->avg : null,
-            'notenVerlauf' => $this->noteService->notenVerlauf($lernender_id),
+            ...$this->uebersicht->lernendenDetail($lernender, $this->bereich($request)),
             'semesterListe' => DB::table('semester')->orderBy('sortierung')->get(),
             'berufsbildnerListe' => $this->berufsbildnerListe(),
         ]);
@@ -265,10 +241,10 @@ class LernendeController extends VerwaltungController
                 'lernender_id',
                 DB::raw('COUNT(*) as anzahl'),
                 DB::raw('MAX(pruefungsdatum) as letzte'),
-                DB::raw('ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0),2) as avg'),
             ])
             ->get()
             ->keyBy('lernender_id');
+        $staende = $this->lernstaende->fuer(array_map('intval', $ids));
 
         $ungelesen = DB::table('noten as n')
             ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
@@ -286,7 +262,7 @@ class LernendeController extends VerwaltungController
 
         $heute = now()->toDateString();
 
-        return $lernende->map(function (Lernender $l) use ($noten, $ungelesen, $heute) {
+        return $lernende->map(function (Lernender $l) use ($noten, $ungelesen, $heute, $staende) {
             $n = $noten->get($l->lernender_id);
             $betreuer = $l->betreuungen->first()?->berufsbildner?->benutzer;
 
@@ -301,7 +277,8 @@ class LernendeController extends VerwaltungController
                 'betreuer' => $betreuer,
                 'anzahl' => (int) ($n->anzahl ?? 0),
                 'lastNote' => $n->letzte ?? null,
-                'avg' => isset($n->avg) ? (float) $n->avg : null,
+                'avg' => $staende[$l->lernender_id]->auswertung->gesamtNote,
+                'stand' => $staende[$l->lernender_id],
                 'ungelesen' => (int) ($ungelesen[$l->lernender_id] ?? 0),
             ];
         });
