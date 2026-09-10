@@ -15,14 +15,14 @@ use Tests\TestCase;
  */
 class ZugriffsschutzTest extends TestCase
 {
-    private const ROLLEN = [
+    private const array ROLLEN = [
         'Admin' => 'admin',
         'Berufsbildner' => 'berufsbildner',
         'Lernender' => 'lernender',
     ];
 
     /** Routen ohne Rollenbindung; Berechtigung prüft der Controller selbst. */
-    private const OHNE_ROLLE = [
+    private const array OHNE_ROLLE = [
         'dashboard',
         'profile.edit',
         'profile.update',
@@ -38,7 +38,7 @@ class ZugriffsschutzTest extends TestCase
     ];
 
     /** Öffentlich erreichbar. */
-    private const OEFFENTLICH = ['/', 'login', 'up'];
+    private const array OEFFENTLICH = ['/', 'login', 'up'];
 
     #[Test]
     public function jede_route_ist_geschuetzt_oder_bewusst_freigegeben(): void
@@ -100,7 +100,7 @@ class ZugriffsschutzTest extends TestCase
         foreach (Route::getRoutes() as $route) {
             foreach ($route->gatherMiddleware() as $middleware) {
                 if (is_string($middleware) && str_starts_with($middleware, 'role:')) {
-                    $routen[] = [$route, array_map('trim', explode(',', substr($middleware, 5)))];
+                    $routen[] = [$route, array_map(trim(...), explode(',', substr($middleware, 5)))];
                 }
             }
         }

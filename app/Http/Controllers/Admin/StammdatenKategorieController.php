@@ -27,18 +27,18 @@ class StammdatenKategorieController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code'       => ['required', 'string', 'max:30', 'unique:kategorien,code'],
-            'name'       => ['required', 'string', 'max:50', 'unique:kategorien,name'],
+            'code' => ['required', 'string', 'max:30', 'unique:kategorien,code'],
+            'name' => ['required', 'string', 'max:50', 'unique:kategorien,name'],
             'sortierung' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $sortierung = $validated['sortierung'] ?? (DB::table('kategorien')->max('sortierung') ?? 0) + 1;
 
         DB::table('kategorien')->insert([
-            'code'       => $validated['code'],
-            'name'       => $validated['name'],
+            'code' => $validated['code'],
+            'name' => $validated['name'],
             'sortierung' => (int) $sortierung,
-            'aktiv'      => true,
+            'aktiv' => true,
         ]);
 
         return redirect()
@@ -56,19 +56,19 @@ class StammdatenKategorieController extends Controller
     public function update(Request $request, int $kategorie_id): RedirectResponse
     {
         $validated = $request->validate([
-            'code'       => ['required', 'string', 'max:30', Rule::unique('kategorien', 'code')->ignore($kategorie_id, 'kategorie_id')],
-            'name'       => ['required', 'string', 'max:50', Rule::unique('kategorien', 'name')->ignore($kategorie_id, 'kategorie_id')],
+            'code' => ['required', 'string', 'max:30', Rule::unique('kategorien', 'code')->ignore($kategorie_id, 'kategorie_id')],
+            'name' => ['required', 'string', 'max:50', Rule::unique('kategorien', 'name')->ignore($kategorie_id, 'kategorie_id')],
             'sortierung' => ['nullable', 'integer', 'min:0'],
-            'aktiv'      => ['boolean'],
+            'aktiv' => ['boolean'],
         ]);
 
         DB::table('kategorien')
             ->where('kategorie_id', $kategorie_id)
             ->update([
-                'code'       => $validated['code'],
-                'name'       => $validated['name'],
+                'code' => $validated['code'],
+                'name' => $validated['name'],
                 'sortierung' => (int) ($validated['sortierung'] ?? 0),
-                'aktiv'      => (bool) ($validated['aktiv'] ?? true),
+                'aktiv' => (bool) ($validated['aktiv'] ?? true),
             ]);
 
         return redirect()

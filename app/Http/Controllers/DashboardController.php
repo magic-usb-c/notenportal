@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Note;
 use App\Models\Semester;
+use App\Services\Noten\NoteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class DashboardController extends Controller
 {
     public function __construct(
-        private readonly \App\Services\Noten\NoteService $noteService
+        private readonly NoteService $noteService
     ) {}
 
     /** Lernender-Dashboard */
@@ -21,13 +22,13 @@ class DashboardController extends Controller
     {
         $lernender = $request->user()?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
-        $lernenderId  = (int) $lernender->lernender_id;
-        $benutzerId   = (int) $request->user()->benutzer_id;
-        $today        = now()->toDateString();
+        $lernenderId = (int) $lernender->lernender_id;
+        $benutzerId = (int) $request->user()->benutzer_id;
+        $today = now()->toDateString();
 
         // Aktuelles Semester
         $currentSemester = Semester::query()
@@ -82,14 +83,14 @@ class DashboardController extends Controller
             ->join('noten_kommentare as nk', 'nk.note_id', '=', 'n.note_id')
             ->leftJoin('noten_gesehen as ng', function ($j) use ($benutzerId) {
                 $j->on('ng.note_id', '=', 'n.note_id')
-                  ->where('ng.viewer_benutzer_id', '=', $benutzerId);
+                    ->where('ng.viewer_benutzer_id', '=', $benutzerId);
             })
             ->where('n.lernender_id', $lernenderId)
             ->whereNull('n.geloescht_am')
             ->where('nk.autor_benutzer_id', '!=', $benutzerId)
             ->where(function ($q) {
                 $q->whereNull('ng.gesehen_am')
-                  ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
+                    ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
             })
             ->distinct()
             ->count('n.note_id');
@@ -122,12 +123,12 @@ class DashboardController extends Controller
     {
         $bb = $request->user()?->berufsbildner;
 
-        if (!$bb) {
+        if (! $bb) {
             abort(403);
         }
 
-        $today   = now()->toDateString();
-        $bbId    = (int) $bb->berufsbildner_id;
+        $today = now()->toDateString();
+        $bbId = (int) $bb->berufsbildner_id;
 
         // Betreute Lernende (inkl. Lehrberuf-Name für Card-Darstellung)
         $lernende = DB::table('betreuungen as bt')
@@ -136,7 +137,7 @@ class DashboardController extends Controller
             ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
             ->where('bt.berufsbildner_id', $bbId)
             ->where('bt.gueltig_von', '<=', $today)
-            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
@@ -148,7 +149,7 @@ class DashboardController extends Controller
         if ($lernende->isEmpty()) {
             return view('dashboards.berufsbildner', [
                 'lernende' => collect(),
-                'stats'    => collect(),
+                'stats' => collect(),
             ]);
         }
 
@@ -185,7 +186,7 @@ class DashboardController extends Controller
         $unreadCounts = DB::table('noten as n')
             ->leftJoin('noten_gesehen as ng', function ($j) use ($bbBenutzerId) {
                 $j->on('ng.note_id', '=', 'n.note_id')
-                  ->where('ng.viewer_benutzer_id', '=', $bbBenutzerId);
+                    ->where('ng.viewer_benutzer_id', '=', $bbBenutzerId);
             })
             ->leftJoin('noten_kommentare as nk', function ($j) {
                 $j->on('nk.note_id', '=', 'n.note_id');
@@ -194,8 +195,8 @@ class DashboardController extends Controller
             ->whereNull('n.geloescht_am')
             ->where(function ($q) {
                 $q->whereNull('ng.gesehen_am')
-                  ->orWhereColumn('n.erstellt_am', '>', 'ng.gesehen_am')
-                  ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
+                    ->orWhereColumn('n.erstellt_am', '>', 'ng.gesehen_am')
+                    ->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am');
             })
             ->groupBy('n.lernender_id')
             ->select(['n.lernender_id', DB::raw('COUNT(DISTINCT n.note_id) as unread')])
@@ -203,34 +204,34 @@ class DashboardController extends Controller
             ->keyBy('lernender_id');
 
         // Stats pro Lernender berechnen
-        $stats = $lernende->map(function ($l) use ($lastEntries, $currentSemAvg, $unreadCounts, $today) {
-            $lid        = (int) $l->lernender_id;
-            $lastRow    = $lastEntries->get($lid);
-            $avgRow     = $currentSemAvg->get($lid);
+        $stats = $lernende->map(function ($l) use ($lastEntries, $currentSemAvg, $unreadCounts) {
+            $lid = (int) $l->lernender_id;
+            $lastRow = $lastEntries->get($lid);
+            $avgRow = $currentSemAvg->get($lid);
 
-            $lastEntry  = $lastRow ? Carbon::parse($lastRow->last_entry) : null;
-            $daysSince  = $lastEntry ? (int) $lastEntry->diffInDays(now()) : null;
-            $semAvg     = $avgRow ? round((float) $avgRow->avg, 2) : null;
-            $semCount   = $avgRow ? (int) $avgRow->count : 0;
-            $unread     = (int) ($unreadCounts->get($lid)?->unread ?? 0);
+            $lastEntry = $lastRow ? Carbon::parse($lastRow->last_entry) : null;
+            $daysSince = $lastEntry ? (int) $lastEntry->diffInDays(now()) : null;
+            $semAvg = $avgRow ? round((float) $avgRow->avg, 2) : null;
+            $semCount = $avgRow ? (int) $avgRow->count : 0;
+            $unread = (int) ($unreadCounts->get($lid)?->unread ?? 0);
 
             $warningGelb = $daysSince === null || $daysSince > 30;
-            $warningRot  = $semAvg !== null && $semAvg < 4.0;
+            $warningRot = $semAvg !== null && $semAvg < 4.0;
 
             return (object) [
                 'lernender_id' => $lid,
-                'lastEntry'    => $lastEntry,
-                'daysSince'    => $daysSince,
-                'semAvg'       => $semAvg,
-                'semCount'     => $semCount,
-                'unread'       => $unread,
-                'warningGelb'  => $warningGelb,
-                'warningRot'   => $warningRot,
+                'lastEntry' => $lastEntry,
+                'daysSince' => $daysSince,
+                'semAvg' => $semAvg,
+                'semCount' => $semCount,
+                'unread' => $unread,
+                'warningGelb' => $warningGelb,
+                'warningRot' => $warningRot,
             ];
         })->keyBy('lernender_id');
 
         // Lernende mit Lehrende in den nächsten 60 Tagen
-        $lehrEndeBaldIds = $lernende->filter(fn($l) => isset($l->lernende_lehrende))->pluck('lernender_id');
+        $lehrEndeBaldIds = $lernende->filter(fn ($l) => isset($l->lernende_lehrende))->pluck('lernender_id');
 
         // Wir holen die Lehrende-Daten für alle betreuten Lernenden
         $lernendeProfile = DB::table('lernende')
@@ -250,7 +251,7 @@ class DashboardController extends Controller
     {
         $today = now()->toDateString();
 
-        $lernendCount     = DB::table('lernende as l')
+        $lernendCount = DB::table('lernende as l')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
@@ -262,7 +263,7 @@ class DashboardController extends Controller
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
             ->count();
-        $noteCount        = Note::query()->count();
+        $noteCount = Note::query()->count();
 
         // Noten im aktuellen Semester
         $currentSemester = Semester::query()
@@ -304,7 +305,7 @@ class DashboardController extends Controller
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
-            ->where(fn($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
+            ->where(fn ($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
             ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'nn.last_entry'])
             ->orderBy('b.nachname')
             ->limit(10)
@@ -335,8 +336,9 @@ class DashboardController extends Controller
 
         $aktivitaet = collect(range(0, 7))->map(function ($i) use ($wochenStart, $aktivitaetRaw) {
             $w = $wochenStart->copy()->addWeeks($i);
+
             return (object) [
-                'label' => 'KW ' . $w->isoWeek(),
+                'label' => 'KW '.$w->isoWeek(),
                 'count' => (int) ($aktivitaetRaw->get((int) $w->format('oW')) ?? 0),
             ];
         });

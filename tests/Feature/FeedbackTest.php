@@ -162,7 +162,7 @@ class FeedbackTest extends TestCase
             $this->actingAs($user)
                 ->postJson(route('feedback.store'), [
                     'kategorie' => 'feedback',
-                    'text' => 'Meldung Nummer ' . $i,
+                    'text' => 'Meldung Nummer '.$i,
                 ])
                 ->assertCreated();
         }

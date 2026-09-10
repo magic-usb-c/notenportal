@@ -5,30 +5,43 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\Notenwert;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[Fillable([
+    'lernender_id',
+    'kategorie_id',
+    'semester_id',
+    'fach_id',
+    'modul_belegung_id',
+    'gruppe_id',
+    'titel',
+    'pruefungsdatum',
+    'note_wert',
+    'gewichtung_prozent',
+    'erfasst_von_benutzer_id',
+    'aktualisiert_von_benutzer_id',
+])]
+#[Table(name: 'noten', key: 'note_id')]
 class Note extends Model
 {
     use HasFactory;
-
     use SoftDeletes;
-
-    /**
-     * Tabellen-Mapping (DB-Schema).
-     */
-    protected $table = 'noten';
-    protected $primaryKey = 'note_id';
 
     /**
      * Custom Timestamp-Spalten gemäss Schema.
      */
     public const CREATED_AT = 'erstellt_am';
+
     public const UPDATED_AT = 'aktualisiert_am';
+
     public const DELETED_AT = 'geloescht_am';
 
     /**
@@ -40,36 +53,6 @@ class Note extends Model
         'fach',
         'modulBelegung.modul',
         'gruppe',
-    ];
-
-    /**
-     * Felder, die via create()/update() gesetzt werden dürfen.
-     */
-    protected $fillable = [
-        'lernender_id',
-        'kategorie_id',
-        'semester_id',
-        'fach_id',
-        'modul_belegung_id',
-        'gruppe_id',
-        'titel',
-        'pruefungsdatum',
-        'note_wert',
-        'gewichtung_prozent',
-        'erfasst_von_benutzer_id',
-        'aktualisiert_von_benutzer_id',
-    ];
-
-    /**
-     * Typ-Casts für korrekte Datentypen in PHP.
-     */
-    protected $casts = [
-        'pruefungsdatum' => 'date',
-        'note_wert' => Notenwert::class,
-        'gewichtung_prozent' => 'decimal:2',
-        'erstellt_am' => 'datetime',
-        'aktualisiert_am' => 'datetime',
-        'geloescht_am' => 'datetime',
     ];
 
     /*
@@ -144,7 +127,8 @@ class Note extends Model
     /**
      * Noten nur für einen Lernenden.
      */
-    public function scopeForLernender(Builder $query, int $lernenderId): Builder
+    #[Scope]
+    protected function forLernender(Builder $query, int $lernenderId): Builder
     {
         return $query->where('lernender_id', $lernenderId);
     }
@@ -152,9 +136,10 @@ class Note extends Model
     /**
      * Optional nach Kategorie filtern.
      */
-    public function scopeFilterKategorie(Builder $query, ?int $kategorieId): Builder
+    #[Scope]
+    protected function filterKategorie(Builder $query, ?int $kategorieId): Builder
     {
-        if (!$kategorieId) {
+        if (! $kategorieId) {
             return $query;
         }
 
@@ -164,9 +149,10 @@ class Note extends Model
     /**
      * Optional nach Semester filtern.
      */
-    public function scopeFilterSemester(Builder $query, ?int $semesterId): Builder
+    #[Scope]
+    protected function filterSemester(Builder $query, ?int $semesterId): Builder
     {
-        if (!$semesterId) {
+        if (! $semesterId) {
             return $query;
         }
 
@@ -176,7 +162,8 @@ class Note extends Model
     /**
      * Standard-Sortierung für Noten-Listen.
      */
-    public function scopeOrdered(Builder $query): Builder
+    #[Scope]
+    protected function ordered(Builder $query): Builder
     {
         return $query
             ->orderByDesc('pruefungsdatum')
@@ -186,8 +173,24 @@ class Note extends Model
     /**
      * Standard-Relations für Listen laden.
      */
-    public function scopeWithOverview(Builder $query): Builder
+    #[Scope]
+    protected function withOverview(Builder $query): Builder
     {
         return $query->with(self::OVERVIEW_RELATIONS);
+    }
+
+    /**
+     * Typ-Casts für korrekte Datentypen in PHP.
+     */
+    protected function casts(): array
+    {
+        return [
+            'pruefungsdatum' => 'date',
+            'note_wert' => Notenwert::class,
+            'gewichtung_prozent' => 'decimal:2',
+            'erstellt_am' => 'datetime',
+            'aktualisiert_am' => 'datetime',
+            'geloescht_am' => 'datetime',
+        ];
     }
 }

@@ -1,28 +1,26 @@
 <?php
 
+use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
+use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
+use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\StammdatenFaecherController;
+use App\Http\Controllers\Admin\StammdatenKategorieController;
+use App\Http\Controllers\Admin\StammdatenLehrberufeController;
+use App\Http\Controllers\Admin\StammdatenModuleController;
+use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
-use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
-use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
-use App\Http\Controllers\Admin\StammdatenLehrberufeController;
-use App\Http\Controllers\Admin\StammdatenModuleController;
-use App\Http\Controllers\Admin\StammdatenFaecherController;
-use App\Http\Controllers\Admin\StammdatenSemesterController;
-use App\Http\Controllers\Admin\StammdatenKategorieController;
-use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
-use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return Auth::check()
-        ? redirect()->route('dashboard')
-        : redirect()->route('login');
-});
+Route::get('/', fn () => Auth::check()
+    ? redirect()->route('dashboard')
+    : redirect()->route('login'));
 
 // Register-Route ist in routes/auth.php als 'register' benannt definiert
 
@@ -218,4 +216,4 @@ Route::middleware('auth')->group(function () {
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

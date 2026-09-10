@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Console\Attributes\Description;
+use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
@@ -10,14 +12,12 @@ use Illuminate\Support\Facades\DB;
  * alle Testnoten samt Kommentaren, gesehen-Markierungen, Modulbelegungen
  * und Feedback werden gelöscht. Alle Konten müssen ihr Passwort neu setzen.
  */
+#[Description('Testdaten für den Start des Testbetriebs bereinigen')]
+#[Signature('notenportal:pilot-vorbereiten {--ausfuehren : Änderungen wirklich schreiben (sonst nur Vorschau)}')]
 class PilotVorbereiten extends Command
 {
-    protected $signature = 'notenportal:pilot-vorbereiten {--ausfuehren : Änderungen wirklich schreiben (sonst nur Vorschau)}';
-
-    protected $description = 'Testdaten für den Start des Testbetriebs bereinigen';
-
     /** Reihenfolge wegen Fremdschlüsseln. */
-    private const TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'modul_note_gruppen', 'modul_belegungen', 'feedback'];
+    private const array TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'modul_note_gruppen', 'modul_belegungen', 'feedback'];
 
     public function handle(): int
     {

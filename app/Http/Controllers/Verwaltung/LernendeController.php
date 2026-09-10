@@ -21,9 +21,9 @@ use Illuminate\View\View;
 /** Lernende: Liste, Anlegen, Detail, Bearbeiten. */
 class LernendeController extends VerwaltungController
 {
-    private const WARNUNGEN = ['tief_avg', 'keine_noten', 'ohne_betreuung'];
+    private const array WARNUNGEN = ['tief_avg', 'keine_noten', 'ohne_betreuung'];
 
-    private const SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
+    private const array SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
 
     public function __construct(
         private readonly NoteService $noteService,

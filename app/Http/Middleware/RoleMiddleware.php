@@ -12,11 +12,11 @@ class RoleMiddleware
     {
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('login');
         }
 
-        $allowed = array_filter(array_map('trim', explode(',', $roles)));
+        $allowed = array_filter(array_map(trim(...), explode(',', $roles)));
 
         foreach ($allowed as $roleName) {
             if ($user->hasRole($roleName)) {

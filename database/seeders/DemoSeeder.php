@@ -27,34 +27,34 @@ use RuntimeException;
  */
 class DemoSeeder extends Seeder
 {
-    private const REFERENZDATUM = '2026-09-15';
+    private const string REFERENZDATUM = '2026-09-15';
 
-    private const DEMO_PASSWORT = 'Demo!2026';
+    private const string DEMO_PASSWORT = 'Demo!2026';
 
-    private const LEHRBERUFE = [
+    private const array LEHRBERUFE = [
         ['kuerzel' => 'INPE', 'name' => 'Informatiker/in EFZ Plattformentwicklung'],
         ['kuerzel' => 'INAP', 'name' => 'Informatiker/in EFZ Applikationsentwicklung'],
         ['kuerzel' => 'EDB', 'name' => 'Entwickler/in digitales Business EFZ'],
         ['kuerzel' => 'INBE', 'name' => 'Betriebsinformatiker/in EFZ'],
     ];
 
-    private const MODUL_ANZAHL = ['INPE' => 8, 'INAP' => 8, 'EDB' => 6, 'INBE' => 7];
+    private const array MODUL_ANZAHL = ['INPE' => 8, 'INAP' => 8, 'EDB' => 6, 'INBE' => 7];
 
-    private const MODUL_NUMMER_BASIS = ['INPE' => 100, 'INAP' => 200, 'EDB' => 300, 'INBE' => 400];
+    private const array MODUL_NUMMER_BASIS = ['INPE' => 100, 'INAP' => 200, 'EDB' => 300, 'INBE' => 400];
 
-    private const MODUL_THEMEN = [
+    private const array MODUL_THEMEN = [
         'Datenbanken abfragen', 'Netzwerke konfigurieren', 'Software testen',
         'Benutzeroberflächen gestalten', 'Projekte planen', 'Daten sichern',
         'Systeme dokumentieren', 'Support leisten', 'Prozesse analysieren',
         'Schnittstellen entwickeln',
     ];
 
-    private const FAECHER = [
+    private const array FAECHER = [
         'BMS' => ['Deutsch' => 'D', 'Englisch' => 'E', 'Mathematik' => 'M', 'Wirtschaft' => 'W'],
         'ABU' => ['Sprache und Kommunikation' => 'SK', 'Gesellschaft' => 'G'],
     ];
 
-    private const NAMEN = [
+    private const array NAMEN = [
         ['Laura', 'Frei'], ['Michael', 'Baumann'], ['Sarah', 'Keller'], ['David', 'Steiner'],
         ['Nina', 'Huber'], ['Marco', 'Meier'], ['Elena', 'Fischer'], ['Lukas', 'Weber'],
         ['Julia', 'Brunner'], ['Simon', 'Zimmermann'], ['Anna', 'Graf'], ['Thomas', 'Widmer'],
@@ -63,7 +63,7 @@ class DemoSeeder extends Seeder
     ];
 
     // Index 0 = Admin, 1-3 = Berufsbildner, 4-17 = Lernende (passend zu diesem Array).
-    private const LERNENDE_KONFIG = [
+    private const array LERNENDE_KONFIG = [
         ['lehrberuf' => 'INPE', 'jahr' => 2022, 'track' => 'BMS', 'pattern' => 'stetig_besser'],
         ['lehrberuf' => 'INPE', 'jahr' => 2023, 'track' => 'ABU', 'pattern' => null],
         ['lehrberuf' => 'INPE', 'jahr' => 2024, 'track' => 'BMS', 'pattern' => null],
@@ -80,7 +80,7 @@ class DemoSeeder extends Seeder
         ['lehrberuf' => 'INBE', 'jahr' => 2025, 'track' => 'ABU', 'pattern' => null],
     ];
 
-    private const KOMMENTARE = [
+    private const array KOMMENTARE = [
         'Gut gemacht, weiter so.',
         'Bitte die Herleitung beim nächsten Mal genauer zeigen.',
         'Solide Leistung, sauber dokumentiert.',

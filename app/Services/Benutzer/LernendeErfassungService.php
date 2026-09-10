@@ -26,20 +26,20 @@ class LernendeErfassungService
      *   track_typ?, track_semester_id?
      *
      * @param  int|null  $berufsbildnerId  Wenn gesetzt: Betreuung ab Lehrbeginn anlegen.
-     * @return int  lernender_id des neu angelegten Profils
+     * @return int lernender_id des neu angelegten Profils
      */
     public function erstellen(array $data, ?int $berufsbildnerId = null): int
     {
         return (int) DB::transaction(function () use ($data, $berufsbildnerId) {
             // 1) Benutzer-Account
             $user = User::create([
-                'vorname'       => $data['vorname'],
-                'nachname'      => $data['nachname'],
-                'email'         => $data['email'],
-                'benutzername'  => $data['benutzername'],
+                'vorname' => $data['vorname'],
+                'nachname' => $data['nachname'],
+                'email' => $data['email'],
+                'benutzername' => $data['benutzername'],
                 'passwort_hash' => $data['passwort'],
                 'passwort_wechsel_noetig' => true,
-                'aktiv'         => true,
+                'aktiv' => true,
             ]);
 
             $benutzerId = (int) $user->benutzer_id;
@@ -49,17 +49,17 @@ class LernendeErfassungService
 
             DB::table('benutzer_rollen')->insert([
                 'benutzer_id' => $benutzerId,
-                'rolle_id'    => $rolleId,
+                'rolle_id' => $rolleId,
             ]);
 
             // 3) Lernenden-Profil
             $lernenderId = (int) DB::table('lernende')->insertGetId([
-                'benutzer_id'     => $benutzerId,
-                'lehrberuf_id'    => (int) $data['lehrberuf_id'],
-                'lehrbeginn'      => $data['lehrbeginn'],
-                'lehrende'        => $data['lehrende'] ?? null,
-                'bemerkung'       => $data['bemerkung'] ?? null,
-                'erstellt_am'     => now(),
+                'benutzer_id' => $benutzerId,
+                'lehrberuf_id' => (int) $data['lehrberuf_id'],
+                'lehrbeginn' => $data['lehrbeginn'],
+                'lehrende' => $data['lehrende'] ?? null,
+                'bemerkung' => $data['bemerkung'] ?? null,
+                'erstellt_am' => now(),
                 'aktualisiert_am' => now(),
             ]);
 
@@ -70,22 +70,22 @@ class LernendeErfassungService
                 $gueltigVon = min(now()->toDateString(), (string) $data['lehrbeginn']);
 
                 DB::table('betreuungen')->insert([
-                    'lernender_id'     => $lernenderId,
+                    'lernender_id' => $lernenderId,
                     'berufsbildner_id' => $berufsbildnerId,
-                    'gueltig_von'      => $gueltigVon,
-                    'gueltig_bis'      => null,
+                    'gueltig_von' => $gueltigVon,
+                    'gueltig_bis' => null,
                 ]);
             }
 
             // 5) Optional: BMS/ABU-Track ab Lehrbeginn
-            if (!empty($data['track_typ'])) {
+            if (! empty($data['track_typ'])) {
                 DB::table('lernender_tracks')->insert([
-                    'lernender_id'      => $lernenderId,
-                    'track_typ'         => $data['track_typ'],
-                    'start_datum'       => $data['lehrbeginn'],
-                    'end_datum'         => null,
+                    'lernender_id' => $lernenderId,
+                    'track_typ' => $data['track_typ'],
+                    'start_datum' => $data['lehrbeginn'],
+                    'end_datum' => null,
                     'start_semester_id' => (int) $data['track_semester_id'],
-                    'end_semester_id'   => null,
+                    'end_semester_id' => null,
                 ]);
             }
 

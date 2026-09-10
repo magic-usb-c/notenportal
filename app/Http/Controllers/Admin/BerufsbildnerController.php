@@ -12,7 +12,7 @@ class BerufsbildnerController extends Controller
 {
     public function index(Request $request)
     {
-        $today  = now()->toDateString();
+        $today = now()->toDateString();
         $cutoff = now()->subDays(30)->toDateString();
 
         $berufsbildner = DB::table('berufsbildner as bb')
@@ -28,11 +28,11 @@ class BerufsbildnerController extends Controller
         if ($berufsbildner->isEmpty()) {
             return view('admin.berufsbildner.index', [
                 'berufsbildner' => collect(),
-                'stats'         => collect(),
+                'stats' => collect(),
             ]);
         }
 
-        $bbIds = $berufsbildner->pluck('berufsbildner_id')->map(fn($v) => (int) $v)->all();
+        $bbIds = $berufsbildner->pluck('berufsbildner_id')->map(fn ($v) => (int) $v)->all();
 
         // Aktive Lernende je BB
         $lernendeCount = DB::table('betreuungen as bt')
@@ -40,7 +40,7 @@ class BerufsbildnerController extends Controller
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereIn('bt.berufsbildner_id', $bbIds)
             ->where('bt.gueltig_von', '<=', $today)
-            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
@@ -60,11 +60,11 @@ class BerufsbildnerController extends Controller
             ), 'nn.lernender_id', '=', 'l.lernender_id')
             ->whereIn('bt.berufsbildner_id', $bbIds)
             ->where('bt.gueltig_von', '<=', $today)
-            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
-            ->where(fn($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
+            ->where(fn ($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
             ->groupBy('bt.berufsbildner_id')
             ->select(['bt.berufsbildner_id', DB::raw('COUNT(*) as cnt')])
             ->get()
@@ -90,27 +90,27 @@ class BerufsbildnerController extends Controller
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereIn('bt.berufsbildner_id', $bbIds)
             ->where('bt.gueltig_von', '<=', $today)
-            ->where(fn($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
             ->select(['bt.berufsbildner_id', 'l.lernender_id'])
             ->get()
             ->groupBy('berufsbildner_id')
-            ->map(function ($rows) use ($semAvgs) {
-                return $rows->filter(function ($r) use ($semAvgs) {
-                    $avg = $semAvgs->get((int) $r->lernender_id)?->avg;
-                    return $avg !== null && (float) $avg < 4.0;
-                })->count();
-            });
+            ->map(fn ($rows) => $rows->filter(function ($r) use ($semAvgs) {
+                $avg = $semAvgs->get((int) $r->lernender_id)?->avg;
+
+                return $avg !== null && (float) $avg < 4.0;
+            })->count());
 
         $stats = $berufsbildner->map(function ($bb) use ($lernendeCount, $ohneNotenCount, $tiefAvgCount) {
             $bbId = (int) $bb->berufsbildner_id;
+
             return (object) [
                 'berufsbildner_id' => $bbId,
-                'lernende'         => (int) ($lernendeCount->get($bbId)?->cnt ?? 0),
-                'ohne_noten'       => (int) ($ohneNotenCount->get($bbId)?->cnt ?? 0),
-                'tief_avg'         => (int) ($tiefAvgCount->get($bbId) ?? 0),
+                'lernende' => (int) ($lernendeCount->get($bbId)?->cnt ?? 0),
+                'ohne_noten' => (int) ($ohneNotenCount->get($bbId)?->cnt ?? 0),
+                'tief_avg' => (int) ($tiefAvgCount->get($bbId) ?? 0),
             ];
         })->keyBy('berufsbildner_id');
 

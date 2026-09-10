@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class StammdatenSemesterController extends Controller
 {
@@ -30,10 +32,9 @@ class StammdatenSemesterController extends Controller
         $validated = $request->validate([
             'bezeichnung' => ['required', 'string', 'max:20', 'unique:semester,bezeichnung'],
             'start_datum' => ['required', 'date'],
-            'end_datum'   => ['required', 'date', 'after:start_datum'],
-            'sortierung'  => ['nullable', 'integer', 'min:0'],
+            'end_datum' => ['required', 'date', 'after:start_datum'],
+            'sortierung' => ['nullable', 'integer', 'min:0'],
         ]);
-
 
         // Ueberlappende Semester fuehren zu mehrdeutiger Notenzuordnung
         // (NoteService::semesterForDate nimmt das erste Resultat).
@@ -42,8 +43,8 @@ class StammdatenSemesterController extends Controller
             ->where('end_datum', '>=', $validated['start_datum'])
             ->first();
         if ($overlap) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «' . $overlap->bezeichnung . '».',
+            throw ValidationException::withMessages([
+                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «'.$overlap->bezeichnung.'».',
             ]);
         }
 
@@ -57,8 +58,8 @@ class StammdatenSemesterController extends Controller
         DB::table('semester')->insert([
             'bezeichnung' => $validated['bezeichnung'],
             'start_datum' => $validated['start_datum'],
-            'end_datum'   => $validated['end_datum'],
-            'sortierung'  => $sortierung,
+            'end_datum' => $validated['end_datum'],
+            'sortierung' => $sortierung,
         ]);
 
         return redirect()->route('admin.stammdaten.semester.index')
@@ -68,6 +69,7 @@ class StammdatenSemesterController extends Controller
     public function edit(int $semester_id)
     {
         $semester = DB::table('semester')->where('semester_id', $semester_id)->firstOrFail();
+
         return view('admin.stammdaten.semester.edit', compact('semester'));
     }
 
@@ -77,10 +79,10 @@ class StammdatenSemesterController extends Controller
 
         $validated = $request->validate([
             'bezeichnung' => ['required', 'string', 'max:20',
-                \Illuminate\Validation\Rule::unique('semester', 'bezeichnung')->ignore($semester_id, 'semester_id')],
+                Rule::unique('semester', 'bezeichnung')->ignore($semester_id, 'semester_id')],
             'start_datum' => ['required', 'date'],
-            'end_datum'   => ['required', 'date', 'after:start_datum'],
-            'sortierung'  => ['required', 'integer', 'min:0'],
+            'end_datum' => ['required', 'date', 'after:start_datum'],
+            'sortierung' => ['required', 'integer', 'min:0'],
         ]);
 
         $overlap = DB::table('semester')
@@ -89,8 +91,8 @@ class StammdatenSemesterController extends Controller
             ->where('end_datum', '>=', $validated['start_datum'])
             ->first();
         if ($overlap) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «' . $overlap->bezeichnung . '».',
+            throw ValidationException::withMessages([
+                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «'.$overlap->bezeichnung.'».',
             ]);
         }
 

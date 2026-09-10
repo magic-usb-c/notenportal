@@ -2,19 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Fillable(['lernender_id', 'track_typ', 'start_datum', 'end_datum', 'start_semester_id', 'end_semester_id'])]
+#[Table(name: 'lernender_tracks', key: 'lernender_track_id')]
+#[WithoutTimestamps]
 class LernenderTrack extends Model
 {
-    protected $table = 'lernender_tracks';
-
-    protected $primaryKey = 'lernender_track_id';
-
-    public $timestamps = false;
-
-    protected $fillable = ['lernender_id', 'track_typ', 'start_datum', 'end_datum', 'start_semester_id', 'end_semester_id'];
-
     protected function casts(): array
     {
         return [

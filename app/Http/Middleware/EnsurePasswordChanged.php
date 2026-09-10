@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 /** Konten mit Startpasswort kommen erst nach dem Passwortwechsel weiter. */
 class EnsurePasswordChanged
 {
-    private const ERLAUBT = ['passwort.wechsel', 'passwort.wechsel.speichern', 'logout'];
+    private const array ERLAUBT = ['passwort.wechsel', 'passwort.wechsel.speichern', 'logout'];
 
     public function handle(Request $request, Closure $next): Response
     {

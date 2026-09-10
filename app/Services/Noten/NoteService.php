@@ -81,8 +81,8 @@ class NoteService
             ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
             ->where('n.lernender_id', $lernenderId)
             ->whereNull('n.geloescht_am')
-            ->when($kategorieId, fn($q) => $q->where('n.kategorie_id', $kategorieId))
-            ->when($semesterId, fn($q) => $q->where('n.semester_id', $semesterId))
+            ->when($kategorieId, fn ($q) => $q->where('n.kategorie_id', $kategorieId))
+            ->when($semesterId, fn ($q) => $q->where('n.semester_id', $semesterId))
             ->groupBy(DB::raw($fachLabel))
             ->select([
                 DB::raw("$fachLabel as label"),
@@ -98,11 +98,11 @@ class NoteService
      */
     public function applyIndexFilters(Builder $q, ?int $kategorieId, ?int $semesterId): Builder
     {
-        if (!empty($kategorieId)) {
+        if (! empty($kategorieId)) {
             $q->where('kategorie_id', $kategorieId);
         }
 
-        if (!empty($semesterId)) {
+        if (! empty($semesterId)) {
             $q->where('semester_id', $semesterId);
         }
 
@@ -181,12 +181,12 @@ class NoteService
             ->first();
 
         // Kein Lernender oder kein Lehrbeginn → leere Liste (verhindert Crash)
-        if (!$l || !$l->lehrbeginn) {
+        if (! $l || ! $l->lehrbeginn) {
             return collect();
         }
 
         $from = (string) $l->lehrbeginn;
-        $to   = $l->lehrende ? (string) $l->lehrende : now()->toDateString();
+        $to = $l->lehrende ? (string) $l->lehrende : now()->toDateString();
 
         return Semester::query()
             ->where('end_datum', '>=', $from)
@@ -210,7 +210,7 @@ class NoteService
             ->where('lernender_id', $lernenderId)
             ->first();
 
-        if (!$lernender) {
+        if (! $lernender) {
             return collect();
         }
 
@@ -260,7 +260,7 @@ class NoteService
             ->where('lernender_id', $lernenderId)
             ->first();
 
-        if (!$lernender) {
+        if (! $lernender) {
             throw ValidationException::withMessages([
                 'pruefungsdatum' => 'Lernender nicht gefunden.',
             ]);
@@ -281,7 +281,7 @@ class NoteService
         }
 
         $semester = $this->semesterForDate($date);
-        if (!$semester) {
+        if (! $semester) {
             throw ValidationException::withMessages([
                 'pruefungsdatum' => 'Kein Semester gefunden, das dieses Datum abdeckt.',
             ]);
@@ -317,7 +317,7 @@ class NoteService
                 ->whereIn('track_typ', $trackTyps->all())
                 ->exists();
 
-            if (!$allowed) {
+            if (! $allowed) {
                 throw ValidationException::withMessages([
                     'fach_id' => 'Dieses Fach gehört nicht zu deinem aktuellen Track.',
                 ]);
@@ -351,7 +351,7 @@ class NoteService
                 ->where('aktiv', 1)
                 ->exists();
 
-            if (!$allowed) {
+            if (! $allowed) {
                 throw ValidationException::withMessages([
                     'modul_id' => 'Dieses Modul gehört nicht zu deinem Lehrberuf.',
                 ]);
@@ -398,6 +398,7 @@ class NoteService
                     $existing->start_datum = $startDatum;
                     $existing->save();
                 }
+
                 return (int) $existing->modul_belegung_id;
             }
 
@@ -444,8 +445,8 @@ class NoteService
 
         $avgUnweighted = round((float) $notes->avg('note_wert'), 2);
 
-        $wSum          = 0.0;
-        $weightedSum   = 0.0;
+        $wSum = 0.0;
+        $weightedSum = 0.0;
         $missingWeights = 0;
 
         foreach ($notes as $n) {
@@ -456,7 +457,7 @@ class NoteService
             }
             $w = (float) $w;
 
-            $wSum        += $w;
+            $wSum += $w;
             $weightedSum += (float) $n->note_wert * $w;
         }
 

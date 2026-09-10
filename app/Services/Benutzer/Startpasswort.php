@@ -14,9 +14,9 @@ use Illuminate\Validation\Rules\Password;
  */
 class Startpasswort
 {
-    private const BUCHSTABEN = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+    private const string BUCHSTABEN = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
 
-    private const ZIFFERN = '23456789';
+    private const string ZIFFERN = '23456789';
 
     public static function erzeugen(int $laenge = 12): string
     {

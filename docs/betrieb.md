@@ -67,3 +67,5 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 | 10.09.2026 | Dump `notenportal-20260910-0953-vor-notenwert.sql`, Migration 2026_09_10_000005: `noten.note_wert` decimal(3,1) → decimal(4,2). Im selben Lauf Migration 2026_09_10_000004 (Tabelle `feedback`). |
 | 10.09.2026 | Datenbank `notenportal_demo` angelegt, `GRANT ALL` für np_web, migriert und mit `DemoSeeder` befüllt (Grundlage für visuelle Vergleiche). |
 | 10.09.2026 | Playwright + Chromium (inkl. System-Libs per `npx playwright install --with-deps`) in `~/tools/visual/` (ausserhalb des Repos) für Screenshot-/Style-/Kontrast-Vergleiche: `capture.mjs`, `compare.mjs`, `config.json`. |
+| 10.09.2026 | Zeitzonen-Tabellen in MariaDB geladen (`mysql_tzinfo_to_sql /usr/share/zoneinfo | sudo mysql mysql`). `.env`: `APP_TIMEZONE=Europe/Zurich`, `DB_TIMEZONE=Europe/Zurich` (Sitzungszeitzone der DB-Verbindung). Bestehende Zeitstempel wurden in UTC gespeichert und werden nicht umgerechnet (Testdaten). |
+| 10.09.2026 | `.env`: `DB_CONNECTION=mysql` → `mariadb` (gleicher Treiber wie Tests, Sitzungszeitzone greift). |

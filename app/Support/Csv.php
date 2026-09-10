@@ -13,6 +13,6 @@ class Csv
     {
         $value = (string) $value;
 
-        return preg_match('/^[=+\-@\t\r]/', $value) ? "'" . $value : $value;
+        return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
     }
 }

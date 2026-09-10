@@ -28,7 +28,7 @@ class FeedbackController extends Controller
     public function store(Request $request): JsonResponse|RedirectResponse
     {
         $validated = $request->validate([
-            'kategorie' => ['required', 'in:' . implode(',', array_keys(Feedback::KATEGORIEN))],
+            'kategorie' => ['required', 'in:'.implode(',', array_keys(Feedback::KATEGORIEN))],
             'text' => ['required', 'string', 'min:3', 'max:5000'],
             'route_name' => ['nullable', 'string', 'max:150'],
             'url' => ['nullable', 'string', 'max:500'],

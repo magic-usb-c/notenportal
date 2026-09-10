@@ -2,17 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+#[Fillable(['name'])]
+#[Table(name: 'rollen', key: 'rolle_id')]
+#[WithoutTimestamps]
 class Rolle extends Model
 {
-    protected $table = 'rollen';
-    protected $primaryKey = 'rolle_id';
-    public $timestamps = false;
-
-    protected $fillable = ['name'];
-
     public function benutzer(): BelongsToMany
     {
         return $this->belongsToMany(

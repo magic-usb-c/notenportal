@@ -12,7 +12,7 @@ class BemerkungUndKontenTest extends TestCase
 {
     use VerwaltungTestHilfen;
 
-    private const BEMERKUNG = 'Streng vertraulich XYZ';
+    private const string BEMERKUNG = 'Streng vertraulich XYZ';
 
     #[Test]
     public function bemerkung_erscheint_nie_in_lernenden_ansichten(): void

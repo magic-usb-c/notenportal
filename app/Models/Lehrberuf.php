@@ -2,23 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[Fillable(['kuerzel', 'name', 'aktiv'])]
+#[Table(name: 'lehrberufe', key: 'lehrberuf_id')]
 class Lehrberuf extends Model
 {
     use HasFactory;
 
-    protected $table = 'lehrberufe';
-
-    protected $primaryKey = 'lehrberuf_id';
-
     public const CREATED_AT = 'erstellt_am';
 
     public const UPDATED_AT = 'aktualisiert_am';
-
-    protected $fillable = ['kuerzel', 'name', 'aktiv'];
 
     protected function casts(): array
     {

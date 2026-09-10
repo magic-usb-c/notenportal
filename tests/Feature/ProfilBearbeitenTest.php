@@ -7,12 +7,13 @@ use App\Models\Semester;
 use App\Models\User;
 use Database\Factories\UserFactory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class ProfilBearbeitenTest extends TestCase
 {
-    private function profil(User $user, array $daten): \Illuminate\Testing\TestResponse
+    private function profil(User $user, array $daten): TestResponse
     {
         return $this->actingAs($user)->from(route('profile.edit'))->patch(route('profile.update'), $daten + [
             'email' => $user->email,
@@ -108,7 +109,7 @@ class ProfilBearbeitenTest extends TestCase
     {
         $user = User::factory()->lernender()->create(['darstellung' => 'dunkel']);
 
-        $this->actingAs($user)->get(route('lernender.dashboard'))->assertSee('<html lang="de" class="dark"', false);
+        $this->actingAs($user)->get(route('lernender.dashboard'))->assertSeeHtml('<html lang="de" class="dark"');
 
         $this->actingAs($user)->patchJson(route('profile.darstellung'), ['darstellung' => 'hell'])->assertOk();
         $this->assertSame('hell', $user->refresh()->darstellung);

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class StammdatenModuleController extends Controller
 {
@@ -34,20 +35,20 @@ class StammdatenModuleController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'modul_nummer'               => ['required', 'string', 'max:50', 'unique:module,modul_nummer'],
-            'titel'                      => ['required', 'string', 'max:255'],
-            'beschreibung'               => ['nullable', 'string', 'max:2000'],
+            'modul_nummer' => ['required', 'string', 'max:50', 'unique:module,modul_nummer'],
+            'titel' => ['required', 'string', 'max:255'],
+            'beschreibung' => ['nullable', 'string', 'max:2000'],
             'ziel_gewicht_summe_default' => ['nullable', 'numeric', 'min:0', 'max:9999'],
         ]);
 
         DB::table('module')->insert([
-            'modul_nummer'               => strtoupper($validated['modul_nummer']),
-            'titel'                      => $validated['titel'],
-            'beschreibung'               => $validated['beschreibung'] ?? null,
+            'modul_nummer' => strtoupper($validated['modul_nummer']),
+            'titel' => $validated['titel'],
+            'beschreibung' => $validated['beschreibung'] ?? null,
             'ziel_gewicht_summe_default' => $validated['ziel_gewicht_summe_default'] ?? 100.00,
-            'aktiv'                      => 1,
-            'erstellt_am'                => now(),
-            'aktualisiert_am'            => now(),
+            'aktiv' => 1,
+            'erstellt_am' => now(),
+            'aktualisiert_am' => now(),
         ]);
 
         return redirect()->route('admin.stammdaten.module.index')
@@ -57,6 +58,7 @@ class StammdatenModuleController extends Controller
     public function edit(int $modul_id)
     {
         $modul = DB::table('module')->where('modul_id', $modul_id)->firstOrFail();
+
         return view('admin.stammdaten.module.edit', compact('modul'));
     }
 
@@ -65,21 +67,21 @@ class StammdatenModuleController extends Controller
         DB::table('module')->where('modul_id', $modul_id)->firstOrFail();
 
         $validated = $request->validate([
-            'modul_nummer'               => ['required', 'string', 'max:50',
-                \Illuminate\Validation\Rule::unique('module', 'modul_nummer')->ignore($modul_id, 'modul_id')],
-            'titel'                      => ['required', 'string', 'max:255'],
-            'beschreibung'               => ['nullable', 'string', 'max:2000'],
+            'modul_nummer' => ['required', 'string', 'max:50',
+                Rule::unique('module', 'modul_nummer')->ignore($modul_id, 'modul_id')],
+            'titel' => ['required', 'string', 'max:255'],
+            'beschreibung' => ['nullable', 'string', 'max:2000'],
             'ziel_gewicht_summe_default' => ['nullable', 'numeric', 'min:0', 'max:9999'],
-            'aktiv'                      => ['sometimes', 'boolean'],
+            'aktiv' => ['sometimes', 'boolean'],
         ]);
 
         DB::table('module')->where('modul_id', $modul_id)->update([
-            'modul_nummer'               => strtoupper($validated['modul_nummer']),
-            'titel'                      => $validated['titel'],
-            'beschreibung'               => $validated['beschreibung'] ?? null,
+            'modul_nummer' => strtoupper($validated['modul_nummer']),
+            'titel' => $validated['titel'],
+            'beschreibung' => $validated['beschreibung'] ?? null,
             'ziel_gewicht_summe_default' => $validated['ziel_gewicht_summe_default'] ?? 100.00,
-            'aktiv'                      => (int) ($validated['aktiv'] ?? 1),
-            'aktualisiert_am'            => now(),
+            'aktiv' => (int) ($validated['aktiv'] ?? 1),
+            'aktualisiert_am' => now(),
         ]);
 
         return redirect()->route('admin.stammdaten.module.index')

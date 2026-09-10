@@ -27,7 +27,7 @@ class FeedbackController extends Controller
             ->join('benutzer as b', 'b.benutzer_id', '=', 'feedback.benutzer_id')
             ->select('feedback.*', 'b.vorname', 'b.nachname', 'b.email')
             ->selectRaw(
-                '(SELECT GROUP_CONCAT(r.name SEPARATOR ", ") FROM benutzer_rollen br ' .
+                '(SELECT GROUP_CONCAT(r.name SEPARATOR ", ") FROM benutzer_rollen br '.
                 'JOIN rollen r ON r.rolle_id = br.rolle_id WHERE br.benutzer_id = feedback.benutzer_id) as rollen'
             )
             ->when($status !== '', fn ($qq) => $qq->where('feedback.status', $status))
@@ -53,7 +53,7 @@ class FeedbackController extends Controller
         $feedback = Feedback::query()->findOrFail($feedback_id);
 
         $validated = $request->validate([
-            'status' => ['required', 'in:' . implode(',', array_keys(Feedback::STATUS))],
+            'status' => ['required', 'in:'.implode(',', array_keys(Feedback::STATUS))],
             'admin_notiz' => ['nullable', 'string', 'max:5000'],
         ]);
 
@@ -88,7 +88,7 @@ class FeedbackController extends Controller
             ])
             ->get();
 
-        $filename = 'feedback_' . now()->format('Ymd_His') . '.csv';
+        $filename = 'feedback_'.now()->format('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
@@ -113,7 +113,7 @@ class FeedbackController extends Controller
             fclose($out);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 }

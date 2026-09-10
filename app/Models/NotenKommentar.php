@@ -2,23 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Fillable(['note_id', 'autor_benutzer_id', 'kommentar_text'])]
+#[Table(name: 'noten_kommentare', key: 'kommentar_id')]
 class NotenKommentar extends Model
 {
-    protected $table = 'noten_kommentare';
-    protected $primaryKey = 'kommentar_id';
-
     // Nur erstellt_am, kein updated_at (Kommentare sind unveränderlich)
     public const CREATED_AT = 'erstellt_am';
+
     public const UPDATED_AT = null;
-
-    protected $fillable = ['note_id', 'autor_benutzer_id', 'kommentar_text'];
-
-    protected $casts = [
-        'erstellt_am' => 'datetime',
-    ];
 
     public function note(): BelongsTo
     {
@@ -28,5 +24,12 @@ class NotenKommentar extends Model
     public function autor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'autor_benutzer_id', 'benutzer_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'erstellt_am' => 'datetime',
+        ];
     }
 }

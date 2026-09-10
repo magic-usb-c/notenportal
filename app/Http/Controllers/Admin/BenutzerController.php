@@ -19,13 +19,13 @@ use Illuminate\Validation\Rules\Password;
  */
 class BenutzerController extends Controller
 {
-    private const ROLLEN = ['Admin', 'Berufsbildner'];
+    private const array ROLLEN = ['Admin', 'Berufsbildner'];
 
     public function index(Request $request)
     {
-        $suche   = $request->input('suche', '');
+        $suche = $request->input('suche', '');
         $rolleId = $request->input('rolle_id', '');
-        $status  = $request->input('status', '');
+        $status = $request->input('status', '');
 
         $q = DB::table('benutzer as b')
             ->leftJoin('benutzer_rollen as br', 'br.benutzer_id', '=', 'b.benutzer_id')
@@ -48,8 +48,8 @@ class BenutzerController extends Controller
             ->groupBy('b.benutzer_id', 'b.vorname', 'b.nachname', 'b.email', 'b.benutzername', 'b.aktiv', 'b.erstellt_am', 'l.lernender_id');
 
         if ($suche !== '') {
-            $like = '%' . addcslashes($suche, '%_\\') . '%';
-            $q->where(fn($w) => $w
+            $like = '%'.addcslashes($suche, '%_\\').'%';
+            $q->where(fn ($w) => $w
                 ->where('b.vorname', 'like', $like)
                 ->orWhere('b.nachname', 'like', $like)
                 ->orWhere('b.email', 'like', $like)
@@ -68,7 +68,7 @@ class BenutzerController extends Controller
         }
 
         $benutzer = $q->orderBy('b.nachname')->orderBy('b.vorname')->get();
-        $rollen   = DB::table('rollen')->orderBy('rolle_id')->get();
+        $rollen = DB::table('rollen')->orderBy('rolle_id')->get();
 
         return view('admin.benutzer.index', compact('benutzer', 'rollen', 'suche', 'rolleId', 'status'));
     }
@@ -85,23 +85,23 @@ class BenutzerController extends Controller
         $rollen = DB::table('rollen')->whereIn('name', self::ROLLEN)->pluck('rolle_id', 'name');
 
         $validated = $request->validate([
-            'vorname'      => ['required', 'string', 'max:100'],
-            'nachname'     => ['required', 'string', 'max:100'],
-            'email'        => ['required', 'email', 'max:255', 'unique:benutzer,email'],
+            'vorname' => ['required', 'string', 'max:100'],
+            'nachname' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:255', 'unique:benutzer,email'],
             'benutzername' => ['required', 'string', 'max:50', 'unique:benutzer,benutzername', 'alpha_num'],
-            'passwort'     => ['required', 'string', 'confirmed', Password::defaults()],
-            'rolle_id'     => ['required', 'integer', Rule::in($rollen->values()->all())],
+            'passwort' => ['required', 'string', 'confirmed', Password::defaults()],
+            'rolle_id' => ['required', 'integer', Rule::in($rollen->values()->all())],
         ]);
 
         DB::transaction(function () use ($validated, $rollen) {
             $user = User::create([
-                'vorname'                 => $validated['vorname'],
-                'nachname'                => $validated['nachname'],
-                'email'                   => $validated['email'],
-                'benutzername'            => $validated['benutzername'],
-                'passwort_hash'           => $validated['passwort'],
+                'vorname' => $validated['vorname'],
+                'nachname' => $validated['nachname'],
+                'email' => $validated['email'],
+                'benutzername' => $validated['benutzername'],
+                'passwort_hash' => $validated['passwort'],
                 'passwort_wechsel_noetig' => true,
-                'aktiv'                   => true,
+                'aktiv' => true,
             ]);
 
             $user->rollen()->attach((int) $validated['rolle_id']);
@@ -130,17 +130,17 @@ class BenutzerController extends Controller
         $user = $this->kontoOhneLernende($benutzer_id);
 
         $validated = $request->validate([
-            'vorname'  => ['required', 'string', 'max:100'],
+            'vorname' => ['required', 'string', 'max:100'],
             'nachname' => ['required', 'string', 'max:100'],
-            'email'    => ['required', 'email', 'max:255', Rule::unique('benutzer', 'email')->ignore($benutzer_id, 'benutzer_id')],
+            'email' => ['required', 'email', 'max:255', Rule::unique('benutzer', 'email')->ignore($benutzer_id, 'benutzer_id')],
             'passwort' => ['nullable', 'string', 'confirmed', Password::defaults()],
         ]);
 
         DB::transaction(function () use ($user, $validated) {
             $user->fill([
-                'vorname'  => $validated['vorname'],
+                'vorname' => $validated['vorname'],
                 'nachname' => $validated['nachname'],
-                'email'    => $validated['email'],
+                'email' => $validated['email'],
             ]);
 
             if (! empty($validated['passwort'])) {

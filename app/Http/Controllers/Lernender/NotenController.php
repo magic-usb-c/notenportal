@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
+use App\Models\Note;
 use App\Services\Noten\NoteService;
+use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotenController extends Controller
 {
@@ -21,7 +25,7 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
@@ -33,7 +37,7 @@ class NotenController extends Controller
         // Deep-Link: ?_open=<note_id> wählt automatisch das Semester dieser Note,
         // damit der Accordion-Eintrag sichtbar ist (z.B. von Dashboard "Letzte Noten")
         $openNoteId = (int) $request->input('_open', 0);
-        if ($openNoteId > 0 && !$request->filled('semester_id')) {
+        if ($openNoteId > 0 && ! $request->filled('semester_id')) {
             $openSemId = DB::table('noten')
                 ->where('note_id', $openNoteId)
                 ->where('lernender_id', $lernenderId)
@@ -50,7 +54,8 @@ class NotenController extends Controller
             ? (int) $request->input('semester_id')
             : (int) ($semester->firstWhere(function ($s) {
                 $today = Carbon::today()->toDateString();
-                return (string)$s->start_datum <= $today && (string)$s->end_datum >= $today;
+
+                return (string) $s->start_datum <= $today && (string) $s->end_datum >= $today;
             })?->semester_id ?? ($semester->last()?->semester_id ?? 0));
 
         // prev/next Semester (für Pfeile)
@@ -76,14 +81,14 @@ class NotenController extends Controller
         // Kommentare + gesehen-Status für Badges werden mitgeladen
         $notes = (clone $q)
             ->with([
-                'kommentare' => fn($q) => $q->with('autor')->orderBy('erstellt_am', 'asc'),
+                'kommentare' => fn ($q) => $q->with('autor')->orderBy('erstellt_am', 'asc'),
                 'gesehen',
             ])
             ->get();
 
         // Summary
         [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages(
-            $notes->map(fn ($n) => (object)[
+            $notes->map(fn ($n) => (object) [
                 'note_wert' => $n->note_wert,
                 'gewichtung_prozent' => $n->gewichtung_prozent,
             ])
@@ -144,20 +149,20 @@ class NotenController extends Controller
 
         // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
         return view('lernender.noten.index', [
-            'notes'              => $notes,
-            'kategorien'         => $kategorien,
-            'semester'           => $semester,
+            'notes' => $notes,
+            'kategorien' => $kategorien,
+            'semester' => $semester,
             'selectedSemesterId' => $selectedSemesterId,
-            'prevSemesterId'     => $prevSemesterId,
-            'nextSemesterId'     => $nextSemesterId,
-            'avgUnweighted'      => $avgUnweighted,
-            'avgWeighted'        => $avgWeighted,
-            'missingWeights'     => $missingWeights,
-            'count'              => $count,
-            'semesterStats'      => $semesterStats,
-            'globalAvgWeighted'  => $globalAvgWeighted,
-            'globalCount'        => $globalCount,
-            'kategorieStats'     => $kategorieStats,
+            'prevSemesterId' => $prevSemesterId,
+            'nextSemesterId' => $nextSemesterId,
+            'avgUnweighted' => $avgUnweighted,
+            'avgWeighted' => $avgWeighted,
+            'missingWeights' => $missingWeights,
+            'count' => $count,
+            'semesterStats' => $semesterStats,
+            'globalAvgWeighted' => $globalAvgWeighted,
+            'globalCount' => $globalCount,
+            'kategorieStats' => $kategorieStats,
         ]);
     }
 
@@ -166,7 +171,7 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
@@ -204,7 +209,7 @@ class NotenController extends Controller
     public function rechner(Request $request)
     {
         $lernender = $request->user()?->lernender;
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
@@ -223,7 +228,7 @@ class NotenController extends Controller
             ->get()
             ->map(fn ($n) => [
                 'wert' => (float) $n->note_wert,
-                'gew'  => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
+                'gew' => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
             ])
             ->values()
             ->all();
@@ -238,15 +243,15 @@ class NotenController extends Controller
                 ->get()
                 ->map(fn ($n) => [
                     'wert' => (float) $n->note_wert,
-                    'gew'  => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
+                    'gew' => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
                 ])
                 ->values()
                 ->all();
         }
 
         return view('lernender.noten.rechner', [
-            'allNotes'        => $allNotes,
-            'currentNotes'    => $currentNotes,
+            'allNotes' => $allNotes,
+            'currentNotes' => $currentNotes,
             'currentSemester' => $currentSemester,
         ]);
     }
@@ -256,12 +261,12 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
         $validated = $request->validate([
-            'kategorie_id' => ['required', 'integer', \Illuminate\Validation\Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
+            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
             'typ' => ['required', 'in:fach,modul'],
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
@@ -273,7 +278,7 @@ class NotenController extends Controller
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
-        \App\Models\Note::create([
+        Note::create([
             'lernender_id' => (int) $lernender->lernender_id,
             'kategorie_id' => $data['kategorie_id'],
             'semester_id' => $data['semester_id'],
@@ -289,6 +294,7 @@ class NotenController extends Controller
         ]);
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
+
         return redirect()->route('lernender.noten.index', $params)->with('status', 'Note gespeichert.');
     }
 
@@ -297,11 +303,11 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
-        $note = \App\Models\Note::query()
+        $note = Note::query()
             ->with(['fach', 'modulBelegung.modul', 'gruppe'])
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
@@ -318,11 +324,11 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
-        $note = \App\Models\Note::query()
+        $note = Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();
@@ -354,6 +360,7 @@ class NotenController extends Controller
         ]);
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
+
         return redirect()->route('lernender.noten.index', $params)->with('status', 'Note aktualisiert.');
     }
 
@@ -363,28 +370,28 @@ class NotenController extends Controller
      */
     public function markGesehen(Request $request, int $note_id): JsonResponse
     {
-        $user      = $request->user();
+        $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             return response()->json(['ok' => false], 403);
         }
 
         // Sicherstellen, dass die Note dem angemeldeten Lernenden gehört
-        $exists = \App\Models\Note::query()
+        $exists = Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->exists();
 
-        if (!$exists) {
+        if (! $exists) {
             return response()->json(['ok' => false], 404);
         }
 
         DB::table('noten_gesehen')->upsert(
             [[
-                'note_id'            => $note_id,
+                'note_id' => $note_id,
                 'viewer_benutzer_id' => (int) $user->benutzer_id,
-                'gesehen_am'         => now(),
+                'gesehen_am' => now(),
             ]],
             ['note_id', 'viewer_benutzer_id'],
             ['gesehen_am']
@@ -398,19 +405,19 @@ class NotenController extends Controller
      */
     public function updateTitel(Request $request, int $note_id): JsonResponse
     {
-        $user      = $request->user();
+        $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             return response()->json(['ok' => false], 403);
         }
 
-        $note = \App\Models\Note::query()
+        $note = Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->first();
 
-        if (!$note) {
+        if (! $note) {
             return response()->json(['ok' => false], 404);
         }
 
@@ -433,7 +440,7 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
@@ -467,30 +474,30 @@ class NotenController extends Controller
 
         $semesterNoten = $noten
             ->groupBy('semester_id')
-            ->map(fn($items) => [
+            ->map(fn ($items) => [
                 'bezeichnung' => $items->first()->semester_bezeichnung,
-                'noten'       => $items,
+                'noten' => $items,
             ])
             ->values()
             ->toArray();
 
         $lernenderObj = (object) [
-            'vorname'  => $user->vorname,
+            'vorname' => $user->vorname,
             'nachname' => $user->nachname,
         ];
 
         return response()->view('lernender.noten.drucken', [
-            'lernender'     => $lernenderObj,
-            'profil'        => $profil,
+            'lernender' => $lernenderObj,
+            'profil' => $profil,
             'semesterNoten' => $semesterNoten,
         ]);
     }
 
-    public function export(Request $request): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function export(Request $request): StreamedResponse
     {
         $user = $request->user();
         $lernender = $user?->lernender;
-        abort_if(!$lernender, 403);
+        abort_if(! $lernender, 403);
 
         $lernenderId = (int) $lernender->lernender_id;
 
@@ -516,7 +523,7 @@ class NotenController extends Controller
             ])
             ->get();
 
-        $filename = 'meine_noten_' . now()->format('Ymd') . '.csv';
+        $filename = 'meine_noten_'.now()->format('Ymd').'.csv';
 
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
@@ -524,13 +531,13 @@ class NotenController extends Controller
             fputcsv($out, ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'], ';');
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name
-                    ?? ($r->modul_nummer ? $r->modul_nummer . ' – ' . $r->modul_titel : '');
+                    ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
                 fputcsv($out, [
                     $r->pruefungsdatum ? \Carbon\Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
                     $r->semester,
                     $r->kategorie ?? '',
-                    \App\Support\Csv::safe($fachModul),
-                    \App\Support\Csv::safe($r->titel ?? ''),
+                    Csv::safe($fachModul),
+                    Csv::safe($r->titel ?? ''),
                     number_format((float) $r->note_wert, 2, '.', ''),
                     $r->gewichtung_prozent ?? 100,
                 ], ';');
@@ -538,7 +545,7 @@ class NotenController extends Controller
             fclose($out);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 
@@ -547,11 +554,11 @@ class NotenController extends Controller
         $user = $request->user();
         $lernender = $user?->lernender;
 
-        if (!$lernender) {
+        if (! $lernender) {
             abort(403);
         }
 
-        $note = \App\Models\Note::query()
+        $note = Note::query()
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();

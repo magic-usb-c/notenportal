@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Lernender;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -54,7 +55,7 @@ class ProfileController extends Controller
     }
 
     /** Darstellung aus dem Umschalter in der Navigation (ohne Neuladen). */
-    public function darstellung(Request $request): \Illuminate\Http\JsonResponse
+    public function darstellung(Request $request): JsonResponse
     {
         $validated = $request->validate(['darstellung' => ['required', 'in:system,hell,dunkel']]);
         $request->user()->update($validated);

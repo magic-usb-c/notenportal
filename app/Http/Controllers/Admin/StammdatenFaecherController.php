@@ -35,17 +35,17 @@ class StammdatenFaecherController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'      => ['required', 'string', 'max:200'],
-            'kurzname'  => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:200'],
+            'kurzname' => ['required', 'string', 'max:50'],
             'track_typ' => ['required', 'in:BMS,ABU'],
         ]);
 
         DB::table('faecher')->insert([
-            'name'            => $validated['name'],
-            'kurzname'        => strtoupper($validated['kurzname']),
-            'track_typ'       => $validated['track_typ'],
-            'aktiv'           => 1,
-            'erstellt_am'     => now(),
+            'name' => $validated['name'],
+            'kurzname' => strtoupper($validated['kurzname']),
+            'track_typ' => $validated['track_typ'],
+            'aktiv' => 1,
+            'erstellt_am' => now(),
             'aktualisiert_am' => now(),
         ]);
 
@@ -56,6 +56,7 @@ class StammdatenFaecherController extends Controller
     public function edit(int $fach_id)
     {
         $fach = DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
+
         return view('admin.stammdaten.faecher.edit', compact('fach'));
     }
 
@@ -64,17 +65,17 @@ class StammdatenFaecherController extends Controller
         DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
 
         $validated = $request->validate([
-            'name'      => ['required', 'string', 'max:200'],
-            'kurzname'  => ['required', 'string', 'max:50'],
+            'name' => ['required', 'string', 'max:200'],
+            'kurzname' => ['required', 'string', 'max:50'],
             'track_typ' => ['required', 'in:BMS,ABU'],
-            'aktiv'     => ['sometimes', 'boolean'],
+            'aktiv' => ['sometimes', 'boolean'],
         ]);
 
         DB::table('faecher')->where('fach_id', $fach_id)->update([
-            'name'            => $validated['name'],
-            'kurzname'        => strtoupper($validated['kurzname']),
-            'track_typ'       => $validated['track_typ'],
-            'aktiv'           => (int) ($validated['aktiv'] ?? 1),
+            'name' => $validated['name'],
+            'kurzname' => strtoupper($validated['kurzname']),
+            'track_typ' => $validated['track_typ'],
+            'aktiv' => (int) ($validated['aktiv'] ?? 1),
             'aktualisiert_am' => now(),
         ]);
 

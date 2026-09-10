@@ -29,10 +29,10 @@ class KommentarController extends Controller
         ]);
 
         DB::table('noten_kommentare')->insert([
-            'note_id'           => $note_id,
+            'note_id' => $note_id,
             'autor_benutzer_id' => (int) $user->benutzer_id,
-            'kommentar_text'    => $validated['kommentar_text'],
-            'erstellt_am'       => now(),
+            'kommentar_text' => $validated['kommentar_text'],
+            'erstellt_am' => now(),
         ]);
 
         return back()
@@ -43,14 +43,14 @@ class KommentarController extends Controller
     public function destroy(Request $request, int $kommentar_id)
     {
         $kommentar = DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->first();
-        abort_if(!$kommentar, 404);
+        abort_if(! $kommentar, 404);
 
         $user = $request->user();
 
         // Eigener Kommentar oder Admin darf löschen
-        $isOwn  = (int) $kommentar->autor_benutzer_id === (int) $user->benutzer_id;
+        $isOwn = (int) $kommentar->autor_benutzer_id === (int) $user->benutzer_id;
         $isAdmin = $user->hasRole('Admin');
-        abort_if(!$isOwn && !$isAdmin, 403);
+        abort_if(! $isOwn && ! $isAdmin, 403);
 
         DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->delete();
 

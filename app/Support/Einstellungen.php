@@ -13,7 +13,7 @@ class Einstellungen
 {
     public const BETRIEB_NAME = 'betrieb_name';
 
-    private const CACHE_KEY = 'einstellungen';
+    private const string CACHE_KEY = 'einstellungen';
 
     public static function get(string $schluessel, ?string $standard = null): ?string
     {

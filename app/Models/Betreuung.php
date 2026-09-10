@@ -2,23 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Attributes\Table;
+use Illuminate\Database\Eloquent\Attributes\WithoutTimestamps;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[Fillable(['berufsbildner_id', 'lernender_id', 'gueltig_von', 'gueltig_bis'])]
+#[Table(name: 'betreuungen', key: 'betreuung_id')]
+#[WithoutTimestamps]
 class Betreuung extends Model
 {
     use HasFactory;
-
-    protected $table = 'betreuungen';
-
-    protected $primaryKey = 'betreuung_id';
-
-    public $timestamps = false;
-
-    protected $fillable = ['berufsbildner_id', 'lernender_id', 'gueltig_von', 'gueltig_bis'];
 
     protected function casts(): array
     {

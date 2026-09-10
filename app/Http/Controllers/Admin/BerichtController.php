@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\Csv;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -13,8 +15,8 @@ class BerichtController extends Controller
 {
     public function noten(Request $request)
     {
-        $semesterId      = $request->filled('semester_id')      ? (int) $request->input('semester_id')      : null;
-        $lehrberufId     = $request->filled('lehrberuf_id')     ? (int) $request->input('lehrberuf_id')     : null;
+        $semesterId = $request->filled('semester_id') ? (int) $request->input('semester_id') : null;
+        $lehrberufId = $request->filled('lehrberuf_id') ? (int) $request->input('lehrberuf_id') : null;
         $berufsbildnerId = $request->filled('berufsbildner_id') ? (int) $request->input('berufsbildner_id') : null;
 
         $today = now()->toDateString();
@@ -39,12 +41,12 @@ class BerichtController extends Controller
                     ->from('betreuungen')
                     ->where('berufsbildner_id', $berufsbildnerId)
                     ->where('gueltig_von', '<=', $today)
-                    ->where(fn($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
+                    ->where(fn ($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
             });
         }
 
         $lernende = $lernendeQ->get();
-        $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int) $v)->all();
+        $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
 
         $statsQ = DB::table('noten as n')
             ->whereIn('n.lernender_id', $ids)
@@ -65,17 +67,18 @@ class BerichtController extends Controller
         $stats = $statsQ->get()->keyBy('lernender_id');
 
         // Sortierung der Berichtstabelle (Name | total | avg | quote | last)
-        $sortBy  = $request->input('sort', 'name');
+        $sortBy = $request->input('sort', 'name');
         $sortDir = $request->input('dir', 'asc') === 'desc' ? 'desc' : 'asc';
 
         $sortValue = function ($l) use ($stats, $sortBy) {
             $s = $stats->get((int) $l->lernender_id);
+
             return match ($sortBy) {
                 'total' => (int) ($s?->total ?? 0),
-                'avg'   => $s?->avg_weighted !== null ? (float) $s->avg_weighted : -1,
+                'avg' => $s?->avg_weighted !== null ? (float) $s->avg_weighted : -1,
                 'quote' => ($s && $s->total > 0) ? $s->passed / $s->total : -1,
-                'last'  => $s?->last_entry ?? '',
-                default => mb_strtolower($l->nachname . ' ' . $l->vorname),
+                'last' => $s?->last_entry ?? '',
+                default => mb_strtolower($l->nachname.' '.$l->vorname),
             };
         };
 
@@ -83,9 +86,9 @@ class BerichtController extends Controller
             ? $lernende->sortByDesc($sortValue)
             : $lernende->sortBy($sortValue))->values();
 
-        $semester        = DB::table('semester')->orderBy('sortierung')->get();
-        $lehrberufe      = DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get();
-        $berufsbildner   = DB::table('berufsbildner as bb')
+        $semester = DB::table('semester')->orderBy('sortierung')->get();
+        $lehrberufe = DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get();
+        $berufsbildner = DB::table('berufsbildner as bb')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
             ->whereNull('bb.geloescht_am')
             ->whereNull('b.geloescht_am')
@@ -119,10 +122,10 @@ class BerichtController extends Controller
 
         $kategorieStats = $kategorieStatsQ->get();
 
-        $alleNoten    = $stats->values();
-        $gesamtTotal  = $alleNoten->sum('total');
+        $alleNoten = $stats->values();
+        $gesamtTotal = $alleNoten->sum('total');
         $gesamtPassed = $alleNoten->sum('passed');
-        $gesamtAvg    = $alleNoten->filter(fn($s) => $s->avg_weighted !== null)->avg('avg_weighted');
+        $gesamtAvg = $alleNoten->filter(fn ($s) => $s->avg_weighted !== null)->avg('avg_weighted');
 
         // Notenverteilung in 0.5er-Schritten (Histogramm, gleiche Filter)
         $verteilungQ = DB::table('noten as n')
@@ -138,7 +141,7 @@ class BerichtController extends Controller
             $verteilungQ->where('n.semester_id', $semesterId);
         }
 
-        $verteilungRaw = $verteilungQ->get()->keyBy(fn($r) => number_format((float) $r->bucket, 1));
+        $verteilungRaw = $verteilungQ->get()->keyBy(fn ($r) => number_format((float) $r->bucket, 1));
 
         // Alle Buckets 1.0–6.0 auffüllen, damit das Histogramm lückenlos ist
         $notenVerteilung = collect();
@@ -146,33 +149,33 @@ class BerichtController extends Controller
             $key = number_format($b, 1);
             $notenVerteilung->push((object) [
                 'bucket' => $key,
-                'count'  => (int) ($verteilungRaw->get($key)?->count ?? 0),
+                'count' => (int) ($verteilungRaw->get($key)?->count ?? 0),
             ]);
         }
 
         return view('admin.berichte.noten', [
-            'lernende'        => $lernende,
-            'stats'           => $stats,
-            'semester'        => $semester,
-            'lehrberufe'      => $lehrberufe,
-            'berufsbildner'   => $berufsbildner,
-            'semesterId'      => $semesterId,
-            'lehrberufId'     => $lehrberufId,
+            'lernende' => $lernende,
+            'stats' => $stats,
+            'semester' => $semester,
+            'lehrberufe' => $lehrberufe,
+            'berufsbildner' => $berufsbildner,
+            'semesterId' => $semesterId,
+            'lehrberufId' => $lehrberufId,
             'berufsbildnerId' => $berufsbildnerId,
-            'kategorieStats'  => $kategorieStats,
-            'gesamtTotal'     => $gesamtTotal,
-            'gesamtPassed'    => $gesamtPassed,
-            'gesamtAvg'       => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,
+            'kategorieStats' => $kategorieStats,
+            'gesamtTotal' => $gesamtTotal,
+            'gesamtPassed' => $gesamtPassed,
+            'gesamtAvg' => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,
             'notenVerteilung' => $notenVerteilung,
-            'sortBy'          => $sortBy,
-            'sortDir'         => $sortDir,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir,
         ]);
     }
 
     public function notenExport(Request $request): StreamedResponse
     {
-        $semesterId      = $request->filled('semester_id')      ? (int) $request->input('semester_id')      : null;
-        $lehrberufId     = $request->filled('lehrberuf_id')     ? (int) $request->input('lehrberuf_id')     : null;
+        $semesterId = $request->filled('semester_id') ? (int) $request->input('semester_id') : null;
+        $lehrberufId = $request->filled('lehrberuf_id') ? (int) $request->input('lehrberuf_id') : null;
         $berufsbildnerId = $request->filled('berufsbildner_id') ? (int) $request->input('berufsbildner_id') : null;
 
         $today = now()->toDateString();
@@ -196,12 +199,12 @@ class BerichtController extends Controller
                     ->from('betreuungen')
                     ->where('berufsbildner_id', $berufsbildnerId)
                     ->where('gueltig_von', '<=', $today)
-                    ->where(fn($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
+                    ->where(fn ($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
             });
         }
 
         $lernende = $lernendeQ->get();
-        $ids = $lernende->pluck('lernender_id')->map(fn($v) => (int) $v)->all();
+        $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
 
         $statsQ = DB::table('noten as n')
             ->whereIn('n.lernender_id', $ids)
@@ -219,8 +222,8 @@ class BerichtController extends Controller
             $statsQ->where('n.semester_id', $semesterId);
         }
 
-        $stats    = $statsQ->get()->keyBy('lernender_id');
-        $filename = 'notenuebersicht_' . now()->format('Ymd') . '.csv';
+        $stats = $statsQ->get()->keyBy('lernender_id');
+        $filename = 'notenuebersicht_'.now()->format('Ymd').'.csv';
 
         return response()->streamDownload(function () use ($lernende, $stats) {
             $out = fopen('php://output', 'w');
@@ -228,23 +231,23 @@ class BerichtController extends Controller
             fputcsv($out, ['Name', 'Vorname', 'Lehrberuf', 'Noten', 'Ø gewichtet', 'Bestanden', 'Quote %', 'Letzte Note'], ';');
 
             foreach ($lernende as $l) {
-                $s      = $stats->get((int) $l->lernender_id);
-                $total  = $s?->total  ?? 0;
+                $s = $stats->get((int) $l->lernender_id);
+                $total = $s?->total ?? 0;
                 $passed = $s?->passed ?? 0;
-                $avg    = $s?->avg_weighted !== null ? number_format((float) $s->avg_weighted, 2, '.', '') : '';
-                $quote  = $total > 0 ? round($passed / $total * 100) : '';
-                $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry)->format('d.m.Y') : '';
+                $avg = $s?->avg_weighted !== null ? number_format((float) $s->avg_weighted, 2, '.', '') : '';
+                $quote = $total > 0 ? round($passed / $total * 100) : '';
+                $last = $s?->last_entry ? Carbon::parse($s->last_entry)->format('d.m.Y') : '';
 
                 fputcsv($out, [
-                    \App\Support\Csv::safe($l->nachname), \App\Support\Csv::safe($l->vorname), $l->lehrberuf ?? '',
+                    Csv::safe($l->nachname), Csv::safe($l->vorname), $l->lehrberuf ?? '',
                     $total, $avg, $passed, $quote, $last,
                 ], ';');
             }
 
             fclose($out);
         }, $filename, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
     }
 }

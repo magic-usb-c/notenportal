@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -9,43 +12,31 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+#[Fillable([
+    'benutzername',
+    'email',
+    'vorname',
+    'nachname',
+    'passwort_hash',
+    'aktiv',
+    'passwort_wechsel_noetig',
+    'darstellung',
+])]
+#[Hidden([
+    'passwort_hash',
+])]
+#[Table(name: 'benutzer', key: 'benutzer_id')]
 class User extends Authenticatable
 {
     use HasFactory;
-
     use Notifiable;
     use SoftDeletes;
 
-    protected $table = 'benutzer';
-    protected $primaryKey = 'benutzer_id';
-
     public const CREATED_AT = 'erstellt_am';
+
     public const UPDATED_AT = 'aktualisiert_am';
+
     public const DELETED_AT = 'geloescht_am';
-
-    protected $fillable = [
-        'benutzername',
-        'email',
-        'vorname',
-        'nachname',
-        'passwort_hash',
-        'aktiv',
-        'passwort_wechsel_noetig',
-        'darstellung',
-    ];
-
-    protected $hidden = [
-        'passwort_hash',
-    ];
-
-    protected $casts = [
-        'aktiv' => 'boolean',
-        'passwort_wechsel_noetig' => 'boolean',
-        'erstellt_am' => 'datetime',
-        'aktualisiert_am' => 'datetime',
-        'geloescht_am' => 'datetime',
-        'passwort_hash' => 'hashed',
-    ];
 
     public function getAuthPassword(): string
     {
@@ -84,5 +75,17 @@ class User extends Authenticatable
     public function berufsbildner(): HasOne
     {
         return $this->hasOne(Berufsbildner::class, 'benutzer_id', 'benutzer_id');
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'aktiv' => 'boolean',
+            'passwort_wechsel_noetig' => 'boolean',
+            'erstellt_am' => 'datetime',
+            'aktualisiert_am' => 'datetime',
+            'geloescht_am' => 'datetime',
+            'passwort_hash' => 'hashed',
+        ];
     }
 }
