@@ -47,3 +47,4 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 | 10.09.2026 | Datenbank `notenportal_b_test` angelegt (utf8mb4_unicode_ci), `GRANT ALL ON notenportal_b_test.* TO np_web@localhost`. |
 | 10.09.2026 | `notenportal.migrations`: Einträge `0001_01_01_00000{0,1,2}` (users/cache/jobs) gelöscht. Die Tabellen existierten nicht mehr, die Migrationsdateien sind entfernt. |
 | 10.09.2026 | Dump `notenportal-20260910-0945-vor-migration.sql`, danach Migrationen 2026_09_10_000001–000003 (lernende: bemerkung, klasse_schule, klasse_bms; benutzer: passwort_wechsel_noetig, darstellung; Tabelle einstellungen). `einstellungen.betrieb_name = 'Hamilton AG'` gesetzt. |
+| 10.09.2026 | Dump `notenportal-20260910-0947-pre-laravel13.sql` + Git-Tag `pre-laravel13` vor Framework-Upgrade. |
