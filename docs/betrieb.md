@@ -49,3 +49,4 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 | 10.09.2026 | Dump `notenportal-20260910-0945-vor-migration.sql`, danach Migrationen 2026_09_10_000001–000003 (lernende: bemerkung, klasse_schule, klasse_bms; benutzer: passwort_wechsel_noetig, darstellung; Tabelle einstellungen). `einstellungen.betrieb_name = 'Hamilton AG'` gesetzt. |
 | 10.09.2026 | Dump `notenportal-20260910-0947-pre-laravel13.sql` + Git-Tag `pre-laravel13` vor Framework-Upgrade. |
 | 10.09.2026 | Datenbank `notenportal_c_test` angelegt, `GRANT ALL` für np_web (dritte Test-DB für parallele Agent-Läufe). |
+| 10.09.2026 | Dump `notenportal-20260910-0953-vor-notenwert.sql`, Migration 2026_09_10_000005: `noten.note_wert` decimal(3,1) → decimal(4,2). |

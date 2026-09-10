@@ -147,7 +147,7 @@ class NotenController extends Controller
             'modul_id'          => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel'             => ['nullable', 'string', 'max:150'],
             'pruefungsdatum'    => ['required', 'date'],
-            'note_wert'         => ['required', 'numeric', 'min:1', 'max:6'],
+            'note_wert'         => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
@@ -209,7 +209,7 @@ class NotenController extends Controller
             'modul_id'          => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel'             => ['nullable', 'string', 'max:150'],
             'pruefungsdatum'    => ['required', 'date'],
-            'note_wert'         => ['required', 'numeric', 'min:1', 'max:6'],
+            'note_wert'         => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 

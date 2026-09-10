@@ -115,7 +115,7 @@
 
                         <div>
                             <label for="note_wert" class="text-sm font-medium text-muted">Note</label>
-                            <input type="number" name="note_wert" id="note_wert" step="0.1" min="1" max="6" required value="{{ old('note_wert') }}"
+                            <input type="number" name="note_wert" id="note_wert" step="0.05" min="1" max="6" required value="{{ old('note_wert') }}"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
 

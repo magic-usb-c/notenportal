@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Casts\Notenwert;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -64,7 +65,7 @@ class Note extends Model
      */
     protected $casts = [
         'pruefungsdatum' => 'date',
-        'note_wert' => 'decimal:1',
+        'note_wert' => Notenwert::class,
         'gewichtung_prozent' => 'decimal:2',
         'erstellt_am' => 'datetime',
         'aktualisiert_am' => 'datetime',
