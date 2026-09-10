@@ -38,6 +38,21 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - php-fpm + mpm_event statt mod_php + prefork
 - Security-Header (CSP, X-Frame-Options, Referrer-Policy)
 
+## Zugang ICT-LAB (Pilot)
+
+- URL für die Lernenden: `http://172.26.14.101` (vhost `notenportal.conf`, ServerName = Lab-IP, Port 80, ufw offen).
+- Nur aus dem geschlossenen Lab-Netz erreichbar; kein DNS-Name, kein HTTPS in der Pilotphase.
+
+## Go-Live-Checkliste Testbetrieb (30.09.2026)
+
+1. Dump: `sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-pilot.sql`, Grösse prüfen.
+2. `git pull` auf `main`, `composer install --no-dev --optimize-autoloader`, `npm ci && npm run build`, `php artisan migrate --force`.
+3. `.env`: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=http://172.26.14.101`.
+4. Vorschau `php artisan notenportal:pilot-vorbereiten`, dann `php artisan notenportal:pilot-vorbereiten --ausfuehren` (Konten bleiben, Testnoten/Kommentare/Belegungen/Feedback weg, alle Konten müssen ihr Passwort neu setzen).
+5. Konten der Lernenden von Peter Scherrer prüfen/anlegen (Verwaltung → Lernende), Betreuungen und Tracks kontrollieren.
+6. `php artisan optimize` (Config-, Routen-, View-Cache). Tests laufen dank eigener Cache-Pfade trotzdem nur gegen `*_test`.
+7. Dateirechte-Befehle (siehe oben) ausführen, `/login` über die Lab-IP aufrufen, mit einem Lernenden-Konto Note erfassen und Feedback senden.
+
 ## Änderungsprotokoll ausserhalb des Repos
 
 | Datum | Änderung |
