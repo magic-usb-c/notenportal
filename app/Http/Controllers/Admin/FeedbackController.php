@@ -106,7 +106,7 @@ class FeedbackController extends Controller
                     Csv::safe($r->text),
                     Csv::safe($r->route_name ?? ''),
                     Csv::safe($r->url ?? ''),
-                    $r->viewport ?? '',
+                    Csv::safe($r->viewport ?? ''),
                 ], ';');
             }
 

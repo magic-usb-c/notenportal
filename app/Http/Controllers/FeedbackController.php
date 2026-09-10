@@ -32,7 +32,7 @@ class FeedbackController extends Controller
             'text' => ['required', 'string', 'min:3', 'max:5000'],
             'route_name' => ['nullable', 'string', 'max:150'],
             'url' => ['nullable', 'string', 'max:500'],
-            'viewport' => ['nullable', 'string', 'max:20'],
+            'viewport' => ['nullable', 'regex:/^\d{2,5}x\d{2,5}$/'],
         ]);
 
         Feedback::create([
