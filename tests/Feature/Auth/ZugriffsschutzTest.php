@@ -32,6 +32,8 @@ class ZugriffsschutzTest extends TestCase
         'logout',
         'noten.kommentare.store',
         'noten.kommentare.destroy',
+        'feedback.store',
+        'feedback.index',
     ];
 
     /** Öffentlich erreichbar. */

@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Feedback;
 use App\Support\Einstellungen;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -15,6 +17,15 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['layouts.app', 'layouts.guest', 'auth.login'], function ($view) {
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));
+        });
+
+        View::composer('layouts.navigation', function ($view) {
+            $user = Auth::user();
+            $anzahlOffen = ($user && $user->hasRole('Admin'))
+                ? Feedback::where('status', Feedback::STATUS_OFFEN)->count()
+                : 0;
+
+            $view->with('feedbackOffenCount', $anzahlOffen);
         });
     }
 }

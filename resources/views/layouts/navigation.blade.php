@@ -123,6 +123,16 @@
                             <x-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
                                 Berichte
                             </x-nav-link>
+
+                            {{-- Feedback (Direktlink) --}}
+                            <x-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                                Feedback
+                                @if(($feedbackOffenCount ?? 0) > 0)
+                                    <span class="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
+                                        {{ $feedbackOffenCount }}
+                                    </span>
+                                @endif
+                            </x-nav-link>
                         @endif
                     @endauth
                 </div>
@@ -184,6 +194,10 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
                             Profil
+                        </x-dropdown-link>
+
+                        <x-dropdown-link :href="route('feedback.index')">
+                            Meine Meldungen
                         </x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -283,6 +297,14 @@
                         <x-responsive-nav-link :href="route('admin.berichte.noten')" :active="request()->routeIs('admin.berichte.*')">
                             Berichte
                         </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
+                            Feedback
+                            @if(($feedbackOffenCount ?? 0) > 0)
+                                <span class="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
+                                    {{ $feedbackOffenCount }}
+                                </span>
+                            @endif
+                        </x-responsive-nav-link>
                     </div>
                 @endif
             @endauth
@@ -318,6 +340,10 @@
 
                 <x-responsive-nav-link :href="route('profile.edit')">
                     Profil
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link :href="route('feedback.index')">
+                    Meine Meldungen
                 </x-responsive-nav-link>
 
                 <form method="POST" action="{{ route('logout') }}">

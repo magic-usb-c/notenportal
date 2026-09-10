@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
 use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -270,7 +272,22 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.kategorien.edit');
         Route::put('/stammdaten/kategorien/{kategorie_id}', [StammdatenKategorieController::class, 'update'])
             ->name('stammdaten.kategorien.update');
+
+        // Feedback: Meldungen aller Benutzer sichten und bearbeiten
+        Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
+        Route::get('/feedback/export', [AdminFeedbackController::class, 'export'])->name('feedback.export');
+        Route::patch('/feedback/{feedback_id}', [AdminFeedbackController::class, 'update'])
+            ->whereNumber('feedback_id')->name('feedback.update');
     });
+
+/**
+ * Feedback: für alle eingeloggten Rollen, Berechtigung prüft der Controller selbst
+ */
+Route::middleware('auth')->group(function () {
+    Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [FeedbackController::class, 'store'])
+        ->middleware('throttle:10,1')->name('feedback.store');
+});
 
 /**
  * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)

@@ -90,6 +90,23 @@
             </div>
         @endif
 
+        {{-- JS-ausgelöster Toast (z.B. nach AJAX-Aktionen ohne Reload): window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...' } })) --}}
+        <div x-data="{ show: false, message: '' }"
+             x-on:np-toast.window="message = $event.detail.message; show = true; setTimeout(() => show = false, 4000)"
+             x-show="show" x-cloak
+             x-transition:leave="transition ease-in duration-300"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 translate-y-2"
+             class="fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-3 bg-card border border-green-500/30 text-green-700 dark:text-green-300 rounded-xl shadow-lg text-sm max-w-md">
+            <svg class="w-5 h-5 shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+            </svg>
+            <span x-text="message"></span>
+            <button @click="show = false" class="ml-2 text-muted hover:text-text" aria-label="Schliessen">×</button>
+        </div>
+
+        <x-feedback-widget />
+
         <script>
             // Erfolgsmeldungen nach 3 Sekunden ausblenden
             document.addEventListener('DOMContentLoaded', function () {
