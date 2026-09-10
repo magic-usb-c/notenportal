@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Verwaltung;
 use App\Models\Kategorie;
 use App\Models\Lernender;
 use App\Models\Note;
+use App\Services\Auswertung\LernstandRechner;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,7 +22,8 @@ use Illuminate\View\View;
 class LernendeNotenController extends VerwaltungController
 {
     public function __construct(
-        private readonly NoteService $noteService
+        private readonly NoteService $noteService,
+        private readonly LernstandRechner $lernstaende,
     ) {}
 
     public function index(Request $request, int $lernender_id): View
@@ -47,12 +49,6 @@ class LernendeNotenController extends VerwaltungController
             ->paginate(25)
             ->withQueryString();
 
-        $statsRow = NotenGesehenController::gefilterteNoten($request, $lernender_id)
-            ->selectRaw('COUNT(*) as total,
-                ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0), 2) as avg_weighted,
-                SUM(CASE WHEN note_wert >= 4.0 THEN 1 ELSE 0 END) as passed')
-            ->first();
-
         // Ungelesene Noten über alle Seiten im aktiven Filter – dieselbe Menge, die «Alle gesehen» markiert
         $neuCount = NotenGesehenController::gefilterteNoten($request, $lernender_id)
             ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
@@ -64,15 +60,7 @@ class LernendeNotenController extends VerwaltungController
                     ->whereColumn('k.erstellt_am', '>', 'g.gesehen_am')))
             ->count();
 
-        $heute = now()->toDateString();
-        $currentSemAvg = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->where('n.lernender_id', $lernender_id)
-            ->whereNull('n.geloescht_am')
-            ->where('s.start_datum', '<=', $heute)
-            ->where('s.end_datum', '>=', $heute)
-            ->selectRaw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg')
-            ->value('avg');
+        $stand = $this->lernstaende->fuer([$lernender_id])[$lernender_id];
 
         $switcher = Lernender::sichtbarFuer($user)
             ->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))
@@ -86,11 +74,9 @@ class LernendeNotenController extends VerwaltungController
         return view('verwaltung.noten.index', [
             'lernender' => $lernender->load('lehrberuf'),
             'notes' => $notes,
-            'statsRow' => $statsRow,
             'neuCount' => $neuCount,
-            'currentSemAvg' => $currentSemAvg !== null ? (float) $currentSemAvg : null,
-            'notenVerlauf' => $this->noteService->notenVerlauf($lernender_id),
-            'fachStats' => $this->noteService->fachModulStats($lernender_id, $kategorieId, $semesterId),
+            'stand' => $stand,
+            'semesterId' => $semesterId,
             'switcher' => $switcher,
             'kategorien' => Kategorie::query()->orderBy('sortierung')->get(),
             'semester' => $this->noteService->semestersForLernender($lernender_id),

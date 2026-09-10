@@ -4,7 +4,7 @@
         <div class="w-full flex items-center justify-between gap-4 flex-wrap">
             <h2 class="font-semibold text-xl text-text">
                 Noten:
-                <span class="text-muted">{{ $lernender->benutzer->nachname }} {{ $lernender->benutzer->vorname }}</span>
+                <span class="text-muted">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</span>
             </h2>
             <div class="flex items-center gap-2 flex-wrap">
                 @if($neuCount > 0)
@@ -40,51 +40,35 @@
         $darfKorrigieren = auth()->user()->can('noteKorrigieren', $lernender);
         $darfLoeschen = auth()->user()->can('noteLoeschen', $lernender);
         $viewerId = (int) auth()->user()->benutzer_id;
-        $notenfarbe = fn (?float $v) => $v === null ? 'text-muted'
-            : ($v >= 5.0 ? 'text-green-700 dark:text-green-400'
-            : ($v >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
-            : ($v >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
-            : 'text-red-600 dark:text-red-400')));
         $label = 'text-xs uppercase tracking-widest text-muted font-medium';
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring';
         $gefiltert = request()->filled('kategorie_id') || request()->filled('semester_id');
-        $avg = $statsRow?->avg_weighted !== null ? (float) $statsRow->avg_weighted : null;
     @endphp
 
     <div class="py-6">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
 
-            @if($currentSemAvg !== null && $currentSemAvg < 4.0)
-                <div class="glass rounded-2xl p-4 border border-red-500/30 text-sm text-red-600 dark:text-red-400 font-medium">
-                    Aktueller Semester-Ø {{ number_format($currentSemAvg, 2) }} – unter 4.0
-                </div>
-            @endif
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="glass rounded-2xl p-4">
-                    <div class="{{ $label }} mb-2">Ausbildung</div>
-                    <div class="text-sm text-text font-medium">{{ $lernender->lehrberuf?->name ?? '–' }}</div>
-                    <div class="mt-1 text-xs text-muted">
-                        {{ $lernender->lehrbeginn?->format('d.m.Y') ?? '–' }} – {{ $lernender->lehrende?->format('d.m.Y') ?? 'offen' }}
-                    </div>
-                </div>
-                <div class="glass rounded-2xl p-4 flex flex-wrap gap-6 text-sm">
-                    <div>
-                        <div class="{{ $label }}">Noten</div>
-                        <div class="font-bold text-lg text-text tabular-nums">{{ (int) ($statsRow->total ?? 0) }}</div>
-                    </div>
-                    <div>
-                        <div class="{{ $label }}">Ø gewichtet</div>
-                        <div class="font-bold text-lg tabular-nums {{ $notenfarbe($avg) }}">{{ $avg !== null ? number_format($avg, 2) : '–' }}</div>
-                    </div>
-                    <div>
-                        <div class="{{ $label }}">Bestanden</div>
-                        <div class="font-bold text-lg text-text tabular-nums">{{ (int) ($statsRow->passed ?? 0) }} / {{ (int) ($statsRow->total ?? 0) }}</div>
-                    </div>
-                </div>
+            @php
+                $a = $stand->auswertung;
+                $semNr = $semesterId ?: $stand->semesterId;
+                $detailUrl = route($bereich.'.lernende.show', $lernender->lernender_id);
+                $semNote = $semNr ? $a->semester($semNr)['note'] : null;
+            @endphp
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <x-kachel label="Gesamtschnitt" :note="$a->gesamtNote" :href="$detailUrl" />
+                <x-kachel :label="'Semester '.$a->konfiguration->semesterName($semNr)" :note="$semNote" />
+                <x-kachel label="Prüfungen" :wert="$notes->total()" :sub="$gefiltert ? 'im Filter' : null" />
+                <x-kachel label="Neu" :wert="$neuCount" :ton="$neuCount ? 'accent' : 'neutral'" />
             </div>
 
-            <x-noten-verlauf :points="$notenVerlauf" title="Notenverlauf" subtitle="letzte {{ $notenVerlauf->count() }} Noten" />
+            @if($stand->gruende)
+                <div class="glass rounded-2xl px-5 py-3 flex flex-wrap items-center gap-2">
+                    <x-status :status="$stand->status" />
+                    @foreach($stand->gruende as $g)
+                        <span class="px-2 py-0.5 rounded-md text-xs {{ $stand->status === 'rot' ? 'bg-red-500/10 text-red-700 dark:text-red-300' : 'bg-yellow-500/10 text-yellow-800 dark:text-yellow-300' }}">{{ $g }}</span>
+                    @endforeach
+                </div>
+            @endif
 
             {{-- Lernenden wechseln + Filter --}}
             <div class="glass rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
@@ -127,7 +111,6 @@
                 </form>
             </div>
 
-            <x-fach-modul-stats :stats="$fachStats" />
 
             <div class="space-y-2">
                 @forelse($notes as $n)
@@ -175,8 +158,8 @@
                                 </div>
                             </div>
                             <div class="shrink-0 flex flex-col items-end gap-0.5">
-                                <span class="text-2xl font-bold tabular-nums leading-none {{ $notenfarbe($wert) }}">{{ number_format($wert, 2) }}</span>
-                                <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
+                                <span class="text-2xl font-bold tabular-nums leading-none {{ \App\Support\NotenSkala::text($wert) }}">{{ \App\Support\NotenSkala::format($wert) }}</span>
+                                <span class="text-xs text-muted tabular-nums">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
                             </div>
                         </summary>
 

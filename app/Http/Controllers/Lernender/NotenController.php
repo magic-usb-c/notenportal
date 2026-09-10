@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Lernender;
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
 use App\Models\Note;
+use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
+use App\Services\Uebersicht;
 use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +18,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class NotenController extends Controller
 {
     public function __construct(
-        private readonly NoteService $noteService
+        private readonly NoteService $noteService,
+        private readonly NotenQuelle $quelle,
+        private readonly Uebersicht $uebersicht,
     ) {}
 
     public function index(Request $request)
@@ -85,83 +89,40 @@ class NotenController extends Controller
             ])
             ->get();
 
-        // Summary
-        [$avgUnweighted, $avgWeighted, $missingWeights, $count] = $this->noteService->calcAverages(
-            $notes->map(fn ($n) => (object) [
-                'note_wert' => $n->note_wert,
-                'gewichtung_prozent' => $n->gewichtung_prozent,
-            ])
-        );
+        // Zeugnisnoten aus dem Rechenkern; Noten des Semesters nach Kategorie und Fach/Modul gruppiert
+        $a = $this->quelle->auswertung($lernenderId);
+        $kategorien = Kategorie::query()->orderBy('sortierung')->get()->keyBy('kategorie_id');
+        $sem = $selectedSemesterId > 0 ? $selectedSemesterId : null;
 
-        $kategorien = Kategorie::query()->orderBy('sortierung')->get();
+        $gruppen = $notes->groupBy('kategorie_id')
+            ->sortBy(fn ($_, $kid) => $kategorien[$kid]->sortierung ?? 0)
+            ->map(fn ($items, $kid) => (object) [
+                'id' => (int) $kid,
+                'name' => $a->konfiguration->kategorieName((int) $kid),
+                'semester' => $sem ? $a->semester($sem, (int) $kid)['note'] : null,
+                'promotion' => $sem ? $a->promotion((int) $kid, $sem) : null,
+                'elemente' => $items
+                    ->groupBy(fn (Note $n) => $n->fach_id ? 'f'.$n->fach_id.'s'.$n->semester_id : 'm'.$n->modulBelegung?->modul_id)
+                    ->map(fn ($noten, $schluessel) => (object) [
+                        'element' => $a->elemente[$schluessel] ?? null,
+                        'label' => $noten->first()->fach?->name
+                            ?? trim(($noten->first()->modulBelegung?->modul?->modul_nummer ?? '').' '.($noten->first()->modulBelegung?->modul?->titel ?? '')),
+                        'noten' => $noten->values(),
+                    ])
+                    ->sortBy('label')->values(),
+            ])->values();
 
-        // Semester-Übersicht (alle Semester dieses Lernenden)
-        $semesterStats = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('n.semester_id', 's.bezeichnung', 's.sortierung')
-            ->select([
-                'n.semester_id',
-                's.bezeichnung as sem_label',
-                's.sortierung',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-            ])
-            ->orderBy('s.sortierung')
-            ->get();
-
-        // Gesamtdurchschnitt über alle Semester (gewichtet)
-        $globalAvgWeighted = DB::table('noten')
-            ->where('lernender_id', $lernenderId)
-            ->whereNull('geloescht_am')
-            ->selectRaw('ROUND(SUM(note_wert * COALESCE(gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(gewichtung_prozent,100)),0), 2) as avg')
-            ->value('avg');
-
-        $globalCount = DB::table('noten')
-            ->where('lernender_id', $lernenderId)
-            ->whereNull('geloescht_am')
-            ->count();
-
-        // Kategorie-Stats (für das ausgewählte Semester, nur Kategorien mit Noten)
-        $kategorieStatsQ = DB::table('noten as n')
-            ->join('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('k.kategorie_id', 'k.name', 'k.sortierung')
-            ->select([
-                'k.kategorie_id',
-                'k.name as kategorie_name',
-                'k.sortierung',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-            ])
-            ->orderBy('k.sortierung');
-
-        if ($selectedSemesterId > 0) {
-            $kategorieStatsQ->where('n.semester_id', $selectedSemesterId);
-        }
-
-        $kategorieStats = $kategorieStatsQ->get();
-
-        // Gruppierung und Durchschnitte werden im View berechnet (nah an den Daten, keine Doppelstruktur)
         return view('lernender.noten.index', [
-            'notes' => $notes,
-            'kategorien' => $kategorien,
+            'gruppen' => $gruppen,
+            'auswertung' => $a,
+            'heatmap' => $this->uebersicht->heatmap($a),
+            'kategorien' => $kategorien->values(),
+            'kategorieId' => $kategorieId,
             'semester' => $semester,
             'selectedSemesterId' => $selectedSemesterId,
             'prevSemesterId' => $prevSemesterId,
             'nextSemesterId' => $nextSemesterId,
-            'avgUnweighted' => $avgUnweighted,
-            'avgWeighted' => $avgWeighted,
-            'missingWeights' => $missingWeights,
-            'count' => $count,
-            'semesterStats' => $semesterStats,
-            'globalAvgWeighted' => $globalAvgWeighted,
-            'globalCount' => $globalCount,
-            'kategorieStats' => $kategorieStats,
+            'anzahl' => $notes->count(),
         ]);
     }
 

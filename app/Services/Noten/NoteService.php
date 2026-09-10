@@ -45,55 +45,6 @@ class NoteService
     }
 
     /**
-     * Notenverlauf: letzte $limit Noten chronologisch (für x-noten-verlauf Liniendiagramm).
-     */
-    public function notenVerlauf(int $lernenderId, int $limit = 20): Collection
-    {
-        return DB::table('noten as n')
-            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
-            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
-            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->orderByDesc('n.pruefungsdatum')
-            ->orderByDesc('n.note_id')
-            ->limit($limit)
-            ->select([
-                'n.pruefungsdatum as datum',
-                'n.note_wert as wert',
-                DB::raw("COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel) as label"),
-            ])
-            ->get()
-            ->reverse()
-            ->values();
-    }
-
-    /**
-     * Ø pro Fach/Modul (gewichtet), optional auf Kategorie/Semester gefiltert.
-     */
-    public function fachModulStats(int $lernenderId, ?int $kategorieId = null, ?int $semesterId = null): Collection
-    {
-        $fachLabel = "COALESCE(f.name, CONCAT(m.modul_nummer, ' ', m.titel), n.titel, '–')";
-
-        return DB::table('noten as n')
-            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
-            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
-            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->when($kategorieId, fn ($q) => $q->where('n.kategorie_id', $kategorieId))
-            ->when($semesterId, fn ($q) => $q->where('n.semester_id', $semesterId))
-            ->groupBy(DB::raw($fachLabel))
-            ->select([
-                DB::raw("$fachLabel as label"),
-                DB::raw('COUNT(*) as count'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0),2) as avg'),
-            ])
-            ->orderBy('label')
-            ->get();
-    }
-
-    /**
      * Standard-Filter für Index-Seite.
      */
     public function applyIndexFilters(Builder $q, ?int $kategorieId, ?int $semesterId): Builder
@@ -463,43 +414,5 @@ class NoteService
             ->where('start_datum', '<=', $date)
             ->where('end_datum', '>=', $date)
             ->first();
-    }
-
-    /**
-     * Durchschnitt berechnen:
-     * - ungewichtet = simple avg(note_wert)
-     * - gewichtet   = sum(note_wert * gewichtung) / sum(gewichtung)
-     * - missingWeights = Anzahl Noten ohne explizite Gewichtung (null/leer → 100% als Fallback)
-     *
-     * Rückgabe: [avgUnweighted, avgWeighted, missingWeights, count]
-     */
-    public function calcAverages(Collection $notes): array
-    {
-        $count = $notes->count();
-        if ($count === 0) {
-            return [null, null, 0, 0];
-        }
-
-        $avgUnweighted = round((float) $notes->avg('note_wert'), 2);
-
-        $wSum = 0.0;
-        $weightedSum = 0.0;
-        $missingWeights = 0;
-
-        foreach ($notes as $n) {
-            $w = $n->gewichtung_prozent;
-            if ($w === null || $w === '') {
-                $w = 100.0;
-                $missingWeights++;
-            }
-            $w = (float) $w;
-
-            $wSum += $w;
-            $weightedSum += (float) $n->note_wert * $w;
-        }
-
-        $avgWeighted = $wSum > 0 ? round($weightedSum / $wSum, 2) : null;
-
-        return [$avgUnweighted, $avgWeighted, $missingWeights, $count];
     }
 }
