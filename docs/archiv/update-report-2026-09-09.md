@@ -1,5 +1,7 @@
 # Update- und Setup-Report - 09.09.2026 16:17
 
+> Archiv: Stand 09.09.2026 vor Laravel 13 / Tailwind 4. Aktuelle Versionen: composer.json, package.json.
+
 ## 0. Sicherung
 
 - Offene Aenderungen committed
@@ -268,4 +270,4 @@ Offene PRs:
 
 - Rollback Code: git reset --hard pre-update-20260909-1617
 - Rollback DB:   mysql -unp_web -p notenportal < ~/db-backups/notenportal-20260909-1617.sql
-- Dieser Report: /var/www/notenportal/docs/update-report.md
+- Dieser Report: /var/www/notenportal/docs/archiv/update-report-2026-09-09.md

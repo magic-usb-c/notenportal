@@ -12,7 +12,7 @@ Server-Konfiguration und alle Änderungen ausserhalb des Repos (Datenbanken, /et
 | PHP | 8.3 (Distro-Pakete) |
 | DB | MariaDB 10.11, Datenbanken `notenportal` (Betrieb), `notenportal_test` und `notenportal_b_test` (PHPUnit, werden bei jedem Lauf neu aufgebaut; die zweite für parallele Läufe: `DB_DATABASE=notenportal_b_test php artisan test`) |
 | DB-User | `np_web`: ALL auf `notenportal` und `notenportal_test` |
-| Firewall | ufw: SSH, 80, 443 |
+| Firewall | ufw: SSH, 80, 443. Port 8082 (zweite Instanz) bewusst nicht freigegeben – Apache lauscht auf `*:8082`, von aussen durch ufw gesperrt, nur lokal (`http://127.0.0.1:8082`) erreichbar |
 | Backups | täglich 02:30 `storage/app/private/sicherungen/` (ZIP, 14 Stände, Seite «Betrieb»); manuelle Dumps vor Eingriffen in `~/db-backups/` |
 
 ## Dateirechte
