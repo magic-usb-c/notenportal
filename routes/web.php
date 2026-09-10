@@ -105,6 +105,8 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('store');
         Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('show');
         Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('destroy');
+        Route::get('/{dokument_id}/abgleich', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('abgleich');
+        Route::post('/{dokument_id}/abgleich', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('abgleich.uebernehmen');
     });
 
 /**

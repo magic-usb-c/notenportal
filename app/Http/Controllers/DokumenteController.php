@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Dokument;
 use App\Models\Lernender;
 use App\Services\Dokumente\Ablage;
+use App\Services\Import\ZeugnisAbgleich;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -69,6 +70,54 @@ class DokumenteController extends Controller
         $this->ablage->loeschen($dokument);
 
         return redirect($this->route($bereich, $lernender, 'index'))->with('success', '«'.$dokument->titel.'» gelöscht.');
+    }
+
+    public function abgleich(Request $request, ZeugnisAbgleich $abgleich): View
+    {
+        [$lernender, $bereich] = $this->kontext($request);
+        $dokument = $this->dokument($request, $lernender);
+        abort_unless($dokument->istPdf(), 404);
+        $semesterId = $request->integer('semester_id') ?: $dokument->semester_id;
+        $lernender->loadMissing('benutzer');
+
+        return view('dokumente.abgleich', [
+            'lernender' => $lernender,
+            'bereich' => $bereich,
+            'dokument' => $dokument,
+            'semesterId' => $semesterId ? (int) $semesterId : null,
+            'semester' => $this->noten->semestersForLernender((int) $lernender->lernender_id),
+            'ergebnis' => $abgleich->pruefen($this->ablage->pfad($dokument), (int) $lernender->lernender_id, $semesterId ? (int) $semesterId : null),
+            'darfUebernehmen' => $this->darfNotenAnlegen($request, $lernender, $bereich),
+            'r' => fn (string $name, array $p = []) => $this->route($bereich, $lernender, $name, $p),
+        ]);
+    }
+
+    public function abgleichUebernehmen(Request $request, ZeugnisAbgleich $abgleich): RedirectResponse
+    {
+        [$lernender, $bereich] = $this->kontext($request);
+        $dokument = $this->dokument($request, $lernender);
+        abort_unless($this->darfNotenAnlegen($request, $lernender, $bereich), 403);
+
+        $daten = $request->validate([
+            'semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
+            'zeilen' => ['required', 'array', 'max:100'],
+            'zeilen.*.bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
+            'zeilen.*.note' => ['required', 'numeric', 'min:1', 'max:6'],
+            'zeilen.*.uebernehmen' => ['nullable', 'boolean'],
+        ]);
+        $ergebnis = $abgleich->uebernehmen($daten['zeilen'], (int) $daten['semester_id'], (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
+
+        $zurueck = redirect($this->route($bereich, $lernender, 'abgleich', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $daten['semester_id']]));
+        if ($ergebnis['neu'] === 0) {
+            return $zurueck->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : 'Keine Zeile ausgewählt.');
+        }
+
+        return $zurueck->with('success', ($ergebnis['neu'] === 1 ? '1 Zeugnisnote' : $ergebnis['neu'].' Zeugnisnoten').' übernommen.');
+    }
+
+    private function darfNotenAnlegen(Request $request, Lernender $lernender, ?string $bereich): bool
+    {
+        return $bereich === null || Gate::forUser($request->user())->allows('noteAnlegen', $lernender);
     }
 
     /** @return array{0: Lernender, 1: ?string} */

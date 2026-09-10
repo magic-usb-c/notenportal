@@ -56,6 +56,8 @@ Route::prefix('/lernende/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::post('/dokumente', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('lernende.dokumente.store');
     Route::get('/dokumente/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('lernende.dokumente.show');
     Route::delete('/dokumente/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('lernende.dokumente.destroy');
+    Route::get('/dokumente/{dokument_id}/abgleich', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('lernende.dokumente.abgleich');
+    Route::post('/dokumente/{dokument_id}/abgleich', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('lernende.dokumente.abgleich.uebernehmen');
 
     Route::prefix('/noten/{note_id}')->whereNumber('note_id')->group(function () {
         Route::get('/edit', [LernendeNotenController::class, 'edit'])->name('lernende.noten.edit');
