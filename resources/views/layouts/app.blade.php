@@ -1,22 +1,40 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+@php
+    $darstellung = auth()->user()?->darstellung ?? 'system';
+@endphp
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $darstellung === 'dunkel' ? 'dark' : '' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        {{-- Theme init (vor CSS/JS, damit es nicht "blinkt") --}}
+        {{-- Darstellung: im Profil gespeichert (hell/dunkel) oder wie Gerät; vor CSS setzen, damit nichts flackert --}}
         <script>
             (function () {
+                const gespeichert = @js($darstellung);
+                window.npDarstellung = gespeichert;
+                if (gespeichert !== 'system') return;
+                let dunkel = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 try {
-                    const stored = localStorage.getItem('theme'); // 'dark' | 'light' | null
-                    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    const useDark = stored ? (stored === 'dark') : true;
-                    document.documentElement.classList.toggle('dark', useDark);
-                } catch (e) {
-                    // Falls localStorage blockiert ist: nichts tun
-                }
+                    const lokal = localStorage.getItem('theme');
+                    if (lokal) dunkel = lokal === 'dark';
+                } catch (e) {}
+                document.documentElement.classList.toggle('dark', dunkel);
             })();
+
+            window.npToggleTheme = function () {
+                const dunkel = document.documentElement.classList.toggle('dark');
+                try { localStorage.setItem('theme', dunkel ? 'dark' : 'light'); } catch (e) {}
+                fetch(@js(route('profile.darstellung')), {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ darstellung: dunkel ? 'dunkel' : 'hell' }),
+                });
+            };
         </script>
 
         <title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>

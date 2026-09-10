@@ -26,6 +26,7 @@ class ZugriffsschutzTest extends TestCase
         'dashboard',
         'profile.edit',
         'profile.update',
+        'profile.darstellung',
         'password.update',
         'passwort.wechsel',
         'passwort.wechsel.speichern',
