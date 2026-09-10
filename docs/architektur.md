@@ -3,8 +3,9 @@
 ## Verzeichnisse
 ```
 app/Http/Controllers/
-  Admin/           Benutzer, Lernende, Berufsbildner, Noten, Stammdaten*, Bericht
-  Berufsbildner/   Lernende, Noten
+  Admin/           Benutzer (nur Admin/BB-Konten), Berufsbildner, Stammdaten*, Bericht, Feedback
+  Verwaltung/      Lernenden-Verwaltung für Admin + BB: Lernende, LernendeNoten, NotenGesehen,
+                   NotenExport, Betreuung, Track, Konto (routes/verwaltung.php, 2× eingebunden)
   Lernender/       Noten
   Auth/            Login/Logout, Passwort ändern
   DashboardController (alle Rollen), KommentarController, ProfileController
@@ -12,15 +13,16 @@ app/Http/Middleware/  RoleMiddleware (role:Name), EnsureUserIsActive (global in 
 app/Models/        User (Tabelle benutzer), Lernender, Berufsbildner, Betreuung, Lehrberuf,
                    Note, Kategorie, Semester, Fach, Modul, ModulBelegung, ModulNoteGruppe,
                    NotenGesehen, NotenKommentar, Rolle
-app/Services/      Noten/NoteService (fachModulStats, normalizeForSave), Benutzer/LernendeErfassungService
+app/Services/      Noten/NoteService (fachModulStats, normalizeForSave), Benutzer/LernendeErfassungService, Benutzer/Startpasswort
+app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
 app/Support/       Csv::safe() (Formel-Injection-Schutz)
 resources/views/
   layouts/         app, guest, navigation
   dashboards/      admin, berufsbildner, lernender
   lernender/noten/ index, create, edit, drucken (von allen Rollen genutzt), rechner, partials/notes-table
-  berufsbildner/   noten, lernende
-  admin/           benutzer, lernende, berufsbildner, stammdaten, berichte
-  components/      noten-verlauf, fach-modul-stats
+  verwaltung/      lernende (index, create, show, edit), noten (index, create, edit) – rollenneutral, $bereich per View-Composer
+  admin/           benutzer, berufsbildner, stammdaten, berichte
+  components/      noten-verlauf, fach-modul-stats, note-geaendert («geändert von»)
 resources/css/     app.css (Glass, Animationen), theme.css (Tokens hell/dunkel)
 tests/Feature/     Auth/LoginTest, Auth/ZugriffsschutzTest, ProfileTest
 ```
@@ -31,6 +33,9 @@ tests/Feature/     Auth/LoginTest, Auth/ZugriffsschutzTest, ProfileTest
 | Admin | Alles: Admins, Berufsbildner, Lernende, Stammdaten, Berichte |
 | Berufsbildner | Lernende verwalten wie Admin, aber nur aktiv betreute (`betreuungen.gueltig_von/bis`). Noten lesen, korrigieren (mit «geändert von»), kommentieren, als gesehen markieren. Keine Noten anlegen oder löschen. |
 | Lernender | Nur eigene Daten: Noten CRUD, Rechner, Export, Druck, Profil |
+
+Sichtbarkeit von Lernenden für Admin/BB an einer Stelle: `Lernender::sichtbarFuer($user)`; Controller laden Lernende nur darüber (sonst 404), Noten nur über den sichtbaren Lernenden. Rechte pro Aktion über LernenderPolicy (403).
+Startpasswörter (Anlegen, Zurücksetzen) werden generiert, einmalig angezeigt, `passwort_wechsel_noetig = true`. `lernende.bemerkung` ist intern (nur BB/Admin).
 
 Lernender-ID kommt immer aus der Session (`$request->user()->lernender`), nie aus dem Request.
 

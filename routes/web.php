@@ -5,8 +5,6 @@ use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
-use App\Http\Controllers\Berufsbildner\NotenController as BerufsbildnerNotenController;
-use App\Http\Controllers\Berufsbildner\LernendeController as BerufsbildnerLernendeController;
 use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
 use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
@@ -14,8 +12,6 @@ use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\Admin\StammdatenKategorieController;
-use App\Http\Controllers\Admin\LernendeController as AdminLernendeController;
-use App\Http\Controllers\Admin\NotenController as AdminNotenController;
 use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use Illuminate\Http\Request;
@@ -85,106 +81,19 @@ Route::middleware(['auth', 'role:Lernender'])
     });
 
 /**
- * Berufsbildner: Lernende auswählen + Noten je Lernender (read-only MVP)
+ * Lernenden-Verwaltung: gleicher Funktionsumfang für Admin und Berufsbildner,
+ * Sichtbarkeit über Lernender::sichtbarFuer() (routes/verwaltung.php)
  */
-Route::middleware(['auth', 'role:Berufsbildner'])
-    ->prefix('berufsbildner')
-    ->name('berufsbildner.')
-    ->group(function () {
-        Route::get('/lernende', [BerufsbildnerLernendeController::class, 'index'])->name('lernende.index');
-
-        // BB erfasst einen neuen Lernenden (Betreuung wird automatisch zugewiesen)
-        Route::get('/lernende/erfassen', [BerufsbildnerLernendeController::class, 'create'])
-            ->name('lernende.create');
-        Route::post('/lernende', [BerufsbildnerLernendeController::class, 'store'])
-            ->name('lernende.store');
-
-        Route::get('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'show'])
-            ->whereNumber('lernender_id')->name('lernende.show');
-
-        // BB darf begrenzte Profilfelder (Lehrbeginn, Lehrende) seiner Lernenden pflegen
-        Route::patch('/lernende/{lernender_id}', [BerufsbildnerLernendeController::class, 'update'])
-            ->whereNumber('lernender_id')->name('lernende.update');
-
-        // BB verwaltet Tracks (BMS/ABU) betreuter Lernender
-        Route::post('/lernende/{lernender_id}/tracks', [BerufsbildnerLernendeController::class, 'trackStore'])
-            ->whereNumber('lernender_id')->name('lernende.tracks.store');
-        Route::post('/tracks/{track_id}/beenden', [BerufsbildnerLernendeController::class, 'trackEnd'])
-            ->whereNumber('track_id')->name('tracks.beenden');
-
-        Route::get('/lernende/{lernender_id}/noten', [BerufsbildnerNotenController::class, 'index'])
-            ->name('lernende.noten.index');
-
-        // BB markiert eine Note als gesehen
-        Route::post('/lernende/{lernender_id}/noten/{note_id}/gesehen', [BerufsbildnerNotenController::class, 'markGesehen'])
-            ->name('noten.gesehen');
-
-        // BB markiert alle neuen Noten eines Lernenden als gesehen
-        Route::post('/lernende/{lernender_id}/noten/alle-gesehen', [BerufsbildnerNotenController::class, 'markAlleGesehen'])
-            ->name('noten.alle_gesehen');
-
-        // BB: Druckansicht Notenblatt für einen Lernenden
-        Route::get('/lernende/{lernender_id}/noten/drucken', [BerufsbildnerNotenController::class, 'drucken'])
-            ->name('lernende.noten.drucken');
-
-        // BB: CSV-Export Noten für einen betreuten Lernenden
-        Route::get('/lernende/{lernender_id}/noten/export', [BerufsbildnerNotenController::class, 'export'])
-            ->name('lernende.noten.export');
-
-        // BB: CSV-Export ALLE Noten aller betreuten Lernenden
-        Route::get('/export-alle-noten', [BerufsbildnerNotenController::class, 'exportAlle'])
-            ->name('export');
-    });
+Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(base_path('routes/verwaltung.php'));
+Route::middleware(['auth', 'role:Berufsbildner'])->prefix('berufsbildner')->name('berufsbildner.')->group(base_path('routes/verwaltung.php'));
 
 /**
- * Admin: Lernende auswählen + Noten je Lernender (read-only MVP, getrennt von Berufsbildner)
+ * Admin: Benutzerkonten (Admin/BB), Stammdaten, Berichte
  */
 Route::middleware(['auth', 'role:Admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        // Lernende: Übersicht + Detail + Noten
-        Route::get('/lernende', [AdminLernendeController::class, 'index'])->name('lernende.index');
-        Route::get('/lernende/{lernender_id}', [AdminLernendeController::class, 'show'])->name('lernende.show');
-        Route::get('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'index'])
-            ->name('lernende.noten.index');
-        Route::get('/lernende/{lernender_id}/noten/export', [AdminNotenController::class, 'export'])
-            ->name('lernende.noten.export');
-        Route::get('/lernende/{lernender_id}/noten/drucken', [AdminNotenController::class, 'drucken'])
-            ->name('lernende.noten.drucken');
-        Route::get('/lernende/{lernender_id}/noten/create', [AdminNotenController::class, 'create'])
-            ->name('lernende.noten.create');
-        Route::post('/lernende/{lernender_id}/noten', [AdminNotenController::class, 'store'])
-            ->name('lernende.noten.store');
-        Route::get('/lernende/{lernender_id}/noten/{note_id}/edit', [AdminNotenController::class, 'edit'])
-            ->name('lernende.noten.edit');
-        Route::put('/lernende/{lernender_id}/noten/{note_id}', [AdminNotenController::class, 'update'])
-            ->name('lernende.noten.update');
-        Route::delete('/lernende/{lernender_id}/noten/{note_id}', [AdminNotenController::class, 'destroy'])
-            ->name('lernende.noten.destroy');
-
-        // Profil (Lehrberuf, Lehrbeginn, Lehrende)
-        Route::get('/lernende/{lernender_id}/profil/edit', [AdminLernendeController::class, 'editProfil'])
-            ->name('lernende.profil.edit');
-        Route::put('/lernende/{lernender_id}/profil', [AdminLernendeController::class, 'updateProfil'])
-            ->name('lernende.profil.update');
-
-        // Betreuungen je Lernender
-        Route::get('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuung'])
-            ->name('lernende.betreuung');
-        Route::post('/lernende/{lernender_id}/betreuung', [AdminLernendeController::class, 'betreuungStore'])
-            ->name('lernende.betreuung.store');
-        Route::post('/betreuungen/{betreuung_id}/beenden', [AdminLernendeController::class, 'betreuungEnd'])
-            ->name('betreuungen.beenden');
-
-        // Tracks je Lernender
-        Route::get('/lernende/{lernender_id}/tracks', [AdminLernendeController::class, 'tracks'])
-            ->name('lernende.tracks');
-        Route::post('/lernende/{lernender_id}/tracks', [AdminLernendeController::class, 'trackStore'])
-            ->name('lernende.tracks.store');
-        Route::post('/tracks/{track_id}/beenden', [AdminLernendeController::class, 'trackEnd'])
-            ->name('tracks.beenden');
-
         // Berufsbildner-Übersicht
         Route::get('/berufsbildner', [AdminBerufsbildnerController::class, 'index'])->name('berufsbildner.index');
 

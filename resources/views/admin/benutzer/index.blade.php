@@ -120,8 +120,8 @@
                                         <div class="flex items-center justify-end gap-3 flex-wrap">
                                             @if($b->lernender_id)
                                                 <a href="{{ route('admin.lernende.show', $b->lernender_id) }}"
-                                                   class="text-xs text-muted hover:text-accent whitespace-nowrap">Lernenden-Profil</a>
-                                            @endif
+                                                   class="text-sm text-accent hover:underline">Verwalten</a>
+                                            @else
                                             <a href="{{ route('admin.benutzer.edit', $b->benutzer_id) }}"
                                                class="text-sm text-accent hover:underline">Bearbeiten</a>
                                             <form method="POST"
@@ -134,6 +134,7 @@
                                                     {{ $b->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

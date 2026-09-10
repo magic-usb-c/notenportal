@@ -14,13 +14,8 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6 space-y-6">
 
-                @php
-                    $lernenderRolleId = $rollen->firstWhere('name', 'Lernender')->rolle_id ?? 3;
-                    // ?rolle=lernender (z.B. vom "Neuer Lernender"-Button) waehlt die Rolle vor
-                    $vorgewaehlteRolle = old('rolle_id', request('rolle') === 'lernender' ? $lernenderRolleId : '');
-                @endphp
                 <form method="POST" action="{{ route('admin.benutzer.store') }}" class="space-y-5"
-                      x-data="{ rolle: '{{ $vorgewaehlteRolle }}', track: '{{ old('track_typ') }}', loading: false }"
+                      x-data="{ rolle: @js((string) old('rolle_id', '')), loading: false }"
                       @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
@@ -79,13 +74,13 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label for="passwort" class="text-sm font-medium text-muted">Passwort * <span class="text-xs font-normal">(mind. 8 Zeichen)</span></label>
+                                <label for="passwort" class="text-sm font-medium text-muted">Passwort * <span class="text-xs font-normal">(mind. 10 Zeichen, Buchstaben und Ziffern)</span></label>
                                 <button type="button" @click="generieren()"
                                         class="text-xs text-accent hover:underline">
                                     Generieren
                                 </button>
                             </div>
-                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" required minlength="8"
+                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" required minlength="10"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('passwort') border-red-400 @enderror">
                             @error('passwort')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
@@ -108,7 +103,7 @@
                     {{-- ---- Rolle: visuelle Card-Auswahl ---- --}}
                     <div>
                         <label class="text-sm font-medium text-muted">Rolle *</label>
-                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @foreach($rollen as $r)
                                 @php
                                     $rolleMeta = match ($r->name) {
@@ -140,90 +135,6 @@
                         @error('rolle_id')
                             <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
-                    </div>
-
-                    {{-- ======================================================
-                         Lernender-spezifische Felder
-                         ====================================================== --}}
-                    <div x-show="rolle == '{{ $lernenderRolleId }}'" x-cloak
-                         x-transition:enter="transition ease-out duration-200"
-                         x-transition:enter-start="opacity-0 -translate-y-2"
-                         x-transition:enter-end="opacity-100 translate-y-0"
-                         class="space-y-5">
-                        <div class="border-t border-border pt-5">
-                            <div class="text-sm font-semibold text-text mb-4">Lernenden-Profil</div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf *</label>
-                                    <select name="lehrberuf_id" id="lehrberuf_id"
-                                            class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrberuf_id') border-red-400 @enderror">
-                                        <option value="">Bitte wählen…</option>
-                                        @foreach($lehrberufe as $lb)
-                                            <option value="{{ $lb->lehrberuf_id }}" @selected(old('lehrberuf_id') == $lb->lehrberuf_id)>
-                                                {{ $lb->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('lehrberuf_id')
-                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label for="lehrbeginn" class="text-sm font-medium text-muted">Lehrbeginn *</label>
-                                    <input type="date" name="lehrbeginn" id="lehrbeginn" value="{{ old('lehrbeginn') }}"
-                                           class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
-                                    @error('lehrbeginn')
-                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Berufsbildner zuweisen --}}
-                        <div>
-                            <label for="berufsbildner_id" class="text-sm font-medium text-muted">Berufsbildner zuweisen</label>
-                            <select name="berufsbildner_id" id="berufsbildner_id"
-                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
-                                <option value="">Kein Berufsbildner (später zuweisen)</option>
-                                @foreach($berufsbildner as $bb)
-                                    <option value="{{ $bb->berufsbildner_id }}" @selected(old('berufsbildner_id') == $bb->berufsbildner_id)>
-                                        {{ $bb->nachname }} {{ $bb->vorname }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @if($berufsbildner->isEmpty())
-                                <p class="mt-1 text-xs text-muted">Noch keine Berufsbildner im System – zuerst einen Berufsbildner anlegen.</p>
-                            @endif
-                        </div>
-
-                        {{-- BMS/ABU-Track --}}
-                        <div>
-                            <label for="track_typ" class="text-sm font-medium text-muted">Schul-Track</label>
-                            <select name="track_typ" id="track_typ" x-model="track"
-                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
-                                <option value="">Kein Track (später einrichten)</option>
-                                <option value="BMS">BMS</option>
-                                <option value="ABU">ABU</option>
-                            </select>
-
-                            {{-- Startsemester – nur wenn Track ausgewählt --}}
-                            <div x-show="track" x-cloak class="mt-3">
-                                <label for="track_semester_id" class="text-sm font-medium text-muted">Startsemester für Track *</label>
-                                <select name="track_semester_id" id="track_semester_id"
-                                        class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_semester_id') border-red-400 @enderror">
-                                    <option value="">Bitte wählen…</option>
-                                    @foreach($semester as $s)
-                                        <option value="{{ $s->semester_id }}" @selected(old('track_semester_id') == $s->semester_id)>
-                                            {{ $s->bezeichnung }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('track_semester_id')
-                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
                     </div>
 
                     <div class="pt-2">

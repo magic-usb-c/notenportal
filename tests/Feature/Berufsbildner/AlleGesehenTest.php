@@ -54,7 +54,7 @@ class AlleGesehenTest extends TestCase
     public function markiert_nur_noten_im_aktiven_filter(): void
     {
         $this->actingAs($this->bb)
-            ->post(route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $this->lernenderId]), [
+            ->post(route('berufsbildner.lernende.noten.alle_gesehen', ['lernender_id' => $this->lernenderId]), [
                 'kategorie_id' => $this->abuNote->kategorie_id,
             ])
             ->assertSessionHas('success');
@@ -68,7 +68,7 @@ class AlleGesehenTest extends TestCase
     public function ohne_filter_werden_alle_markiert(): void
     {
         $this->actingAs($this->bb)
-            ->post(route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $this->lernenderId]));
+            ->post(route('berufsbildner.lernende.noten.alle_gesehen', ['lernender_id' => $this->lernenderId]));
 
         $this->assertSame(2, DB::table('noten_gesehen')->where('viewer_benutzer_id', $this->bb->benutzer_id)->count());
     }

@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Models\Feedback;
 use App\Support\Einstellungen;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -26,6 +28,12 @@ class AppServiceProvider extends ServiceProvider
                 : 0;
 
             $view->with('feedbackOffenCount', $anzahlOffen);
+        });
+
+        // Verwaltungs-Views sind rollenneutral: Links werden als route("{$bereich}.…") gebaut
+        View::composer('verwaltung.*', function ($view) {
+            $bereich = Str::before((string) Route::currentRouteName(), '.');
+            $view->with('bereich', in_array($bereich, ['admin', 'berufsbildner'], true) ? $bereich : 'admin');
         });
     }
 }

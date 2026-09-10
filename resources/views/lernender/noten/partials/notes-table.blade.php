@@ -11,6 +11,10 @@
 @php
     $currentBenutzerId = (int) auth()->user()->benutzer_id;
 
+    // «geändert von»: Korrektur-Autoren in einer Abfrage nachladen
+    \Illuminate\Database\Eloquent\Collection::make(collect($fachGroups)->flatten(1)->merge(collect($modulGroups)->flatten(1)))
+        ->loadMissing('aktualisiertVonBenutzer');
+
     /**
      * Badge-Berechnung pro Note:
      * - $bbHatGesehen:  mind. ein gesehen-Eintrag von jemand anderem als dem Lernenden
@@ -121,6 +125,7 @@
                                         @endif
                                     </div>
 
+                                    <x-note-geaendert :note="$n" :lernender-benutzer-id="$currentBenutzerId" />
                                     {{-- Kommentar-Vorschau --}}
                                     @if($newestKommentar)
                                         <div class="text-xs text-muted italic truncate max-w-xs">
@@ -354,6 +359,7 @@
                                         @endif
                                     </div>
 
+                                    <x-note-geaendert :note="$n" :lernender-benutzer-id="$currentBenutzerId" />
                                     @if($newestKommentar)
                                         <div class="text-xs text-muted italic truncate max-w-xs">
                                             <span class="font-medium not-italic">{{ $newestKommentar->autor?->vorname }}</span>:

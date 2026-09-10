@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Lernender;
 use App\Models\Note;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,29 +16,12 @@ class KommentarController extends Controller
         $user = $request->user();
         $note = Note::findOrFail($note_id);
 
-        $lernender   = $user?->lernender;
-        $berufsbildner = $user?->berufsbildner;
-
-        if ($lernender) {
+        if ($user->lernender) {
             // Lernender darf nur eigene Noten kommentieren
-            abort_if((int) $note->lernender_id !== (int) $lernender->lernender_id, 403);
-
-        } elseif ($berufsbildner) {
-            // BB darf nur Noten von aktuell betreuten Lernenden kommentieren
-            $today = now()->toDateString();
-            $betreut = DB::table('betreuungen')
-                ->where('berufsbildner_id', $berufsbildner->berufsbildner_id)
-                ->where('lernender_id', $note->lernender_id)
-                ->where('gueltig_von', '<=', $today)
-                ->where(fn($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today))
-                ->exists();
-            abort_if(!$betreut, 403);
-
-        } elseif ($user->hasRole('Admin')) {
-            // Admin darf alle Noten kommentieren – keine weitere Prüfung nötig
-
+            abort_if((int) $note->lernender_id !== (int) $user->lernender->lernender_id, 403);
         } else {
-            abort(403);
+            // Admin/BB: nur Noten sichtbarer Lernender (fremde: 404, keine Existenz verraten)
+            abort_unless(Lernender::sichtbarFuer($user)->whereKey($note->lernender_id)->exists(), 404);
         }
 
         $validated = $request->validate([

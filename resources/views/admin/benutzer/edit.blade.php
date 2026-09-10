@@ -7,12 +7,6 @@
                 <p class="text-sm text-muted mt-0.5">{{ $user->nachname }} {{ $user->vorname }}</p>
             </div>
             <div class="flex gap-2">
-                @if($lernendeProfil)
-                    <a href="{{ route('admin.lernende.show', $lernendeProfil->lernender_id) }}"
-                       class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">
-                        Lernenden-Profil
-                    </a>
-                @endif
                 <a href="{{ route('admin.benutzer.index') }}"
                    class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Zurück
@@ -80,62 +74,14 @@
                     <div>
                         <label class="text-sm font-medium text-muted">Rollen</label>
                         <div class="mt-1 flex flex-wrap gap-2">
-                            @php
-                                $userRollen = DB::table('benutzer_rollen as br')
-                                    ->join('rollen as r', 'r.rolle_id', '=', 'br.rolle_id')
-                                    ->where('br.benutzer_id', $user->benutzer_id)
-                                    ->pluck('r.name');
-                            @endphp
-                            @foreach($userRollen as $rolle)
+                            
+                            @foreach($rollen as $rolle)
                                 <span class="px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-text">{{ $rolle }}</span>
                             @endforeach
                         </div>
                         <p class="mt-1 text-xs text-muted">Rollen können hier nicht geändert werden.</p>
                     </div>
 
-                    {{-- Lernenden-Profil (nur wenn Lernender) --}}
-                    @if($lernendeProfil)
-                        <div class="border-t border-border pt-5 space-y-4">
-                            <div class="text-sm font-semibold text-text">Lehrausbildung</div>
-
-                            <div>
-                                <label for="lehrberuf_id" class="text-sm font-medium text-muted">Lehrberuf *</label>
-                                <select name="lehrberuf_id" id="lehrberuf_id" required
-                                        class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrberuf_id') border-red-400 @enderror">
-                                    @foreach($lehrberufe as $lb)
-                                        <option value="{{ $lb->lehrberuf_id }}"
-                                                @selected(old('lehrberuf_id', $lernendeProfil->lehrberuf_id) == $lb->lehrberuf_id)>
-                                            {{ $lb->name }} ({{ $lb->kuerzel }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('lehrberuf_id')
-                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="lehrbeginn" class="text-sm font-medium text-muted">Lehrbeginn *</label>
-                                    <input type="date" name="lehrbeginn" id="lehrbeginn"
-                                           value="{{ old('lehrbeginn', $lernendeProfil->lehrbeginn) }}" required
-                                           class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrbeginn') border-red-400 @enderror">
-                                    @error('lehrbeginn')
-                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div>
-                                    <label for="lehrende" class="text-sm font-medium text-muted">Lehrende</label>
-                                    <input type="date" name="lehrende" id="lehrende"
-                                           value="{{ old('lehrende', $lernendeProfil->lehrende) }}"
-                                           class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('lehrende') border-red-400 @enderror">
-                                    @error('lehrende')
-                                        <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                    @endif
 
                     <div class="border-t border-border pt-5 space-y-5"
                          x-data="{
@@ -167,7 +113,7 @@
                                     </button>
                                 </div>
                             </div>
-                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" minlength="8"
+                            <input x-ref="pw1" :type="show ? 'text' : 'password'" name="passwort" id="passwort" minlength="10"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('passwort') border-red-400 @enderror">
                             @error('passwort')
                                 <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>

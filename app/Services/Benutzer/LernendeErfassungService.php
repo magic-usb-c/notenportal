@@ -58,6 +58,7 @@ class LernendeErfassungService
                 'lehrberuf_id'    => (int) $data['lehrberuf_id'],
                 'lehrbeginn'      => $data['lehrbeginn'],
                 'lehrende'        => $data['lehrende'] ?? null,
+                'bemerkung'       => $data['bemerkung'] ?? null,
                 'erstellt_am'     => now(),
                 'aktualisiert_am' => now(),
             ]);
