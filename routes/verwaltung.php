@@ -6,6 +6,8 @@
  * welche Lernenden sichtbar sind, regelt Lernender::sichtbarFuer().
  */
 
+use App\Http\Controllers\DokumenteController;
+use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\Verwaltung\BetreuungController;
 use App\Http\Controllers\Verwaltung\KontoController;
 use App\Http\Controllers\Verwaltung\LernendeController;
@@ -45,6 +47,15 @@ Route::prefix('/lernende/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::get('/noten/drucken', [NotenExportController::class, 'drucken'])->name('lernende.noten.drucken');
     Route::get('/noten/export', [NotenExportController::class, 'lernender'])->name('lernende.noten.export');
     Route::post('/noten/alle-gesehen', [NotenGesehenController::class, 'alle'])->name('lernende.noten.alle_gesehen');
+    Route::get('/noten/import', [NotenImportController::class, 'index'])->name('lernende.noten.import.index');
+    Route::post('/noten/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('lernende.noten.import.lesen');
+    Route::post('/noten/import/uebernehmen', [NotenImportController::class, 'uebernehmen'])->name('lernende.noten.import.uebernehmen');
+    Route::post('/noten/import/verwerfen', [NotenImportController::class, 'verwerfen'])->name('lernende.noten.import.verwerfen');
+    Route::get('/noten/import/vorlage', [NotenImportController::class, 'vorlage'])->name('lernende.noten.import.vorlage');
+    Route::get('/dokumente', [DokumenteController::class, 'index'])->name('lernende.dokumente.index');
+    Route::post('/dokumente', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('lernende.dokumente.store');
+    Route::get('/dokumente/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('lernende.dokumente.show');
+    Route::delete('/dokumente/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('lernende.dokumente.destroy');
 
     Route::prefix('/noten/{note_id}')->whereNumber('note_id')->group(function () {
         Route::get('/edit', [LernendeNotenController::class, 'edit'])->name('lernende.noten.edit');

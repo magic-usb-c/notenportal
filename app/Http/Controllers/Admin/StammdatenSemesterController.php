@@ -109,9 +109,10 @@ class StammdatenSemesterController extends Controller
         abort_unless($semester, 404);
 
         $belegt = DB::table('noten')->where('semester_id', $semester_id)->exists()
-            || DB::table('lernender_tracks')->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id)->exists();
+            || DB::table('lernender_tracks')->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id)->exists()
+            || DB::table('dokumente')->where('semester_id', $semester_id)->exists();
         if ($belegt) {
-            return back()->with('error', 'Semester «'.$semester->bezeichnung.'» enthält Noten oder Tracks und bleibt bestehen.');
+            return back()->with('error', 'Semester «'.$semester->bezeichnung.'» enthält Noten, Tracks oder Dokumente und bleibt bestehen.');
         }
 
         DB::table('semester')->where('semester_id', $semester_id)->delete();

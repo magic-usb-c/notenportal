@@ -17,6 +17,12 @@
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ route("{$bereich}.lernende.noten.index", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">Noten</a>
+                <a href="{{ route("{$bereich}.lernende.dokumente.index", $lernender->lernender_id) }}"
+                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Dokumente</a>
+                @can('noteAnlegen', $lernender)
+                    <a href="{{ route("{$bereich}.lernende.noten.import.index", $lernender->lernender_id) }}"
+                       class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Import</a>
+                @endcan
                 <a href="{{ route("{$bereich}.lernende.rechner", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Rechner</a>
                 @can('update', $lernender)

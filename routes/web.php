@@ -12,12 +12,14 @@ use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Lernender\PruefungenController;
 use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
 use App\Http\Controllers\Lernender\ZieleController;
+use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SucheController;
 use Illuminate\Http\Request;
@@ -71,6 +73,11 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
         Route::get('/rechner', [LernenderRechnerController::class, 'index'])->name('rechner');
         Route::post('/rechner', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('rechner.berechnen');
+        Route::get('/import', [NotenImportController::class, 'index'])->name('import.index');
+        Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('import.lesen');
+        Route::post('/import/uebernehmen', [NotenImportController::class, 'uebernehmen'])->name('import.uebernehmen');
+        Route::post('/import/verwerfen', [NotenImportController::class, 'verwerfen'])->name('import.verwerfen');
+        Route::get('/import/vorlage', [NotenImportController::class, 'vorlage'])->name('import.vorlage');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
         Route::post('/module/{modul_id}/wiederholen', [LernenderNotenController::class, 'modulWiederholen'])->whereNumber('modul_id')->name('modul.wiederholen');
@@ -85,6 +92,19 @@ Route::middleware(['auth', 'role:Lernender'])
 
         // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
         Route::patch('/{note_id}/titel', [LernenderNotenController::class, 'updateTitel'])->name('titel.update');
+    });
+
+/**
+ * Lernender: eigene Dokumente (private Ablage, Auslieferung nur über den Controller)
+ */
+Route::middleware(['auth', 'role:Lernender'])
+    ->prefix('dokumente')
+    ->name('lernender.dokumente.')
+    ->group(function () {
+        Route::get('/', [DokumenteController::class, 'index'])->name('index');
+        Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('store');
+        Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('show');
+        Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('destroy');
     });
 
 /**

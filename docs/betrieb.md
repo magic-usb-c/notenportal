@@ -79,3 +79,10 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - Vom Installer angelegt: Datenbank `notenportal_i2`, DB-Benutzer `notenportal_i2_web`@localhost (nur diese DB), `/etc/apache2/sites-available/notenportal-i2.conf` (aktiviert), Zeile `Listen 8082` in `/etc/apache2/ports.conf`. Apache wurde nur neu geladen (reload), `notenportal.conf` und die Datenbank `notenportal` blieben unverändert. Port 8082 ist in ufw nicht freigegeben – nur lokal erreichbar.
 - Browser-Durchlauf (Playwright, `~/tools/visual/erstinbetrieb.mjs`): Login mit Startpasswort → Passwortwechsel → alle Schritte der Einrichtung → Abschluss → Login als angelegter Berufsbildner und Lernende mit Passwortwechsel. Ohne Fehler.
 - Entfernen: `sudo a2dissite notenportal-i2 && sudo sed -i '/^Listen 8082$/d' /etc/apache2/ports.conf && sudo systemctl reload apache2 && sudo mysql -e "DROP DATABASE notenportal_i2; DROP USER 'notenportal_i2_web'@'localhost';" && sudo rm -rf /var/www/notenportal-i2 /etc/apache2/sites-available/notenportal-i2.conf`
+
+### 10.09.2026 – Block E: Dokumente und Importe
+- Dump vorher: `~/db-backups/notenportal-20260910-1539-vor-block-e.sql`, Git-Tag `vor-block-e`.
+- Composer: `phpoffice/phpspreadsheet` ^5.9 (Excel/ODS/CSV lesen), `smalot/pdfparser` ^2.12 (Text aus PDF).
+- Migration `2026_09_10_000008_dokumente` zuerst auf `notenportal_probe`, dann auf `notenportal` angewendet; Login danach 200.
+- Dateien liegen unter `storage/app/private/lernende/{id}/dokumente/{jahr}/` (Disk `local`, `serve` aus) – gehören ins Backup zusätzlich zur Datenbank.
+- Upload-Grenze im Repo gesetzt (`public/.htaccess`: `upload_max_filesize 12M`, `post_max_size 16M`); die globale php.ini bleibt unverändert.

@@ -22,6 +22,7 @@
 
             <div class="flex gap-2">
                 <a href="{{ route('lernender.noten.drucken') }}" target="_blank" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Drucken</a>
+                <a href="{{ route('lernender.noten.import.index') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Import</a>
                 <a href="{{ route('lernender.noten.export') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
                 <a href="{{ route('lernender.noten.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                     <span class="text-lg leading-none">+</span> Note

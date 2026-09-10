@@ -15,6 +15,7 @@ final class Navigation
         'start' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
         'noten' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
         'kalender' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+        'dokument' => 'M7 21h10a2 2 0 002-2V9.4a1 1 0 00-.3-.7l-5.4-5.4a1 1 0 00-.7-.3H7a2 2 0 00-2 2v14a2 2 0 002 2zm5-17v5a1 1 0 001 1h5',
         'rechner' => 'M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z',
         'personen' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z',
         'daten' => 'M4 7v10c0 2 3.6 3 8 3s8-1 8-3V7M4 7c0 2 3.6 3 8 3s8-1 8-3M4 7c0-2 3.6-3 8-3s8 1 8 3m0 5c0 2-3.6 3-8 3s-8-1-8-3',
@@ -60,9 +61,10 @@ final class Navigation
             ],
             $user->hasRole('Lernender') => [
                 self::link('Übersicht', 'lernender.dashboard', ['lernender.dashboard'], 'start'),
-                self::link('Noten', 'lernender.noten.index', ['lernender.noten.index', 'lernender.noten.create', 'lernender.noten.edit', 'lernender.noten.drucken'], 'noten'),
+                self::link('Noten', 'lernender.noten.index', ['lernender.noten.index', 'lernender.noten.create', 'lernender.noten.edit', 'lernender.noten.drucken', 'lernender.noten.import.*'], 'noten'),
                 self::link('Prüfungen', 'lernender.pruefungen.index', ['lernender.pruefungen.*'], 'kalender'),
                 self::link('Rechner', 'lernender.noten.rechner', ['lernender.noten.rechner'], 'rechner'),
+                self::link('Dokumente', 'lernender.dokumente.index', ['lernender.dokumente.*'], 'dokument'),
             ],
             default => [],
         };

@@ -1,0 +1,124 @@
+<x-app-layout>
+    <x-slot name="title">Dokumente</x-slot>
+    @php
+        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $groesse = fn (int $b) => $b >= 1048576 ? number_format($b / 1048576, 1).' MB' : max(1, (int) round($b / 1024)).' KB';
+        $typ = fn (\App\Models\Dokument $d) => match (true) {
+            $d->istPdf() => 'PDF',
+            str_starts_with($d->mime, 'image/') => 'Bild',
+            in_array($d->endung(), ['xlsx', 'xls', 'ods', 'csv'], true) => 'Tabelle',
+            default => strtoupper($d->endung()),
+        };
+        $gruppen = $dokumente->groupBy('art');
+    @endphp
+
+    <x-slot name="header">
+        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
+            <div class="min-w-0">
+                @if($bereich)
+                    <div class="text-sm text-muted truncate">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</div>
+                @endif
+                <h2 class="font-semibold text-xl text-text">Dokumente</h2>
+            </div>
+            @if($zurueck)
+                <a href="{{ $zurueck }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurück</a>
+            @endif
+        </div>
+    </x-slot>
+
+    <div class="py-6">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+            @if($darfHochladen)
+                <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" class="glass rounded-2xl p-5 flex flex-col gap-4"
+                      x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                    @csrf
+                    <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-7 text-center cursor-pointer transition-colors"
+                           :class="ueber ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'"
+                           @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
+                           @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
+                        <svg class="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                        <span class="text-sm font-medium text-text" x-text="name || 'Datei wählen oder hierher ziehen'"></span>
+                        <span class="text-xs text-muted">PDF, Bild, Excel, CSV · bis 10 MB</span>
+                        <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only"
+                               accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.ods,.csv,.docx" @change="name = $event.target.files[0]?.name ?? ''">
+                    </label>
+                    @error('datei')<p class="-mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+
+                    <div class="grid sm:grid-cols-[10rem_12rem_minmax(0,1fr)_auto] gap-3 items-end">
+                        <div>
+                            <label for="art" class="{{ $label }}">Art *</label>
+                            <select id="art" name="art" class="{{ $feld }}">
+                                @foreach(\App\Models\Dokument::ARTEN as $wert => $text)
+                                    <option value="{{ $wert }}" @selected(old('art', 'zeugnis') === $wert)>{{ $text }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="semester_id" class="{{ $label }}">Semester</label>
+                            <select id="semester_id" name="semester_id" class="{{ $feld }}">
+                                <option value="">–</option>
+                                @foreach($semester as $s)
+                                    <option value="{{ $s->semester_id }}" @selected((int) old('semester_id') === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
+                                @endforeach
+                            </select>
+                            @error('semester_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="titel" class="{{ $label }}">Titel</label>
+                            <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" class="{{ $feld }}">
+                            @error('titel')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        </div>
+                        <button type="submit" :disabled="loading" class="inline-flex items-center justify-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Hochladen</button>
+                    </div>
+                </form>
+            @endif
+
+            @if($dokumente->isEmpty())
+                <div class="glass rounded-2xl px-5 py-12 text-center text-sm text-muted">Noch keine Dokumente</div>
+            @else
+                @foreach(\App\Models\Dokument::ARTEN as $art => $artName)
+                    @continue(! $gruppen->has($art))
+                    <section class="flex flex-col gap-2">
+                        <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ $artName }} · {{ $gruppen[$art]->count() }}</h3>
+                        <ul class="glass rounded-2xl divide-y divide-border overflow-hidden">
+                            @foreach($gruppen[$art] as $d)
+                                <li class="flex items-center gap-4 px-4 py-3">
+                                    <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="text-sm font-medium text-text truncate">{{ $d->titel }}</div>
+                                        <div class="text-xs text-muted truncate">
+                                            {{ collect([$d->semester?->bezeichnung, $d->erstellt_am->format('d.m.Y'), $groesse($d->groesse), $d->hochgeladenVon ? $d->hochgeladenVon->vorname.' '.$d->hochgeladenVon->nachname : null])->filter()->implode(' · ') }}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        @if($d->art === 'zeugnis' && $d->istPdf() && \Illuminate\Support\Facades\Route::has('lernender.dokumente.abgleich'))
+                                            <a href="{{ $r('abgleich', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Abgleich</a>
+                                        @endif
+                                        @if(in_array($d->mime, \App\Models\Dokument::INLINE, true))
+                                            <a href="{{ $r('show', ['dokument_id' => $d->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener"
+                                               class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Öffnen</a>
+                                        @endif
+                                        <a href="{{ $r('show', ['dokument_id' => $d->dokument_id]) }}" aria-label="{{ $d->titel }} herunterladen"
+                                           class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-accent/10">
+                                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
+                                        </a>
+                                        @if($bereich ? $darfHochladen : (int) $d->hochgeladen_von_benutzer_id === $ich)
+                                            <form method="POST" action="{{ $r('destroy', ['dokument_id' => $d->dokument_id]) }}" onsubmit="return confirm('Dokument löschen?')"
+                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button :disabled="loading" aria-label="{{ $d->titel }} löschen"
+                                                        class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 disabled:opacity-60">×</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endforeach
+            @endif
+        </div>
+    </div>
+</x-app-layout>
