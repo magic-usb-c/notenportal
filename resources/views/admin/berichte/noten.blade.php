@@ -1,262 +1,178 @@
 <x-app-layout>
     <x-slot name="title">Berichte</x-slot>
+    @php
+        $sid = $filter['semester_id'];
+        $semesterName = $sid ? ($semester->firstWhere('semester_id', $sid)?->bezeichnung ?? 'Semester') : 'Ganze Lehrzeit';
+        $sortUrl = fn (string $spalte, string $start = 'asc') => request()->fullUrlWithQuery([
+            'sort' => $spalte,
+            'dir' => $sort === $spalte ? ($dir === 'asc' ? 'desc' : 'asc') : $start,
+        ]);
+        $pfeil = fn (string $spalte) => $sort === $spalte ? ($dir === 'asc' ? '↑' : '↓') : '';
+        $filterAktiv = request()->hasAny(['semester', 'lehrberuf_id', 'berufsbildner_id']);
+        $k = $kennzahlen;
+    @endphp
+
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <h2 class="font-semibold text-xl text-text">Schulweite Notenübersicht</h2>
-            <div class="flex items-center gap-2">
-                <button type="button" onclick="window.print()"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                    </svg>
-                    Drucken
-                </button>
-                <a href="{{ route('admin.berichte.noten.export', request()->only(['semester_id','lehrberuf_id','berufsbildner_id'])) }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    CSV exportieren
-                </a>
+            <h2 class="font-semibold text-xl text-text">Notenbericht <span class="text-muted font-normal">· {{ $semesterName }}</span></h2>
+            <div class="flex items-center gap-2 print:hidden">
+                <button type="button" onclick="window.print()" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Drucken</button>
+                <a href="{{ route('admin.berichte.noten.export', request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id'])) }}"
+                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
             </div>
         </div>
     </x-slot>
 
-    <style>
-        @media print {
-            nav, .no-print, button[onclick*="print"] { display: none !important; }
-            body { background: #fff !important; color: #000 !important; }
-            .bg-card { background: #fff !important; box-shadow: none !important; }
-            details[open] summary ~ * { animation: none !important; }
-        }
-    </style>
-
     <div class="py-6">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
-            {{-- Filter --}}
-            <div class="glass rounded-2xl p-4">
-                <form method="GET" action="{{ route('admin.berichte.noten') }}"
-                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+            <form method="GET" action="{{ route('admin.berichte.noten') }}" class="glass rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
+                <input type="hidden" name="sort" value="{{ $sort }}">
+                <input type="hidden" name="dir" value="{{ $dir }}">
+                <div>
+                    <label for="semester" class="text-xs uppercase tracking-widest text-muted font-medium">Zeitraum</label>
+                    <select name="semester" id="semester" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                        <option value="alle" @selected($sid === null)>Ganze Lehrzeit</option>
+                        @foreach($semester as $s)
+                            <option value="{{ $s->semester_id }}" @selected($sid === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="lehrberuf_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lehrberuf</label>
+                    <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                        <option value="">Alle Lehrberufe</option>
+                        @foreach($lehrberufe as $lb)
+                            <option value="{{ $lb->lehrberuf_id }}" @selected($filter['lehrberuf_id'] === (int) $lb->lehrberuf_id)>{{ $lb->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="berufsbildner_id" class="text-xs uppercase tracking-widest text-muted font-medium">Berufsbildner</label>
+                    <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                        <option value="">Alle</option>
+                        @foreach($berufsbildner as $bb)
+                            <option value="{{ $bb->berufsbildner_id }}" @selected($filter['berufsbildner_id'] === (int) $bb->berufsbildner_id)>{{ $bb->nachname }} {{ $bb->vorname }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @if($filterAktiv)
+                    <a href="{{ route('admin.berichte.noten') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-xl glass-btn text-text text-sm" aria-label="Filter zurücksetzen">×</a>
+                @endif
+            </form>
 
-                    <div>
-                        <label for="semester_id" class="text-xs uppercase tracking-widest text-muted font-medium">Semester</label>
-                        <select name="semester_id" id="semester_id" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="">Alle Semester</option>
-                            @foreach($semester as $s)
-                                <option value="{{ $s->semester_id }}" @selected($semesterId == $s->semester_id)>
-                                    {{ $s->bezeichnung }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="lehrberuf_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lehrberuf</label>
-                        <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="">Alle Lehrberufe</option>
-                            @foreach($lehrberufe as $lb)
-                                <option value="{{ $lb->lehrberuf_id }}" @selected($lehrberufId == $lb->lehrberuf_id)>
-                                    {{ $lb->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="berufsbildner_id" class="text-xs uppercase tracking-widest text-muted font-medium">Berufsbildner</label>
-                        <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="">Alle BB</option>
-                            @foreach($berufsbildner as $bb)
-                                <option value="{{ $bb->berufsbildner_id }}" @selected($berufsbildnerId == $bb->berufsbildner_id)>
-                                    {{ $bb->nachname }} {{ $bb->vorname }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <button class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">
-                            Filtern
-                        </button>
-                        @if($semesterId || $lehrberufId || $berufsbildnerId)
-                            <a href="{{ route('admin.berichte.noten') }}"
-                               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm flex items-center">
-                                ×
-                            </a>
-                        @endif
-                    </div>
-                </form>
+            <div @class(['grid grid-cols-2 gap-4', 'md:grid-cols-5' => $sid, 'md:grid-cols-4' => ! $sid])>
+                <x-kachel label="Lernende" :wert="$k['lernende']" />
+                <x-kachel label="Ø Gesamtnote" :note="$k['schnitt']" />
+                <x-kachel label="Kritisch" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="$k['gelb'].' beobachten'" :href="$sortUrl('status')" />
+                <x-kachel label="Ungenügende Zeugnisnoten" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="'von '.$k['zeugnisnoten']" />
+                @if($sid)
+                    <x-kachel label="Promotion gefährdet" :wert="$k['gefaehrdet']" :ton="$k['gefaehrdet'] ? 'rot' : 'gruen'" />
+                @endif
             </div>
 
-            {{-- Zusammenfassung --}}
-            @if($gesamtTotal > 0)
-                @php
-                    $avgColor = $gesamtAvg === null ? 'text-muted'
-                        : ($gesamtAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
-                        : ($gesamtAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
-                        : ($gesamtAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
-                        : 'text-red-600 dark:text-red-400')));
-                    $passRate = $gesamtTotal > 0 ? round($gesamtPassed / $gesamtTotal * 100) : null;
-                @endphp
-                <div class="glass rounded-2xl px-5 py-3 flex flex-wrap gap-6 text-sm">
-                    <div class="text-center">
-                        <div class="text-xs text-muted">Lernende</div>
-                        <div class="font-bold text-text text-lg">{{ $lernende->count() }}</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xs text-muted">Noten gesamt</div>
-                        <div class="font-bold text-text text-lg">{{ $gesamtTotal }}</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xs text-muted">Ø Schule</div>
-                        <div class="font-bold text-lg {{ $avgColor }}">{{ $gesamtAvg !== null ? number_format($gesamtAvg, 2) : '–' }}</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-xs text-muted">Bestehensquote</div>
-                        <div class="font-bold text-lg {{ $passRate !== null ? ($passRate >= 75 ? 'text-green-700 dark:text-green-400' : ($passRate >= 50 ? 'text-yellow-700 dark:text-yellow-400' : 'text-red-600 dark:text-red-400')) : 'text-muted' }}">
-                            {{ $passRate !== null ? $passRate . ' %' : '–' }}
-                        </div>
-                    </div>
-                </div>
-            @endif
+            @if($k['zeugnisnoten'] > 0)
+                <div class="grid lg:grid-cols-2 gap-5">
+                    <x-karte titel="Verteilung der Zeugnisnoten">
+                        <div class="h-56" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="Verteilung der Zeugnisnoten" role="img"></canvas></div>
+                    </x-karte>
 
-            {{-- Notenverteilung (Histogramm 1.0–6.0) --}}
-            @php $maxBucket = $notenVerteilung->max('count'); @endphp
-            @if($gesamtTotal > 0 && $maxBucket > 0)
-                <div class="glass rounded-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b border-border flex items-center justify-between">
-                        <h3 class="font-semibold text-text">Notenverteilung</h3>
-                        <span class="text-[11px] text-muted">{{ $gesamtTotal }} Noten in 0.5er-Schritten</span>
-                    </div>
-                    <div class="p-5">
-                        <div class="flex items-end gap-1.5 h-36">
-                            @foreach($notenVerteilung as $nv)
-                                @php
-                                    $bVal = (float) $nv->bucket;
-                                    $hPct = $maxBucket > 0 ? round($nv->count / $maxBucket * 100) : 0;
-                                    $barColor = $bVal >= 5.0 ? 'bg-green-500'
-                                        : ($bVal >= 4.0 ? 'bg-emerald-500'
-                                        : ($bVal >= 3.5 ? 'bg-yellow-500'
-                                        : 'bg-red-500'));
-                                @endphp
-                                <div class="flex-1 flex flex-col items-center justify-end h-full gap-1"
-                                     title="Note {{ $nv->bucket }}: {{ $nv->count }} {{ $nv->count === 1 ? 'Note' : 'Noten' }}">
-                                    <span class="text-[10px] text-muted tabular-nums leading-none">{{ $nv->count > 0 ? $nv->count : '' }}</span>
-                                    <div class="w-full rounded-t {{ $barColor }} {{ $nv->count === 0 ? 'opacity-20' : 'opacity-90' }}"
-                                         style="height: {{ max($hPct, $nv->count > 0 ? 3 : 1) }}%"></div>
-                                    <span class="text-[10px] text-muted tabular-nums leading-none">{{ $nv->bucket }}</span>
+                    <x-karte titel="Kategorien" :polster="false">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full text-sm text-text">
+                                <thead class="text-muted text-xs">
+                                    <tr class="border-b border-border">
+                                        <th class="text-left px-5 py-2 font-medium">Kategorie</th>
+                                        <th class="text-right px-3 py-2 font-medium">Ø</th>
+                                        <th class="text-right px-3 py-2 font-medium whitespace-nowrap">Min – Max</th>
+                                        <th class="text-right px-3 py-2 font-medium">Ungenügend</th>
+                                        @if($sid)<th class="text-right px-5 py-2 font-medium whitespace-nowrap">Promotion gefährdet</th>@endif
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    @foreach($kategorien as $kat)
+                                        <tr>
+                                            <td class="px-5 py-2.5 font-medium">{{ $kat['name'] }} <span class="text-xs text-muted font-normal">{{ $kat['anzahl'] }}</span></td>
+                                            <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($kat['schnitt']) }}">{{ \App\Support\NotenSkala::format($kat['schnitt'], 2) }}</td>
+                                            <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ \App\Support\NotenSkala::format($kat['min'], 1) }} – {{ \App\Support\NotenSkala::format($kat['max'], 1) }}</td>
+                                            <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $kat['ungenuegend'], 'text-muted' => ! $kat['ungenuegend']])>{{ $kat['ungenuegend'] }}</td>
+                                            @if($sid)
+                                                <td @class(['px-5 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $kat['gefaehrdet'], 'text-muted' => ! $kat['gefaehrdet']])>{{ $kat['gefaehrdet'] }}</td>
+                                            @endif
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </x-karte>
+                </div>
+
+                <x-karte titel="Tiefste Fächer und Module">
+                    <ul class="grid md:grid-cols-2 gap-x-8 gap-y-3">
+                        @foreach($schwachstellen as $s)
+                            @php $breite = max(2, min(100, ($s['schnitt'] - 1) / 5 * 100)); @endphp
+                            <li class="flex flex-col gap-1">
+                                <div class="flex items-baseline justify-between gap-3 text-sm">
+                                    <span class="truncate text-text font-medium">{{ $s['label'] }} <span class="text-xs text-muted font-normal">{{ $s['kategorie'] }}</span></span>
+                                    <span class="font-bold tabular-nums {{ \App\Support\NotenSkala::text($s['schnitt']) }}">{{ \App\Support\NotenSkala::format($s['schnitt'], 2) }}</span>
                                 </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+                                <div class="h-1.5 rounded-full bg-accent/10 overflow-hidden"><div class="h-full rounded-full {{ \App\Support\NotenSkala::balken($s['schnitt']) }}" style="width: {{ $breite }}%"></div></div>
+                                <div class="text-xs text-muted">{{ $s['anzahl'] }} {{ $s['anzahl'] === 1 ? 'Zeugnisnote' : 'Zeugnisnoten' }}@if($s['ungenuegend']) · <span class="text-red-600 dark:text-red-400">{{ $s['ungenuegend'] }} ungenügend</span>@endif</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-karte>
             @endif
 
-            {{-- Tabelle --}}
-            <div class="glass rounded-2xl overflow-hidden">
+            <x-karte titel="Lernende" :polster="false">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
-                        <thead class="bg-bg text-muted">
-                            <tr>
-                                @php
-                                    $sortLink = function ($col, $label) use ($sortBy, $sortDir) {
-                                        $isActive = $sortBy === $col;
-                                        $nextDir = $isActive && $sortDir === 'asc' ? 'desc' : 'asc';
-                                        $arrow = !$isActive ? '<span class="text-muted/50">⇅</span>' : ($sortDir === 'asc' ? '↑' : '↓');
-                                        $url = request()->fullUrlWithQuery(['sort' => $col, 'dir' => $nextDir]);
-                                        return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text '.($isActive ? 'text-text font-semibold' : '').'">'.$label.' '.$arrow.'</a>';
-                                    };
-                                @endphp
-                                <th class="text-left p-3">{!! $sortLink('name', 'Lernender') !!}</th>
-                                <th class="text-left p-3">Lehrberuf</th>
-                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('total', 'Noten') !!}</th>
-                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('avg', 'Ø gewichtet') !!}</th>
-                                <th class="text-center p-3 whitespace-nowrap">Bestanden</th>
-                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('quote', 'Quote') !!}</th>
-                                <th class="text-center p-3 whitespace-nowrap">{!! $sortLink('last', 'Letzte Note') !!}</th>
-                                <th class="text-right p-3"></th>
+                        <thead class="text-muted text-xs">
+                            <tr class="border-b border-border">
+                                <th class="text-left px-5 py-2 font-medium"><a href="{{ $sortUrl('name') }}" class="hover:text-text">Name {{ $pfeil('name') }}</a></th>
+                                <th class="text-left px-3 py-2 font-medium"><a href="{{ $sortUrl('status') }}" class="hover:text-text">Status {{ $pfeil('status') }}</a></th>
+                                <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="hover:text-text">Gesamt {{ $pfeil('gesamt') }}</a></th>
+                                @if($sid)
+                                    <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('semester', 'desc') }}" class="hover:text-text">Semester {{ $pfeil('semester') }}</a></th>
+                                @endif
+                                <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="hover:text-text">Ungenügend {{ $pfeil('ungenuegend') }}</a></th>
+                                <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="hover:text-text">Prüfungen {{ $pfeil('pruefungen') }}</a></th>
+                                <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text">Letzte Note {{ $pfeil('letzte') }}</a></th>
+                                <th class="px-5 py-2 print:hidden"><span class="sr-only">Noten</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
-                            @forelse($lernende as $l)
-                                @php
-                                    $s = $stats->get((int) $l->lernender_id);
-                                    $total  = (int) ($s?->total  ?? 0);
-                                    $passed = (int) ($s?->passed ?? 0);
-                                    $avg    = $s?->avg_weighted !== null ? (float) $s->avg_weighted : null;
-                                    $quote  = $total > 0 ? round($passed / $total * 100) : null;
-                                    $last   = $s?->last_entry ? \Carbon\Carbon::parse($s->last_entry) : null;
-
-                                    $avgColor = $avg === null ? 'text-muted'
-                                        : ($avg >= 5.0 ? 'text-green-700 dark:text-green-400'
-                                        : ($avg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
-                                        : ($avg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
-                                        : 'text-red-600 dark:text-red-400')));
-                                    $quoteColor = $quote === null ? 'text-muted'
-                                        : ($quote >= 75 ? 'text-green-700 dark:text-green-400'
-                                        : ($quote >= 50 ? 'text-yellow-700 dark:text-yellow-400'
-                                        : 'text-red-600 dark:text-red-400'));
-                                @endphp
-                                <tr class="hover:bg-bg">
-                                    <td class="p-3">
-                                        <a href="{{ route('admin.lernende.show', $l->lernender_id) }}"
-                                           class="font-medium hover:text-accent">
-                                            {{ $l->nachname }} {{ $l->vorname }}
-                                        </a>
+                            @forelse($zeilen as $z)
+                                <tr class="hover:bg-accent/5">
+                                    <td class="px-5 py-2.5 whitespace-nowrap">
+                                        <a href="{{ route('admin.lernende.show', $z->id) }}" class="font-medium hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                        @if($z->lehrberuf)<span class="ml-1 text-xs text-muted">{{ $z->lehrberuf }}</span>@endif
                                     </td>
-                                    <td class="p-3 text-muted">
-                                        @if($l->lehrberuf)
-                                            {{ $l->lehrberuf }}
-                                            @if($l->kuerzel)
-                                                <span class="text-xs">({{ $l->kuerzel }})</span>
+                                    <td class="px-3 py-2.5">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <x-status :status="$z->stand->status" />
+                                            @if($z->stand->gruende)
+                                                <span class="text-xs text-muted truncate max-w-64" title="{{ implode(' · ', $z->stand->gruende) }}">{{ $z->stand->gruende[0] }}@if(count($z->stand->gruende) > 1) +{{ count($z->stand->gruende) - 1 }}@endif</span>
                                             @endif
-                                        @else
-                                            <span class="italic">–</span>
-                                        @endif
+                                        </div>
                                     </td>
-                                    <td class="p-3 text-center">
-                                        @if($total > 0)
-                                            {{ $total }}
-                                        @else
-                                            <span class="text-muted">0</span>
-                                        @endif
-                                    </td>
-                                    <td class="p-3 text-center font-semibold {{ $avgColor }}">
-                                        {{ $avg !== null ? number_format($avg, 2) : '–' }}
-                                    </td>
-                                    <td class="p-3 text-center text-muted">
-                                        @if($total > 0)
-                                            {{ $passed }} / {{ $total }}
-                                        @else
-                                            –
-                                        @endif
-                                    </td>
-                                    <td class="p-3 text-center font-semibold {{ $quoteColor }}">
-                                        {{ $quote !== null ? $quote . ' %' : '–' }}
-                                    </td>
-                                    <td class="p-3 text-center text-muted whitespace-nowrap">
-                                        {{ $last ? $last->format('d.m.Y') : '–' }}
-                                    </td>
-                                    <td class="p-3 text-right">
-                                        <a href="{{ route('admin.lernende.noten.index', array_merge(['lernender_id' => $l->lernender_id], $semesterId ? ['semester_id' => $semesterId] : [])) }}"
-                                           class="text-xs text-accent hover:underline whitespace-nowrap">
-                                            Noten →
-                                        </a>
+                                    <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($z->gesamt) }}">{{ \App\Support\NotenSkala::format($z->gesamt, 1) }}</td>
+                                    @if($sid)
+                                        <td class="px-3 py-2.5 text-right font-semibold tabular-nums {{ \App\Support\NotenSkala::text($z->semester) }}">{{ \App\Support\NotenSkala::format($z->semester, 1) }}</td>
+                                    @endif
+                                    <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $z->ungenuegend, 'text-muted' => ! $z->ungenuegend])>{{ $z->ungenuegend }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ $z->pruefungen }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
+                                    <td class="px-5 py-2.5 text-right print:hidden">
+                                        <a href="{{ route('admin.lernende.noten.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="text-xs text-accent hover:underline whitespace-nowrap">Noten →</a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="p-10 text-center">
-                                        <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        <p class="mt-3 text-sm text-muted">Keine Lernenden für diese Filter gefunden.</p>
-                                        @if($semesterId || $lehrberufId || $berufsbildnerId)
-                                            <a href="{{ route('admin.berichte.noten') }}" class="mt-3 inline-block text-xs text-accent hover:underline">Filter zurücksetzen</a>
+                                    <td colspan="8" class="px-5 py-10 text-center text-sm text-muted">
+                                        Keine Lernenden
+                                        @if($filterAktiv)
+                                            <a href="{{ route('admin.berichte.noten') }}" class="ml-2 text-accent hover:underline">Filter zurücksetzen</a>
                                         @endif
                                     </td>
                                 </tr>
@@ -264,70 +180,7 @@
                         </tbody>
                     </table>
                 </div>
-                @if($lernende->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-border text-xs text-muted">
-                        {{ $lernende->count() }} Lernende
-                    </div>
-                @endif
-            </div>
-
-            {{-- Kategorie-Übersicht --}}
-            @if($kategorieStats->isNotEmpty())
-                <div class="glass rounded-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b border-border">
-                        <h3 class="font-semibold text-text">Übersicht nach Kategorie</h3>
-                        <p class="text-xs text-muted mt-0.5">Aggregiert über alle angezeigten Lernenden{{ $semesterId ? ' im gewählten Semester' : '' }}</p>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-text">
-                            <thead class="bg-bg text-muted">
-                                <tr>
-                                    <th class="text-left p-3">Kategorie</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Noten</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Ø gewichtet</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Bestanden</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Quote</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Min / Max</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-border">
-                                @foreach($kategorieStats as $ks)
-                                    @php
-                                        $ksAvg    = $ks->avg_weighted !== null ? (float) $ks->avg_weighted : null;
-                                        $ksQuote  = $ks->total > 0 ? round($ks->passed / $ks->total * 100) : null;
-                                        $ksAvgCol = $ksAvg === null ? 'text-muted'
-                                            : ($ksAvg >= 5.0 ? 'text-green-700 dark:text-green-400'
-                                            : ($ksAvg >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
-                                            : ($ksAvg >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
-                                            : 'text-red-600 dark:text-red-400')));
-                                        $ksQCol   = $ksQuote === null ? 'text-muted'
-                                            : ($ksQuote >= 75 ? 'text-green-700 dark:text-green-400'
-                                            : ($ksQuote >= 50 ? 'text-yellow-700 dark:text-yellow-400'
-                                            : 'text-red-600 dark:text-red-400'));
-                                    @endphp
-                                    <tr class="hover:bg-bg">
-                                        <td class="p-3 font-medium">{{ $ks->kategorie_name }}</td>
-                                        <td class="p-3 text-center text-muted">{{ $ks->total }}</td>
-                                        <td class="p-3 text-center font-semibold {{ $ksAvgCol }}">
-                                            {{ $ksAvg !== null ? number_format($ksAvg, 2) : '–' }}
-                                        </td>
-                                        <td class="p-3 text-center text-muted">
-                                            {{ $ks->passed }} / {{ $ks->total }}
-                                        </td>
-                                        <td class="p-3 text-center font-semibold {{ $ksQCol }}">
-                                            {{ $ksQuote !== null ? $ksQuote . ' %' : '–' }}
-                                        </td>
-                                        <td class="p-3 text-center text-muted">
-                                            {{ number_format((float)$ks->note_min, 1) }} / {{ number_format((float)$ks->note_max, 1) }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
+            </x-karte>
         </div>
     </div>
 </x-app-layout>

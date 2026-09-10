@@ -12,7 +12,7 @@
     $icon = fn (string $n) => \App\Support\Navigation::icon($n);
 @endphp
 
-<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-subtle sticky top-0 z-50" aria-label="Hauptnavigation">
+<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-subtle sticky top-0 z-50 print:hidden" aria-label="Hauptnavigation">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center gap-3">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 shrink-0 mr-2 rounded-xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
             <x-application-logo class="w-8 h-8" />

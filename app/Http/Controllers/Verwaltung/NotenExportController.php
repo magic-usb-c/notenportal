@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Lernender;
+use App\Services\Notenblatt;
 use App\Support\Csv;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -17,33 +18,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /** Druckansicht und CSV-Exporte – immer beschränkt auf sichtbare Lernende. */
 class NotenExportController extends VerwaltungController
 {
-    public function drucken(Request $request, int $lernender_id): Response
+    public function drucken(Request $request, int $lernender_id, Notenblatt $notenblatt): Response
     {
-        $lernender = $this->sichtbarerLernender($request, $lernender_id)->load('lehrberuf');
+        $lernender = $this->sichtbarerLernender($request, $lernender_id);
 
-        $noten = $this->notenQuery([$lernender_id])
-            ->orderBy('s.sortierung')
-            ->orderBy('n.pruefungsdatum')
-            ->orderBy('n.note_id')
-            ->get();
-
-        $semesterNoten = $noten
-            ->groupBy('semester_id')
-            ->map(fn ($items) => [
-                'bezeichnung' => $items->first()->semester_bezeichnung,
-                'noten' => $items,
-            ])
-            ->values()
-            ->toArray();
-
-        return response()->view('lernender.noten.drucken', [
-            'lernender' => (object) ['vorname' => $lernender->benutzer->vorname, 'nachname' => $lernender->benutzer->nachname],
-            'profil' => (object) [
-                'lehrbeginn' => $lernender->lehrbeginn?->toDateString(),
-                'lehrende' => $lernender->lehrende?->toDateString(),
-                'lehrberuf_name' => $lernender->lehrberuf?->name,
-            ],
-            'semesterNoten' => $semesterNoten,
+        return response()->view('noten.notenblatt', [
+            'blatt' => $notenblatt->fuer($lernender),
+            'zurueck' => $this->zuRoute($request, 'lernende.noten.index', $lernender_id),
         ]);
     }
 

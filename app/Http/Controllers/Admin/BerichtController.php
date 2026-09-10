@@ -5,249 +5,86 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Lernstand;
+use App\Services\Bericht;
 use App\Support\Csv;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/** Notenbericht über den Betrieb; ohne Semesterwahl gilt das laufende Semester, «alle» die ganze Lehrzeit. */
 class BerichtController extends Controller
 {
-    public function noten(Request $request)
+    private const array STATUS = [Lernstand::ROT => 'kritisch', Lernstand::GELB => 'beobachten', Lernstand::GRUEN => 'im Plan'];
+
+    public function __construct(private readonly Bericht $bericht) {}
+
+    public function noten(Request $request): View
     {
-        $semesterId = $request->filled('semester_id') ? (int) $request->input('semester_id') : null;
-        $lehrberufId = $request->filled('lehrberuf_id') ? (int) $request->input('lehrberuf_id') : null;
-        $berufsbildnerId = $request->filled('berufsbildner_id') ? (int) $request->input('berufsbildner_id') : null;
-
-        $today = now()->toDateString();
-
-        $lernendeQ = DB::table('lernende as l')
-            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
-            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
-            ->whereNull('l.geloescht_am')
-            ->whereNull('b.geloescht_am')
-            ->where('b.aktiv', 1)
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf', 'lb.kuerzel'])
-            ->orderBy('b.nachname')
-            ->orderBy('b.vorname');
-
-        if ($lehrberufId) {
-            $lernendeQ->where('l.lehrberuf_id', $lehrberufId);
-        }
-
-        if ($berufsbildnerId) {
-            $lernendeQ->whereIn('l.lernender_id', function ($sub) use ($berufsbildnerId, $today) {
-                $sub->select('lernender_id')
-                    ->from('betreuungen')
-                    ->where('berufsbildner_id', $berufsbildnerId)
-                    ->where('gueltig_von', '<=', $today)
-                    ->where(fn ($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
-            });
-        }
-
-        $lernende = $lernendeQ->get();
-        $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
-
-        $statsQ = DB::table('noten as n')
-            ->whereIn('n.lernender_id', $ids)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('n.lernender_id')
-            ->select([
-                'n.lernender_id',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
-                DB::raw('MAX(n.pruefungsdatum) as last_entry'),
-            ]);
-
-        if ($semesterId) {
-            $statsQ->where('n.semester_id', $semesterId);
-        }
-
-        $stats = $statsQ->get()->keyBy('lernender_id');
-
-        // Sortierung der Berichtstabelle (Name | total | avg | quote | last)
-        $sortBy = $request->input('sort', 'name');
-        $sortDir = $request->input('dir', 'asc') === 'desc' ? 'desc' : 'asc';
-
-        $sortValue = function ($l) use ($stats, $sortBy) {
-            $s = $stats->get((int) $l->lernender_id);
-
-            return match ($sortBy) {
-                'total' => (int) ($s?->total ?? 0),
-                'avg' => $s?->avg_weighted !== null ? (float) $s->avg_weighted : -1,
-                'quote' => ($s && $s->total > 0) ? $s->passed / $s->total : -1,
-                'last' => $s?->last_entry ?? '',
-                default => mb_strtolower($l->nachname.' '.$l->vorname),
-            };
-        };
-
-        $lernende = ($sortDir === 'desc'
-            ? $lernende->sortByDesc($sortValue)
-            : $lernende->sortBy($sortValue))->values();
-
-        $semester = DB::table('semester')->orderBy('sortierung')->get();
-        $lehrberufe = DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get();
-        $berufsbildner = DB::table('berufsbildner as bb')
-            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
-            ->whereNull('bb.geloescht_am')
-            ->whereNull('b.geloescht_am')
-            ->where('b.aktiv', 1)
-            ->select(['bb.berufsbildner_id', 'b.vorname', 'b.nachname'])
-            ->orderBy('b.nachname')
-            ->orderBy('b.vorname')
-            ->get();
-
-        // Kategorie-Übersicht (aggregiert über die aktuelle Auswahl)
-        $kategorieStatsQ = DB::table('noten as n')
-            ->join('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
-            ->whereIn('n.lernender_id', $ids)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('n.kategorie_id', 'k.name', 'k.sortierung')
-            ->select([
-                'n.kategorie_id',
-                'k.name as kategorie_name',
-                'k.sortierung',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
-                DB::raw('MIN(n.note_wert) as note_min'),
-                DB::raw('MAX(n.note_wert) as note_max'),
-            ])
-            ->orderBy('k.sortierung');
-
-        if ($semesterId) {
-            $kategorieStatsQ->where('n.semester_id', $semesterId);
-        }
-
-        $kategorieStats = $kategorieStatsQ->get();
-
-        $alleNoten = $stats->values();
-        $gesamtTotal = $alleNoten->sum('total');
-        $gesamtPassed = $alleNoten->sum('passed');
-        $gesamtAvg = $alleNoten->filter(fn ($s) => $s->avg_weighted !== null)->avg('avg_weighted');
-
-        // Notenverteilung in 0.5er-Schritten (Histogramm, gleiche Filter)
-        $verteilungQ = DB::table('noten as n')
-            ->whereIn('n.lernender_id', $ids)
-            ->whereNull('n.geloescht_am')
-            ->groupBy(DB::raw('ROUND(n.note_wert * 2) / 2'))
-            ->select([
-                DB::raw('ROUND(n.note_wert * 2) / 2 as bucket'),
-                DB::raw('COUNT(*) as count'),
-            ]);
-
-        if ($semesterId) {
-            $verteilungQ->where('n.semester_id', $semesterId);
-        }
-
-        $verteilungRaw = $verteilungQ->get()->keyBy(fn ($r) => number_format((float) $r->bucket, 1));
-
-        // Alle Buckets 1.0–6.0 auffüllen, damit das Histogramm lückenlos ist
-        $notenVerteilung = collect();
-        for ($b = 1.0; $b <= 6.0; $b += 0.5) {
-            $key = number_format($b, 1);
-            $notenVerteilung->push((object) [
-                'bucket' => $key,
-                'count' => (int) ($verteilungRaw->get($key)?->count ?? 0),
-            ]);
-        }
+        $filter = $this->filter($request);
+        $sort = in_array($request->input('sort'), Bericht::SORTIERUNGEN, true) ? (string) $request->input('sort') : 'status';
+        $dir = $request->input('dir') === 'desc' ? 'desc' : 'asc';
 
         return view('admin.berichte.noten', [
-            'lernende' => $lernende,
-            'stats' => $stats,
-            'semester' => $semester,
-            'lehrberufe' => $lehrberufe,
-            'berufsbildner' => $berufsbildner,
-            'semesterId' => $semesterId,
-            'lehrberufId' => $lehrberufId,
-            'berufsbildnerId' => $berufsbildnerId,
-            'kategorieStats' => $kategorieStats,
-            'gesamtTotal' => $gesamtTotal,
-            'gesamtPassed' => $gesamtPassed,
-            'gesamtAvg' => $gesamtAvg !== null ? round((float) $gesamtAvg, 2) : null,
-            'notenVerteilung' => $notenVerteilung,
-            'sortBy' => $sortBy,
-            'sortDir' => $sortDir,
+            ...$this->bericht->noten($filter, $sort, $dir),
+            'filter' => $filter,
+            'sort' => $sort,
+            'dir' => $dir,
+            'semester' => DB::table('semester')->where('start_datum', '<=', now()->toDateString())->orderByDesc('sortierung')->get(['semester_id', 'bezeichnung']),
+            'lehrberufe' => DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get(['lehrberuf_id', 'name']),
+            'berufsbildner' => DB::table('berufsbildner as bb')
+                ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+                ->whereNull('bb.geloescht_am')
+                ->whereNull('b.geloescht_am')
+                ->where('b.aktiv', 1)
+                ->orderBy('b.nachname')
+                ->orderBy('b.vorname')
+                ->get(['bb.berufsbildner_id', 'b.vorname', 'b.nachname']),
         ]);
     }
 
     public function notenExport(Request $request): StreamedResponse
     {
-        $semesterId = $request->filled('semester_id') ? (int) $request->input('semester_id') : null;
-        $lehrberufId = $request->filled('lehrberuf_id') ? (int) $request->input('lehrberuf_id') : null;
-        $berufsbildnerId = $request->filled('berufsbildner_id') ? (int) $request->input('berufsbildner_id') : null;
+        $filter = $this->filter($request);
+        $zeilen = $this->bericht->noten($filter, 'name')['zeilen'];
+        $mitSemester = $filter['semester_id'] !== null;
+        $zahl = fn (?float $n) => $n !== null ? number_format($n, 1, '.', '') : '';
 
-        $today = now()->toDateString();
-
-        $lernendeQ = DB::table('lernende as l')
-            ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
-            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
-            ->whereNull('l.geloescht_am')
-            ->whereNull('b.geloescht_am')
-            ->where('b.aktiv', 1)
-            ->select(['l.lernender_id', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf'])
-            ->orderBy('b.nachname')->orderBy('b.vorname');
-
-        if ($lehrberufId) {
-            $lernendeQ->where('l.lehrberuf_id', $lehrberufId);
-        }
-
-        if ($berufsbildnerId) {
-            $lernendeQ->whereIn('l.lernender_id', function ($sub) use ($berufsbildnerId, $today) {
-                $sub->select('lernender_id')
-                    ->from('betreuungen')
-                    ->where('berufsbildner_id', $berufsbildnerId)
-                    ->where('gueltig_von', '<=', $today)
-                    ->where(fn ($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $today));
-            });
-        }
-
-        $lernende = $lernendeQ->get();
-        $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
-
-        $statsQ = DB::table('noten as n')
-            ->whereIn('n.lernender_id', $ids)
-            ->whereNull('n.geloescht_am')
-            ->groupBy('n.lernender_id')
-            ->select([
-                'n.lernender_id',
-                DB::raw('COUNT(*) as total'),
-                DB::raw('SUM(CASE WHEN n.note_wert >= 4.0 THEN 1 ELSE 0 END) as passed'),
-                DB::raw('ROUND(SUM(n.note_wert * COALESCE(n.gewichtung_prozent,100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent,100)),0), 2) as avg_weighted'),
-                DB::raw('MAX(n.pruefungsdatum) as last_entry'),
-            ]);
-
-        if ($semesterId) {
-            $statsQ->where('n.semester_id', $semesterId);
-        }
-
-        $stats = $statsQ->get()->keyBy('lernender_id');
-        $filename = 'notenuebersicht_'.now()->format('Ymd').'.csv';
-
-        return response()->streamDownload(function () use ($lernende, $stats) {
+        return response()->streamDownload(function () use ($zeilen, $mitSemester, $zahl) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Name', 'Vorname', 'Lehrberuf', 'Noten', 'Ø gewichtet', 'Bestanden', 'Quote %', 'Letzte Note'], ';');
+            fputcsv($out, ['Nachname', 'Vorname', 'Lehrberuf', 'Status', 'Gesamtnote', ...($mitSemester ? ['Semesternote'] : []),
+                'Ungenügende Zeugnisnoten', 'Prüfungen', 'Letzte Note', 'Gründe'], ';');
 
-            foreach ($lernende as $l) {
-                $s = $stats->get((int) $l->lernender_id);
-                $total = $s?->total ?? 0;
-                $passed = $s?->passed ?? 0;
-                $avg = $s?->avg_weighted !== null ? number_format((float) $s->avg_weighted, 2, '.', '') : '';
-                $quote = $total > 0 ? round($passed / $total * 100) : '';
-                $last = $s?->last_entry ? Carbon::parse($s->last_entry)->format('d.m.Y') : '';
-
+            foreach ($zeilen as $z) {
                 fputcsv($out, [
-                    Csv::safe($l->nachname), Csv::safe($l->vorname), $l->lehrberuf ?? '',
-                    $total, $avg, $passed, $quote, $last,
+                    Csv::safe($z->nachname), Csv::safe($z->vorname), Csv::safe((string) $z->lehrberuf),
+                    self::STATUS[$z->stand->status], $zahl($z->gesamt), ...($mitSemester ? [$zahl($z->semester)] : []),
+                    $z->ungenuegend, $z->pruefungen, $z->letzte ? Carbon::parse($z->letzte)->format('d.m.Y') : '',
+                    Csv::safe(implode(', ', $z->stand->gruende)),
                 ], ';');
             }
 
             fclose($out);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
-        ]);
+        }, 'notenbericht_'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /** @return array{semester_id: ?int, lehrberuf_id: ?int, berufsbildner_id: ?int} */
+    private function filter(Request $request): array
+    {
+        $wahl = (string) $request->input('semester', '');
+
+        return [
+            'semester_id' => match (true) {
+                $wahl === 'alle' => null,
+                ctype_digit($wahl) => (int) $wahl,
+                default => Konfiguration::ausDb()->semesterFuerDatum(now()->toDateString()),
+            },
+            'lehrberuf_id' => $request->integer('lehrberuf_id') ?: null,
+            'berufsbildner_id' => $request->integer('berufsbildner_id') ?: null,
+        ];
     }
 }

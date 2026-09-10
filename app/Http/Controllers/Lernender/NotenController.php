@@ -7,10 +7,12 @@ use App\Models\Kategorie;
 use App\Models\Note;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
+use App\Services\Notenblatt;
 use App\Services\Uebersicht;
 use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -183,7 +185,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('success','Note gespeichert.');
+        return redirect()->route('lernender.noten.index', $params)->with('success', 'Note gespeichert.');
     }
 
     public function edit(Request $request, int $note_id)
@@ -248,7 +250,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('success','Note aktualisiert.');
+        return redirect()->route('lernender.noten.index', $params)->with('success', 'Note aktualisiert.');
     }
 
     /**
@@ -322,61 +324,14 @@ class NotenController extends Controller
     /**
      * Druckansicht: alle Noten sortiert nach Semester, ohne Layout-Shell.
      */
-    public function drucken(Request $request)
+    public function drucken(Request $request, Notenblatt $notenblatt): Response
     {
-        $user = $request->user();
-        $lernender = $user?->lernender;
+        $lernender = $request->user()?->lernender;
+        abort_if(! $lernender, 403);
 
-        if (! $lernender) {
-            abort(403);
-        }
-
-        $lernenderId = (int) $lernender->lernender_id;
-
-        $profil = DB::table('lernende as l')
-            ->leftJoin('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'l.lehrberuf_id')
-            ->where('l.lernender_id', $lernenderId)
-            ->select(['l.lehrbeginn', 'l.lehrende', 'lb.name as lehrberuf_name'])
-            ->first();
-
-        $noten = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'n.kategorie_id')
-            ->leftJoin('faecher as f', 'f.fach_id', '=', 'n.fach_id')
-            ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
-            ->leftJoin('module as m', 'm.modul_id', '=', 'mb.modul_id')
-            ->where('n.lernender_id', $lernenderId)
-            ->whereNull('n.geloescht_am')
-            ->orderBy('s.sortierung')
-            ->orderBy('n.pruefungsdatum')
-            ->orderBy('n.note_id')
-            ->select([
-                'n.note_id', 'n.pruefungsdatum', 'n.note_wert', 'n.gewichtung_prozent', 'n.titel',
-                's.semester_id', 's.bezeichnung as semester_bezeichnung', 's.sortierung',
-                'k.name as kategorie_name',
-                'f.name as fach_name',
-                'm.modul_nummer', 'm.titel as modul_titel',
-            ])
-            ->get();
-
-        $semesterNoten = $noten
-            ->groupBy('semester_id')
-            ->map(fn ($items) => [
-                'bezeichnung' => $items->first()->semester_bezeichnung,
-                'noten' => $items,
-            ])
-            ->values()
-            ->toArray();
-
-        $lernenderObj = (object) [
-            'vorname' => $user->vorname,
-            'nachname' => $user->nachname,
-        ];
-
-        return response()->view('lernender.noten.drucken', [
-            'lernender' => $lernenderObj,
-            'profil' => $profil,
-            'semesterNoten' => $semesterNoten,
+        return response()->view('noten.notenblatt', [
+            'blatt' => $notenblatt->fuer($lernender),
+            'zurueck' => route('lernender.noten.index'),
         ]);
     }
 
@@ -454,6 +409,6 @@ class NotenController extends Controller
 
         return redirect()
             ->route('lernender.noten.index', ['semester_id' => $note->semester_id])
-            ->with('success','Note gelöscht.');
+            ->with('success', 'Note gelöscht.');
     }
 }
