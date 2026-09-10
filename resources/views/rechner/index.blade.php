@@ -36,7 +36,7 @@
                             <form method="POST" :action="@js(route('lernender.ziele.destroy', 0)).replace(/0$/, z.id)" class="pr-1">
                                 @csrf
                                 @method('DELETE')
-                                <button class="w-8 h-8 inline-flex items-center justify-center rounded-full text-muted hover:text-text hover:bg-bg" aria-label="Ziel entfernen">×</button>
+                                <button class="w-9 h-9 inline-flex items-center justify-center rounded-full text-muted hover:text-text hover:bg-bg" aria-label="Ziel entfernen">×</button>
                             </form>
                         @endif
                     </div>

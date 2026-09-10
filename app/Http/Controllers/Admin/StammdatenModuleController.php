@@ -52,7 +52,7 @@ class StammdatenModuleController extends Controller
         ]);
 
         return redirect()->route('admin.stammdaten.module.index')
-            ->with('status', 'Modul angelegt.');
+            ->with('success', 'Modul angelegt.');
     }
 
     public function edit(int $modul_id)
@@ -85,6 +85,6 @@ class StammdatenModuleController extends Controller
         ]);
 
         return redirect()->route('admin.stammdaten.module.index')
-            ->with('status', 'Modul aktualisiert.');
+            ->with('success', 'Modul aktualisiert.');
     }
 }

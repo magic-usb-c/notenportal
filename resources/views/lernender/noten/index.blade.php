@@ -13,10 +13,10 @@
             <h2 class="font-semibold text-xl text-text">Noten</h2>
 
             <div class="inline-flex items-center glass rounded-full p-1 gap-1" role="group" aria-label="Semester">
-                <a @class(['inline-flex items-center justify-center w-9 h-8 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $prevSemesterId])
+                <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $prevSemesterId])
                    href="{{ $prevSemesterId ? route('lernender.noten.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="Vorheriges Semester">‹</a>
                 <span class="px-4 h-8 flex items-center rounded-full bg-accent/10 text-accent text-sm font-semibold whitespace-nowrap">{{ $semLabel }}</span>
-                <a @class(['inline-flex items-center justify-center w-9 h-8 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $nextSemesterId])
+                <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $nextSemesterId])
                    href="{{ $nextSemesterId ? route('lernender.noten.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="Nächstes Semester">›</a>
             </div>
 

@@ -63,7 +63,7 @@ class StammdatenSemesterController extends Controller
         ]);
 
         return redirect()->route('admin.stammdaten.semester.index')
-            ->with('status', 'Semester angelegt.');
+            ->with('success', 'Semester angelegt.');
     }
 
     public function edit(int $semester_id)
@@ -99,6 +99,6 @@ class StammdatenSemesterController extends Controller
         DB::table('semester')->where('semester_id', $semester_id)->update($validated);
 
         return redirect()->route('admin.stammdaten.semester.index')
-            ->with('status', 'Semester aktualisiert.');
+            ->with('success', 'Semester aktualisiert.');
     }
 }

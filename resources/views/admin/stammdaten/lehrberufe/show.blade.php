@@ -72,7 +72,7 @@
                                                   onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -171,7 +171,7 @@
                                                   onsubmit="return confirm('Fach {{ $f->name }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="text-xs text-red-600 dark:text-red-400 hover:underline disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>

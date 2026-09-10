@@ -23,6 +23,8 @@ Weiterführend: `docs/endspurt-plan.md` (Plan) · `docs/architektur.md` (Struktu
 - Schema nutzt CHECK-Constraints und Composite-FKs per `DB::statement` → nur MariaDB/MySQL, kein SQLite.
 - Jede Änderung ausserhalb des Repos (DB-Rechte, Apache, PHP, Backups) in `docs/betrieb.md` protokollieren.
 - Vor jedem Framework-Upgrade: `sudo mysqldump --single-transaction notenportal > ~/db-backups/…` + Git-Tag.
+- Die Arbeitskopie ist Prod: neue Migrationen zuerst gegen `notenportal_probe` (Prod-Kopie) testen, dann sofort auf `notenportal` anwenden. Vor Schema-Eingriffen Dump + Tag.
+- Alle Durchschnitte kommen aus `App\Services\Auswertung` (Regeln: `docs/notenlogik.md`), nie aus SQL, Controllern oder Views.
 
 ## Tests
 - `php artisan test` läuft gegen `notenportal_test`. Der Guard in `tests/TestCase.php` bricht bei jeder anderen DB ab – nie entfernen.

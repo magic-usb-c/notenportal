@@ -44,7 +44,7 @@
                                 <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('admin.stammdaten.semester.edit', $s->semester_id) }}"
-                                       class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>
                         @empty

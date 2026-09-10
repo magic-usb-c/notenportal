@@ -54,7 +54,7 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('admin.stammdaten.faecher.edit', $f->fach_id) }}"
-                                       class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>
                         @empty

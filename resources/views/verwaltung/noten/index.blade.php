@@ -17,7 +17,7 @@
                             @endif
                         @endforeach
                         <button type="submit" :disabled="loading"
-                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium whitespace-nowrap disabled:opacity-60">
+                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-accent text-sm font-medium whitespace-nowrap disabled:opacity-60">
                             Alle {{ $neuCount }} als gesehen markieren
                         </button>
                     </form>
@@ -176,7 +176,7 @@
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         <button type="submit" :disabled="loading"
-                                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium disabled:opacity-60">Als gesehen markieren</button>
+                                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-accent text-sm font-medium disabled:opacity-60">Als gesehen markieren</button>
                                     </form>
                                 @else
                                     <span class="text-xs text-muted">Gesehen am {{ $gesehen->gesehen_am->format('d.m.Y H:i') }} Uhr</span>

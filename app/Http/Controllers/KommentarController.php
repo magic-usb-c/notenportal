@@ -36,7 +36,7 @@ class KommentarController extends Controller
         ]);
 
         return back()
-            ->with('status', 'Kommentar gespeichert.')
+            ->with('success', 'Kommentar gespeichert.')
             ->with('opened_note', $note_id);
     }
 
@@ -54,6 +54,6 @@ class KommentarController extends Controller
 
         DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->delete();
 
-        return back()->with('status', 'Kommentar gelöscht.');
+        return back()->with('success', 'Kommentar gelöscht.');
     }
 }

@@ -45,7 +45,7 @@ class StammdatenKategorieController extends Controller
 
         return redirect()
             ->route('admin.stammdaten.kategorien.index')
-            ->with('status', 'Kategorie angelegt.');
+            ->with('success', 'Kategorie angelegt.');
     }
 
     public function edit(int $kategorie_id)
@@ -77,7 +77,7 @@ class StammdatenKategorieController extends Controller
 
         return redirect()
             ->route('admin.stammdaten.kategorien.index')
-            ->with('status', 'Kategorie aktualisiert.');
+            ->with('success', 'Kategorie aktualisiert.');
     }
 
     /**

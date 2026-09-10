@@ -44,6 +44,15 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **[mittel] markAlleGesehen markiert ALLE Noten, auch ausserhalb des aktiven Filters** — Button ist jetzt klar beschriftet («Alle N als gesehen markieren»), echte Filter-Einschränkung wäre Folgearbeit (Filter-Parameter im Form mitschicken).
 - **[niedrig] BB-Soft-Delete-Inkonsistenz** (Berufsbildner-Model ohne SoftDeletes trotz geloescht_am-Spalte) — adversarial geprüft: kein erreichbarer Exploit-Pfad (kein Code setzt die Spalte). Defense-in-Depth-Kandidat.
 
+## Qualitätsblock Notenlogik & Dashboards (10.09.2026) – bewusst weggelassen
+
+- **Zwischengruppen innerhalb eines Moduls** (`modul_note_gruppen`, `noten.gruppe_id`) entfernt statt ausgebaut: keine UI konnte sie anlegen, das Modul rechnet mit Ziel-Gewichtssumme. Falls ein Lehrbetrieb Teilnoten pro LB braucht, als eigene Ebene im Rechenkern nachrüsten.
+- **`bewertungsregeln`** entfernt: nie befüllt; Grenzwerte liegen in `einstellungen`, Rundung/Promotion pro Kategorie.
+- **Zielrechner mit unterschiedlichen Noten je offener Prüfung**: alle Unbekannten erhalten dieselbe Note (verständlichste Antwort auf «was brauche ich im Schnitt»). Individuelle Werte gehen über den Was-wäre-wenn-Modus.
+- **Aktivitätsdiagramm Admin nach `erstellt_am`**: in der Demo-DB wirken alle Noten am Seed-Tag erfasst; in echten Daten korrekt. Kein Umbau auf `pruefungsdatum`, weil «Erfassungsaktivität» die Frage ist.
+- **Lichtkanten-/Glow-Feinheiten** (oben, [niedrig]) weiterhin offen – kein Einfluss auf Lesbarkeit.
+- **Zebra-Streifen und sticky thead** in Stammdaten-, Berichts- und Dashboard-Tabellen nicht ergänzt: Tabellen liegen in Glass-Karten mit Trennlinien, Zebra auf transparentem Glass wirkt unruhig; die Tabellen sind kurz (< 30 Zeilen) oder paginiert. Bei langen Listen (Lernende > 50) nachrüsten.
+
 ## Hinweise
 
 - `bemerkung`-Feld auf `lernende` fehlt weiterhin (braucht manuelles sudo mysql, siehe CLAUDE.md)

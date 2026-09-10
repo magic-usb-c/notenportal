@@ -14,16 +14,6 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
 
-                @if ($errors->any())
-                    <div class="mb-4 rounded-xl border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-3 text-sm text-red-800 dark:text-red-200">
-                        <ul class="list-disc pl-5 space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 <form method="POST"
                       action="{{ route('admin.stammdaten.kategorien.update', $kategorie->kategorie_id) }}"
                       class="space-y-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

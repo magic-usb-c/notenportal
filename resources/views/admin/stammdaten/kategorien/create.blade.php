@@ -14,28 +14,18 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
 
-                @if ($errors->any())
-                    <div class="mb-4 rounded-xl border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-3 text-sm text-red-800 dark:text-red-200">
-                        <ul class="list-disc pl-5 space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
-
                 <form method="POST" action="{{ route('admin.stammdaten.kategorien.store') }}" class="space-y-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="code" class="text-xs uppercase tracking-widest text-muted font-medium">Code * <span class="text-xs font-normal">(max. 30 Zeichen)</span></label>
+                            <label for="code" class="text-xs uppercase tracking-widest text-muted font-medium">Code *</label>
                             <input type="text" id="code" name="code" value="{{ old('code') }}" required maxlength="30"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('code') border-red-400 @enderror">
                             @error('code')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name * <span class="text-xs font-normal">(max. 50 Zeichen)</span></label>
+                            <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name *</label>
                             <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="50"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-red-400 @enderror">
                             @error('name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror

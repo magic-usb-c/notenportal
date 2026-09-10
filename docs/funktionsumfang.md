@@ -1,30 +1,32 @@
 # Funktionsumfang
 
+Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/notenlogik.md`.
+
 ## Lernender
-- Noten CRUD mit Validierung, Soft-Delete; Viertelnoten (step 0.05)
-- Accordion nach Fach/Modul, gewichtete Durchschnitte, Kategorie-Auswertung (Fachunterricht/ÜK/BMS/ABU)
-- Semester-Navigation (←/→, schwebende Pill), Semester-Übersicht mit Balken
-- CSV-Export, Druckansicht mit Unterschriftenzeile
-- Noten-Rechner (Alpine, live), Live-Ø-Vorschau beim Erfassen mit Delta
-- Notiz inline bearbeiten (PATCH, ohne Reload), Gewichtungs-Schnellwahl 25/50/100 %
-- Tastatur: N = neu, Esc = Accordions schliessen, J/K = Navigation
-- Deep-Link `?_open=<note_id>` öffnet Semester und Accordion
+- Dashboard: Gesamt-, Semester- und Kategorienoten mit Verlauf, Ziele mit benötigter Durchschnittsnote, «Zu tun» (überfällige Prüfungen, neue Kommentare, fehlende Module), nächste Prüfungen, Verlauf- und Balkendiagramm (Kategorie/Fach/Semester umschaltbar), letzte Noten, Lehrzeit-Fortschritt
+- Noten je Semester: Kategorie → Fach/Modul mit Zeugnisnote, Schnitt vor Rundung, Modulfortschritt (offene Gewichtung), Promotionsstatus; Zeugnisübersicht über die Lehrzeit als Heatmap
+- Erfassen/Bearbeiten: ein Formular, Bezug Fach/Modul mit Vorauswahl, Semester aus dem Datum, Live-Auswirkung auf Fach/Modul, Kategorie, Semester und Gesamt; Viertelnoten
+- Prüfungen planen (Fach/Modul, Datum, Gewicht); überfällige erscheinen als Aufgabe, «Note erfassen» übernimmt die Prüfung
+- Ziele (Gesamt, Kategorie, Fach, Modul) mit benötigter Note
+- Notenrechner vorwärts (Was-wäre-wenn mit geplanten/angenommenen Noten, Vergleich vorher/nachher) und rückwärts (benötigte Note für ein Ziel, Kurve)
+- Notenblatt zum Drucken/PDF (Zeugnisnoten je Semester, Prüfungen, Promotion, Unterschriften), CSV-Export
+- Kommentare lesen, Titel inline bearbeiten, Deep-Link `?_open=<note_id>`
 
 ## Berufsbildner
-- Noten der betreuten Lernenden lesen, kommentieren (Ctrl/Cmd+Enter), als gesehen markieren, Neu-Badge, «Alle gesehen»
-- Lernende anlegen (Betreuung wird zugewiesen), Profil mit Lehrdaten inline, Tracks BMS/ABU
-- CSV-Export aller Noten betreuter Lernender
-- «Zu tun»: inaktiv 30 Tage, Ø < 4.0, Lehrende < 30 Tage
+- Dashboard: betreute Lernende nach Ampel sortiert (rot/gelb/grün mit Gründen: Promotion gefährdet, Semesterschnitt, ungenügende Zeugnisnoten, Einbrüche, Rückgang, fehlende Noten, Inaktivität), Brennpunkte, Vergleich, Prüfungen der nächsten 14 Tage, Lehrende bald
+- Lernenden-Cockpit: Stand, Verlauf, Heatmap, Ziele, Prüfungen, Rechner für den Lernenden
+- Noten lesen, korrigieren («geändert von»), kommentieren, als gesehen markieren; Notenblatt, CSV
+- Lernende anlegen, Betreuung, Tracks
 
 ## Admin
-- Benutzerverwaltung aller Rollen, Passwort-Generator, Rollen als Card-Radios
-- Schnellsuche Ctrl+K, Quick-Actions auf dem Dashboard
-- Betreuungen (neue beendet offene automatisch), Tracks
-- Stammdaten: Lehrberufe, Module, Fächer, Semester (Überlappungsprüfung), Kategorien
-- Berichte mit Kategorie-Auswertung, Histogramm, BB-Filter, sortierbaren Spalten
+- Dashboard: Betriebskennzahlen, Einrichtungslücken (laufende Lehren ohne Betreuung, Lehrberuf, Track, Module), Last pro Berufsbildner, Aktivität 12 Wochen, Jahrgänge je Lehrberuf und Lehrjahr, kritische Lernende, Lehrende bald
+- Alles wie Berufsbildner für alle Lernenden, zusätzlich Noten anlegen und löschen
+- Benutzer, Betreuungen; Stammdaten: Lehrberufe (Module mit Lernort), Fächer (Kategorie, Track optional), Kategorien (Rundung, Gewicht im Gesamtschnitt, Promotionsregeln), Semester
+- Notenbericht: Zeitraum (Semester/ganze Lehrzeit), Lehrberuf, Berufsbildner; Status, Kategorien, tiefste Fächer/Module, Verteilung der Zeugnisnoten, sortierbar, CSV, druckbar
 
 ## Global
-- Dark Mode (localStorage), Flash-Toast, Page-Progress-Bar, Fehlerseiten 403/404/500
-- Liquid-Glass-System, Accent-Orbs, Count-up-Animation
-- Deaktivierte Benutzer werden sofort ausgesperrt
-- CSV-Exporte mit Formel-Injection-Schutz und Schweizer Datumsformat
+- Suche/Befehlspalette (Ctrl+K): Lernende, Konten (Admin), Seiten
+- Hell/Dunkel serverseitig gespeichert, Flash-Toast, Fehlerseiten 403/404/500
+- Liquid-Glass-System, Chart.js-Diagramme mit Theme-Tokens
+- Grenzwerte (gut/genügend/kritisch), Rundung Gesamtschnitt und Fristen aus `einstellungen`
+- Deaktivierte Benutzer sofort ausgesperrt; CSV-Exporte mit Formel-Injection-Schutz

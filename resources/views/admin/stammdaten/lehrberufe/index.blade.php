@@ -40,7 +40,7 @@
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex items-center justify-end gap-3">
                                         <a href="{{ route('admin.stammdaten.lehrberufe.edit', $lb->lehrberuf_id) }}"
-                                           class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                           class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                         <a href="{{ route('admin.stammdaten.lehrberufe.show', $lb->lehrberuf_id) }}"
                                            class="text-sm text-accent hover:underline whitespace-nowrap">Module & Fächer</a>
                                     </div>
