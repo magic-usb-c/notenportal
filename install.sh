@@ -138,6 +138,12 @@ if (( FIREWALL )) && command -v ufw >/dev/null && ufw status | grep -q "Status: 
     ufw allow "$PORT/tcp" >/dev/null
 fi
 
+schritt "Zeitplan (tägliche Sicherung)"
+CRON="/etc/cron.d/${NAME//[^A-Za-z0-9_-]/_}"
+echo "* * * * * www-data cd $VERZ && $(command -v php) artisan schedule:run >> /dev/null 2>&1" > "$CRON"
+chmod 644 "$CRON"
+echo "  $CRON"
+
 schritt "Dateirechte"
 chgrp -R www-data "$VERZ"
 find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune -o -type d -exec chmod u+rwx,g+rxs,o-rwx {} +

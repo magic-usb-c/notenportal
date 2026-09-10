@@ -278,6 +278,9 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     }
     Route::get('/betrieb', [BetriebController::class, 'edit'])->name('betrieb.edit');
     Route::put('/betrieb', [BetriebController::class, 'update'])->name('betrieb.update');
+    Route::post('/betrieb/sicherungen', [BetriebController::class, 'sicherungErstellen'])->name('betrieb.sicherungen.store');
+    Route::get('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungHerunterladen'])->name('betrieb.sicherungen.show');
+    Route::delete('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('betrieb.sicherungen.destroy');
 });
 
 require __DIR__.'/auth.php';

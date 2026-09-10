@@ -13,7 +13,7 @@ Server-Konfiguration und alle Änderungen ausserhalb des Repos (Datenbanken, /et
 | DB | MariaDB 10.11, Datenbanken `notenportal` (Betrieb), `notenportal_test` und `notenportal_b_test` (PHPUnit, werden bei jedem Lauf neu aufgebaut; die zweite für parallele Läufe: `DB_DATABASE=notenportal_b_test php artisan test`) |
 | DB-User | `np_web`: ALL auf `notenportal` und `notenportal_test` |
 | Firewall | ufw: SSH, 80, 443 |
-| Backups | `~/db-backups/` (manuell, noch kein Cronjob) |
+| Backups | täglich 02:30 `storage/app/private/sicherungen/` (ZIP, 14 Stände, Seite «Betrieb»); manuelle Dumps vor Eingriffen in `~/db-backups/` |
 
 ## Dateirechte
 
@@ -32,7 +32,7 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - HTTPS mit Zertifikat (interne CA oder öffentlich), HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`
 - `.env`: `APP_ENV=production`, `APP_DEBUG=false`, korrekte `APP_URL`, `LOG_CHANNEL=daily`
 - opcache explizit aktivieren, `config:cache`/`route:cache`/`view:cache` im Deploy
-- Backups per Cron (`mysqldump --single-transaction`, Grössen-/Inhaltsprüfung, 14 Tages- + 8 Wochenstände), wöchentlicher Restore-Test
+- Sicherungen zusätzlich ausser Haus kopieren (liegen sonst auf derselben VM), Wochenstände, wöchentlicher Restore-Test
 - Least Privilege: `np_web` nur DML, separater `np_migrate` mit DDL für Migrationen
 - ufw auf die berechtigten Netze einschränken
 - php-fpm + mpm_event statt mod_php + prefork
@@ -86,3 +86,18 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - Migration `2026_09_10_000008_dokumente` zuerst auf `notenportal_probe`, dann auf `notenportal` angewendet; Login danach 200.
 - Dateien liegen unter `storage/app/private/lernende/{id}/dokumente/{jahr}/` (Disk `local`, `serve` aus) – gehören ins Backup zusätzlich zur Datenbank.
 - Upload-Grenze im Repo gesetzt (`public/.htaccess`: `upload_max_filesize 12M`, `post_max_size 16M`); die globale php.ini bleibt unverändert.
+
+## Datensicherung (Block F, 10.09.2026)
+
+- Täglich 02:30 über den Laravel-Scheduler: `notenportal:sicherung` erstellt `storage/app/private/sicherungen/notenportal-JJJJMMTT-HHMMSS.zip` (`datenbank.sql` aus `mariadb-dump --single-transaction`, `dateien/lernende/…`, `LIESMICH.txt`), die 14 neusten bleiben. Status, «Jetzt sichern», Herunterladen und Löschen auf Admin → Betrieb.
+- Zeitplan: `install.sh` schreibt `/etc/cron.d/<verzeichnisname>` (`* * * * * www-data … php artisan schedule:run`). **Prod** (`/var/www/notenportal`): Eintrag beim nächsten Installer-Lauf, bis dahin keine automatische Sicherung – Punkt der Go-Live-Checkliste.
+- Wiederherstellen (Notfall, im Terminal):
+
+```bash
+unzip notenportal-JJJJMMTT-HHMMSS.zip -d /tmp/wiederherstellung
+sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-vor-wiederherstellung.sql
+sudo mysql notenportal < /tmp/wiederherstellung/datenbank.sql
+rsync -a /tmp/wiederherstellung/dateien/lernende/ /var/www/notenportal/storage/app/private/lernende/
+sudo chgrp -R www-data storage/app/private && sudo chmod -R g+rwX storage/app/private
+php artisan optimize:clear
+```

@@ -67,7 +67,14 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **Virenscan beim Upload**: kein ClamAV im Lab. Schutz über Typ-Whitelist (Endung und vom Server erkannter MIME-Typ), private Ablage, Auslieferung mit `nosniff` und Sandbox-CSP; SVG und HTML sind ausgeschlossen.
 - **Import aus Excel: mehrere Blätter**: gelesen wird das erste Blatt. Mehrblättrige Mappen sind bei Notenlisten selten; wer eine hat, speichert das Blatt einzeln.
 - **Ungültige Noten in der Vorschau** (z. B. 4.33): das Feld bleibt leer statt den Rohwert zu zeigen; die Zeile ist rot markiert und abgewählt.
-- **Dateien im Backup**: `storage/app/private/lernende/` muss zusätzlich zur Datenbank gesichert werden (siehe betrieb.md) – ein Backup-Cron fehlt weiterhin (Vor dem Produktivgang).
+- **Dateien im Backup**: erledigt mit Block F (Sicherung enthält `dateien/lernende`).
+
+## Datensicherung (10.09.2026) – bewusst weggelassen
+
+- **Wiederherstellen im Browser**: ein Knopf, der die laufende Datenbank überschreibt, ist ein zu grosses Risiko (Fehlklick, halbe Wiederherstellung bei Zeitüberschreitung). Wiederherstellung bleibt eine Notfallprozedur im Terminal (betrieb.md, LIESMICH.txt im ZIP).
+- **Kopie ausser Haus** (SFTP, S3, Netzlaufwerk): betriebsabhängig, braucht Zugangsdaten und Ziel; im Pilot lädt der Admin die ZIP-Datei herunter. Die Sicherung liegt sonst auf derselben VM.
+- **Verschlüsselung der ZIP-Datei**: Download nur für Admins über HTTPS-Ziel geplant; ein Passwort, das niemand mehr findet, macht die Sicherung wertlos.
+- **Wochen-/Monatsstände**: 14 Tagesstände reichen für den Pilot; Speicherplatz wächst mit den Dokumenten.
 
 ## Hinweise
 

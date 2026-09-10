@@ -30,8 +30,9 @@ app/Services/
 app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
 app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle),
                    Einrichtung (Schritte, Stand, Vorlagen, Semesterplan, Modulparser), Betrieb, KategorieRegeln
-app/Console/Commands/  ErstesAdminKonto (Installer), PilotVorbereiten
-install.sh         Installation/Update auf Ubuntu 24.04 (--port, --db, --host, --ohne-firewall, --neues-admin-passwort)
+app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten
+app/Console/Commands/  ErstesAdminKonto (Installer), PilotVorbereiten, SicherungErstellen (notenportal:sicherung, täglich 02:30 über routes/console.php)
+install.sh         Installation/Update auf Ubuntu 24.04 (--port, --db, --host, --ohne-firewall, --neues-admin-passwort); legt /etc/cron.d/<verzeichnis> für schedule:run als www-data an
 resources/views/
   layouts/         app, guest, navigation (Pills, Dropdowns, Befehlspalette, Mobile)
   dashboards/      admin, berufsbildner, lernender

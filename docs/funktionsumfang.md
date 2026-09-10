@@ -27,7 +27,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Dashboard: Betriebskennzahlen, Einrichtungslücken (laufende Lehren ohne Betreuung, Lehrberuf, Track, Module), Last pro Berufsbildner, Aktivität 12 Wochen, Jahrgänge je Lehrberuf und Lehrjahr, kritische Lernende, Lehrende bald
 - Alles wie Berufsbildner für alle Lernenden, zusätzlich Noten anlegen und löschen
 - Erstinbetriebnahme: `sudo ./install.sh` im geklonten Repo (Pakete, Datenbank, .env, Build, Apache, Rechte, erstes Admin-Konto mit Startpasswort), danach alles im Browser: erzwungener Passwortwechsel und geführte Einrichtung (Betrieb und Notengrenzen, Kategorien, Semester-Generator mit Vorschau, Lehrberufe und BMS/ABU-Fächer mit Vorauswahl, Module als Liste je Lernort, Berufsbildner/Admins und Lernende in Zeilen mit Startpasswörtern zum Drucken)
-- Betrieb: Name, Notengrenzen mit Live-Skala, Rundung Gesamtschnitt, Fristen
+- Betrieb: Name, Notengrenzen mit Live-Skala, Rundung Gesamtschnitt, Fristen; Sicherungen (täglich automatisch, «Jetzt sichern», Herunterladen als ZIP mit Datenbank und Dokumenten, Löschen, Warnung bei Fehler oder Sicherung älter als zwei Tage)
 - Benutzer (Rollen Admin/Berufsbildner und Benutzername änderbar), Betreuungen; Stammdaten: Lehrberufe (Module zeilenweise mit Lernort, Pflicht, empfohlenem Semester, aktiv), Fächer (Kategorie, Track optional), Kategorien (Rundung, Gewicht im Gesamtschnitt, Promotionsregeln), Semester (leere löschbar)
 - Notenbericht: Zeitraum (Semester/ganze Lehrzeit), Lehrberuf, Berufsbildner; Status, Kategorien, tiefste Fächer/Module, Verteilung der Zeugnisnoten, sortierbar, CSV, druckbar
 
