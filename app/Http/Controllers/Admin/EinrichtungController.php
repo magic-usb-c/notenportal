@@ -39,13 +39,20 @@ class EinrichtungController extends Controller
         'lernende.*.berufsbildner_id' => 'Berufsbildner', 'lernende.*.track' => 'Track',
     ];
 
+    /** Startpasswörter bleiben bis zum Abschluss sichtbar (Session), damit keine Liste verloren geht. */
+    private const string ZUGAENGE = 'einrichtung_zugaenge';
+
     public function __construct(private readonly LernendeErfassungService $erfassung) {}
 
     public function show(Request $request, string $schritt = 'betrieb'): View
     {
         abort_unless(array_key_exists($schritt, Einrichtung::SCHRITTE), 404);
 
-        return view('admin.einrichtung.'.$schritt, ['stand' => Einrichtung::stand(), ...$this->daten($schritt, $request)]);
+        return view('admin.einrichtung.'.$schritt, [
+            'stand' => Einrichtung::stand(),
+            'zugaenge' => $request->session()->get(self::ZUGAENGE, []),
+            ...$this->daten($schritt, $request),
+        ]);
     }
 
     public function betrieb(Request $request): RedirectResponse
@@ -265,9 +272,10 @@ class EinrichtungController extends Controller
             return $zugaenge;
         });
 
+        $this->merken($request, $zugaenge);
+
         return redirect()->route('admin.einrichtung', 'personen')
-            ->with('success', (count($zugaenge) === 1 ? '1 Konto' : count($zugaenge).' Konten').' angelegt.')
-            ->with('zugaenge', $zugaenge);
+            ->with('success', (count($zugaenge) === 1 ? '1 Konto' : count($zugaenge).' Konten').' angelegt.');
     }
 
     public function lernende(Request $request): RedirectResponse
@@ -319,16 +327,24 @@ class EinrichtungController extends Controller
             return $zugaenge;
         });
 
+        $this->merken($request, $zugaenge);
+
         return redirect()->route('admin.einrichtung', 'personen')
-            ->with('success', (count($zugaenge) === 1 ? '1 Lernende/r' : count($zugaenge).' Lernende').' angelegt.')
-            ->with('zugaenge', $zugaenge);
+            ->with('success', (count($zugaenge) === 1 ? '1 Lernende/r' : count($zugaenge).' Lernende').' angelegt.');
     }
 
-    public function abschliessen(): RedirectResponse
+    public function abschliessen(Request $request): RedirectResponse
     {
         Einrichtung::abschliessen();
+        $request->session()->forget(self::ZUGAENGE);
 
         return redirect()->route('admin.dashboard')->with('success', 'Einrichtung abgeschlossen.');
+    }
+
+    /** @param  list<array{name: string, rolle: string, email: string, passwort: string}>  $neu */
+    private function merken(Request $request, array $neu): void
+    {
+        $request->session()->put(self::ZUGAENGE, [...$request->session()->get(self::ZUGAENGE, []), ...$neu]);
     }
 
     private function weiter(string $schritt, string $meldung): RedirectResponse

@@ -184,6 +184,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.semester.edit');
         Route::put('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'update'])
             ->name('stammdaten.semester.update');
+        Route::delete('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'destroy'])
+            ->name('stammdaten.semester.destroy');
 
         // Berichte
         Route::get('/berichte/noten', [AdminBerichtController::class, 'noten'])

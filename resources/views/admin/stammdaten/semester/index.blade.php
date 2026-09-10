@@ -45,6 +45,12 @@
                                 <td class="px-4 py-3 text-right">
                                     <a href="{{ route('admin.stammdaten.semester.edit', $s->semester_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
+                                    <form method="POST" action="{{ route('admin.stammdaten.semester.destroy', $s->semester_id) }}" class="inline"
+                                          onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
+                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                        @csrf @method('DELETE')
+                                        <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60">Löschen</button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty

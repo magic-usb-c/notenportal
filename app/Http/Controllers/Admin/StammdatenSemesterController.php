@@ -101,4 +101,21 @@ class StammdatenSemesterController extends Controller
         return redirect()->route('admin.stammdaten.semester.index')
             ->with('success', 'Semester aktualisiert.');
     }
+
+    /** Nur leere Semester: Noten und Tracks verweisen per Fremdschlüssel darauf. */
+    public function destroy(int $semester_id): RedirectResponse
+    {
+        $semester = DB::table('semester')->where('semester_id', $semester_id)->first();
+        abort_unless($semester, 404);
+
+        $belegt = DB::table('noten')->where('semester_id', $semester_id)->exists()
+            || DB::table('lernender_tracks')->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id)->exists();
+        if ($belegt) {
+            return back()->with('error', 'Semester «'.$semester->bezeichnung.'» enthält Noten oder Tracks und bleibt bestehen.');
+        }
+
+        DB::table('semester')->where('semester_id', $semester_id)->delete();
+
+        return redirect()->route('admin.stammdaten.semester.index')->with('success', 'Semester «'.$semester->bezeichnung.'» gelöscht.');
+    }
 }

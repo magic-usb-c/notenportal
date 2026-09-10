@@ -18,18 +18,6 @@
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
-
-            @if ($errors->any())
-                <div class="rounded-xl border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-3 text-sm text-red-800 dark:text-red-200">
-                    <div class="font-semibold mb-1">Bitte prüfen:</div>
-                    <ul class="list-disc pl-5 space-y-1">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             <div class="glass rounded-2xl p-6">
                 <form method="POST" action="{{ route('admin.benutzer.update', $user->benutzer_id) }}" class="space-y-5"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -65,20 +53,29 @@
                     </div>
 
                     <div>
-                        <label for="benutzername" class="text-xs uppercase tracking-widest text-muted font-medium">Benutzername</label>
-                        <input type="text" id="benutzername" value="{{ $user->benutzername }}" disabled
-                               class="mt-1 w-full rounded-xl border border-border bg-bg text-muted font-mono px-3 py-2 cursor-not-allowed">
+                        <label for="benutzername" class="text-xs uppercase tracking-widest text-muted font-medium">Benutzername *</label>
+                        <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername', $user->benutzername) }}" required maxlength="50" pattern="[A-Za-z0-9._\-]+"
+                               class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('benutzername') border-red-400 @enderror">
+                        @error('benutzername')
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
                     </div>
 
-                    <div>
-                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Rollen</label>
-                        <div class="mt-1 flex flex-wrap gap-2">
-                            
-                            @foreach($rollen as $rolle)
-                                <span class="px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-text">{{ $rolle }}</span>
+                    <fieldset>
+                        <legend class="text-xs uppercase tracking-widest text-muted font-medium">Rollen *</legend>
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            @foreach(['Admin', 'Berufsbildner'] as $rolle)
+                                <label class="inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10">
+                                    <input type="checkbox" name="rollen[]" value="{{ $rolle }}" @checked(in_array($rolle, old('rollen', $rollen->all()), true))
+                                           class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                    {{ $rolle }}
+                                </label>
                             @endforeach
                         </div>
-                    </div>
+                        @error('rollen')
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </fieldset>
 
 
                     <div class="border-t border-border pt-5 space-y-5"
@@ -100,7 +97,7 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <label for="passwort" class="text-xs uppercase tracking-widest text-muted font-medium">
-                                    Neues Passwort <span class="text-xs font-normal">(leer lassen = nicht ändern)</span>
+                                    Neues Passwort
                                 </label>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="generieren()"

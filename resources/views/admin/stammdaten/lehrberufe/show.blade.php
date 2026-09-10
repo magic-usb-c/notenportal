@@ -33,40 +33,48 @@
                                     <th class="py-2 pr-4 text-left font-medium">Nummer</th>
                                     <th class="py-2 pr-4 text-left font-medium">Titel</th>
                                     <th class="py-2 pr-4 text-left font-medium">Lernort</th>
-                                    <th class="py-2 pr-4 text-left font-medium">Pflicht</th>
-                                    <th class="py-2 pr-4 text-left font-medium">Emph. Semester</th>
+                                    <th class="py-2 pr-4 text-center font-medium">Pflicht</th>
+                                    <th class="py-2 pr-4 text-left font-medium">Semester</th>
+                                    <th class="py-2 pr-4 text-center font-medium">Aktiv</th>
                                     <th class="py-2"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
                                 @foreach($zugewieseneModule as $m)
-                                    <tr>
+                                    @php $formular = 'lbm-'.$m->modul_id; @endphp
+                                    <tr @class(['opacity-60' => ! $m->aktiv])>
                                         <td class="py-2 pr-4 font-mono text-text">{{ $m->modul_nummer }}</td>
                                         <td class="py-2 pr-4 text-text">{{ $m->titel }}</td>
                                         <td class="py-2 pr-4">
-                                            <form method="POST"
-                                                  action="{{ route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
-                                                  x-data="{ loading: false }" @submit="loading = true">
-                                                @csrf @method('PATCH')
-                                                <label for="lernort_{{ $m->modul_id }}" class="sr-only">Lernort für {{ $m->titel }}</label>
-                                                <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" :disabled="loading"
-                                                        onchange="this.form.requestSubmit()"
-                                                        class="h-9 rounded-lg border border-border bg-input text-text px-2 text-xs focus:ring-2 focus:ring-ring">
-                                                    @foreach($kategorien as $k)
-                                                        <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </form>
+                                            <label for="lernort_{{ $m->modul_id }}" class="sr-only">Lernort für {{ $m->titel }}</label>
+                                            <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
+                                                    onchange="this.form.requestSubmit()"
+                                                    class="h-9 rounded-lg border border-border bg-input text-text px-2 text-xs focus:ring-2 focus:ring-ring">
+                                                @foreach($kategorien as $k)
+                                                    <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td class="py-2 pr-4 text-center">
+                                            <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
+                                            <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.requestSubmit()"
+                                                   aria-label="Pflichtmodul {{ $m->modul_nummer }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                                         </td>
                                         <td class="py-2 pr-4">
-                                            @if($m->pflicht)
-                                                <span class="text-xs text-green-700 dark:text-green-400">Ja</span>
-                                            @else
-                                                <span class="text-xs text-muted">Nein</span>
-                                            @endif
+                                            <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
+                                                   onchange="this.form.requestSubmit()" placeholder="–" aria-label="Empfohlenes Semester {{ $m->modul_nummer }}"
+                                                   class="h-9 w-16 rounded-lg border border-border bg-input text-text px-2 text-xs tabular-nums focus:ring-2 focus:ring-ring">
                                         </td>
-                                        <td class="py-2 pr-4 text-muted">{{ $m->empfohlenes_lehrsemester_nr ?? '–' }}</td>
+                                        <td class="py-2 pr-4 text-center">
+                                            <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
+                                            <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.requestSubmit()"
+                                                   aria-label="Modul {{ $m->modul_nummer }} aktiv" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                        </td>
                                         <td class="py-2 text-right">
+                                            <form id="{{ $formular }}" method="POST" class="hidden"
+                                                  action="{{ route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
+                                                @csrf @method('PATCH')
+                                            </form>
                                             <form method="POST"
                                                   action="{{ route('admin.stammdaten.lehrberufe.module.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
                                                   onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
@@ -111,8 +119,8 @@
                             </select>
                         </div>
                         <div>
-                            <label for="empfohlenes_lehrsemester_nr" class="text-xs uppercase tracking-widest text-muted font-medium">Emph. Semester</label>
-                            <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12" placeholder="z.B. 3"
+                            <label for="empfohlenes_lehrsemester_nr" class="text-xs uppercase tracking-widest text-muted font-medium">Empfohlenes Semester</label>
+                            <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                         </div>
                         <div class="flex items-end gap-2">

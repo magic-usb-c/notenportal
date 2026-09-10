@@ -2,7 +2,7 @@
     @php
         $offen = collect($stand)->except('fertig')->reject(fn ($s) => $s['erledigt']);
     @endphp
-    <section class="glass rounded-2xl overflow-hidden">
+    <section class="glass rounded-2xl overflow-hidden print:hidden">
         <ul class="divide-y divide-border">
             @foreach(\App\Support\Einrichtung::SCHRITTE as $key => $name)
                 @continue($key === 'fertig')
@@ -21,7 +21,9 @@
         </ul>
     </section>
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
+    @include('admin.einrichtung._zugaenge')
+
+    <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <a href="{{ route('admin.einrichtung', 'personen') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">← Zurück</a>
         @if(\App\Support\Einrichtung::offen())
             <form method="POST" action="{{ route('admin.einrichtung.abschliessen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

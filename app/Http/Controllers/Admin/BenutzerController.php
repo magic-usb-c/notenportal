@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Konten von Admins und Berufsbildnern. Lernenden-Konten laufen über die
@@ -133,15 +134,35 @@ class BenutzerController extends Controller
             'vorname' => ['required', 'string', 'max:100'],
             'nachname' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique('benutzer', 'email')->ignore($benutzer_id, 'benutzer_id')],
+            'benutzername' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z0-9._-]+$/', Rule::unique('benutzer', 'benutzername')->ignore($benutzer_id, 'benutzer_id')],
+            'rollen' => ['required', 'array', 'min:1'],
+            'rollen.*' => [Rule::in(self::ROLLEN)],
             'passwort' => ['nullable', 'string', 'confirmed', Password::defaults()],
         ]);
 
-        DB::transaction(function () use ($user, $validated) {
+        $rollen = collect($validated['rollen'])->unique()->values();
+        if ((int) $user->benutzer_id === (int) $request->user()->benutzer_id && ! $rollen->contains('Admin')) {
+            throw ValidationException::withMessages(['rollen' => 'Die eigene Admin-Rolle bleibt bestehen.']);
+        }
+        $berufsbildner = $user->berufsbildner;
+        if ($berufsbildner && ! $rollen->contains('Berufsbildner') && DB::table('betreuungen')
+            ->where('berufsbildner_id', $berufsbildner->berufsbildner_id)
+            ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
+            ->exists()) {
+            throw ValidationException::withMessages(['rollen' => 'Aktive Betreuungen zuerst übergeben.']);
+        }
+
+        DB::transaction(function () use ($user, $validated, $rollen, $berufsbildner) {
             $user->fill([
                 'vorname' => $validated['vorname'],
                 'nachname' => $validated['nachname'],
                 'email' => $validated['email'],
+                'benutzername' => $validated['benutzername'],
             ]);
+            $user->rollen()->sync(DB::table('rollen')->whereIn('name', $rollen)->pluck('rolle_id')->all());
+            if ($rollen->contains('Berufsbildner') && ! $berufsbildner) {
+                Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
+            }
 
             if (! empty($validated['passwort'])) {
                 $user->passwort_hash = $validated['passwort'];

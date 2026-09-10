@@ -34,36 +34,7 @@
         }
     </script>
 
-    @if($zugaenge = session('zugaenge'))
-        <section class="glass rounded-2xl overflow-hidden accent-glow">
-            <div class="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
-                <h3 class="text-sm font-semibold text-text">Zugänge</h3>
-                <button type="button" onclick="window.print()" class="inline-flex items-center px-3 min-h-9 rounded-lg glass-btn text-text text-sm print:hidden">Drucken</button>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-text">
-                    <thead class="text-xs text-muted">
-                        <tr class="border-b border-border">
-                            <th class="text-left px-5 py-2 font-medium">Name</th>
-                            <th class="text-left px-3 py-2 font-medium">Rolle</th>
-                            <th class="text-left px-3 py-2 font-medium">E-Mail</th>
-                            <th class="text-left px-5 py-2 font-medium">Startpasswort</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-border">
-                        @foreach($zugaenge as $z)
-                            <tr>
-                                <td class="px-5 py-2 whitespace-nowrap">{{ $z['name'] }}</td>
-                                <td class="px-3 py-2 text-muted">{{ $z['rolle'] }}</td>
-                                <td class="px-3 py-2">{{ $z['email'] }}</td>
-                                <td class="px-5 py-2 font-mono select-all">{{ $z['passwort'] }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    @endif
+    @include('admin.einrichtung._zugaenge')
 
     <form method="POST" action="{{ route('admin.einrichtung.personen') }}" class="glass rounded-2xl p-6 flex flex-col gap-4 print:hidden"
           x-data="npZeilen({{ \Illuminate\Support\Js::from(old('personen', [])) }}, {{ \Illuminate\Support\Js::from($leerePerson) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'personen')"

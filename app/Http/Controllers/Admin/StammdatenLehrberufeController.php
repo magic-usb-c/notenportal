@@ -133,14 +133,23 @@ class StammdatenLehrberufeController extends Controller
     {
         $validated = $request->validate([
             'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
+            'pflicht' => ['sometimes', 'boolean'],
+            'aktiv' => ['sometimes', 'boolean'],
+            'empfohlenes_lehrsemester_nr' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
+        // Nur übermittelte Felder ändern (Zeilenformular sendet alle, ältere Aufrufe nur den Lernort)
         DB::table('lehrberuf_module')
             ->where('lehrberuf_id', $lehrberuf_id)
             ->where('modul_id', $modul_id)
-            ->update(['kategorie_id' => $validated['kategorie_id']]);
+            ->update([
+                'kategorie_id' => $validated['kategorie_id'],
+                ...array_map(fn ($v) => is_bool($v) || $v === '0' || $v === '1' ? (bool) $v : $v,
+                    array_intersect_key($validated, array_flip(['pflicht', 'aktiv']))),
+                ...array_intersect_key($validated, array_flip(['empfohlenes_lehrsemester_nr'])),
+            ]);
 
-        return back()->with('success', 'Lernort aktualisiert.');
+        return back()->with('success', 'Modul aktualisiert.');
     }
 
     public function assignFach(Request $request, int $lehrberuf_id): RedirectResponse

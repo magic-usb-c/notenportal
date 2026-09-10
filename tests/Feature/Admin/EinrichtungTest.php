@@ -84,7 +84,7 @@ class EinrichtungTest extends TestCase
         $this->post(route('admin.einrichtung.personen'), ['personen' => [
             ['vorname' => 'Michael', 'nachname' => 'Baumann', 'email' => 'mb@betrieb.ch', 'rolle' => 'Berufsbildner'],
             ['vorname' => 'Anna', 'nachname' => 'Keller', 'email' => 'ak@betrieb.ch', 'rolle' => 'Admin'],
-        ]])->assertSessionHasNoErrors()->assertSessionHas('zugaenge');
+        ]])->assertSessionHasNoErrors()->assertSessionHas('einrichtung_zugaenge');
         $bb = (int) DB::table('berufsbildner')->value('berufsbildner_id');
         $this->assertTrue(User::where('email', 'ak@betrieb.ch')->firstOrFail()->hasRole('Admin'));
 
@@ -101,7 +101,9 @@ class EinrichtungTest extends TestCase
         $this->assertTrue(DB::table('betreuungen')->where('lernender_id', $nina->lernender_id)->where('berufsbildner_id', $bb)->exists());
         $this->assertTrue((bool) $nina->benutzer->passwort_wechsel_noetig);
 
-        $this->post(route('admin.einrichtung.abschliessen'))->assertRedirect(route('admin.dashboard'));
+        $this->assertCount(3, session('einrichtung_zugaenge'));
+        $this->get(route('admin.einrichtung', 'fertig'))->assertOk()->assertSee('nina@betrieb.ch');
+        $this->post(route('admin.einrichtung.abschliessen'))->assertRedirect(route('admin.dashboard'))->assertSessionMissing('einrichtung_zugaenge');
         $this->assertFalse(Einrichtung::offen());
         $this->get(route('admin.dashboard'))->assertOk();
     }
