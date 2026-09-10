@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Systembenutzer</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
+        <div class="w-full flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
                 <h2 class="font-semibold text-xl text-text">Benutzerverwaltung</h2>
                 <div class="text-sm text-muted pl-4 border-l border-border">
@@ -10,7 +10,7 @@
                 </div>
             </div>
             <a href="{{ route('admin.benutzer.create') }}"
-               class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
+               class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                 + Benutzer anlegen
             </a>
         </div>

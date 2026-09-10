@@ -72,7 +72,7 @@
             </div>
 
             @if($k['zeugnisnoten'] > 0)
-                <div class="grid lg:grid-cols-2 gap-5">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <x-karte titel="Verteilung der Zeugnisnoten">
                         <div class="h-56" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="Verteilung der Zeugnisnoten" role="img"></canvas></div>
                     </x-karte>

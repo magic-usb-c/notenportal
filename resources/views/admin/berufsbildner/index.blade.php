@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Berufsbildner</x-slot>
     <x-slot name="header">
-        <div class="flex items-center justify-between gap-4">
+        <div class="w-full flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <h2 class="font-semibold text-xl text-text">Admin: Berufsbildner</h2>
+                <h2 class="font-semibold text-xl text-text">Berufsbildner</h2>
                 <div class="text-sm text-muted pl-4 border-l border-border">
                     <span class="text-lg font-bold text-text tabular-nums">{{ $berufsbildner->count() }}</span>
-                    {{ $berufsbildner->count() === 1 ? 'Berufsbildner' : 'Berufsbildner' }}
+                    Berufsbildner
                 </div>
             </div>
             <a href="{{ route('admin.benutzer.create') }}"

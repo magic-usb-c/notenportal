@@ -27,6 +27,9 @@
 }
 
 @layer base {
+    /* Scrollbare Tabellen: absolut positionierte Kinder (sr-only) bleiben im Container statt die Seite zu verbreitern */
+    .overflow-x-auto { position: relative; }
+
   /* Rahmen ohne Farbklasse tragen den Token statt currentColor */
   *,
   ::after,
