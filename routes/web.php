@@ -73,6 +73,8 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::post('/rechner', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('rechner.berechnen');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
+        Route::post('/module/{modul_id}/wiederholen', [LernenderNotenController::class, 'modulWiederholen'])->whereNumber('modul_id')->name('modul.wiederholen');
+        Route::post('/module/{modul_id}/fortsetzen', [LernenderNotenController::class, 'modulFortsetzen'])->whereNumber('modul_id')->name('modul.fortsetzen');
 
         Route::get('/{note_id}/edit', [LernenderNotenController::class, 'edit'])->name('edit');
         Route::put('/{note_id}', [LernenderNotenController::class, 'update'])->name('update');

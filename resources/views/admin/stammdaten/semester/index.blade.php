@@ -36,7 +36,7 @@
                                 <td class="px-4 py-3 font-semibold text-text">
                                     {{ $s->bezeichnung }}
                                     @if($isAktiv)
-                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktuell</span>
+                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-500/15 text-green-700 dark:text-green-400">aktuell</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>

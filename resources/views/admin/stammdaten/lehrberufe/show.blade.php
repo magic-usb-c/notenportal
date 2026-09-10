@@ -48,7 +48,7 @@
                                         <td class="py-2 pr-4">
                                             <label for="lernort_{{ $m->modul_id }}" class="sr-only">Lernort für {{ $m->titel }}</label>
                                             <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
-                                                    onchange="this.form.requestSubmit()"
+                                                    onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
                                                     class="h-9 rounded-lg border border-border bg-input text-text px-2 text-xs focus:ring-2 focus:ring-ring">
                                                 @foreach($kategorien as $k)
                                                     <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
@@ -57,18 +57,18 @@
                                         </td>
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
-                                            <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.requestSubmit()"
-                                                   aria-label="Pflichtmodul {{ $m->modul_nummer }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                            <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
+                                                   aria-label="Pflichtmodul {{ $m->modul_nummer }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 pr-4">
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
-                                                   onchange="this.form.requestSubmit()" placeholder="–" aria-label="Empfohlenes Semester {{ $m->modul_nummer }}"
+                                                   onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())" placeholder="–" aria-label="Empfohlenes Semester {{ $m->modul_nummer }}"
                                                    class="h-9 w-16 rounded-lg border border-border bg-input text-text px-2 text-xs tabular-nums focus:ring-2 focus:ring-ring">
                                         </td>
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
-                                            <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.requestSubmit()"
-                                                   aria-label="Modul {{ $m->modul_nummer }} aktiv" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                            <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
+                                                   aria-label="Modul {{ $m->modul_nummer }} aktiv" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
@@ -166,7 +166,7 @@
                                         <td class="py-2 pr-4">
                                             @if($f->track_typ)
                                                 <span class="px-2 py-0.5 rounded-full text-xs
-                                                    {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
+                                                    bg-accent/10 text-accent">
                                                     {{ $f->track_typ }}
                                                 </span>
                                             @else

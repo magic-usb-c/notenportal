@@ -85,6 +85,7 @@
                         @foreach($g->elemente as $el)
                             @php
                                 $e = $el->element;
+                                $beleg = $e?->typ === \App\Services\Auswertung\Element::MODUL ? ($belegungen[$e->modulId] ?? null) : null;
                                 $offen = $e?->offenGewicht();
                                 $fortschritt = $e && $e->zielGewicht ? (int) min(100, round($e->gewichtSumme / $e->zielGewicht * 100)) : null;
                             @endphp
@@ -98,6 +99,10 @@
                                             <div class="font-semibold text-text truncate">{{ $el->label }}</div>
                                             <div class="flex items-center gap-2 text-xs text-muted">
                                                 <span>{{ $el->noten->count() === 1 ? '1 Prüfung' : $el->noten->count().' Prüfungen' }}</span>
+                                                @if($beleg && $beleg['versuche'] > 1)
+                                                    <span aria-hidden="true">·</span>
+                                                    <span>{{ $beleg['versuche'] }}. Versuch</span>
+                                                @endif
                                                 @if($fortschritt !== null)
                                                     <span aria-hidden="true">·</span>
                                                     <span class="flex items-center gap-1.5">
@@ -119,6 +124,18 @@
                                     @foreach($el->noten as $n)
                                         @include('lernender.noten.partials.note', ['n' => $n, 'ich' => $ich])
                                     @endforeach
+                                    @if($beleg)
+                                        <div class="px-4 py-2 flex justify-end bg-bg/40">
+                                            <form method="POST" action="{{ route($beleg['offen'] ? 'lernender.noten.modul.wiederholen' : 'lernender.noten.modul.fortsetzen', $e->modulId) }}"
+                                                  @if($beleg['offen']) onsubmit="return confirm('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')" @endif
+                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                @csrf
+                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-muted hover:text-text hover:bg-accent/10 disabled:opacity-60">
+                                                    {{ $beleg['offen'] ? 'Modul wiederholen' : 'Wiederholung zurücknehmen' }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
                                 </div>
                             </details>
                         @endforeach

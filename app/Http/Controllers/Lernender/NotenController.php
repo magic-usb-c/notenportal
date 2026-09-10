@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
+use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
@@ -11,6 +12,7 @@ use App\Services\Notenblatt;
 use App\Services\Uebersicht;
 use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
@@ -114,6 +116,14 @@ class NotenController extends Controller
                     ->sortBy('label')->values(),
             ])->values();
 
+        $belegungen = DB::table('modul_belegungen')
+            ->where('lernender_id', (int) $request->user()->lernender->lernender_id)
+            ->orderBy('start_datum')
+            ->orderBy('modul_belegung_id')
+            ->get(['modul_id', 'end_datum'])
+            ->groupBy('modul_id')
+            ->map(fn ($liste) => ['offen' => $liste->last()->end_datum === null, 'versuche' => $liste->count()]);
+
         return view('lernender.noten.index', [
             'gruppen' => $gruppen,
             'auswertung' => $a,
@@ -125,6 +135,7 @@ class NotenController extends Controller
             'prevSemesterId' => $prevSemesterId,
             'nextSemesterId' => $nextSemesterId,
             'anzahl' => $notes->count(),
+            'belegungen' => $belegungen,
         ]);
     }
 
@@ -389,6 +400,44 @@ class NotenController extends Controller
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ]);
+    }
+
+    /** Modul neu belegen: aktuelle Belegung endet mit der letzten Note; die nächste Note eröffnet den neuen Versuch. */
+    public function modulWiederholen(Request $request, int $modul_id): RedirectResponse
+    {
+        $lernender = $request->user()?->lernender;
+        abort_if(! $lernender, 403);
+
+        $belegung = ModulBelegung::query()
+            ->where('lernender_id', $lernender->lernender_id)
+            ->where('modul_id', $modul_id)
+            ->whereNull('end_datum')
+            ->orderByDesc('start_datum')
+            ->firstOrFail();
+
+        $letzte = Note::query()->where('modul_belegung_id', $belegung->modul_belegung_id)->max('pruefungsdatum');
+        $belegung->update(['end_datum' => Carbon::parse($letzte ?? now())->max($belegung->start_datum)->toDateString()]);
+
+        return back()->with('success', 'Wiederholung gestartet.');
+    }
+
+    /** Solange der neue Versuch keine Note hat, lässt sich die Wiederholung zurücknehmen. */
+    public function modulFortsetzen(Request $request, int $modul_id): RedirectResponse
+    {
+        $lernender = $request->user()?->lernender;
+        abort_if(! $lernender, 403);
+
+        $letzte = ModulBelegung::query()
+            ->where('lernender_id', $lernender->lernender_id)
+            ->where('modul_id', $modul_id)
+            ->orderByDesc('start_datum')
+            ->orderByDesc('modul_belegung_id')
+            ->first();
+        abort_if(! $letzte || $letzte->end_datum === null, 404);
+
+        $letzte->update(['end_datum' => null]);
+
+        return back()->with('success', 'Wiederholung zurückgenommen.');
     }
 
     public function destroy(Request $request, int $note_id)

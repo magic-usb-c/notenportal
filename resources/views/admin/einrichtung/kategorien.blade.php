@@ -34,8 +34,10 @@
                                 </td>
                                 <td class="px-2 py-2 text-center">
                                     <input type="hidden" name="{{ $name('aktiv') }}" value="0">
-                                    <input type="checkbox" name="{{ $name('aktiv') }}" value="1" @checked($alt('aktiv')) aria-label="{{ $k->name }} aktiv"
-                                           class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                    <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer">
+                                        <input type="checkbox" name="{{ $name('aktiv') }}" value="1" @checked($alt('aktiv')) aria-label="{{ $k->name }} aktiv"
+                                               class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                    </label>
                                 </td>
                                 @foreach(['rundung_element', 'rundung_schnitt'] as $f)
                                     <td class="px-2 py-2">

@@ -29,6 +29,7 @@ done
 [[ $EUID -eq 0 ]] || { echo "Bitte mit sudo starten: sudo ./install.sh"; exit 1; }
 [[ "$DB" =~ ^[A-Za-z0-9_]{1,48}$ ]] || { echo "Ungültiger Datenbankname: $DB"; exit 1; }
 [[ "$PORT" =~ ^[0-9]{2,5}$ ]] || { echo "Ungültiger Port: $PORT"; exit 1; }
+[[ -z "$HOST" || "$HOST" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || { echo "Ungültiger Host: $HOST"; exit 1; }
 [[ -n "$HOST" ]] || HOST="localhost"
 
 BESITZER="$(stat -c %U "$VERZ")"
@@ -51,8 +52,9 @@ systemctl enable --now mariadb apache2 >/dev/null 2>&1
 
 schritt "Datenbank"
 if [[ -f "$VERZ/.env" ]]; then
-    lies() { grep -E "^$1=" "$VERZ/.env" | head -1 | cut -d= -f2- | tr -d '"'; }
+    lies() { { grep -E "^$1=" "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"'; }
     DB="$(lies DB_DATABASE)"
+    [[ -n "$DB" ]] || { echo "DB_DATABASE fehlt in $VERZ/.env"; exit 1; }
     echo "  .env vorhanden – Datenbank $DB bleibt unverändert"
     mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 else

@@ -53,6 +53,14 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **Lichtkanten-/Glow-Feinheiten** (oben, [niedrig]) weiterhin offen – kein Einfluss auf Lesbarkeit.
 - **Zebra-Streifen und sticky thead** in Stammdaten-, Berichts- und Dashboard-Tabellen nicht ergänzt: Tabellen liegen in Glass-Karten mit Trennlinien, Zebra auf transparentem Glass wirkt unruhig; die Tabellen sind kurz (< 30 Zeilen) oder paginiert. Bei langen Listen (Lernende > 50) nachrüsten.
 
+## Erstinbetriebnahme & Stammdaten (10.09.2026) – bewusst weggelassen
+
+- **Lernende und Berufsbildner endgültig löschen**: nicht in der UI. Deaktivieren sperrt sofort, Notenhistorie und Betreuungsnachweis bleiben erhalten. Löschen nach Ablauf der Aufbewahrungsfrist gehört in einen eigenen Datenschutz-Prozess (Export, dann Anonymisierung), nicht als Knopf neben «Bearbeiten».
+- **Modul wiederholen nur durch Lernende**: sie erfassen ihre Noten selbst und wissen, wann ein Modul neu beginnt. Berufsbildner sehen den Versuch über die Noten; eine Verwaltungsaktion folgt, falls im Pilot gewünscht.
+- **Keine offiziellen Modulkataloge in den Lehrberuf-Vorlagen**: die Modullisten ändern sich je Bildungsverordnung und Kanton; falsche Vorgaben wären schlimmer als eine leere Liste. Module werden in der Einrichtung zeilenweise eingefügt (Nummer + Titel, Lernort je Feld).
+- **Aktiv-Schalter für berufsspezifische Fächer** (`lehrberuf_faecher.aktiv`): wird nirgends gelesen, deshalb kein Schalter in der UI; Zuordnung entfernen genügt.
+- **Letzter Admin**: die eigene Admin-Rolle lässt sich nicht entziehen; damit bleibt immer mindestens der handelnde Admin bestehen.
+
 ## Hinweise
 
 - `bemerkung`-Feld auf `lernende` fehlt weiterhin (braucht manuelles sudo mysql, siehe CLAUDE.md)
