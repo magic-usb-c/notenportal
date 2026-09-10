@@ -21,7 +21,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'semester_id',
     'fach_id',
     'modul_belegung_id',
-    'gruppe_id',
     'titel',
     'pruefungsdatum',
     'note_wert',
@@ -52,7 +51,6 @@ class Note extends Model
         'semester',
         'fach',
         'modulBelegung.modul',
-        'gruppe',
     ];
 
     /*
@@ -84,11 +82,6 @@ class Note extends Model
     public function modulBelegung(): BelongsTo
     {
         return $this->belongsTo(ModulBelegung::class, 'modul_belegung_id', 'modul_belegung_id');
-    }
-
-    public function gruppe(): BelongsTo
-    {
-        return $this->belongsTo(ModulNoteGruppe::class, 'gruppe_id', 'gruppe_id');
     }
 
     public function gesehen(): HasMany

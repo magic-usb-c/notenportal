@@ -34,17 +34,43 @@
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track *</label>
-                        <select id="track_typ" name="track_typ" required
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
-                            <option value="">Bitte wählen…</option>
-                            <option value="BMS" @selected(old('track_typ') === 'BMS')>BMS</option>
-                            <option value="ABU" @selected(old('track_typ') === 'ABU')>ABU</option>
-                        </select>
-                        @error('track_typ')
-                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
+                    <div x-data="{
+                            track: '{{ old('track_typ', '') }}',
+                            kategorieId: '{{ old('kategorie_id', optional($kategorien->firstWhere('code', 'FACH'))->kategorie_id) }}',
+                            beruehrt: false,
+                            karte: {{ Js::from($kategorien->pluck('kategorie_id', 'code')) }},
+                            aufTrackWechsel() {
+                                if (this.beruehrt) return;
+                                const code = this.track === 'BMS' ? 'BMS' : (this.track === 'ABU' ? 'ABU' : 'FACH');
+                                if (this.karte[code]) this.kategorieId = String(this.karte[code]);
+                            },
+                        }" class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track</label>
+                            <select id="track_typ" name="track_typ" x-model="track" @change="aufTrackWechsel()"
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
+                                <option value="">Kein Track</option>
+                                <option value="BMS">BMS</option>
+                                <option value="ABU">ABU</option>
+                            </select>
+                            @error('track_typ')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="kategorie_id" class="text-xs uppercase tracking-widest text-muted font-medium">Kategorie *</label>
+                            <select id="kategorie_id" name="kategorie_id" required x-model="kategorieId" @change="beruehrt = true"
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kategorie_id') border-red-400 @enderror">
+                                <option value="">Bitte wählen…</option>
+                                @foreach($kategorien as $k)
+                                    <option value="{{ $k->kategorie_id }}">{{ $k->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('kategorie_id')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="pt-2">

@@ -13,6 +13,9 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
+use App\Http\Controllers\Lernender\PruefungenController;
+use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
+use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +66,8 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/', [LernenderNotenController::class, 'index'])->name('index');
         Route::get('/drucken', [LernenderNotenController::class, 'drucken'])->name('drucken');
         Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
-        Route::get('/rechner', [LernenderNotenController::class, 'rechner'])->name('rechner');
+        Route::get('/rechner', [LernenderRechnerController::class, 'index'])->name('rechner');
+        Route::post('/rechner', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('rechner.berechnen');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
 
@@ -76,6 +80,20 @@ Route::middleware(['auth', 'role:Lernender'])
 
         // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
         Route::patch('/{note_id}/titel', [LernenderNotenController::class, 'updateTitel'])->name('titel.update');
+    });
+
+/**
+ * Lernender: geplante Prüfungen und Ziele
+ */
+Route::middleware(['auth', 'role:Lernender'])
+    ->name('lernender.')
+    ->group(function () {
+        Route::get('/pruefungen', [PruefungenController::class, 'index'])->name('pruefungen.index');
+        Route::post('/pruefungen', [PruefungenController::class, 'store'])->name('pruefungen.store');
+        Route::put('/pruefungen/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('pruefungen.update');
+        Route::delete('/pruefungen/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('pruefungen.destroy');
+        Route::post('/ziele', [ZieleController::class, 'store'])->name('ziele.store');
+        Route::delete('/ziele/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('ziele.destroy');
     });
 
 /**
@@ -121,6 +139,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('stammdaten.lehrberufe.module.assign');
         Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'removeModul'])
             ->name('stammdaten.lehrberufe.module.remove');
+        Route::patch('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'updateModulKategorie'])
+            ->name('stammdaten.lehrberufe.module.update');
         Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/faecher', [StammdatenLehrberufeController::class, 'assignFach'])
             ->name('stammdaten.lehrberufe.faecher.assign');
         Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/faecher/{fach_id}', [StammdatenLehrberufeController::class, 'removeFach'])

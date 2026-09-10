@@ -21,6 +21,18 @@
   --glass-shadow-alpha: 0.13;
   --glass-bg-alpha: 0.7;           /* Weiss braucht mehr Deckung gegen fast-weisses --bg */
   --glass-subtle-rgb: var(--card); /* Nav hell: Weiss statt bg, sonst null Eigenkontrast */
+
+  /* Diagramme: Serienfarben und Notenstufen (RGB-Tripel, Alpha im Chart) */
+  --chart-1: 37 99 235;
+  --chart-2: 124 58 237;
+  --chart-3: 13 148 136;
+  --chart-4: 217 119 6;
+  --chart-5: 219 39 119;
+  --chart-6: 71 85 105;
+  --note-gut: 21 128 61;
+  --note-genuegend: 4 120 87;
+  --note-knapp: 161 98 7;
+  --note-ungenuegend: 220 38 38;
 }
 
 .dark {
@@ -44,4 +56,15 @@
   --glass-shadow-alpha: 0.26;
   --glass-bg-alpha: 0.55;          /* mehr Transparenz, Tiefen-Gradient scheint durch */
   --glass-subtle-rgb: var(--bg);
+
+  --chart-1: 96 165 250;
+  --chart-2: 167 139 250;
+  --chart-3: 45 212 191;
+  --chart-4: 251 191 36;
+  --chart-5: 244 114 182;
+  --chart-6: 148 163 184;
+  --note-gut: 74 222 128;
+  --note-genuegend: 52 211 153;
+  --note-knapp: 250 204 21;
+  --note-ungenuegend: 248 113 113;
 }

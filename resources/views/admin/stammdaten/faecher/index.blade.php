@@ -21,6 +21,7 @@
                         <tr>
                             <th class="px-4 py-3 text-left font-medium">Kürzel</th>
                             <th class="px-4 py-3 text-left font-medium">Name</th>
+                            <th class="px-4 py-3 text-left font-medium">Kategorie</th>
                             <th class="px-4 py-3 text-left font-medium">Track</th>
                             <th class="px-4 py-3 text-left font-medium">Lehrberufe</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
@@ -32,11 +33,16 @@
                             <tr class="hover:bg-bg/50">
                                 <td class="px-4 py-3 font-mono font-semibold text-text">{{ $f->kurzname }}</td>
                                 <td class="px-4 py-3 text-text">{{ $f->name }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $f->kategorie_name }}</td>
                                 <td class="px-4 py-3">
-                                    <span class="px-2 py-0.5 rounded-full text-xs
-                                        {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
-                                        {{ $f->track_typ }}
-                                    </span>
+                                    @if($f->track_typ)
+                                        <span class="px-2 py-0.5 rounded-full text-xs
+                                            {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
+                                            {{ $f->track_typ }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-muted">–</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3 text-muted">{{ $f->lehrberuf_count }}</td>
                                 <td class="px-4 py-3">
@@ -53,7 +59,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-muted">
+                                <td colspan="7" class="px-4 py-8 text-center text-muted">
                                     Noch keine Fächer erfasst.
                                 </td>
                             </tr>

@@ -14,7 +14,9 @@
     <div class="py-6">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
-                @include('verwaltung.noten._formular', [
+                @include('noten._formular', [
+                    'zurueck' => route("{$bereich}.lernende.noten.index", $lernender->lernender_id),
+                    'vorschauUrl' => route("{$bereich}.lernende.rechner.berechnen", $lernender->lernender_id),
                     'action' => route("{$bereich}.lernende.noten.update", [$lernender->lernender_id, $note->note_id]),
                     'note' => $note,
                 ])

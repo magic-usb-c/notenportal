@@ -1,244 +1,183 @@
-@php
-    $totalUnread = $stats?->sum('unread') ?? 0;
-    $warningsCount = $stats?->filter(fn($s) => $s->warningGelb || $s->warningRot)->count() ?? 0;
-@endphp
 <x-app-layout>
-    <x-slot name="title">Dashboard</x-slot>
+    <x-slot name="title">Übersicht</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-6">
+        <div class="w-full flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h2 class="font-semibold text-xl text-text">Dashboard</h2>
-                <p class="text-xs text-muted mt-0.5">{{ \Carbon\Carbon::now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
+                <h2 class="font-semibold text-xl text-text">Hallo {{ auth()->user()->vorname }}</h2>
+                <p class="text-sm text-muted">{{ now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
             </div>
-            <div class="hidden sm:flex items-center gap-4 text-right">
-                <div>
-                    <div class="text-[10px] uppercase tracking-widest text-muted">Lernende</div>
-                    <div class="text-lg font-bold text-text tabular-nums">{{ $lernende->count() }}</div>
-                </div>
-                <div class="w-px h-8 bg-border"></div>
-                <div>
-                    <div class="text-[10px] uppercase tracking-widest text-muted">Neue Noten</div>
-                    <div class="text-lg font-bold tabular-nums {{ $totalUnread > 0 ? 'text-accent' : 'text-muted' }}">{{ $totalUnread }}</div>
-                </div>
-                <div class="w-px h-8 bg-border"></div>
-                <div>
-                    <div class="text-[10px] uppercase tracking-widest text-muted">Warnungen</div>
-                    <div class="text-lg font-bold tabular-nums {{ $warningsCount > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-muted' }}">{{ $warningsCount }}</div>
-                </div>
+            <div class="flex gap-2">
+                <a href="{{ route('berufsbildner.noten.export_alle') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
+                <a href="{{ route('berufsbildner.lernende.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                    <span class="text-lg leading-none">+</span> Lernende
+                </a>
             </div>
         </div>
     </x-slot>
 
-    @php
-        $avgColor = function ($v) {
-            if ($v === null) return 'text-muted';
-            if ($v >= 5.0) return 'text-green-700 dark:text-green-400';
-            if ($v >= 4.0) return 'text-emerald-700 dark:text-emerald-400';
-            if ($v >= 3.5) return 'text-yellow-700 dark:text-yellow-400';
-            return 'text-red-600 dark:text-red-400';
-        };
-    @endphp
-
     <div class="py-6">
-            {{-- Dekorative Accent-Orbs im Hintergrund (Tiefe) --}}
-            <div class="fixed inset-0 overflow-hidden pointer-events-none -z-10" aria-hidden="true">
-                <div class="absolute -top-40 -right-40 w-96 h-96 rounded-full"
-                     style="background:radial-gradient(circle,rgb(var(--accent-rgb) / 0.08) 0%,transparent 70%)"></div>
-                <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full"
-                     style="background:radial-gradient(circle,rgb(var(--accent-rgb) / 0.05) 0%,transparent 70%)"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5"
+             x-data="{ filter: 'alle', suche: '' }">
+
+            <div class="lg:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('berufsbildner.lernende.index')" />
+                <x-kachel label="Neue Noten" :wert="$kennzahlen['neu']" :ton="$kennzahlen['neu'] ? 'accent' : 'neutral'" @click.prevent="filter = 'neu'" href="#klasse" />
+                <x-kachel label="Kritisch" :wert="$kennzahlen['rot']" :ton="$kennzahlen['rot'] ? 'rot' : 'neutral'" @click.prevent="filter = 'rot'" href="#klasse" />
+                <x-kachel label="Beobachten" :wert="$kennzahlen['gelb']" :ton="$kennzahlen['gelb'] ? 'gelb' : 'neutral'" @click.prevent="filter = 'gelb'" href="#klasse" />
             </div>
 
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-5">
-
-            {{-- Begrüssung (kompakt, ohne Panel) --}}
-            <div class="flex items-baseline gap-2">
-                <h3 class="text-base font-semibold text-text">Willkommen, {{ auth()->user()->vorname }}</h3>
-                <span class="text-xs text-muted">Berufsbildner</span>
-            </div>
-
-            {{-- "Zu tun": Lernende die Aufmerksamkeit brauchen --}}
-            @php
-                $todos = collect();
-                foreach ($lernende as $l) {
-                    $lid = (int) $l->lernender_id;
-                    $st  = $stats->get($lid);
-                    $lp  = $lernendeProfile->get($lid);
-
-                    if ($st?->warningGelb) {
-                        $mailBody = rawurlencode("Hallo {$l->vorname}\n\nMir ist aufgefallen, dass du seit längerem keine Noten mehr im Notenportal erfasst hast. Bitte trage deine aktuellen Noten nach.\n\nDanke und Gruss\n" . auth()->user()->vorname);
-                        $todos->push((object) [
-                            'lernender' => $l,
-                            'text'      => $st->daysSince === null ? 'Noch keine Noten erfasst' : 'Kein Eintrag seit ' . $st->daysSince . ' Tagen',
-                            'farbe'     => 'yellow',
-                            'aktion'    => 'mailto:' . $l->email . '?subject=' . rawurlencode('Notenportal: Bitte Noten nachtragen') . '&body=' . $mailBody,
-                            'aktionText' => 'Erinnerung senden',
-                            'extern'    => true,
-                        ]);
-                    }
-                    if ($st?->warningRot) {
-                        $todos->push((object) [
-                            'lernender' => $l,
-                            'text'      => 'Semester-Ø ' . number_format($st->semAvg, 2) . ' — unter 4.0',
-                            'farbe'     => 'red',
-                            'aktion'    => route('berufsbildner.lernende.noten.index', ['lernender_id' => $lid]),
-                            'aktionText' => 'Noten ansehen',
-                            'extern'    => false,
-                        ]);
-                    }
-                    if ($lp && \Carbon\Carbon::parse($lp->lehrende)->diffInDays(now(), false) >= -30) {
-                        $todos->push((object) [
-                            'lernender' => $l,
-                            'text'      => 'Lehrende am ' . \Carbon\Carbon::parse($lp->lehrende)->format('d.m.Y'),
-                            'farbe'     => 'blue',
-                            'aktion'    => route('berufsbildner.lernende.show', ['lernender_id' => $lid]),
-                            'aktionText' => 'Profil öffnen',
-                            'extern'    => false,
-                        ]);
-                    }
-                }
-            @endphp
-            @if($todos->isNotEmpty())
-                <div class="glass rounded-2xl overflow-hidden">
-                    <div class="px-5 py-3 border-b border-border flex items-center justify-between">
-                        <h3 class="font-semibold text-text text-sm">Zu tun</h3>
-                        <span class="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent/15 text-accent">
-                            {{ $todos->count() }}
-                        </span>
-                    </div>
-                    <div class="divide-y divide-border">
-                        @foreach($todos as $todo)
-                            @php
-                                $dot = match ($todo->farbe) {
-                                    'red'    => 'bg-red-500',
-                                    'yellow' => 'bg-yellow-500',
-                                    default  => 'bg-blue-500',
-                                };
-                            @endphp
-                            <div class="px-5 py-2.5 flex items-center gap-3">
-                                <span class="w-2 h-2 rounded-full shrink-0 {{ $dot }}"></span>
-                                <div class="flex-1 min-w-0 text-sm">
-                                    <span class="font-medium text-text">{{ $todo->lernender->nachname }} {{ $todo->lernender->vorname }}</span>
-                                    <span class="text-muted"> — {{ $todo->text }}</span>
-                                </div>
-                                <a href="{{ $todo->aktion }}"
-                                   class="shrink-0 text-xs text-accent hover:underline whitespace-nowrap">
-                                    {{ $todo->aktionText }} →
-                                </a>
-                            </div>
+            {{-- Klassenübersicht --}}
+            <x-karte titel="Meine Lernenden" class="lg:col-span-12" :polster="false" id="klasse">
+                <x-slot:aktionen>
+                    <input type="search" x-model="suche" placeholder="Suchen" aria-label="Lernende suchen"
+                           class="w-36 sm:w-48 rounded-lg border border-border bg-input text-text text-sm py-1.5 px-3 focus:ring-2 focus:ring-ring">
+                    <div class="hidden sm:flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
+                        @foreach(['alle' => 'Alle', 'rot' => 'Kritisch', 'gelb' => 'Beobachten', 'neu' => 'Neue Noten'] as $wert => $name)
+                            <button type="button" @click="filter = '{{ $wert }}'" class="px-2.5 min-h-8 rounded-md" :class="filter === '{{ $wert }}' ? 'bg-card text-accent shadow-sm' : 'text-muted'">{{ $name }}</button>
                         @endforeach
                     </div>
+                </x-slot:aktionen>
+
+                @if($zeilen->isEmpty())
+                    <div class="px-5 pb-10 pt-4 text-center text-sm text-muted">Keine aktiv betreuten Lernenden</div>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="text-[11px] uppercase tracking-widest text-muted">
+                                <tr class="border-y border-border/70">
+                                    <th class="text-left font-medium px-5 py-2">Lernende</th>
+                                    <th class="text-left font-medium px-3 py-2 hidden md:table-cell">Verlauf</th>
+                                    <th class="text-right font-medium px-3 py-2">Semester</th>
+                                    <th class="text-right font-medium px-3 py-2 hidden sm:table-cell">Gesamt</th>
+                                    <th class="text-left font-medium px-3 py-2 hidden lg:table-cell">Hinweise</th>
+                                    <th class="px-5 py-2"><span class="sr-only">Aktionen</span></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border/60">
+                                @foreach($zeilen as $z)
+                                    @php
+                                        $b = $z->lernender->benutzer;
+                                        $s = $z->stand;
+                                        $d = $s->delta();
+                                    @endphp
+                                    <tr class="hover:bg-accent/5 transition-colors"
+                                        x-show="(filter === 'alle' || filter === '{{ $s->status }}' || (filter === 'neu' && {{ $z->neu }} > 0)) && (suche === '' || @js(mb_strtolower($b->vorname.' '.$b->nachname)).includes(suche.toLowerCase()))">
+                                        <td class="px-5 py-3">
+                                            <div class="flex items-center gap-3">
+                                                <span @class(['w-2.5 h-2.5 rounded-full shrink-0', 'bg-red-500' => $s->status === 'rot', 'bg-yellow-500' => $s->status === 'gelb', 'bg-green-500' => $s->status === 'gruen'])
+                                                      title="{{ ['rot' => 'kritisch', 'gelb' => 'beobachten', 'gruen' => 'im Plan'][$s->status] }}"></span>
+                                                <div class="min-w-0">
+                                                    <a href="{{ route('berufsbildner.lernende.show', $z->lernender->lernender_id) }}" class="font-semibold text-text hover:text-accent">{{ $b->vorname }} {{ $b->nachname }}</a>
+                                                    <div class="text-xs text-muted truncate">
+                                                        {{ $z->lernender->lehrberuf?->kuerzel }}@if($z->lehrjahr) · {{ $z->lehrjahr }}. Lehrjahr @endif @if($z->lernender->klasse_schule) · {{ $z->lernender->klasse_schule }} @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-3 py-3 hidden md:table-cell"><x-sparkline :werte="$s->verlauf" /></td>
+                                        <td class="px-3 py-3 text-right whitespace-nowrap">
+                                            <x-note :wert="$s->semesterNote" :stellen="1" class="text-base" />
+                                            @if($d !== null && $d != 0)
+                                                <span class="block text-[11px] {{ $d > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format($d, 1) }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-3 py-3 text-right hidden sm:table-cell"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
+                                        <td class="px-3 py-3 hidden lg:table-cell">
+                                            <div class="flex flex-wrap gap-1.5 max-w-md">
+                                                @foreach(array_slice($s->gruende, 0, 3) as $g)
+                                                    <span class="px-2 py-0.5 rounded-md text-[11px] {{ $s->status === 'rot' ? 'bg-red-500/10 text-red-700 dark:text-red-300' : 'bg-yellow-500/10 text-yellow-800 dark:text-yellow-300' }}">{{ $g }}</span>
+                                                @endforeach
+                                                @if(count($s->gruende) > 3)<span class="text-[11px] text-muted">+{{ count($s->gruende) - 3 }}</span>@endif
+                                            </div>
+                                        </td>
+                                        <td class="px-5 py-3">
+                                            <div class="flex items-center justify-end gap-1">
+                                                <a href="{{ route('berufsbildner.lernende.noten.index', $z->lernender->lernender_id) }}"
+                                                   class="inline-flex items-center gap-1.5 px-3 min-h-9 rounded-lg text-sm {{ $z->neu ? 'bg-accent text-white np-btn-primary' : 'text-accent hover:bg-accent/10' }}">
+                                                    Noten @if($z->neu)<span class="text-[11px] font-bold">{{ $z->neu }}</span>@endif
+                                                </a>
+                                                <a href="{{ route('berufsbildner.lernende.rechner', $z->lernender->lernender_id) }}" class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="Rechner" title="Rechner">
+                                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/></svg>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </x-karte>
+
+            {{-- Wo es kippt --}}
+            <x-karte titel="Wo es kippt" class="lg:col-span-5" :polster="false">
+                <div class="divide-y divide-border/70">
+                    @forelse($brennpunkte as $p)
+                        <a href="{{ route('berufsbildner.lernende.noten.index', $p['zeile']->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                            <div class="min-w-0">
+                                <div class="text-sm text-text truncate">{{ $p['label'] }}</div>
+                                <div class="text-xs text-muted truncate">{{ $p['zeile']->lernender->benutzer->vorname }} {{ $p['zeile']->lernender->benutzer->nachname }}</div>
+                            </div>
+                            <div class="shrink-0 tabular-nums text-sm">
+                                @if($p['vorher'] !== null)<span class="text-muted">{{ \App\Support\NotenSkala::format($p['vorher']) }} →</span>@endif
+                                <x-note :wert="$p['note']" variante="badge" />
+                            </div>
+                        </a>
+                    @empty
+                        <div class="px-5 py-8 text-center text-sm text-muted">Nichts auffällig</div>
+                    @endforelse
                 </div>
+            </x-karte>
+
+            {{-- Vergleich --}}
+            @if(count($vergleich['labels']) > 1)
+                <x-karte titel="Im Vergleich" class="lg:col-span-7"
+                         x-data="{ modus: 'gesamt', d: {{ \Illuminate\Support\Js::from($vergleich) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
+                    <x-slot:aktionen>
+                        <div class="flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
+                            <button type="button" @click="modus = 'gesamt'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'gesamt' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Gesamt</button>
+                            <button type="button" @click="modus = 'semester'" class="px-2.5 min-h-8 rounded-md" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Semester</button>
+                        </div>
+                    </x-slot:aktionen>
+                    <div x-data="npChart('balken')" style="height: {{ count($vergleich['labels']) * 28 + 40 }}px"
+                         x-effect="zeichne({ labels: d.labels, werte: d[modus], grenzen: g })">
+                        <canvas x-ref="canvas" role="img" aria-label="Schnitt der Lernenden im Vergleich"></canvas>
+                    </div>
+                </x-karte>
             @endif
 
-            {{-- Betreute Lernende als Card-Grid --}}
-            <div>
-                <div class="flex items-center justify-between mb-3">
-                    <h3 class="font-semibold text-text">Meine Lernenden</h3>
+            {{-- Prüfungen --}}
+            <x-karte titel="Prüfungen der nächsten 14 Tage" class="lg:col-span-6" :polster="false">
+                <div class="divide-y divide-border/70">
+                    @forelse($pruefungen as $p)
+                        <div class="px-5 py-2.5 flex items-center gap-3">
+                            <div class="w-10 text-center shrink-0">
+                                <div class="text-base font-bold text-text leading-none tabular-nums">{{ $p->datum->format('d') }}</div>
+                                <div class="text-[10px] uppercase text-muted">{{ $p->datum->locale('de_CH')->translatedFormat('M') }}</div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-text truncate">{{ $p->bezeichnung() }}</div>
+                                <div class="text-xs text-muted truncate">{{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }} · {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="px-5 py-8 text-center text-sm text-muted">Keine geplant</div>
+                    @endforelse
                 </div>
+            </x-karte>
 
-                @if($lernende->isEmpty())
-                    <div class="glass rounded-2xl px-5 py-12 text-center">
-                        <svg class="mx-auto w-12 h-12 text-muted/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        <p class="mt-3 text-sm text-muted">Keine aktuell betreuten Lernenden gefunden.</p>
-                    </div>
-                @else
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        @foreach($lernende as $l)
-                            @php
-                                $lid = (int) $l->lernender_id;
-                                $st = $stats->get($lid);
-                                $lehrProfil = $lernendeProfile->get($lid);
-                                $daysLeft = $lehrProfil ? (int) \Carbon\Carbon::parse($lehrProfil->lehrende)->diffInDays(now()) : null;
-                                $initials = strtoupper(mb_substr($l->vorname, 0, 1) . mb_substr($l->nachname, 0, 1));
-                            @endphp
-
-                            <a href="{{ route('berufsbildner.lernende.noten.index', ['lernender_id' => $lid]) }}"
-                               class="group relative overflow-hidden block glass glass-lift rounded-2xl p-4 hover:border-accent/40">
-                                {{-- Unread-Badge oben rechts --}}
-                                @if($st?->unread > 0)
-                                    <span class="absolute top-3 right-3 inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent text-white shadow-xs">
-                                        <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-30"></span>
-                                        <span class="relative">{{ $st->unread }} neu</span>
-                                    </span>
-                                @endif
-
-                                {{-- Avatar + Name --}}
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 rounded-full bg-accent/10 text-accent text-sm font-bold flex items-center justify-center shrink-0">
-                                        {{ $initials }}
-                                    </div>
-                                    <div class="min-w-0">
-                                        <div class="font-semibold text-text truncate">{{ $l->nachname }} {{ $l->vorname }}</div>
-                                        <div class="text-xs text-muted truncate">{{ $l->lehrberuf ?? 'kein Lehrberuf' }}</div>
-                                    </div>
-                                </div>
-
-                                {{-- Stats-Row --}}
-                                <div class="flex divide-x divide-border text-center">
-                                    <div class="flex-1 px-1">
-                                        <div class="text-[10px] text-muted uppercase tracking-wide">Ø Sem.</div>
-                                        <div class="text-lg font-bold tabular-nums {{ $avgColor($st?->semAvg) }}">
-                                            {{ $st?->semAvg !== null ? $st->semAvg : '–' }}
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 px-1">
-                                        <div class="text-[10px] text-muted uppercase tracking-wide">Noten</div>
-                                        <div class="text-lg font-bold text-text tabular-nums">{{ $st?->semCount ?? 0 }}</div>
-                                    </div>
-                                    @if($st && ($st->daysSince === null || $st->daysSince > 30))
-                                        <div class="flex-1 px-1">
-                                            <div class="text-[10px] text-orange-600 dark:text-orange-400 uppercase tracking-wide">Inaktiv</div>
-                                            <div class="text-xs font-semibold text-orange-600 dark:text-orange-400 leading-6">
-                                                {{ $st->daysSince === null ? '∞' : $st->daysSince.'d' }}
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                {{-- Badges-Footer --}}
-                                @if(($st?->warningRot) || $daysLeft !== null)
-                                    <div class="mt-3 pt-3 border-t border-border flex flex-wrap gap-1.5">
-                                        @if($st?->warningRot)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300">
-                                                Ø unter 4.0
-                                            </span>
-                                        @endif
-                                        @if($daysLeft !== null)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium
-                                                {{ $daysLeft <= 14 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300' }}">
-                                                Lehrende in {{ $daysLeft }}d
-                                            </span>
-                                        @endif
-                                    </div>
-                                @endif
-                            </a>
-                        @endforeach
-                    </div>
-                @endif
-            </div>
-
-            {{-- Quick-Actions --}}
-            <div class="flex flex-wrap gap-2">
-                <a href="{{ route('berufsbildner.lernende.index') }}"
-                   class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm inline-flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Alle Lernenden anzeigen
-                </a>
-                @if(Route::has('berufsbildner.noten.export_alle'))
-                    <a href="{{ route('berufsbildner.noten.export_alle') }}"
-                       class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm inline-flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        Alle Noten exportieren (CSV)
-                    </a>
-                @endif
-            </div>
-
+            <x-karte titel="Lehrende bald" class="lg:col-span-6" :polster="false">
+                <div class="divide-y divide-border/70">
+                    @forelse($lehrende as $l)
+                        <a href="{{ route('berufsbildner.lernende.show', $l->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                            <span class="text-sm text-text">{{ $l->benutzer->vorname }} {{ $l->benutzer->nachname }}</span>
+                            <span class="text-xs text-muted tabular-nums">{{ $l->lehrende->format('d.m.Y') }} · in {{ (int) now()->startOfDay()->diffInDays($l->lehrende) }} Tagen</span>
+                        </a>
+                    @empty
+                        <div class="px-5 py-8 text-center text-sm text-muted">Keine</div>
+                    @endforelse
+                </div>
+            </x-karte>
         </div>
     </div>
 </x-app-layout>

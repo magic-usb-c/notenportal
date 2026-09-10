@@ -22,6 +22,9 @@
                             <th class="px-4 py-3 text-left font-medium">Code</th>
                             <th class="px-4 py-3 text-left font-medium">Name</th>
                             <th class="px-4 py-3 text-left font-medium">Sortierung</th>
+                            <th class="px-4 py-3 text-left font-medium">Rundung</th>
+                            <th class="px-4 py-3 text-left font-medium">Gewicht</th>
+                            <th class="px-4 py-3 text-left font-medium">Promotion</th>
                             <th class="px-4 py-3 text-left font-medium">Status</th>
                             <th class="px-4 py-3"></th>
                         </tr>
@@ -32,6 +35,15 @@
                                 <td class="px-4 py-3 font-mono text-text font-semibold">{{ $k->code }}</td>
                                 <td class="px-4 py-3 text-text">{{ $k->name }}</td>
                                 <td class="px-4 py-3 text-muted text-center">{{ $k->sortierung }}</td>
+                                <td class="px-4 py-3 text-muted text-xs">{{ number_format((float) $k->rundung_element, 2) }} / {{ number_format((float) $k->rundung_schnitt, 2) }}</td>
+                                <td class="px-4 py-3 text-muted">{{ number_format((float) $k->gewicht_gesamt, 2) }}</td>
+                                <td class="px-4 py-3">
+                                    @if(! is_null($k->promotion_min_schnitt))
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">–</span>
+                                    @endif
+                                </td>
                                 <td class="px-4 py-3">
                                     @if($k->aktiv)
                                         <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
@@ -46,7 +58,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-muted">
+                                <td colspan="8" class="px-4 py-8 text-center text-muted">
                                     Noch keine Kategorien erfasst.
                                 </td>
                             </tr>

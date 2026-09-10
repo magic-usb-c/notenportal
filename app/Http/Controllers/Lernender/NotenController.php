@@ -11,7 +11,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NotenController extends Controller
@@ -168,91 +167,16 @@ class NotenController extends Controller
 
     public function create(Request $request)
     {
-        $user = $request->user();
-        $lernender = $user?->lernender;
+        $lernender = $request->user()?->lernender ?? abort(403);
+        $pruefung = $request->filled('pruefung')
+            ? $lernender->pruefungen()->with(['fach', 'modul'])->find($request->integer('pruefung'))
+            : null;
 
-        if (! $lernender) {
-            abort(403);
-        }
-
-        // Basis für die Live-Ø-Vorschau: gewichtete Summen des aktuellen Semesters
-        $today = now()->toDateString();
-        $avgBasis = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->where('n.lernender_id', (int) $lernender->lernender_id)
-            ->whereNull('n.geloescht_am')
-            ->where('s.start_datum', '<=', $today)
-            ->where('s.end_datum', '>=', $today)
-            ->selectRaw('
-                COALESCE(SUM(COALESCE(n.gewichtung_prozent, 100)), 0) as wsum,
-                COALESCE(SUM(n.note_wert * COALESCE(n.gewichtung_prozent, 100)), 0) as nsum
-            ')
-            ->first();
-
-        return view(
-            'lernender.noten.create',
-            array_merge(
-                $this->noteService->formOptionsForLernender((int) $lernender->lernender_id),
-                [
-                    'avgBasisWsum' => (float) ($avgBasis->wsum ?? 0),
-                    'avgBasisNsum' => (float) ($avgBasis->nsum ?? 0),
-                ]
-            )
-        );
-    }
-
-    /**
-     * Noten-Rechner: "Welche Note brauche ich, um Ziel-Ø zu erreichen?"
-     * Übergibt sowohl die Noten des aktuellen Semesters als auch alle Noten an die View,
-     * damit die Berechnung live im Browser (Alpine.js) erfolgen kann.
-     */
-    public function rechner(Request $request)
-    {
-        $lernender = $request->user()?->lernender;
-        if (! $lernender) {
-            abort(403);
-        }
-
-        $lernenderId = (int) $lernender->lernender_id;
-        $today = Carbon::today()->toDateString();
-
-        $currentSemester = DB::table('semester')
-            ->where('start_datum', '<=', $today)
-            ->where('end_datum', '>=', $today)
-            ->first();
-
-        $allNotes = DB::table('noten')
-            ->where('lernender_id', $lernenderId)
-            ->whereNull('geloescht_am')
-            ->select(['note_wert', 'gewichtung_prozent'])
-            ->get()
-            ->map(fn ($n) => [
-                'wert' => (float) $n->note_wert,
-                'gew' => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
-            ])
-            ->values()
-            ->all();
-
-        $currentNotes = [];
-        if ($currentSemester) {
-            $currentNotes = DB::table('noten')
-                ->where('lernender_id', $lernenderId)
-                ->where('semester_id', $currentSemester->semester_id)
-                ->whereNull('geloescht_am')
-                ->select(['note_wert', 'gewichtung_prozent'])
-                ->get()
-                ->map(fn ($n) => [
-                    'wert' => (float) $n->note_wert,
-                    'gew' => $n->gewichtung_prozent !== null ? (float) $n->gewichtung_prozent : 100.0,
-                ])
-                ->values()
-                ->all();
-        }
-
-        return view('lernender.noten.rechner', [
-            'allNotes' => $allNotes,
-            'currentNotes' => $currentNotes,
-            'currentSemester' => $currentSemester,
+        return view('lernender.noten.create', [
+            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
+            'semesterListe' => $this->noteService->semesterListe(),
+            'pruefung' => $pruefung,
+            'vorauswahl' => preg_match('/^(fach|modul):\d+$/', (string) $request->query('bezug')) ? $request->query('bezug') : null,
         ]);
     }
 
@@ -266,7 +190,6 @@ class NotenController extends Controller
         }
 
         $validated = $request->validate([
-            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
             'typ' => ['required', 'in:fach,modul'],
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
@@ -284,7 +207,6 @@ class NotenController extends Controller
             'semester_id' => $data['semester_id'],
             'fach_id' => $data['fach_id'],
             'modul_belegung_id' => $data['modul_belegung_id'],
-            'gruppe_id' => $data['gruppe_id'],
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
@@ -293,9 +215,14 @@ class NotenController extends Controller
             'aktualisiert_von_benutzer_id' => null,
         ]);
 
+        // Aus einer geplanten Prüfung eingetragen: Planung ist erledigt
+        if ($request->filled('pruefung_id')) {
+            $lernender->pruefungen()->whereKey($request->integer('pruefung_id'))->delete();
+        }
+
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('status', 'Note gespeichert.');
+        return redirect()->route('lernender.noten.index', $params)->with('success','Note gespeichert.');
     }
 
     public function edit(Request $request, int $note_id)
@@ -308,15 +235,16 @@ class NotenController extends Controller
         }
 
         $note = Note::query()
-            ->with(['fach', 'modulBelegung.modul', 'gruppe'])
+            ->with(['fach', 'modulBelegung.modul'])
             ->where('note_id', $note_id)
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();
 
-        return view('lernender.noten.edit', array_merge(
-            ['note' => $note],
-            $this->noteService->formOptionsForLernender((int) $lernender->lernender_id)
-        ));
+        return view('lernender.noten.edit', [
+            'note' => $note,
+            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
+            'semesterListe' => $this->noteService->semesterListe(),
+        ]);
     }
 
     public function update(Request $request, int $note_id)
@@ -334,7 +262,6 @@ class NotenController extends Controller
             ->firstOrFail();
 
         $validated = $request->validate([
-            'kategorie_id' => ['required', 'integer', 'exists:kategorien,kategorie_id'],
             'typ' => ['required', 'in:fach,modul'],
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
@@ -351,7 +278,6 @@ class NotenController extends Controller
             'semester_id' => $data['semester_id'],
             'fach_id' => $data['fach_id'],
             'modul_belegung_id' => $data['modul_belegung_id'],
-            'gruppe_id' => $data['gruppe_id'],
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
@@ -361,7 +287,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('status', 'Note aktualisiert.');
+        return redirect()->route('lernender.noten.index', $params)->with('success','Note aktualisiert.');
     }
 
     /**
@@ -567,6 +493,6 @@ class NotenController extends Controller
 
         return redirect()
             ->route('lernender.noten.index', ['semester_id' => $note->semester_id])
-            ->with('status', 'Note gelöscht.');
+            ->with('success','Note gelöscht.');
     }
 }

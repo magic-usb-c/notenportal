@@ -52,8 +52,9 @@ class StammdatenLehrberufeController extends Controller
         // Zugewiesene Module mit Pivot-Daten
         $zugewieseneModule = DB::table('lehrberuf_module as lbm')
             ->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
+            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')
             ->where('lbm.lehrberuf_id', $lehrberuf_id)
-            ->select(['m.modul_id', 'm.modul_nummer', 'm.titel', 'lbm.pflicht', 'lbm.empfohlenes_lehrsemester_nr', 'lbm.aktiv'])
+            ->select(['m.modul_id', 'm.modul_nummer', 'm.titel', 'lbm.pflicht', 'lbm.empfohlenes_lehrsemester_nr', 'lbm.aktiv', 'lbm.kategorie_id', 'k.name as kategorie_name'])
             ->orderBy('m.modul_nummer')
             ->get();
 
@@ -77,20 +78,23 @@ class StammdatenLehrberufeController extends Controller
 
         $zugewieseneFachIds = $zugewieseneFaecher->pluck('fach_id')->all();
 
-        // Noch nicht zugewiesene aktive Fächer
+        // Noch nicht zugewiesene aktive Fächer ohne Track (Track-Fächer sind über den Track freigegeben)
         $verfuegbareFaecher = DB::table('faecher')
             ->where('aktiv', 1)
+            ->whereNull('track_typ')
             ->whereNotIn('fach_id', $zugewieseneFachIds)
-            ->orderBy('track_typ')
             ->orderBy('name')
             ->get();
+
+        $kategorien = DB::table('kategorien')->where('aktiv', 1)->orderBy('sortierung')->get();
 
         return view('admin.stammdaten.lehrberufe.show', compact(
             'lehrberuf',
             'zugewieseneModule',
             'verfuegbareModule',
             'zugewieseneFaecher',
-            'verfuegbareFaecher'
+            'verfuegbareFaecher',
+            'kategorien'
         ));
     }
 
@@ -98,6 +102,7 @@ class StammdatenLehrberufeController extends Controller
     {
         $validated = $request->validate([
             'modul_id' => ['required', 'integer', 'exists:module,modul_id'],
+            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
             'pflicht' => ['boolean'],
             'empfohlenes_lehrsemester_nr' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
@@ -105,6 +110,7 @@ class StammdatenLehrberufeController extends Controller
         DB::table('lehrberuf_module')->insertOrIgnore([
             'lehrberuf_id' => $lehrberuf_id,
             'modul_id' => $validated['modul_id'],
+            'kategorie_id' => $validated['kategorie_id'],
             'pflicht' => $request->boolean('pflicht', true) ? 1 : 0,
             'empfohlenes_lehrsemester_nr' => $validated['empfohlenes_lehrsemester_nr'] ?? null,
             'aktiv' => 1,
@@ -123,10 +129,24 @@ class StammdatenLehrberufeController extends Controller
         return back()->with('status', 'Modul entfernt.');
     }
 
+    public function updateModulKategorie(Request $request, int $lehrberuf_id, int $modul_id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
+        ]);
+
+        DB::table('lehrberuf_module')
+            ->where('lehrberuf_id', $lehrberuf_id)
+            ->where('modul_id', $modul_id)
+            ->update(['kategorie_id' => $validated['kategorie_id']]);
+
+        return back()->with('status', 'Lernort aktualisiert.');
+    }
+
     public function assignFach(Request $request, int $lehrberuf_id): RedirectResponse
     {
         $validated = $request->validate([
-            'fach_id' => ['required', 'integer', 'exists:faecher,fach_id'],
+            'fach_id' => ['required', 'integer', Rule::exists('faecher', 'fach_id')->whereNull('track_typ')],
         ]);
 
         DB::table('lehrberuf_faecher')->insertOrIgnore([

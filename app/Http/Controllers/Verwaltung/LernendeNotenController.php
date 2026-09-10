@@ -12,7 +12,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
@@ -105,7 +104,8 @@ class LernendeNotenController extends VerwaltungController
 
         return view('verwaltung.noten.create', [
             'lernender' => $lernender,
-            ...$this->noteService->formOptionsForLernender($lernender_id),
+            'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id),
+            'semesterListe' => $this->noteService->semesterListe(),
         ]);
     }
 
@@ -114,7 +114,7 @@ class LernendeNotenController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         Gate::authorize('noteAnlegen', $lernender);
 
-        $daten = $this->noteService->normalizeForSave($this->validiere($request, nurAktiveKategorien: true), $lernender_id);
+        $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id);
 
         $lernender->noten()->create([
             ...$this->notenfelder($daten),
@@ -132,12 +132,13 @@ class LernendeNotenController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         Gate::authorize('noteKorrigieren', $lernender);
 
-        $note = $lernender->noten()->with(['fach', 'modulBelegung.modul', 'gruppe'])->whereKey($note_id)->firstOrFail();
+        $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
 
         return view('verwaltung.noten.edit', [
             'lernender' => $lernender,
             'note' => $note,
-            ...$this->noteService->formOptionsForLernender($lernender_id),
+            'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id),
+            'semesterListe' => $this->noteService->semesterListe(),
         ]);
     }
 
@@ -171,12 +172,9 @@ class LernendeNotenController extends VerwaltungController
             ->with('success', 'Note gelöscht.');
     }
 
-    private function validiere(Request $request, bool $nurAktiveKategorien = false): array
+    private function validiere(Request $request): array
     {
-        $kategorie = Rule::exists('kategorien', 'kategorie_id');
-
         return $request->validate([
-            'kategorie_id' => ['required', 'integer', $nurAktiveKategorien ? $kategorie->where('aktiv', 1) : $kategorie],
             'typ' => ['required', 'in:fach,modul'],
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
@@ -194,7 +192,6 @@ class LernendeNotenController extends VerwaltungController
             'semester_id' => $daten['semester_id'],
             'fach_id' => $daten['fach_id'],
             'modul_belegung_id' => $daten['modul_belegung_id'],
-            'gruppe_id' => $daten['gruppe_id'],
             'titel' => $daten['titel'],
             'pruefungsdatum' => $daten['pruefungsdatum'],
             'note_wert' => $daten['note_wert'],

@@ -32,6 +32,7 @@
                                 <tr>
                                     <th class="py-2 pr-4 text-left font-medium">Nummer</th>
                                     <th class="py-2 pr-4 text-left font-medium">Titel</th>
+                                    <th class="py-2 pr-4 text-left font-medium">Lernort</th>
                                     <th class="py-2 pr-4 text-left font-medium">Pflicht</th>
                                     <th class="py-2 pr-4 text-left font-medium">Emph. Semester</th>
                                     <th class="py-2"></th>
@@ -42,6 +43,21 @@
                                     <tr>
                                         <td class="py-2 pr-4 font-mono text-text">{{ $m->modul_nummer }}</td>
                                         <td class="py-2 pr-4 text-text">{{ $m->titel }}</td>
+                                        <td class="py-2 pr-4">
+                                            <form method="POST"
+                                                  action="{{ route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
+                                                  x-data="{ loading: false }" @submit="loading = true">
+                                                @csrf @method('PATCH')
+                                                <label for="lernort_{{ $m->modul_id }}" class="sr-only">Lernort für {{ $m->titel }}</label>
+                                                <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" :disabled="loading"
+                                                        onchange="this.form.requestSubmit()"
+                                                        class="h-9 rounded-lg border border-border bg-input text-text px-2 text-xs focus:ring-2 focus:ring-ring">
+                                                    @foreach($kategorien as $k)
+                                                        <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </form>
+                                        </td>
                                         <td class="py-2 pr-4">
                                             @if($m->pflicht)
                                                 <span class="text-xs text-green-700 dark:text-green-400">Ja</span>
@@ -72,10 +88,10 @@
                 @if($verfuegbareModule->isNotEmpty())
                     <form method="POST"
                           action="{{ route('admin.stammdaten.lehrberufe.module.assign', $lehrberuf->lehrberuf_id) }}"
-                          class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-12 gap-3 items-end"
+                          class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
-                        <div class="md:col-span-5">
+                        <div class="lg:col-span-2">
                             <label for="modul_id" class="text-xs uppercase tracking-widest text-muted font-medium">Modul hinzufügen</label>
                             <select id="modul_id" name="modul_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
@@ -85,19 +101,28 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
+                            <label for="kategorie_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lernort *</label>
+                            <select id="kategorie_id" name="kategorie_id" required
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                                @foreach($kategorien as $k)
+                                    <option value="{{ $k->kategorie_id }}" @selected($k->code === 'FACH')>{{ $k->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
                             <label for="empfohlenes_lehrsemester_nr" class="text-xs uppercase tracking-widest text-muted font-medium">Emph. Semester</label>
                             <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12" placeholder="z.B. 3"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                         </div>
-                        <div class="md:col-span-3 flex items-end gap-2">
+                        <div class="flex items-end gap-2">
                             <label class="flex items-center gap-2 text-sm text-text">
                                 <input type="checkbox" name="pflicht" value="1" checked
                                        class="rounded-sm border-border text-accent focus:ring-ring">
                                 Pflichtmodul
                             </label>
                         </div>
-                        <div class="md:col-span-2">
+                        <div>
                             <button type="submit" :disabled="loading"
                                     class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
                                 Zuweisen
@@ -110,7 +135,7 @@
             {{-- ========== FÄCHER ========== --}}
             <div class="glass rounded-2xl p-5 space-y-4">
                 <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-text">Fächer (BMS/ABU)</h3>
+                    <h3 class="font-semibold text-text">Fächer (berufsspezifisch)</h3>
                     <span class="text-xs text-muted">{{ $zugewieseneFaecher->count() }} zugewiesen</span>
                 </div>
 
@@ -131,10 +156,14 @@
                                         <td class="py-2 pr-4 font-mono text-text">{{ $f->kurzname }}</td>
                                         <td class="py-2 pr-4 text-text">{{ $f->name }}</td>
                                         <td class="py-2 pr-4">
-                                            <span class="px-2 py-0.5 rounded-full text-xs
-                                                {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
-                                                {{ $f->track_typ }}
-                                            </span>
+                                            @if($f->track_typ)
+                                                <span class="px-2 py-0.5 rounded-full text-xs
+                                                    {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
+                                                    {{ $f->track_typ }}
+                                                </span>
+                                            @else
+                                                <span class="text-xs text-muted">–</span>
+                                            @endif
                                         </td>
                                         <td class="py-2 text-right">
                                             <form method="POST"
@@ -167,7 +196,7 @@
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>
                                 @foreach($verfuegbareFaecher as $f)
-                                    <option value="{{ $f->fach_id }}">[{{ $f->track_typ }}] {{ $f->kurzname }} – {{ $f->name }}</option>
+                                    <option value="{{ $f->fach_id }}">{{ $f->kurzname }} – {{ $f->name }}</option>
                                 @endforeach
                             </select>
                         </div>

@@ -35,16 +35,32 @@
                         @enderror
                     </div>
 
-                    <div>
-                        <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track *</label>
-                        <select id="track_typ" name="track_typ" required
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
-                            <option value="BMS" @selected(old('track_typ', $fach->track_typ) === 'BMS')>BMS</option>
-                            <option value="ABU" @selected(old('track_typ', $fach->track_typ) === 'ABU')>ABU</option>
-                        </select>
-                        @error('track_typ')
-                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track</label>
+                            <select id="track_typ" name="track_typ"
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-red-400 @enderror">
+                                <option value="" @selected(old('track_typ', $fach->track_typ) === null || old('track_typ', $fach->track_typ) === '')>Kein Track</option>
+                                <option value="BMS" @selected(old('track_typ', $fach->track_typ) === 'BMS')>BMS</option>
+                                <option value="ABU" @selected(old('track_typ', $fach->track_typ) === 'ABU')>ABU</option>
+                            </select>
+                            @error('track_typ')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="kategorie_id" class="text-xs uppercase tracking-widest text-muted font-medium">Kategorie *</label>
+                            <select id="kategorie_id" name="kategorie_id" required
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kategorie_id') border-red-400 @enderror">
+                                @foreach($kategorien as $k)
+                                    <option value="{{ $k->kategorie_id }}" @selected((int) old('kategorie_id', $fach->kategorie_id) === (int) $k->kategorie_id)>{{ $k->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('kategorie_id')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="flex items-center gap-3">

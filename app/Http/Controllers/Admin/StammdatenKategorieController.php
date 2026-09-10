@@ -30,6 +30,7 @@ class StammdatenKategorieController extends Controller
             'code' => ['required', 'string', 'max:30', 'unique:kategorien,code'],
             'name' => ['required', 'string', 'max:50', 'unique:kategorien,name'],
             'sortierung' => ['nullable', 'integer', 'min:0'],
+            ...$this->rechenregelRules(),
         ]);
 
         $sortierung = $validated['sortierung'] ?? (DB::table('kategorien')->max('sortierung') ?? 0) + 1;
@@ -39,6 +40,7 @@ class StammdatenKategorieController extends Controller
             'name' => $validated['name'],
             'sortierung' => (int) $sortierung,
             'aktiv' => true,
+            ...$this->rechenregelWerte($validated),
         ]);
 
         return redirect()
@@ -60,6 +62,7 @@ class StammdatenKategorieController extends Controller
             'name' => ['required', 'string', 'max:50', Rule::unique('kategorien', 'name')->ignore($kategorie_id, 'kategorie_id')],
             'sortierung' => ['nullable', 'integer', 'min:0'],
             'aktiv' => ['boolean'],
+            ...$this->rechenregelRules(),
         ]);
 
         DB::table('kategorien')
@@ -69,10 +72,41 @@ class StammdatenKategorieController extends Controller
                 'name' => $validated['name'],
                 'sortierung' => (int) ($validated['sortierung'] ?? 0),
                 'aktiv' => (bool) ($validated['aktiv'] ?? true),
+                ...$this->rechenregelWerte($validated),
             ]);
 
         return redirect()
             ->route('admin.stammdaten.kategorien.index')
             ->with('status', 'Kategorie aktualisiert.');
+    }
+
+    /**
+     * Validierungsregeln für die Rechenregeln einer Kategorie (docs/notenlogik.md).
+     */
+    private function rechenregelRules(): array
+    {
+        return [
+            'rundung_element' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
+            'rundung_schnitt' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
+            'gewicht_gesamt' => ['required', 'numeric', 'min:0'],
+            'promotion_min_schnitt' => ['nullable', 'numeric', 'between:1,6'],
+            'promotion_max_ungenuegend' => ['nullable', 'integer', 'between:0,20'],
+            'promotion_max_minuspunkte' => ['nullable', 'numeric', 'between:0,20'],
+        ];
+    }
+
+    /**
+     * Leere Promotion-Felder werden als null gespeichert (keine Regel).
+     */
+    private function rechenregelWerte(array $validated): array
+    {
+        return [
+            'rundung_element' => $validated['rundung_element'],
+            'rundung_schnitt' => $validated['rundung_schnitt'],
+            'gewicht_gesamt' => $validated['gewicht_gesamt'],
+            'promotion_min_schnitt' => $validated['promotion_min_schnitt'] ?? null,
+            'promotion_max_ungenuegend' => $validated['promotion_max_ungenuegend'] ?? null,
+            'promotion_max_minuspunkte' => $validated['promotion_max_minuspunkte'] ?? null,
+        ];
     }
 }

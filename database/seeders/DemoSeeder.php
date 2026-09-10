@@ -17,40 +17,35 @@ use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
- * Demodaten fuer Screenshots/Abnahme: 4 Lehrberufe, Semester 2022-2030,
- * 1 Admin, 3 Berufsbildner, 14 Lernende mit realistischen Notenverlaeufen.
+ * Demodaten für Abnahme und Screenshots: 4 Lehrberufe mit Schul- und ÜK-Modulen, BMS-/ABU-Fächer,
+ * 1 Admin, 3 Berufsbildner, 14 Lernende vom 1. bis 4. Lehrjahr mit erkennbaren Verläufen,
+ * geplanten Prüfungen, Zielen, Kommentaren.
  *
- * Deterministisch: fester Faker-Seed + fixes Referenzdatum (REFERENZDATUM),
- * damit zwei Laeufe dieselben Daten erzeugen.
- *
- * Darf NUR gegen eine *_test- oder *_demo-Datenbank laufen (siehe pruefeDatenbank()).
+ * Deterministisch (fixes Referenzdatum, Pseudozufall aus Hash). Nur gegen *_test oder *_demo.
  */
 class DemoSeeder extends Seeder
 {
-    private const string REFERENZDATUM = '2026-09-15';
+    private const string REFERENZDATUM = '2026-09-08';
 
     private const string DEMO_PASSWORT = 'Demo!2026';
 
     private const array LEHRBERUFE = [
-        ['kuerzel' => 'INPE', 'name' => 'Informatiker/in EFZ Plattformentwicklung'],
-        ['kuerzel' => 'INAP', 'name' => 'Informatiker/in EFZ Applikationsentwicklung'],
-        ['kuerzel' => 'EDB', 'name' => 'Entwickler/in digitales Business EFZ'],
-        ['kuerzel' => 'INBE', 'name' => 'Betriebsinformatiker/in EFZ'],
+        'INPE' => ['name' => 'Informatiker/in EFZ Plattformentwicklung', 'basis' => 100],
+        'INAP' => ['name' => 'Informatiker/in EFZ Applikationsentwicklung', 'basis' => 200],
+        'EDB' => ['name' => 'Entwickler/in digitales Business EFZ', 'basis' => 300],
+        'INBE' => ['name' => 'Betriebsinformatiker/in EFZ', 'basis' => 400],
     ];
 
-    private const array MODUL_ANZAHL = ['INPE' => 8, 'INAP' => 8, 'EDB' => 6, 'INBE' => 7];
-
-    private const array MODUL_NUMMER_BASIS = ['INPE' => 100, 'INAP' => 200, 'EDB' => 300, 'INBE' => 400];
-
-    private const array MODUL_THEMEN = [
-        'Datenbanken abfragen', 'Netzwerke konfigurieren', 'Software testen',
-        'Benutzeroberflächen gestalten', 'Projekte planen', 'Daten sichern',
-        'Systeme dokumentieren', 'Support leisten', 'Prozesse analysieren',
-        'Schnittstellen entwickeln',
+    private const array SCHUL_THEMEN = [
+        'Daten modellieren', 'Netzwerke aufbauen', 'Software testen', 'Oberflächen gestalten', 'Projekte planen',
+        'Daten sichern', 'Systeme dokumentieren', 'Schnittstellen entwickeln', 'Prozesse analysieren',
+        'Sicherheit umsetzen', 'Cloud betreiben', 'Daten auswerten',
     ];
+
+    private const array UEK_THEMEN = ['Arbeitsplatz einrichten', 'Hardware in Betrieb nehmen', 'Kundensupport leisten', 'Web-Applikation umsetzen', 'Server betreiben'];
 
     private const array FAECHER = [
-        'BMS' => ['Deutsch' => 'D', 'Englisch' => 'E', 'Mathematik' => 'M', 'Wirtschaft' => 'W'],
+        'BMS' => ['Deutsch' => 'D', 'Englisch' => 'E', 'Französisch' => 'F', 'Mathematik' => 'M', 'Wirtschaft und Recht' => 'WR', 'Naturwissenschaften' => 'NW'],
         'ABU' => ['Sprache und Kommunikation' => 'SK', 'Gesellschaft' => 'G'],
     ];
 
@@ -62,22 +57,22 @@ class DemoSeeder extends Seeder
         ['Chiara', 'Kunz'], ['Reto', 'Hofer'],
     ];
 
-    // Index 0 = Admin, 1-3 = Berufsbildner, 4-17 = Lernende (passend zu diesem Array).
+    /** Reihenfolge wie NAMEN ab Index 4. */
     private const array LERNENDE_KONFIG = [
-        ['lehrberuf' => 'INPE', 'jahr' => 2022, 'track' => 'BMS', 'pattern' => 'stetig_besser'],
-        ['lehrberuf' => 'INPE', 'jahr' => 2023, 'track' => 'ABU', 'pattern' => null],
-        ['lehrberuf' => 'INPE', 'jahr' => 2024, 'track' => 'BMS', 'pattern' => null],
-        ['lehrberuf' => 'INPE', 'jahr' => 2025, 'track' => 'ABU', 'pattern' => null],
-        ['lehrberuf' => 'INAP', 'jahr' => 2022, 'track' => 'ABU', 'pattern' => 'einbruch'],
-        ['lehrberuf' => 'INAP', 'jahr' => 2023, 'track' => 'BMS', 'pattern' => null],
-        ['lehrberuf' => 'INAP', 'jahr' => 2024, 'track' => 'ABU', 'pattern' => null],
-        ['lehrberuf' => 'INAP', 'jahr' => 2025, 'track' => 'BMS', 'pattern' => null],
-        ['lehrberuf' => 'EDB', 'jahr' => 2022, 'track' => 'BMS', 'pattern' => 'stabil_gut'],
-        ['lehrberuf' => 'EDB', 'jahr' => 2023, 'track' => 'ABU', 'pattern' => null],
-        ['lehrberuf' => 'EDB', 'jahr' => 2025, 'track' => 'BMS', 'pattern' => null],
-        ['lehrberuf' => 'INBE', 'jahr' => 2023, 'track' => 'BMS', 'pattern' => 'knapp_ungenuegend'],
-        ['lehrberuf' => 'INBE', 'jahr' => 2024, 'track' => 'ABU', 'pattern' => null],
-        ['lehrberuf' => 'INBE', 'jahr' => 2025, 'track' => 'ABU', 'pattern' => null],
+        ['beruf' => 'INAP', 'jahr' => 2023, 'track' => 'BMS', 'muster' => 'stetig_besser', 'klasse' => 'INF23a'],
+        ['beruf' => 'INPE', 'jahr' => 2023, 'track' => 'ABU', 'muster' => 'normal', 'klasse' => 'INF23b'],
+        ['beruf' => 'INPE', 'jahr' => 2024, 'track' => 'BMS', 'muster' => 'einbruch', 'klasse' => 'INF24a'],
+        ['beruf' => 'INPE', 'jahr' => 2025, 'track' => 'ABU', 'muster' => 'normal', 'klasse' => 'INF25b'],
+        ['beruf' => 'INAP', 'jahr' => 2022, 'track' => 'ABU', 'muster' => 'stabil_gut', 'klasse' => 'INF22a'],
+        ['beruf' => 'INAP', 'jahr' => 2024, 'track' => 'BMS', 'muster' => 'knapp', 'klasse' => 'INF24a'],
+        ['beruf' => 'INAP', 'jahr' => 2025, 'track' => 'BMS', 'muster' => 'normal', 'klasse' => 'INF25a'],
+        ['beruf' => 'EDB', 'jahr' => 2023, 'track' => 'BMS', 'muster' => 'stabil_gut', 'klasse' => 'EDB23'],
+        ['beruf' => 'EDB', 'jahr' => 2024, 'track' => 'ABU', 'muster' => 'inaktiv', 'klasse' => 'EDB24'],
+        ['beruf' => 'EDB', 'jahr' => 2026, 'track' => 'ABU', 'muster' => 'neu', 'klasse' => 'EDB26'],
+        ['beruf' => 'INBE', 'jahr' => 2023, 'track' => 'BMS', 'muster' => 'schwankend', 'klasse' => 'INB23'],
+        ['beruf' => 'INBE', 'jahr' => 2024, 'track' => 'ABU', 'muster' => 'normal', 'klasse' => 'INB24'],
+        ['beruf' => 'INAP', 'jahr' => 2026, 'track' => 'BMS', 'muster' => 'neu', 'klasse' => 'INF26a'],
+        ['beruf' => 'INPE', 'jahr' => 2025, 'track' => 'BMS', 'muster' => 'normal', 'klasse' => 'INF25a'],
     ];
 
     private const array KOMMENTARE = [
@@ -89,30 +84,27 @@ class DemoSeeder extends Seeder
         'Knapp, aber bestanden. Am Ball bleiben.',
     ];
 
-    private int $gewichtIndex = 0;
+    /** @var array<string, int> */
+    private array $kategorien = [];
 
     public function run(): void
     {
         $this->pruefeDatenbank();
-        fake()->seed(2026);
-
         $this->call(BasisSeeder::class);
+        DB::table('einstellungen')->updateOrInsert(['schluessel' => 'betrieb_name'], ['wert' => 'Muster AG']);
 
-        $lehrberufIds = $this->seedeLehrberufe();
-        $faecher = $this->seedeFaecher();
-        $module = $this->seedeModule($lehrberufIds);
-        $this->seedeLehrberufFaecher($lehrberufIds, $faecher);
+        $this->kategorien = DB::table('kategorien')->pluck('kategorie_id', 'code')->map(fn ($id) => (int) $id)->all();
         $semester = $this->seedeSemester();
-        $kategorieIds = DB::table('kategorien')->pluck('kategorie_id', 'code')->all();
+        $faecher = $this->seedeFaecher();
+        $berufe = $this->seedeLehrberufeUndModule();
+        $personen = $this->seedePersonen($berufe);
 
-        $personen = $this->seedePersonen($lehrberufIds);
-        $this->seedeBetreuungen($personen);
-        $this->seedeTracksModuleNoten($personen, $semester, $module, $faecher, $kategorieIds);
+        $kommentar = 0;
+        foreach ($personen['lernende'] as $i => $l) {
+            $this->seedeLernenden($l, $i, $semester, $faecher, $berufe, $kommentar);
+        }
     }
 
-    /**
-     * RefreshDatabase droppt/aendert Tabellen destruktiv – nie gegen die Produktiv-DB laufen.
-     */
     private function pruefeDatenbank(): void
     {
         $name = DB::connection()->getDatabaseName();
@@ -122,395 +114,266 @@ class DemoSeeder extends Seeder
         }
     }
 
-    private function seedeLehrberufe(): array
-    {
-        $ids = [];
-        foreach (self::LEHRBERUFE as $lb) {
-            $model = Lehrberuf::query()->firstOrCreate(
-                ['kuerzel' => $lb['kuerzel']],
-                ['name' => $lb['name'], 'aktiv' => true]
-            );
-            $ids[$lb['kuerzel']] = $model->lehrberuf_id;
-        }
-
-        return $ids;
-    }
-
-    /** @return array{BMS: array<int, array{fach_id:int, name:string}>, ABU: array<int, array{fach_id:int, name:string}>} */
-    private function seedeFaecher(): array
-    {
-        $out = ['BMS' => [], 'ABU' => []];
-
-        foreach (self::FAECHER as $track => $liste) {
-            foreach ($liste as $name => $kurz) {
-                $id = DB::table('faecher')->where('track_typ', $track)->where('name', $name)->value('fach_id');
-                if (! $id) {
-                    $id = DB::table('faecher')->insertGetId([
-                        'track_typ' => $track, 'name' => $name, 'kurzname' => $kurz, 'aktiv' => 1,
-                    ]);
-                }
-                $out[$track][] = ['fach_id' => $id, 'name' => $name];
-            }
-        }
-
-        return $out;
-    }
-
-    /** @return array<string, array<int, array{modul_id:int, nr:int}>> */
-    private function seedeModule(array $lehrberufIds): array
-    {
-        $out = [];
-
-        foreach (self::LEHRBERUFE as $lb) {
-            $kuerzel = $lb['kuerzel'];
-            $anzahl = self::MODUL_ANZAHL[$kuerzel];
-            $basis = self::MODUL_NUMMER_BASIS[$kuerzel];
-            $out[$kuerzel] = [];
-
-            for ($i = 1; $i <= $anzahl; $i++) {
-                $nummer = 'D'.($basis + $i);
-                $thema = self::MODUL_THEMEN[($i - 1) % count(self::MODUL_THEMEN)];
-
-                $modulId = DB::table('module')->where('modul_nummer', $nummer)->value('modul_id');
-                if (! $modulId) {
-                    $modulId = DB::table('module')->insertGetId([
-                        'modul_nummer' => $nummer,
-                        'titel' => 'Demo: '.$thema,
-                        'ziel_gewicht_summe_default' => 100.00,
-                        'aktiv' => 1,
-                    ]);
-                }
-
-                $nr = (int) min(8, max(1, (int) ceil($i * 8 / $anzahl)));
-
-                DB::table('lehrberuf_module')->updateOrInsert(
-                    ['lehrberuf_id' => $lehrberufIds[$kuerzel], 'modul_id' => $modulId],
-                    ['pflicht' => true, 'empfohlenes_lehrsemester_nr' => $nr, 'aktiv' => 1]
-                );
-
-                $out[$kuerzel][] = ['modul_id' => $modulId, 'nr' => $nr];
-            }
-        }
-
-        return $out;
-    }
-
-    private function seedeLehrberufFaecher(array $lehrberufIds, array $faecher): void
-    {
-        foreach ($lehrberufIds as $id) {
-            foreach (['BMS', 'ABU'] as $track) {
-                foreach ($faecher[$track] as $f) {
-                    DB::table('lehrberuf_faecher')->updateOrInsert(
-                        ['lehrberuf_id' => $id, 'fach_id' => $f['fach_id']],
-                        ['aktiv' => 1]
-                    );
-                }
-            }
-        }
-    }
-
-    /** Semester Aug./Feb. fuer die Schuljahre 2022/23 bis 2029/30. */
+    /** Semester Aug./Feb. für die Schuljahre 2022/23 bis 2029/30. */
     private function seedeSemester(): Collection
     {
         $out = collect();
         $sort = 1;
-
         for ($jahr = 2022; $jahr <= 2029; $jahr++) {
-            $kurzA = substr((string) $jahr, 2, 2);
-            $kurzB = substr((string) ($jahr + 1), 2, 2);
-
-            $reihen = [
-                ['bezeichnung' => "{$kurzA}/{$kurzB}-1", 'start_datum' => "{$jahr}-08-01", 'end_datum' => ($jahr + 1).'-01-31'],
-                ['bezeichnung' => "{$kurzA}/{$kurzB}-2", 'start_datum' => ($jahr + 1).'-02-01', 'end_datum' => ($jahr + 1).'-07-31'],
-            ];
-
-            foreach ($reihen as $r) {
-                $r['sortierung'] = $sort++;
-                $id = DB::table('semester')->where('bezeichnung', $r['bezeichnung'])->value('semester_id');
-                if (! $id) {
-                    $id = DB::table('semester')->insertGetId($r);
-                }
-                $out->push((object) array_merge($r, ['semester_id' => $id]));
+            $a = substr((string) $jahr, 2, 2);
+            $b = substr((string) ($jahr + 1), 2, 2);
+            foreach ([
+                ["{$a}/{$b}-1", "{$jahr}-08-01", ($jahr + 1).'-01-31'],
+                ["{$a}/{$b}-2", ($jahr + 1).'-02-01', ($jahr + 1).'-07-31'],
+            ] as [$bezeichnung, $start, $ende]) {
+                $id = DB::table('semester')->where('bezeichnung', $bezeichnung)->value('semester_id')
+                    ?? DB::table('semester')->insertGetId(['bezeichnung' => $bezeichnung, 'start_datum' => $start, 'end_datum' => $ende, 'sortierung' => $sort]);
+                $out->push((object) ['semester_id' => (int) $id, 'bezeichnung' => $bezeichnung, 'start_datum' => $start, 'end_datum' => $ende]);
+                $sort++;
             }
         }
 
-        return $out->sortBy('sortierung')->values();
+        return $out;
     }
 
-    /** @return array{admin: User, bbs: array<int, User>, lernende: array<int, array<string, mixed>>} */
-    private function seedePersonen(array $lehrberufIds): array
+    /** @return array<string, list<array{fach_id: int, name: string}>> */
+    private function seedeFaecher(): array
     {
-        $namen = self::NAMEN;
-        $idx = 0;
+        $out = [];
+        foreach (self::FAECHER as $track => $liste) {
+            foreach ($liste as $name => $kurz) {
+                $id = DB::table('faecher')->where('track_typ', $track)->where('name', $name)->value('fach_id')
+                    ?? DB::table('faecher')->insertGetId(['track_typ' => $track, 'kategorie_id' => $this->kategorien[$track], 'name' => $name, 'kurzname' => $kurz, 'aktiv' => 1]);
+                $out[$track][] = ['fach_id' => (int) $id, 'name' => $name];
+            }
+        }
 
-        $macheBenutzer = static function (array $paar): array {
+        return $out;
+    }
+
+    /** @return array<string, array{lehrberuf_id: int, module: list<array{modul_id: int, semester: int, kategorie: string}>}> */
+    private function seedeLehrberufeUndModule(): array
+    {
+        $out = [];
+        foreach (self::LEHRBERUFE as $kuerzel => $lb) {
+            $lehrberufId = (int) Lehrberuf::query()->firstOrCreate(['kuerzel' => $kuerzel], ['name' => $lb['name'], 'aktiv' => true])->lehrberuf_id;
+            $module = [];
+
+            foreach (self::SCHUL_THEMEN as $i => $thema) {
+                $module[] = $this->modul($lehrberufId, 'D'.($lb['basis'] + $i + 1), $thema, (int) ceil(($i + 1) * 8 / 12), 'FACH');
+            }
+            foreach (self::UEK_THEMEN as $i => $thema) {
+                $module[] = $this->modul($lehrberufId, 'U'.($lb['basis'] + $i + 1), $thema, [1, 2, 3, 4, 6][$i], 'UEK');
+            }
+
+            $out[$kuerzel] = ['lehrberuf_id' => $lehrberufId, 'module' => $module];
+        }
+
+        return $out;
+    }
+
+    private function modul(int $lehrberufId, string $nummer, string $thema, int $semester, string $kategorie): array
+    {
+        $id = DB::table('module')->where('modul_nummer', $nummer)->value('modul_id')
+            ?? DB::table('module')->insertGetId(['modul_nummer' => $nummer, 'titel' => $thema, 'ziel_gewicht_summe_default' => 100.00, 'aktiv' => 1]);
+
+        DB::table('lehrberuf_module')->updateOrInsert(
+            ['lehrberuf_id' => $lehrberufId, 'modul_id' => $id],
+            ['pflicht' => true, 'empfohlenes_lehrsemester_nr' => $semester, 'aktiv' => 1, 'kategorie_id' => $this->kategorien[$kategorie]]
+        );
+
+        return ['modul_id' => (int) $id, 'semester' => $semester, 'kategorie' => $kategorie];
+    }
+
+    private function seedePersonen(array $berufe): array
+    {
+        $benutzer = static function (array $paar): array {
             [$vorname, $nachname] = $paar;
             $slug = strtolower($vorname).'.'.strtolower($nachname);
 
-            return [
-                'vorname' => $vorname,
-                'nachname' => $nachname,
-                'benutzername' => $slug,
-                'email' => $slug.'@demo.example',
-            ];
+            return ['vorname' => $vorname, 'nachname' => $nachname, 'benutzername' => $slug, 'email' => $slug.'@demo.example', 'passwort_hash' => self::DEMO_PASSWORT];
         };
 
-        $adminDaten = $macheBenutzer($namen[$idx++]);
-        $admin = User::factory()->admin()->create(array_merge($adminDaten, ['passwort_hash' => self::DEMO_PASSWORT]));
-
+        $admin = User::factory()->admin()->create($benutzer(self::NAMEN[0]));
         $bbs = [];
-        for ($i = 0; $i < 3; $i++) {
-            $d = $macheBenutzer($namen[$idx++]);
-            $bbs[] = User::factory()->berufsbildner()->create(array_merge($d, ['passwort_hash' => self::DEMO_PASSWORT]));
+        for ($i = 1; $i <= 3; $i++) {
+            $bbs[] = User::factory()->berufsbildner()->create($benutzer(self::NAMEN[$i]));
         }
 
         $lernende = [];
-        foreach (self::LERNENDE_KONFIG as $cfg) {
-            $d = $macheBenutzer($namen[$idx++]);
-            $jahr = $cfg['jahr'];
-            $lehrbeginn = "{$jahr}-08-01";
-            $lehrende = ($jahr + 4).'-07-31';
-
+        foreach (self::LERNENDE_KONFIG as $i => $cfg) {
+            $lehrbeginn = "{$cfg['jahr']}-08-01";
+            $lehrende = ($cfg['jahr'] + 4).'-07-31';
             $user = User::factory()->lernender([
-                'lehrberuf_id' => $lehrberufIds[$cfg['lehrberuf']],
+                'lehrberuf_id' => $berufe[$cfg['beruf']]['lehrberuf_id'],
                 'lehrbeginn' => $lehrbeginn,
                 'lehrende' => $lehrende,
-            ])->create(array_merge($d, ['passwort_hash' => self::DEMO_PASSWORT]));
+                'klasse_schule' => $cfg['klasse'],
+                'klasse_bms' => $cfg['track'] === 'BMS' ? 'BM1-'.substr((string) $cfg['jahr'], 2) : null,
+            ])->create($benutzer(self::NAMEN[$i + 4]));
 
-            $lernende[] = [
-                'user' => $user,
-                'lernender' => $user->lernender,
-                'lehrberuf' => $cfg['lehrberuf'],
-                'lehrbeginn' => $lehrbeginn,
-                'lehrende' => $lehrende,
-                'track' => $cfg['track'],
-                'pattern' => $cfg['pattern'],
-            ];
+            // aktive Betreuung + eine abgelaufene (Wechsel nach einem Semester)
+            $aktiv = $bbs[$i % 3];
+            $vorher = $bbs[($i + 1) % 3];
+            $wechsel = Carbon::parse($lehrbeginn)->addDays(182);
+            Betreuung::create(['berufsbildner_id' => $vorher->berufsbildner->berufsbildner_id, 'lernender_id' => $user->lernender->lernender_id,
+                'gueltig_von' => $lehrbeginn, 'gueltig_bis' => $wechsel->toDateString()]);
+            Betreuung::create(['berufsbildner_id' => $aktiv->berufsbildner->berufsbildner_id, 'lernender_id' => $user->lernender->lernender_id,
+                'gueltig_von' => $wechsel->copy()->addDay()->toDateString(), 'gueltig_bis' => null]);
+
+            $lernende[] = ['user' => $user, 'lernender' => $user->lernender, 'bb' => $aktiv, 'lehrbeginn' => $lehrbeginn, 'lehrende' => $lehrende] + $cfg;
         }
 
         return ['admin' => $admin, 'bbs' => $bbs, 'lernende' => $lernende];
     }
 
-    /**
-     * Jede/r Lernende bekommt genau eine aktive Betreuung + eine abgelaufene (Wechsel des BB).
-     */
-    private function seedeBetreuungen(array &$personen): void
+    private function seedeLernenden(array $l, int $index, Collection $alleSemester, array $faecher, array $berufe, int &$kommentar): void
     {
-        $bbs = $personen['bbs'];
+        $lernenderId = (int) $l['lernender']->lernender_id;
+        $benutzerId = (int) $l['user']->benutzer_id;
+        $ref = Carbon::parse(self::REFERENZDATUM);
+        $ende = min(self::REFERENZDATUM, $l['lehrende']);
+        $kappung = $l['muster'] === 'inaktiv' ? $ref->copy()->subDays(60)->toDateString() : $ende;
+        $laufend = $l['lehrende'] > self::REFERENZDATUM;
 
-        foreach ($personen['lernende'] as $i => &$l) {
-            $lernenderId = $l['lernender']->lernender_id;
-            $aktivBb = $bbs[$i % 3];
-            $altBb = $bbs[($i + 1) % 3];
-            $wechsel = Carbon::parse($l['lehrbeginn'])->addDays(182);
+        $semester = $alleSemester->filter(fn ($s) => $s->start_datum >= $l['lehrbeginn'] && $s->start_datum <= $ende)->values();
+        $aktuellesIndex = $semester->count() - 1;
 
-            Betreuung::create([
-                'berufsbildner_id' => $altBb->berufsbildner->berufsbildner_id,
-                'lernender_id' => $lernenderId,
-                'gueltig_von' => $l['lehrbeginn'],
-                'gueltig_bis' => $wechsel->toDateString(),
-            ]);
+        DB::table('lernender_tracks')->insert([
+            'lernender_id' => $lernenderId, 'track_typ' => $l['track'], 'start_datum' => $l['lehrbeginn'],
+            'end_datum' => $laufend ? null : $l['lehrende'],
+            'start_semester_id' => $semester->first()->semester_id,
+            'end_semester_id' => $laufend ? null : $semester->last()->semester_id,
+        ]);
 
-            Betreuung::create([
-                'berufsbildner_id' => $aktivBb->berufsbildner->berufsbildner_id,
-                'lernender_id' => $lernenderId,
-                'gueltig_von' => $wechsel->copy()->addDay()->toDateString(),
-                'gueltig_bis' => null,
-            ]);
+        $noten = [];
+        $seed = $lernenderId * 7919;
 
-            $l['aktiver_bb_benutzer_id'] = $aktivBb->benutzer_id;
-        }
-        unset($l);
-    }
-
-    /**
-     * Tracks, Modulbelegungen und Noten je Lernender – inkl. Kommentare, gesehen-Markierungen
-     * und ein paar soft-deleted Noten.
-     */
-    private function seedeTracksModuleNoten(array $personen, Collection $semesterAlle, array $module, array $faecher, array $kategorieIds): void
-    {
-        $this->gewichtIndex = 0;
-        $kommentarIndex = 0;
-
-        foreach ($personen['lernende'] as $i => $l) {
-            $lernenderId = $l['lernender']->lernender_id;
-            $benutzerId = $l['user']->benutzer_id;
-            $aktivBbBenutzerId = $l['aktiver_bb_benutzer_id'];
-            $lehrbeginn = $l['lehrbeginn'];
-            $lehrende = $l['lehrende'];
-            $capDate = min(self::REFERENZDATUM, $lehrende);
-
-            $aktiveSemester = $semesterAlle->filter(
-                fn ($s) => $s->start_datum >= $lehrbeginn && $s->start_datum <= $capDate
-            )->values();
-
-            if ($aktiveSemester->isEmpty()) {
+        // Module: abgeschlossene mit vollen Gewichten, im laufenden Semester nur teilweise erfasst
+        foreach ($berufe[$l['beruf']]['module'] as $mi => $m) {
+            if ($m['semester'] > $semester->count()) {
                 continue;
             }
+            $sem = $semester[$m['semester'] - 1];
+            $imLaufenden = $laufend && $m['semester'] - 1 === $aktuellesIndex;
+            $gewichte = $m['kategorie'] === 'UEK' ? [100] : [[100], [50, 50], [30, 30, 40]][$mi % 3];
+            if ($imLaufenden) {
+                $gewichte = [40];
+            }
+            $belegung = null;
 
-            $startSem = $this->semesterFuerDatum($semesterAlle, $lehrbeginn);
-            $trackBeendet = $capDate === $lehrende;
-            $endSem = $trackBeendet ? $this->semesterFuerDatum($semesterAlle, $lehrende) : null;
-
-            DB::table('lernender_tracks')->insert([
-                'lernender_id' => $lernenderId,
-                'track_typ' => $l['track'],
-                'start_datum' => $lehrbeginn,
-                'end_datum' => $trackBeendet ? $lehrende : null,
-                'start_semester_id' => $startSem->semester_id,
-                'end_semester_id' => $endSem?->semester_id,
-            ]);
-
-            $notenDesLernenden = [];
-
-            // Modul-Noten: FACH (Fachunterricht) + UEK, je belegtes Modul.
-            foreach ($module[$l['lehrberuf']] as $m) {
-                if ($m['nr'] > $aktiveSemester->count()) {
+            foreach ($gewichte as $gi => $gewicht) {
+                $datum = $this->datumIm($sem, 30 + $gi * 45 + ($mi % 4) * 6, $kappung);
+                if ($datum === null) {
                     continue;
                 }
-                $semDesModuls = $aktiveSemester[$m['nr'] - 1];
-
-                $belegungId = DB::table('modul_belegungen')->insertGetId([
-                    'lernender_id' => $lernenderId,
-                    'modul_id' => $m['modul_id'],
-                    'start_datum' => $semDesModuls->start_datum,
-                    'end_datum' => null,
-                ]);
-
-                [$zentrum, $spread] = $this->zentrumUndSpread($l['pattern'], $m['nr'], $aktiveSemester->count(), false);
-
-                foreach ([25, 70] as $offset) {
-                    $notenDesLernenden[] = $this->erstelleNote([
-                        'lernender_id' => $lernenderId,
-                        'kategorie_id' => $kategorieIds['FACH'],
-                        'semester_id' => $semDesModuls->semester_id,
-                        'fach_id' => null,
-                        'modul_belegung_id' => $belegungId,
-                        'pruefungsdatum' => $this->datumInSemester($semDesModuls, $offset, $capDate),
-                        'note_wert' => $this->wert($lernenderId * 97 + $belegungId + $offset, $zentrum, $spread),
-                        'erfasst_von_benutzer_id' => $benutzerId,
-                    ]);
-                }
-
-                $notenDesLernenden[] = $this->erstelleNote([
-                    'lernender_id' => $lernenderId,
-                    'kategorie_id' => $kategorieIds['UEK'],
-                    'semester_id' => $semDesModuls->semester_id,
-                    'fach_id' => null,
-                    'modul_belegung_id' => $belegungId,
-                    'pruefungsdatum' => $this->datumInSemester($semDesModuls, 45, $capDate),
-                    'note_wert' => $this->wert($lernenderId * 53 + $belegungId, $zentrum, $spread),
-                    'erfasst_von_benutzer_id' => $benutzerId,
-                ]);
+                $belegung ??= DB::table('modul_belegungen')->insertGetId(['lernender_id' => $lernenderId, 'modul_id' => $m['modul_id'], 'start_datum' => $datum, 'end_datum' => null]);
+                $wert = $this->wert($seed + $m['modul_id'] * 31 + $gi, $l['muster'], $m['semester'], $semester->count(), false, $m['kategorie'] === 'UEK' ? 0.2 : 0.0);
+                $noten[] = $this->note($lernenderId, $benutzerId, $m['kategorie'], (int) $sem->semester_id, null, (int) $belegung, $datum, $wert, $gewicht, $gi === 0 ? 'LB'.($gi + 1) : null);
             }
 
-            // Fach-Noten: BMS oder ABU, je nach Track des Lernenden.
-            $faecherDesTracks = $faecher[$l['track']];
-            $letzterIndex = $aktiveSemester->count() - 1;
+            if ($imLaufenden) {
+                $this->plane($lernenderId, null, $m['modul_id'], $ref->copy()->addDays(12 + $mi)->toDateString(), 60, 'Schlussprüfung');
+            }
+        }
 
-            foreach ($aktiveSemester as $si => $sem) {
-                foreach ($faecherDesTracks as $fi => $fach) {
-                    $istDip = $si === $letzterIndex && $fi === 0;
-                    [$zentrum, $spread] = $this->zentrumUndSpread($l['pattern'], $si + 1, $aktiveSemester->count(), $istDip);
-
-                    $notenDesLernenden[] = $this->erstelleNote([
-                        'lernender_id' => $lernenderId,
-                        'kategorie_id' => $kategorieIds[$l['track']],
-                        'semester_id' => $sem->semester_id,
-                        'fach_id' => $fach['fach_id'],
-                        'modul_belegung_id' => null,
-                        'pruefungsdatum' => $this->datumInSemester($sem, 20 + $fi * 15, $capDate),
-                        'note_wert' => $this->wert($lernenderId * 71 + $sem->semester_id + $fach['fach_id'], $zentrum, $spread),
-                        'erfasst_von_benutzer_id' => $benutzerId,
-                    ]);
+        // Fächer: 2–3 Prüfungen pro Semester
+        foreach ($semester as $si => $sem) {
+            foreach ($faecher[$l['track']] as $fi => $f) {
+                $anzahl = 2 + (($seed + $fi + $si) % 2);
+                $gewichte = $anzahl === 2 ? [100, 100] : [100, 50, 50];
+                foreach ($gewichte as $gi => $gewicht) {
+                    $datum = $this->datumIm($sem, 25 + $gi * 50 + $fi * 4, $kappung);
+                    if ($datum === null) {
+                        continue;
+                    }
+                    $dip = $l['muster'] === 'einbruch' && $f['name'] === 'Mathematik' && $si >= $semester->count() - 2;
+                    $wert = $this->wert($seed + $f['fach_id'] * 17 + $si * 5 + $gi, $l['muster'], $si + 1, $semester->count(), $dip);
+                    $noten[] = $this->note($lernenderId, $benutzerId, $l['track'], (int) $sem->semester_id, $f['fach_id'], null, $datum, $wert, $gewicht, null);
+                }
+                if ($laufend && $si === $aktuellesIndex && $fi < 3) {
+                    $this->plane($lernenderId, $f['fach_id'], null, $ref->copy()->addDays(6 + $fi * 9)->toDateString(), 100, 'Test');
                 }
             }
+        }
 
-            // Kommentare + gesehen-Markierungen durch die aktuell aktive Betreuungsperson.
-            foreach ($notenDesLernenden as $ni => $note) {
-                if ($ni % 3 === 0) {
-                    NotenGesehen::create([
-                        'note_id' => $note->note_id,
-                        'viewer_benutzer_id' => $aktivBbBenutzerId,
-                        'gesehen_am' => Carbon::parse($note->pruefungsdatum)->addDays(3),
-                    ]);
-                }
-                if ($ni % 6 === 0) {
-                    NotenKommentar::create([
-                        'note_id' => $note->note_id,
-                        'autor_benutzer_id' => $aktivBbBenutzerId,
-                        'kommentar_text' => self::KOMMENTARE[$kommentarIndex % count(self::KOMMENTARE)],
-                    ]);
-                    $kommentarIndex++;
-                }
-            }
+        if ($l['muster'] === 'inaktiv') {
+            $this->plane($lernenderId, $faecher[$l['track']][0]['fach_id'], null, $ref->copy()->subDays(9)->toDateString(), 100, 'Test');
+        }
 
-            // Ein paar Noten soft-deleted (Beispiel fuer geloeschte Eintraege).
-            if ($i % 4 === 2 && $notenDesLernenden !== []) {
-                $notenDesLernenden[0]->delete();
+        $this->ziele($lernenderId, $l, $faecher);
+
+        foreach ($noten as $ni => $note) {
+            if ($ni % 3 === 0) {
+                NotenGesehen::create(['note_id' => $note->note_id, 'viewer_benutzer_id' => $l['bb']->benutzer_id,
+                    'gesehen_am' => Carbon::parse($note->pruefungsdatum)->addDays(3)]);
             }
+            if ($ni % 7 === 0) {
+                NotenKommentar::create(['note_id' => $note->note_id, 'autor_benutzer_id' => $l['bb']->benutzer_id,
+                    'kommentar_text' => self::KOMMENTARE[$kommentar++ % count(self::KOMMENTARE)]]);
+            }
+        }
+
+        if ($index % 4 === 2 && $noten !== []) {
+            $noten[0]->delete();
         }
     }
 
-    private function semesterFuerDatum(Collection $semester, string $datum): object
+    private function ziele(int $lernenderId, array $l, array $faecher): void
     {
-        return $semester->first(fn ($s) => $s->start_datum <= $datum && $s->end_datum >= $datum);
+        $mathe = collect($faecher['BMS'])->firstWhere('name', 'Mathematik')['fach_id'];
+        $ziele = match ($l['muster']) {
+            'stetig_besser' => [['ebene' => 'gesamt', 'zielwert' => 5.0]],
+            'einbruch' => [['ebene' => 'fach', 'fach_id' => $mathe, 'zielwert' => 4.5], ['ebene' => 'kategorie', 'kategorie_id' => $this->kategorien['BMS'], 'zielwert' => 4.5]],
+            'knapp' => [['ebene' => 'gesamt', 'zielwert' => 4.5]],
+            default => [],
+        };
+        foreach ($ziele as $z) {
+            DB::table('ziele')->insert(['lernender_id' => $lernenderId, 'kategorie_id' => null, 'fach_id' => null, 'modul_id' => null, ...$z]);
+        }
     }
 
-    private function datumInSemester(object $semester, int $offsetTage, string $kappungsDatum): string
+    private function plane(int $lernenderId, ?int $fachId, ?int $modulId, string $datum, float $gewicht, string $titel): void
+    {
+        DB::table('pruefungen')->insert(['lernender_id' => $lernenderId, 'fach_id' => $fachId, 'modul_id' => $modulId,
+            'datum' => $datum, 'gewichtung_prozent' => $gewicht, 'titel' => $titel]);
+    }
+
+    private function datumIm(object $semester, int $offsetTage, string $kappung): ?string
     {
         $d = Carbon::parse($semester->start_datum)->addDays($offsetTage);
-        $ende = Carbon::parse($semester->end_datum);
-        $kappung = Carbon::parse($kappungsDatum);
-
+        $ende = Carbon::parse($semester->end_datum)->subDays(10);
         if ($d->gt($ende)) {
-            $d = $ende->copy();
-        }
-        if ($d->gt($kappung)) {
-            $d = $kappung->copy();
+            $d = $ende;
         }
 
-        return $d->toDateString();
+        return $d->toDateString() <= $kappung ? $d->toDateString() : null;
     }
 
-    /** @return array{0: float, 1: float} [Zentrum, Streuung] je nach erkennbarem Muster. */
-    private function zentrumUndSpread(?string $pattern, int $semesterNr, int $anzahlSemester, bool $istDip): array
+    /** Pseudozufall um ein Zentrum je Muster, gerundet auf Viertelnoten. */
+    private function wert(int $seed, string $muster, int $semesterNr, int $anzahl, bool $dip, float $bonus = 0.0): float
     {
-        return match ($pattern) {
-            'stetig_besser' => [min(5.8, 3.8 + 0.35 * ($semesterNr - 1)), 0.15],
-            'einbruch' => $istDip ? [3.0, 0.15] : [4.8, 0.2],
-            'stabil_gut' => [5.3, 0.1],
-            'knapp_ungenuegend' => [3.8, 0.1],
-            default => [4.5, 0.4],
+        [$zentrum, $streuung] = match ($muster) {
+            'stetig_besser' => [min(5.6, 3.9 + 0.28 * ($semesterNr - 1)), 0.35],
+            'einbruch' => $dip ? [3.1, 0.3] : [4.8, 0.35],
+            'stabil_gut' => [5.25, 0.3],
+            'knapp' => [3.95, 0.45],
+            'schwankend' => [4.4, 0.9],
+            default => [4.6, 0.5],
         };
-    }
-
-    /**
-     * Deterministischer Pseudo-Zufallswert um ein Zentrum, unabhaengig von der Aufrufreihenfolge.
-     * Note_wert ist decimal(3,1) in der DB -> nur 0.5er-Schritte sind exakt speicherbar
-     * (0.25er-Schritte wuerden auf 0.1 gerundet, siehe Bericht am Ende).
-     */
-    private function wert(int $seed, float $zentrum, float $spread): float
-    {
         $x = sin($seed * 12.9898) * 43758.5453;
         $anteil = $x - floor($x);
-        $delta = ($anteil - 0.5) * 2 * $spread;
-        $wert = max(1.0, min(6.0, $zentrum + $delta));
+        $wert = max(1.0, min(6.0, $zentrum + $bonus + ($anteil - 0.5) * 2 * $streuung));
 
-        return round($wert * 2) / 2;
+        return round($wert * 4) / 4;
     }
 
-    private function erstelleNote(array $attribute): Note
+    private function note(int $lernenderId, int $benutzerId, string $kategorie, int $semesterId, ?int $fachId, ?int $belegungId, string $datum, float $wert, float $gewicht, ?string $titel): Note
     {
-        $gewichtungen = [100.0, 50.0, 25.0, null];
-        $gewicht = $gewichtungen[$this->gewichtIndex % 4];
-        $this->gewichtIndex++;
-
-        return Note::create(array_merge([
-            'gruppe_id' => null,
-            'titel' => null,
-            'gewichtung_prozent' => $gewicht,
-            'aktualisiert_von_benutzer_id' => null,
-        ], $attribute));
+        return Note::create([
+            'lernender_id' => $lernenderId, 'kategorie_id' => $this->kategorien[$kategorie], 'semester_id' => $semesterId,
+            'fach_id' => $fachId, 'modul_belegung_id' => $belegungId, 'titel' => $titel, 'pruefungsdatum' => $datum,
+            'note_wert' => $wert, 'gewichtung_prozent' => $gewicht, 'erfasst_von_benutzer_id' => $benutzerId, 'aktualisiert_von_benutzer_id' => null,
+        ]);
     }
 }

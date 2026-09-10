@@ -184,9 +184,6 @@
                             <dl class="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
                                 <div><dt class="text-xs text-muted">Semester</dt><dd class="text-text">{{ $n->semester?->bezeichnung ?? '–' }}</dd></div>
                                 <div><dt class="text-xs text-muted">Fach / Modul</dt><dd class="text-text">{{ $thema }}</dd></div>
-                                @if($n->gruppe)
-                                    <div><dt class="text-xs text-muted">Gruppe</dt><dd class="text-text">{{ $n->gruppe->bezeichnung }}</dd></div>
-                                @endif
                                 <div><dt class="text-xs text-muted">Erfasst von</dt><dd class="text-text">{{ $n->erfasstVonBenutzer?->vorname }} {{ $n->erfasstVonBenutzer?->nachname }}</dd></div>
                             </dl>
 

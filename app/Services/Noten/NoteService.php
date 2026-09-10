@@ -38,7 +38,7 @@ class NoteService
     public function learnerNotesQuery(int $lernenderId): Builder
     {
         return Note::query()
-            ->with(['kategorie', 'semester', 'fach', 'modulBelegung.modul', 'gruppe'])
+            ->with(['kategorie', 'semester', 'fach', 'modulBelegung.modul'])
             ->where('lernender_id', $lernenderId)
             ->orderByDesc('pruefungsdatum')
             ->orderByDesc('note_id');
@@ -122,22 +122,7 @@ class NoteService
     {
         $kategorien = Kategorie::query()->where('aktiv', 1)->orderBy('sortierung')->get();
 
-        // ✅ Track-abhängige Fächer (nur aktive Tracks des Lernenden)
-        $trackTyps = $this->activeTrackTypesForLernender($lernenderId);
-
-        $faecherQuery = Fach::query()
-            ->where('aktiv', 1)
-            ->orderBy('name');
-
-        // Wenn wir aktive Tracks kennen: nur diese anzeigen.
-        // Falls noch keine Tracks erfasst sind, lieber leer statt "alles".
-        if ($trackTyps->isNotEmpty()) {
-            $faecherQuery->whereIn('track_typ', $trackTyps->all());
-        } else {
-            $faecherQuery->whereRaw('1=0');
-        }
-
-        $faecher = $faecherQuery->get();
+        $faecher = $this->erlaubteFaecher($lernenderId)->with('kategorie')->orderBy('name')->get();
 
         // Modul-Liste nach Lehrberuf (mit "has_open_belegung" Flag & Sortierung)
         $module = $this->modulesForLernender($lernenderId);
@@ -146,6 +131,24 @@ class NoteService
         $semester = $this->semestersForLernender($lernenderId);
 
         return compact('kategorien', 'faecher', 'module', 'semester');
+    }
+
+    /**
+     * Fächer, die ein Lernender erfassen darf: Track-Fächer (BMS/ABU) bei aktivem Track,
+     * Fächer ohne Track über die Freigabe im Lehrberuf (lehrberuf_faecher).
+     */
+    public function erlaubteFaecher(int $lernenderId): Builder
+    {
+        $tracks = $this->activeTrackTypesForLernender($lernenderId)->all();
+        $lehrberufId = (int) Lernender::query()->whereKey($lernenderId)->value('lehrberuf_id');
+
+        return Fach::query()
+            ->where('aktiv', 1)
+            ->whereNotNull('kategorie_id')
+            ->where(fn (Builder $q) => $q
+                ->where(fn (Builder $t) => $t->whereNotNull('track_typ')->whereIn('track_typ', $tracks === [] ? [''] : $tracks))
+                ->orWhere(fn (Builder $b) => $b->whereNull('track_typ')->whereIn('fach_id', DB::table('lehrberuf_faecher')
+                    ->where('lehrberuf_id', $lehrberufId)->where('aktiv', 1)->select('fach_id'))));
     }
 
     /**
@@ -235,6 +238,8 @@ class NoteService
                 'm.modul_id',
                 'm.modul_nummer',
                 'm.titel',
+                'lbm.kategorie_id',
+                'm.ziel_gewicht_summe_default',
                 DB::raw('CASE WHEN openmb.open_modul_belegung_id IS NULL THEN 0 ELSE 1 END as has_open_belegung'),
                 'openmb.open_modul_belegung_id',
             ])
@@ -302,33 +307,13 @@ class NoteService
             }
 
             $fachId = (int) $data['fach_id'];
-
-            // Sicherheitscheck: Fach muss im aktiven Track des Lernenden sein
-            $trackTyps = $this->activeTrackTypesForLernender($lernenderId);
-            if ($trackTyps->isEmpty()) {
-                throw ValidationException::withMessages([
-                    'fach_id' => 'Für dich ist aktuell kein Track hinterlegt.',
-                ]);
-            }
-
-            $allowed = Fach::query()
-                ->where('fach_id', $fachId)
-                ->where('aktiv', 1)
-                ->whereIn('track_typ', $trackTyps->all())
-                ->exists();
-
-            if (! $allowed) {
-                throw ValidationException::withMessages([
-                    'fach_id' => 'Dieses Fach gehört nicht zu deinem aktuellen Track.',
-                ]);
-            }
+            $kategorieId = $this->kategorieFuer($lernenderId, 'fach', $fachId);
 
             return [
-                'kategorie_id' => (int) $data['kategorie_id'],
+                'kategorie_id' => (int) $kategorieId,
                 'semester_id' => (int) $semester->semester_id,
                 'fach_id' => $fachId,
                 'modul_belegung_id' => null,
-                'gruppe_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
                 'note_wert' => $data['note_wert'],
@@ -344,27 +329,15 @@ class NoteService
             }
 
             $modulId = (int) $data['modul_id'];
-
-            $allowed = DB::table('lehrberuf_module')
-                ->where('lehrberuf_id', (int) $lernender->lehrberuf_id)
-                ->where('modul_id', $modulId)
-                ->where('aktiv', 1)
-                ->exists();
-
-            if (! $allowed) {
-                throw ValidationException::withMessages([
-                    'modul_id' => 'Dieses Modul gehört nicht zu deinem Lehrberuf.',
-                ]);
-            }
+            $kategorieId = $this->kategorieFuer($lernenderId, 'modul', $modulId);
 
             $modulBelegungId = $this->resolveOrCreateOpenModulBelegung($lernenderId, $modulId, $date);
 
             return [
-                'kategorie_id' => (int) $data['kategorie_id'],
+                'kategorie_id' => (int) $kategorieId,
                 'semester_id' => (int) $semester->semester_id,
                 'fach_id' => null,
                 'modul_belegung_id' => $modulBelegungId,
-                'gruppe_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
                 'note_wert' => $data['note_wert'],
@@ -375,6 +348,74 @@ class NoteService
         throw ValidationException::withMessages([
             'typ' => 'Ungültiger Typ.',
         ]);
+    }
+
+    /**
+     * Einzige Zuordnungsregel für Noten und geplante Prüfungen: Fach muss für Beruf/Track freigegeben sein
+     * (Kategorie folgt aus dem Fach), Modul muss zum Lehrberuf gehören (Kategorie = Lernort im Beruf).
+     *
+     * @param  'fach'|'modul'  $typ
+     */
+    public function kategorieFuer(int $lernenderId, string $typ, int $id): int
+    {
+        if ($typ === 'fach') {
+            $kategorieId = $this->erlaubteFaecher($lernenderId)->whereKey($id)->value('kategorie_id');
+
+            if (! $kategorieId) {
+                throw ValidationException::withMessages(['fach_id' => 'Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.']);
+            }
+
+            return (int) $kategorieId;
+        }
+
+        $kategorieId = DB::table('lehrberuf_module')
+            ->where('lehrberuf_id', (int) Lernender::query()->whereKey($lernenderId)->value('lehrberuf_id'))
+            ->where('modul_id', $id)
+            ->where('aktiv', 1)
+            ->value('kategorie_id');
+
+        if (! $kategorieId) {
+            throw ValidationException::withMessages(['modul_id' => 'Dieses Modul gehört nicht zum Lehrberuf.']);
+        }
+
+        return (int) $kategorieId;
+    }
+
+    /**
+     * Alle Semester mit Zeitraum (Zuordnung Datum → Semester im Formular).
+     *
+     * @return list<array{id: int, name: string, start: string, ende: string}>
+     */
+    public function semesterListe(): array
+    {
+        return Semester::query()->orderBy('sortierung')->get()
+            ->map(fn (Semester $s) => ['id' => (int) $s->semester_id, 'name' => $s->bezeichnung,
+                'start' => $s->start_datum->toDateString(), 'ende' => $s->end_datum->toDateString()])
+            ->all();
+    }
+
+    /**
+     * Auswahl «Fach oder Modul» für Formulare, gruppiert nach Kategorie: [Kategoriename => [[wert, label]]].
+     *
+     * @return array<string, list<array{wert: string, label: string}>>
+     */
+    public function bezugOptionen(int $lernenderId): array
+    {
+        $optionen = $this->formOptionsForLernender($lernenderId);
+        $namen = Kategorie::query()->pluck('name', 'kategorie_id');
+        $gruppen = [];
+
+        foreach ($optionen['module'] as $m) {
+            $gruppen[$namen[$m->kategorie_id] ?? 'Module'][] = ['wert' => 'modul:'.$m->modul_id, 'label' => trim($m->modul_nummer.' '.$m->titel)];
+        }
+        foreach ($optionen['faecher'] as $f) {
+            $gruppen[$namen[$f->kategorie_id] ?? 'Fächer'][] = ['wert' => 'fach:'.$f->fach_id, 'label' => $f->name];
+        }
+
+        $reihenfolge = Kategorie::query()->orderBy('sortierung')->pluck('name')->all();
+        uksort($gruppen, fn ($a, $b) => array_search($a, $reihenfolge, true) <=> array_search($b, $reihenfolge, true));
+
+        return $gruppen;
     }
 
     /**
@@ -408,10 +449,6 @@ class NoteService
                 'start_datum' => $startDatum,
                 'end_datum' => null,
             ]);
-
-            // Optional: Gruppe automatisch (falls du das mittlerweile drin hast/aktivieren willst)
-            // -> hier nur, wenn du das wirklich willst und die Models fillable korrekt sind.
-            // ModulNoteGruppe::create([...]);
 
             return (int) $created->modul_belegung_id;
         });

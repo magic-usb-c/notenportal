@@ -12,6 +12,7 @@ use App\Http\Controllers\Verwaltung\LernendeController;
 use App\Http\Controllers\Verwaltung\LernendeNotenController;
 use App\Http\Controllers\Verwaltung\NotenExportController;
 use App\Http\Controllers\Verwaltung\NotenGesehenController;
+use App\Http\Controllers\Verwaltung\RechnerController;
 use App\Http\Controllers\Verwaltung\TrackController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,8 @@ Route::prefix('/lernende/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::post('/tracks/{track_id}/beenden', [TrackController::class, 'beenden'])
         ->whereNumber('track_id')->name('tracks.beenden');
 
+    Route::get('/rechner', [RechnerController::class, 'index'])->name('lernende.rechner');
+    Route::post('/rechner', [RechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('lernende.rechner.berechnen');
     Route::get('/noten', [LernendeNotenController::class, 'index'])->name('lernende.noten.index');
     Route::get('/noten/create', [LernendeNotenController::class, 'create'])->name('lernende.noten.create');
     Route::post('/noten', [LernendeNotenController::class, 'store'])->name('lernende.noten.store');

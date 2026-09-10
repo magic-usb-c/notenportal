@@ -14,11 +14,13 @@
     <div class="py-6">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6 space-y-5">
-                @if($faecher->isEmpty() && $module->isEmpty())
+                @if(empty($bezugOptionen))
                     <p class="text-sm text-yellow-700 dark:text-yellow-400">Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.</p>
                 @endif
 
-                @include('verwaltung.noten._formular', [
+                @include('noten._formular', [
+                    'zurueck' => route("{$bereich}.lernende.noten.index", $lernender->lernender_id),
+                    'vorschauUrl' => route("{$bereich}.lernende.rechner.berechnen", $lernender->lernender_id),
                     'action' => route("{$bereich}.lernende.noten.store", $lernender->lernender_id),
                 ])
             </div>

@@ -35,10 +35,6 @@ class ModulBelegung extends Model
         return $this->hasMany(Note::class, 'modul_belegung_id', 'modul_belegung_id');
     }
 
-    public function gruppen()
-    {
-        return $this->hasMany(ModulNoteGruppe::class, 'modul_belegung_id', 'modul_belegung_id');
-    }
 
     protected function casts(): array
     {

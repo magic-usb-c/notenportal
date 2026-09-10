@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class PilotVorbereiten extends Command
 {
     /** Reihenfolge wegen Fremdschlüsseln. */
-    private const array TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'modul_note_gruppen', 'modul_belegungen', 'feedback'];
+    private const array TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'pruefungen', 'ziele', 'modul_belegungen', 'feedback'];
 
     public function handle(): int
     {

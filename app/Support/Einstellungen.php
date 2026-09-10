@@ -13,6 +13,18 @@ class Einstellungen
 {
     public const BETRIEB_NAME = 'betrieb_name';
 
+    public const NOTE_GUT = 'note_gut';
+
+    public const NOTE_GENUEGEND = 'note_genuegend';
+
+    public const NOTE_KRITISCH = 'note_kritisch';
+
+    public const RUNDUNG_GESAMT = 'rundung_gesamt';
+
+    public const FRIST_INAKTIV_TAGE = 'frist_inaktiv_tage';
+
+    public const FRIST_LEHRENDE_TAGE = 'frist_lehrende_tage';
+
     private const string CACHE_KEY = 'einstellungen';
 
     public static function get(string $schluessel, ?string $standard = null): ?string

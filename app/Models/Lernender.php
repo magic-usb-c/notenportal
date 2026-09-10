@@ -65,6 +65,16 @@ class Lernender extends Model
         return $this->hasMany(ModulBelegung::class, 'lernender_id', 'lernender_id');
     }
 
+    public function pruefungen(): HasMany
+    {
+        return $this->hasMany(Pruefung::class, 'lernender_id', 'lernender_id');
+    }
+
+    public function ziele(): HasMany
+    {
+        return $this->hasMany(Ziel::class, 'lernender_id', 'lernender_id');
+    }
+
     /** Laufendes Lehrjahr (1-basiert) oder null ohne Lehrbeginn / vor Lehrbeginn. */
     public function lehrjahr(): ?int
     {
