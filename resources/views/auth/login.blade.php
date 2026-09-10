@@ -47,22 +47,6 @@
             @enderror
         </div>
 
-        <div class="flex items-center justify-between gap-3">
-            <label for="remember_me" class="inline-flex items-center gap-2 select-none cursor-pointer">
-                <input id="remember_me" type="checkbox" name="remember"
-                       class="rounded border-border bg-input text-accent focus:ring-2 focus:ring-accent/50">
-                <span class="text-sm text-muted">Angemeldet bleiben</span>
-            </label>
-
-            @if(Route::has('password.request'))
-                <a href="{{ route('password.request') }}"
-                   class="text-sm text-muted hover:text-text rounded-md
-                          focus:outline-none focus:ring-2 focus:ring-accent/50">
-                    Passwort vergessen?
-                </a>
-            @endif
-        </div>
-
         <div class="pt-2">
             <button type="submit"
                     class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
@@ -72,7 +56,4 @@
         </div>
     </form>
 
-    <div class="mt-6 text-xs text-muted text-center">
-        Accounts werden durch den Admin erstellt.
-    </div>
 </x-guest-layout>

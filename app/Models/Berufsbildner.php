@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Berufsbildner extends Model
 {
+    use HasFactory;
+
     protected $table = 'berufsbildner';
     protected $primaryKey = 'berufsbildner_id';
 

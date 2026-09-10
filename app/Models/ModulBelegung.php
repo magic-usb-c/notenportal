@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ModulBelegung extends Model
 {
+    use HasFactory;
+
     protected $table = 'modul_belegungen';
     protected $primaryKey = 'modul_belegung_id';
 
