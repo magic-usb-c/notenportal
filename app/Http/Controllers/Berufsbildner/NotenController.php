@@ -128,16 +128,13 @@ class NotenController extends Controller
             $request->filled('semester_id') ? (int) $request->input('semester_id') : null,
         );
 
-        // Ungelesene Noten gesamt (ungefiltert, alle Seiten) — Button-Anzeige
-        // sonst fehlt der "Alle gesehen"-Button, wenn die neuen Noten auf Seite 2 liegen
-        $bbBenutzerId = (int) auth()->user()->benutzer_id;
-        $neuCount = DB::table('noten as n')
+        // Ungelesene Noten über alle Seiten, im aktiven Filter – dieselbe Menge,
+        // die «Alle gesehen» markiert
+        $neuCount = $this->gefilterteNoten($request, $lernender_id)
             ->leftJoin('noten_gesehen as g', function ($j) use ($bbBenutzerId) {
                 $j->on('g.note_id', '=', 'n.note_id')
                   ->where('g.viewer_benutzer_id', '=', $bbBenutzerId);
             })
-            ->where('n.lernender_id', $lernender_id)
-            ->whereNull('n.geloescht_am')
             ->where(function ($q) {
                 $q->whereNull('g.gesehen_am')
                   ->orWhereColumn('n.erstellt_am', '>', 'g.gesehen_am')
@@ -390,11 +387,7 @@ class NotenController extends Controller
 
         abort_if(!$betreut, 403);
 
-        // Alle aktiven Noten dieses Lernenden laden
-        $noteIds = DB::table('noten')
-            ->where('lernender_id', $lernender_id)
-            ->whereNull('geloescht_am')
-            ->pluck('note_id');
+        $noteIds = $this->gefilterteNoten($request, $lernender_id)->pluck('n.note_id');
 
         $bbBenutzerId = (int) $user->benutzer_id;
         $now = now();
@@ -409,7 +402,17 @@ class NotenController extends Controller
             DB::table('noten_gesehen')->upsert($rows, ['note_id', 'viewer_benutzer_id'], ['gesehen_am']);
         }
 
-        return back()->with('status', 'Alle Noten als gesehen markiert.');
+        return back()->with('success', count($rows) === 1 ? '1 Note als gesehen markiert.' : count($rows).' Noten als gesehen markiert.');
+    }
+
+    /** Nicht gelöschte Noten des Lernenden, eingeschränkt auf die Filter Kategorie/Semester der Notenansicht. */
+    private function gefilterteNoten(Request $request, int $lernenderId): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('noten as n')
+            ->where('n.lernender_id', $lernenderId)
+            ->whereNull('n.geloescht_am')
+            ->when($request->filled('kategorie_id'), fn ($q) => $q->where('n.kategorie_id', $request->integer('kategorie_id')))
+            ->when($request->filled('semester_id'), fn ($q) => $q->where('n.semester_id', $request->integer('semester_id')));
     }
 
     public function markGesehen(Request $request, int $lernender_id, int $note_id): RedirectResponse

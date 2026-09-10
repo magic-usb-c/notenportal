@@ -12,6 +12,11 @@
                           action="{{ route('berufsbildner.noten.alle_gesehen', ['lernender_id' => $selectedLernenderId]) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
+                        @foreach(['kategorie_id', 'semester_id'] as $filter)
+                            @if(request()->filled($filter))
+                                <input type="hidden" name="{{ $filter }}" value="{{ request()->integer($filter) }}">
+                            @endif
+                        @endforeach
                         <button type="submit" :disabled="loading"
                                 class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-medium whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
