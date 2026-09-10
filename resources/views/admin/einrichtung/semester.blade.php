@@ -1,0 +1,86 @@
+<x-einrichtung schritt="semester" :stand="$stand" titel="Semester">
+    @php
+        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
+        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $start = ['herbst' => old('herbst', $vorschlag['herbst']), 'fruehling' => old('fruehling', $vorschlag['fruehling']), 'bis' => (int) old('bis_jahr', $vorschlag['bis'])];
+    @endphp
+    <script>
+        function npSemesterPlan(start, vorhanden) {
+            const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            return {
+                ...start,
+                loading: false,
+                get plan() {
+                    if (!this.herbst || !this.fruehling) return [];
+                    const h = new Date(this.herbst + 'T00:00');
+                    const f = new Date(this.fruehling + 'T00:00');
+                    const out = [];
+                    for (let j = h.getFullYear(); j <= Math.min(this.bis, h.getFullYear() + 15); j++) {
+                        const kurz = `${String(j % 100).padStart(2, '0')}/${String((j + 1) % 100).padStart(2, '0')}`;
+                        const hs = new Date(j, h.getMonth(), h.getDate());
+                        const fs = new Date(j + 1, f.getMonth(), f.getDate());
+                        const nh = new Date(j + 1, h.getMonth(), h.getDate());
+                        const vor = (d) => { const x = new Date(d); x.setDate(x.getDate() - 1); return x; };
+                        out.push({ b: `${kurz}-1`, von: hs, bis: vor(fs) }, { b: `${kurz}-2`, von: fs, bis: vor(nh) });
+                    }
+                    return out.map((s) => ({ ...s, da: vorhanden.includes(s.b) }));
+                },
+                get neu() { return this.plan.filter((s) => !s.da).length; },
+                fmt(d) { return d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: 'numeric' }); },
+                iso,
+            };
+        }
+    </script>
+
+    <form method="POST" action="{{ route('admin.einrichtung.semester') }}" class="flex flex-col gap-5"
+          x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')))" @submit="if (!$event.defaultPrevented) loading = true">
+        @csrf
+        <section class="glass rounded-2xl p-6 flex flex-col gap-5">
+            <div class="grid sm:grid-cols-3 gap-4">
+                <div>
+                    <label for="herbst" class="{{ $label }}">Erstes Herbstsemester ab *</label>
+                    <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
+                    @error('herbst')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="fruehling" class="{{ $label }}">Erstes Frühlingssemester ab *</label>
+                    <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}">
+                    @error('fruehling')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label for="bis_jahr" class="{{ $label }}">Bis Schuljahr *</label>
+                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}">
+                    @error('bis_jahr')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                </div>
+            </div>
+
+            <div>
+                <div class="flex items-baseline justify-between gap-3 mb-2">
+                    <h3 class="text-sm font-semibold text-text">Vorschau</h3>
+                    <span class="text-xs text-muted" x-text="`${neu} neu · ${plan.length - neu} vorhanden`"></span>
+                </div>
+                <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    <template x-for="s in plan" :key="s.b">
+                        <li class="rounded-xl border px-3 py-2" :class="s.da ? 'border-border text-muted' : 'border-accent/40 bg-accent/5 text-text'">
+                            <div class="text-sm font-semibold tabular-nums" x-text="s.b"></div>
+                            <div class="text-[11px] text-muted tabular-nums" x-text="`${fmt(s.von)} – ${fmt(s.bis)}`"></div>
+                        </li>
+                    </template>
+                </ul>
+            </div>
+        </section>
+
+        @if($semester->isNotEmpty())
+            <section class="glass rounded-2xl p-5">
+                <h3 class="text-sm font-semibold text-text mb-3">Vorhanden</h3>
+                <div class="flex flex-wrap gap-1.5">
+                    @foreach($semester as $s)
+                        <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }}</span>
+                    @endforeach
+                </div>
+            </section>
+        @endif
+
+        @include('admin.einrichtung._fuss', ['schritt' => 'semester', 'knopf' => 'Semester anlegen'])
+    </form>
+</x-einrichtung>

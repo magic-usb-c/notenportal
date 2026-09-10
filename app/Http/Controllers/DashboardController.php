@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Services\Uebersicht;
+use App\Support\Einrichtung;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -26,8 +28,12 @@ class DashboardController extends Controller
         return view('dashboards.berufsbildner', $this->uebersicht->berufsbildner($request->user()));
     }
 
-    public function admin(): View
+    public function admin(): View|RedirectResponse
     {
+        if (Einrichtung::offen()) {
+            return redirect()->route('admin.einrichtung');
+        }
+
         return view('dashboards.admin', $this->uebersicht->admin());
     }
 }

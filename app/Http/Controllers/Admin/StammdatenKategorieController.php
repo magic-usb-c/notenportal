@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\KategorieRegeln;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -85,28 +86,11 @@ class StammdatenKategorieController extends Controller
      */
     private function rechenregelRules(): array
     {
-        return [
-            'rundung_element' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
-            'rundung_schnitt' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
-            'gewicht_gesamt' => ['required', 'numeric', 'min:0'],
-            'promotion_min_schnitt' => ['nullable', 'numeric', 'between:1,6'],
-            'promotion_max_ungenuegend' => ['nullable', 'integer', 'between:0,20'],
-            'promotion_max_minuspunkte' => ['nullable', 'numeric', 'between:0,20'],
-        ];
+        return KategorieRegeln::regeln();
     }
 
-    /**
-     * Leere Promotion-Felder werden als null gespeichert (keine Regel).
-     */
     private function rechenregelWerte(array $validated): array
     {
-        return [
-            'rundung_element' => $validated['rundung_element'],
-            'rundung_schnitt' => $validated['rundung_schnitt'],
-            'gewicht_gesamt' => $validated['gewicht_gesamt'],
-            'promotion_min_schnitt' => $validated['promotion_min_schnitt'] ?? null,
-            'promotion_max_ungenuegend' => $validated['promotion_max_ungenuegend'] ?? null,
-            'promotion_max_minuspunkte' => $validated['promotion_max_minuspunkte'] ?? null,
-        ];
+        return KategorieRegeln::werte($validated);
     }
 }

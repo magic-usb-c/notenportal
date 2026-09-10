@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
 use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
 use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
+use App\Http\Controllers\Admin\BetriebController;
+use App\Http\Controllers\Admin\EinrichtungController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
 use App\Http\Controllers\Admin\StammdatenKategorieController;
@@ -237,6 +239,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/darstellung', [ProfileController::class, 'darstellung'])->name('profile.darstellung');
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
+});
+
+/*
+ * Ersteinrichtung und Betriebseinstellungen (Admin)
+ */
+Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/einrichtung/{schritt?}', [EinrichtungController::class, 'show'])
+        ->name('einrichtung');
+    foreach (['betrieb', 'kategorien', 'semester', 'lehrberufe', 'module', 'personen', 'lernende', 'abschliessen'] as $aktion) {
+        Route::post('/einrichtung/'.$aktion, [EinrichtungController::class, $aktion])->name('einrichtung.'.$aktion);
+    }
+    Route::get('/betrieb', [BetriebController::class, 'edit'])->name('betrieb.edit');
+    Route::put('/betrieb', [BetriebController::class, 'update'])->name('betrieb.update');
 });
 
 require __DIR__.'/auth.php';

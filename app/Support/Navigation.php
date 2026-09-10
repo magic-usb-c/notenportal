@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Route;
 
 /**
  * Einzige Definition der Navigation je Rolle – Menü, Mobilmenü und Befehlspalette lesen von hier.
@@ -44,7 +43,8 @@ final class Navigation
                     self::link('Benutzerkonten', 'admin.benutzer.index', ['admin.benutzer.*']),
                 ]),
                 self::gruppe('Stammdaten', 'daten', [
-                    ...(Route::has('admin.betrieb.edit') ? [self::link('Betrieb', 'admin.betrieb.edit', ['admin.betrieb.*'])] : []),
+                    self::link('Betrieb', 'admin.betrieb.edit', ['admin.betrieb.*']),
+                    self::link('Einrichtung', 'admin.einrichtung', ['admin.einrichtung*']),
                     self::link('Lehrberufe', 'admin.stammdaten.lehrberufe.index', ['admin.stammdaten.lehrberufe.*']),
                     self::link('Module', 'admin.stammdaten.module.index', ['admin.stammdaten.module.*']),
                     self::link('Fächer', 'admin.stammdaten.faecher.index', ['admin.stammdaten.faecher.*']),

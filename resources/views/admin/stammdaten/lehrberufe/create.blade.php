@@ -17,7 +17,7 @@
                     @csrf
 
                     <div>
-                        <label for="kuerzel" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel * <span class="text-xs font-normal">(max. 10 Zeichen, wird gross gespeichert)</span></label>
+                        <label for="kuerzel" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel *</label>
                         <input type="text" id="kuerzel" name="kuerzel" value="{{ old('kuerzel') }}" required maxlength="10"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kuerzel') border-red-400 @enderror">
                         @error('kuerzel')
