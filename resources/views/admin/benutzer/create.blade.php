@@ -65,8 +65,11 @@
                              generieren() {
                                  const zeichen = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!?#+';
                                  const arr = new Uint32Array(14);
-                                 crypto.getRandomValues(arr);
-                                 const pw = Array.from(arr, v => zeichen[v % zeichen.length]).join('');
+                                 let pw;
+                                 do {
+                                     crypto.getRandomValues(arr);
+                                     pw = Array.from(arr, v => zeichen[v % zeichen.length]).join('');
+                                 } while (!/\d/.test(pw) || !/[a-z]/i.test(pw));
                                  this.$refs.pw1.value = pw;
                                  this.$refs.pw2.value = pw;
                                  this.show = true;

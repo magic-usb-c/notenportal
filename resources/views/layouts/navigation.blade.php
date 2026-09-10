@@ -157,7 +157,7 @@
 
                 {{-- Dark-Mode-Schalter --}}
                 <button id="theme-toggle"
-                        onclick="(function(){const html=document.documentElement;const isDark=html.classList.toggle('dark');try{localStorage.setItem('theme',isDark?'dark':'light');}catch(e){}})()"
+                        onclick="window.npToggleTheme()"
                         class="p-2 rounded-xl text-muted hover:text-text hover:bg-bg transition-colors"
                         title="Hell / Dunkel wechseln">
                     <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -326,7 +326,7 @@
             <div class="mt-3 space-y-1">
                 {{-- Dark-Mode-Schalter (Mobile) --}}
                 <button type="button"
-                        onclick="(function(){const html=document.documentElement;const isDark=html.classList.toggle('dark');try{localStorage.setItem('theme',isDark?'dark':'light');}catch(e){}})()"
+                        onclick="window.npToggleTheme()"
                         class="w-full flex items-center gap-2 ps-4 pe-4 py-2 text-start text-base font-medium text-muted hover:text-text hover:bg-bg transition duration-150 ease-in-out">
                     <svg class="w-5 h-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m12.728 0-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 1 1 0 10A5 5 0 0 1 12 7z"/>
