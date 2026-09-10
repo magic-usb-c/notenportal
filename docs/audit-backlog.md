@@ -61,6 +61,14 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **Aktiv-Schalter für berufsspezifische Fächer** (`lehrberuf_faecher.aktiv`): wird nirgends gelesen, deshalb kein Schalter in der UI; Zuordnung entfernen genügt.
 - **Letzter Admin**: die eigene Admin-Rolle lässt sich nicht entziehen; damit bleibt immer mindestens der handelnde Admin bestehen.
 
+## Dokumente & Importe (10.09.2026) – bewusst weggelassen
+
+- **Texterkennung (OCR) für eingescannte Zeugnisse und Fotos**: kein Tesseract auf dem Server; ein zusätzlicher Systemdienst mit Sprachdaten ist für den Pilot zu viel Betrieb. Scans werden abgelegt, der Abgleich meldet «Kein Text im PDF erkannt». Nachrüstbar über `thiagoalessio/tesseract_ocr` + Paket `tesseract-ocr-deu`.
+- **Virenscan beim Upload**: kein ClamAV im Lab. Schutz über Typ-Whitelist (Endung und vom Server erkannter MIME-Typ), private Ablage, Auslieferung mit `nosniff` und Sandbox-CSP; SVG und HTML sind ausgeschlossen.
+- **Import aus Excel: mehrere Blätter**: gelesen wird das erste Blatt. Mehrblättrige Mappen sind bei Notenlisten selten; wer eine hat, speichert das Blatt einzeln.
+- **Ungültige Noten in der Vorschau** (z. B. 4.33): das Feld bleibt leer statt den Rohwert zu zeigen; die Zeile ist rot markiert und abgewählt.
+- **Dateien im Backup**: `storage/app/private/lernende/` muss zusätzlich zur Datenbank gesichert werden (siehe betrieb.md) – ein Backup-Cron fehlt weiterhin (Vor dem Produktivgang).
+
 ## Hinweise
 
 - `bemerkung`-Feld auf `lernende` fehlt weiterhin (braucht manuelles sudo mysql, siehe CLAUDE.md)

@@ -122,9 +122,9 @@
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>
-                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" aria-label="Datum" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-red-500!'"></td>
+                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="`Datum Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-red-500!'"></td>
                                             <td class="px-2 py-1.5 min-w-56">
-                                                <select x-model="z.bezug" aria-label="Fach oder Modul" class="{{ $feld }}" :class="! z.bezug && 'border-red-500!'">
+                                                <select x-model="z.bezug" :aria-label="`Fach oder Modul Zeile ${z.nr}`" class="{{ $feld }}" :class="! z.bezug && 'border-red-500!'">
                                                     <option value="">–</option>
                                                     @foreach($optionen as $gruppe => $liste)
                                                         <optgroup label="{{ $gruppe }}">
@@ -136,9 +136,9 @@
                                                 </select>
                                                 <div class="mt-0.5 text-[11px] text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
-                                            <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" aria-label="Titel" class="{{ $feld }}"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" aria-label="Note" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-red-500!'"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" aria-label="Gewicht" class="{{ $feld }} tabular-nums"></td>
+                                            <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="`Titel Zeile ${z.nr}`" class="{{ $feld }}"></td>
+                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="`Note Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-red-500!'"></td>
+                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="`Gewicht Zeile ${z.nr}`" class="{{ $feld }} tabular-nums"></td>
                                             <td class="px-3 py-1.5 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="farbe(z.status)" x-text="z.meldung || 'bereit'"></span>
                                             </td>
@@ -150,7 +150,7 @@
                     </section>
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <button type="submit" form="import-verwerfen" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Verwerfen</button>
+                        <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Verwerfen</button>
                         <button type="submit" :disabled="loading || gewaehlt === 0"
                                 class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60"
                                 x-text="gewaehlt === 1 ? '1 Note importieren' : `${gewaehlt} Noten importieren`"></button>

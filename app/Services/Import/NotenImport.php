@@ -34,7 +34,7 @@ final class NotenImport
     public function vorschau(array $tabelle, int $lernenderId): array
     {
         $katalog = $this->katalog($lernenderId);
-        [$kopf, $spalten] = $this->spalten($tabelle);
+        [$kopf, $spalten] = $this->spalten($tabelle, $katalog);
         $vorhanden = $this->vorhandene($lernenderId);
 
         $zeilen = [];
@@ -263,7 +263,7 @@ final class NotenImport
      * @param  list<list<string>>  $tabelle
      * @return array{0: int, 1: array<string, int>}
      */
-    private function spalten(array $tabelle): array
+    private function spalten(array $tabelle, array $katalog): array
     {
         foreach (array_slice($tabelle, 0, 10, true) as $i => $zeile) {
             $treffer = [];
@@ -289,6 +289,7 @@ final class NotenImport
                 $zaehler[$j]['note'] = ($zaehler[$j]['note'] ?? 0) + (int) ($this->note($zelle) !== null);
                 $zaehler[$j]['prozent'] = ($zaehler[$j]['prozent'] ?? 0) + (int) str_contains($zelle, '%');
                 $zaehler[$j]['text'] = ($zaehler[$j]['text'] ?? 0) + (preg_match('/\p{L}{3,}/u', $zelle) ? mb_strlen($zelle) : 0);
+                $zaehler[$j]['katalog'] = ($zaehler[$j]['katalog'] ?? 0) + (int) ($zelle !== '' && ! is_numeric($zelle) && $this->bezug($zelle, $katalog)[0] !== null);
             }
         }
         $wahl = fn (string $art, array $ohne = []) => collect($zaehler)->except($ohne)->filter(fn ($z) => $z[$art] > 0)->sortByDesc($art)->keys()->first();
@@ -296,7 +297,8 @@ final class NotenImport
         $treffer = array_filter(['datum' => $wahl('datum')], fn ($v) => $v !== null);
         $treffer['note'] = collect($zaehler)->except(array_values($treffer))->filter(fn ($z) => $z['note'] > 0)->keys()->last();
         $treffer['gewicht'] = $wahl('prozent', array_values(array_filter($treffer, fn ($v) => $v !== null)));
-        $treffer['bezug'] = $wahl('text', array_values(array_filter($treffer, fn ($v) => $v !== null)));
+        $belegt = array_values(array_filter($treffer, fn ($v) => $v !== null));
+        $treffer['bezug'] = $wahl('katalog', $belegt) ?? $wahl('text', $belegt);
         $treffer['titel'] = $wahl('text', array_values(array_filter($treffer, fn ($v) => $v !== null)));
 
         return [-1, array_filter($treffer, fn ($v) => $v !== null)];

@@ -10,7 +10,8 @@ app/Http/Controllers/
                    (routes/verwaltung.php, 2× eingebunden)
   Lernender/       Noten, Rechner, Pruefungen, Ziele
   Auth/            Login/Logout, Passwort ändern
-  DashboardController (alle Rollen), SucheController, KommentarController, ProfileController
+  DashboardController (alle Rollen), SucheController, KommentarController, ProfileController,
+  DokumenteController, NotenImportController (je für lernender.* und {bereich}.lernende.* – Kontext aus dem Routennamen)
 app/Http/Middleware/  RoleMiddleware (role:Name), EnsureUserIsActive (global in web)
 app/Models/        User (Tabelle benutzer), Lernender, Berufsbildner, Betreuung, Lehrberuf, Note, Kategorie,
                    Semester, Fach, Modul, ModulBelegung, Pruefung, Ziel, NotenGesehen, NotenKommentar, Rolle
@@ -22,6 +23,9 @@ app/Services/
   Uebersicht       Dashboards je Rolle, Lernenden-Cockpit, Heatmap
   Bericht          Admin-Notenbericht; Notenblatt (Druckansicht)
   Noten/NoteService  Bezug Fach/Modul, Kategorie ableiten, normalizeForSave
+  Dokumente/Ablage   private Ablage (Disk local), Upload-Regeln, sichere Auslieferung, sprechende Dateinamen
+  Import/            TabellenLeser (PhpSpreadsheet, CSV, smalot/pdfparser), NotenImport (Spalten, Zuordnung, Dubletten, Import
+                     über normalizeForSave), ZeugnisAbgleich
   Benutzer/        LernendeErfassungService, Startpasswort
 app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
 app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle),

@@ -72,6 +72,7 @@ class NotenImportTest extends TestCase
         $blatt->getActiveSheet()->fromArray([
             [Date::PHPToExcel(new \DateTime('2026-04-14')), 'Modul 431 Aufträge', 'Projekt', 5.5],
             [Date::PHPToExcel(new \DateTime('2026-05-05')), 'SK', 'Aufsatz', 4.25],
+            [Date::PHPToExcel(new \DateTime('2026-06-02')), 'SK', 'Formel', '=4+1'],
         ]);
         $pfad = tempnam(sys_get_temp_dir(), 'np').'.xlsx';
         (new Xlsx($blatt))->save($pfad);
@@ -80,9 +81,9 @@ class NotenImportTest extends TestCase
         $zeilen = app(NotenImport::class)->vorschau($tabelle, (int) $this->user->lernender->lernender_id)['zeilen'];
         unlink($pfad);
 
-        $this->assertSame(['2026-04-14', '2026-05-05'], array_column($zeilen, 'datum'));
-        $this->assertSame([5.5, 4.25], array_column($zeilen, 'note'));
-        $this->assertSame(['modul:'.$this->modul, 'fach:'.$this->fach], array_column($zeilen, 'bezug'));
+        $this->assertSame(['2026-04-14', '2026-05-05', '2026-06-02'], array_column($zeilen, 'datum'));
+        $this->assertSame([5.5, 4.25, 5.0], array_column($zeilen, 'note'));
+        $this->assertSame(['modul:'.$this->modul, 'fach:'.$this->fach, 'fach:'.$this->fach], array_column($zeilen, 'bezug'));
     }
 
     #[Test]

@@ -46,9 +46,20 @@ final class TabellenLeser
     {
         $reader = IOFactory::createReader(IOFactory::identify($pfad));
         $reader->setReadDataOnly(true);
-        $werte = $reader->load($pfad)->getSheet(0)->toArray(null, true, false, false);
+        $blatt = $reader->load($pfad)->getSheet(0);
 
-        return array_map(fn (array $z) => array_map(fn ($v) => $v === null ? '' : trim(is_float($v) ? rtrim(rtrim(sprintf('%.6F', $v), '0'), '.') : (string) $v), $z), $werte);
+        // Formeln aus fremden Dateien nie berechnen – den in der Datei gespeicherten Wert nehmen
+        $zeilen = [];
+        foreach ($blatt->getRowIterator(1, min($blatt->getHighestDataRow(), self::MAX_ZEILEN + 20)) as $zeile) {
+            $zellen = [];
+            foreach ($zeile->getCellIterator() as $zelle) {
+                $v = $zelle->isFormula() ? $zelle->getOldCalculatedValue() : $zelle->getValue();
+                $zellen[] = $v === null ? '' : trim(is_float($v) ? rtrim(rtrim(sprintf('%.6F', $v), '0'), '.') : (string) $v);
+            }
+            $zeilen[] = $zellen;
+        }
+
+        return $zeilen;
     }
 
     /** @return list<list<string>> */

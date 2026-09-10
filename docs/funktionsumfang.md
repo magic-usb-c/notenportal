@@ -12,11 +12,15 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Notenblatt zum Drucken/PDF (Zeugnisnoten je Semester, Prüfungen, Promotion, Unterschriften), CSV-Export
 - Kommentare lesen, Titel inline bearbeiten, Deep-Link `?_open=<note_id>`
 - Modul wiederholen: aktuelle Belegung schliessen, ab der ersten neuen Note zählt nur der neue Versuch; zurücknehmbar, solange keine neue Note erfasst ist
+- Notenimport aus Excel, ODS, CSV oder PDF: Spalten werden erkannt (mit oder ohne Kopfzeile), Fach/Modul zugeordnet (Modulnummer, Name, Kürzel, ähnlichster Name zur Prüfung), Dubletten markiert; Vorschau mit korrigierbaren Zeilen, dann Übernahme über dieselben Regeln wie beim Erfassen; CSV-Vorlage
+- Dokumente: Zeugnisse, Notenlisten und Sonstiges hochladen (Drag & Drop, bis 10 MB), nach Art und Semester ablegen, im Browser öffnen oder mit sprechendem Namen herunterladen
+- Zeugnis-Abgleich: Zeugnis-PDF gegen die berechneten Zeugnisnoten prüfen (stimmt / abweichend / fehlt), fehlende als Note «Zeugnis» übernehmen
 
 ## Berufsbildner
 - Dashboard: betreute Lernende nach Ampel sortiert (rot/gelb/grün mit Gründen: Promotion gefährdet, Semesterschnitt, ungenügende Zeugnisnoten, Einbrüche, Rückgang, fehlende Noten, Inaktivität), Brennpunkte, Vergleich, Prüfungen der nächsten 14 Tage, Lehrende bald
 - Lernenden-Cockpit: Stand, Verlauf, Heatmap, Ziele, Prüfungen, Rechner für den Lernenden
 - Noten lesen, korrigieren («geändert von»), kommentieren, als gesehen markieren; Notenblatt, CSV
+- Dokumente der betreuten Lernenden einsehen, hochladen, löschen; Zeugnis-Abgleich (Übernahme und Notenimport nur für Admin)
 - Lernende anlegen, Betreuung, Tracks
 
 ## Admin
