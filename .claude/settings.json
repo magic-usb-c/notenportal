@@ -1,11 +1,18 @@
 {
   "enabledPlugins": {
     "caveman@caveman": true,
-    "frontend-design@claude-plugins-official": true,
-    "context7@claude-plugins-official": true,
-    "security-guidance@claude-plugins-official": true,
-    "tailwind-v4-shadcn@claude-skills": true,
     "laravel@laravel": true,
-    "laravel-lsp@laravel": true
+    "laravel-lsp@laravel": true,
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": false,
+    "security-guidance@claude-plugins-official": false,
+    "tailwind-v4-shadcn@claude-skills": false,
+    "ui-ux-pro-max@ui-ux-pro-max-skill": false
+  },
+  "permissions": {
+    "deny": [
+      "Bash(git push --force origin main:*)",
+      "Bash(git push -f origin main:*)"
+    ]
   }
 }
