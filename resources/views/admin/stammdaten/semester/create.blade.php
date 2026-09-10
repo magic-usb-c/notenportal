@@ -45,7 +45,7 @@
                     </div>
 
                     <div>
-                        <label for="sortierung" class="text-sm font-medium text-muted">Sortierung <span class="text-xs font-normal">(leer = automatisch)</span></label>
+                        <label for="sortierung" class="text-sm font-medium text-muted">Sortierung</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung') }}" min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('sortierung') border-red-400 @enderror">
                         @error('sortierung')

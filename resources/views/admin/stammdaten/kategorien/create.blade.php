@@ -46,7 +46,6 @@
                         <label for="sortierung" class="text-sm font-medium text-muted">Sortierung</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung') }}" min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
-                        <p class="mt-1 text-xs text-muted">Leer = automatisch</p>
                     </div>
 
                     <div class="pt-2 flex gap-3">

@@ -1,6 +1,5 @@
 <section>
     <h2 class="text-base font-semibold text-text">Passwort ändern</h2>
-    <p class="mt-1 text-sm text-muted">Für mehr Sicherheit ein langes, zufälliges Passwort verwenden.</p>
 
     <form method="POST" action="{{ route('password.update') }}" class="mt-5 space-y-4"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

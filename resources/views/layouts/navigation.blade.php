@@ -145,12 +145,11 @@
                     @if(auth()->user()->hasRole('Admin'))
                         <a href="{{ route('admin.benutzer.index') }}#suche"
                            class="hidden md:inline-flex items-center gap-2 px-3 h-9 rounded-xl glass-btn text-muted hover:text-text text-sm"
-                           title="Benutzer suchen (Ctrl+K)">
+                           title="Benutzer suchen">
                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <span class="text-xs">Suchen</span>
-                            <kbd class="text-[10px] font-mono border border-border rounded-sm px-1 py-0.5 leading-none">Ctrl K</kbd>
                         </a>
                     @endif
                 @endauth

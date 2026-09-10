@@ -21,10 +21,6 @@
             <div class="glass rounded-2xl p-5 space-y-4">
                 <div>
                     <h3 class="font-semibold text-text">Welche Note brauche ich?</h3>
-                    <p class="text-sm text-muted mt-1">
-                        Berechnet, welche Note du in der nächsten Prüfung mindestens brauchst,
-                        um deinen Ziel-Durchschnitt zu erreichen.
-                    </p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -82,37 +78,24 @@
                         <div class="text-5xl font-bold tabular-nums"
                              :class="benoetigtColor"
                              x-text="benoetigt.toFixed(2)"></div>
-                        <p class="mt-3 text-sm text-muted">
-                            Mit dieser Note (Gewichtung <span x-text="naechsteGewicht"></span>%)
-                            erreichst du genau den Ziel-Ø von
-                            <span class="font-semibold text-text" x-text="ziel.toFixed(1)"></span>.
-                        </p>
                     </div>
                 </template>
 
                 <template x-if="status === 'unerreichbar'">
                     <div class="mt-2">
-                        <div class="text-3xl font-bold text-red-600 dark:text-red-400">Nicht erreichbar</div>
-                        <p class="mt-3 text-sm text-muted">
-                            Selbst mit einer 6.0 in der nächsten Prüfung kommst du nicht auf
-                            <span class="font-semibold text-text" x-text="ziel.toFixed(1)"></span>.
-                            Du müsstest mindestens
-                            <span class="font-semibold text-text" x-text="benoetigt.toFixed(2)"></span>
-                            schreiben.
-                        </p>
+                        <div class="text-2xl font-semibold text-red-600 dark:text-red-400">Nicht erreichbar</div>
+                        <div class="mt-3 text-sm text-muted">
+                            Benötigt: <span class="font-semibold text-text" x-text="benoetigt.toFixed(2)"></span> (max. 6.0)
+                        </div>
                     </div>
                 </template>
 
                 <template x-if="status === 'erreicht'">
                     <div class="mt-2">
-                        <div class="text-3xl font-bold text-green-700 dark:text-green-400">Ziel bereits übertroffen</div>
-                        <p class="mt-3 text-sm text-muted">
-                            Dein aktueller Ø liegt bereits über
-                            <span class="font-semibold text-text" x-text="ziel.toFixed(1)"></span>.
-                            Eine
-                            <span class="font-semibold text-text" x-text="Math.max(1, benoetigt).toFixed(2)"></span>
-                            in der nächsten Prüfung würde den Ø noch genau auf das Ziel drücken.
-                        </p>
+                        <div class="text-2xl font-semibold text-green-700 dark:text-green-400">Ziel bereits übertroffen</div>
+                        <div class="mt-3 text-sm text-muted">
+                            Zum Halten nötig: <span class="font-semibold text-text" x-text="Math.max(1, benoetigt).toFixed(2)"></span>
+                        </div>
                     </div>
                 </template>
 
@@ -120,7 +103,7 @@
                     <div class="mt-2">
                         <div class="text-2xl font-semibold text-muted">Keine Daten</div>
                         <p class="mt-3 text-sm text-muted">
-                            Noch keine Noten erfasst, daher kann kein Bedarf berechnet werden.
+                            Noch keine Noten erfasst.
                         </p>
                     </div>
                 </template>
@@ -129,16 +112,10 @@
                         <div class="mt-2">
                             <div class="text-2xl font-semibold text-muted">Gewichtung fehlt</div>
                             <p class="mt-3 text-sm text-muted">
-                                Die Gewichtung der naechsten Note muss groesser als 0 sein.
+                                Die Gewichtung der nächsten Note muss grösser als 0 sein.
                             </p>
                         </div>
                     </template>
-            </div>
-
-            <div class="text-xs text-muted px-1">
-                Berechnung: gewichteter Durchschnitt. Die benötigte Note ergibt sich aus
-                <code class="bg-bg px-1 rounded-sm">(Ziel · (ΣGewicht + g) − ΣNote·Gewicht) / g</code>,
-                wobei g die Gewichtung der nächsten Note ist.
             </div>
         </div>
     </div>

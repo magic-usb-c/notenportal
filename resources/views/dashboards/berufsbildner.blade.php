@@ -142,7 +142,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
                         <p class="mt-3 text-sm text-muted">Keine aktuell betreuten Lernenden gefunden.</p>
-                        <p class="mt-1 text-xs text-muted">Falls das ein Fehler ist, bitte beim Admin melden.</p>
                     </div>
                 @else
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

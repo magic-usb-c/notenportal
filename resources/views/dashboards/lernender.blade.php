@@ -97,7 +97,6 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                     <h3 class="mt-4 font-semibold text-text">Dein Notenspiegel wartet auf dich</h3>
-                    <p class="mt-1 text-sm text-muted">Erfasse deine erste Note und sieh zu, wie dein Durchschnitt Gestalt annimmt.</p>
                     <a href="{{ route('lernender.noten.create') }}"
                        class="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                         <span class="text-lg leading-none">+</span>

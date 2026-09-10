@@ -68,7 +68,6 @@
                         <label for="benutzername" class="text-sm font-medium text-muted">Benutzername</label>
                         <input type="text" id="benutzername" value="{{ $user->benutzername }}" disabled
                                class="mt-1 w-full rounded-xl border border-border bg-bg text-muted font-mono px-3 py-2 cursor-not-allowed">
-                        <p class="mt-1 text-xs text-muted">Benutzername kann nicht geändert werden.</p>
                     </div>
 
                     <div>
@@ -79,7 +78,6 @@
                                 <span class="px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-text">{{ $rolle }}</span>
                             @endforeach
                         </div>
-                        <p class="mt-1 text-xs text-muted">Rollen können hier nicht geändert werden.</p>
                     </div>
 
 

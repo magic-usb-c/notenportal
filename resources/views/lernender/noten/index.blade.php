@@ -78,7 +78,7 @@
                             !$prevSemesterId ? 'pointer-events-none opacity-30' : ''
                         ])
                         href="{{ $prevSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $prevSemesterId])) : '#' }}"
-                        title="Vorheriges Semester (Pfeiltaste links)"
+                        title="Vorheriges Semester"
                     >
                         <span class="text-xl leading-none">‹</span>
                     </a>
@@ -94,7 +94,7 @@
                             !$nextSemesterId ? 'pointer-events-none opacity-30' : ''
                         ])
                         href="{{ $nextSemesterId ? route('lernender.noten.index', $queryWith(['semester_id' => $nextSemesterId])) : '#' }}"
-                        title="Nächstes Semester (Pfeiltaste rechts)"
+                        title="Nächstes Semester"
                     >
                         <span class="text-xl leading-none">›</span>
                     </a>
@@ -129,10 +129,9 @@
                 </a>
                 <a href="{{ route('lernender.noten.create') }}"
                    class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap"
-                   title="Neue Note erfassen (Shortcut: N)">
+                   title="Neue Note erfassen">
                     <span class="text-lg leading-none">+</span>
                     Neue Note
-                    <kbd class="hidden lg:inline-flex items-center justify-center text-[10px] font-mono bg-bg/30 px-1.5 py-0.5 rounded-sm ml-1">N</kbd>
                 </a>
             </div>
         </div>
@@ -170,12 +169,6 @@
                        class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap">
                         Reset
                     </a>
-
-                    @if(($missingWeights ?? 0) > 0)
-                        <div class="w-full text-xs text-muted">
-                            Hinweis: {{ $missingWeights }} Note(n) ohne Gewichtung werden mit 100% gerechnet.
-                        </div>
-                    @endif
                 </form>
             </div>
 
@@ -185,12 +178,7 @@
                     <svg class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4a2 2 0 0 0-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z"/>
                     </svg>
-                    <div>
-                        <div class="font-medium text-red-800 dark:text-red-300 text-sm">Achtung: Durchschnitt unter 4.0</div>
-                        <div class="text-xs text-red-600 dark:text-red-400 mt-0.5">
-                            Dein aktueller Semesterdurchschnitt beträgt {{ $avgWeighted }}. Sprich mit deinem Berufsbildner.
-                        </div>
-                    </div>
+                    <div class="font-medium text-red-800 dark:text-red-300 text-sm">Achtung: Durchschnitt unter 4.0</div>
                 </div>
             @endif
 
