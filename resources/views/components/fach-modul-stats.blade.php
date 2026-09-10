@@ -24,12 +24,14 @@
                             : ($fsAvg >= 4.0 ? 'bg-emerald-500'
                             : ($fsAvg >= 3.5 ? 'bg-yellow-500'
                             : 'bg-red-500')));
-                        $fsBarWidth = $fsAvg !== null ? min(100, round(($fsAvg / 6) * 100)) : 0;
+                        // Skala beginnt bei Note 1 (Untergrenze), nicht bei 0
+                        $fsBarWidth = $fsAvg !== null ? max(0, min(100, round((($fsAvg - 1) / 5) * 100))) : 0;
                     @endphp
                     <div class="flex items-center gap-3 px-5 py-2.5">
                         <span class="text-xs text-text w-48 shrink-0 truncate" title="{{ $fs->label }}">{{ $fs->label }}</span>
-                        <div class="flex-1 bg-bg rounded-full h-2 overflow-hidden border border-border">
+                        <div class="relative flex-1 bg-bg rounded-full h-2 overflow-hidden border border-border">
                             <div class="h-full rounded-full {{ $fsBarBg }}" style="width: {{ $fsBarWidth }}%"></div>
+                            <div class="absolute inset-y-0 w-px bg-text/40" style="left: 60%" aria-hidden="true"></div>
                         </div>
                         <span class="text-sm font-semibold tabular-nums {{ $fsColor }} w-12 text-right">
                             {{ $fsAvg !== null ? number_format($fsAvg, 2) : '–' }}

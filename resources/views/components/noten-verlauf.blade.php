@@ -1,5 +1,6 @@
 {{-- resources/views/components/noten-verlauf.blade.php
-     Wiederverwendbares SVG-Liniendiagramm für den Notenverlauf.
+     SVG-Diagramm Notenverlauf: Einzelnoten als Punkte auf einer Zeitachse nach Prüfungsdatum,
+     dazu der gleitende Durchschnitt der letzten 5 Noten.
      Erwartet $points: Collection/Array von Objekten mit ->datum (date-string), ->wert (float), ->label (string|null) --}}
 @props([
     'points',
@@ -8,44 +9,49 @@
 ])
 
 @php
-    $pts = collect($points)->values();
+    $pts = collect($points)->sortBy('datum')->values();
 @endphp
 
 @if($pts->count() >= 2)
     @php
-        // Chart-Geometrie (viewBox-Koordinaten)
         $w = 600; $h = 170;
         $padL = 30; $padR = 14; $padT = 14; $padB = 26;
         $innerW = $w - $padL - $padR;
         $innerH = $h - $padT - $padB;
 
-        // Y-Skala: Noten 1–6 (Schweizer System)
-        $yFor = fn(float $v) => $padT + $innerH * (1 - (($v - 1) / 5));
+        // Y: volle Notenskala 1–6, nie abgeschnitten
+        $yFor = fn (float $v) => $padT + $innerH * (1 - (($v - 1) / 5));
 
-        $n = $pts->count();
-        $xFor = fn(int $i) => $n > 1 ? $padL + $innerW * ($i / ($n - 1)) : $padL + $innerW / 2;
+        // X: proportional zum Prüfungsdatum
+        $zeit = $pts->map(fn ($p) => \Carbon\Carbon::parse($p->datum)->getTimestamp());
+        $tMin = $zeit->min();
+        $tSpanne = max(1, $zeit->max() - $tMin);
+        $xFor = fn (int $t) => $padL + $innerW * (($t - $tMin) / $tSpanne);
 
-        $coords = $pts->map(fn($p, $i) => [
-            'x' => round($xFor($i), 1),
-            'y' => round($yFor((float) $p->wert), 1),
-            'wert' => (float) $p->wert,
-            'datum' => \Carbon\Carbon::parse($p->datum)->format('d.m.Y'),
-            'label' => $p->label ?? null,
-        ]);
-
-        $polyline = $coords->map(fn($c) => $c['x'] . ',' . $c['y'])->implode(' ');
-        // Fläche unter der Linie (für dezenten Verlauf)
-        $area = $polyline . ' ' . round($padL + $innerW, 1) . ',' . round($padT + $innerH, 1) . ' ' . $padL . ',' . round($padT + $innerH, 1);
-
-        $dotColor = function (float $v): string {
-            if ($v >= 5.0) return '#16a34a';
-            if ($v >= 4.0) return '#10b981';
-            if ($v >= 3.5) return '#ca8a04';
-            return '#dc2626';
+        $farbe = fn (float $v) => match (true) {
+            $v >= 5.0 => 'fill-green-600 dark:fill-green-400',
+            $v >= 4.0 => 'fill-emerald-600 dark:fill-emerald-400',
+            $v >= 3.5 => 'fill-yellow-600 dark:fill-yellow-400',
+            default => 'fill-red-600 dark:fill-red-400',
         };
 
+        $coords = $pts->map(function ($p, $i) use ($pts, $zeit, $xFor, $yFor, $farbe) {
+            $fenster = $pts->slice(max(0, $i - 4), min(5, $i + 1));
+
+            return [
+                'x' => round($xFor($zeit[$i]), 1),
+                'y' => round($yFor((float) $p->wert), 1),
+                'yGleitend' => round($yFor((float) $fenster->avg(fn ($f) => (float) $f->wert)), 1),
+                'wert' => (float) $p->wert,
+                'farbe' => $farbe((float) $p->wert),
+                'datum' => \Carbon\Carbon::parse($p->datum)->format('d.m.Y'),
+                'label' => $p->label ?? null,
+            ];
+        });
+
+        $gleitend = $coords->map(fn ($c) => $c['x'].','.$c['yGleitend'])->implode(' ');
         $firstDate = \Carbon\Carbon::parse($pts->first()->datum)->format('d.m.y');
-        $lastDate  = \Carbon\Carbon::parse($pts->last()->datum)->format('d.m.y');
+        $lastDate = \Carbon\Carbon::parse($pts->last()->datum)->format('d.m.y');
     @endphp
 
     <div class="glass rounded-2xl overflow-hidden">
@@ -57,53 +63,49 @@
         </div>
         <div class="p-4">
             <svg viewBox="0 0 {{ $w }} {{ $h }}" class="w-full h-auto" role="img" aria-label="{{ $title }}">
-                {{-- Horizontale Hilfslinien + Y-Beschriftung (Noten 1–6) --}}
-                @foreach([2, 3, 4, 5, 6] as $g)
+                @foreach([1, 2, 3, 4, 5, 6] as $g)
                     @php $gy = round($yFor((float) $g), 1); @endphp
                     <line x1="{{ $padL }}" y1="{{ $gy }}" x2="{{ $w - $padR }}" y2="{{ $gy }}"
-                          stroke="currentColor" class="text-border" stroke-width="1"
-                          @if($g === 4) stroke-dasharray="5 4" stroke-width="1.5" @endif
-                          opacity="{{ $g === 4 ? '0.9' : '0.45' }}" />
+                          stroke="currentColor" class="{{ $g === 4 ? 'text-muted' : 'text-border' }}"
+                          stroke-width="{{ $g === 4 ? '1.5' : '1' }}"
+                          @if($g === 4) stroke-dasharray="5 4" @endif
+                          opacity="{{ $g === 4 ? '0.8' : '0.45' }}" />
                     <text x="{{ $padL - 8 }}" y="{{ $gy + 3.5 }}" text-anchor="end"
                           class="fill-current text-muted" font-size="10">{{ $g }}</text>
                 @endforeach
 
-                {{-- Fläche unter der Linie --}}
-                <polygon points="{{ $area }}" class="text-accent" fill="currentColor" opacity="0.07" />
-
-                {{-- Verlaufslinie --}}
-                <polyline points="{{ $polyline }}" fill="none"
+                <polyline points="{{ $gleitend }}" fill="none"
                           stroke="currentColor" class="text-accent"
                           stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
 
-                {{-- Punkte mit Tooltip --}}
                 @foreach($coords as $c)
                     <circle cx="{{ $c['x'] }}" cy="{{ $c['y'] }}" r="3.5"
-                            fill="{{ $dotColor($c['wert']) }}" stroke="white" stroke-width="1">
-                        <title>{{ $c['datum'] }}{{ $c['label'] ? ' · ' . $c['label'] : '' }} — Note {{ number_format($c['wert'], 1) }}</title>
+                            class="{{ $c['farbe'] }} stroke-card" stroke-width="1">
+                        <title>{{ $c['datum'] }}{{ $c['label'] ? ' · '.$c['label'] : '' }} — Note {{ $c['wert'] }}</title>
                     </circle>
                 @endforeach
 
-                {{-- X-Beschriftung: erster und letzter Termin --}}
                 <text x="{{ $padL }}" y="{{ $h - 8 }}" text-anchor="start"
                       class="fill-current text-muted" font-size="10">{{ $firstDate }}</text>
                 <text x="{{ $w - $padR }}" y="{{ $h - 8 }}" text-anchor="end"
                       class="fill-current text-muted" font-size="10">{{ $lastDate }}</text>
             </svg>
-            <div class="mt-2 flex items-center gap-4 text-[11px] text-muted">
+            <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted">
                 <span class="inline-flex items-center gap-1.5">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#16a34a"></span> ≥ 5.0
+                    <span class="inline-block w-4 h-0.5 rounded-full bg-accent"></span> Ø der letzten 5 Noten
                 </span>
                 <span class="inline-flex items-center gap-1.5">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#10b981"></span> ≥ 4.0
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-600 dark:bg-green-400"></span> ≥ 5.0
                 </span>
                 <span class="inline-flex items-center gap-1.5">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#ca8a04"></span> ≥ 3.5
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400"></span> ≥ 4.0
                 </span>
                 <span class="inline-flex items-center gap-1.5">
-                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:#dc2626"></span> &lt; 3.5
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-600 dark:bg-yellow-400"></span> ≥ 3.5
                 </span>
-                <span class="ml-auto hidden sm:inline">gestrichelte Linie = Note 4.0</span>
+                <span class="inline-flex items-center gap-1.5">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-red-600 dark:bg-red-400"></span> &lt; 3.5
+                </span>
             </div>
         </div>
     </div>
