@@ -26,6 +26,9 @@ class Lernender extends Model
         'lehrberuf_id',
         'lehrbeginn',
         'lehrende',
+        'bemerkung',
+        'klasse_schule',
+        'klasse_bms',
     ];
 
     protected $casts = [

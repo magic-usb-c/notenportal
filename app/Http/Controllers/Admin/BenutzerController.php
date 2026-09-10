@@ -128,6 +128,7 @@ class BenutzerController extends Controller
                     'email'         => $validated['email'],
                     'benutzername'  => $validated['benutzername'],
                     'passwort_hash' => $validated['passwort'],
+                    'passwort_wechsel_noetig' => true,
                     'aktiv'         => true,
                 ]);
 
@@ -193,6 +194,7 @@ class BenutzerController extends Controller
 
         if ($request->filled('passwort')) {
             $user->passwort_hash = $validated['passwort'];
+            $user->passwort_wechsel_noetig = true;
         }
 
         $user->save();

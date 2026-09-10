@@ -27,6 +27,8 @@ class ZugriffsschutzTest extends TestCase
         'profile.edit',
         'profile.update',
         'password.update',
+        'passwort.wechsel',
+        'passwort.wechsel.speichern',
         'logout',
         'noten.kommentare.store',
         'noten.kommentare.destroy',

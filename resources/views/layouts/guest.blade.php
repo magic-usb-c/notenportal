@@ -41,7 +41,7 @@
             </div>
 
             <div class="relative mt-6 text-xs text-muted/70">
-                Notenportal · Hamilton Bonaduz AG · {{ now()->year }}
+                Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
             </div>
         </div>
     </body>

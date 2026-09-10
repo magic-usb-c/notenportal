@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-text">Notenportal</h1>
-        <p class="mt-1 text-sm text-muted">Hamilton Services AG</p>
+        @if($betriebName)<p class="mt-1 text-sm text-muted">{{ $betriebName }}</p>@endif
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />

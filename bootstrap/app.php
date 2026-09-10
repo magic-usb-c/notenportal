@@ -15,7 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
 
-        $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserIsActive::class);
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\EnsureUserIsActive::class,
+            \App\Http\Middleware\EnsurePasswordChanged::class,
+        ]);
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {

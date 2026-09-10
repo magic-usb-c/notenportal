@@ -30,6 +30,8 @@ class User extends Authenticatable
         'nachname',
         'passwort_hash',
         'aktiv',
+        'passwort_wechsel_noetig',
+        'darstellung',
     ];
 
     protected $hidden = [
@@ -38,6 +40,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'aktiv' => 'boolean',
+        'passwort_wechsel_noetig' => 'boolean',
         'erstellt_am' => 'datetime',
         'aktualisiert_am' => 'datetime',
         'geloescht_am' => 'datetime',

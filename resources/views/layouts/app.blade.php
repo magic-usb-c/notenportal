@@ -52,7 +52,7 @@
             </main>
 
             <footer class="py-4 text-center text-xs text-muted/70">
-                Notenportal · Hamilton Bonaduz AG · {{ now()->year }}
+                Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
             </footer>
         </div>
 

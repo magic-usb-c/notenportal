@@ -38,6 +38,7 @@ class LernendeErfassungService
                 'email'         => $data['email'],
                 'benutzername'  => $data['benutzername'],
                 'passwort_hash' => $data['passwort'],
+                'passwort_wechsel_noetig' => true,
                 'aktiv'         => true,
             ]);
 
