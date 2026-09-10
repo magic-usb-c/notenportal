@@ -73,7 +73,7 @@
             <div class="glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
-                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-sm">
+                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
                             <tr>
                                 <th class="text-left p-3">Benutzer</th>
                                 <th class="text-left p-3 whitespace-nowrap">Benutzername</th>

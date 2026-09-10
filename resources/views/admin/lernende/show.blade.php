@@ -163,7 +163,7 @@
                                : ($nw >= 3.5 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 np-glow-yellow'
                                : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 np-glow-red'));
                         @endphp
-                        <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-xl font-bold text-sm np-fade-in {{ $c }}">
+                        <span class="inline-flex items-center justify-center min-w-12 px-2 py-1 rounded-xl font-bold text-sm np-fade-in {{ $c }}">
                             {{ number_format($nw, 1) }}
                         </span>
                     </div>

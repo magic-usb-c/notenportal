@@ -39,7 +39,7 @@
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="bg-card/70 backdrop-blur-sm border-b border-border">
+                <header class="bg-card/70 backdrop-blur-xs border-b border-border">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>

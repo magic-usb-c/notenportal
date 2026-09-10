@@ -137,7 +137,7 @@
 
             <div class="text-xs text-muted px-1">
                 Berechnung: gewichteter Durchschnitt. Die benötigte Note ergibt sich aus
-                <code class="bg-bg px-1 rounded">(Ziel · (ΣGewicht + g) − ΣNote·Gewicht) / g</code>,
+                <code class="bg-bg px-1 rounded-sm">(Ziel · (ΣGewicht + g) − ΣNote·Gewicht) / g</code>,
                 wobei g die Gewichtung der nächsten Note ist.
             </div>
         </div>

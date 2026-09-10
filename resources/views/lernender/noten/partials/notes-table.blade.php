@@ -61,7 +61,7 @@
         @endphp
 
         <details class="np-details glass rounded-2xl overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/[0.08] transition-colors duration-100">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/8 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -75,7 +75,7 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="text-2xl font-extrabold tabular-nums min-w-[3rem] text-right {{ $avgHeroClass($avg) }}">
+                    <span class="text-2xl font-extrabold tabular-nums min-w-12 text-right {{ $avgHeroClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>
@@ -134,7 +134,7 @@
                             {{-- Rechte Seite --}}
                             <div class="shrink-0 flex items-center gap-3">
                                 <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="text-xl font-bold tabular-nums min-w-[2.75rem] text-right {{ $noteColorClass($noteWert) }}">
+                                <span class="text-xl font-bold tabular-nums min-w-11 text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)
@@ -277,7 +277,7 @@
         @endphp
 
         <details class="np-details glass rounded-2xl overflow-hidden">
-            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/[0.08] transition-colors duration-100">
+            <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between list-none bg-card/30 hover:bg-accent/8 transition-colors duration-100">
                 <div class="flex items-center gap-3 min-w-0 flex-1">
                     <span class="np-chevron text-muted transition-transform duration-200 shrink-0">
                         <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -311,7 +311,7 @@
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
                     <span class="text-xs text-muted">Ø</span>
-                    <span class="text-2xl font-extrabold tabular-nums min-w-[3rem] text-right {{ $avgHeroClass($avg) }}">
+                    <span class="text-2xl font-extrabold tabular-nums min-w-12 text-right {{ $avgHeroClass($avg) }}">
                         {{ $avg ?? '–' }}
                     </span>
                 </div>
@@ -365,7 +365,7 @@
 
                             <div class="shrink-0 flex items-center gap-3">
                                 <span class="text-xs text-muted tabular-nums">{{ $n->gewichtung_prozent ?? 100 }}%</span>
-                                <span class="text-xl font-bold tabular-nums min-w-[2.75rem] text-right {{ $noteColorClass($noteWert) }}">
+                                <span class="text-xl font-bold tabular-nums min-w-11 text-right {{ $noteColorClass($noteWert) }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($canManage)

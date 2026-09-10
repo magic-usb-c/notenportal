@@ -43,7 +43,7 @@
                                         @click="open = !open"
                                         :aria-expanded="open"
                                         aria-haspopup="true"
-                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-sm
+                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-xs
                                     {{ request()->routeIs('admin.lernende.*') || request()->routeIs('admin.berufsbildner.*') || request()->routeIs('admin.benutzer.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Benutzer
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
@@ -60,15 +60,15 @@
                                      class="absolute left-0 w-48 rounded-xl bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/60 shadow-2xl z-50 p-1"
                                      style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.lernende.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.lernende.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Lernende
                                     </a>
                                     <a href="{{ route('admin.berufsbildner.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.berufsbildner.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.berufsbildner.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Berufsbildner
                                     </a>
                                     <a href="{{ route('admin.benutzer.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.benutzer.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.benutzer.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Systembenutzer
                                     </a>
                                 </div>
@@ -80,7 +80,7 @@
                                         @click="open = !open"
                                         :aria-expanded="open"
                                         aria-haspopup="true"
-                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-sm
+                                        class="inline-flex items-center gap-1 h-full px-3 border-b-2 text-sm font-medium transition-colors duration-150 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg rounded-xs
                                     {{ request()->routeIs('admin.stammdaten.*') ? 'border-accent text-text bg-accent/10' : 'border-transparent text-muted hover:text-text hover:border-border hover:bg-accent/5' }}">
                                     Stammdaten
                                     <svg class="h-3.5 w-3.5 transition-transform duration-150" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5">
@@ -97,23 +97,23 @@
                                      class="absolute left-0 w-48 rounded-xl bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/60 shadow-2xl z-50 p-1"
                                      style="top: calc(100% + 2px);">
                                     <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.lehrberufe.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Lehrberufe
                                     </a>
                                     <a href="{{ route('admin.stammdaten.module.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.module.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Module
                                     </a>
                                     <a href="{{ route('admin.stammdaten.faecher.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.faecher.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Fächer
                                     </a>
                                     <a href="{{ route('admin.stammdaten.semester.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.semester.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Semester
                                     </a>
                                     <a href="{{ route('admin.stammdaten.kategorien.index') }}"
-                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.kategorien.*') ? 'text-accent font-medium bg-accent/[0.15]' : 'text-text hover:bg-accent/[0.08] hover:text-accent' }}">
+                                       class="block px-3 py-2 text-sm rounded-lg transition-colors duration-150 {{ request()->routeIs('admin.stammdaten.kategorien.*') ? 'text-accent font-medium bg-accent/15' : 'text-text hover:bg-accent/8 hover:text-accent' }}">
                                         Kategorien
                                     </a>
                                 </div>
@@ -128,7 +128,7 @@
                             <x-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
                                 Feedback
                                 @if(($feedbackOffenCount ?? 0) > 0)
-                                    <span class="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
+                                    <span class="ml-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
                                         {{ $feedbackOffenCount }}
                                     </span>
                                 @endif
@@ -150,7 +150,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                             <span class="text-xs">Suchen</span>
-                            <kbd class="text-[10px] font-mono border border-border rounded px-1 py-0.5 leading-none">Ctrl K</kbd>
+                            <kbd class="text-[10px] font-mono border border-border rounded-sm px-1 py-0.5 leading-none">Ctrl K</kbd>
                         </a>
                     @endif
                 @endauth
@@ -173,7 +173,7 @@
                         <button
                             class="inline-flex items-center px-3 py-2 text-sm leading-4 font-medium rounded-xl
                                    text-muted bg-card hover:text-text
-                                   focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg
+                                   focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg
                                    transition ease-in-out duration-150">
                             @php
                                 $u = Auth::user();
@@ -216,7 +216,7 @@
                 <button @click="open = ! open"
                     class="inline-flex items-center justify-center p-2 rounded-xl
                            text-muted hover:text-text hover:bg-card
-                           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg
+                           focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg
                            transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
@@ -300,7 +300,7 @@
                         <x-responsive-nav-link :href="route('admin.feedback.index')" :active="request()->routeIs('admin.feedback.*')">
                             Feedback
                             @if(($feedbackOffenCount ?? 0) > 0)
-                                <span class="ml-1.5 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
+                                <span class="ml-1.5 inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-accent text-white text-[10px] font-bold">
                                     {{ $feedbackOffenCount }}
                                 </span>
                             @endif

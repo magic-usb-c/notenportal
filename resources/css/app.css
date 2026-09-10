@@ -1,7 +1,224 @@
-@import "./theme.css";
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import './theme.css' layer(base);
+
+@plugin '@tailwindcss/forms';
+
+/* Klassen, die nur per Alpine :class gesetzt werden */
+@source inline('rotate-90 rotate-180');
+
+/* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
+   Wechsel der Variablen im Dark Mode auch bei /alpha-Modifiern greift */
+@theme inline {
+  --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --color-bg: rgb(var(--bg));
+  --color-card: rgb(var(--card));
+  --color-text: rgb(var(--text));
+  --color-muted: rgb(var(--muted));
+  --color-border: rgb(var(--border));
+  --color-input: rgb(var(--input));
+  --color-accent: rgb(var(--accent));
+  --color-ring: rgb(var(--ring));
+}
+
+@layer base {
+  /* Rahmen ohne Farbklasse tragen den Token statt currentColor */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: rgb(var(--border));
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility np-card-lift {
+  /* Card-Lift Utility – kann via .np-card-lift verwendet werden */
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 150ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px -10px rgb(var(--accent) / 0.25);
+  }
+}
+
+@utility np-btn-tactile {
+  /* Tactile button feedback */
+  transition:
+    transform 100ms ease,
+    background-color 150ms ease,
+    color 150ms ease,
+    opacity 150ms ease;
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+@utility glass {
+  /* ============================================================
+     Liquid Glass System
+     Theme-bewusst über --glass-* Variablen aus theme.css
+     ============================================================ */
+
+  /* Primäre Variante: Hero-Panels, Dashboard-Kacheln, Formulare */
+  background: rgb(var(--card-rgb) / var(--glass-bg-alpha));
+  backdrop-filter: blur(24px) saturate(180%) brightness(105%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(105%);
+  border: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
+  border-top-color: rgb(
+    var(--glass-border) / calc(var(--glass-border-alpha) * 1.8)
+  );
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.04),
+    0 8px 32px -8px rgba(0, 0, 0, var(--glass-shadow-alpha)),
+    0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.35))
+      inset,
+    0 -1px 0 0 rgba(0, 0, 0, 0.06) inset;
+}
+
+@utility glass-subtle {
+  /* Subtile Variante: Navigation, Leisten — deutlich transparent, schwebend */
+  background: rgb(var(--glass-subtle-rgb) / 0.62);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-bottom: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.7)),
+    0 1px 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.3)) inset;
+}
+
+@utility glass-btn {
+  /* Button-Variante */
+  background: rgb(var(--card-rgb) / 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid
+    rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.4));
+  transition: all 150ms ease;
+  &:hover {
+    background: rgb(var(--accent-rgb) / 0.16);
+    border-color: rgb(var(--accent-rgb) / 0.4);
+    box-shadow: 0 0 16px -4px rgb(var(--accent-rgb) / 0.3);
+  }
+  &:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@utility np-btn-primary {
+  &:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Primär-Button: tactile + Glow */
+  transition:
+    transform 150ms ease,
+    box-shadow 200ms ease,
+    opacity 150ms ease;
+  &:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow:
+      0 0 20px -5px rgb(var(--accent-rgb) / 0.5),
+      0 0 40px -10px rgb(var(--accent-rgb) / 0.25);
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+@utility accent-glow {
+  /* Accent-Glow für wichtige Elemente (Primär-Buttons, Score-Card) */
+  box-shadow:
+    0 0 20px -5px rgb(var(--accent-rgb) / 0.4),
+    0 0 40px -10px rgb(var(--accent-rgb) / 0.2);
+}
+
+@utility glass-lift {
+  /* Hover-Lift mit Glass-Tiefe */
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 150ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 12px 40px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 1.6)),
+      0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.5))
+        inset;
+  }
+}
+
+@utility np-glow-green {
+  /* Note-Badges: dezenter Glow in der Badge-Farbe */
+  box-shadow: 0 0 14px -4px rgb(34 197 94 / 0.55);
+}
+
+@utility np-glow-emerald {
+  box-shadow: 0 0 12px -4px rgb(16 185 129 / 0.45);
+}
+
+@utility np-glow-yellow {
+  box-shadow: 0 0 12px -4px rgb(234 179 8 / 0.4);
+}
+
+@utility np-glow-red {
+  box-shadow: 0 0 14px -4px rgb(239 68 68 / 0.55);
+}
+
+@utility np-text-glow-green {
+  /* Text-Glow für Noten-Zahlen (Hero-Ø im Accordion-Header, Zeilen-Noten) */
+  filter: drop-shadow(0 0 6px rgb(34 197 94 / 0.4));
+}
+
+@utility np-text-glow-emerald {
+  filter: drop-shadow(0 0 6px rgb(16 185 129 / 0.35));
+}
+
+@utility np-text-glow-yellow {
+  filter: drop-shadow(0 0 6px rgb(202 138 4 / 0.35));
+}
+
+@utility np-text-glow-red {
+  filter: drop-shadow(0 0 6px rgb(239 68 68 / 0.4));
+}
+
+@utility np-loading {
+  &#np-progress {
+    opacity: 1;
+    width: 80%;
+    transition:
+      width 4s cubic-bezier(0.1, 0.6, 0.3, 1),
+      opacity 150ms ease;
+  }
+}
+
+@utility np-done {
+  &#np-progress {
+    opacity: 0;
+    width: 100%;
+  }
+}
+
+@utility np-fade-in {
+  /* Fade-in für Badges/Werte beim ersten Render */
+  animation: np-fade-in 400ms ease both;
+}
 
 @layer base {
   /* Alpine.js: Elemente mit x-cloak bis zur Initialisierung verstecken */
@@ -37,122 +254,9 @@
   details[open] > summary ~ * {
     animation: np-slide-down 200ms ease;
   }
-
-  /* Card-Lift Utility – kann via .np-card-lift verwendet werden */
-  .np-card-lift {
-    transition: transform 200ms ease, box-shadow 200ms ease, border-color 150ms ease;
-  }
-  .np-card-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px -10px rgb(var(--accent) / 0.25);
-  }
-
-  /* Tactile button feedback */
-  .np-btn-tactile {
-    transition: transform 100ms ease, background-color 150ms ease, color 150ms ease, opacity 150ms ease;
-  }
-  .np-btn-tactile:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-  .np-btn-tactile:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
-  }
 }
 
 @layer components {
-  /* ============================================================
-     Liquid Glass System
-     Theme-bewusst über --glass-* Variablen aus theme.css
-     ============================================================ */
-
-  /* Primäre Variante: Hero-Panels, Dashboard-Kacheln, Formulare */
-  .glass {
-    background: rgb(var(--card-rgb) / var(--glass-bg-alpha));
-    backdrop-filter: blur(24px) saturate(180%) brightness(105%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(105%);
-    border: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
-    border-top-color: rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.8));
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.04),
-      0 8px 32px -8px rgba(0, 0, 0, var(--glass-shadow-alpha)),
-      0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.35)) inset,
-      0 -1px 0 0 rgba(0, 0, 0, 0.06) inset;
-  }
-
-  /* Subtile Variante: Navigation, Leisten — deutlich transparent, schwebend */
-  .glass-subtle {
-    background: rgb(var(--glass-subtle-rgb) / 0.62);
-    backdrop-filter: blur(28px) saturate(200%);
-    -webkit-backdrop-filter: blur(28px) saturate(200%);
-    border-bottom: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
-    box-shadow:
-      0 8px 32px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.7)),
-      0 1px 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.3)) inset;
-  }
-
-  /* Button-Variante */
-  .glass-btn {
-    background: rgb(var(--card-rgb) / 0.7);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.4));
-    transition: all 150ms ease;
-  }
-  .glass-btn:hover {
-    background: rgb(var(--accent-rgb) / 0.16);
-    border-color: rgb(var(--accent-rgb) / 0.4);
-    box-shadow: 0 0 16px -4px rgb(var(--accent-rgb) / 0.3);
-  }
-  .glass-btn:focus-visible,
-  .np-btn-primary:focus-visible {
-    outline: 2px solid rgb(var(--ring));
-    outline-offset: 2px;
-  }
-
-  /* Accent-Glow für wichtige Elemente (Primär-Buttons, Score-Card) */
-  .accent-glow {
-    box-shadow:
-      0 0 20px -5px rgb(var(--accent-rgb) / 0.4),
-      0 0 40px -10px rgb(var(--accent-rgb) / 0.2);
-  }
-
-  /* Hover-Lift mit Glass-Tiefe */
-  .glass-lift {
-    transition: transform 200ms ease, box-shadow 200ms ease, border-color 150ms ease;
-  }
-  .glass-lift:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 12px 40px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 1.6)),
-      0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.5)) inset;
-  }
-
-  /* Note-Badges: dezenter Glow in der Badge-Farbe */
-  .np-glow-green  { box-shadow: 0 0 14px -4px rgb(34 197 94 / 0.55); }
-  .np-glow-emerald{ box-shadow: 0 0 12px -4px rgb(16 185 129 / 0.45); }
-  .np-glow-yellow { box-shadow: 0 0 12px -4px rgb(234 179 8 / 0.40); }
-  .np-glow-red    { box-shadow: 0 0 14px -4px rgb(239 68 68 / 0.55); }
-
-  /* Text-Glow für Noten-Zahlen (Hero-Ø im Accordion-Header, Zeilen-Noten) */
-  .np-text-glow-green  { filter: drop-shadow(0 0 6px rgb(34 197 94 / 0.40)); }
-  .np-text-glow-emerald{ filter: drop-shadow(0 0 6px rgb(16 185 129 / 0.35)); }
-  .np-text-glow-yellow { filter: drop-shadow(0 0 6px rgb(202 138 4 / 0.35)); }
-  .np-text-glow-red    { filter: drop-shadow(0 0 6px rgb(239 68 68 / 0.40)); }
-
-  /* Primär-Button: tactile + Glow */
-  .np-btn-primary {
-    transition: transform 150ms ease, box-shadow 200ms ease, opacity 150ms ease;
-  }
-  .np-btn-primary:hover:not(:disabled) {
-    transform: scale(1.02);
-    box-shadow:
-      0 0 20px -5px rgb(var(--accent-rgb) / 0.5),
-      0 0 40px -10px rgb(var(--accent-rgb) / 0.25);
-  }
-  .np-btn-primary:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-
   /* Page-Progress-Bar (oben, 2px, accent) */
   #np-progress {
     position: fixed;
@@ -165,20 +269,6 @@
     opacity: 0;
     transition: width 300ms ease, opacity 200ms ease;
     pointer-events: none;
-  }
-  #np-progress.np-loading {
-    opacity: 1;
-    width: 80%;
-    transition: width 4s cubic-bezier(0.1, 0.6, 0.3, 1), opacity 150ms ease;
-  }
-  #np-progress.np-done {
-    opacity: 0;
-    width: 100%;
-  }
-
-  /* Fade-in für Badges/Werte beim ersten Render */
-  .np-fade-in {
-    animation: np-fade-in 400ms ease both;
   }
 }
 

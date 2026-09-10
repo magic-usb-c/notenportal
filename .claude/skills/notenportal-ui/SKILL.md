@@ -19,6 +19,12 @@ Tailwind-Klassen dazu, immer verwenden:
 Nie hartcodieren: `bg-white`, `bg-gray-800/900`, `text-black`, `text-white` (Ausnahme: Text auf `bg-accent`, SVG, Druckansicht), `#hex` in Blade.
 Alpha immer über Token: `bg-accent/5`, in CSS `rgb(var(--accent-rgb) / 0.1)` – nie `rgba()`-Mischsyntax.
 
+## Tailwind 4 (CSS-first, keine tailwind.config.js)
+- Tokens als `@theme inline` in resources/css/app.css, Dark Mode per `@custom-variant dark` (Klasse `.dark` auf `<html>`).
+- Eigene Klassen als `@utility`, nie ungelayertes CSS (schlägt sonst jede Utility).
+- v4-Namen: `outline-hidden`, `shadow-xs`, `rounded-xs`, Important als Suffix `border-red-500!`, Opazität `bg-accent/15` statt `/[0.15]`.
+- `space-y-*` wirkt über margin-bottom; wo versteckte Kinder stören, `flex flex-col gap-*` nehmen.
+
 ## Liquid-Glass (resources/css/app.css)
 | Klasse | Einsatz |
 |---|---|

@@ -195,7 +195,7 @@
                                     <div class="text-sm font-medium text-text">{{ $label }}</div>
                                     <div class="text-xs text-muted">{{ $relativeDate }}</div>
                                 </div>
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm np-fade-in {{ $noteColor }}">
+                                <span class="inline-flex items-center justify-center min-w-12 px-3 py-1 rounded-xl font-bold text-sm np-fade-in {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                             </a>

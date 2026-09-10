@@ -50,7 +50,7 @@
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $fach->aktiv))
-                               class="rounded border-border text-accent focus:ring-ring">
+                               class="rounded-sm border-border text-accent focus:ring-ring">
                         <label for="aktiv" class="text-sm text-text">Fach aktiv</label>
                     </div>
 

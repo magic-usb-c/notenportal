@@ -132,7 +132,7 @@
                    title="Neue Note erfassen (Shortcut: N)">
                     <span class="text-lg leading-none">+</span>
                     Neue Note
-                    <kbd class="hidden lg:inline-flex items-center justify-center text-[10px] font-mono bg-bg/30 px-1.5 py-0.5 rounded ml-1">N</kbd>
+                    <kbd class="hidden lg:inline-flex items-center justify-center text-[10px] font-mono bg-bg/30 px-1.5 py-0.5 rounded-sm ml-1">N</kbd>
                 </a>
             </div>
         </div>

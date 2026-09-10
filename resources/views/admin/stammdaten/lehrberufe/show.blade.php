@@ -93,7 +93,7 @@
                         <div class="md:col-span-3 flex items-end gap-2">
                             <label class="flex items-center gap-2 text-sm text-text">
                                 <input type="checkbox" name="pflicht" value="1" checked
-                                       class="rounded border-border text-accent focus:ring-ring">
+                                       class="rounded-sm border-border text-accent focus:ring-ring">
                                 Pflichtmodul
                             </label>
                         </div>

@@ -20,7 +20,7 @@
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                        autocomplete="username" placeholder="name@firma.ch"
                        class="block w-full h-11 rounded-xl border border-border bg-input text-text pl-10 pr-3
-                              focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent
+                              focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
                               @error('email') border-red-400 @enderror">
             </div>
             @error('email')
@@ -39,7 +39,7 @@
                 <input id="password" type="password" name="password" required autocomplete="current-password"
                        placeholder="••••••••"
                        class="block w-full h-11 rounded-xl border border-border bg-input text-text pl-10 pr-3
-                              focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent
+                              focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
                               @error('password') border-red-400 @enderror">
             </div>
             @error('password')
@@ -50,7 +50,7 @@
         <div class="pt-2">
             <button type="submit"
                     class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
-                           focus:outline-none focus:ring-2 focus:ring-accent/50">
+                           focus:outline-hidden focus:ring-2 focus:ring-accent/50">
                 Anmelden
             </button>
         </div>

@@ -101,7 +101,7 @@
                 <div class="glass rounded-2xl overflow-hidden">
                     <div class="px-5 py-3 border-b border-border flex items-center justify-between">
                         <h3 class="font-semibold text-text text-sm">Zu tun</h3>
-                        <span class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent/15 text-accent">
+                        <span class="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent/15 text-accent">
                             {{ $todos->count() }}
                         </span>
                     </div>
@@ -159,7 +159,7 @@
                                class="group relative overflow-hidden block glass glass-lift rounded-2xl p-4 hover:border-accent/40">
                                 {{-- Unread-Badge oben rechts --}}
                                 @if($st?->unread > 0)
-                                    <span class="absolute top-3 right-3 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent text-white shadow-sm">
+                                    <span class="absolute top-3 right-3 inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-full text-[11px] font-bold bg-accent text-white shadow-xs">
                                         <span class="absolute inset-0 rounded-full bg-accent animate-ping opacity-30"></span>
                                         <span class="relative">{{ $st->unread }} neu</span>
                                     </span>

@@ -55,7 +55,7 @@
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" name="aktiv" value="1" id="aktiv"
                                @checked(old('aktiv', $kategorie->aktiv))
-                               class="rounded border-border text-accent focus:ring-ring">
+                               class="rounded-sm border-border text-accent focus:ring-ring">
                         <label for="aktiv" class="text-sm text-text">Aktiv</label>
                     </div>
 

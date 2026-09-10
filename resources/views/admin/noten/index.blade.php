@@ -204,7 +204,7 @@
                             </div>
 
                             <div class="shrink-0 flex flex-col items-end gap-1">
-                                <span class="inline-flex items-center justify-center min-w-[3rem] px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
+                                <span class="inline-flex items-center justify-center min-w-12 px-3 py-1 rounded-xl font-bold text-sm {{ $noteColor }}">
                                     {{ number_format($noteWert, 1) }}
                                 </span>
                                 @if($n->gewichtung_prozent !== null)
