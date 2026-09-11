@@ -182,15 +182,13 @@ class ProfileController extends Controller
             $theme = array_key_exists('theme', $praefSchluessel) ? ($praefSchluessel['theme'] ?: null) : $aktuell['theme'];
             $akzent = array_key_exists('akzent', $praefSchluessel) ? ($praefSchluessel['akzent'] ?: null) : $aktuell['akzent'];
 
-            $user->praeferenzen = [
+            // Vom aktuellen Stand ausgehen: der Schnellwechsel ändert nur die übergebenen Schlüssel,
+            // alle anderen Einstellungen (Schriftart, Ecken, Startseite …) bleiben erhalten.
+            $user->praeferenzen = array_merge($aktuell, $praefSchluessel, [
                 'theme' => $theme,
                 'akzent' => $akzent,
-                'schrift' => $praefSchluessel['schrift'] ?? $aktuell['schrift'],
-                'bewegung' => $praefSchluessel['bewegung'] ?? $aktuell['bewegung'],
-                'dichte' => $praefSchluessel['dichte'] ?? $aktuell['dichte'],
-                'diagramm' => $praefSchluessel['diagramm'] ?? $aktuell['diagramm'],
-                'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
-            ];
+                'akzent_eigen' => $akzent === Darstellung::AKZENT_EIGEN ? $aktuell['akzent_eigen'] : null,
+            ]);
             if (array_key_exists('theme', $praefSchluessel)) {
                 $user->kontrast = $theme === Theme::KONTRAST;
             }

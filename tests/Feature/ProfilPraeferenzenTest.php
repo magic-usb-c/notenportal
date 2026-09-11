@@ -102,7 +102,37 @@ class ProfilPraeferenzenTest extends TestCase
             'dichte' => 'kompakt',
             'diagramm' => 'farbenblind',
             'karten_ausgeblendet' => ['ziele'],
-        ], $user->praeferenzen);
+        ], array_intersect_key($user->praeferenzen, array_flip(['theme', 'akzent', 'schrift', 'bewegung', 'dichte', 'diagramm', 'karten_ausgeblendet'])));
+    }
+
+    #[Test]
+    public function schnellwechsel_behaelt_nur_im_profil_setzbare_einstellungen(): void
+    {
+        // Früher schrieb preferences() nur einen Teil der Schlüssel zurück: Schriftart, Ecken,
+        // Transparenz, Tastenkürzel, Notenanzeige und eigene Akzentfarbe gingen beim Ctrl+K-Wechsel verloren.
+        $user = User::factory()->lernender()->create([
+            'praeferenzen' => [
+                'akzent' => 'eigen', 'akzent_eigen' => '#0a7f6f', 'schriftart' => 'serif', 'ecken' => 'eckig',
+                'transparenz' => 'reduziert', 'tastenkuerzel' => 'aus', 'notenanzeige' => '2',
+            ],
+        ]);
+
+        $this->actingAs($user)
+            ->patchJson(route('profile.preferences'), ['dichte' => 'kompakt'])
+            ->assertOk();
+
+        $p = $user->refresh()->praeferenzen;
+        $this->assertSame('kompakt', $p['dichte']);
+        $this->assertSame('eigen', $p['akzent']);
+        $this->assertSame('#0a7f6f', $p['akzent_eigen']);
+        $this->assertSame('serif', $p['schriftart']);
+        $this->assertSame('eckig', $p['ecken']);
+        $this->assertSame('reduziert', $p['transparenz']);
+        $this->assertSame('aus', $p['tastenkuerzel']);
+        $this->assertSame('2', $p['notenanzeige']);
+
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['akzent' => 'petrol'])->assertOk();
+        $this->assertNull($user->refresh()->praeferenzen['akzent_eigen'], 'Eigene Farbe verfällt wie im Profilformular, sobald ein fester Akzent gewählt wird.');
     }
 
     #[Test]
