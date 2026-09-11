@@ -96,11 +96,15 @@ class User extends Authenticatable implements HasLocalePreference
         );
     }
 
+    /**
+     * Rollen einmal je Objekt laden statt eine Abfrage pro Prüfung: Navigation, Layout und
+     * Middleware fragen pro Seite ein Dutzend Mal. Nach Rollenänderungen: unsetRelation('rollen').
+     */
     public function hasRole(string $roleName): bool
     {
-        return $this->rollen()
-            ->whereRaw('LOWER(name) = LOWER(?)', [$roleName])
-            ->exists();
+        $this->loadMissing('rollen');
+
+        return $this->rollen->contains(fn (Rolle $rolle) => strcasecmp($rolle->name, $roleName) === 0);
     }
 
     public function lernender(): HasOne
