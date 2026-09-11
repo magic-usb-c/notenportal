@@ -303,5 +303,22 @@
     "Schulnetz-Kalender einlesen": "Import Schulnetz calendar",
     "iCal-Adresse aus dem Schulnetz hinterlegen: Prüfungen, Termine und Lektionen erscheinen dann in der Agenda.": "Enter the iCal address from Schulnetz: exams, events and lessons then appear in the agenda.",
     "Gewichtung": "Weighting",
-    "Leg hier Zeugnisse und Semesterberichte ab. Aus einem PDF-Zeugnis kannst du deine Noten danach mit dem Portal abgleichen.": "Store report cards and semester reports here. You can then compare a PDF report card with your grades in the portal."
+    "Leg hier Zeugnisse und Semesterberichte ab. Aus einem PDF-Zeugnis kannst du deine Noten danach mit dem Portal abgleichen.": "Store report cards and semester reports here. You can then compare a PDF report card with your grades in the portal.",
+    "Was brauchst du im Schnitt über alle Fächer und Module, um ein bestimmtes Ziel zu erreichen?": "What do you need in the average across all subjects and modules to reach a specific target?",
+    "Was brauchst du in einer Kategorie (z. B. Berufskenntnisse), um dort ein bestimmtes Ziel zu erreichen?": "What do you need in a category (e.g. vocational knowledge) to reach a specific target there?",
+    "Was brauchst du in einem Semester, um dort ein bestimmtes Ziel zu erreichen?": "What do you need in a semester to reach a specific target there?",
+    "Welche Note brauchst du in der nächsten Prüfung eines Fachs, um auf einen bestimmten Schnitt zu kommen?": "What grade do you need in the next exam of a subject to reach a specific average?",
+    "Welche Note brauchst du in der nächsten Prüfung eines Moduls, um auf einen bestimmten Schnitt zu kommen?": "What grade do you need in the next exam of a module to reach a specific average?",
+    "im Gesamtschnitt": "in the overall average",
+    "in der Kategorie :name": "in the category :name",
+    "im Semester :name": "in the semester :name",
+    "im Fach :name": "in the subject :name",
+    "im Modul :name": "in the module :name",
+    "Du brauchst mindestens :note in der nächsten Prüfung, um :bezug auf :ziel zu kommen.": "You need at least :note in the next exam to reach :ziel :bezug.",
+    "Du brauchst mindestens :note in jeder der :n offenen Prüfungen, um :bezug auf :ziel zu kommen.": "You need at least :note in each of the :n open exams to reach :ziel :bezug.",
+    "Dein Ziel ist bereits erreicht: Selbst mit der tiefsten Note (1.0) in den restlichen Prüfungen bleibst du :bezug bei mindestens :minimum, dein Ziel war :ziel.": "Your target is already reached: even with the lowest grade (1.0) in the remaining exams, you stay :bezug at :minimum or higher; your target was :ziel.",
+    "Ziel nicht erreichbar: Selbst mit der Bestnote (6.0) in allen offenen Prüfungen kommst du :bezug höchstens auf :maximum, dein Ziel war :ziel.": "Target not reachable: even with the best grade (6.0) in all open exams, you reach at most :maximum :bezug; your target was :ziel.",
+    "Die offenen Prüfungen wirken sich :bezug nicht aus; der Wert bleibt bei :resultat.": "The open exams have no effect :bezug; the value stays at :resultat.",
+    "Ziel erreicht: Du stehst :bezug bei :resultat.": "Target reached: you stand :bezug at :resultat.",
+    "Ziel noch nicht erreicht: Du stehst :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: you stand :bezug at :resultat, :differenz is missing."
 }

@@ -17,12 +17,13 @@ class RechnerController extends VerwaltungController
     public function index(Request $request, int $lernender_id): View
     {
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
+        $daten = $this->rechner->seite($lernender, mitZielen: true);
 
         return view('rechner.index', [
-            'daten' => $this->rechner->seite($lernender, mitZielen: true),
+            'daten' => $daten,
             'berechnenUrl' => $this->zuRoute($request, 'learners.calculator.calculate', $lernender_id),
             'zielUrl' => null,
-            'start' => $request->only(['ziel', 'zielwert']),
+            'start' => Rechner::start($request->only(['ziel', 'zielwert']), $daten),
             'lernender' => $lernender,
             'zurueck' => $this->zuRoute($request, 'learners.show', $lernender_id),
         ]);

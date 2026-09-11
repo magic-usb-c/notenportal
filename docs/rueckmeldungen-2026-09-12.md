@@ -23,7 +23,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | 7 | Feedback-Kategorie «Lob» → «Sonstiges» | in Arbeit (Block G) |
 | 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | in Arbeit |
 | 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | in Arbeit |
-| 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | in Arbeit |
+| 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | erledigt (Block E) |
 | 11 | Restdauer des aktuellen Semesters mit passender Einheit (Monate → Wochen → Tage) | in Arbeit (mit #9) |
 
 ## P4 – Funktionen

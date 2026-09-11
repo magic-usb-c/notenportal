@@ -45,14 +45,84 @@ final class Rechner
     public function seite(Lernender $lernender, bool $mitZielen): array
     {
         $a = $this->quelle->auswertung((int) $lernender->lernender_id);
+        $katalog = $this->katalog($lernender);
+        $vorschlaege = $this->vorschlaege($lernender, $a);
 
         return [
-            'katalog' => $this->katalog($lernender),
-            'vorschlaege' => $this->vorschlaege($lernender, $a),
+            'katalog' => $katalog,
+            'vorschlaege' => $vorschlaege,
             'auswertung' => $a->toArray(),
             'ziele' => $mitZielen ? $this->ziele($lernender) : [],
             'grenzen' => NotenSkala::grenzen(),
+            'standard' => $this->standard($katalog, $vorschlaege, $a),
         ];
+    }
+
+    /**
+     * Startziel für den Rechner-Tab, wenn die Anfrage keins vorgibt: das Fach/Modul der nächsten
+     * anstehenden Prüfung (chronologisch erste geplante in $vorschlaege, aus der pruefungen-Tabelle),
+     * sonst das zuletzt benotete Fach/Modul, sonst das erste im Katalog. Nie 'gesamt' – der Rechner soll
+     * mit dem konkret relevanten Fach/Modul starten, nicht mit der wenig aussagekräftigen Gesamtansicht.
+     *
+     * @param  list<array<string, mixed>>  $vorschlaege
+     */
+    private function standard(array $katalog, array $vorschlaege, Auswertung $a): ?string
+    {
+        foreach ($vorschlaege as $z) {
+            if (($z['quelle'] ?? null) === Leistung::GEPLANT) {
+                return $z['element'];
+            }
+        }
+
+        $letztesDatum = null;
+        $letztesElement = null;
+        foreach ($a->elemente as $e) {
+            foreach ($e->leistungen as $l) {
+                if ($l->datum === null || ($letztesDatum !== null && $l->datum <= $letztesDatum)) {
+                    continue;
+                }
+                $element = match (true) {
+                    $e->typ === Element::FACH && $e->semesterId !== null => "fach:{$e->fachId}@semester:{$e->semesterId}",
+                    $e->typ === Element::MODUL => "modul:{$e->modulId}",
+                    default => null,
+                };
+                if ($element !== null) {
+                    $letztesDatum = $l->datum;
+                    $letztesElement = $element;
+                }
+            }
+        }
+        if ($letztesElement !== null) {
+            return $letztesElement;
+        }
+
+        if ($katalog['faecher'] !== [] && $katalog['semester'] !== []) {
+            $sem = $katalog['aktuelles_semester'] ?? $katalog['semester'][0]['id'];
+
+            return 'fach:'.$katalog['faecher'][0]['id'].'@semester:'.$sem;
+        }
+        if ($katalog['module'] !== []) {
+            return 'modul:'.$katalog['module'][0]['id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * Startziel für die Seite: aus der Anfrage (?ziel=&zielwert=), wenn vorhanden – so können andere
+     * Seiten direkt auf ein Fach/Modul/Ziel verlinken –, sonst der von seite() berechnete Standard-Tab.
+     *
+     * @param  array{ziel?: string, zielwert?: string}  $query
+     * @param  array{standard: ?string}  $daten
+     * @return array{ziel?: string, zielwert?: string}
+     */
+    public static function start(array $query, array $daten): array
+    {
+        if (! empty($query['ziel'])) {
+            return $query;
+        }
+
+        return $daten['standard'] !== null ? ['ziel' => $daten['standard']] + $query : $query;
     }
 
     /** @return list<array{id: int, ziel: string, label: string, zielwert: float}> */

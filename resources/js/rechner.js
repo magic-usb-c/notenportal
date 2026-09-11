@@ -10,6 +10,11 @@ function parseElement(text) {
     return m ? { typ: m[1], id: m[2], semester: m[3] ?? '' } : { typ: 'modul', id: '', semester: '' };
 }
 
+// Ersetzt :platzhalter in einer übersetzten Satzvorlage (Blade liefert die Vorlagen, hier nur die Werte).
+function formatiere(vorlage, werte) {
+    return (vorlage ?? '').replace(/:(\w+)/g, (_, k) => (werte[k] !== undefined && werte[k] !== null ? werte[k] : ''));
+}
+
 export function registriereRechner(Alpine) {
     Alpine.data('npRechner', (cfg) => ({
         katalog: cfg.daten.katalog,
@@ -133,6 +138,42 @@ export function registriereRechner(Alpine) {
             if (l.status === 'erreicht') return notenKlasse(6, this.grenzen);
             if (l.status === 'unerreichbar') return notenKlasse(1, this.grenzen);
             return notenKlasse(l.resultat ?? l.aktuell, this.grenzen);
+        },
+
+        // Name des gewählten Fachs/Moduls/... für den Ergebnissatz (ohne Zeitraum-Zusatz wie beim Label).
+        get bezugsName() {
+            if (this.ebene === 'gesamt' || !this.zielId) return '';
+            const liste = { kategorie: this.katalog.kategorien, semester: this.katalog.semester, fach: this.katalog.faecher, modul: this.katalog.module }[this.ebene];
+            return liste?.find((x) => String(x.id) === String(this.zielId))?.name ?? '';
+        },
+
+        get bezugsPhrase() {
+            return formatiere(cfg.texte.ebene[this.ebene], { name: this.bezugsName });
+        },
+
+        // Das Ergebnis als ein vollständiger, verständlicher Satz statt Fragmenten.
+        get heroSatz() {
+            const l = this.ergebnis?.loesung;
+            if (!l || !this.ergebnis) return '';
+            const bezug = this.bezugsPhrase;
+            const ziel = this.fmt(this.ergebnis.ziel.zielwert);
+            if (l.status === 'benoetigt') {
+                const vorlage = l.unbekannte === 1 ? cfg.texte.benoetigtEine : cfg.texte.benoetigtMehrere;
+                return formatiere(vorlage, { note: this.fmt(l.note, 2), n: l.unbekannte, bezug, ziel });
+            }
+            if (l.status === 'erreicht') {
+                return formatiere(cfg.texte.erreicht, { bezug, minimum: this.fmt(l.minimum), ziel });
+            }
+            if (l.status === 'unerreichbar') {
+                return formatiere(cfg.texte.unerreichbar, { bezug, maximum: this.fmt(l.maximum), ziel });
+            }
+            if (l.status === 'ohne_einfluss') {
+                return formatiere(cfg.texte.ohneEinfluss, { bezug, resultat: this.fmt(l.resultat ?? l.aktuell) });
+            }
+            const resultat = l.resultat ?? 0;
+            return resultat >= this.ergebnis.ziel.zielwert
+                ? formatiere(cfg.texte.zielErreicht, { bezug, resultat: this.fmt(resultat) })
+                : formatiere(cfg.texte.zielOffen, { bezug, resultat: this.fmt(resultat), differenz: this.fmt(this.ergebnis.ziel.zielwert - resultat, 2) });
         },
 
         fmt(v, stellen = null) {

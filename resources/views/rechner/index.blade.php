@@ -12,10 +12,35 @@
         $feld = 'w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'text-sm font-medium text-text';
         $ebenen = ['gesamt' => __('Gesamt'), 'kategorie' => __('Kategorie'), 'semester' => __('Semester'), 'fach' => __('Fach'), 'modul' => __('Modul')];
+        // Ein Satz pro Tab, was er beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
+        $fragen = [
+            'gesamt' => __('Was brauchst du im Schnitt über alle Fächer und Module, um ein bestimmtes Ziel zu erreichen?'),
+            'kategorie' => __('Was brauchst du in einer Kategorie (z. B. Berufskenntnisse), um dort ein bestimmtes Ziel zu erreichen?'),
+            'semester' => __('Was brauchst du in einem Semester, um dort ein bestimmtes Ziel zu erreichen?'),
+            'fach' => __('Welche Note brauchst du in der nächsten Prüfung eines Fachs, um auf einen bestimmten Schnitt zu kommen?'),
+            'modul' => __('Welche Note brauchst du in der nächsten Prüfung eines Moduls, um auf einen bestimmten Schnitt zu kommen?'),
+        ];
+        // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
+        $texte = [
+            'ebene' => [
+                'gesamt' => __('im Gesamtschnitt'),
+                'kategorie' => __('in der Kategorie :name'),
+                'semester' => __('im Semester :name'),
+                'fach' => __('im Fach :name'),
+                'modul' => __('im Modul :name'),
+            ],
+            'benoetigtEine' => __('Du brauchst mindestens :note in der nächsten Prüfung, um :bezug auf :ziel zu kommen.'),
+            'benoetigtMehrere' => __('Du brauchst mindestens :note in jeder der :n offenen Prüfungen, um :bezug auf :ziel zu kommen.'),
+            'erreicht' => __('Dein Ziel ist bereits erreicht: Selbst mit der tiefsten Note (1.0) in den restlichen Prüfungen bleibst du :bezug bei mindestens :minimum, dein Ziel war :ziel.'),
+            'unerreichbar' => __('Ziel nicht erreichbar: Selbst mit der Bestnote (6.0) in allen offenen Prüfungen kommst du :bezug höchstens auf :maximum, dein Ziel war :ziel.'),
+            'ohneEinfluss' => __('Die offenen Prüfungen wirken sich :bezug nicht aus; der Wert bleibt bei :resultat.'),
+            'zielErreicht' => __('Ziel erreicht: Du stehst :bezug bei :resultat.'),
+            'zielOffen' => __('Ziel noch nicht erreicht: Du stehst :bezug bei :resultat, es fehlen :differenz.'),
+        ];
     @endphp
 
     <div class="py-6"
-         x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start]))">
+         x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start, 'texte' => $texte]))">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             {{-- Gespeicherte Ziele --}}
@@ -51,6 +76,8 @@
                                         :class="ebene === '{{ $wert }}' ? 'bg-card text-accent shadow-sm' : 'text-muted hover:text-text'">{{ $name }}</button>
                             @endforeach
                         </div>
+
+                        <p class="text-xs text-muted" x-text="@js($fragen)[ebene]"></p>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" x-show="ebene !== 'gesamt'" x-cloak>
                             <div :class="['kategorie', 'fach'].includes(ebene) ? '' : 'sm:col-span-2'">
@@ -161,7 +188,7 @@
 
                         <template x-if="ergebnis && !fehler">
                             <div class="relative">
-                                <div class="text-[11px] uppercase tracking-widest text-muted font-medium"
+                                <div class="text-xs font-medium text-muted"
                                      x-text="{ benoetigt: @js(__('Benötigt')), erreicht: @js(__('Schon erreicht')), unerreichbar: @js(__('Nicht erreichbar')), ohne_einfluss: @js(__('Kein Einfluss')), keine_unbekannten: @js(__('Ergebnis')) }[ergebnis.loesung.status]"></div>
 
                                 <div class="mt-2 text-7xl font-extrabold tabular-nums tracking-tight" :class="heroKlasse">
@@ -170,19 +197,7 @@
                                     <span x-show="['unerreichbar', 'ohne_einfluss', 'keine_unbekannten'].includes(ergebnis.loesung.status)" x-text="fmt(ergebnis.loesung.resultat ?? ergebnis.loesung.aktuell)"></span>
                                 </div>
 
-                                <p class="mt-2 text-sm text-muted">
-                                    <span x-show="ergebnis.loesung.status === 'benoetigt'" x-text="ergebnis.loesung.unbekannte === 1 ? @js(__('in der offenen Prüfung')) : @js(__('in jeder der ')) + ergebnis.loesung.unbekannte + @js(__(' offenen Prüfungen'))"></span>
-                                    <span x-show="ergebnis.loesung.status === 'erreicht'" x-text="@js(__('auch mit 1.0 bleibt es bei ')) + fmt(ergebnis.loesung.minimum)"></span>
-                                    <span x-show="ergebnis.loesung.status === 'unerreichbar'">{{ __('höchstens, mit lauter 6.0') }}</span>
-                                    <span x-show="ergebnis.loesung.status === 'ohne_einfluss'">{{ __('die offenen Prüfungen zählen hier nicht') }}</span>
-                                    <span x-show="ergebnis.loesung.status === 'keine_unbekannten'"
-                                          x-text="(ergebnis.loesung.resultat ?? 0) >= ergebnis.ziel.zielwert ? @js(__('Ziel erreicht')) : @js(__('es fehlen ')) + fmt(ergebnis.ziel.zielwert - (ergebnis.loesung.resultat ?? 0), 2)"></span>
-                                </p>
-
-                                <div class="mt-5 inline-flex flex-wrap items-center justify-center gap-2 rounded-full bg-bg/60 border border-border px-4 py-1.5 text-sm">
-                                    <span class="text-muted" x-text="ergebnis.ziel.label"></span>
-                                    <span class="font-semibold tabular-nums" x-text="'≥ ' + fmt(ergebnis.ziel.zielwert)"></span>
-                                </div>
+                                <p class="mt-3 text-base text-text max-w-sm mx-auto" x-text="heroSatz"></p>
                             </div>
                         </template>
                     </section>

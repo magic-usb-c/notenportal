@@ -24,12 +24,13 @@ class RechnerController extends Controller
     public function index(Request $request): View
     {
         $lernender = $request->user()->lernender ?? abort(403);
+        $daten = $this->rechner->seite($lernender, mitZielen: true);
 
         return view('rechner.index', [
-            'daten' => $this->rechner->seite($lernender, mitZielen: true),
+            'daten' => $daten,
             'berechnenUrl' => route('learner.grades.calculator.calculate'),
             'zielUrl' => route('learner.goals.store'),
-            'start' => $request->only(['ziel', 'zielwert']),
+            'start' => Rechner::start($request->only(['ziel', 'zielwert']), $daten),
             'lernender' => null,
             'zurueck' => route('learner.grades.index'),
         ]);

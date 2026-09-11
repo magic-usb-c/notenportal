@@ -10,6 +10,7 @@ use App\Models\Lernender;
 use App\Models\LernenderTrack;
 use App\Models\Modul;
 use App\Models\Note;
+use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Models\User;
 use App\Models\Ziel;
@@ -239,6 +240,65 @@ class RechnerTest extends TestCase
         $this->actingAs($andere)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertNotFound();
         $this->actingAs($this->user)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertRedirect();
         $this->assertDatabaseCount('ziele', 0);
+    }
+
+    #[Test]
+    public function standard_waehlt_das_fach_der_naechsten_pruefung_vor_zuletzt_benotetem_modul(): void
+    {
+        // Rückmeldung #10: der Rechner soll standardmässig mit dem Fach/Modul der nächsten anstehenden
+        // Prüfung starten, nicht mit «Gesamt» – auch wenn bereits ein anderes Modul benotet ist.
+        $this->modulNote(4.5, 100);
+        Pruefung::create([
+            'lernender_id' => $this->lernender->lernender_id, 'fach_id' => $this->fach->fach_id,
+            'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 100, 'quelle' => Pruefung::MANUELL,
+        ]);
+
+        $seite = app(Rechner::class)->seite($this->lernender, false);
+
+        $this->assertSame("fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}", $seite['standard']);
+    }
+
+    #[Test]
+    public function standard_faellt_ohne_geplante_pruefung_auf_das_zuletzt_benotete_modul_zurueck(): void
+    {
+        $this->modulNote(4.5, 100);
+
+        $seite = app(Rechner::class)->seite($this->lernender, false);
+
+        $this->assertSame('modul:'.$this->modul->modul_id, $seite['standard']);
+    }
+
+    #[Test]
+    public function standard_faellt_ohne_noten_und_pruefungen_auf_das_erste_fach_im_katalog_zurueck(): void
+    {
+        $seite = app(Rechner::class)->seite($this->lernender, false);
+
+        $this->assertSame("fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}", $seite['standard']);
+        $this->assertNotSame('gesamt', $seite['standard']);
+    }
+
+    #[Test]
+    public function rechner_seite_startet_mit_dem_standard_ziel_und_nicht_mit_gesamt(): void
+    {
+        $this->modulNote(4.5, 100);
+
+        // @js() liefert die Daten unicode-escaped (JSON.parse('...\u0022ziel\u0022:...')), nicht als rohes JSON.
+        $this->actingAs($this->user)->get(route('learner.grades.calculator'))
+            ->assertOk()
+            ->assertDontSee('\u0022ziel\u0022:\u0022gesamt\u0022', false)
+            ->assertSee('\u0022ziel\u0022:\u0022modul:'.$this->modul->modul_id.'\u0022', false);
+    }
+
+    #[Test]
+    public function ziel_parameter_in_der_url_uebersteuert_den_standard_tab(): void
+    {
+        $this->modulNote(4.5, 100);
+
+        $this->actingAs($this->user)
+            ->get(route('learner.grades.calculator', ['ziel' => 'gesamt', 'zielwert' => 5]))
+            ->assertOk()
+            ->assertSee('\u0022ziel\u0022:\u0022gesamt\u0022', false)
+            ->assertSee('\u0022zielwert\u0022:\u00225\u0022', false);
     }
 
     #[Test]
