@@ -122,6 +122,23 @@ class EinrichtungTest extends TestCase
     }
 
     #[Test]
+    public function mail_einstellungen_werden_gespeichert_und_ungueltige_verschluesselung_abgewiesen(): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->post(route('admin.setup.mail'), [
+            'mail_host' => 'smtp.example.org', 'mail_port' => 587, 'mail_encryption' => 'tls',
+            'mail_username' => 'noreply', 'mail_from_address' => 'noreply@example.org', 'mail_from_name' => 'Notenportal',
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $this->assertSame('smtp.example.org', Einstellungen::get('mail_host'));
+        $this->assertSame('noreply@example.org', Einstellungen::get('mail_from_address'));
+
+        $this->post(route('admin.setup.mail'), ['mail_encryption' => 'ungueltig'])
+            ->assertSessionHasErrors('mail_encryption');
+    }
+
+    #[Test]
     public function modulzeilen_werden_in_ueblichen_schreibweisen_erkannt(): void
     {
         $ergebnis = Einrichtung::moduleAusText("431 Aufträge durchführen\n\nÜK 106 - Datenbanken\nM319: Applikationen entwerfen\nkeine Nummer");

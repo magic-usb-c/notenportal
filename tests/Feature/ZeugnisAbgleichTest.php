@@ -77,4 +77,60 @@ class ZeugnisAbgleichTest extends TestCase
         $this->get(route('learner.documents.reconcile', $dokument->dokument_id))->assertOk()->assertSee('Kein Text im PDF erkannt');
         $this->actingAs(User::factory()->lernender()->create())->get(route('learner.documents.reconcile', $dokument->dokument_id))->assertNotFound();
     }
+
+    #[Test]
+    public function abgleich_uebernehmen_erstellt_noten_aus_ausgewaehlten_zeilen(): void
+    {
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'datei' => UploadedFile::fake()->create('zeugnis.pdf', 30, 'application/pdf'), 'art' => 'zeugnis', 'semester_id' => $this->semester,
+        ])->assertSessionHasNoErrors();
+        $dokument = Dokument::firstOrFail();
+
+        $this->actingAs($this->user)->post(route('learner.documents.reconcile.apply', $dokument->dokument_id), [
+            'semester_id' => $this->semester,
+            'zeilen' => [
+                ['bezug' => 'fach:'.$this->fach, 'note' => '4.5', 'uebernehmen' => '1'],
+                ['bezug' => 'modul:'.$this->modul, 'note' => '5.5', 'uebernehmen' => null],
+            ],
+        ])->assertRedirect(route('learner.documents.reconcile', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $this->semester]))
+            ->assertSessionHas('success');
+
+        $note = Note::sole();
+        $this->assertSame(4.5, (float) $note->note_wert);
+        $this->assertSame($this->fach, $note->fach_id);
+    }
+
+    #[Test]
+    public function abgleich_uebernehmen_ohne_zeilen_wird_abgewiesen(): void
+    {
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'datei' => UploadedFile::fake()->create('zeugnis.pdf', 30, 'application/pdf'), 'art' => 'zeugnis', 'semester_id' => $this->semester,
+        ])->assertSessionHasNoErrors();
+        $dokument = Dokument::firstOrFail();
+
+        $this->actingAs($this->user)
+            ->post(route('learner.documents.reconcile.apply', $dokument->dokument_id), ['semester_id' => $this->semester])
+            ->assertSessionHasErrors('zeilen');
+
+        $this->assertSame(0, Note::count());
+    }
+
+    #[Test]
+    public function berufsbildner_ohne_aktive_betreuung_kann_zeugnisnoten_nicht_uebernehmen(): void
+    {
+        $lernenderId = (int) $this->user->lernender->lernender_id;
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'datei' => UploadedFile::fake()->create('zeugnis.pdf', 30, 'application/pdf'), 'art' => 'zeugnis', 'semester_id' => $this->semester,
+        ])->assertSessionHasNoErrors();
+        $dokument = Dokument::firstOrFail();
+
+        $bb = User::factory()->berufsbildner()->create();
+        $this->actingAs($bb)
+            ->post(route('trainer.learners.documents.reconcile.apply', [$lernenderId, $dokument->dokument_id]), [
+                'semester_id' => $this->semester,
+                'zeilen' => [['bezug' => 'fach:'.$this->fach, 'note' => '4.5', 'uebernehmen' => '1']],
+            ])->assertNotFound();
+
+        $this->assertSame(0, Note::count());
+    }
 }

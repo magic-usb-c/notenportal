@@ -213,6 +213,19 @@ class RechnerTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function berechnen_im_verwaltungsbereich_weist_fremde_module_ab(string $bereich): void
+    {
+        $fremd = Modul::factory()->create();
+        $verwalter = $this->verwalter($bereich, $this->lernender);
+
+        $this->actingAs($verwalter)->postJson(route("{$bereich}.learners.calculator.calculate", $this->lernender->lernender_id), [
+            'ziel' => 'gesamt', 'zielwert' => 4,
+            'zeilen' => [['element' => 'modul:'.$fremd->modul_id, 'gewicht' => 100, 'wert' => null]],
+        ])->assertJsonValidationErrors('zeilen.0.element');
+    }
+
+    #[Test]
     public function ziele_speichern_aktualisieren_und_nur_eigene_loeschen(): void
     {
         $this->actingAs($this->user)->post(route('learner.goals.store'), ['ziel' => 'gesamt', 'zielwert' => 4.5])->assertSessionHasNoErrors();

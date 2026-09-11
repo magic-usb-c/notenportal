@@ -100,6 +100,26 @@ class NotenImportTest extends TestCase
     }
 
     #[Test]
+    public function vorlage_und_verwerfen_stehen_dem_lernenden_zur_verfuegung(): void
+    {
+        $this->actingAs($this->user)
+            ->get(route('learner.grades.import.template'))
+            ->assertOk()->assertSee('Datum;Fach/Modul;Titel;Note;Gewicht', false);
+
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n";
+        $this->actingAs($this->user)
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
+        $this->assertNotNull(session('notenimport.'.$this->user->lernender->lernender_id));
+
+        $this->actingAs($this->user)
+            ->post(route('learner.grades.import.discard'))
+            ->assertRedirect(route('learner.grades.import.index'));
+
+        $this->assertNull(session('notenimport.'.$this->user->lernender->lernender_id));
+        $this->assertSame(0, Note::count());
+    }
+
+    #[Test]
     public function berufsbildner_importieren_keine_noten_admin_schon(): void
     {
         $lernenderId = (int) $this->user->lernender->lernender_id;
