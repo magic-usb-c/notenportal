@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Berufsbildner;
+use App\Models\Lernender;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Benutzer\LernendeErfassungService;
@@ -16,6 +17,7 @@ use App\Support\Betrieb;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
 use App\Support\KategorieRegeln;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -282,6 +284,7 @@ class EinrichtungController extends Controller
                 if ($p['rolle'] === 'Berufsbildner') {
                     Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
                 }
+                Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, $user, ['rolle' => $p['rolle']]);
                 $neueBenutzer[] = $user;
                 $zugaenge[] = ['name' => $p['vorname'].' '.$p['nachname'], 'rolle' => $p['rolle'], 'email' => $p['email'], 'passwort' => $passwort];
             }
@@ -330,7 +333,7 @@ class EinrichtungController extends Controller
             foreach ($daten['lernende'] as $l) {
                 $passwort = Startpasswort::erzeugen();
                 $beginn = Carbon::parse($l['lehrbeginn'])->toDateString();
-                $this->erfassung->erstellen([
+                $lernenderId = $this->erfassung->erstellen([
                     'vorname' => $l['vorname'],
                     'nachname' => $l['nachname'],
                     'email' => $l['email'],
@@ -342,6 +345,7 @@ class EinrichtungController extends Controller
                     'track_typ' => $l['track'] ?? null,
                     'track_semester_id' => ! empty($l['track']) ? $konfig->semesterFuerDatum($beginn) : null,
                 ], ! empty($l['berufsbildner_id']) ? (int) $l['berufsbildner_id'] : null);
+                Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, Lernender::find($lernenderId), ['rolle' => 'Lernender']);
                 $zugaenge[] = ['name' => $l['vorname'].' '.$l['nachname'], 'rolle' => __('Lernende/r'), 'email' => $l['email'], 'passwort' => $passwort];
             }
 

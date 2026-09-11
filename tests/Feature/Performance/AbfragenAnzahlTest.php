@@ -15,6 +15,7 @@ use App\Models\Modul;
 use App\Models\Semester;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
+use App\Support\Protokoll;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -478,5 +479,37 @@ class AbfragenAnzahlTest extends TestCase
         $gross = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.mail-log.index'))->assertOk());
 
         $this->assertWaechstNicht($klein, $gross, 40, 'Admin-Mail-Log');
+    }
+
+    #[Test]
+    public function admin_aktivitaeten_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $akteure = User::factory()->admin()->count(5)->create()->pluck('benutzer_id')->all();
+
+        $macheEintraege = function (int $anzahl) use ($akteure) {
+            $rows = [];
+            for ($i = 0; $i < $anzahl; $i++) {
+                $rows[] = [
+                    'benutzer_id' => $akteure[$i % count($akteure)],
+                    'aktion' => Protokoll::ADMIN_KONTO_ANGELEGT,
+                    'ziel_typ' => null,
+                    'ziel_id' => null,
+                    'ziel_bezeichnung' => 'Test '.uniqid(),
+                    'details' => null,
+                    'ip' => '127.0.0.1',
+                    'erstellt_am' => now(),
+                ];
+            }
+            DB::table('aktivitaeten')->insert($rows);
+        };
+
+        $macheEintraege(10);
+        $klein = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.activity.index'))->assertOk());
+
+        $macheEintraege(90);
+        $gross = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.activity.index'))->assertOk());
+
+        $this->assertWaechstNicht($klein, $gross, 40, 'Admin-Aktivitätsprotokoll');
     }
 }

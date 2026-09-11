@@ -10,6 +10,7 @@ use App\Services\Notifications\MailContent;
 use App\Services\Notifications\MailSettings;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -20,6 +21,7 @@ class MailSettingsController extends Controller
     {
         $validated = $request->validate(MailSettings::rules());
         MailSettings::save($validated);
+        Protokoll::schreiben(Protokoll::ADMIN_BETRIEB_GEAENDERT, null, ['felder' => array_keys($validated)]);
 
         return redirect()->route('admin.operations.edit')->with('success', __('Mail-Einstellungen gespeichert.'));
     }

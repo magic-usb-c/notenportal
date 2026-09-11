@@ -10,6 +10,7 @@ use App\Services\Betrieb\SicherungKopie;
 use App\Services\Notifications\MailSettings;
 use App\Support\Betrieb;
 use App\Support\Einstellungen;
+use App\Support\Protokoll;
 use App\Support\Theme;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,7 +43,9 @@ class BetriebController extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        Betrieb::speichern($request->validate(Betrieb::regeln()));
+        $validiert = $request->validate(Betrieb::regeln());
+        Betrieb::speichern($validiert);
+        Protokoll::schreiben(Protokoll::ADMIN_BETRIEB_GEAENDERT, null, ['felder' => array_keys($validiert)]);
 
         return redirect()->route('admin.operations.edit')->with('success', __('Betrieb gespeichert.'));
     }
@@ -65,18 +68,24 @@ class BetriebController extends Controller
             return redirect()->route('admin.operations.edit')->with('error', __('Sicherung fehlgeschlagen: :grund', ['grund' => mb_substr($e->getMessage(), 0, 200)]));
         }
 
+        Protokoll::schreiben(Protokoll::ADMIN_SICHERUNG_ERSTELLT, null, ['name' => $name]);
+
         return redirect()->route('admin.operations.edit')->with('success', __('Sicherung :name erstellt.', ['name' => $name]));
     }
 
     public function sicherungHerunterladen(string $name): BinaryFileResponse
     {
-        return response()->download($this->sicherung->pfad($name), $name, ['Content-Type' => 'application/zip'])
+        $pfad = $this->sicherung->pfad($name);
+        Protokoll::schreiben(Protokoll::ADMIN_SICHERUNG_HERUNTERGELADEN, null, ['name' => $name]);
+
+        return response()->download($pfad, $name, ['Content-Type' => 'application/zip'])
             ->setPrivate();
     }
 
     public function sicherungLoeschen(string $name): RedirectResponse
     {
         $this->sicherung->loeschen($name);
+        Protokoll::schreiben(Protokoll::ADMIN_SICHERUNG_GELOESCHT, null, ['name' => $name]);
 
         return redirect()->route('admin.operations.edit')->with('success', __('Sicherung gelöscht.'));
     }

@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    // 60 statt der üblichen niedrigeren Limits: ganze Schulklassen hängen oft hinter einer NAT-IP.
+    // Zusätzlich zum bestehenden Limit pro E-Mail+IP in LoginRequest (5 Fehlversuche).
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:60,1');
 });
 
 Route::middleware('auth')->group(function () {

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Services\Benutzer\Startpasswort;
 use App\Services\Notifications\AccountMails;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -41,6 +42,8 @@ class KontoController extends VerwaltungController
         $benutzer = $lernender->benutzer;
         $benutzer->aktiv = ! $benutzer->aktiv;
         $benutzer->save();
+
+        Protokoll::schreiben($benutzer->aktiv ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $benutzer);
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))

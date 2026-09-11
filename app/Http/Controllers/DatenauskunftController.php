@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Support\Datenauskunft;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -26,6 +27,7 @@ class DatenauskunftController extends Controller
         $pfad = $this->datenauskunft->erzeugen($user);
 
         Log::info('Datenauskunft erstellt', ['benutzer_id' => $user->benutzer_id]);
+        Protokoll::schreiben(Protokoll::AUTH_DATENAUSKUNFT_EIGENE, $user);
 
         return response()->download($pfad, $this->datenauskunft->dateiname($user))->deleteFileAfterSend();
     }

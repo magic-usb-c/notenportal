@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Notifications\MailContent;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
@@ -58,6 +59,9 @@ class NewPasswordController extends Controller
                 facts: [__('Zeitpunkt') => now()->format('d.m.Y H:i')],
                 outro: [__('Warst du das nicht? Dann melde dich bei einem Admin.')],
             ));
+
+            // Aktivitätsprotokoll: App\Listeners\LogPasswordReset
+            event(new PasswordReset($user));
         };
 
         $status = Password::broker('users')->reset($credentials, $callback);

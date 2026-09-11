@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\Datenauskunft;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -28,6 +29,7 @@ class DatenauskunftController extends Controller
         $pfad = $this->datenauskunft->erzeugen($user);
 
         Log::info('Datenauskunft erstellt', ['benutzer_id' => $user->benutzer_id, 'ausgeloest_von' => $request->user()->benutzer_id]);
+        Protokoll::schreiben(Protokoll::ADMIN_DATENAUSKUNFT_ERSTELLT, $user);
 
         return response()->download($pfad, $this->datenauskunft->dateiname($user))->deleteFileAfterSend();
     }

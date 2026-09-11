@@ -22,3 +22,6 @@ Schedule::command('notifications:check')->dailyAt('06:30')->withoutOverlapping()
 
 // Abonnierte Kalender (Schulnetz-iCal) stündlich abgleichen
 Schedule::command('calendar:sync')->hourlyAt(17)->withoutOverlapping()->runInBackground();
+
+// Aktivitätsprotokoll: Einträge älter als 365 Tage löschen
+Schedule::command('notenportal:aktivitaeten-aufraeumen')->dailyAt('03:15')->withoutOverlapping();

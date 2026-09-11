@@ -48,6 +48,7 @@ final class Navigation
                     self::link(__('Betrieb'), 'admin.operations.edit', ['admin.operations.*']),
                     self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*']),
                     self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*']),
+                    self::link(__('Aktivitätsprotokoll'), 'admin.activity.index', ['admin.activity.*']),
                     self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*']),
                     self::link(__('Lehrberufe'), 'admin.master-data.professions.index', ['admin.master-data.professions.*']),
                     self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*']),

@@ -36,6 +36,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Konten per Mail: Kontoeröffnung und Admin-Reset schicken einen Link zum Passwort setzen (7 Tage gültig)
 - Benutzer (Rollen Admin/Berufsbildner und Benutzername änderbar), Betreuungen; Stammdaten: Lehrberufe (Module zeilenweise mit Lernort, Pflicht, empfohlenem Semester, aktiv), Fächer (Kategorie, Track optional), Kategorien (Rundung, Gewicht im Gesamtschnitt, Promotionsregeln), Semester (leere löschbar)
 - Notenbericht: Zeitraum (Semester/ganze Lehrzeit), Lehrberuf, Berufsbildner; Status, Kategorien, tiefste Fächer/Module, Verteilung der Zeugnisnoten, sortierbar, CSV, druckbar
+- Aktivitätsprotokoll: sicherheitsrelevante Aktionen (An-/Abmeldung, Kontoänderungen, Betrieb, Sicherungen, Noten, Betreuung …) mit Zeit, Person, Ziel und IP, 365 Tage aufbewahrt, gefiltert nach Aktion/Person/Zeitraum; Geheimnisse werden nie protokolliert
 
 ## Global
 - Suche/Befehlspalette (Ctrl+K): Lernende, Konten (Admin), Seiten

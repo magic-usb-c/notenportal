@@ -9,6 +9,7 @@ use App\Models\Betreuung;
 use App\Services\Notifications\Messages\LearnerAssigned;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -33,7 +34,7 @@ class BetreuungController extends VerwaltungController
 
         // Die neue Betreuung ersetzt alles ab $von: frühere werden am Vortag beendet,
         // solche, die erst ab $von beginnen würden, entfallen.
-        DB::transaction(function () use ($lernender, $daten, $von) {
+        $betreuung = DB::transaction(function () use ($lernender, $daten, $von) {
             $lernender->betreuungen()
                 ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $von->toDateString()))
                 ->get()
@@ -41,7 +42,7 @@ class BetreuungController extends VerwaltungController
                     ? $b->update(['gueltig_bis' => $von->copy()->subDay()->toDateString()])
                     : $b->delete());
 
-            $lernender->betreuungen()->create([
+            return $lernender->betreuungen()->create([
                 'berufsbildner_id' => (int) $daten['berufsbildner_id'],
                 'gueltig_von' => $von->toDateString(),
                 'gueltig_bis' => null,
@@ -49,6 +50,7 @@ class BetreuungController extends VerwaltungController
         });
 
         $neuerBerufsbildner = Berufsbildner::with('benutzer')->find($daten['berufsbildner_id']);
+        Protokoll::schreiben(Protokoll::ADMIN_BETREUUNG_ANGELEGT, $betreuung->setRelation('lernender', $lernender));
         if ($neuerBerufsbildner?->benutzer) {
             $lernender->loadMissing('benutzer', 'lehrberuf');
             Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, fn () => LearnerAssigned::content($lernender));
@@ -73,6 +75,8 @@ class BetreuungController extends VerwaltungController
         $betreuung->gueltig_von->lt($heute)
             ? $betreuung->update(['gueltig_bis' => $heute->copy()->subDay()->toDateString()])
             : $betreuung->delete();
+
+        Protokoll::schreiben(Protokoll::ADMIN_BETREUUNG_BEENDET, $betreuung->setRelation('lernender', $lernender));
 
         return $this->zurueckZumLernenden($request, $lernender_id, __('Betreuung beendet.'));
     }

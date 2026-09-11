@@ -14,6 +14,7 @@ use App\Services\Notifications\GradeWatcher;
 use App\Services\Notifications\Messages\GradeAdded;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -87,6 +88,10 @@ class NotenImportController extends Controller
             return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
         $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
+
+        if ($bereich !== null) {
+            Protokoll::schreiben(Protokoll::ADMIN_NOTENIMPORT_UEBERNOMMEN, $lernender, ['anzahl' => $ergebnis['neu']]);
+        }
 
         // Eigener Import des Lernenden (nicht durch Verwaltung) → aktive Betreuer, eine Sammelmeldung
         if ($bereich === null) {

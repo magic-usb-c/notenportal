@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Berufsbildner;
 use App\Models\User;
 use App\Services\Notifications\AccountMails;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -116,6 +117,7 @@ class BenutzerController extends Controller
         });
 
         AccountMails::accountCreated($user);
+        Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, $user, ['rolle' => (string) $rollen->search((int) $validated['rolle_id'])]);
 
         return redirect()->route('admin.users.index')->with('success', __('Benutzer angelegt.'));
     }
@@ -158,6 +160,7 @@ class BenutzerController extends Controller
         }
 
         $passwortZurueckgesetzt = ! empty($validated['passwort']);
+        $rollenAlt = $user->rollen()->pluck('name')->sort()->values();
 
         DB::transaction(function () use ($user, $validated, $rollen, $berufsbildner) {
             $user->fill([
@@ -186,6 +189,11 @@ class BenutzerController extends Controller
             AccountMails::passwordResetByAdmin($user);
         }
 
+        $rollenNeu = $rollen->sort()->values();
+        if ($rollenAlt->all() !== $rollenNeu->all()) {
+            Protokoll::schreiben(Protokoll::ADMIN_ROLLEN_GEAENDERT, $user, ['alt' => $rollenAlt->all(), 'neu' => $rollenNeu->all()]);
+        }
+
         return redirect()->route('admin.users.edit', $benutzer_id)->with('success', __('Benutzer gespeichert.'));
     }
 
@@ -210,6 +218,8 @@ class BenutzerController extends Controller
                 Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore();
             }
         });
+
+        Protokoll::schreiben($neuAktiv ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $user);
 
         return back()->with('success', $neuAktiv ? __('Benutzer aktiviert.') : __('Benutzer deaktiviert.'));
     }

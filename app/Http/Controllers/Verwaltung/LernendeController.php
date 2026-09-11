@@ -10,6 +10,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
 use App\Services\Uebersicht;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -147,6 +148,8 @@ class LernendeController extends VerwaltungController
             [...$daten, 'passwort' => $passwort],
             $berufsbildnerId ? (int) $berufsbildnerId : null,
         );
+
+        Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, Lernender::find($lernenderId), ['rolle' => 'Lernender']);
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernenderId))

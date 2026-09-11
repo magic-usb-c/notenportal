@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Notifications\MailContent;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,6 +28,9 @@ class PasswordController extends Controller
         $user->update([
             'passwort_hash' => Hash::make($validated['password']),
         ]);
+
+        // Kein PasswordReset-Event hier (nur in NewPasswordController::store()) – kein Doppel-Eintrag mit LogPasswordReset.
+        Protokoll::schreiben(Protokoll::AUTH_PASSWORT_GEAENDERT, $user);
 
         Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, fn () => new MailContent(
             subject: __('Dein Passwort wurde geändert'),

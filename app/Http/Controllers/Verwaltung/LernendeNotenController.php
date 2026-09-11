@@ -13,6 +13,7 @@ use App\Services\Notifications\GradeWatcher;
 use App\Services\Notifications\Messages\GradeCorrected;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -168,7 +169,9 @@ class LernendeNotenController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         Gate::authorize('noteLoeschen', $lernender);
 
-        $lernender->noten()->whereKey($note_id)->firstOrFail()->delete();
+        $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
+        $note->delete();
+        Protokoll::schreiben(Protokoll::ADMIN_NOTE_GELOESCHT, $note);
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))

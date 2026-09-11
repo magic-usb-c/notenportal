@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AktivitaetController as AdminAktivitaetController;
 use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
 use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
 use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
@@ -248,6 +249,9 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('reports.grades');
         Route::get('/reports/grades/export', [AdminBerichtController::class, 'notenExport'])
             ->name('reports.grades.export');
+
+        // Aktivitätsprotokoll (Audit-Log)
+        Route::get('/activity', [AdminAktivitaetController::class, 'index'])->name('activity.index');
 
         // Stammdaten: Kategorien
         Route::get('/master-data/categories', [StammdatenKategorieController::class, 'index'])

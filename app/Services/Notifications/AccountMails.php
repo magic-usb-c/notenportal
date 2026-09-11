@@ -6,6 +6,7 @@ namespace App\Services\Notifications;
 
 use App\Models\User;
 use App\Support\Einstellungen;
+use App\Support\Protokoll;
 use Illuminate\Support\Facades\Password;
 
 /**
@@ -46,5 +47,7 @@ final class AccountMails
             actionLabel: __('Neues Passwort festlegen'),
             actionUrl: route('password.reset', ['token' => $token, 'email' => $user->email]),
         ));
+
+        Protokoll::schreiben(Protokoll::ADMIN_RESET_LINK_GESCHICKT, $user);
     }
 }

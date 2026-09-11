@@ -85,6 +85,18 @@ class LoginTest extends TestCase
     }
 
     #[Test]
+    public function post_login_wird_pro_ip_auf_60_versuche_pro_minute_gedrosselt(): void
+    {
+        // 60 statt eines niedrigeren Werts: ganze Schulklassen hängen oft hinter einer NAT-IP.
+        for ($i = 0; $i < 60; $i++) {
+            $this->post('/login', ['email' => 'irgendwer@example.test', 'password' => 'falsch']);
+        }
+
+        $this->post('/login', ['email' => 'irgendwer@example.test', 'password' => 'falsch'])
+            ->assertStatus(429);
+    }
+
+    #[Test]
     public function deaktivierung_beendet_die_laufende_sitzung(): void
     {
         $user = User::factory()->lernender()->create();

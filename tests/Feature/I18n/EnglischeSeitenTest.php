@@ -189,6 +189,7 @@ class EnglischeSeitenTest extends TestCase
             'admin.trainers.index' => route('admin.trainers.index'),
             'admin.feedback.index' => route('admin.feedback.index'),
             'admin.mail-log.index' => route('admin.mail-log.index'),
+            'admin.activity.index' => route('admin.activity.index'),
             'admin.notifications.index' => route('admin.notifications.index'),
             'admin.operations.edit' => route('admin.operations.edit'),
             'admin.reports.grades' => route('admin.reports.grades'),
