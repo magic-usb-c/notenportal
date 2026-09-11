@@ -70,6 +70,7 @@ sudo systemctl reload apache2
 7. Dateirechte-Befehle (siehe oben) ausführen, `/login` über die Lab-IP aufrufen, mit einem Lernenden-Konto Note erfassen und Feedback senden.
 8. Seite Betrieb: Ziel für «Kopie ausser Haus» eintragen, «Verbindung testen», «Jetzt kopieren»; am Folgetag prüfen, dass die Nachtsicherung kopiert wurde.
 9. Alte deutsche Lesezeichen (`/noten`, `/pruefungen` …) leiten automatisch weiter – nichts zu tun.
+10. Code-Freeze ab 25.09.: danach nur noch Fehlerbehebungen. Sprachumschalter bleibt ausgeblendet (`sprachwahl_aktiv` aus), Englisch-Umbenennungen von Klassen und DB erst nach dem Go-Live (`docs/i18n-plan.md`).
 
 ## Änderungsprotokoll ausserhalb des Repos
 
