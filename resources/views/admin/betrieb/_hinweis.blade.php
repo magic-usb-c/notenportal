@@ -2,7 +2,7 @@
 <section class="rounded-xl border border-border bg-card p-6 mt-5">
     <h3 class="text-sm font-semibold text-text">{{ __('Systemhinweis') }}</h3>
     <form method="POST" action="{{ route('admin.operations.notice.update') }}" class="mt-4 flex flex-col gap-5"
-          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
         @csrf
         @method('PUT')
         <div>

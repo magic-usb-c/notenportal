@@ -79,7 +79,8 @@
 
     @if($kopie->aktiv())
         <form method="POST" action="{{ route('admin.operations.offsite.run') }}" class="flex flex-wrap gap-3"
-              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
+            {{-- Erst nach dem Absenden sperren: ein schon gesperrter Knopf schickt name/value nicht mit – aus «testen» würde «kopieren». --}}
             @csrf
             <button type="submit" name="aktion" value="testen" :disabled="loading" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verbindung testen') }}</button>
             <button type="submit" name="aktion" value="kopieren" :disabled="loading" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">
