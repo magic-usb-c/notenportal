@@ -32,7 +32,7 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - HTTPS: läuft seit 11.09. parallel zu HTTP mit eigener Lab-CA (siehe «HTTPS»). Offen: HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`, sobald die Geräte der Lernenden der CA vertrauen oder ein Zertifikat der Hamilton-CA vorliegt
 - `.env`: `APP_DEBUG=false`, `LOG_CHANNEL=daily`, `APP_URL` erledigt (11.09.); `APP_ENV=production` beim Go-Live
 - opcache explizit aktivieren, `config:cache`/`route:cache`/`view:cache` im Deploy
-- Sicherungen zusätzlich ausser Haus kopieren (liegen sonst auf derselben VM), Wochenstände, wöchentlicher Restore-Test
+- Kopie ausser Haus: Funktion vorhanden (11.09., Seite Betrieb → «Kopie ausser Haus», rsync in Ordner oder per SSH); Ziel muss beim Go-Live eingetragen werden. Offen: Wochenstände, wöchentlicher Restore-Test
 - Least Privilege: erledigt (11.09.) – `np_web` nur DML, `np_migrate` mit DDL; Installer legt für neue Instanzen `<db>_web` (DML) und `<db>_migrate` an
 - ufw auf die berechtigten Netze einschränken
 - php-fpm + mpm_event statt mod_php + prefork
@@ -68,6 +68,8 @@ sudo systemctl reload apache2
 5. Konten der Lernenden von Peter Scherrer prüfen/anlegen (Verwaltung → Lernende), Betreuungen und Tracks kontrollieren.
 6. `php artisan optimize` (Config-, Routen-, View-Cache). Tests laufen dank eigener Cache-Pfade trotzdem nur gegen `*_test`.
 7. Dateirechte-Befehle (siehe oben) ausführen, `/login` über die Lab-IP aufrufen, mit einem Lernenden-Konto Note erfassen und Feedback senden.
+8. Seite Betrieb: Ziel für «Kopie ausser Haus» eintragen, «Verbindung testen», «Jetzt kopieren»; am Folgetag prüfen, dass die Nachtsicherung kopiert wurde.
+9. Alte deutsche Lesezeichen (`/noten`, `/pruefungen` …) leiten automatisch weiter – nichts zu tun.
 
 ## Änderungsprotokoll ausserhalb des Repos
 
@@ -115,7 +117,7 @@ sudo systemctl reload apache2
 ## Datensicherung (Block F, 10.09.2026)
 
 - Täglich 02:30 über den Laravel-Scheduler: `notenportal:sicherung` erstellt `storage/app/private/sicherungen/notenportal-JJJJMMTT-HHMMSS.zip` (`datenbank.sql` aus `mariadb-dump --single-transaction`, `dateien/lernende/…`, `LIESMICH.txt`), die 14 neusten bleiben. Status, «Jetzt sichern», Herunterladen und Löschen auf Admin → Betrieb.
-- Zeitplan: `install.sh` schreibt `/etc/cron.d/<verzeichnisname>` (`* * * * * www-data … php artisan schedule:run`). **Prod** (`/var/www/notenportal`): Eintrag beim nächsten Installer-Lauf, bis dahin keine automatische Sicherung – Punkt der Go-Live-Checkliste.
+- Zeitplan: `install.sh` schreibt `/etc/cron.d/<verzeichnisname>` (`* * * * * www-data … php artisan schedule:run`). **Prod** (`/var/www/notenportal`): Eintrag `/etc/cron.d/notenportal` besteht seit 10.09.2026 (Sicherung 02:30, Queue, Tageszusammenfassung, Kalenderabgleich).
 - Wiederherstellen (Notfall, im Terminal):
 
 ```bash
