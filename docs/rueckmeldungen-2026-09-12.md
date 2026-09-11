@@ -20,7 +20,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 ## P3 – Bedienung
 | # | Punkt | Status |
 |---|---|---|
-| 7 | Feedback-Kategorie «Lob» → «Sonstiges» | offen |
+| 7 | Feedback-Kategorie «Lob» → «Sonstiges» | in Arbeit (Block G) |
 | 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | in Arbeit |
 | 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | in Arbeit |
 | 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | in Arbeit |
@@ -29,7 +29,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 ## P4 – Funktionen
 | # | Punkt | Status |
 |---|---|---|
-| 12 | Feedback: technische Details standardmässig mitsenden (abwählbar), schwebender Feedback-Knopf während der Testphase (abschaltbar), Hover-Beschriftung, kleines schwebendes Panel, eigene Screenshots/Anhänge | offen (nach Feedback II) |
+| 12 | Feedback: technische Details standardmässig mitsenden (abwählbar), schwebender Feedback-Knopf während der Testphase (abschaltbar), Hover-Beschriftung, kleines schwebendes Panel, eigene Screenshots/Anhänge | in Arbeit (Block G) |
 | 13 | Layout nutzt das Browserfenster zu wenig: breitere Container, mehrspaltig auf grossen Bildschirmen, Skalierung prüfen | offen |
 | 14 | Modulstatus: Dauer seit Beginn, Abgabetermine je Modul/Fach (verknüpft mit Prüfungen), Fortschritt bis zum nächsten und letzten Termin, bewerteter Anteil nach Gewichtung | offen (Migration) |
 | 15 | Kalender bearbeitbar synchronisieren (Outlook, Nextcloud CalDAV u. a.), nicht nur iCal lesend; Termine auch aus externem Kalender ins Portal | offen (Design läuft) |
