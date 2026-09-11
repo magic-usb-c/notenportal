@@ -115,6 +115,8 @@ final class NotenQuelle
             ->leftJoin('faecher as f', 'f.fach_id', '=', 'p.fach_id')
             ->leftJoin('lehrberuf_module as lbm', fn ($j) => $j->on('lbm.modul_id', '=', 'p.modul_id')->on('lbm.lehrberuf_id', '=', 'l.lehrberuf_id'))
             ->whereIn('p.lernender_id', $lernenderIds)
+            ->whereNull('p.note_id')
+            ->whereNull('p.abgesagt_am')
             ->orderBy('p.datum')
             ->get(['p.pruefung_id', 'p.lernender_id', 'p.fach_id', 'p.modul_id', 'p.titel', 'p.datum', 'p.gewichtung_prozent',
                 DB::raw('COALESCE(f.kategorie_id, lbm.kategorie_id) as kategorie_id')]);

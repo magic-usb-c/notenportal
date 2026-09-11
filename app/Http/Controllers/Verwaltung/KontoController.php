@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Verwaltung;
 
 use App\Services\Benutzer\Startpasswort;
+use App\Services\Notifications\AccountMails;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -23,6 +24,8 @@ class KontoController extends VerwaltungController
             'passwort_hash' => $passwort,
             'passwort_wechsel_noetig' => true,
         ])->save();
+
+        AccountMails::passwordResetByAdmin($lernender->benutzer);
 
         return redirect()
             ->to($this->zuRoute($request, 'lernende.show', $lernender_id))

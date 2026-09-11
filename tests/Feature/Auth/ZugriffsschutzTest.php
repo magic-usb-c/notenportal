@@ -36,10 +36,16 @@ class ZugriffsschutzTest extends TestCase
         'feedback.store',
         'feedback.index',
         'suche',
+        'notifications.settings',
+        'notifications.settings.update',
     ];
 
-    /** Öffentlich erreichbar. */
-    private const array OEFFENTLICH = ['/', 'login', 'up'];
+    /** Öffentlich erreichbar (kein Login nötig). */
+    private const array OEFFENTLICH = [
+        '/', 'login', 'up',
+        'notifications.unsubscribe', 'notifications.unsubscribe.store',
+        'password.request', 'password.email', 'password.reset', 'password.store',
+    ];
 
     #[Test]
     public function jede_route_ist_geschuetzt_oder_bewusst_freigegeben(): void

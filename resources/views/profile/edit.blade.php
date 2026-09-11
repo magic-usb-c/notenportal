@@ -39,6 +39,21 @@
                 @include('profile.partials.update-profile-information-form')
             </div>
 
+            {{-- Benachrichtigungen --}}
+            <div class="glass rounded-2xl p-6">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-semibold text-text text-sm">Benachrichtigungen</h3>
+                        <p class="mt-1 text-sm text-muted">Wähle, welche Mails du erhältst und wie oft.</p>
+                    </div>
+                    <a href="{{ route('notifications.settings') }}"
+                       class="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl glass-btn text-text text-sm font-medium">
+                        Einstellen
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                </div>
+            </div>
+
             {{-- Passwort ändern --}}
             <div class="glass rounded-2xl p-6">
                 @include('profile.partials.update-password-form')

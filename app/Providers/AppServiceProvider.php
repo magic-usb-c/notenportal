@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Feedback;
+use App\Services\Notifications\MailSettings;
 use App\Support\Einstellungen;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(10)->letters()->numbers());
+
+        // Mail-Einstellungen aus «Betrieb» überschreiben .env (vor Migrationen gibt es die Tabelle noch nicht)
+        try {
+            MailSettings::apply();
+        } catch (\Throwable) {
+        }
 
         View::composer(['layouts.app', 'layouts.guest', 'layouts.navigation', 'auth.login'], function ($view) {
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));

@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Services\Notifications\Empfaenger;
+use App\Services\Notifications\Messages\FeedbackReceived;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +39,7 @@ class FeedbackController extends Controller
             'viewport' => ['nullable', 'regex:/^\d{2,5}x\d{2,5}$/'],
         ]);
 
-        Feedback::create([
+        $feedback = Feedback::create([
             'benutzer_id' => (int) $request->user()->benutzer_id,
             'kategorie' => $validated['kategorie'],
             'text' => $validated['text'],
@@ -44,6 +48,10 @@ class FeedbackController extends Controller
             'user_agent' => $request->userAgent() ? substr($request->userAgent(), 0, 255) : null,
             'viewport' => $validated['viewport'] ?? null,
         ]);
+
+        foreach (Empfaenger::aktiveAdmins() as $admin) {
+            Notifier::send($admin, NotificationCatalog::FEEDBACK_RECEIVED, FeedbackReceived::content($feedback, $request->user()));
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['ok' => true], 201);

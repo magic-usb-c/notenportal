@@ -10,7 +10,8 @@ use Smalot\PdfParser\Parser;
 
 /**
  * Zeugnis (PDF mit Textlayer) gegen die Zeugnisnoten des Rechenkerns prüfen:
- * gleich / abweichend / fehlt im Portal. Fehlende lassen sich als Note «Zeugnis» übernehmen.
+ * gleich / abweichend / fehlt im Portal; Fächer ohne Gegenstück im Portal erscheinen als «unbekannt».
+ * Fehlende lassen sich als Note «Zeugnis» übernehmen.
  */
 final class ZeugnisAbgleich
 {
@@ -31,6 +32,11 @@ final class ZeugnisAbgleich
         $a = $this->quelle->auswertung($lernenderId);
         $zeilen = [];
         foreach ($this->zeilen($text, $lernenderId) as $z) {
+            if ($z['bezug'] === null) {
+                $zeilen[] = [...$z, 'portal' => null, 'differenz' => null, 'status' => 'unbekannt'];
+
+                continue;
+            }
             [$typ, $id] = explode(':', $z['bezug']);
             $element = $typ === 'fach'
                 ? ($semesterId ? ($a->elemente["f{$id}s{$semesterId}"] ?? null) : null)
@@ -45,27 +51,29 @@ final class ZeugnisAbgleich
     }
 
     /**
-     * Zeilen «Fach …… Note» erkennen; bei mehreren Noten pro Zeile zählt die letzte (aktuelles Semester).
+     * Fächer und Module mit der Note des aktuellen Semesters; im BM-Zeugnis nur BM-Fächer, sonst Berufsfachschule vor BM.
      *
-     * @return list<array{label: string, name: string, note: float, bezug: string, sicher: bool}>
+     * @return list<array{label: string, name: string, note: float, bezug: ?string, sicher: bool}>
      */
     public function zeilen(string $text, int $lernenderId): array
     {
+        $art = (new Schulnetz)->art($text);
+        if (in_array($art, ['aktuell', 'stammdaten'], true)) {
+            return [];
+        }
+
         $katalog = $this->import->katalog($lernenderId);
         $labels = array_column($katalog, 'label', 'wert');
+        $auswahl = ['bm' => $this->import->bevorzugt($katalog, true), 'bfs' => $this->import->bevorzugt($katalog, false)];
         $out = [];
-        foreach (preg_split('/\R/u', $text) ?: [] as $zeile) {
-            $zeile = trim(preg_replace(['/[.·_…]{2,}/u', '/\s+/u'], ' ', $zeile) ?? '');
-            if (! preg_match('/^(?<name>.*?\p{L}.*?)\s+(?<noten>(?:[1-6](?:[.,]\d{1,2})?\s*)+)$/u', $zeile, $m)) {
+        foreach ((new ZeugnisText)->zeilen($text, $art !== 'zeugnis') as $z) {
+            [$bezug, $sicher] = $this->import->bezug($z['name'], $auswahl[$z['bm'] ? 'bm' : 'bfs']);
+            $schluessel = $bezug ?? '?'.ZeugnisText::kompakt($z['name']);
+            if (isset($out[$schluessel])) {
                 continue;
             }
-            $noten = preg_split('/\s+/', trim($m['noten'])) ?: [];
-            $note = $this->import->note((string) end($noten));
-            [$bezug, $sicher] = $this->import->bezug($m['name'], $katalog);
-            if ($note === null || $bezug === null || isset($out[$bezug])) {
-                continue;
-            }
-            $out[$bezug] = ['label' => trim($m['name']), 'name' => $labels[$bezug] ?? $m['name'], 'note' => $note, 'bezug' => $bezug, 'sicher' => $sicher];
+            $out[$schluessel] = ['label' => $z['name'], 'name' => $bezug !== null ? ($labels[$bezug] ?? $z['name']) : $z['name'],
+                'note' => $z['note'], 'bezug' => $bezug, 'sicher' => $bezug !== null && $sicher];
         }
 
         return array_values($out);

@@ -72,9 +72,18 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 ## Datensicherung (10.09.2026) – bewusst weggelassen
 
 - **Wiederherstellen im Browser**: ein Knopf, der die laufende Datenbank überschreibt, ist ein zu grosses Risiko (Fehlklick, halbe Wiederherstellung bei Zeitüberschreitung). Wiederherstellung bleibt eine Notfallprozedur im Terminal (betrieb.md, LIESMICH.txt im ZIP).
-- **Kopie ausser Haus** (SFTP, S3, Netzlaufwerk): betriebsabhängig, braucht Zugangsdaten und Ziel; im Pilot lädt der Admin die ZIP-Datei herunter. Die Sicherung liegt sonst auf derselben VM.
+- **Kopie ausser Haus**: erledigt 11.09.2026 (rsync in Ordner oder per SSH, Betrieb → Sicherungen). S3 bewusst nicht: braucht SDK und Zugangsschlüssel; ein SSH-Ziel oder eingebundenes Netzlaufwerk deckt den Pilot ab.
 - **Verschlüsselung der ZIP-Datei**: Download nur für Admins über HTTPS-Ziel geplant; ein Passwort, das niemand mehr findet, macht die Sicherung wertlos.
 - **Wochen-/Monatsstände**: 14 Tagesstände reichen für den Pilot; Speicherplatz wächst mit den Dokumenten.
+
+## E-Mail, Agenda-Backend, Go-Live, echte Daten (11.09.2026) – bewusst weggelassen
+
+- **Tracks nach Datum der Note**: `NoteService::erlaubteFaecher` gibt Fächer nach den heute aktiven Tracks frei. Wer die BM verlassen hat, kann alte BM-Zeugnisnoten nicht übernehmen. Richtig wäre: Track gültig am Prüfungsdatum. Eingriff in den Rechenkern → eigener Block mit Tests.
+- **Schulnetz-«Zeugnisnoten» im Notenimport ohne Datum**: das PDF enthält nur Semesterspalten; das Datum wird in der Vorschau gesetzt. Automatisch aus dem Semesterende ableiten wäre möglich, falsch zugeordnete Semester wären aber schwer zu sehen.
+- **Scans ohne Text** (siehe OCR oben) und **Ø-Spalte ohne Tabulator** im Zeugnis: nicht zuverlässig von einer Semesternote zu trennen.
+- **S3/WebDAV als Kopie-Ziel**: siehe Datensicherung.
+- **Let's Encrypt**: die VM ist nur im internen Netz erreichbar (keine öffentliche DNS/Port 80 von aussen); deshalb eigene CA. Mit öffentlichem Namen: `certbot --apache`.
+- **HTTP → HTTPS-Umleitung**: bewusst noch nicht, solange Geräte die Lab-CA nicht vertrauen; Go-Live-Liste in betrieb.md.
 
 ## Hinweise
 

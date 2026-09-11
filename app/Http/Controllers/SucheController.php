@@ -7,13 +7,19 @@ namespace App\Http\Controllers;
 use App\Models\Lernender;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 /** Suche der Befehlspalette: Lernende (sichtbar für Admin/BB), für Admins zusätzlich Konten. */
 class SucheController extends Controller
 {
-    public function __invoke(Request $request): JsonResponse
+    public function __invoke(Request $request): JsonResponse|RedirectResponse
     {
+        // Nur für die Befehlspalette; direkter Aufruf im Browser (Lesezeichen, Verlauf) führt zur Übersicht
+        if (! $request->wantsJson()) {
+            return redirect()->route('dashboard');
+        }
+
         $user = $request->user();
         $q = trim((string) $request->query('q', ''));
         if (mb_strlen($q) < 2 || $user->hasRole('Lernender') && ! $user->hasRole('Admin') && ! $user->hasRole('Berufsbildner')) {

@@ -65,7 +65,17 @@ final class TabellenLeser
     /** @return list<list<string>> */
     private function pdf(string $pfad): array
     {
-        return $this->textZeilen((new Parser)->parseFile($pfad)->getText());
+        return $this->pdfText((new Parser)->parseFile($pfad)->getText());
+    }
+
+    /**
+     * Text eines PDFs: Schulnetz-Exporte über ihren eigenen Leser, sonst allgemeine Zeilenzerlegung.
+     *
+     * @return list<list<string>>
+     */
+    public function pdfText(string $text): array
+    {
+        return (new Schulnetz)->tabelle($text) ?? $this->textZeilen(str_replace("\x00", '', $text));
     }
 
     /**

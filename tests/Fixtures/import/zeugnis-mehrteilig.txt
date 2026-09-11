@@ -1,0 +1,155 @@
+BERUFSSCHULEMUSTERSTADT
+NOTENPORTFOLIO
+InformatikerinEFZPlattformentwicklung
+Lernende(r)
+Name
+Beruf
+Branche
+Geb.Oat.
+Wohnort
+Heimatort
+Eintritt
+MusterLea
+InformatikerinEFZ
+Plattformentwicklung
+1.Januar2009
+Musterdorf
+MusterortGR
+15.08.2025INXX2A
+Lehrbetrieb
+MusterAG
+Musterweg1
+7000Musterstadt
+Semester
+ModulInformatikkompetenzinderBerufsfachschule	1 2 3 4 5 6 7 8 O0
+162 Datenanalysierenundmodellieren	4.5
+114 Codierungs-,Kompressions-undVerschlüsselungsverfahreneinsetzen	5.0
+431 AufträgeimIT-Umfeldselbständigdurchführen	4.0
+DurchschnittsnoteInformatikkompetenzinderBerufsfachschule(Gewichtung80%/IKBS)	4.5
+ModulInformatikkompetenzüberbetrieblicheKurse
+187 ICT-ArbeitsplatzmitBetriebssysteminBetriebnehmen	5.0
+DurchschnittsnoteInformatikkompetenzüberbetrieblicheKurse(Gewichtung:20%IIKÜK)	5.0
+GesamtDurchschnittInformatikkompetenz	4.6
+DieNotendereinzelnenModulekönnenaufgrundderNotengebung(Modulabschlüsse,
+Notenabgabetermine)innerhalbderSemesterverschobensein.
+Musterstadt,27.06.2026 DerDirektor:
+h
+MaxMuster
+
+Zeugnis
+Lernende/r/Studierende/r
+Name
+Geburtsdatum
+Wohnort
+Heimatort
+Lehrberuf
+Branche
+Eintritt/Klasse
+Lehrbetrieb
+\_~ Berufsschule
+~ Musterstadt
+MusterLea
+1.Januar2009
+Musterdorf
+MusterortGR
+InformatikerinEFZ
+Plattformentwicklung
+15.August2025,INXX2A
+MusterAG
+Musterweg1
+7000Musterstadt
+Fachbezeichnung	Semester
+I
+1 2 3 4 5 6 7 8 0
+Informatik	NP NP
+Sport	b B
+L
+Absenzlektionenunentschuldigt
+Bemerkungen
+Musterstadt,23.Januar2027	BerufsschuleMusterstadt
+MaxMuster
+Direktor
+BedeutungderNoten
+6sehrgut
+5gut
+4genügend
+3schwach
+2sehrschwach
+1unbrauchbar
+BewertungTurnenundSport/Sport
+AübertrifftdieAnforderungen
+BerfülltdieAnforderungen
+CerfülltdieAnforderungennicht
+Zeichenerklärung
+bbesucht
+ddispensiert
+VAVertiefungsarbeit
+NPNotenportfolio
+4undhöhereNotenbezeichnengenügendeLeistungen;
+Notenunter4bezeichnenungenügendeLeistungen.
+PromotionBerufsmaturität
+Zeichenerklärung:prom=promoviertIprov=provisorischIAus=Ausschluss
+Rechtsmittelbelehrung
+
+Zeugnis
+Lernende/r/Studierende/r
+Name
+Geburtsdatum
+Wohnort
+Heimatort
+Lehrberuf
+Branche
+Eintritt/Klasse
+Lehrbetrieb
+\_~ Berufsschule
+~ Musterstadt
+MusterLea
+1.Januar2009
+Musterdorf
+MusterortGR
+InformatikerinEFZ
+Plattformentwicklung
+15.August2025,TBM98B
+MusterAG
+Musterweg1
+7000Musterstadt
+Fachbezeichnung	Semester
+1 2 3 4 5 6 7 0
+t -
+Deutsch	5.0 4.5	5.0
+Mathematik	4.0 3.0
+i
+3.5
+Englisch
+----
+4.5 5.5	5.0
+Italienisch	5.5 5.0	5.5
+Gesamtnote	-4.6 4.4 1
+Promotionsentscheid	promprom-_r_
+Absenzlektionenunentschuldigt	2 T
+Bemerkungen
+Musterstadt,23.Januar2027	BerufsschuleMusterstadt
+MaxMuster
+Direktor
+BedeutungderNoten
+6sehrgut
+5gut
+4genügend
+3schwach
+2sehrschwach
+1unbrauchbar
+BewertungTurnenundSport/Sport
+AübertrifftdieAnforderungen
+BerfülltdieAnforderungen
+CerfülltdieAnforderungennicht
+Zeichenerklärung
+bbesucht
+ddispensiert
+VAVertiefungsarbeit
+NPNotenportfolio
+4undhöhereNotenbezeichnengenügendeLeistungen;
+Notenunter4bezeichnenungenügendeLeistungen.
+PromotionBerufsmaturität
+Zeichenerklärung:prom=promoviertIprov=provisorischIAus=Ausschluss
+Rechtsmittelbelehrung
+

@@ -9,6 +9,10 @@ use App\Models\Lernender;
 use App\Models\Note;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Noten\NoteService;
+use App\Services\Notifications\GradeWatcher;
+use App\Services\Notifications\Messages\GradeCorrected;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +28,7 @@ class LernendeNotenController extends VerwaltungController
     public function __construct(
         private readonly NoteService $noteService,
         private readonly LernstandRechner $lernstaende,
+        private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
     ) {}
 
     public function index(Request $request, int $lernender_id): View
@@ -102,11 +107,13 @@ class LernendeNotenController extends VerwaltungController
 
         $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id);
 
+        $vorher = $this->gradeWatcher->schnappschuss($lernender_id);
         $lernender->noten()->create([
             ...$this->notenfelder($daten),
             'erfasst_von_benutzer_id' => (int) $request->user()->benutzer_id,
             'aktualisiert_von_benutzer_id' => null,
         ]);
+        $this->gradeWatcher->pruefen($lernender_id, $vorher);
 
         return redirect()
             ->to($this->zuRoute($request, 'lernende.noten.index', $lernender_id))
@@ -133,13 +140,23 @@ class LernendeNotenController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         Gate::authorize('noteKorrigieren', $lernender);
 
-        $note = $lernender->noten()->whereKey($note_id)->firstOrFail();
+        $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
         $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id);
 
+        $alterWert = (string) $note->note_wert;
+        $vorher = $this->gradeWatcher->schnappschuss($lernender_id);
         $note->update([
             ...$this->notenfelder($daten),
             'aktualisiert_von_benutzer_id' => (int) $request->user()->benutzer_id,
         ]);
+        $this->gradeWatcher->pruefen($lernender_id, $vorher);
+
+        $lernender->loadMissing('benutzer');
+        if ($lernender->benutzer && $alterWert !== (string) $note->note_wert) {
+            Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_CORRECTED, GradeCorrected::content(
+                $note, $alterWert, route('lernender.noten.index', ['_open' => $note->note_id])
+            ));
+        }
 
         return redirect()
             ->to($this->zuRoute($request, 'lernende.noten.index', $lernender_id))

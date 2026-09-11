@@ -1,0 +1,41 @@
+Kurs	Notendurchschnitt	Eingesehen {NUL}
+158-INXX 99 A-201
+Software-Migration planen und
+durchführen
+--	--
+159-INXX 99 A-musmax
+Directory Services konfigurieren und in
+Betrieb nehmen
+4.750	{NUL}
+Prüfungsgruppe Datum Thema	Bewertung Gewichtung
+Klassenschnitt
+{NUL}
+Einzelprüfungen     
+ 	02.09.2026 LB1: Verzeichnisdienste und DNS	4.5 0.33333333	4.612
+ 	09.09.2026 LB2: Gruppenrichtlinien 5	0.33333333 4.9
+ 	16.09.2026 LB3: Replikation	0.33333333 --
+Aktueller Durchschnitt:4.750
+169-INXX 99 A-202
+Dienste mit Containern bereitstellen
+--	--
+ABU-INXX 99 A,INYY 99 B-mushan
+Allgemeinbildung
+--	--
+ENG-INXX 99 A,INYY 99 B-musina
+Englisch
+4.500	{NUL}
+Prüfungsgruppe Datum Thema	Bewertung Gewichtung
+Klassenschnitt
+{NUL}
+Einzelprüfungen     
+ 	21.08.2026 Presentation Module 158 4.5	1	4.815
+ 	28.08.2026 Vocabulary Test 2	0.5 --
+Aktueller Durchschnitt:4.500
+INFO-INXX 99 A-203
+Informatik
+--	--
+SPO-INXX 99 A,INYY 99 B-musgeo
+Sport
+--	--
+1. Semester 2026/2027 - Aktuelle Noten - Muster Lea (INXX 99 A)
+10001@stu.example.ch	Seite 1/1	11.09.2026

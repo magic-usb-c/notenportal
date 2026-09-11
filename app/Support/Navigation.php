@@ -45,6 +45,8 @@ final class Navigation
                 ]),
                 self::gruppe('Stammdaten', 'daten', [
                     self::link('Betrieb', 'admin.betrieb.edit', ['admin.betrieb.*']),
+                    self::link('Benachrichtigungen', 'admin.notifications.index', ['admin.notifications.*']),
+                    self::link('Versandprotokoll', 'admin.mail-log.index', ['admin.mail-log.*']),
                     self::link('Einrichtung', 'admin.einrichtung', ['admin.einrichtung*']),
                     self::link('Lehrberufe', 'admin.stammdaten.lehrberufe.index', ['admin.stammdaten.lehrberufe.*']),
                     self::link('Module', 'admin.stammdaten.module.index', ['admin.stammdaten.module.*']),
@@ -95,6 +97,7 @@ final class Navigation
             $befehle[] = ['label' => 'Semester anlegen', 'url' => route('admin.stammdaten.semester.create'), 'gruppe' => 'Aktion'];
         }
         $befehle[] = ['label' => 'Profil', 'url' => route('profile.edit'), 'gruppe' => 'Konto'];
+        $befehle[] = ['label' => 'Benachrichtigungen', 'url' => route('notifications.settings'), 'gruppe' => 'Konto'];
         $befehle[] = ['label' => 'Meine Meldungen', 'url' => route('feedback.index'), 'gruppe' => 'Konto'];
 
         return $befehle;

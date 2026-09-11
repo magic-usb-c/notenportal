@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verwaltung;
 
+use App\Models\Lernender;
+use App\Services\Notifications\MailContent;
+use App\Services\Notifications\Messages\GradeSeen;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,10 +19,13 @@ class NotenGesehenController extends VerwaltungController
 {
     public function einzeln(Request $request, int $lernender_id, int $note_id): RedirectResponse
     {
-        $note = $this->sichtbarerLernender($request, $lernender_id)->noten()->whereKey($note_id)->firstOrFail();
+        $lernender = $this->sichtbarerLernender($request, $lernender_id);
+        $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
 
         // Auch bei bestehender Markierung neu setzen, damit der «Neu»-Badge nach neuen Kommentaren verschwindet
         $this->markieren([$note->note_id], (int) $request->user()->benutzer_id);
+
+        $this->benachrichtigen($lernender, GradeSeen::einzeln($note, route('lernender.noten.index', ['_open' => $note->note_id])));
 
         return back()
             ->with('success', 'Note als gesehen markiert.')
@@ -26,14 +34,25 @@ class NotenGesehenController extends VerwaltungController
 
     public function alle(Request $request, int $lernender_id): RedirectResponse
     {
-        $this->sichtbarerLernender($request, $lernender_id);
+        $lernender = $this->sichtbarerLernender($request, $lernender_id);
 
         $noteIds = self::gefilterteNoten($request, $lernender_id)->pluck('n.note_id')->all();
         $this->markieren($noteIds, (int) $request->user()->benutzer_id);
 
         $anzahl = count($noteIds);
+        if ($anzahl > 0) {
+            $this->benachrichtigen($lernender, GradeSeen::sammel($anzahl, route('lernender.noten.index')));
+        }
 
         return back()->with('success', $anzahl === 1 ? '1 Note als gesehen markiert.' : $anzahl.' Noten als gesehen markiert.');
+    }
+
+    private function benachrichtigen(Lernender $lernender, MailContent $inhalt): void
+    {
+        $lernender->loadMissing('benutzer');
+        if ($lernender->benutzer) {
+            Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_SEEN, $inhalt);
+        }
     }
 
     /** Nicht gelöschte Noten des Lernenden, eingeschränkt auf die Filter Kategorie/Semester der Notenansicht. */

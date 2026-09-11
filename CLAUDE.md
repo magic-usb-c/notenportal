@@ -2,7 +2,7 @@
 
 Webportal für Lehrbetriebe: Lernende erfassen ihre Noten (Fachunterricht, ÜK, BMS, ABU), Berufsbildner begleiten, Admins verwalten. Pilot ab 30.09.2026 im ICT-LAB der Hamilton AG, langfristig Open Source.
 
-Weiterführend: `docs/endspurt-plan.md` (Plan) · `docs/architektur.md` (Struktur, Rollen, Datenmodell) · `docs/funktionsumfang.md` · `docs/betrieb.md` (Server, Rechte, Änderungen ausserhalb des Repos)
+Weiterführend: `docs/endspurt-plan.md` (Ideensammlung) · `docs/gui-konzept.md` (Designkonzept) · `docs/architektur.md` (Struktur, Rollen, Datenmodell) · `docs/funktionsumfang.md` · `docs/betrieb.md` (Server, Rechte, Änderungen ausserhalb des Repos)
 
 ## Umgebung
 - VM srv-lab-dva-001, `/var/www/notenportal`, Apache 2.4 + mod_php 8.3, MariaDB 10.11, Node 22
@@ -22,7 +22,7 @@ Weiterführend: `docs/endspurt-plan.md` (Plan) · `docs/architektur.md` (Struktu
 - `.env` nie committen.
 
 ## Datenbank
-- `np_web` hat ALL auf `notenportal` und `notenportal_test`: Migrationen inkl. ALTER funktionieren.
+- Least Privilege: `np_web` (App) hat auf `notenportal` nur Datenrechte, `np_migrate` die Schemarechte. Migrationen auf Prod/Probe immer `php artisan notenportal:migrate` (Skill `notenportal-migration`). Auf `notenportal_test` hat `np_web` ALL.
 - Schema nutzt CHECK-Constraints und Composite-FKs per `DB::statement` → nur MariaDB/MySQL, kein SQLite.
 - Jede Änderung ausserhalb des Repos (DB-Rechte, Apache, PHP, Backups) in `docs/betrieb.md` protokollieren.
 - Vor jedem Framework-Upgrade: `sudo mysqldump --single-transaction notenportal > ~/db-backups/…` + Git-Tag.

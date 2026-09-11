@@ -273,7 +273,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/einrichtung/{schritt?}', [EinrichtungController::class, 'show'])
         ->name('einrichtung');
-    foreach (['betrieb', 'kategorien', 'semester', 'lehrberufe', 'module', 'personen', 'lernende', 'abschliessen'] as $aktion) {
+    foreach (['betrieb', 'kategorien', 'semester', 'lehrberufe', 'module', 'personen', 'lernende', 'mail', 'abschliessen'] as $aktion) {
         Route::post('/einrichtung/'.$aktion, [EinrichtungController::class, $aktion])->name('einrichtung.'.$aktion);
     }
     Route::get('/betrieb', [BetriebController::class, 'edit'])->name('betrieb.edit');
@@ -281,6 +281,9 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/betrieb/sicherungen', [BetriebController::class, 'sicherungErstellen'])->name('betrieb.sicherungen.store');
     Route::get('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungHerunterladen'])->name('betrieb.sicherungen.show');
     Route::delete('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('betrieb.sicherungen.destroy');
+    Route::put('/betrieb/kopie', [BetriebController::class, 'kopieSpeichern'])->name('betrieb.kopie.update');
+    Route::post('/betrieb/kopie', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('betrieb.kopie.run');
 });
 
 require __DIR__.'/auth.php';
+require __DIR__.'/notifications.php';

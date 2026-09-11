@@ -56,8 +56,13 @@ class PruefungenTest extends TestCase
             'note_wert' => 5, 'gewichtung_prozent' => 40, 'pruefung_id' => $p->pruefung_id,
         ])->assertSessionHasNoErrors();
 
-        $this->assertDatabaseCount('pruefungen', 0);
+        $this->assertSame(Note::sole()->note_id, $p->fresh()->note_id, 'Note hängt an der Prüfung');
+        $this->assertSame(0, Pruefung::query()->offen()->count());
         $this->assertSame(Kategorie::where('code', 'UEK')->value('kategorie_id'), Note::sole()->kategorie_id);
+
+        // Note gelöscht → Prüfung wieder offen
+        Note::sole()->delete();
+        $this->assertNull($p->fresh()->note_id);
     }
 
     #[Test]

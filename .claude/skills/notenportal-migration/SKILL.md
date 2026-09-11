@@ -31,15 +31,17 @@ git tag -f KURZ && git push -f origin KURZ
 ```bash
 sudo mysql -e "DROP DATABASE IF EXISTS notenportal_probe; CREATE DATABASE notenportal_probe CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL ON notenportal_probe.* TO np_web@localhost;"
 sudo mysql notenportal_probe < ~/db-backups/notenportal-$STAND-KURZ.sql
-DB_DATABASE=notenportal_probe php artisan migrate --force
+DB_DATABASE=notenportal_probe php artisan notenportal:migrate
 ```
 Fehler? → Migration korrigieren, Schritt 3 wiederholen. Prod ist unberührt.
 
-Optional Rückweg testen: `DB_DATABASE=notenportal_probe php artisan migrate:rollback --step=1 --force && DB_DATABASE=notenportal_probe php artisan migrate --force`
+Rückweg testen (Pflicht): `DB_DATABASE=notenportal_probe php artisan notenportal:migrate --rollback && DB_DATABASE=notenportal_probe php artisan notenportal:migrate`
+
+WICHTIG: Auf Prod hat der Web-Benutzer `np_web` nur Datenrechte (Least Privilege). `php artisan migrate` scheitert dort mit «command denied». Immer `php artisan notenportal:migrate` verwenden – es nimmt `DB_MIGRATE_USERNAME/-PASSWORD` aus der .env.
 
 ## Schritt 4 – Sofort Prod
 ```bash
-php artisan migrate --force
+php artisan notenportal:migrate
 php artisan optimize:clear
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/login     # muss 200 sein
 ```

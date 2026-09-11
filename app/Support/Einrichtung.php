@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Services\Notifications\MailSettings;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -25,6 +26,7 @@ final class Einrichtung
         'lehrberufe' => 'Lehrberufe & Fächer',
         'module' => 'Module',
         'personen' => 'Personen',
+        'mail' => 'E-Mail',
         'fertig' => 'Abschluss',
     ];
 
@@ -91,6 +93,7 @@ final class Einrichtung
             'lehrberufe' => ['erledigt' => $lehrberufe > 0, 'info' => $lehrberufe.' Lehrberufe · '.$faecher.' Fächer'],
             'module' => ['erledigt' => $module > 0, 'info' => $module.' Zuordnungen'],
             'personen' => ['erledigt' => $bb + $lernende > 0, 'info' => $bb.' Berufsbildner · '.$lernende.' Lernende'],
+            'mail' => ['erledigt' => MailSettings::values()['source'] !== 'none', 'info' => ''],
             'fertig' => ['erledigt' => ! self::offen(), 'info' => ''],
         ];
     }

@@ -53,6 +53,12 @@ class Note extends Model
         'modulBelegung.modul',
     ];
 
+    /** Gelöschte Note: die verknüpfte Prüfung der Agenda ist wieder offen. */
+    protected static function booted(): void
+    {
+        static::deleted(fn (Note $note) => Pruefung::where('note_id', $note->note_id)->update(['note_id' => null]));
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Beziehungen

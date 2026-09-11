@@ -1,0 +1,118 @@
+Zeugnis
+Lernende/r/Studierende/r
+Name
+Geburtsdatum
+Wohnort
+Heimatort
+Lehrberuf
+Branche
+Eintritt/Klasse
+Lehrbetrieb
+\_~ Berufsschule
+~ Musterstadt
+MusterLea
+1.Januar2009
+Musterdorf
+MusterortGR
+InformatikerinEFZ
+Plattformentwicklung
+15.August2025,TBM99A
+MusterAG
+Musterweg1
+7000Musterstadt
+Fachbezeichnung	Semester
+1 2 3 4 5 6 7 O
+Deutsch	4.5 5.0 4.0	4.5
+Mathematik	3.5 4.5 5.0	4.5
+Englisch	5.5 5.0 5.5	5.5
+Italienisch	4.5 4.0 5.0	4.5
+Naturwissenschaften	4.5	4.5
+WirtschaftundRecht	4.0	4.0
+Gesamtnote	4.5 4.6 4.7
+Promotionsentscheid	prom/prom]prom
+InterdisziplinäreArbeitenIDAF	5.5	5.5
+Absenzlektionenunentschuldigt	3
+Bemerkungen
+Musterstadt,23.Januar2027	BerufsschuleMusterstadt
+MaxMuster
+Direktor
+BedeutungderNoten
+6sehrgut
+5gut
+4genügend
+3schwach
+2sehrschwach
+1unbrauchbar
+BewertungTurnenundSport/Sport
+AübertrifftdieAnforderungen
+BerfülltdieAnforderungen
+CerfülltdieAnforderungennicht
+Zeichenerklärung
+bbesucht
+ddispensiert
+VAVertiefungsarbeit
+NPNotenportfolio
+4undhöhereNotenbezeichnengenügendeLeistungen;
+Notenunter4bezeichnenungenügendeLeistungen.
+PromotionBerufsmaturität
+Zeichenerklärung:prom=promoviertIprov=provisorischIAus=Ausschluss
+Rechtsmittelbelehrung
+
+Zeugnis
+Lernende/r/Studierende/r
+Name
+Geburtsdatum
+Wohnort
+Heimatort
+Lehrberuf
+Branche
+Eintritt/Klasse
+Lehrbetrieb
+\_~ Berufsschule
+~ Musterstadt
+MusterLea
+1.Januar2009
+Musterdorf
+MusterortGR
+InformatikerinEFZ
+Plattformentwicklung
+15.August2025,INXX4A
+MusterAG
+Musterweg1
+7000Musterstadt
+Fachbezeichnung	Semester
+1 2 3 4 5 6 7 8 0
+Informatik	NP NP NP NP
+Enalisch	d d d 4.5	4.5
+Mathematik	d d d 5.0	5.0
+DurchschnittberufskundlicheschulischeBildung(0)	4.8
+Allemeinbildung	d d d 4.0	4.0
+DurchschnittallgemeineschulischeBildunO	4.0
+Sport	b B b B
+Absenzlektionenunentschuldigt
+Bemerkungen
+Musterstadt,23.Januar2027	BerufsschuleMusterstadt
+MaxMuster
+Direktor
+BedeutungderNoten
+6sehrgut
+5gut
+4genügend
+3schwach
+2sehrschwach
+1unbrauchbar
+BewertungTurnenundSport/Sport
+AübertrifftdieAnforderungen
+BerfülltdieAnforderungen
+CerfülltdieAnforderungennicht
+Zeichenerklärung
+bbesucht
+ddispensiert
+VAVertiefungsarbeit
+NPNotenportfolio
+4undhöhereNotenbezeichnengenügendeLeistungen;
+Notenunter4bezeichnenungenügendeLeistungen.
+PromotionBerufsmaturität
+Zeichenerklärung:prom=promoviertIprov=provisorischIAus=Ausschluss
+Rechtsmittelbelehrung
+

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\Notifications\MailContent;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -41,6 +44,13 @@ class PasswortWechselController extends Controller
             'passwort_wechsel_noetig' => false,
         ]);
         $request->session()->regenerate();
+
+        Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, new MailContent(
+            subject: 'Dein Passwort wurde geändert',
+            title: 'Dein Passwort wurde geändert',
+            facts: ['Zeitpunkt' => now()->format('d.m.Y H:i')],
+            outro: ['Warst du das nicht? Dann melde dich bei einem Admin.'],
+        ));
 
         return redirect()->route('dashboard')->with('success', 'Passwort gespeichert.');
     }

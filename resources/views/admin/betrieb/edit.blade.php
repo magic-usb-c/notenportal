@@ -19,8 +19,30 @@
                 </div>
             </form>
 
+            <section class="glass rounded-2xl p-6 flex flex-col gap-5 mt-5">
+                <h3 class="text-sm font-semibold text-text">E-Mail</h3>
+                <form method="POST" action="{{ route('admin.mail.update') }}" class="flex flex-col gap-5"
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                    @csrf
+                    @method('PUT')
+                    @include('admin.betrieb._mail', ['werte' => $mailWerte])
+                    <div class="flex justify-end">
+                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+                    </div>
+                </form>
+
+                <div class="pt-5 border-t border-border flex flex-col gap-3">
+                    @include('admin.betrieb._testmail', ['testTo' => $testTo])
+                </div>
+
+                <div class="pt-1 flex flex-wrap gap-4 text-sm">
+                    <a href="{{ route('admin.mail-log.index') }}" class="text-accent hover:underline">Versandprotokoll</a>
+                    <a href="{{ route('admin.notifications.index') }}" class="text-accent hover:underline">Benachrichtigungen</a>
+                </div>
+            </section>
+
             @php
-                $veraltet = ! $letzteSicherung || $letzteSicherung->lt(now()->subDays(2));
+                $veraltet = $letzteSicherung && $letzteSicherung->lt(now()->subDays(2));
                 $groesse = fn (int $b) => $b >= 1048576 ? number_format($b / 1048576, 1).' MB' : max(1, (int) round($b / 1024)).' KB';
             @endphp
             <section class="glass rounded-2xl overflow-hidden mt-5">
@@ -66,6 +88,7 @@
                         @endforeach
                     </ul>
                 @endif
+                @include('admin.betrieb._kopie', ['kopie' => $kopie, 'werte' => $kopieWerte, 'schluessel_oeffentlich' => $kopieSchluessel])
             </section>
         </div>
     </div>

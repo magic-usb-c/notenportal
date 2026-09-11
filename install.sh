@@ -58,13 +58,19 @@ if [[ -f "$VERZ/.env" ]]; then
     echo "  .env vorhanden – Datenbank $DB bleibt unverändert"
     mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 else
+    # Least Privilege: Web-Benutzer nur Datenrechte, Migrations-Benutzer mit DDL (php artisan notenportal:migrate)
     DB_BENUTZER="${DB}_web"
     DB_PASSWORT="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
+    DB_MIGRATION="${DB}_migrate"
+    DB_MIGRATION_PASSWORT="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
     mysql <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_BENUTZER'@'localhost' IDENTIFIED BY '$DB_PASSWORT';
 ALTER USER '$DB_BENUTZER'@'localhost' IDENTIFIED BY '$DB_PASSWORT';
-GRANT ALL PRIVILEGES ON \`$DB\`.* TO '$DB_BENUTZER'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, LOCK TABLES, CREATE TEMPORARY TABLES, SHOW VIEW, EXECUTE ON \`$DB\`.* TO '$DB_BENUTZER'@'localhost';
+CREATE USER IF NOT EXISTS '$DB_MIGRATION'@'localhost' IDENTIFIED BY '$DB_MIGRATION_PASSWORT';
+ALTER USER '$DB_MIGRATION'@'localhost' IDENTIFIED BY '$DB_MIGRATION_PASSWORT';
+GRANT ALL PRIVILEGES ON \`$DB\`.* TO '$DB_MIGRATION'@'localhost';
 FLUSH PRIVILEGES;
 SQL
     cat > "$VERZ/.env" <<ENV
@@ -86,9 +92,11 @@ DB_PORT=3306
 DB_DATABASE=$DB
 DB_USERNAME=$DB_BENUTZER
 DB_PASSWORD=$DB_PASSWORT
+DB_MIGRATE_USERNAME=$DB_MIGRATION
+DB_MIGRATE_PASSWORD=$DB_MIGRATION_PASSWORT
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
-CACHE_STORE=file
+CACHE_STORE=database
 QUEUE_CONNECTION=sync
 FILESYSTEM_DISK=local
 MAIL_MAILER=log
@@ -104,7 +112,7 @@ als "npm ci --no-audit --no-fund --loglevel=error && npm run build --silent"
 
 schritt "Anwendung"
 grep -q '^APP_KEY=base64' "$VERZ/.env" || als "php artisan key:generate --force --quiet"
-als "php artisan migrate --force"
+als "php artisan config:clear --quiet && php artisan notenportal:migrate"
 als "php artisan db:seed --force --quiet"
 ZUGANG="$(als "php artisan notenportal:erstes-admin-konto $ADMIN_OPTION")"
 als "php artisan optimize --quiet"

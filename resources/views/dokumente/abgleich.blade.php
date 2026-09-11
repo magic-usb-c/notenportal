@@ -70,8 +70,10 @@
                                                 @if(! $z['sicher'] || $z['label'] !== $z['name'])
                                                     <div class="text-xs text-muted">{{ $z['label'] }}</div>
                                                 @endif
-                                                <input type="hidden" name="zeilen[{{ $i }}][bezug]" value="{{ $z['bezug'] }}">
-                                                <input type="hidden" name="zeilen[{{ $i }}][note]" value="{{ $z['note'] }}">
+                                                @if($z['bezug'])
+                                                    <input type="hidden" name="zeilen[{{ $i }}][bezug]" value="{{ $z['bezug'] }}">
+                                                    <input type="hidden" name="zeilen[{{ $i }}][note]" value="{{ $z['note'] }}">
+                                                @endif
                                             </td>
                                             <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($z['note']) }}">{{ \App\Support\NotenSkala::format($z['note'], 1) }}</td>
                                             <td class="px-3 py-2.5 text-right tabular-nums {{ \App\Support\NotenSkala::text($z['portal']) }}">{{ \App\Support\NotenSkala::format($z['portal'], 1) }}</td>
@@ -88,7 +90,7 @@
                                                     </label>
                                                 @else
                                                     <x-status :status="match ($z['status']) { 'gleich' => 'gruen', 'abweichung' => 'gelb', default => 'neutral' }"
-                                                              :text="match ($z['status']) { 'gleich' => 'stimmt', 'abweichung' => 'abweichend', default => 'fehlt' }" />
+                                                              :text="match ($z['status']) { 'gleich' => 'stimmt', 'abweichung' => 'abweichend', 'unbekannt' => 'nicht zugeordnet', default => 'fehlt' }" />
                                                 @endif
                                             </td>
                                         </tr>

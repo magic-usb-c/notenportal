@@ -74,6 +74,9 @@
                         <div class="min-w-0">
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
+                                @if($vorschau['format'] ?? null)
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-accent/10 border border-border text-accent">{{ $vorschau['format'] }}</span>
+                                @endif
                                 @foreach($vorschau['erkannt'] as $art => $index)
                                     <span class="px-2 py-0.5 rounded-full text-[11px] bg-bg/60 border border-border text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
                                 @endforeach

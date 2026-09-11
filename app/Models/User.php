@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\Notifications\MailContent;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -46,6 +49,26 @@ class User extends Authenticatable
     public function getAuthPasswordName(): string
     {
         return 'passwort_hash';
+    }
+
+    /** «Passwort vergessen»-Link, Broker «users» (config/auth.php, Standarddauer). Inaktive Konten bekommen keinen Link. */
+    public function sendPasswordResetNotification(#[\SensitiveParameter] $token): void
+    {
+        if (! $this->aktiv) {
+            return;
+        }
+
+        $minuten = (int) config('auth.passwords.users.expire');
+
+        Notifier::dispatch($this, NotificationCatalog::PASSWORD_RESET, new MailContent(
+            subject: 'Passwort zurücksetzen',
+            title: 'Passwort zurücksetzen',
+            lines: ['Du hast angefordert, dein Passwort zurückzusetzen.'],
+            facts: ['Gültig für' => $minuten.' Minuten'],
+            actionLabel: 'Neues Passwort festlegen',
+            actionUrl: route('password.reset', ['token' => $token, 'email' => $this->email]),
+            outro: ['Nicht angefordert? Dann ignorieren – dein Passwort bleibt.'],
+        ));
     }
 
     public function rollen(): BelongsToMany

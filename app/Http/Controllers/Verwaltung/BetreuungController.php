@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verwaltung;
 
+use App\Models\Berufsbildner;
 use App\Models\Betreuung;
+use App\Services\Notifications\Messages\LearnerAssigned;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -43,6 +47,11 @@ class BetreuungController extends VerwaltungController
                 'gueltig_bis' => null,
             ]);
         });
+
+        $neuerBerufsbildner = Berufsbildner::with('benutzer')->find($daten['berufsbildner_id']);
+        if ($neuerBerufsbildner?->benutzer) {
+            Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, LearnerAssigned::content($lernender->loadMissing('benutzer', 'lehrberuf')));
+        }
 
         return $this->zurueckZumLernenden($request, $lernender_id, 'Betreuung eingetragen.');
     }

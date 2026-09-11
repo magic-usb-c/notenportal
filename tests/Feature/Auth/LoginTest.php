@@ -22,7 +22,7 @@ class LoginTest extends TestCase
     #[Test]
     public function loginseite_wird_angezeigt(): void
     {
-        $this->get('/login')->assertOk()->assertDontSee('Passwort vergessen');
+        $this->get('/login')->assertOk()->assertSee('Passwort vergessen');
     }
 
     #[Test]
@@ -106,10 +106,17 @@ class LoginTest extends TestCase
     }
 
     #[Test]
-    public function registrierung_und_mail_reset_existieren_nicht(): void
+    public function registrierung_existiert_nicht(): void
     {
-        foreach (['/register', '/forgot-password', '/reset-password/token', '/verify-email', '/confirm-password'] as $uri) {
+        foreach (['/register', '/verify-email', '/confirm-password'] as $uri) {
             $this->get($uri)->assertNotFound();
         }
+    }
+
+    #[Test]
+    public function passwort_vergessen_und_zuruecksetzen_sind_erreichbar(): void
+    {
+        $this->get('/forgot-password')->assertOk();
+        $this->get('/reset-password/irgendein-token')->assertOk();
     }
 }

@@ -6,6 +6,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Services\Notifications\Messages\FeedbackAnswered;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use App\Support\Csv;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -50,17 +53,23 @@ class FeedbackController extends Controller
 
     public function update(Request $request, int $feedback_id): JsonResponse|RedirectResponse
     {
-        $feedback = Feedback::query()->findOrFail($feedback_id);
+        $feedback = Feedback::query()->with('benutzer')->findOrFail($feedback_id);
 
         $validated = $request->validate([
             'status' => ['required', 'in:'.implode(',', array_keys(Feedback::STATUS))],
             'admin_notiz' => ['nullable', 'string', 'max:5000'],
         ]);
 
+        $geaendert = $feedback->status !== $validated['status'] || $feedback->admin_notiz !== ($validated['admin_notiz'] ?? null);
+
         $feedback->status = $validated['status'];
         $feedback->admin_notiz = $validated['admin_notiz'] ?? null;
         $feedback->erledigt_am = $validated['status'] === Feedback::STATUS_ERLEDIGT ? now() : null;
         $feedback->save();
+
+        if ($geaendert && $feedback->benutzer) {
+            Notifier::send($feedback->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, FeedbackAnswered::content($feedback));
+        }
 
         if ($request->wantsJson()) {
             return response()->json([

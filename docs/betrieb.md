@@ -8,10 +8,10 @@ Server-Konfiguration und alle Änderungen ausserhalb des Repos (Datenbanken, /et
 |---|---|
 | Host | srv-lab-dva-001, 172.26.14.101/24 (ens160), ICT-LAB, geschlossenes Netz |
 | OS | Ubuntu 24.04 LTS |
-| Webserver | Apache 2.4, mpm_prefork + mod_php 8.3, vhost `notenportal.conf`, nur HTTP :80 |
+| Webserver | Apache 2.4, mpm_prefork + mod_php 8.3, vhosts `notenportal.conf` (HTTP :80) und `notenportal-ssl.conf` (HTTPS :443, Zertifikat der eigenen Lab-CA, siehe «HTTPS») |
 | PHP | 8.3 (Distro-Pakete) |
 | DB | MariaDB 10.11, Datenbanken `notenportal` (Betrieb), `notenportal_test` und `notenportal_b_test` (PHPUnit, werden bei jedem Lauf neu aufgebaut; die zweite für parallele Läufe: `DB_DATABASE=notenportal_b_test php artisan test`) |
-| DB-User | `np_web`: ALL auf `notenportal` und `notenportal_test` |
+| DB-User | `np_web` (Web, .env `DB_USERNAME`): auf `notenportal` nur SELECT/INSERT/UPDATE/DELETE/LOCK TABLES/CREATE TEMPORARY TABLES/SHOW VIEW/EXECUTE; ALL auf den Test-, Demo- und Probe-Datenbanken. `np_migrate` (.env `DB_MIGRATE_USERNAME/-PASSWORD`): ALL auf `notenportal` und `notenportal_probe`, nur für `php artisan notenportal:migrate` |
 | Firewall | ufw: SSH, 80, 443. Port 8082 (zweite Instanz) bewusst nicht freigegeben – Apache lauscht auf `*:8082`, von aussen durch ufw gesperrt, nur lokal (`http://127.0.0.1:8082`) erreichbar |
 | Backups | täglich 02:30 `storage/app/private/sicherungen/` (ZIP, 14 Stände, Seite «Betrieb»); manuelle Dumps vor Eingriffen in `~/db-backups/` |
 
@@ -29,11 +29,11 @@ find . -path './.git' -prune -o -user ubuntu ! -group www-data -exec chgrp www-d
 
 Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb ausserhalb des Labs:
 
-- HTTPS mit Zertifikat (interne CA oder öffentlich), HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`
-- `.env`: `APP_ENV=production`, `APP_DEBUG=false`, korrekte `APP_URL`, `LOG_CHANNEL=daily`
+- HTTPS: läuft seit 11.09. parallel zu HTTP mit eigener Lab-CA (siehe «HTTPS»). Offen: HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`, sobald die Geräte der Lernenden der CA vertrauen oder ein Zertifikat der Hamilton-CA vorliegt
+- `.env`: `APP_DEBUG=false`, `LOG_CHANNEL=daily`, `APP_URL` erledigt (11.09.); `APP_ENV=production` beim Go-Live
 - opcache explizit aktivieren, `config:cache`/`route:cache`/`view:cache` im Deploy
 - Sicherungen zusätzlich ausser Haus kopieren (liegen sonst auf derselben VM), Wochenstände, wöchentlicher Restore-Test
-- Least Privilege: `np_web` nur DML, separater `np_migrate` mit DDL für Migrationen
+- Least Privilege: erledigt (11.09.) – `np_web` nur DML, `np_migrate` mit DDL; Installer legt für neue Instanzen `<db>_web` (DML) und `<db>_migrate` an
 - ufw auf die berechtigten Netze einschränken
 - php-fpm + mpm_event statt mod_php + prefork
 - Security-Header (CSP, X-Frame-Options, Referrer-Policy)
@@ -43,11 +43,27 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - URL für die Lernenden: `http://172.26.14.101` (vhost `notenportal.conf`, ServerName = Lab-IP, Port 80, ufw offen).
 - Nur aus dem geschlossenen Lab-Netz erreichbar; kein DNS-Name, kein HTTPS in der Pilotphase.
 
+## HTTPS (Lab-CA, kostenlos, ohne externe Stelle)
+
+Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's Encrypt. Stattdessen eine eigene Zertifizierungsstelle auf der VM:
+
+- Dateien: `/etc/ssl/notenportal/` – `ca.crt` (öffentlich, verteilen), `ca.key` (geheim, 600), `server.crt`/`server.key` (Apache).
+- Browser vertrauen der Seite erst, wenn `ca.crt` importiert ist: Windows `certmgr.msc` → «Vertrauenswürdige Stammzertifizierungsstellen» → Importieren; macOS Schlüsselbundverwaltung → System → «Immer vertrauen»; Firefox Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren. Ohne Import: Warnung «Nicht sicher», Verbindung trotzdem verschlüsselt.
+- Serverzertifikat erneuern (vor 14.12.2028):
+```bash
+cd /etc/ssl/notenportal
+sudo openssl req -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/CN=172.26.14.101"
+sudo openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 825 -extfile ext.cnf
+sudo systemctl reload apache2
+```
+- Umstellung auf HTTPS-only (wenn alle Geräte der CA vertrauen): in `notenportal.conf` `Redirect permanent / https://172.26.14.101/`, `.env` `APP_URL=https://172.26.14.101` und `SESSION_SECURE_COOKIE=true`, dann `php artisan config:clear`.
+- Zertifikat der Hamilton-CA statt Lab-CA: nur `SSLCertificateFile`/`SSLCertificateKeyFile` in `notenportal-ssl.conf` ersetzen.
+
 ## Go-Live-Checkliste Testbetrieb (30.09.2026)
 
 1. Dump: `sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-pilot.sql`, Grösse prüfen.
-2. `git pull` auf `main`, `composer install --no-dev --optimize-autoloader`, `npm ci && npm run build`, `php artisan migrate --force`.
-3. `.env`: `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL=http://172.26.14.101`.
+2. `git pull` auf `main`, `npm ci && npm run build`, `php artisan notenportal:migrate` (Migrations-Benutzer). `composer install --no-dev` erst, wenn auf der VM nicht mehr getestet wird (entfernt PHPUnit).
+3. `.env`: `APP_ENV=production` (APP_DEBUG=false, APP_URL, LOG_CHANNEL=daily sind gesetzt). Mail-Umleitung auf Seite Betrieb leeren (sonst gehen alle Mails an die Testadresse), Testmail an eine echte Adresse senden, Versandprotokoll prüfen.
 4. Vorschau `php artisan notenportal:pilot-vorbereiten`, dann `php artisan notenportal:pilot-vorbereiten --ausfuehren` (Konten bleiben, Testnoten/Kommentare/Belegungen/Feedback weg, alle Konten müssen ihr Passwort neu setzen).
 5. Konten der Lernenden von Peter Scherrer prüfen/anlegen (Verwaltung → Lernende), Betreuungen und Tracks kontrollieren.
 6. `php artisan optimize` (Config-, Routen-, View-Cache). Tests laufen dank eigener Cache-Pfade trotzdem nur gegen `*_test`.
@@ -72,6 +88,15 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 | 10.09.2026 | Dump `notenportal-20260910-1353-vor-notenlogik.sql` + Git-Tag `pre-notenlogik`. Migration 000006 (Notenlogik) brach auf `notenportal` ab: das Prod-Schema stammt aus dem ursprünglichen SQL-Skript, CHECK-Constraints heissen dort `CONSTRAINT_1…4` statt `chk_noten_*`. Halbzustand gesichert (`…-halbmigriert.sql`), `notenportal` aus dem 13:53-Dump neu aufgebaut (seither nur migrationsbedingte Änderungen), Migration robust gemacht (IF EXISTS, CHECKs per information_schema) und erneut ausgeführt. |
 | 10.09.2026 | Datenbank `notenportal_probe` angelegt, `GRANT ALL` für np_web: Kopie des Prod-Dumps, um Migrationen vor dem Prod-Lauf zu testen (`sudo mysql notenportal_probe < dump`, dann `DB_DATABASE=notenportal_probe php artisan migrate --force`). |
 | 10.09.2026 | Migration 000007: Einstellungen `frist_inaktiv_tage` (30), `frist_lehrende_tage` (60). |
+| 11.09.2026 | `.env` Prod (Sicherung vorher `~/db-backups/env-prod-*.bak`, 600): `MAIL_MAILER=smtp`, `MAIL_SCHEME=smtps`, `MAIL_HOST=smtp.migadu.com`, `MAIL_PORT=465`, `MAIL_USERNAME`/`MAIL_FROM_ADDRESS=notenportal@vonall.men`, `MAIL_PASSWORD` (nur in .env), `QUEUE_CONNECTION=database`, `APP_URL=http://172.26.14.101` (Links in Mails). Testmail an dl.vonallmen@gmail.com angekommen. |
+| 11.09.2026 | `/etc/cron.d/notenportal` (Prod): `* * * * * www-data cd /var/www/notenportal && php artisan schedule:run` – gleicher Eintrag wie install.sh. install.sh selbst nicht auf Prod ausgeführt: `composer install --no-dev` würde PHPUnit aus der Arbeitskopie entfernen. Damit laufen Sicherung 02:30, Mail-Queue (jede Minute) und Benachrichtigungen. |
+| 11.09.2026 | Datenbank `notenportal_d_test` angelegt, `GRANT ALL` für np_web (vierte Test-DB für parallele Agents). |
+| 11.09.2026 | Dump `notenportal-20260910-2349-vor-mail.sql` + Tag `vor-mail`. Migration `2026_09_11_000001_notifications` (jobs, job_batches, failed_jobs, password_reset_tokens, notification_policies/_preferences, mail_log, notification_digest_items, notification_marks). Erster Lauf brach ab (FK `bigint` auf `benutzer.benutzer_id` = `int unsigned`), vier Queue-Tabellen und zwei leere notification-Tabellen blieben; die leeren entfernt, Migration korrigiert (`unsignedInteger`), Probe → Prod erfolgreich. |
+| 11.09.2026 | Dump `notenportal-…-vor-cache.sql` + Tag `vor-cache`, Migration `2026_09_11_000002_cache_table` (Probe → Prod), `.env` Prod `CACHE_STORE=database`: File-Cache-Verzeichnisse von www-data (0755) waren für CLI-Prozesse nicht beschreibbar, Einstellungen blieben veraltet. Einstellung `mail_redirect_to = dl.vonallmen@gmail.com` (alle Mails an Gmail bis Go-Live, Seite Betrieb). |
+| 11.09.2026 | Dump `notenportal-…-vor-agenda.sql` + Tag `vor-agenda`, Migration `2026_09_11_000003_agenda` (pruefungen: Uhrzeit, Dauer, Art, Hilfsmittel, Stoff, Notizen, Raum, Lehrperson, note_id, Quelle/extern_uid, abgesagt_am; dokumente.pruefung_id + Art «pruefung»; benutzer.kalender_token; Tabellen calendar_feeds, calendar_events) Probe (inkl. Rollback) → Prod. Composer: `sabre/vobject` ^4.5 (iCal lesen/schreiben). Scheduler: `calendar:sync` stündlich (:17). |
+| 11.09.2026 | `.env` Prod: `APP_DEBUG=false`, `LOG_CHANNEL=daily`, `LOG_LEVEL=info`. Least Privilege: DB-Benutzer `np_migrate` angelegt (Passwort nur in .env), `np_web` auf `notenportal` auf Datenrechte beschränkt (inkl. Rest-Grant auf `migrations`), Dump als np_web und alle Rollen-Seiten geprüft. Migrationen auf Prod nur noch mit `php artisan notenportal:migrate`. |
+| 11.09.2026 | HTTPS: eigene CA `/etc/ssl/notenportal/ca.crt` (10 Jahre, Schlüssel 600), Serverzertifikat für IP 172.26.14.101 + srv-lab-dva-001 (825 Tage, bis 14.12.2028), `a2enmod ssl`, vhost `notenportal-ssl.conf` (TLS 1.2/1.3) aktiviert, Apache reload. HTTP :80 bleibt ohne Umleitung. |
+| 11.09.2026 | Dump `notenportal-20260911-0026-vor-invite-tokens.sql` + Tag `vor-invite-tokens`, Migration `2026_09_11_000004_password_invite_tokens` (eigene Tabelle für Einladungs-Links, 7 Tage; «Passwort vergessen» bleibt 60 Minuten in password_reset_tokens) erst auf `notenportal_probe` inkl. Rollback, dann `notenportal`. |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.

@@ -4,11 +4,17 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Models\Kategorie;
+use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
 use App\Services\Notenblatt;
+use App\Services\Notifications\Empfaenger;
+use App\Services\Notifications\GradeWatcher;
+use App\Services\Notifications\Messages\GradeAdded;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use App\Services\Uebersicht;
 use App\Support\Csv;
 use Illuminate\Http\JsonResponse;
@@ -25,6 +31,7 @@ class NotenController extends Controller
         private readonly NoteService $noteService,
         private readonly NotenQuelle $quelle,
         private readonly Uebersicht $uebersicht,
+        private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
     ) {}
 
     public function index(Request $request)
@@ -175,7 +182,8 @@ class NotenController extends Controller
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
-        Note::create([
+        $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
+        $note = Note::create([
             'lernender_id' => (int) $lernender->lernender_id,
             'kategorie_id' => $data['kategorie_id'],
             'semester_id' => $data['semester_id'],
@@ -188,15 +196,28 @@ class NotenController extends Controller
             'erfasst_von_benutzer_id' => (int) $user->benutzer_id,
             'aktualisiert_von_benutzer_id' => null,
         ]);
+        $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
+        $this->benachrichtigeBetreuer($lernender, $note);
 
-        // Aus einer geplanten Prüfung eingetragen: Planung ist erledigt
+        // Aus einer Prüfung der Agenda eingetragen: Note hängt ab jetzt an der Prüfung
         if ($request->filled('pruefung_id')) {
-            $lernender->pruefungen()->whereKey($request->integer('pruefung_id'))->delete();
+            $lernender->pruefungen()->offen()->whereKey($request->integer('pruefung_id'))->update(['note_id' => $note->note_id]);
         }
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
         return redirect()->route('lernender.noten.index', $params)->with('success', 'Note gespeichert.');
+    }
+
+    /** Neue Note eines Lernenden → aktive Betreuer (GRADE_ADDED). */
+    private function benachrichtigeBetreuer(Lernender $lernender, Note $note): void
+    {
+        $note->loadMissing(['fach', 'modulBelegung.modul']);
+        foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
+            Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, GradeAdded::einzeln(
+                $lernender, $note, route('berufsbildner.lernende.show', $lernender->lernender_id)
+            ));
+        }
     }
 
     public function edit(Request $request, int $note_id)
@@ -247,6 +268,7 @@ class NotenController extends Controller
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
+        $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $note->update([
             'kategorie_id' => $data['kategorie_id'],
             'semester_id' => $data['semester_id'],
@@ -258,6 +280,7 @@ class NotenController extends Controller
             'gewichtung_prozent' => $data['gewichtung_prozent'],
             'aktualisiert_von_benutzer_id' => (int) $user->benutzer_id,
         ]);
+        $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 

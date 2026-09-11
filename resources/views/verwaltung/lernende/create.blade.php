@@ -48,7 +48,7 @@
                         @error('email')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="benutzername" class="{{ $label }}">Benutzername * <span class="normal-case tracking-normal">(Buchstaben, Ziffern)</span></label>
+                        <label for="benutzername" class="{{ $label }}">Benutzername * <span class="normal-case tracking-normal">(Buchstaben, Ziffern, . _ -)</span></label>
                         <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername') }}" required maxlength="50" class="{{ $feld }} font-mono">
                         @error('benutzername')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     </div>

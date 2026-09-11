@@ -25,15 +25,40 @@ final class NotenImport
         'gewicht' => ['gewicht', 'gewichtung', 'gew', 'gew.', 'gew. %', 'gewichtung %', 'gewicht %', '%', 'faktor'],
     ];
 
+    /**
+     * Schulfächer mit gängigen Namen und Kürzeln (kompakt: klein, ohne Umlaute, Leer- und Satzzeichen).
+     * «*» am Ende = Präfix. Ein Name, der hier bekannt ist, wird nie unscharf einem anderen Fach zugeordnet.
+     */
+    private const array SYNONYME = [
+        ['deutsch', 'd', 'de', 'deu'],
+        ['franzoesisch', 'f', 'fr', 'frz', 'franz', 'francais'],
+        ['englisch', 'e', 'en', 'eng', 'english'],
+        ['italienisch', 'it', 'ita', 'italiano'],
+        ['mathematik', 'm', 'ma', 'mat', 'math', 'mathe'],
+        ['naturwissenschaften', 'nw', 'nawi', 'naturwissenschaft'],
+        ['wirtschaftundrecht', 'wr', 'wirtschaftrecht', 'wirtschaft'],
+        ['geschichteundpolitik', 'gp', 'geschichtepolitik', 'geschichte'],
+        ['technikundumwelt', 'tu', 'technikumwelt'],
+        ['finanzundrechnungswesen', 'frw', 'rw', 'finanzrechnungswesen', 'rechnungswesen'],
+        ['interdisziplinaer*', 'idaf', 'idpa'],
+        ['allgemeinbildung', 'abu', 'allgemeinbildenderunterricht'],
+        ['spracheundkommunikation', 'sk', 'sprachekommunikation'],
+        ['gesellschaft', 'ges'],
+        ['vertiefungsarbeit', 'va'],
+        ['sport', 'spo', 'turnenundsport'],
+        ['informatik', 'info', 'inf'],
+    ];
+
     public function __construct(private readonly NoteService $noten) {}
 
     /**
      * @param  list<list<string>>  $tabelle
-     * @return array{zeilen: list<array<string, mixed>>, erkannt: array<string, int>}
+     * @return array{zeilen: list<array<string, mixed>>, erkannt: array<string, int>, format: ?string}
      */
     public function vorschau(array $tabelle, int $lernenderId): array
     {
-        $katalog = $this->katalog($lernenderId);
+        $format = count($tabelle[0] ?? []) === 1 && in_array($tabelle[0][0], [Schulnetz::AKTUELLE_NOTEN, Schulnetz::ZEUGNISNOTEN], true) ? $tabelle[0][0] : null;
+        $katalog = $format ? $this->bevorzugt($this->katalog($lernenderId), false) : $this->katalog($lernenderId);
         [$kopf, $spalten] = $this->spalten($tabelle, $katalog);
         $vorhanden = $this->vorhandene($lernenderId);
 
@@ -48,13 +73,14 @@ final class NotenImport
             $gewicht = $this->gewicht($roh('gewicht'));
             [$bezug, $sicher] = $this->bezug($roh('bezug') !== '' ? $roh('bezug') : $roh('titel'), $katalog);
 
-            if ($datum === null && $note === null) {
+            // Notenzeile = Note vorhanden oder Datum mit erkanntem Fach/Modul; Titel-, Kopf- und Fusszeilen fallen weg
+            if ($note === null && ($datum === null || $bezug === null)) {
                 continue;
             }
 
             $meldung = match (true) {
-                $datum === null => 'Datum nicht erkannt',
-                $note === null => 'Note ungültig',
+                $datum === null => $roh('datum') === '' ? 'Datum fehlt' : 'Datum nicht erkannt',
+                $note === null => $roh('note') === '' ? 'Note fehlt' : 'Note ungültig',
                 $gewicht === false => 'Gewicht ungültig',
                 $bezug === null => 'Fach/Modul nicht erkannt',
                 isset($vorhanden[$bezug.'|'.$datum.'|'.number_format($note, 2)]) => 'bereits erfasst',
@@ -82,7 +108,7 @@ final class NotenImport
             ];
         }
 
-        return ['zeilen' => $zeilen, 'erkannt' => $spalten];
+        return ['zeilen' => $zeilen, 'erkannt' => $format ? [] : $spalten, 'format' => $format];
     }
 
     /**
@@ -199,9 +225,10 @@ final class NotenImport
     }
 
     /**
-     * Fach/Modul zuordnen: Modulnummer im Text, exakter Name/Kürzel, sonst ähnlichster Name (unsicher).
+     * Fach/Modul zuordnen: Modulnummer im Text, exakter Name/Kürzel (auch ohne Leerzeichen, Umlaute als ae/oe/ue),
+     * bekannte Fachnamen und Kürzel, sonst ähnlichster Name (unsicher). Mehrdeutige Treffer sind unsicher.
      *
-     * @param  list<array{wert: string, label: string, nummer: ?string, namen: list<string>}>  $katalog
+     * @param  list<array{wert: string, label: string, nummer: ?string, namen: list<string>, kompakt: list<string>}>  $katalog
      * @return array{0: ?string, 1: bool}
      */
     public function bezug(string $roh, array $katalog): array
@@ -217,17 +244,33 @@ final class NotenImport
                 }
             }
         }
-        foreach ($katalog as $k) {
-            if (in_array($n, $k['namen'], true)) {
-                return [$k['wert'], true];
+
+        $varianten = $this->varianten($roh);
+        $treffer = fn (callable $passt) => array_values(array_unique(array_column(array_filter($katalog, fn (array $k) => array_filter($k['kompakt'], $passt) !== []), 'wert')));
+        foreach ($varianten as $v) {
+            if ($werte = $treffer(fn (string $name) => $name === $v)) {
+                return [$werte[0], count($werte) === 1];
             }
         }
+        foreach ($varianten as $v) {
+            $gruppe = $this->gruppe($v);
+            if ($gruppe !== null) {
+                $werte = $treffer(fn (string $name) => $this->gruppe($name) === $gruppe);
+
+                return $werte ? [$werte[0], count($werte) === 1] : [null, false];
+            }
+        }
+
+        $v = $varianten[0] ?? '';
         $best = null;
         $bestWert = 0.0;
         foreach ($katalog as $k) {
-            foreach ($k['namen'] as $name) {
-                similar_text($n, $name, $prozent);
-                if ((str_contains($n, $name) && mb_strlen($name) >= 4) || (mb_strlen($n) >= 4 && str_starts_with($name, $n))) {
+            foreach ($k['kompakt'] as $name) {
+                if (mb_strlen($name) < 2) {
+                    continue;
+                }
+                similar_text($v, $name, $prozent);
+                if ((str_contains($v, $name) && mb_strlen($name) >= 4) || (mb_strlen($v) >= 4 && str_starts_with($name, $v))) {
                     $prozent = max($prozent, 90.0);
                 }
                 if ($prozent > $bestWert) {
@@ -235,11 +278,42 @@ final class NotenImport
                 }
             }
         }
+        if ($bestWert >= 75) {
+            return [$best, false];
+        }
 
-        return $bestWert >= 75 ? [$best, false] : [null, false];
+        // OCR-Fehler in bekannten Fachnamen («Enalisch», «Allemeinbildung»)
+        foreach (self::SYNONYME as $g => $namen) {
+            similar_text($v, rtrim($namen[0], '*'), $prozent);
+            if (mb_strlen($v) >= 5 && $prozent >= 85) {
+                $werte = $treffer(fn (string $name) => $this->gruppe($name) === $g);
+
+                return $werte ? [$werte[0], false] : [null, false];
+            }
+        }
+
+        return [null, false];
     }
 
-    /** @return list<array{wert: string, label: string, nummer: ?string, namen: list<string>}> */
+    /**
+     * BM-Quelle: nur BM-Fächer (und Module). Sonst BM-Fächer weglassen, die es gleichnamig auch ohne BM gibt
+     * (Englisch der Berufsfachschule vs. Englisch der BM).
+     *
+     * @param  list<array<string, mixed>>  $katalog
+     * @return list<array<string, mixed>>
+     */
+    public function bevorzugt(array $katalog, bool $bm): array
+    {
+        $istFach = fn (array $k) => str_starts_with((string) $k['wert'], 'fach:');
+        if ($bm) {
+            return array_values(array_filter($katalog, fn (array $k) => ! $istFach($k) || $k['bms']));
+        }
+        $andere = array_merge([], ...array_values(array_map(fn (array $k) => $k['kompakt'], array_filter($katalog, fn (array $k) => $istFach($k) && ! $k['bms']))));
+
+        return array_values(array_filter($katalog, fn (array $k) => ! $istFach($k) || ! $k['bms'] || array_intersect($k['kompakt'], $andere) === []));
+    }
+
+    /** @return list<array{wert: string, label: string, nummer: ?string, namen: list<string>, kompakt: list<string>, bms: bool}> */
     public function katalog(int $lernenderId): array
     {
         $optionen = $this->noten->formOptionsForLernender($lernenderId);
@@ -247,14 +321,51 @@ final class NotenImport
         foreach ($optionen['module'] as $m) {
             $nummer = $this->norm((string) $m->modul_nummer);
             $katalog[] = ['wert' => 'modul:'.$m->modul_id, 'label' => trim($m->modul_nummer.' '.$m->titel), 'nummer' => $nummer,
-                'namen' => [$this->norm($m->titel), $this->norm($m->modul_nummer.' '.$m->titel)]];
+                'namen' => [$this->norm($m->titel), $this->norm($m->modul_nummer.' '.$m->titel)],
+                'kompakt' => array_values(array_filter([ZeugnisText::kompakt($m->titel), ZeugnisText::kompakt($m->modul_nummer.' '.$m->titel)])),
+                'bms' => false];
         }
         foreach ($optionen['faecher'] as $f) {
             $katalog[] = ['wert' => 'fach:'.$f->fach_id, 'label' => $f->name, 'nummer' => null,
-                'namen' => array_values(array_filter([$this->norm($f->name), $this->norm((string) $f->kurzname)]))];
+                'namen' => array_values(array_filter([$this->norm($f->name), $this->norm((string) $f->kurzname)])),
+                'kompakt' => array_values(array_filter([ZeugnisText::kompakt($f->name), ZeugnisText::kompakt((string) $f->kurzname)])),
+                'bms' => $f->track_typ === 'BMS' || $f->kategorie?->code === 'BMS'];
         }
 
         return $katalog;
+    }
+
+    /**
+     * Schreibweisen eines Bezugs: ganz, ohne Schulnetz-Marker «(r)»/«(K)», Klammerinhalt, Kürzel am Ende («…ArbeitenIDAF»).
+     *
+     * @return list<string>
+     */
+    private function varianten(string $roh): array
+    {
+        $ohne = trim(preg_replace('/\((?:r|k)\)/iu', ' ', $roh) ?? $roh);
+        $v = [ZeugnisText::kompakt($ohne)];
+        if (preg_match_all('/\(([^()]{1,40})\)/u', $ohne, $m)) {
+            $v[] = ZeugnisText::kompakt((string) preg_replace('/\([^()]*\)/u', ' ', $ohne));
+            array_push($v, ...array_map(ZeugnisText::kompakt(...), $m[1]));
+        }
+        if (preg_match('/^(.*\p{Ll})\s*(\p{Lu}{2,6})$/u', $ohne, $m)) {
+            array_push($v, ZeugnisText::kompakt($m[2]), ZeugnisText::kompakt($m[1]));
+        }
+
+        return array_values(array_unique(array_filter($v)));
+    }
+
+    private function gruppe(string $kompakt): ?int
+    {
+        foreach (self::SYNONYME as $g => $namen) {
+            foreach ($namen as $name) {
+                if ($kompakt === $name || (str_ends_with($name, '*') && str_starts_with($kompakt, rtrim($name, '*')))) {
+                    return $g;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

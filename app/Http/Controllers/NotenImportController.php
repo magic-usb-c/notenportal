@@ -9,6 +9,11 @@ use App\Services\Dokumente\Ablage;
 use App\Services\Import\NotenImport;
 use App\Services\Import\TabellenLeser;
 use App\Services\Noten\NoteService;
+use App\Services\Notifications\Empfaenger;
+use App\Services\Notifications\GradeWatcher;
+use App\Services\Notifications\Messages\GradeAdded;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -27,6 +32,7 @@ class NotenImportController extends Controller
         private readonly NotenImport $import,
         private readonly TabellenLeser $leser,
         private readonly NoteService $noten,
+        private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
     ) {}
 
     public function index(Request $request): View
@@ -75,9 +81,21 @@ class NotenImportController extends Controller
         $zeilen = json_decode((string) $request->input('zeilen'), true);
         abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
 
+        $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
         if ($ergebnis['neu'] === 0) {
             return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : 'Keine Zeile ausgewählt.');
+        }
+        $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
+
+        // Eigener Import des Lernenden (nicht durch Verwaltung) → aktive Betreuer, eine Sammelmeldung
+        if ($bereich === null) {
+            $lernender->loadMissing('benutzer');
+            foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
+                Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, GradeAdded::sammel(
+                    $lernender, $ergebnis['neu'], route('berufsbildner.lernende.show', $lernender->lernender_id)
+                ));
+            }
         }
 
         $request->session()->forget($this->schluessel($lernender));

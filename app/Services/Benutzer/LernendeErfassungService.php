@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Benutzer;
 
 use App\Models\User;
+use App\Services\Notifications\AccountMails;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -30,7 +31,9 @@ class LernendeErfassungService
      */
     public function erstellen(array $data, ?int $berufsbildnerId = null): int
     {
-        return (int) DB::transaction(function () use ($data, $berufsbildnerId) {
+        $user = null;
+
+        $lernenderId = (int) DB::transaction(function () use ($data, $berufsbildnerId, &$user) {
             // 1) Benutzer-Account
             $user = User::create([
                 'vorname' => $data['vorname'],
@@ -91,5 +94,9 @@ class LernendeErfassungService
 
             return $lernenderId;
         });
+
+        AccountMails::accountCreated($user);
+
+        return $lernenderId;
     }
 }

@@ -54,7 +54,7 @@ final class Uebersicht
             ];
         }
 
-        $pruefungen = $l->pruefungen()->with(['fach', 'modul'])->orderBy('datum')->get();
+        $pruefungen = $l->pruefungen()->offen()->with(['fach', 'modul'])->orderBy('datum')->get();
         $heute = now()->startOfDay();
         $ueberfaellig = $pruefungen->filter(fn (Pruefung $p) => $p->datum->lt($heute))->values();
         $naechste = $pruefungen->filter(fn (Pruefung $p) => $p->datum->gte($heute))->take(5)->values();
@@ -117,7 +117,7 @@ final class Uebersicht
             ],
             'brennpunkte' => $this->brennpunkte($zeilen),
             'vergleich' => $this->vergleichDiagramm($zeilen),
-            'pruefungen' => Pruefung::query()->whereIn('lernender_id', $ids)->with(['fach', 'modul', 'lernender.benutzer'])
+            'pruefungen' => Pruefung::query()->offen()->whereIn('lernender_id', $ids)->with(['fach', 'modul', 'lernender.benutzer'])
                 ->whereBetween('datum', [now()->toDateString(), now()->addDays(14)->toDateString()])->orderBy('datum')->get(),
             'lehrende' => $this->lehrendeBald($lernende),
             'grenzen' => \App\Support\NotenSkala::grenzen(),
@@ -183,7 +183,7 @@ final class Uebersicht
         $id = (int) $l->lernender_id;
         $stand = $this->lernstaende->fuer([$id])[$id];
         $a = $stand->auswertung;
-        $pruefungen = $l->pruefungen()->with(['fach', 'modul'])->orderBy('datum')->get();
+        $pruefungen = $l->pruefungen()->offen()->with(['fach', 'modul'])->orderBy('datum')->get();
 
         return [
             'stand' => $stand,

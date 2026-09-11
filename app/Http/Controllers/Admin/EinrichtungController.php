@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
+use App\Services\Notifications\AccountMails;
+use App\Services\Notifications\MailSettings;
 use App\Support\Betrieb;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
@@ -249,7 +251,8 @@ class EinrichtungController extends Controller
         ], [], self::ATTRIBUTE);
 
         $rollen = DB::table('rollen')->pluck('rolle_id', 'name');
-        $zugaenge = DB::transaction(function () use ($daten, $rollen) {
+        $neueBenutzer = [];
+        $zugaenge = DB::transaction(function () use ($daten, $rollen, &$neueBenutzer) {
             $zugaenge = [];
             foreach ($daten['personen'] as $p) {
                 $passwort = Startpasswort::erzeugen();
@@ -266,11 +269,16 @@ class EinrichtungController extends Controller
                 if ($p['rolle'] === 'Berufsbildner') {
                     Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
                 }
+                $neueBenutzer[] = $user;
                 $zugaenge[] = ['name' => $p['vorname'].' '.$p['nachname'], 'rolle' => $p['rolle'], 'email' => $p['email'], 'passwort' => $passwort];
             }
 
             return $zugaenge;
         });
+
+        foreach ($neueBenutzer as $user) {
+            AccountMails::accountCreated($user);
+        }
 
         $this->merken($request, $zugaenge);
 
@@ -333,6 +341,14 @@ class EinrichtungController extends Controller
             ->with('success', (count($zugaenge) === 1 ? '1 Lernende/r' : count($zugaenge).' Lernende').' angelegt.');
     }
 
+    public function mail(Request $request): RedirectResponse
+    {
+        $daten = $request->validate(MailSettings::rules());
+        MailSettings::save($daten);
+
+        return $this->weiter('mail', 'E-Mail gespeichert.');
+    }
+
     public function abschliessen(Request $request): RedirectResponse
     {
         Einrichtung::abschliessen();
@@ -393,6 +409,7 @@ class EinrichtungController extends Controller
                 'lehrbeginn' => $schuljahr.'-08-01',
                 'semesterVorhanden' => DB::table('semester')->exists(),
             ],
+            'mail' => ['werte' => MailSettings::values(), 'testTo' => MailSettings::values()[MailSettings::REDIRECT_TO] ?: (string) $request->user()->email],
             default => [],
         };
     }

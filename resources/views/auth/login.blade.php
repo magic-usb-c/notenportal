@@ -56,4 +56,8 @@
         </div>
     </form>
 
+    <p class="mt-4 text-center text-sm">
+        <a href="{{ route('password.request') }}" class="text-muted hover:text-text">Passwort vergessen?</a>
+    </p>
+
 </x-guest-layout>

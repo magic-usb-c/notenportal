@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Berufsbildner;
 use App\Models\User;
+use App\Services\Notifications\AccountMails;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -89,12 +90,12 @@ class BenutzerController extends Controller
             'vorname' => ['required', 'string', 'max:100'],
             'nachname' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:benutzer,email'],
-            'benutzername' => ['required', 'string', 'max:50', 'unique:benutzer,benutzername', 'alpha_num'],
+            'benutzername' => ['required', 'string', 'max:50', 'regex:/^[A-Za-z0-9._-]+$/', 'unique:benutzer,benutzername'],
             'passwort' => ['required', 'string', 'confirmed', Password::defaults()],
             'rolle_id' => ['required', 'integer', Rule::in($rollen->values()->all())],
         ]);
 
-        DB::transaction(function () use ($validated, $rollen) {
+        $user = DB::transaction(function () use ($validated, $rollen) {
             $user = User::create([
                 'vorname' => $validated['vorname'],
                 'nachname' => $validated['nachname'],
@@ -110,7 +111,11 @@ class BenutzerController extends Controller
             if ((int) $validated['rolle_id'] === (int) $rollen['Berufsbildner']) {
                 Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
             }
+
+            return $user;
         });
+
+        AccountMails::accountCreated($user);
 
         return redirect()->route('admin.benutzer.index')->with('success', 'Benutzer angelegt.');
     }
@@ -152,6 +157,8 @@ class BenutzerController extends Controller
             throw ValidationException::withMessages(['rollen' => 'Aktive Betreuungen zuerst übergeben.']);
         }
 
+        $passwortZurueckgesetzt = ! empty($validated['passwort']);
+
         DB::transaction(function () use ($user, $validated, $rollen, $berufsbildner) {
             $user->fill([
                 'vorname' => $validated['vorname'],
@@ -171,6 +178,10 @@ class BenutzerController extends Controller
 
             $user->save();
         });
+
+        if ($passwortZurueckgesetzt) {
+            AccountMails::passwordResetByAdmin($user);
+        }
 
         return redirect()->route('admin.benutzer.edit', $benutzer_id)->with('success', 'Benutzer gespeichert.');
     }

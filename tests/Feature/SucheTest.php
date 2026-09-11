@@ -40,6 +40,9 @@ class SucheTest extends TestCase
 
         $lernender = User::factory()->lernender()->create();
         $this->actingAs($lernender)->getJson(route('suche', ['q' => 'zora']))->assertOk()->assertExactJson([]);
+
+        // Direkter Aufruf im Browser zeigt kein rohes JSON
+        $this->actingAs($lernender)->get(route('suche'))->assertRedirect(route('dashboard'));
     }
 
     #[Test]

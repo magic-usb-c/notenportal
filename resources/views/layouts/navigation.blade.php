@@ -113,6 +113,7 @@
                     </x-slot>
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">Profil</x-dropdown-link>
+                        <x-dropdown-link :href="route('notifications.settings')">Benachrichtigungen</x-dropdown-link>
                         <x-dropdown-link :href="route('feedback.index')">Meine Meldungen</x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -156,6 +157,7 @@
                 <div class="text-muted text-xs">{{ $u->email ?? '' }}</div>
             </div>
             <a href="{{ route('profile.edit') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Profil</a>
+            <a href="{{ route('notifications.settings') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Benachrichtigungen</a>
             <a href="{{ route('feedback.index') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Meine Meldungen</a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf

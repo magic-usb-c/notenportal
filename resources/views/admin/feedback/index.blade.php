@@ -2,7 +2,7 @@
     <x-slot name="title">Feedback</x-slot>
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Admin: Feedback</h2>
+            <h2 class="font-semibold text-xl text-text">Feedback</h2>
             <a href="{{ route('admin.feedback.export', request()->query()) }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
                 CSV-Export
