@@ -8,7 +8,7 @@
             </h2>
             <div class="flex items-center gap-2 flex-wrap">
                 @if($neuCount > 0)
-                    <form method="POST" action="{{ route("{$bereich}.lernende.noten.alle_gesehen", $lernender->lernender_id) }}"
+                    <form method="POST" action="{{ route("{$bereich}.learners.grades.seen_all", $lernender->lernender_id) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         @foreach(['kategorie_id', 'semester_id'] as $f)
@@ -23,14 +23,14 @@
                     </form>
                 @endif
                 @can('noteAnlegen', $lernender)
-                    <a href="{{ route("{$bereich}.lernende.noten.create", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.grades.create", $lernender->lernender_id) }}"
                        class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">+ Note erfassen</a>
                 @endcan
-                <a href="{{ route("{$bereich}.lernende.noten.drucken", $lernender->lernender_id) }}" target="_blank"
+                <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">Drucken</a>
-                <a href="{{ route("{$bereich}.lernende.noten.export", ['lernender_id' => $lernender->lernender_id, ...request()->only(['semester_id', 'kategorie_id'])]) }}"
+                <a href="{{ route("{$bereich}.learners.grades.export", ['lernender_id' => $lernender->lernender_id, ...request()->only(['semester_id', 'kategorie_id'])]) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">CSV</a>
-                <a href="{{ route("{$bereich}.lernende.show", $lernender->lernender_id) }}"
+                <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">Profil</a>
             </div>
         </div>
@@ -51,7 +51,7 @@
             @php
                 $a = $stand->auswertung;
                 $semNr = $semesterId ?: $stand->semesterId;
-                $detailUrl = route($bereich.'.lernende.show', $lernender->lernender_id);
+                $detailUrl = route($bereich.'.learners.show', $lernender->lernender_id);
                 $semNote = $semNr ? $a->semester($semNr)['note'] : null;
             @endphp
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -76,13 +76,13 @@
                     <label for="lernenden_wechseln" class="{{ $label }}">Lernender</label>
                     <select id="lernenden_wechseln" class="{{ $feld }}" onchange="if (this.value) window.location.href = this.value">
                         @foreach($switcher as $l)
-                            <option value="{{ route("{$bereich}.lernende.noten.index", $l->lernender_id) }}" @selected($l->lernender_id === $lernender->lernender_id)>
+                            <option value="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}" @selected($l->lernender_id === $lernender->lernender_id)>
                                 {{ $l->benutzer->nachname }} {{ $l->benutzer->vorname }}
                             </option>
                         @endforeach
                     </select>
                 </div>
-                <form method="GET" action="{{ route("{$bereich}.lernende.noten.index", $lernender->lernender_id) }}" class="contents">
+                <form method="GET" action="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}" class="contents">
                     <div>
                         <label for="kategorie_id" class="{{ $label }}">Kategorie</label>
                         <select id="kategorie_id" name="kategorie_id" onchange="this.form.submit()" class="{{ $feld }}">
@@ -104,7 +104,7 @@
                     <div class="flex gap-2">
                         <button class="px-4 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">Filtern</button>
                         @if($gefiltert)
-                            <a href="{{ route("{$bereich}.lernende.noten.index", $lernender->lernender_id) }}"
+                            <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
                                class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurücksetzen</a>
                         @endif
                     </div>
@@ -172,7 +172,7 @@
 
                             <div class="px-5 pb-4 flex flex-wrap items-center justify-between gap-3">
                                 @if($istNeu)
-                                    <form method="POST" action="{{ route("{$bereich}.lernende.noten.gesehen", [$lernender->lernender_id, $n->note_id]) }}"
+                                    <form method="POST" action="{{ route("{$bereich}.learners.grades.seen", [$lernender->lernender_id, $n->note_id]) }}"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         <button type="submit" :disabled="loading"
@@ -184,11 +184,11 @@
 
                                 <div class="flex items-center gap-2">
                                     @if($darfKorrigieren)
-                                        <a href="{{ route("{$bereich}.lernende.noten.edit", [$lernender->lernender_id, $n->note_id]) }}"
+                                        <a href="{{ route("{$bereich}.learners.grades.edit", [$lernender->lernender_id, $n->note_id]) }}"
                                            class="inline-flex items-center px-3 min-h-[36px] rounded-xl text-xs text-accent border border-accent/20 hover:bg-accent/10">Korrigieren</a>
                                     @endif
                                     @if($darfLoeschen)
-                                        <form method="POST" action="{{ route("{$bereich}.lernende.noten.destroy", [$lernender->lernender_id, $n->note_id]) }}"
+                                        <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm('Note löschen?');">
                                             @csrf
@@ -210,7 +210,7 @@
                                                 &middot; {{ $k->erstellt_am->format('d.m.Y H:i') }} Uhr
                                             </div>
                                             @if((int) $k->autor_benutzer_id === $viewerId || $bereich === 'admin')
-                                                <form method="POST" action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
+                                                <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                       onsubmit="return confirm('Kommentar löschen?');">
                                                     @csrf
@@ -226,7 +226,7 @@
                                 @endforelse
                             </div>
 
-                            <form method="POST" action="{{ route('noten.kommentare.store', $n->note_id) }}"
+                            <form method="POST" action="{{ route('comments.store', $n->note_id) }}"
                                   class="border-t border-border px-5 py-4 flex gap-2 items-end"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
@@ -243,7 +243,7 @@
                     <div class="glass rounded-2xl px-5 py-12 text-center">
                         <h3 class="font-semibold text-text">{{ $gefiltert ? 'Keine Noten im Filter' : 'Noch keine Noten' }}</h3>
                         @if($gefiltert)
-                            <a href="{{ route("{$bereich}.lernende.noten.index", $lernender->lernender_id) }}"
+                            <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
                                class="mt-4 inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Filter zurücksetzen</a>
                         @endif
                     </div>

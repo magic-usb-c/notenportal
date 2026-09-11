@@ -26,16 +26,16 @@ class ZugriffsschutzTest extends TestCase
         'dashboard',
         'profile.edit',
         'profile.update',
-        'profile.darstellung',
+        'profile.appearance',
         'password.update',
-        'passwort.wechsel',
-        'passwort.wechsel.speichern',
+        'password.initial',
+        'password.initial.update',
         'logout',
-        'noten.kommentare.store',
-        'noten.kommentare.destroy',
+        'comments.store',
+        'comments.destroy',
         'feedback.store',
         'feedback.index',
-        'suche',
+        'search',
         'notifications.settings',
         'notifications.settings.update',
     ];
@@ -45,6 +45,7 @@ class ZugriffsschutzTest extends TestCase
         '/', 'login', 'up',
         'notifications.unsubscribe', 'notifications.unsubscribe.store',
         'password.request', 'password.email', 'password.reset', 'password.store',
+        '{fallbackPlaceholder}', // alte deutsche Pfade → 301 (LegacyPaths), sonst 404
     ];
 
     #[Test]

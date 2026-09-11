@@ -35,7 +35,7 @@ Für jeden geänderten Pfad (Beispiel `/dashboard`):
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/login          # 200
 cd ~/tools/visual
 node breite.mjs http://127.0.0.1 admin@example.local Chur7000 --breite=390 /dashboard /pfad2
-node breite.mjs http://127.0.0.1 david.vonallmen@example.local Chur7000 --breite=390 /lernender/pfad
+node breite.mjs http://127.0.0.1 david.vonallmen@example.local Chur7000 --breite=390 /grades
 cd /var/www/notenportal
 ```
 Kriterium: jede Zeile beginnt mit `200 ✓`. `✗` = seitliches Überlaufen → beheben.

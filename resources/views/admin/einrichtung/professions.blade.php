@@ -1,4 +1,4 @@
-<x-einrichtung schritt="lehrberufe" :stand="$stand" titel="Lehrberufe & Fächer">
+<x-einrichtung schritt="professions" :stand="$stand" titel="Lehrberufe & Fächer">
     @php
         $vorlagen = \App\Support\Einrichtung::LEHRBERUFE;
         $vorhandenKuerzel = $lehrberufe->pluck('kuerzel')->map(fn ($k) => strtoupper($k))->all();
@@ -9,7 +9,7 @@
         $faecherGewaehlt = old('faecher', $faecher->isEmpty() ? \App\Support\Einrichtung::VORAUSWAHL_FAECHER : []);
         $feld = 'h-10 rounded-lg border border-border bg-input text-text px-3 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
     @endphp
-    <form method="POST" action="{{ route('admin.einrichtung.lehrberufe') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.professions') }}" class="flex flex-col gap-5"
           x-data="{ loading: false, eigene: {{ \Illuminate\Support\Js::from(old('eigene', [['kuerzel' => '', 'name' => '']])) }} }"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
@@ -79,6 +79,6 @@
             </ul>
         @endif
 
-        @include('admin.einrichtung._fuss', ['schritt' => 'lehrberufe'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'professions'])
     </form>
 </x-einrichtung>

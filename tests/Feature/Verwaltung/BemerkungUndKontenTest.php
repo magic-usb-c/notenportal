@@ -21,9 +21,9 @@ class BemerkungUndKontenTest extends TestCase
         $note = Note::factory()->create(['lernender_id' => $user->lernender->lernender_id]);
 
         foreach ([
-            route('lernender.dashboard'),
-            route('lernender.noten.index', ['semester_id' => $note->semester_id]),
-            route('lernender.noten.drucken'),
+            route('learner.dashboard'),
+            route('learner.grades.index', ['semester_id' => $note->semester_id]),
+            route('learner.grades.print'),
             route('profile.edit'),
         ] as $url) {
             $this->actingAs($user)->get($url)->assertOk()->assertDontSee(self::BEMERKUNG);
@@ -37,9 +37,9 @@ class BemerkungUndKontenTest extends TestCase
     {
         $lernender = $this->neuerLernender([], ['bemerkung' => self::BEMERKUNG]);
 
-        foreach (['admin', 'berufsbildner'] as $rolle) {
+        foreach (['admin', 'trainer'] as $rolle) {
             $this->actingAs($this->verwalter($rolle, $lernender))
-                ->get(route("{$rolle}.lernende.show", $lernender->lernender_id))
+                ->get(route("{$rolle}.learners.show", $lernender->lernender_id))
                 ->assertSee(self::BEMERKUNG);
         }
     }
@@ -55,17 +55,17 @@ class BemerkungUndKontenTest extends TestCase
             'benutzername' => 'bea',
         ];
 
-        $this->actingAs($admin)->post(route('admin.benutzer.store'), $basis + [
+        $this->actingAs($admin)->post(route('admin.users.store'), $basis + [
             'passwort' => 'Kurz12', 'passwort_confirmation' => 'Kurz12',
             'rolle_id' => Rolle::where('name', 'Berufsbildner')->value('rolle_id'),
         ])->assertSessionHasErrors('passwort');
 
-        $this->actingAs($admin)->post(route('admin.benutzer.store'), $basis + [
+        $this->actingAs($admin)->post(route('admin.users.store'), $basis + [
             'passwort' => 'Sicher12345', 'passwort_confirmation' => 'Sicher12345',
             'rolle_id' => Rolle::where('name', 'Lernender')->value('rolle_id'),
         ])->assertSessionHasErrors('rolle_id');
 
-        $this->actingAs($admin)->post(route('admin.benutzer.store'), $basis + [
+        $this->actingAs($admin)->post(route('admin.users.store'), $basis + [
             'passwort' => 'Sicher12345', 'passwort_confirmation' => 'Sicher12345',
             'rolle_id' => Rolle::where('name', 'Berufsbildner')->value('rolle_id'),
         ])->assertSessionHasNoErrors();
@@ -81,9 +81,9 @@ class BemerkungUndKontenTest extends TestCase
         $admin = User::factory()->admin()->create();
         $lernender = $this->neuerLernender();
 
-        $this->actingAs($admin)->get(route('admin.benutzer.edit', $lernender->benutzer_id))
-            ->assertRedirect(route('admin.lernende.show', $lernender->lernender_id));
-        $this->actingAs($admin)->post(route('admin.benutzer.toggle-aktiv', $lernender->benutzer_id))->assertNotFound();
+        $this->actingAs($admin)->get(route('admin.users.edit', $lernender->benutzer_id))
+            ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
+        $this->actingAs($admin)->post(route('admin.users.toggle-active', $lernender->benutzer_id))->assertNotFound();
         $this->assertTrue($lernender->benutzer->fresh()->aktiv);
     }
 }

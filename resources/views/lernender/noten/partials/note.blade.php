@@ -8,7 +8,7 @@
     $letzter = $n->kommentare->last();
 @endphp
 <details class="np-note-detail group" data-note-id="{{ $n->note_id }}"
-         x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('lernender.noten.titel.update', $n->note_id) }}')">
+         x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
     <summary class="cursor-pointer select-none list-none px-4 py-3 flex items-start justify-between gap-3 hover:bg-accent/5 transition-colors">
         <div class="flex items-start gap-2 min-w-0">
             <span class="np-chevron-note text-muted transition-transform duration-200 shrink-0 mt-1" aria-hidden="true">
@@ -39,8 +39,8 @@
             <span class="text-xs text-muted tabular-nums">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
             <x-note :wert="$n->note_wert" class="text-xl font-bold min-w-11 text-right" />
             <div class="flex gap-1 text-xs" onclick="event.stopPropagation()">
-                <a class="inline-flex items-center px-2.5 min-h-9 rounded-lg text-accent hover:bg-accent/10" href="{{ route('lernender.noten.edit', $n->note_id) }}">Bearbeiten</a>
-                <form method="POST" action="{{ route('lernender.noten.destroy', $n->note_id) }}"
+                <a class="inline-flex items-center px-2.5 min-h-9 rounded-lg text-accent hover:bg-accent/10" href="{{ route('learner.grades.edit', $n->note_id) }}">Bearbeiten</a>
+                <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                       onsubmit="return confirm('Note wirklich löschen?');">
                     @csrf
@@ -82,7 +82,7 @@
                             <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span> · {{ $k->erstellt_am->format('d.m.Y H:i') }}
                         </div>
                         @if((int) $k->autor_benutzer_id === $ich)
-                            <form method="POST" action="{{ route('noten.kommentare.destroy', $k->kommentar_id) }}"
+                            <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                   onsubmit="return confirm('Kommentar wirklich löschen?');">
                                 @csrf
@@ -98,7 +98,7 @@
             @endforelse
         </div>
 
-        <form method="POST" action="{{ route('noten.kommentare.store', $n->note_id) }}" class="border-t border-border px-5 py-4 flex gap-2"
+        <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="border-t border-border px-5 py-4 flex gap-2"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="text" name="kommentar_text" placeholder="Kommentar schreiben" aria-label="Kommentar schreiben" maxlength="2000" required

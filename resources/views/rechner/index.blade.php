@@ -33,7 +33,7 @@
                             <span class="font-semibold tabular-nums" x-text="'≥ ' + fmt(z.zielwert)"></span>
                         </button>
                         @if($zielUrl)
-                            <form method="POST" :action="@js(route('lernender.ziele.destroy', 0)).replace(/0$/, z.id)" class="pr-1">
+                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1">
                                 @csrf
                                 @method('DELETE')
                                 <button class="w-9 h-9 inline-flex items-center justify-center rounded-full text-muted hover:text-text hover:bg-bg" aria-label="Ziel entfernen">×</button>

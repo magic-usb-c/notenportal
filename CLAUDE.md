@@ -20,6 +20,7 @@ Weiterführend: `docs/endspurt-plan.md` (Ideensammlung) · `docs/gui-konzept.md`
 - Noten-Queries immer mit `whereNull('geloescht_am')`. Kein Raw-SQL ohne Binding.
 - Mutierende Actions: Redirect mit `->with('success'|'error', '…')`.
 - `.env` nie committen.
+- Routennamen und URL-Pfade englisch (`learner.*`, `trainer.*`, `admin.*`), neuer Code englisch, Oberfläche Deutsch. Alte deutsche Pfade leitet `App\Support\LegacyPaths` per 301 weiter; neue Segmente dort ergänzen, wenn ein Pfad umbenannt wird.
 
 ## Datenbank
 - Least Privilege: `np_web` (App) hat auf `notenportal` nur Datenrechte, `np_migrate` die Schemarechte. Migrationen auf Prod/Probe immer `php artisan notenportal:migrate` (Skill `notenportal-migration`). Auf `notenportal_test` hat `np_web` ALL.

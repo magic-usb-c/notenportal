@@ -7,8 +7,8 @@
                 <p class="text-sm text-muted">{{ now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('berufsbildner.noten.export_alle') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
-                <a href="{{ route('berufsbildner.lernende.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                <a href="{{ route('trainer.grades.export_all') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
+                <a href="{{ route('trainer.learners.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                     <span class="text-lg leading-none">+</span> Lernende
                 </a>
             </div>
@@ -20,7 +20,7 @@
              x-data="{ filter: 'alle', suche: '' }">
 
             <div class="lg:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
-                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('berufsbildner.lernende.index')" />
+                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('trainer.learners.index')" />
                 <x-kachel label="Neue Noten" :wert="$kennzahlen['neu']" :ton="$kennzahlen['neu'] ? 'accent' : 'neutral'" @click.prevent="filter = 'neu'" href="#klasse" />
                 <x-kachel label="Kritisch" :wert="$kennzahlen['rot']" :ton="$kennzahlen['rot'] ? 'rot' : 'neutral'" @click.prevent="filter = 'rot'" href="#klasse" />
                 <x-kachel label="Beobachten" :wert="$kennzahlen['gelb']" :ton="$kennzahlen['gelb'] ? 'gelb' : 'neutral'" @click.prevent="filter = 'gelb'" href="#klasse" />
@@ -67,7 +67,7 @@
                                                 <span @class(['w-2.5 h-2.5 rounded-full shrink-0', 'bg-red-500' => $s->status === 'rot', 'bg-yellow-500' => $s->status === 'gelb', 'bg-green-500' => $s->status === 'gruen'])
                                                       title="{{ ['rot' => 'kritisch', 'gelb' => 'beobachten', 'gruen' => 'im Plan'][$s->status] }}"></span>
                                                 <div class="min-w-0">
-                                                    <a href="{{ route('berufsbildner.lernende.show', $z->lernender->lernender_id) }}" class="font-semibold text-text hover:text-accent">{{ $b->vorname }} {{ $b->nachname }}</a>
+                                                    <a href="{{ route('trainer.learners.show', $z->lernender->lernender_id) }}" class="font-semibold text-text hover:text-accent">{{ $b->vorname }} {{ $b->nachname }}</a>
                                                     <div class="text-xs text-muted truncate">
                                                         {{ $z->lernender->lehrberuf?->kuerzel }}@if($z->lehrjahr) · {{ $z->lehrjahr }}. Lehrjahr @endif @if($z->lernender->klasse_schule) · {{ $z->lernender->klasse_schule }} @endif
                                                     </div>
@@ -92,11 +92,11 @@
                                         </td>
                                         <td class="px-5 py-3">
                                             <div class="flex items-center justify-end gap-1">
-                                                <a href="{{ route('berufsbildner.lernende.noten.index', $z->lernender->lernender_id) }}"
+                                                <a href="{{ route('trainer.learners.grades.index', $z->lernender->lernender_id) }}"
                                                    class="inline-flex items-center gap-1.5 px-3 min-h-9 rounded-lg text-sm {{ $z->neu ? 'bg-accent text-white np-btn-primary' : 'text-accent hover:bg-accent/10' }}">
                                                     Noten @if($z->neu)<span class="text-[11px] font-bold">{{ $z->neu }}</span>@endif
                                                 </a>
-                                                <a href="{{ route('berufsbildner.lernende.rechner', $z->lernender->lernender_id) }}" class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="Rechner" title="Rechner">
+                                                <a href="{{ route('trainer.learners.calculator', $z->lernender->lernender_id) }}" class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="Rechner" title="Rechner">
                                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/></svg>
                                                 </a>
                                             </div>
@@ -113,7 +113,7 @@
             <x-karte titel="Wo es kippt" class="lg:col-span-5" :polster="false">
                 <div class="divide-y divide-border/70">
                     @forelse($brennpunkte as $p)
-                        <a href="{{ route('berufsbildner.lernende.noten.index', $p['zeile']->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                        <a href="{{ route('trainer.learners.grades.index', $p['zeile']->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                             <div class="min-w-0">
                                 <div class="text-sm text-text truncate">{{ $p['label'] }}</div>
                                 <div class="text-xs text-muted truncate">{{ $p['zeile']->lernender->benutzer->vorname }} {{ $p['zeile']->lernender->benutzer->nachname }}</div>
@@ -169,7 +169,7 @@
             <x-karte titel="Lehrende bald" class="lg:col-span-6" :polster="false">
                 <div class="divide-y divide-border/70">
                     @forelse($lehrende as $l)
-                        <a href="{{ route('berufsbildner.lernende.show', $l->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                        <a href="{{ route('trainer.learners.show', $l->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                             <span class="text-sm text-text">{{ $l->benutzer->vorname }} {{ $l->benutzer->nachname }}</span>
                             <span class="text-xs text-muted tabular-nums">{{ $l->lehrende->format('d.m.Y') }} · in {{ (int) now()->startOfDay()->diffInDays($l->lehrende) }} Tagen</span>
                         </a>

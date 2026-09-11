@@ -7,7 +7,7 @@
                 <p class="text-sm text-muted mt-0.5">{{ $user->nachname }} {{ $user->vorname }}</p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('admin.benutzer.index') }}"
+                <a href="{{ route('admin.users.index') }}"
                    class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Zurück
                 </a>
@@ -19,7 +19,7 @@
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-5">
 
             <div class="glass rounded-2xl p-6">
-                <form method="POST" action="{{ route('admin.benutzer.update', $user->benutzer_id) }}" class="space-y-5"
+                <form method="POST" action="{{ route('admin.users.update', $user->benutzer_id) }}" class="space-y-5"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')

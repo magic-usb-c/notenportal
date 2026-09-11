@@ -44,3 +44,4 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Liquid-Glass-System, Chart.js-Diagramme mit Theme-Tokens
 - Grenzwerte (gut/genügend/kritisch), Rundung Gesamtschnitt und Fristen aus `einstellungen`
 - Deaktivierte Benutzer sofort ausgesperrt; CSV-Exporte mit Formel-Injection-Schutz
+- URLs englisch (`/grades`, `/exams`, `/trainer/learners`, `/admin/setup` …); alte deutsche Lesezeichen leiten dauerhaft (301) weiter

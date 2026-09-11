@@ -56,7 +56,7 @@ class StammdatenFaecherController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.faecher.index')
+        return redirect()->route('admin.master-data.subjects.index')
             ->with('success', 'Fach angelegt.');
     }
 
@@ -89,7 +89,7 @@ class StammdatenFaecherController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.faecher.index')
+        return redirect()->route('admin.master-data.subjects.index')
             ->with('success', 'Fach aktualisiert.');
     }
 

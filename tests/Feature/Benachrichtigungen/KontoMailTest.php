@@ -20,7 +20,7 @@ class KontoMailTest extends TestCase
         $admin = User::factory()->admin()->create();
         $rolleId = Rolle::where('name', 'Berufsbildner')->value('rolle_id');
 
-        $this->actingAs($admin)->post(route('admin.benutzer.store'), [
+        $this->actingAs($admin)->post(route('admin.users.store'), [
             'vorname' => 'Neue',
             'nachname' => 'Person',
             'email' => 'neue.person@firma.ch',
@@ -28,7 +28,7 @@ class KontoMailTest extends TestCase
             'passwort' => 'Startpasswort!2027',
             'passwort_confirmation' => 'Startpasswort!2027',
             'rolle_id' => $rolleId,
-        ])->assertRedirect(route('admin.benutzer.index'));
+        ])->assertRedirect(route('admin.users.index'));
 
         $this->assertDatabaseHas('mail_log', [
             'type' => NotificationCatalog::ACCOUNT_CREATED,
@@ -63,7 +63,7 @@ class KontoMailTest extends TestCase
         $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch']);
         $rollen = $bb->rollen()->pluck('name')->all();
 
-        $this->actingAs($admin)->put(route('admin.benutzer.update', $bb->benutzer_id), [
+        $this->actingAs($admin)->put(route('admin.users.update', $bb->benutzer_id), [
             'vorname' => $bb->vorname,
             'nachname' => $bb->nachname,
             'email' => $bb->email,
@@ -71,7 +71,7 @@ class KontoMailTest extends TestCase
             'rollen' => $rollen,
             'passwort' => 'NeuesStartpasswort!2027',
             'passwort_confirmation' => 'NeuesStartpasswort!2027',
-        ])->assertRedirect(route('admin.benutzer.edit', $bb->benutzer_id));
+        ])->assertRedirect(route('admin.users.edit', $bb->benutzer_id));
 
         $this->assertDatabaseHas('mail_log', [
             'type' => NotificationCatalog::PASSWORD_RESET,

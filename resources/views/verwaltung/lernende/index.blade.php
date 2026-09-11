@@ -10,14 +10,14 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{{ route("{$bereich}.noten.export_alle") }}"
+                <a href="{{ route("{$bereich}.grades.export_all") }}"
                    class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Alle Noten (CSV)
                 </a>
-                <a href="{{ route("{$bereich}.lernende.create") }}"
+                <a href="{{ route("{$bereich}.learners.create") }}"
                    class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                     <span class="text-lg leading-none">+</span>
                     Lernender erfassen
@@ -54,7 +54,7 @@
 
             {{-- Suche + Filter --}}
             <div class="glass rounded-2xl p-4">
-                <form method="GET" action="{{ route("{$bereich}.lernende.index") }}"
+                <form method="GET" action="{{ route("{$bereich}.learners.index") }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
                     <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
@@ -131,7 +131,7 @@
                     <div class="flex gap-2">
                         <button type="submit" class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">Filtern</button>
                         @if($aktiveFilter > 0)
-                            <a href="{{ route("{$bereich}.lernende.index") }}"
+                            <a href="{{ route("{$bereich}.learners.index") }}"
                                class="inline-flex items-center gap-2 px-3 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white text-[10px] font-bold">{{ $aktiveFilter }}</span>
                                 Zurücksetzen
@@ -171,7 +171,7 @@
                                                 {{ $initialen ?: '?' }}
                                             </div>
                                             <div class="min-w-0">
-                                                <a href="{{ route("{$bereich}.lernende.show", $l->lernender_id) }}"
+                                                <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
                                                    class="font-medium hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
                                                 <div class="text-xs text-muted mt-0.5">{{ $l->benutzer->email }}</div>
                                                 <div class="flex flex-wrap gap-1 mt-1.5">
@@ -217,9 +217,9 @@
                                     </td>
                                     <td class="p-3 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <a href="{{ route("{$bereich}.lernende.show", $l->lernender_id) }}"
+                                            <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
                                                class="inline-flex items-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Profil</a>
-                                            <a href="{{ route("{$bereich}.lernende.noten.index", $l->lernender_id) }}"
+                                            <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
                                                class="inline-flex items-center px-3 min-h-[36px] rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">Noten</a>
                                         </div>
                                     </td>

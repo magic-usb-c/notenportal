@@ -18,7 +18,7 @@ class BerichtTest extends TestCase
 
         foreach ([[], ['semester' => 'alle'], ['sort' => 'gesamt', 'dir' => 'desc'], ['sort' => 'unbekannt']] as $parameter) {
             $this->actingAs($admin)
-                ->get(route('admin.berichte.noten', $parameter))
+                ->get(route('admin.reports.grades', $parameter))
                 ->assertOk()
                 ->assertSee('Berichtmann');
         }
@@ -30,7 +30,7 @@ class BerichtTest extends TestCase
         $admin = User::factory()->admin()->create();
         User::factory()->lernender()->create(['nachname' => 'Berichtmann']);
 
-        $csv = $this->actingAs($admin)->get(route('admin.berichte.noten.export', ['semester' => 'alle']))->assertOk()->streamedContent();
+        $csv = $this->actingAs($admin)->get(route('admin.reports.grades.export', ['semester' => 'alle']))->assertOk()->streamedContent();
 
         $this->assertStringContainsString('Berichtmann', $csv);
         $this->assertStringContainsString('Gesamtnote', $csv);

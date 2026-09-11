@@ -116,7 +116,7 @@ class LernendeNotenController extends VerwaltungController
         $this->gradeWatcher->pruefen($lernender_id, $vorher);
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.noten.index', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
             ->with('success', 'Note erfasst.');
     }
 
@@ -154,12 +154,12 @@ class LernendeNotenController extends VerwaltungController
         $lernender->loadMissing('benutzer');
         if ($lernender->benutzer && $alterWert !== (string) $note->note_wert) {
             Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_CORRECTED, GradeCorrected::content(
-                $note, $alterWert, route('lernender.noten.index', ['_open' => $note->note_id])
+                $note, $alterWert, route('learner.grades.index', ['_open' => $note->note_id])
             ));
         }
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.noten.index', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
             ->with('success', 'Note korrigiert.');
     }
 
@@ -171,7 +171,7 @@ class LernendeNotenController extends VerwaltungController
         $lernender->noten()->whereKey($note_id)->firstOrFail()->delete();
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.noten.index', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
             ->with('success', 'Note gelöscht.');
     }
 

@@ -19,16 +19,16 @@ class BetreuungTest extends TestCase
         $alteBetreuung = $this->betreue($bisher, $lernender);
 
         $this->actingAs($bisher)
-            ->post(route('berufsbildner.lernende.betreuung.store', $lernender->lernender_id), [
+            ->post(route('trainer.learners.supervision.store', $lernender->lernender_id), [
                 'berufsbildner_id' => $neu->berufsbildner->berufsbildner_id,
                 'gueltig_von' => now()->toDateString(),
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('berufsbildner.lernende.index'));
+            ->assertRedirect(route('trainer.learners.index'));
 
         $this->assertSame(now()->subDay()->toDateString(), $alteBetreuung->fresh()->gueltig_bis->toDateString());
-        $this->actingAs($bisher)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertNotFound();
-        $this->actingAs($neu)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertOk();
+        $this->actingAs($bisher)->get(route('trainer.learners.show', $lernender->lernender_id))->assertNotFound();
+        $this->actingAs($neu)->get(route('trainer.learners.show', $lernender->lernender_id))->assertOk();
     }
 
     #[Test]
@@ -39,20 +39,20 @@ class BetreuungTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
 
         $this->actingAs($admin)
-            ->post(route('admin.lernende.betreuung.store', $lernender->lernender_id), [
+            ->post(route('admin.learners.supervision.store', $lernender->lernender_id), [
                 'berufsbildner_id' => $bb->berufsbildner->berufsbildner_id,
                 'gueltig_von' => now()->subMonth()->toDateString(),
             ])
-            ->assertRedirect(route('admin.lernende.show', $lernender->lernender_id));
+            ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
 
-        $this->actingAs($bb)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertOk();
+        $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertOk();
 
         $betreuung = $lernender->betreuungen()->sole();
         $this->actingAs($admin)
-            ->post(route('admin.betreuungen.beenden', [$lernender->lernender_id, $betreuung->betreuung_id]))
-            ->assertRedirect(route('admin.lernende.show', $lernender->lernender_id));
+            ->post(route('admin.supervisions.end', [$lernender->lernender_id, $betreuung->betreuung_id]))
+            ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
 
-        $this->actingAs($bb)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertNotFound();
+        $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertNotFound();
     }
 
     #[Test]
@@ -64,7 +64,7 @@ class BetreuungTest extends TestCase
         $fremdeBetreuung = $this->betreue($bb, $this->neuerLernender());
 
         $this->actingAs($admin)
-            ->post(route('admin.betreuungen.beenden', [$a->lernender_id, $fremdeBetreuung->betreuung_id]))
+            ->post(route('admin.supervisions.end', [$a->lernender_id, $fremdeBetreuung->betreuung_id]))
             ->assertNotFound();
 
         $this->assertNull($fremdeBetreuung->fresh()->gueltig_bis);

@@ -2,7 +2,7 @@
 
 Stand 11.09.2026. Ziel: ruhiger, klarer, eigenständiger – weg vom Einheitslook generierter Dashboards («Glas überall, Kachelreihe, Glow, Grossbuchstaben-Labels»), hin zu dem, was Linear, Stripe, GitHub oder Datawrapper tun: wenige, gut gewählte Flächen, Hierarchie über Typografie, Farbe nur mit Bedeutung.
 
-Screenshots des Ist-Stands: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `suche.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
+Screenshots des Ist-Stands: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
 
 ## a) Diagnose
 
@@ -261,7 +261,7 @@ Vom Skript korrigiert: hell note-gut: L 0.400 -> 0.395 (Ziel 7:1 auf tint:note-g
 
 Raster: 12 Spalten, `gap-4`, Container `max-w-7xl`. Seitenkopf im Container: Titel links, Metazeile darunter, rechts höchstens eine Primär- und zwei Sekundäraktionen, Rest im «⋯»-Menü.
 
-### Lernende – Übersicht (`/lernender`)
+### Lernende – Übersicht (`/learner`)
 ```
 Hallo Nina                                               [Prüfung planen] [+ Note]
 Informatiker/in EFZ · 4. Lehrjahr · noch 323 Tage
@@ -282,25 +282,25 @@ Informatiker/in EFZ · 4. Lehrjahr · noch 323 Tage
 - Ziele: nicht erreichbare Ziele neutral mit Hinweis «höchstens 4.8», nicht rot (D3). Kein Ziel: Karte entfällt, Befehl in Palette/Rechner.
 - Mobil: Stand → Als Nächstes → Wo stehe ich → Ziele → Verlauf → Letzte Noten; Verlauf und Letzte Noten zugeklappt (`<details>`).
 
-### Lernende – Noten (`/noten`)
+### Lernende – Noten (`/grades`)
 - Kopf: «Noten» + Semesterwechsler direkt neben dem Titel; Aktionen: `+ Note` (primär), Import, «⋯» (Drucken, CSV).
 - Statuszeile statt vier Kacheln: `Semester 5.8 · Gesamt 4.8 · Fachunterricht 5.5 · BMS 5.9` (Zahl `text-2xl`, Label `text-xs muted`).
 - Eine Werkzeugzeile: Segment «Semester | Zeugnisübersicht» links, Kategorie-Chips rechts.
 - Liste als Tabelle je Kategorie (Zeile 48 px): Fach/Modul · Prüfungen (Anzahl + Balken offene Gewichtung) · Schnitt vor Rundung (`muted`, rechts) · Zeugnisnote (Badge, rechts) · Chevron. Aufklappen zeigt die Einzelnoten inline; Erfassen/Bearbeiten im Drawer rechts statt eigener Seite.
 
-### Berufsbildner – Übersicht (`/berufsbildner`)
+### Berufsbildner – Übersicht (`/trainer`)
 Frage der Seite: «Wen muss ich heute anschauen?»
 1. **Braucht Aufmerksamkeit** (12): nur Lernende mit Status rot/gelb oder neuen Noten, je eine Zeile mit Gründen als Text. Leer: eine Zeile «Alle 3 Lernenden im Plan» – keine Karte.
 2. **Meine Lernenden** (12), dichte Tabelle: Status (Punkt + Wort) · Name / Kürzel · Lehrjahr · Verlauf (Sparkline mit Band genügend–6) · Semester (+Δ) · Gesamt · Neue Noten (Zahl als Link, kein Button) · Nächste Prüfung · «⋯». Filter-Segment trägt die Zählungen: «Alle 3 · Kritisch 0 · Beobachten 0 · Neue Noten 3». KPI-Kacheln entfallen.
 3. **Nächste 14 Tage** (8) als Agenda nach Tag gruppiert; **Lehrende bald** (4) nur wenn nicht leer. «Im Vergleich» wandert als sortierbare Spalte in die Tabelle.
 
-### Cockpit Lernende (`/berufsbildner/lernende/{id}`)
+### Cockpit Lernende (`/trainer/learners/{id}`)
 - Kopf: Name, Status-Pill mit Gründen im Tooltip, Metazeile Lehrberuf · Lehrjahr · Lehrende; Aktionen: `Noten ansehen (41 neu)` primär, `Drucken`, «⋯» (CSV, Bearbeiten, Rechner).
 - Tabs (URL-fähig, `?tab=`): **Übersicht** · Noten · Dokumente · Rechner · **Profil & Betreuung**.
 - Übersicht: links 8 – Stand (wie Lernende) und Zeugnisnoten-Heatmap als Hauptelement; rechts 4 – Hinweise/Gründe, Ziele, geplante Prüfungen, letzte Aktivität. Leere Karten entfallen.
 - Profil & Betreuung: Profil, Konto, Betreuungen, Schul-Tracks (Formulare mit Sekundärbuttons, Speichern am Formularende) – raus aus der Leseansicht (D11).
 
-### Agenda (ersetzt `/pruefungen`, Navigation «Agenda»)
+### Agenda (ersetzt `/exams`, Navigation «Agenda»)
 ```
 Agenda                                            [Liste|Monat]   [+ Prüfung planen]
 Filter: (●Prüfungen) (●Schulnetz-Termine) (○Stundenplan)
@@ -315,7 +315,7 @@ Nächste Woche · KW 39
 - Liste (Standard) gruppiert nach Woche, Überfälliges als eigene Gruppe oben mit «Note erfassen». Monat: 7-Spalten-Raster, pro Tag max. drei Chips + «+2», Klick öffnet Tagesdrawer. Mobil nur Liste plus Wochenleiste.
 - «Prüfung planen» öffnet einen Drawer (Formular nicht mehr dauerhaft sichtbar). BB-Sicht: dieselbe Agenda über alle betreuten Lernenden, Name als Spalte.
 
-### Admin – Tabellen (`/admin/lernende`, Benutzer, Stammdaten)
+### Admin – Tabellen (`/admin/learners`, Benutzer, Stammdaten)
 - Filterleiste einzeilig über der Tabelle: Suche · Lehrberuf · Lehrjahr · Berufsbildner als Dropdown-Chips, sofort wirksam (kein «Filtern»-Button), «Weitere Filter» (BMS, Warnung, Status) als Disclosure; rechts Trefferzahl und Export.
 - Zeile 44 px (Umschalter «kompakt» 36 px, analog Primer condensed/normal/spacious und Carbon-Zeilenhöhen: <https://carbondesignsystem.com/components/data-table/usage/>): Name (E-Mail als Tooltip/Sekundärzeile nur bei Suche) · Lehrberuf-Kürzel (voller Name im `title`) · Lj · Berufsbildner · Noten · Letzte Note («vor 4 Tagen») · Ø gesamt · Status. Zahlen rechtsbündig, `tabular-nums`.
 - Zeilenklick öffnet das Cockpit; Aktionen «Noten», «Profil» als Icon-/Textlinks, die bei Hover und Fokus erscheinen (mobil immer sichtbar). Sticky Kopf, Sortierung sichtbar.

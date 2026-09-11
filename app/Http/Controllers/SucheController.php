@@ -27,7 +27,7 @@ class SucheController extends Controller
         }
 
         $like = '%'.addcslashes($q, '%_\\').'%';
-        $bereich = $user->hasRole('Admin') ? 'admin' : 'berufsbildner';
+        $bereich = $user->hasRole('Admin') ? 'admin' : 'trainer';
 
         $treffer = Lernender::sichtbarFuer($user)
             ->with(['benutzer', 'lehrberuf'])
@@ -38,7 +38,7 @@ class SucheController extends Controller
             ->map(fn (Lernender $l) => [
                 'label' => $l->benutzer->vorname.' '.$l->benutzer->nachname,
                 'sub' => trim(($l->lehrberuf?->kuerzel ?? '').($l->lehrjahr() ? ' · '.$l->lehrjahr().'. Lehrjahr' : '')),
-                'url' => route($bereich.'.lernende.show', $l->lernender_id),
+                'url' => route($bereich.'.learners.show', $l->lernender_id),
                 'gruppe' => 'Lernende',
             ]);
 
@@ -50,7 +50,7 @@ class SucheController extends Controller
                 ->map(fn (User $u) => [
                     'label' => $u->vorname.' '.$u->nachname,
                     'sub' => $u->email,
-                    'url' => route('admin.benutzer.edit', $u->benutzer_id),
+                    'url' => route('admin.users.edit', $u->benutzer_id),
                     'gruppe' => 'Konten',
                 ]);
             $treffer = $treffer->concat($konten);

@@ -1,4 +1,4 @@
-<x-einrichtung schritt="personen" :stand="$stand" titel="Personen">
+<x-einrichtung schritt="people" :stand="$stand" titel="Personen">
     @php
         $feld = 'h-10 w-full rounded-lg border border-border bg-input text-text px-2 text-sm normal-case tracking-normal focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'flex flex-col gap-1 text-[11px] uppercase tracking-widest text-muted font-medium min-w-0';
@@ -36,7 +36,7 @@
 
     @include('admin.einrichtung._zugaenge')
 
-    <form method="POST" action="{{ route('admin.einrichtung.personen') }}" class="glass rounded-2xl p-6 flex flex-col gap-4 print:hidden"
+    <form method="POST" action="{{ route('admin.setup.people') }}" class="glass rounded-2xl p-6 flex flex-col gap-4 print:hidden"
           x-data="npZeilen({{ \Illuminate\Support\Js::from(old('personen', [])) }}, {{ \Illuminate\Support\Js::from($leerePerson) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'personen')"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
@@ -73,15 +73,15 @@
             <h3 class="text-sm font-semibold text-text">Lernende</h3>
             <div class="flex gap-2">
                 @unless($semesterVorhanden)
-                    <a href="{{ route('admin.einrichtung', 'semester') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Semester anlegen</a>
+                    <a href="{{ route('admin.setup', 'semesters') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Semester anlegen</a>
                 @endunless
                 @if($lehrberufe->isEmpty())
-                    <a href="{{ route('admin.einrichtung', 'lehrberufe') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Lehrberufe anlegen</a>
+                    <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Lehrberufe anlegen</a>
                 @endif
             </div>
         </section>
     @else
-        <form method="POST" action="{{ route('admin.einrichtung.lernende') }}" class="glass rounded-2xl p-6 flex flex-col gap-4 print:hidden"
+        <form method="POST" action="{{ route('admin.setup.learners') }}" class="glass rounded-2xl p-6 flex flex-col gap-4 print:hidden"
               x-data="npZeilen({{ \Illuminate\Support\Js::from(old('lernende', [])) }}, {{ \Illuminate\Support\Js::from($leererLernender) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'lernende')"
               @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
@@ -128,6 +128,6 @@
     @endif
 
     <div class="print:hidden">
-        @include('admin.einrichtung._fuss', ['schritt' => 'personen', 'knopf' => false, 'weiterText' => 'Weiter'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'people', 'knopf' => false, 'weiterText' => 'Weiter'])
     </div>
 </x-einrichtung>

@@ -12,7 +12,7 @@ app/Http/Controllers/
   Auth/            Login/Logout, Passwort ändern, Passwort vergessen/setzen (Broker users 60 min, invites 7 Tage)
   Admin/MailSettings, MailLog, NotificationPolicy; NotificationPreferenceController, UnsubscribeController (signiert)
   DashboardController (alle Rollen), SucheController, KommentarController, ProfileController,
-  DokumenteController, NotenImportController (je für lernender.* und {bereich}.lernende.* – Kontext aus dem Routennamen)
+  DokumenteController, NotenImportController (je für learner.* und {bereich}.learners.* – Kontext aus dem Routennamen, {bereich} = admin|trainer)
 app/Http/Middleware/  RoleMiddleware (role:Name), EnsureUserIsActive (global in web)
 app/Models/        User (Tabelle benutzer), Lernender, Berufsbildner, Betreuung, Lehrberuf, Note, Kategorie,
                    Semester, Fach, Modul, ModulBelegung, Pruefung, Ziel, NotenGesehen, NotenKommentar, Rolle
@@ -32,7 +32,10 @@ app/Services/
   Benutzer/        LernendeErfassungService, Startpasswort
 app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
 app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle),
-                   Einrichtung (Schritte, Stand, Vorlagen, Semesterplan, Modulparser), Betrieb, KategorieRegeln
+                   Einrichtung (Schritte, Stand, Vorlagen, Semesterplan, Modulparser), Betrieb, KategorieRegeln,
+                   LegacyPaths (alte deutsche Pfade → 301 auf die englischen, über Route::fallback am Ende von routes/web.php)
+routes/            Routennamen und URL-Pfade englisch (learner.*, trainer.*, admin.*; z.B. /grades, /trainer/learners, /admin/master-data);
+                   Parameter ({lernender_id} …), Controller, Views und DB bleiben vorerst deutsch
 app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten
 app/Services/Betrieb/SicherungKopie  rsync (Argumentliste, keine Shell) nur notenportal-*.zip in Ordner oder per SSH (Schlüssel storage/app/private/ssh)
 app/Services/Notifications/  NotificationCatalog (Anlässe, Standards, gesperrt/verpflichtend) → notification_policies (Admin) → notification_preferences (Benutzer);

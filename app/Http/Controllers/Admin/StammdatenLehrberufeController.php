@@ -41,7 +41,7 @@ class StammdatenLehrberufeController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.lehrberufe.index')
+        return redirect()->route('admin.master-data.professions.index')
             ->with('success', 'Lehrberuf angelegt.');
     }
 
@@ -203,7 +203,7 @@ class StammdatenLehrberufeController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.lehrberufe.index')
+        return redirect()->route('admin.master-data.professions.index')
             ->with('success', 'Lehrberuf aktualisiert.');
     }
 }

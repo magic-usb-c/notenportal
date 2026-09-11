@@ -20,14 +20,14 @@ final class Einrichtung
     public const string KATEGORIEN_GEPRUEFT = 'einrichtung_kategorien';
 
     public const array SCHRITTE = [
-        'betrieb' => 'Betrieb',
-        'kategorien' => 'Kategorien',
-        'semester' => 'Semester',
-        'lehrberufe' => 'Lehrberufe & Fächer',
-        'module' => 'Module',
-        'personen' => 'Personen',
+        'operations' => 'Betrieb',
+        'categories' => 'Kategorien',
+        'semesters' => 'Semester',
+        'professions' => 'Lehrberufe & Fächer',
+        'modules' => 'Module',
+        'people' => 'Personen',
         'mail' => 'E-Mail',
-        'fertig' => 'Abschluss',
+        'finish' => 'Abschluss',
     ];
 
     /** Kürzel => Name; Vorauswahl über VORAUSWAHL_BERUFE */
@@ -87,14 +87,14 @@ final class Einrichtung
         $name = (string) Einstellungen::get(Einstellungen::BETRIEB_NAME, '');
 
         return [
-            'betrieb' => ['erledigt' => $name !== '', 'info' => $name],
-            'kategorien' => ['erledigt' => Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1', 'info' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1)).' aktiv'],
-            'semester' => ['erledigt' => $semester->isNotEmpty(), 'info' => $semester->isEmpty() ? '' : $semester->first().' – '.$semester->last()],
-            'lehrberufe' => ['erledigt' => $lehrberufe > 0, 'info' => $lehrberufe.' Lehrberufe · '.$faecher.' Fächer'],
-            'module' => ['erledigt' => $module > 0, 'info' => $module.' Zuordnungen'],
-            'personen' => ['erledigt' => $bb + $lernende > 0, 'info' => $bb.' Berufsbildner · '.$lernende.' Lernende'],
+            'operations' => ['erledigt' => $name !== '', 'info' => $name],
+            'categories' => ['erledigt' => Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1', 'info' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1)).' aktiv'],
+            'semesters' => ['erledigt' => $semester->isNotEmpty(), 'info' => $semester->isEmpty() ? '' : $semester->first().' – '.$semester->last()],
+            'professions' => ['erledigt' => $lehrberufe > 0, 'info' => $lehrberufe.' Lehrberufe · '.$faecher.' Fächer'],
+            'modules' => ['erledigt' => $module > 0, 'info' => $module.' Zuordnungen'],
+            'people' => ['erledigt' => $bb + $lernende > 0, 'info' => $bb.' Berufsbildner · '.$lernende.' Lernende'],
             'mail' => ['erledigt' => MailSettings::values()['source'] !== 'none', 'info' => ''],
-            'fertig' => ['erledigt' => ! self::offen(), 'info' => ''],
+            'finish' => ['erledigt' => ! self::offen(), 'info' => ''],
         ];
     }
 

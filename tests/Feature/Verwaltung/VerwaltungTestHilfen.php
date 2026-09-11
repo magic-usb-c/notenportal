@@ -14,7 +14,7 @@ trait VerwaltungTestHilfen
     {
         return [
             'Admin' => ['admin'],
-            'Berufsbildner' => ['berufsbildner'],
+            'Berufsbildner' => ['trainer'],
         ];
     }
 
@@ -41,9 +41,9 @@ trait VerwaltungTestHilfen
     /** Admin oder BB, der den Lernenden aktiv betreut. */
     protected function verwalter(string $rolle, Lernender $lernender): User
     {
-        $user = User::factory()->{$rolle}()->create();
+        $user = User::factory()->{$rolle === 'trainer' ? 'berufsbildner' : $rolle}()->create();
 
-        if ($rolle === 'berufsbildner') {
+        if ($rolle === 'trainer') {
             $this->betreue($user, $lernender);
         }
 

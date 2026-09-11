@@ -22,13 +22,13 @@
         </div>
     </div>
     <div class="flex items-center gap-1 shrink-0">
-        <a href="{{ route('lernender.noten.create', ['pruefung' => $p->pruefung_id]) }}"
+        <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}"
            class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm {{ $faellig ? 'bg-accent text-white np-btn-primary' : 'text-accent hover:bg-accent/10' }}">Note eintragen</a>
-        <a href="{{ route('lernender.pruefungen.index', ['bearbeiten' => $p->pruefung_id]) }}#planen"
+        <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}#planen"
            class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="Bearbeiten">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
         </a>
-        <form method="POST" action="{{ route('lernender.pruefungen.destroy', $p->pruefung_id) }}" onsubmit="return confirm('Prüfung entfernen?');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+        <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" onsubmit="return confirm('Prüfung entfernen?');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             @method('DELETE')
             <button :disabled="loading" class="inline-flex items-center justify-center w-9 h-9 rounded-lg disabled:opacity-60 text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10" aria-label="Entfernen">×</button>

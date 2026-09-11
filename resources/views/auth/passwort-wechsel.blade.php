@@ -3,7 +3,7 @@
         <h1 class="text-2xl font-bold text-text">Eigenes Passwort festlegen</h1>
     </div>
 
-    <form method="POST" action="{{ route('passwort.wechsel.speichern') }}" class="space-y-4"
+    <form method="POST" action="{{ route('password.initial.update') }}" class="space-y-4"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         @method('PUT')

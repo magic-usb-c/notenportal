@@ -206,7 +206,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('success', 'Note gespeichert.');
+        return redirect()->route('learner.grades.index', $params)->with('success', 'Note gespeichert.');
     }
 
     /** Neue Note eines Lernenden → aktive Betreuer (GRADE_ADDED). */
@@ -215,7 +215,7 @@ class NotenController extends Controller
         $note->loadMissing(['fach', 'modulBelegung.modul']);
         foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
             Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, GradeAdded::einzeln(
-                $lernender, $note, route('berufsbildner.lernende.show', $lernender->lernender_id)
+                $lernender, $note, route('trainer.learners.show', $lernender->lernender_id)
             ));
         }
     }
@@ -284,7 +284,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('lernender.noten.index', $params)->with('success', 'Note aktualisiert.');
+        return redirect()->route('learner.grades.index', $params)->with('success', 'Note aktualisiert.');
     }
 
     /**
@@ -365,7 +365,7 @@ class NotenController extends Controller
 
         return response()->view('noten.notenblatt', [
             'blatt' => $notenblatt->fuer($lernender),
-            'zurueck' => route('lernender.noten.index'),
+            'zurueck' => route('learner.grades.index'),
         ]);
     }
 
@@ -480,7 +480,7 @@ class NotenController extends Controller
         $note->delete();
 
         return redirect()
-            ->route('lernender.noten.index', ['semester_id' => $note->semester_id])
+            ->route('learner.grades.index', ['semester_id' => $note->semester_id])
             ->with('success', 'Note gelöscht.');
     }
 }

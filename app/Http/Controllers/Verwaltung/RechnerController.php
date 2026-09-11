@@ -20,11 +20,11 @@ class RechnerController extends VerwaltungController
 
         return view('rechner.index', [
             'daten' => $this->rechner->seite($lernender, mitZielen: true),
-            'berechnenUrl' => $this->zuRoute($request, 'lernende.rechner.berechnen', $lernender_id),
+            'berechnenUrl' => $this->zuRoute($request, 'learners.calculator.calculate', $lernender_id),
             'zielUrl' => null,
             'start' => $request->only(['ziel', 'zielwert']),
             'lernender' => $lernender,
-            'zurueck' => $this->zuRoute($request, 'lernende.show', $lernender_id),
+            'zurueck' => $this->zuRoute($request, 'learners.show', $lernender_id),
         ]);
     }
 

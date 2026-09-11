@@ -18,7 +18,7 @@ final class Inactivity
             subject: $betreff,
             lines: ['Du hast seit '.$tage.' Tagen keine Note mehr eingetragen. Trag deine aktuellen Noten ein, damit dein Notenstand stimmt.'],
             actionLabel: 'Note erfassen',
-            actionUrl: route('lernender.noten.create'),
+            actionUrl: route('learner.grades.create'),
             digestTitle: $betreff,
         );
     }

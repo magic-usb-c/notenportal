@@ -7,8 +7,8 @@
                 <p class="text-sm text-muted">{{ now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('admin.benutzer.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Benutzer anlegen</a>
-                <a href="{{ route('admin.lernende.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Benutzer anlegen</a>
+                <a href="{{ route('admin.learners.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                     <span class="text-lg leading-none">+</span> Lernende
                 </a>
             </div>
@@ -19,9 +19,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             <div class="lg:col-span-12 grid grid-cols-2 md:grid-cols-5 gap-4">
-                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('admin.lernende.index')" />
-                <x-kachel label="Berufsbildner" :wert="$kennzahlen['berufsbildner']" :href="route('admin.berufsbildner.index')" />
-                <x-kachel label="Noten {{ $kennzahlen['semester'] }}" :wert="$kennzahlen['noten_semester']" :href="route('admin.berichte.noten')" />
+                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('admin.learners.index')" />
+                <x-kachel label="Berufsbildner" :wert="$kennzahlen['berufsbildner']" :href="route('admin.trainers.index')" />
+                <x-kachel label="Noten {{ $kennzahlen['semester'] }}" :wert="$kennzahlen['noten_semester']" :href="route('admin.reports.grades')" />
                 <x-kachel label="Kritisch" :wert="$kennzahlen['rot']" :ton="$kennzahlen['rot'] ? 'rot' : 'neutral'" :sub="$kennzahlen['gelb'].' beobachten'" />
                 <x-kachel label="Offene Meldungen" :wert="$kennzahlen['feedback']" :ton="$kennzahlen['feedback'] ? 'accent' : 'neutral'" :href="route('admin.feedback.index')" />
             </div>
@@ -46,7 +46,7 @@
             @endif
 
             {{-- Berufsbildner --}}
-            <x-karte titel="Berufsbildner" class="lg:col-span-7" :polster="false" :link="route('admin.berufsbildner.index')">
+            <x-karte titel="Berufsbildner" class="lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="text-[11px] uppercase tracking-widest text-muted">
@@ -92,7 +92,7 @@
             <x-karte titel="Kritisch" :class="$jahrgaenge['serien'] ? 'lg:col-span-5' : 'lg:col-span-12'" :polster="false">
                 <div class="divide-y divide-border/70">
                     @forelse($kritisch as $k)
-                        <a href="{{ route('admin.lernende.show', $k->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                        <a href="{{ route('admin.learners.show', $k->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                             <div class="min-w-0">
                                 <div class="text-sm text-text truncate">{{ $k->lernender->benutzer->vorname }} {{ $k->lernender->benutzer->nachname }}</div>
                                 <div class="text-xs text-muted truncate">{{ implode(' · ', array_slice($k->stand->gruende, 0, 2)) }}</div>
@@ -109,7 +109,7 @@
                 <x-karte titel="Lehrende bald" class="lg:col-span-12" :polster="false">
                     <div class="divide-y divide-border/70">
                         @foreach($lehrende as $l)
-                            <a href="{{ route('admin.lernende.show', $l->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                            <a href="{{ route('admin.learners.show', $l->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                                 <span class="text-sm text-text">{{ $l->benutzer->vorname }} {{ $l->benutzer->nachname }} <span class="text-muted">· {{ $l->lehrberuf?->kuerzel }}</span></span>
                                 <span class="text-xs text-muted tabular-nums">{{ $l->lehrende->format('d.m.Y') }}</span>
                             </a>

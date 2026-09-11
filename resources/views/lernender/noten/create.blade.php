@@ -12,9 +12,9 @@
                 @endif
 
                 @include('noten._formular', [
-                    'action' => route('lernender.noten.store'),
-                    'zurueck' => $pruefung ? route('lernender.pruefungen.index') : route('lernender.noten.index'),
-                    'vorschauUrl' => route('lernender.noten.rechner.berechnen'),
+                    'action' => route('learner.grades.store'),
+                    'zurueck' => $pruefung ? route('learner.exams.index') : route('learner.grades.index'),
+                    'vorschauUrl' => route('learner.grades.calculator.calculate'),
                 ])
             </div>
         </div>

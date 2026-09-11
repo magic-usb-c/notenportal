@@ -21,18 +21,18 @@ class AnlegenUndBearbeitenTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
         $andererBb = User::factory()->berufsbildner()->create();
 
-        $antwort = $this->actingAs($bb)->post(route('berufsbildner.lernende.store'), $this->formular([
+        $antwort = $this->actingAs($bb)->post(route('trainer.learners.store'), $this->formular([
             'berufsbildner_id' => $andererBb->berufsbildner->berufsbildner_id,
         ]));
 
         $lernender = $this->angelegterLernender();
         $antwort->assertSessionHasNoErrors()
-            ->assertRedirect(route('berufsbildner.lernende.show', $lernender->lernender_id))
+            ->assertRedirect(route('trainer.learners.show', $lernender->lernender_id))
             ->assertSessionHas('startpasswort');
 
         $this->assertStartkonto($lernender);
         $this->assertSame([(int) $bb->berufsbildner->berufsbildner_id], $lernender->betreuungen()->aktiv()->pluck('berufsbildner_id')->all());
-        $this->actingAs($bb)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertOk();
+        $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertOk();
     }
 
     #[Test]
@@ -42,14 +42,14 @@ class AnlegenUndBearbeitenTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
 
         $this->actingAs($admin)
-            ->post(route('admin.lernende.store'), $this->formular(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id]))
+            ->post(route('admin.learners.store'), $this->formular(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id]))
             ->assertSessionHasNoErrors()
             ->assertSessionHas('startpasswort');
 
         $lernender = $this->angelegterLernender();
         $this->assertStartkonto($lernender);
         $this->assertSame([(int) $bb->berufsbildner->berufsbildner_id], $lernender->betreuungen()->aktiv()->pluck('berufsbildner_id')->all());
-        $this->actingAs($bb)->get(route('berufsbildner.lernende.show', $lernender->lernender_id))->assertOk();
+        $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertOk();
     }
 
     #[Test]
@@ -61,7 +61,7 @@ class AnlegenUndBearbeitenTest extends TestCase
         $lehrberuf = Lehrberuf::factory()->create(['aktiv' => true]);
 
         $this->actingAs($verwalter)
-            ->put(route("{$rolle}.lernende.update", $lernender->lernender_id), [
+            ->put(route("{$rolle}.learners.update", $lernender->lernender_id), [
                 'vorname' => 'Mia',
                 'nachname' => 'Muster',
                 'email' => 'mia.muster@example.test',
@@ -72,7 +72,7 @@ class AnlegenUndBearbeitenTest extends TestCase
                 'bemerkung' => 'Braucht Unterstützung in Mathe',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route("{$rolle}.lernende.show", $lernender->lernender_id));
+            ->assertRedirect(route("{$rolle}.learners.show", $lernender->lernender_id));
 
         $lernender->refresh();
         $this->assertSame('Mia', $lernender->benutzer->vorname);
@@ -88,7 +88,7 @@ class AnlegenUndBearbeitenTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->put(route('admin.lernende.update', $lernender->lernender_id), [
+            ->put(route('admin.learners.update', $lernender->lernender_id), [
                 'vorname' => 'Neu',
                 'nachname' => 'Muster',
                 'email' => 'kein-mail',

@@ -49,9 +49,9 @@ class NotenKorrekturTest extends TestCase
     public function berufsbildner_korrigiert_note_und_lernender_sieht_geaendert_von(): void
     {
         $this->actingAs($this->bb)
-            ->put(route('berufsbildner.lernende.noten.update', [$this->lernender->lernender_id, $this->note->note_id]), $this->formular())
+            ->put(route('trainer.learners.grades.update', [$this->lernender->lernender_id, $this->note->note_id]), $this->formular())
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('berufsbildner.lernende.noten.index', $this->lernender->lernender_id));
+            ->assertRedirect(route('trainer.learners.grades.index', $this->lernender->lernender_id));
 
         $note = $this->note->fresh();
         $this->assertSame((int) $this->bb->benutzer_id, (int) $note->aktualisiert_von_benutzer_id);
@@ -60,12 +60,12 @@ class NotenKorrekturTest extends TestCase
         $hinweis = 'geändert von '.$this->bb->vorname.' '.$this->bb->nachname.', '.now()->format('d.m.Y');
 
         $this->actingAs($this->lernenderUser)
-            ->get(route('lernender.noten.index', ['semester_id' => $note->semester_id]))
+            ->get(route('learner.grades.index', ['semester_id' => $note->semester_id]))
             ->assertOk()
             ->assertSee($hinweis);
 
         $this->actingAs($this->bb)
-            ->get(route('berufsbildner.lernende.noten.index', $this->lernender->lernender_id))
+            ->get(route('trainer.learners.grades.index', $this->lernender->lernender_id))
             ->assertSee($hinweis);
     }
 
@@ -75,7 +75,7 @@ class NotenKorrekturTest extends TestCase
         $this->note->update(['aktualisiert_von_benutzer_id' => $this->lernenderUser->benutzer_id]);
 
         $this->actingAs($this->lernenderUser)
-            ->get(route('lernender.noten.index', ['semester_id' => $this->note->semester_id]))
+            ->get(route('learner.grades.index', ['semester_id' => $this->note->semester_id]))
             ->assertOk()
             ->assertDontSee('geändert von');
     }
@@ -85,17 +85,17 @@ class NotenKorrekturTest extends TestCase
     {
         $id = $this->lernender->lernender_id;
 
-        $this->actingAs($this->bb)->get(route('berufsbildner.lernende.noten.create', $id))->assertForbidden();
-        $this->actingAs($this->bb)->post(route('berufsbildner.lernende.noten.store', $id), $this->formular())->assertForbidden();
-        $this->actingAs($this->bb)->delete(route('berufsbildner.lernende.noten.destroy', [$id, $this->note->note_id]))->assertForbidden();
+        $this->actingAs($this->bb)->get(route('trainer.learners.grades.create', $id))->assertForbidden();
+        $this->actingAs($this->bb)->post(route('trainer.learners.grades.store', $id), $this->formular())->assertForbidden();
+        $this->actingAs($this->bb)->delete(route('trainer.learners.grades.destroy', [$id, $this->note->note_id]))->assertForbidden();
 
         $this->assertDatabaseCount('noten', 1);
         $this->assertNotSoftDeleted($this->note);
 
-        $this->actingAs($this->bb)->get(route('berufsbildner.lernende.noten.index', $id))
+        $this->actingAs($this->bb)->get(route('trainer.learners.grades.index', $id))
             ->assertOk()
             ->assertSee('Korrigieren')
-            ->assertDontSee(route('berufsbildner.lernende.noten.create', $id))
+            ->assertDontSee(route('trainer.learners.grades.create', $id))
             ->assertDontSee('Note löschen?');
     }
 
@@ -105,20 +105,20 @@ class NotenKorrekturTest extends TestCase
         $admin = User::factory()->admin()->create();
         $id = $this->lernender->lernender_id;
 
-        $this->actingAs($admin)->post(route('admin.lernende.noten.store', $id), $this->formular())
+        $this->actingAs($admin)->post(route('admin.learners.grades.store', $id), $this->formular())
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('admin.lernende.noten.index', $id));
+            ->assertRedirect(route('admin.learners.grades.index', $id));
 
         $neu = Note::where('lernender_id', $id)->whereKeyNot($this->note->note_id)->sole();
         $this->assertSame((int) $admin->benutzer_id, (int) $neu->erfasst_von_benutzer_id);
         $this->assertNull($neu->aktualisiert_von_benutzer_id);
 
-        $this->actingAs($admin)->put(route('admin.lernende.noten.update', [$id, $this->note->note_id]), $this->formular())
+        $this->actingAs($admin)->put(route('admin.learners.grades.update', [$id, $this->note->note_id]), $this->formular())
             ->assertSessionHasNoErrors();
         $this->assertSame((int) $admin->benutzer_id, (int) $this->note->fresh()->aktualisiert_von_benutzer_id);
 
-        $this->actingAs($admin)->delete(route('admin.lernende.noten.destroy', [$id, $this->note->note_id]))
-            ->assertRedirect(route('admin.lernende.noten.index', $id));
+        $this->actingAs($admin)->delete(route('admin.learners.grades.destroy', [$id, $this->note->note_id]))
+            ->assertRedirect(route('admin.learners.grades.index', $id));
         $this->assertSoftDeleted($this->note);
     }
 
@@ -128,7 +128,7 @@ class NotenKorrekturTest extends TestCase
         $fremdeNote = Note::factory()->create(['lernender_id' => $this->neuerLernender()->lernender_id]);
 
         $this->actingAs($this->bb)
-            ->put(route('berufsbildner.lernende.noten.update', [$this->lernender->lernender_id, $fremdeNote->note_id]), $this->formular())
+            ->put(route('trainer.learners.grades.update', [$this->lernender->lernender_id, $fremdeNote->note_id]), $this->formular())
             ->assertNotFound();
 
         $this->assertNull($fremdeNote->fresh()->aktualisiert_von_benutzer_id);

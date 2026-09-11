@@ -22,7 +22,7 @@
         </p>
     </div>
 
-    <form method="POST" action="{{ route('admin.betrieb.kopie.update') }}" class="flex flex-col gap-4"
+    <form method="POST" action="{{ route('admin.operations.offsite.update') }}" class="flex flex-col gap-4"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         @method('PUT')
@@ -78,7 +78,7 @@
     </form>
 
     @if($kopie->aktiv())
-        <form method="POST" action="{{ route('admin.betrieb.kopie.run') }}" class="flex flex-wrap gap-3"
+        <form method="POST" action="{{ route('admin.operations.offsite.run') }}" class="flex flex-wrap gap-3"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <button type="submit" name="aktion" value="testen" :disabled="loading" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Verbindung testen</button>

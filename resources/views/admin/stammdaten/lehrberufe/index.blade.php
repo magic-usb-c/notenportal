@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Lehrberufe</h2>
-            <a href="{{ route('admin.stammdaten.lehrberufe.create') }}"
+            <a href="{{ route('admin.master-data.professions.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neuer Lehrberuf
             </a>
@@ -39,9 +39,9 @@
                                 </td>
                                 <td class="px-4 py-3 text-right">
                                     <div class="flex items-center justify-end gap-3">
-                                        <a href="{{ route('admin.stammdaten.lehrberufe.edit', $lb->lehrberuf_id) }}"
+                                        <a href="{{ route('admin.master-data.professions.edit', $lb->lehrberuf_id) }}"
                                            class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
-                                        <a href="{{ route('admin.stammdaten.lehrberufe.show', $lb->lehrberuf_id) }}"
+                                        <a href="{{ route('admin.master-data.professions.show', $lb->lehrberuf_id) }}"
                                            class="text-sm text-accent hover:underline whitespace-nowrap">Module & Fächer</a>
                                     </div>
                                 </td>

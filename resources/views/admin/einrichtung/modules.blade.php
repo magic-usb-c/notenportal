@@ -1,4 +1,4 @@
-<x-einrichtung schritt="module" :stand="$stand" titel="Module">
+<x-einrichtung schritt="modules" :stand="$stand" titel="Module">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'text-xs uppercase tracking-widest text-muted font-medium';
@@ -11,14 +11,14 @@
     @if($lehrberufe->isEmpty())
         <section class="glass rounded-2xl p-8 flex flex-col items-center gap-3 text-center">
             <p class="text-sm text-muted">Noch keine Lehrberufe</p>
-            <a href="{{ route('admin.einrichtung', 'lehrberufe') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Lehrberufe anlegen</a>
+            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Lehrberufe anlegen</a>
         </section>
-        @include('admin.einrichtung._fuss', ['schritt' => 'module', 'knopf' => false])
+        @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
     @else
         <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="Lehrberuf">
             @foreach($lehrberufe as $lb)
                 @php $ist = $aktiv && (int) $aktiv->lehrberuf_id === (int) $lb->lehrberuf_id; @endphp
-                <a href="{{ route('admin.einrichtung', ['schritt' => 'module', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" role="tab" aria-selected="{{ $ist ? 'true' : 'false' }}" title="{{ $lb->name }}"
+                <a href="{{ route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" role="tab" aria-selected="{{ $ist ? 'true' : 'false' }}" title="{{ $lb->name }}"
                    @class(['inline-flex items-center gap-2 px-3 min-h-9 rounded-full text-sm border transition-colors',
                        'border-accent/50 bg-accent/10 text-accent' => $ist, 'border-border text-muted hover:text-text' => ! $ist])>
                     {{ $lb->kuerzel }}
@@ -27,7 +27,7 @@
             @endforeach
         </div>
 
-        <form method="POST" action="{{ route('admin.einrichtung.module') }}" class="flex flex-col gap-5"
+        <form method="POST" action="{{ route('admin.setup.modules') }}" class="flex flex-col gap-5"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="hidden" name="lehrberuf_id" value="{{ $aktiv->lehrberuf_id }}">
@@ -53,7 +53,7 @@
                 <section class="glass rounded-2xl p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold text-text">Zugeordnet · {{ $zugeordnet->count() }}</h3>
-                        <a href="{{ route('admin.stammdaten.lehrberufe.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">Pflicht, Semester und Lernort bearbeiten</a>
+                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">Pflicht, Semester und Lernort bearbeiten</a>
                     </div>
                     <div class="grid md:grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)
@@ -70,7 +70,7 @@
                 </section>
             @endif
 
-            @include('admin.einrichtung._fuss', ['schritt' => 'module', 'knopf' => 'Module zuordnen', 'weiterText' => 'Weiter'])
+            @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => 'Module zuordnen', 'weiterText' => 'Weiter'])
         </form>
     @endif
 </x-einrichtung>

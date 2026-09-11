@@ -21,10 +21,10 @@ class SucheTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
         $this->betreue($bb, $eigener);
 
-        $treffer = $this->actingAs($bb)->getJson(route('suche', ['q' => 'Zora']))->assertOk()->json();
+        $treffer = $this->actingAs($bb)->getJson(route('search', ['q' => 'Zora']))->assertOk()->json();
 
         $this->assertSame(['Zora Eigen'], array_column($treffer, 'label'));
-        $this->assertStringContainsString('/berufsbildner/lernende/'.$eigener->lernender_id, $treffer[0]['url']);
+        $this->assertStringContainsString('/trainer/learners/'.$eigener->lernender_id, $treffer[0]['url']);
     }
 
     #[Test]
@@ -34,21 +34,21 @@ class SucheTest extends TestCase
         User::factory()->berufsbildner()->create(['vorname' => 'Zora', 'nachname' => 'Bildnerin']);
         $admin = User::factory()->admin()->create();
 
-        $gruppen = array_column($this->actingAs($admin)->getJson(route('suche', ['q' => 'zora']))->json(), 'gruppe');
+        $gruppen = array_column($this->actingAs($admin)->getJson(route('search', ['q' => 'zora']))->json(), 'gruppe');
         $this->assertContains('Lernende', $gruppen);
         $this->assertContains('Konten', $gruppen);
 
         $lernender = User::factory()->lernender()->create();
-        $this->actingAs($lernender)->getJson(route('suche', ['q' => 'zora']))->assertOk()->assertExactJson([]);
+        $this->actingAs($lernender)->getJson(route('search', ['q' => 'zora']))->assertOk()->assertExactJson([]);
 
         // Direkter Aufruf im Browser zeigt kein rohes JSON
-        $this->actingAs($lernender)->get(route('suche'))->assertRedirect(route('dashboard'));
+        $this->actingAs($lernender)->get(route('search'))->assertRedirect(route('dashboard'));
     }
 
     #[Test]
     public function navigation_zeigt_rollengerechte_eintraege(): void
     {
-        $this->actingAs(User::factory()->lernender()->create())->get(route('lernender.dashboard'))
+        $this->actingAs(User::factory()->lernender()->create())->get(route('learner.dashboard'))
             ->assertSee('Prüfungen')->assertSee('Rechner')->assertDontSee('Stammdaten');
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.dashboard'))
             ->assertSee('Stammdaten')->assertSee('Benutzerkonten');

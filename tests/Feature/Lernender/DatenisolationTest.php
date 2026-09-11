@@ -81,10 +81,10 @@ class DatenisolationTest extends TestCase
         $id = ['note_id' => $this->noteB->note_id];
         $this->actingAs($this->a);
 
-        $this->get(route('lernender.noten.edit', $id))->assertNotFound();
-        $this->put(route('lernender.noten.update', $id), $this->gueltigeNote(['note_wert' => 6]))->assertNotFound();
-        $this->delete(route('lernender.noten.destroy', $id))->assertNotFound();
-        $this->patchJson(route('lernender.noten.titel.update', $id), ['titel' => 'übernommen'])->assertNotFound();
+        $this->get(route('learner.grades.edit', $id))->assertNotFound();
+        $this->put(route('learner.grades.update', $id), $this->gueltigeNote(['note_wert' => 6]))->assertNotFound();
+        $this->delete(route('learner.grades.destroy', $id))->assertNotFound();
+        $this->patchJson(route('learner.grades.title.update', $id), ['titel' => 'übernommen'])->assertNotFound();
 
         $this->noteB->refresh();
         $this->assertSame('3.5', $this->noteB->note_wert);
@@ -98,8 +98,8 @@ class DatenisolationTest extends TestCase
         $id = ['note_id' => $this->noteB->note_id];
         $this->actingAs($this->a);
 
-        $this->postJson(route('lernender.noten.gesehen.mark', $id))->assertStatus(404);
-        $this->post(route('noten.kommentare.store', $id), ['kommentar_text' => 'Hallo'])->assertForbidden();
+        $this->postJson(route('learner.grades.seen', $id))->assertStatus(404);
+        $this->post(route('comments.store', $id), ['kommentar_text' => 'Hallo'])->assertForbidden();
 
         $this->assertDatabaseMissing('noten_gesehen', ['note_id' => $this->noteB->note_id]);
         $this->assertDatabaseMissing('noten_kommentare', ['note_id' => $this->noteB->note_id]);
@@ -115,7 +115,7 @@ class DatenisolationTest extends TestCase
         ]);
 
         $this->actingAs($this->a)
-            ->delete(route('noten.kommentare.destroy', ['kommentar_id' => $kommentarId]))
+            ->delete(route('comments.destroy', ['kommentar_id' => $kommentarId]))
             ->assertForbidden();
 
         $this->assertDatabaseHas('noten_kommentare', ['kommentar_id' => $kommentarId]);
@@ -133,18 +133,18 @@ class DatenisolationTest extends TestCase
         $this->actingAs($this->a);
 
         foreach ([
-            route('lernender.noten.index'),
-            route('lernender.noten.index', ['_open' => $this->noteB->note_id]),
-            route('lernender.noten.drucken'),
-            route('lernender.noten.rechner'),
-            route('lernender.dashboard'),
+            route('learner.grades.index'),
+            route('learner.grades.index', ['_open' => $this->noteB->note_id]),
+            route('learner.grades.print'),
+            route('learner.grades.calculator'),
+            route('learner.dashboard'),
         ] as $url) {
             $this->get($url)->assertOk()->assertDontSee('GEHEIM-B')->assertDontSee('GELOESCHT-A');
         }
 
-        $this->get(route('lernender.noten.index'))->assertSee('EIGENE-A');
+        $this->get(route('learner.grades.index'))->assertSee('EIGENE-A');
 
-        $csv = $this->get(route('lernender.noten.export'))->assertOk()->streamedContent();
+        $csv = $this->get(route('learner.grades.export'))->assertOk()->streamedContent();
         $this->assertStringContainsString('EIGENE-A', $csv);
         $this->assertStringNotContainsString('GEHEIM-B', $csv);
         $this->assertStringNotContainsString('GELOESCHT-A', $csv);
@@ -154,7 +154,7 @@ class DatenisolationTest extends TestCase
     public function eingeschleuste_lernender_id_wird_ignoriert(): void
     {
         $this->actingAs($this->a)
-            ->post(route('lernender.noten.store'), $this->gueltigeNote(['lernender_id' => $this->lernenderB->lernender_id]))
+            ->post(route('learner.grades.store'), $this->gueltigeNote(['lernender_id' => $this->lernenderB->lernender_id]))
             ->assertSessionHasNoErrors();
 
         $neu = Note::where('titel', 'Neue Note')->sole();
@@ -172,7 +172,7 @@ class DatenisolationTest extends TestCase
         ]);
 
         $this->actingAs($this->a)
-            ->post(route('lernender.noten.store'), $this->gueltigeNote([
+            ->post(route('learner.grades.store'), $this->gueltigeNote([
                 'kategorie_id' => Kategorie::where('code', 'FACH')->value('kategorie_id'),
                 'typ' => 'modul',
                 'fach_id' => null,
@@ -189,7 +189,7 @@ class DatenisolationTest extends TestCase
         $abuFach = Fach::factory()->create(['track_typ' => 'ABU']);
 
         $this->actingAs($this->a)
-            ->post(route('lernender.noten.store'), $this->gueltigeNote(['fach_id' => $abuFach->fach_id]))
+            ->post(route('learner.grades.store'), $this->gueltigeNote(['fach_id' => $abuFach->fach_id]))
             ->assertSessionHasErrors('fach_id');
     }
 }

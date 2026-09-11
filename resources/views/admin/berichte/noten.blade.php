@@ -17,7 +17,7 @@
             <h2 class="font-semibold text-xl text-text">Notenbericht <span class="text-muted font-normal">· {{ $semesterName }}</span></h2>
             <div class="flex items-center gap-2 print:hidden">
                 <button type="button" onclick="window.print()" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Drucken</button>
-                <a href="{{ route('admin.berichte.noten.export', request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id'])) }}"
+                <a href="{{ route('admin.reports.grades.export', request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id'])) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
             </div>
         </div>
@@ -26,7 +26,7 @@
     <div class="py-6">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
-            <form method="GET" action="{{ route('admin.berichte.noten') }}" class="glass rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
+            <form method="GET" action="{{ route('admin.reports.grades') }}" class="glass rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
                 <input type="hidden" name="sort" value="{{ $sort }}">
                 <input type="hidden" name="dir" value="{{ $dir }}">
                 <div>
@@ -57,7 +57,7 @@
                     </select>
                 </div>
                 @if($filterAktiv)
-                    <a href="{{ route('admin.berichte.noten') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-xl glass-btn text-text text-sm" aria-label="Filter zurücksetzen">×</a>
+                    <a href="{{ route('admin.reports.grades') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-xl glass-btn text-text text-sm" aria-label="Filter zurücksetzen">×</a>
                 @endif
             </form>
 
@@ -145,7 +145,7 @@
                             @forelse($zeilen as $z)
                                 <tr class="hover:bg-accent/5">
                                     <td class="px-5 py-2.5 whitespace-nowrap">
-                                        <a href="{{ route('admin.lernende.show', $z->id) }}" class="font-medium hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                        <a href="{{ route('admin.learners.show', $z->id) }}" class="font-medium hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
                                         @if($z->lehrberuf)<span class="ml-1 text-xs text-muted">{{ $z->lehrberuf }}</span>@endif
                                     </td>
                                     <td class="px-3 py-2.5">
@@ -164,7 +164,7 @@
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ $z->pruefungen }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
                                     <td class="px-5 py-2.5 text-right print:hidden">
-                                        <a href="{{ route('admin.lernende.noten.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="text-xs text-accent hover:underline whitespace-nowrap">Noten →</a>
+                                        <a href="{{ route('admin.learners.grades.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="text-xs text-accent hover:underline whitespace-nowrap">Noten →</a>
                                     </td>
                                 </tr>
                             @empty
@@ -172,7 +172,7 @@
                                     <td colspan="8" class="px-5 py-10 text-center text-sm text-muted">
                                         Keine Lernenden
                                         @if($filterAktiv)
-                                            <a href="{{ route('admin.berichte.noten') }}" class="ml-2 text-accent hover:underline">Filter zurücksetzen</a>
+                                            <a href="{{ route('admin.reports.grades') }}" class="ml-2 text-accent hover:underline">Filter zurücksetzen</a>
                                         @endif
                                     </td>
                                 </tr>

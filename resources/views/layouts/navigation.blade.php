@@ -7,7 +7,7 @@
             : [['label' => $e['label'], 'url' => $e['url'], 'gruppe' => 'Seite']])
         ->concat($u ? \App\Support\Navigation::befehle($u) : [])
         ->values();
-    $suchUrl = $u && ($u->hasRole('Admin') || $u->hasRole('Berufsbildner')) ? route('suche') : null;
+    $suchUrl = $u && ($u->hasRole('Admin') || $u->hasRole('Berufsbildner')) ? route('search') : null;
     $name = trim(($u->vorname ?? '').' '.($u->nachname ?? '')) ?: ($u->email ?? '');
     $icon = fn (string $n) => \App\Support\Navigation::icon($n);
 @endphp

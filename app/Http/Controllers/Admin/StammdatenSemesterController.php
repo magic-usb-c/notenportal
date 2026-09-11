@@ -62,7 +62,7 @@ class StammdatenSemesterController extends Controller
             'sortierung' => $sortierung,
         ]);
 
-        return redirect()->route('admin.stammdaten.semester.index')
+        return redirect()->route('admin.master-data.semesters.index')
             ->with('success', 'Semester angelegt.');
     }
 
@@ -98,7 +98,7 @@ class StammdatenSemesterController extends Controller
 
         DB::table('semester')->where('semester_id', $semester_id)->update($validated);
 
-        return redirect()->route('admin.stammdaten.semester.index')
+        return redirect()->route('admin.master-data.semesters.index')
             ->with('success', 'Semester aktualisiert.');
     }
 
@@ -117,6 +117,6 @@ class StammdatenSemesterController extends Controller
 
         DB::table('semester')->where('semester_id', $semester_id)->delete();
 
-        return redirect()->route('admin.stammdaten.semester.index')->with('success', 'Semester «'.$semester->bezeichnung.'» gelöscht.');
+        return redirect()->route('admin.master-data.semesters.index')->with('success', 'Semester «'.$semester->bezeichnung.'» gelöscht.');
     }
 }

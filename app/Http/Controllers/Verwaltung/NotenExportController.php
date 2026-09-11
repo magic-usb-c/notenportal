@@ -24,7 +24,7 @@ class NotenExportController extends VerwaltungController
 
         return response()->view('noten.notenblatt', [
             'blatt' => $notenblatt->fuer($lernender),
-            'zurueck' => $this->zuRoute($request, 'lernende.noten.index', $lernender_id),
+            'zurueck' => $this->zuRoute($request, 'learners.grades.index', $lernender_id),
         ]);
     }
 

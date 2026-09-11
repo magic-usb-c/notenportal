@@ -38,7 +38,7 @@ class TrackController extends VerwaltungController
         ]);
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
             ->with('success', 'Track gestartet.');
     }
 
@@ -60,7 +60,7 @@ class TrackController extends VerwaltungController
         ]);
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
             ->with('success', 'Track beendet.');
     }
 }

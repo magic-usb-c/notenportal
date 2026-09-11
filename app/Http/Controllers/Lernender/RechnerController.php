@@ -21,11 +21,11 @@ class RechnerController extends Controller
 
         return view('rechner.index', [
             'daten' => $this->rechner->seite($lernender, mitZielen: true),
-            'berechnenUrl' => route('lernender.noten.rechner.berechnen'),
-            'zielUrl' => route('lernender.ziele.store'),
+            'berechnenUrl' => route('learner.grades.calculator.calculate'),
+            'zielUrl' => route('learner.goals.store'),
             'start' => $request->only(['ziel', 'zielwert']),
             'lernender' => null,
-            'zurueck' => route('lernender.noten.index'),
+            'zurueck' => route('learner.grades.index'),
         ]);
     }
 

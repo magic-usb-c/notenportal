@@ -1,4 +1,4 @@
-<x-einrichtung schritt="semester" :stand="$stand" titel="Semester">
+<x-einrichtung schritt="semesters" :stand="$stand" titel="Semester">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
         $label = 'text-xs uppercase tracking-widest text-muted font-medium';
@@ -32,7 +32,7 @@
         }
     </script>
 
-    <form method="POST" action="{{ route('admin.einrichtung.semester') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.semesters') }}" class="flex flex-col gap-5"
           x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')))" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="glass rounded-2xl p-6 flex flex-col gap-5">
@@ -81,6 +81,6 @@
             </section>
         @endif
 
-        @include('admin.einrichtung._fuss', ['schritt' => 'semester', 'knopf' => 'Semester anlegen'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'semesters', 'knopf' => 'Semester anlegen'])
     </form>
 </x-einrichtung>

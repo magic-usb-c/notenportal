@@ -60,19 +60,19 @@ class SichtbarkeitTest extends TestCase
             : $this->betreue($this->bb, $this->lernender, $art)->getKey();
 
         foreach ($this->routen() as [$methode, $name, $parameter]) {
-            $status = $this->actingAs($this->bb)->call($methode, route('berufsbildner.'.$name, $parameter))->getStatusCode();
+            $status = $this->actingAs($this->bb)->call($methode, route('trainer.'.$name, $parameter))->getStatusCode();
             $this->assertSame(404, $status, "{$methode} {$name}");
         }
 
         $this->actingAs($this->bb)
-            ->post(route('noten.kommentare.store', $this->note->note_id), ['kommentar_text' => 'Hallo'])
+            ->post(route('comments.store', $this->note->note_id), ['kommentar_text' => 'Hallo'])
             ->assertNotFound();
 
-        $this->actingAs($this->bb)->get(route('berufsbildner.lernende.index'))
+        $this->actingAs($this->bb)->get(route('trainer.learners.index'))
             ->assertOk()
             ->assertDontSee('Unsichtbarius');
 
-        $export = $this->actingAs($this->bb)->get(route('berufsbildner.noten.export_alle'));
+        $export = $this->actingAs($this->bb)->get(route('trainer.grades.export_all'));
         $export->assertOk();
         $this->assertStringNotContainsString('Geheime Pruefung', $export->streamedContent());
 
@@ -90,13 +90,13 @@ class SichtbarkeitTest extends TestCase
         $this->betreuungId = $this->betreue($this->bb, $this->lernender)->getKey();
 
         foreach ($this->leseRouten() as $name => $parameter) {
-            $this->actingAs($this->bb)->get(route('berufsbildner.'.$name, $parameter))->assertOk();
+            $this->actingAs($this->bb)->get(route('trainer.'.$name, $parameter))->assertOk();
         }
 
-        $this->actingAs($this->bb)->get(route('berufsbildner.lernende.index'))->assertSee('Unsichtbarius');
+        $this->actingAs($this->bb)->get(route('trainer.learners.index'))->assertSee('Unsichtbarius');
         $this->assertStringContainsString(
             'Geheime Pruefung',
-            $this->actingAs($this->bb)->get(route('berufsbildner.noten.export_alle'))->streamedContent(),
+            $this->actingAs($this->bb)->get(route('trainer.grades.export_all'))->streamedContent(),
         );
     }
 
@@ -105,14 +105,14 @@ class SichtbarkeitTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
 
-        foreach ($this->leseRouten() + ['lernende.noten.create' => [$this->lernender->lernender_id]] as $name => $parameter) {
+        foreach ($this->leseRouten() + ['learners.grades.create' => [$this->lernender->lernender_id]] as $name => $parameter) {
             $this->actingAs($admin)->get(route('admin.'.$name, $parameter))->assertOk();
         }
 
-        $this->actingAs($admin)->get(route('admin.lernende.index'))->assertSee('Unsichtbarius');
+        $this->actingAs($admin)->get(route('admin.learners.index'))->assertSee('Unsichtbarius');
         $this->assertStringContainsString(
             'Geheime Pruefung',
-            $this->actingAs($admin)->get(route('admin.noten.export_alle'))->streamedContent(),
+            $this->actingAs($admin)->get(route('admin.grades.export_all'))->streamedContent(),
         );
     }
 
@@ -123,7 +123,7 @@ class SichtbarkeitTest extends TestCase
         $this->betreue($this->bb, $eigener);
         Note::factory()->create(['lernender_id' => $eigener->lernender_id, 'titel' => 'Eigene Pruefung']);
 
-        $csv = $this->actingAs($this->bb)->get(route('berufsbildner.noten.export_alle'))->streamedContent();
+        $csv = $this->actingAs($this->bb)->get(route('trainer.grades.export_all'))->streamedContent();
 
         $this->assertStringContainsString('Eigene Pruefung', $csv);
         $this->assertStringNotContainsString('Geheime Pruefung', $csv);
@@ -135,12 +135,12 @@ class SichtbarkeitTest extends TestCase
         $id = $this->lernender->lernender_id;
 
         return [
-            'lernende.show' => [$id],
-            'lernende.edit' => [$id],
-            'lernende.noten.index' => [$id],
-            'lernende.noten.edit' => [$id, $this->note->note_id],
-            'lernende.noten.drucken' => [$id],
-            'lernende.noten.export' => [$id],
+            'learners.show' => [$id],
+            'learners.edit' => [$id],
+            'learners.grades.index' => [$id],
+            'learners.grades.edit' => [$id, $this->note->note_id],
+            'learners.grades.print' => [$id],
+            'learners.grades.export' => [$id],
         ];
     }
 
@@ -151,25 +151,25 @@ class SichtbarkeitTest extends TestCase
         $noteId = $this->note->note_id;
 
         return [
-            ['GET', 'lernende.show', [$id]],
-            ['GET', 'lernende.edit', [$id]],
-            ['PUT', 'lernende.update', [$id]],
-            ['POST', 'lernende.konto.passwort', [$id]],
-            ['POST', 'lernende.konto.aktiv', [$id]],
-            ['POST', 'lernende.betreuung.store', [$id]],
-            ['POST', 'betreuungen.beenden', [$id, $this->betreuungId]],
-            ['POST', 'lernende.tracks.store', [$id]],
-            ['POST', 'tracks.beenden', [$id, $this->trackId]],
-            ['GET', 'lernende.noten.index', [$id]],
-            ['GET', 'lernende.noten.create', [$id]],
-            ['POST', 'lernende.noten.store', [$id]],
-            ['GET', 'lernende.noten.edit', [$id, $noteId]],
-            ['PUT', 'lernende.noten.update', [$id, $noteId]],
-            ['DELETE', 'lernende.noten.destroy', [$id, $noteId]],
-            ['GET', 'lernende.noten.drucken', [$id]],
-            ['GET', 'lernende.noten.export', [$id]],
-            ['POST', 'lernende.noten.gesehen', [$id, $noteId]],
-            ['POST', 'lernende.noten.alle_gesehen', [$id]],
+            ['GET', 'learners.show', [$id]],
+            ['GET', 'learners.edit', [$id]],
+            ['PUT', 'learners.update', [$id]],
+            ['POST', 'learners.account.password', [$id]],
+            ['POST', 'learners.account.active', [$id]],
+            ['POST', 'learners.supervision.store', [$id]],
+            ['POST', 'supervisions.end', [$id, $this->betreuungId]],
+            ['POST', 'learners.tracks.store', [$id]],
+            ['POST', 'tracks.end', [$id, $this->trackId]],
+            ['GET', 'learners.grades.index', [$id]],
+            ['GET', 'learners.grades.create', [$id]],
+            ['POST', 'learners.grades.store', [$id]],
+            ['GET', 'learners.grades.edit', [$id, $noteId]],
+            ['PUT', 'learners.grades.update', [$id, $noteId]],
+            ['DELETE', 'learners.grades.destroy', [$id, $noteId]],
+            ['GET', 'learners.grades.print', [$id]],
+            ['GET', 'learners.grades.export', [$id]],
+            ['POST', 'learners.grades.seen', [$id, $noteId]],
+            ['POST', 'learners.grades.seen_all', [$id]],
         ];
     }
 }

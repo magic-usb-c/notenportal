@@ -33,16 +33,16 @@ class EinrichtungTest extends TestCase
         $admin->update(['passwort_wechsel_noetig' => false]);
         $this->actingAs($admin);
 
-        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.einrichtung'));
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.setup'));
         foreach (array_keys(Einrichtung::SCHRITTE) as $schritt) {
-            $this->get(route('admin.einrichtung', $schritt))->assertOk();
+            $this->get(route('admin.setup', $schritt))->assertOk();
         }
 
-        $this->post(route('admin.einrichtung.betrieb'), [
+        $this->post(route('admin.setup.operations'), [
             'vorname' => 'Laura', 'nachname' => 'Frei', 'email' => 'laura@betrieb.ch', 'betrieb_name' => 'Muster AG',
             'note_gut' => '5', 'note_genuegend' => '4', 'note_kritisch' => '3.5', 'rundung_gesamt' => '0.1',
             'frist_inaktiv_tage' => 30, 'frist_lehrende_tage' => 60,
-        ])->assertSessionHasNoErrors()->assertRedirect(route('admin.einrichtung', 'kategorien'));
+        ])->assertSessionHasNoErrors()->assertRedirect(route('admin.setup', 'categories'));
         $this->assertSame('Muster AG', Einstellungen::get(Einstellungen::BETRIEB_NAME));
         $this->assertSame('laura@betrieb.ch', $admin->fresh()->email);
 
@@ -50,17 +50,17 @@ class EinrichtungTest extends TestCase
             'name' => $k->name, 'aktiv' => 1, 'rundung_element' => '0.5', 'rundung_schnitt' => '0.1', 'gewicht_gesamt' => 1,
             'promotion_min_schnitt' => $k->code === 'BMS' ? 4 : null, 'promotion_max_ungenuegend' => null, 'promotion_max_minuspunkte' => null,
         ]])->all();
-        $this->post(route('admin.einrichtung.kategorien'), ['kategorien' => $kategorien])->assertSessionHasNoErrors();
-        $this->assertTrue(Einrichtung::stand()['kategorien']['erledigt']);
+        $this->post(route('admin.setup.categories'), ['kategorien' => $kategorien])->assertSessionHasNoErrors();
+        $this->assertTrue(Einrichtung::stand()['categories']['erledigt']);
 
         $semester = ['herbst' => '2024-08-01', 'fruehling' => '2025-02-01', 'bis_jahr' => 2026];
-        $this->post(route('admin.einrichtung.semester'), $semester)->assertSessionHasNoErrors();
-        $this->post(route('admin.einrichtung.semester'), $semester)->assertSessionHasNoErrors();
+        $this->post(route('admin.setup.semesters'), $semester)->assertSessionHasNoErrors();
+        $this->post(route('admin.setup.semesters'), $semester)->assertSessionHasNoErrors();
         $this->assertSame(['24/25-1', '24/25-2', '25/26-1', '25/26-2', '26/27-1', '26/27-2'],
             DB::table('semester')->orderBy('sortierung')->pluck('bezeichnung')->all());
         $this->assertSame('2025-01-31', DB::table('semester')->where('bezeichnung', '24/25-1')->value('end_datum'));
 
-        $this->post(route('admin.einrichtung.lehrberufe'), [
+        $this->post(route('admin.setup.professions'), [
             'berufe' => ['INAP'],
             'eigene' => [['kuerzel' => 'lab', 'name' => 'Laborant/in EFZ'], ['kuerzel' => '', 'name' => '']],
             'faecher' => ['BMS:D', 'ABU:SK'],
@@ -69,9 +69,9 @@ class EinrichtungTest extends TestCase
         $this->assertSame('BMS', DB::table('faecher')->where('name', 'Deutsch')->value('track_typ'));
 
         $lehrberuf = (int) DB::table('lehrberufe')->where('kuerzel', 'INAP')->value('lehrberuf_id');
-        $this->post(route('admin.einrichtung.module'), ['lehrberuf_id' => $lehrberuf, 'schule' => 'Ohne Nummer', 'ziel' => 100])
+        $this->post(route('admin.setup.modules'), ['lehrberuf_id' => $lehrberuf, 'schule' => 'Ohne Nummer', 'ziel' => 100])
             ->assertSessionHasErrors('schule');
-        $this->post(route('admin.einrichtung.module'), [
+        $this->post(route('admin.setup.modules'), [
             'lehrberuf_id' => $lehrberuf,
             'schule' => "431 Aufträge durchführen\nM162 – Daten modellieren",
             'uek' => 'ÜK-106: Datenbanken abfragen',
@@ -81,14 +81,14 @@ class EinrichtungTest extends TestCase
         $this->assertSame('UEK', DB::table('lehrberuf_module as lbm')->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
             ->join('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')->where('m.modul_nummer', '106')->value('k.code'));
 
-        $this->post(route('admin.einrichtung.personen'), ['personen' => [
+        $this->post(route('admin.setup.people'), ['personen' => [
             ['vorname' => 'Michael', 'nachname' => 'Baumann', 'email' => 'mb@betrieb.ch', 'rolle' => 'Berufsbildner'],
             ['vorname' => 'Anna', 'nachname' => 'Keller', 'email' => 'ak@betrieb.ch', 'rolle' => 'Admin'],
         ]])->assertSessionHasNoErrors()->assertSessionHas('einrichtung_zugaenge');
         $bb = (int) DB::table('berufsbildner')->value('berufsbildner_id');
         $this->assertTrue(User::where('email', 'ak@betrieb.ch')->firstOrFail()->hasRole('Admin'));
 
-        $this->post(route('admin.einrichtung.lernende'), ['lernende' => [[
+        $this->post(route('admin.setup.learners'), ['lernende' => [[
             'vorname' => 'Nina', 'nachname' => 'Huber', 'email' => 'nina@betrieb.ch', 'lehrberuf_id' => $lehrberuf,
             'lehrbeginn' => '2025-08-01', 'lehrende' => '2029-07-31', 'berufsbildner_id' => $bb, 'track' => 'BMS',
         ]]])->assertSessionHasNoErrors();
@@ -102,8 +102,8 @@ class EinrichtungTest extends TestCase
         $this->assertTrue((bool) $nina->benutzer->passwort_wechsel_noetig);
 
         $this->assertCount(3, session('einrichtung_zugaenge'));
-        $this->get(route('admin.einrichtung', 'fertig'))->assertOk()->assertSee('nina@betrieb.ch');
-        $this->post(route('admin.einrichtung.abschliessen'))->assertRedirect(route('admin.dashboard'))->assertSessionMissing('einrichtung_zugaenge');
+        $this->get(route('admin.setup', 'finish'))->assertOk()->assertSee('nina@betrieb.ch');
+        $this->post(route('admin.setup.finish'))->assertRedirect(route('admin.dashboard'))->assertSessionMissing('einrichtung_zugaenge');
         $this->assertFalse(Einrichtung::offen());
         $this->get(route('admin.dashboard'))->assertOk();
     }
@@ -115,10 +115,10 @@ class EinrichtungTest extends TestCase
         $werte = ['betrieb_name' => 'Test AG', 'note_gut' => '5', 'note_genuegend' => '4', 'note_kritisch' => '3.5',
             'rundung_gesamt' => '0.1', 'frist_inaktiv_tage' => 30, 'frist_lehrende_tage' => 60];
 
-        $this->put(route('admin.betrieb.update'), [...$werte, 'note_genuegend' => '5.5'])->assertSessionHasErrors('note_gut');
-        $this->put(route('admin.betrieb.update'), [...$werte, 'note_kritisch' => '3.75'])->assertSessionHasNoErrors()->assertSessionHas('success');
+        $this->put(route('admin.operations.update'), [...$werte, 'note_genuegend' => '5.5'])->assertSessionHasErrors('note_gut');
+        $this->put(route('admin.operations.update'), [...$werte, 'note_kritisch' => '3.75'])->assertSessionHasNoErrors()->assertSessionHas('success');
         $this->assertSame('3.75', Einstellungen::get(Einstellungen::NOTE_KRITISCH));
-        $this->get(route('admin.betrieb.edit'))->assertOk()->assertSee('Test AG');
+        $this->get(route('admin.operations.edit'))->assertOk()->assertSee('Test AG');
     }
 
     #[Test]

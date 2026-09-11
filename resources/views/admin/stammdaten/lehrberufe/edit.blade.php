@@ -4,11 +4,11 @@
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Lehrberuf bearbeiten</h2>
             <div class="flex gap-2">
-                <a href="{{ route('admin.stammdaten.lehrberufe.show', $lehrberuf->lehrberuf_id) }}"
+                <a href="{{ route('admin.master-data.professions.show', $lehrberuf->lehrberuf_id) }}"
                    class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Module/Fächer
                 </a>
-                <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
+                <a href="{{ route('admin.master-data.professions.index') }}"
                    class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                     Zurück
                 </a>
@@ -19,7 +19,7 @@
     <div class="py-6">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
-                <form method="POST" action="{{ route('admin.stammdaten.lehrberufe.update', $lehrberuf->lehrberuf_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                <form method="POST" action="{{ route('admin.master-data.professions.update', $lehrberuf->lehrberuf_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
 

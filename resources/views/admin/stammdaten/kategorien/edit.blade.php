@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Notenkategorie bearbeiten</h2>
-            <a href="{{ route('admin.stammdaten.kategorien.index') }}"
+            <a href="{{ route('admin.master-data.categories.index') }}"
                class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
@@ -15,7 +15,7 @@
             <div class="glass rounded-2xl p-6">
 
                 <form method="POST"
-                      action="{{ route('admin.stammdaten.kategorien.update', $kategorie->kategorie_id) }}"
+                      action="{{ route('admin.master-data.categories.update', $kategorie->kategorie_id) }}"
                       class="space-y-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
@@ -111,7 +111,7 @@
                                 class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                             Speichern
                         </button>
-                        <a href="{{ route('admin.stammdaten.kategorien.index') }}"
+                        <a href="{{ route('admin.master-data.categories.index') }}"
                            class="px-4 py-2 h-10 rounded-xl glass-btn text-text">
                             Abbrechen
                         </a>

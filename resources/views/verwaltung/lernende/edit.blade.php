@@ -4,9 +4,9 @@
         <div class="w-full flex items-center justify-between gap-4">
             <div>
                 <nav class="text-xs text-muted flex items-center gap-1 mb-1" aria-label="Brotkrumen">
-                    <a href="{{ route("{$bereich}.lernende.index") }}" class="hover:text-text transition-colors">Lernende</a>
+                    <a href="{{ route("{$bereich}.learners.index") }}" class="hover:text-text transition-colors">Lernende</a>
                     <span class="text-muted/40">›</span>
-                    <a href="{{ route("{$bereich}.lernende.show", $lernender->lernender_id) }}" class="hover:text-text transition-colors">
+                    <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}" class="hover:text-text transition-colors">
                         {{ $lernender->benutzer->nachname }} {{ $lernender->benutzer->vorname }}
                     </a>
                     <span class="text-muted/40">›</span>
@@ -14,7 +14,7 @@
                 </nav>
                 <h2 class="font-semibold text-xl text-text">Lernender bearbeiten</h2>
             </div>
-            <a href="{{ route("{$bereich}.lernende.show", $lernender->lernender_id) }}"
+            <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}"
                class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">Zurück</a>
         </div>
     </x-slot>
@@ -27,7 +27,7 @@
 
     <div class="py-6">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route("{$bereich}.lernende.update", $lernender->lernender_id) }}"
+            <form method="POST" action="{{ route("{$bereich}.learners.update", $lernender->lernender_id) }}"
                   class="glass rounded-2xl p-6 space-y-5"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf

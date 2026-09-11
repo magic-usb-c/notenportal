@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Semester bearbeiten</h2>
-            <a href="{{ route('admin.stammdaten.semester.index') }}"
+            <a href="{{ route('admin.master-data.semesters.index') }}"
                class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
@@ -13,7 +13,7 @@
     <div class="py-6">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="glass rounded-2xl p-6">
-                <form method="POST" action="{{ route('admin.stammdaten.semester.update', $semester->semester_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                <form method="POST" action="{{ route('admin.master-data.semesters.update', $semester->semester_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
 

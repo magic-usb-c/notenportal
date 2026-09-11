@@ -3,13 +3,13 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Betrieb</h2>
-            <a href="{{ route('admin.einrichtung') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Einrichtung</a>
+            <a href="{{ route('admin.setup') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Einrichtung</a>
         </div>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('admin.betrieb.update') }}" class="glass rounded-2xl p-6 flex flex-col gap-6"
+            <form method="POST" action="{{ route('admin.operations.update') }}" class="glass rounded-2xl p-6 flex flex-col gap-6"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('PUT')
@@ -59,7 +59,7 @@
                             @endif
                         </p>
                     </div>
-                    <form method="POST" action="{{ route('admin.betrieb.sicherungen.store') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                    <form method="POST" action="{{ route('admin.operations.backups.store') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <button type="submit" :disabled="loading" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">
                             <span x-show="loading" x-cloak class="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" aria-hidden="true"></span>
@@ -73,11 +73,11 @@
                             <li class="flex items-center gap-3 px-6 py-2.5">
                                 <span class="flex-1 min-w-0 text-sm text-text tabular-nums">{{ $s['datum']->format('d.m.Y H:i') }}</span>
                                 <span class="text-xs text-muted tabular-nums">{{ $groesse($s['groesse']) }}</span>
-                                <a href="{{ route('admin.betrieb.sicherungen.show', $s['name']) }}" aria-label="Sicherung {{ $s['datum']->format('d.m.Y H:i') }} herunterladen"
+                                <a href="{{ route('admin.operations.backups.show', $s['name']) }}" aria-label="Sicherung {{ $s['datum']->format('d.m.Y H:i') }} herunterladen"
                                    class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-accent/10">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
                                 </a>
-                                <form method="POST" action="{{ route('admin.betrieb.sicherungen.destroy', $s['name']) }}" onsubmit="return confirm('Sicherung löschen?')"
+                                <form method="POST" action="{{ route('admin.operations.backups.destroy', $s['name']) }}" onsubmit="return confirm('Sicherung löschen?')"
                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                     @csrf
                                     @method('DELETE')

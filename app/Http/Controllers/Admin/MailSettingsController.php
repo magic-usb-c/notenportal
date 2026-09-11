@@ -21,7 +21,7 @@ class MailSettingsController extends Controller
         $validated = $request->validate(MailSettings::rules());
         MailSettings::save($validated);
 
-        return redirect()->route('admin.betrieb.edit')->with('success', 'Mail-Einstellungen gespeichert.');
+        return redirect()->route('admin.operations.edit')->with('success', 'Mail-Einstellungen gespeichert.');
     }
 
     public function test(Request $request): RedirectResponse
@@ -45,14 +45,14 @@ class MailSettingsController extends Controller
         if ($log->status === MailLog::SKIPPED) {
             $domain = mb_substr((string) strrchr($to, '@'), 1) ?: $to;
 
-            return redirect()->route('admin.betrieb.edit')
+            return redirect()->route('admin.operations.edit')
                 ->with('error', $to.' ist eine Testadresse ('.$domain.') – Umleitung setzen oder echte Adresse verwenden.');
         }
         if ($log->status === MailLog::FAILED) {
-            return redirect()->route('admin.betrieb.edit')
+            return redirect()->route('admin.operations.edit')
                 ->with('error', 'Testmail fehlgeschlagen: '.mb_substr((string) $log->error, 0, 150));
         }
 
-        return redirect()->route('admin.betrieb.edit')->with('success', 'Testmail an '.$to.' verschickt.');
+        return redirect()->route('admin.operations.edit')->with('success', 'Testmail an '.$to.' verschickt.');
     }
 }

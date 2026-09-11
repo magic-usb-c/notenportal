@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Semester</h2>
-            <a href="{{ route('admin.stammdaten.semester.create') }}"
+            <a href="{{ route('admin.master-data.semesters.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neues Semester
             </a>
@@ -43,9 +43,9 @@
                                 <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.stammdaten.semester.edit', $s->semester_id) }}"
+                                    <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
-                                    <form method="POST" action="{{ route('admin.stammdaten.semester.destroy', $s->semester_id) }}" class="inline"
+                                    <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
                                           onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf @method('DELETE')

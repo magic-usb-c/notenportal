@@ -34,7 +34,7 @@ final class SemesterEnding
             facts: ['Semester' => $semester->bezeichnung, 'Ende' => $semester->end_datum->format('d.m.Y')],
             sections: $sections,
             actionLabel: 'Zur Prüfungsliste',
-            actionUrl: route('lernender.pruefungen.index'),
+            actionUrl: route('learner.exams.index'),
             digestTitle: 'Semesterende naht: '.$semester->bezeichnung,
         );
     }

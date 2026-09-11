@@ -40,87 +40,87 @@ Route::get('/dashboard', function (Request $request) {
     }
 
     if ($u && $u->hasRole('Berufsbildner')) {
-        return redirect()->route('berufsbildner.dashboard');
+        return redirect()->route('trainer.dashboard');
     }
 
-    return redirect()->route('lernender.dashboard');
+    return redirect()->route('learner.dashboard');
 })->middleware(['auth'])->name('dashboard');
 
 /**
  * Rollen-Dashboards mit Datenbeschaffung via DashboardController
  */
-Route::get('/lernender', [DashboardController::class, 'lernender'])
+Route::get('/learner', [DashboardController::class, 'lernender'])
     ->middleware(['auth', 'role:Lernender'])
-    ->name('lernender.dashboard');
+    ->name('learner.dashboard');
 
-Route::get('/berufsbildner', [DashboardController::class, 'berufsbildner'])
+Route::get('/trainer', [DashboardController::class, 'berufsbildner'])
     ->middleware(['auth', 'role:Berufsbildner'])
-    ->name('berufsbildner.dashboard');
+    ->name('trainer.dashboard');
 
 Route::get('/admin', [DashboardController::class, 'admin'])
     ->middleware(['auth', 'role:Admin'])
     ->name('admin.dashboard');
 
 /**
- * Lernender: eigene Noten CRUD (URL bleibt /noten, aber Route-Namen sind jetzt lernender.noten.*)
+ * Lernender: eigene Noten (learner.grades.*)
  */
 Route::middleware(['auth', 'role:Lernender'])
-    ->prefix('noten')
-    ->name('lernender.noten.')
+    ->prefix('grades')
+    ->name('learner.grades.')
     ->group(function () {
         Route::get('/', [LernenderNotenController::class, 'index'])->name('index');
-        Route::get('/drucken', [LernenderNotenController::class, 'drucken'])->name('drucken');
+        Route::get('/print', [LernenderNotenController::class, 'drucken'])->name('print');
         Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
-        Route::get('/rechner', [LernenderRechnerController::class, 'index'])->name('rechner');
-        Route::post('/rechner', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('rechner.berechnen');
+        Route::get('/calculator', [LernenderRechnerController::class, 'index'])->name('calculator');
+        Route::post('/calculator', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('calculator.calculate');
         Route::get('/import', [NotenImportController::class, 'index'])->name('import.index');
-        Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('import.lesen');
-        Route::post('/import/uebernehmen', [NotenImportController::class, 'uebernehmen'])->name('import.uebernehmen');
-        Route::post('/import/verwerfen', [NotenImportController::class, 'verwerfen'])->name('import.verwerfen');
-        Route::get('/import/vorlage', [NotenImportController::class, 'vorlage'])->name('import.vorlage');
+        Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('import.read');
+        Route::post('/import/apply', [NotenImportController::class, 'uebernehmen'])->name('import.apply');
+        Route::post('/import/discard', [NotenImportController::class, 'verwerfen'])->name('import.discard');
+        Route::get('/import/template', [NotenImportController::class, 'vorlage'])->name('import.template');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
-        Route::post('/module/{modul_id}/wiederholen', [LernenderNotenController::class, 'modulWiederholen'])->whereNumber('modul_id')->name('modul.wiederholen');
-        Route::post('/module/{modul_id}/fortsetzen', [LernenderNotenController::class, 'modulFortsetzen'])->whereNumber('modul_id')->name('modul.fortsetzen');
+        Route::post('/modules/{modul_id}/repeat', [LernenderNotenController::class, 'modulWiederholen'])->whereNumber('modul_id')->name('module.repeat');
+        Route::post('/modules/{modul_id}/resume', [LernenderNotenController::class, 'modulFortsetzen'])->whereNumber('modul_id')->name('module.resume');
 
         Route::get('/{note_id}/edit', [LernenderNotenController::class, 'edit'])->name('edit');
         Route::put('/{note_id}', [LernenderNotenController::class, 'update'])->name('update');
         Route::delete('/{note_id}', [LernenderNotenController::class, 'destroy'])->name('destroy');
 
         // AJAX: Note als gelesen markieren (beim Öffnen des Detail-Accordions)
-        Route::post('/{note_id}/gesehen', [LernenderNotenController::class, 'markGesehen'])->name('gesehen.mark');
+        Route::post('/{note_id}/seen', [LernenderNotenController::class, 'markGesehen'])->name('seen');
 
         // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
-        Route::patch('/{note_id}/titel', [LernenderNotenController::class, 'updateTitel'])->name('titel.update');
+        Route::patch('/{note_id}/title', [LernenderNotenController::class, 'updateTitel'])->name('title.update');
     });
 
 /**
  * Lernender: eigene Dokumente (private Ablage, Auslieferung nur über den Controller)
  */
 Route::middleware(['auth', 'role:Lernender'])
-    ->prefix('dokumente')
-    ->name('lernender.dokumente.')
+    ->prefix('documents')
+    ->name('learner.documents.')
     ->group(function () {
         Route::get('/', [DokumenteController::class, 'index'])->name('index');
         Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('store');
         Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('show');
         Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('destroy');
-        Route::get('/{dokument_id}/abgleich', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('abgleich');
-        Route::post('/{dokument_id}/abgleich', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('abgleich.uebernehmen');
+        Route::get('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('reconcile');
+        Route::post('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('reconcile.apply');
     });
 
 /**
  * Lernender: geplante Prüfungen und Ziele
  */
 Route::middleware(['auth', 'role:Lernender'])
-    ->name('lernender.')
+    ->name('learner.')
     ->group(function () {
-        Route::get('/pruefungen', [PruefungenController::class, 'index'])->name('pruefungen.index');
-        Route::post('/pruefungen', [PruefungenController::class, 'store'])->name('pruefungen.store');
-        Route::put('/pruefungen/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('pruefungen.update');
-        Route::delete('/pruefungen/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('pruefungen.destroy');
-        Route::post('/ziele', [ZieleController::class, 'store'])->name('ziele.store');
-        Route::delete('/ziele/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('ziele.destroy');
+        Route::get('/exams', [PruefungenController::class, 'index'])->name('exams.index');
+        Route::post('/exams', [PruefungenController::class, 'store'])->name('exams.store');
+        Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('exams.update');
+        Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('exams.destroy');
+        Route::post('/goals', [ZieleController::class, 'store'])->name('goals.store');
+        Route::delete('/goals/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('goals.destroy');
     });
 
 /**
@@ -128,7 +128,7 @@ Route::middleware(['auth', 'role:Lernender'])
  * Sichtbarkeit über Lernender::sichtbarFuer() (routes/verwaltung.php)
  */
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(base_path('routes/verwaltung.php'));
-Route::middleware(['auth', 'role:Berufsbildner'])->prefix('berufsbildner')->name('berufsbildner.')->group(base_path('routes/verwaltung.php'));
+Route::middleware(['auth', 'role:Berufsbildner'])->prefix('trainer')->name('trainer.')->group(base_path('routes/verwaltung.php'));
 
 /**
  * Admin: Benutzerkonten (Admin/BB), Stammdaten, Berichte
@@ -138,96 +138,96 @@ Route::middleware(['auth', 'role:Admin'])
     ->name('admin.')
     ->group(function () {
         // Berufsbildner-Übersicht
-        Route::get('/berufsbildner', [AdminBerufsbildnerController::class, 'index'])->name('berufsbildner.index');
+        Route::get('/trainers', [AdminBerufsbildnerController::class, 'index'])->name('trainers.index');
 
         // Benutzerverwaltung
-        Route::get('/benutzer', [AdminBenutzerController::class, 'index'])->name('benutzer.index');
-        Route::get('/benutzer/create', [AdminBenutzerController::class, 'create'])->name('benutzer.create');
-        Route::post('/benutzer', [AdminBenutzerController::class, 'store'])->name('benutzer.store');
-        Route::get('/benutzer/{benutzer_id}/edit', [AdminBenutzerController::class, 'edit'])->name('benutzer.edit');
-        Route::put('/benutzer/{benutzer_id}', [AdminBenutzerController::class, 'update'])->name('benutzer.update');
-        Route::post('/benutzer/{benutzer_id}/toggle-aktiv', [AdminBenutzerController::class, 'toggleAktiv'])
-            ->name('benutzer.toggle-aktiv');
+        Route::get('/users', [AdminBenutzerController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [AdminBenutzerController::class, 'create'])->name('users.create');
+        Route::post('/users', [AdminBenutzerController::class, 'store'])->name('users.store');
+        Route::get('/users/{benutzer_id}/edit', [AdminBenutzerController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{benutzer_id}', [AdminBenutzerController::class, 'update'])->name('users.update');
+        Route::post('/users/{benutzer_id}/toggle-active', [AdminBenutzerController::class, 'toggleAktiv'])
+            ->name('users.toggle-active');
 
         // Stammdaten: Lehrberufe (inkl. Modul- & Fach-Zuweisung)
-        Route::get('/stammdaten/lehrberufe', [StammdatenLehrberufeController::class, 'index'])
-            ->name('stammdaten.lehrberufe.index');
-        Route::get('/stammdaten/lehrberufe/create', [StammdatenLehrberufeController::class, 'create'])
-            ->name('stammdaten.lehrberufe.create');
-        Route::post('/stammdaten/lehrberufe', [StammdatenLehrberufeController::class, 'store'])
-            ->name('stammdaten.lehrberufe.store');
-        Route::get('/stammdaten/lehrberufe/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'show'])
-            ->name('stammdaten.lehrberufe.show');
-        Route::get('/stammdaten/lehrberufe/{lehrberuf_id}/edit', [StammdatenLehrberufeController::class, 'edit'])
-            ->name('stammdaten.lehrberufe.edit');
-        Route::put('/stammdaten/lehrberufe/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'update'])
-            ->name('stammdaten.lehrberufe.update');
-        Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/module', [StammdatenLehrberufeController::class, 'assignModul'])
-            ->name('stammdaten.lehrberufe.module.assign');
-        Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'removeModul'])
-            ->name('stammdaten.lehrberufe.module.remove');
-        Route::patch('/stammdaten/lehrberufe/{lehrberuf_id}/module/{modul_id}', [StammdatenLehrberufeController::class, 'updateModulKategorie'])
-            ->name('stammdaten.lehrberufe.module.update');
-        Route::post('/stammdaten/lehrberufe/{lehrberuf_id}/faecher', [StammdatenLehrberufeController::class, 'assignFach'])
-            ->name('stammdaten.lehrberufe.faecher.assign');
-        Route::delete('/stammdaten/lehrberufe/{lehrberuf_id}/faecher/{fach_id}', [StammdatenLehrberufeController::class, 'removeFach'])
-            ->name('stammdaten.lehrberufe.faecher.remove');
+        Route::get('/master-data/professions', [StammdatenLehrberufeController::class, 'index'])
+            ->name('master-data.professions.index');
+        Route::get('/master-data/professions/create', [StammdatenLehrberufeController::class, 'create'])
+            ->name('master-data.professions.create');
+        Route::post('/master-data/professions', [StammdatenLehrberufeController::class, 'store'])
+            ->name('master-data.professions.store');
+        Route::get('/master-data/professions/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'show'])
+            ->name('master-data.professions.show');
+        Route::get('/master-data/professions/{lehrberuf_id}/edit', [StammdatenLehrberufeController::class, 'edit'])
+            ->name('master-data.professions.edit');
+        Route::put('/master-data/professions/{lehrberuf_id}', [StammdatenLehrberufeController::class, 'update'])
+            ->name('master-data.professions.update');
+        Route::post('/master-data/professions/{lehrberuf_id}/modules', [StammdatenLehrberufeController::class, 'assignModul'])
+            ->name('master-data.professions.modules.assign');
+        Route::delete('/master-data/professions/{lehrberuf_id}/modules/{modul_id}', [StammdatenLehrberufeController::class, 'removeModul'])
+            ->name('master-data.professions.modules.remove');
+        Route::patch('/master-data/professions/{lehrberuf_id}/modules/{modul_id}', [StammdatenLehrberufeController::class, 'updateModulKategorie'])
+            ->name('master-data.professions.modules.update');
+        Route::post('/master-data/professions/{lehrberuf_id}/subjects', [StammdatenLehrberufeController::class, 'assignFach'])
+            ->name('master-data.professions.subjects.assign');
+        Route::delete('/master-data/professions/{lehrberuf_id}/subjects/{fach_id}', [StammdatenLehrberufeController::class, 'removeFach'])
+            ->name('master-data.professions.subjects.remove');
 
         // Stammdaten: Module
-        Route::get('/stammdaten/module', [StammdatenModuleController::class, 'index'])
-            ->name('stammdaten.module.index');
-        Route::get('/stammdaten/module/create', [StammdatenModuleController::class, 'create'])
-            ->name('stammdaten.module.create');
-        Route::post('/stammdaten/module', [StammdatenModuleController::class, 'store'])
-            ->name('stammdaten.module.store');
-        Route::get('/stammdaten/module/{modul_id}/edit', [StammdatenModuleController::class, 'edit'])
-            ->name('stammdaten.module.edit');
-        Route::put('/stammdaten/module/{modul_id}', [StammdatenModuleController::class, 'update'])
-            ->name('stammdaten.module.update');
+        Route::get('/master-data/modules', [StammdatenModuleController::class, 'index'])
+            ->name('master-data.modules.index');
+        Route::get('/master-data/modules/create', [StammdatenModuleController::class, 'create'])
+            ->name('master-data.modules.create');
+        Route::post('/master-data/modules', [StammdatenModuleController::class, 'store'])
+            ->name('master-data.modules.store');
+        Route::get('/master-data/modules/{modul_id}/edit', [StammdatenModuleController::class, 'edit'])
+            ->name('master-data.modules.edit');
+        Route::put('/master-data/modules/{modul_id}', [StammdatenModuleController::class, 'update'])
+            ->name('master-data.modules.update');
 
         // Stammdaten: Fächer
-        Route::get('/stammdaten/faecher', [StammdatenFaecherController::class, 'index'])
-            ->name('stammdaten.faecher.index');
-        Route::get('/stammdaten/faecher/create', [StammdatenFaecherController::class, 'create'])
-            ->name('stammdaten.faecher.create');
-        Route::post('/stammdaten/faecher', [StammdatenFaecherController::class, 'store'])
-            ->name('stammdaten.faecher.store');
-        Route::get('/stammdaten/faecher/{fach_id}/edit', [StammdatenFaecherController::class, 'edit'])
-            ->name('stammdaten.faecher.edit');
-        Route::put('/stammdaten/faecher/{fach_id}', [StammdatenFaecherController::class, 'update'])
-            ->name('stammdaten.faecher.update');
+        Route::get('/master-data/subjects', [StammdatenFaecherController::class, 'index'])
+            ->name('master-data.subjects.index');
+        Route::get('/master-data/subjects/create', [StammdatenFaecherController::class, 'create'])
+            ->name('master-data.subjects.create');
+        Route::post('/master-data/subjects', [StammdatenFaecherController::class, 'store'])
+            ->name('master-data.subjects.store');
+        Route::get('/master-data/subjects/{fach_id}/edit', [StammdatenFaecherController::class, 'edit'])
+            ->name('master-data.subjects.edit');
+        Route::put('/master-data/subjects/{fach_id}', [StammdatenFaecherController::class, 'update'])
+            ->name('master-data.subjects.update');
 
         // Stammdaten: Semester
-        Route::get('/stammdaten/semester', [StammdatenSemesterController::class, 'index'])
-            ->name('stammdaten.semester.index');
-        Route::get('/stammdaten/semester/create', [StammdatenSemesterController::class, 'create'])
-            ->name('stammdaten.semester.create');
-        Route::post('/stammdaten/semester', [StammdatenSemesterController::class, 'store'])
-            ->name('stammdaten.semester.store');
-        Route::get('/stammdaten/semester/{semester_id}/edit', [StammdatenSemesterController::class, 'edit'])
-            ->name('stammdaten.semester.edit');
-        Route::put('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'update'])
-            ->name('stammdaten.semester.update');
-        Route::delete('/stammdaten/semester/{semester_id}', [StammdatenSemesterController::class, 'destroy'])
-            ->name('stammdaten.semester.destroy');
+        Route::get('/master-data/semesters', [StammdatenSemesterController::class, 'index'])
+            ->name('master-data.semesters.index');
+        Route::get('/master-data/semesters/create', [StammdatenSemesterController::class, 'create'])
+            ->name('master-data.semesters.create');
+        Route::post('/master-data/semesters', [StammdatenSemesterController::class, 'store'])
+            ->name('master-data.semesters.store');
+        Route::get('/master-data/semesters/{semester_id}/edit', [StammdatenSemesterController::class, 'edit'])
+            ->name('master-data.semesters.edit');
+        Route::put('/master-data/semesters/{semester_id}', [StammdatenSemesterController::class, 'update'])
+            ->name('master-data.semesters.update');
+        Route::delete('/master-data/semesters/{semester_id}', [StammdatenSemesterController::class, 'destroy'])
+            ->name('master-data.semesters.destroy');
 
         // Berichte
-        Route::get('/berichte/noten', [AdminBerichtController::class, 'noten'])
-            ->name('berichte.noten');
-        Route::get('/berichte/noten/export', [AdminBerichtController::class, 'notenExport'])
-            ->name('berichte.noten.export');
+        Route::get('/reports/grades', [AdminBerichtController::class, 'noten'])
+            ->name('reports.grades');
+        Route::get('/reports/grades/export', [AdminBerichtController::class, 'notenExport'])
+            ->name('reports.grades.export');
 
         // Stammdaten: Kategorien
-        Route::get('/stammdaten/kategorien', [StammdatenKategorieController::class, 'index'])
-            ->name('stammdaten.kategorien.index');
-        Route::get('/stammdaten/kategorien/create', [StammdatenKategorieController::class, 'create'])
-            ->name('stammdaten.kategorien.create');
-        Route::post('/stammdaten/kategorien', [StammdatenKategorieController::class, 'store'])
-            ->name('stammdaten.kategorien.store');
-        Route::get('/stammdaten/kategorien/{kategorie_id}/edit', [StammdatenKategorieController::class, 'edit'])
-            ->name('stammdaten.kategorien.edit');
-        Route::put('/stammdaten/kategorien/{kategorie_id}', [StammdatenKategorieController::class, 'update'])
-            ->name('stammdaten.kategorien.update');
+        Route::get('/master-data/categories', [StammdatenKategorieController::class, 'index'])
+            ->name('master-data.categories.index');
+        Route::get('/master-data/categories/create', [StammdatenKategorieController::class, 'create'])
+            ->name('master-data.categories.create');
+        Route::post('/master-data/categories', [StammdatenKategorieController::class, 'store'])
+            ->name('master-data.categories.store');
+        Route::get('/master-data/categories/{kategorie_id}/edit', [StammdatenKategorieController::class, 'edit'])
+            ->name('master-data.categories.edit');
+        Route::put('/master-data/categories/{kategorie_id}', [StammdatenKategorieController::class, 'update'])
+            ->name('master-data.categories.update');
 
         // Feedback: Meldungen aller Benutzer sichten und bearbeiten
         Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
@@ -245,16 +245,16 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:10,1')->name('feedback.store');
 });
 
-Route::get('/suche', SucheController::class)->middleware(['auth', 'throttle:60,1'])->name('suche');
+Route::get('/search', SucheController::class)->middleware(['auth', 'throttle:60,1'])->name('search');
 
 /**
  * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)
  */
 Route::middleware('auth')->group(function () {
-    Route::post('/noten/{note_id}/kommentare', [KommentarController::class, 'store'])
-        ->name('noten.kommentare.store');
-    Route::delete('/kommentare/{kommentar_id}', [KommentarController::class, 'destroy'])
-        ->name('noten.kommentare.destroy');
+    Route::post('/grades/{note_id}/comments', [KommentarController::class, 'store'])
+        ->name('comments.store');
+    Route::delete('/comments/{kommentar_id}', [KommentarController::class, 'destroy'])
+        ->name('comments.destroy');
 });
 
 /**
@@ -263,7 +263,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::patch('/profile/darstellung', [ProfileController::class, 'darstellung'])->name('profile.darstellung');
+    Route::patch('/profile/appearance', [ProfileController::class, 'darstellung'])->name('profile.appearance');
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
 });
 
@@ -271,19 +271,30 @@ Route::middleware('auth')->group(function () {
  * Ersteinrichtung und Betriebseinstellungen (Admin)
  */
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/einrichtung/{schritt?}', [EinrichtungController::class, 'show'])
-        ->name('einrichtung');
-    foreach (['betrieb', 'kategorien', 'semester', 'lehrberufe', 'module', 'personen', 'lernende', 'mail', 'abschliessen'] as $aktion) {
-        Route::post('/einrichtung/'.$aktion, [EinrichtungController::class, $aktion])->name('einrichtung.'.$aktion);
+    Route::get('/setup/{schritt?}', [EinrichtungController::class, 'show'])
+        ->name('setup');
+    foreach (['operations' => 'betrieb', 'categories' => 'kategorien', 'semesters' => 'semester', 'professions' => 'lehrberufe',
+        'modules' => 'module', 'people' => 'personen', 'learners' => 'lernende', 'mail' => 'mail', 'finish' => 'abschliessen'] as $pfad => $aktion) {
+        Route::post('/setup/'.$pfad, [EinrichtungController::class, $aktion])->name('setup.'.$pfad);
     }
-    Route::get('/betrieb', [BetriebController::class, 'edit'])->name('betrieb.edit');
-    Route::put('/betrieb', [BetriebController::class, 'update'])->name('betrieb.update');
-    Route::post('/betrieb/sicherungen', [BetriebController::class, 'sicherungErstellen'])->name('betrieb.sicherungen.store');
-    Route::get('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungHerunterladen'])->name('betrieb.sicherungen.show');
-    Route::delete('/betrieb/sicherungen/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('betrieb.sicherungen.destroy');
-    Route::put('/betrieb/kopie', [BetriebController::class, 'kopieSpeichern'])->name('betrieb.kopie.update');
-    Route::post('/betrieb/kopie', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('betrieb.kopie.run');
+    Route::get('/operations', [BetriebController::class, 'edit'])->name('operations.edit');
+    Route::put('/operations', [BetriebController::class, 'update'])->name('operations.update');
+    Route::post('/operations/backups', [BetriebController::class, 'sicherungErstellen'])->name('operations.backups.store');
+    Route::get('/operations/backups/{name}', [BetriebController::class, 'sicherungHerunterladen'])->name('operations.backups.show');
+    Route::delete('/operations/backups/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('operations.backups.destroy');
+    Route::put('/operations/offsite', [BetriebController::class, 'kopieSpeichern'])->name('operations.offsite.update');
+    Route::post('/operations/offsite', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('operations.offsite.run');
 });
 
 require __DIR__.'/auth.php';
 require __DIR__.'/notifications.php';
+
+/*
+ * Old German paths (before 11.09.2026): 301 to the English path, otherwise 404.
+ */
+Route::fallback(function (Illuminate\Http\Request $request) {
+    $target = App\Support\LegacyPaths::redirectTarget($request);
+    abort_if($target === null, 404);
+
+    return redirect($target, 301);
+});

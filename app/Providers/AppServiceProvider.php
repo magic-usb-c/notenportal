@@ -40,7 +40,7 @@ class AppServiceProvider extends ServiceProvider
         // Verwaltungs-Views sind rollenneutral: Links werden als route("{$bereich}.…") gebaut
         View::composer('verwaltung.*', function ($view) {
             $bereich = Str::before((string) Route::currentRouteName(), '.');
-            $view->with('bereich', in_array($bereich, ['admin', 'berufsbildner'], true) ? $bereich : 'admin');
+            $view->with('bereich', in_array($bereich, ['admin', 'trainer'], true) ? $bereich : 'admin');
         });
     }
 }

@@ -117,7 +117,7 @@ class BenutzerController extends Controller
 
         AccountMails::accountCreated($user);
 
-        return redirect()->route('admin.benutzer.index')->with('success', 'Benutzer angelegt.');
+        return redirect()->route('admin.users.index')->with('success', 'Benutzer angelegt.');
     }
 
     public function edit(int $benutzer_id)
@@ -125,7 +125,7 @@ class BenutzerController extends Controller
         $user = User::findOrFail($benutzer_id);
 
         if ($lernenderId = $user->lernender?->lernender_id) {
-            return redirect()->route('admin.lernende.show', $lernenderId);
+            return redirect()->route('admin.learners.show', $lernenderId);
         }
 
         return view('admin.benutzer.edit', ['user' => $user, 'rollen' => $user->rollen()->pluck('name')]);
@@ -183,7 +183,7 @@ class BenutzerController extends Controller
             AccountMails::passwordResetByAdmin($user);
         }
 
-        return redirect()->route('admin.benutzer.edit', $benutzer_id)->with('success', 'Benutzer gespeichert.');
+        return redirect()->route('admin.users.edit', $benutzer_id)->with('success', 'Benutzer gespeichert.');
     }
 
     public function toggleAktiv(Request $request, int $benutzer_id): RedirectResponse

@@ -56,7 +56,7 @@ class RechnerTest extends TestCase
 
     private function modulNote(float $wert, float $gewicht): void
     {
-        $this->actingAs($this->user)->post(route('lernender.noten.store'), [
+        $this->actingAs($this->user)->post(route('learner.grades.store'), [
             'typ' => 'modul', 'modul_id' => $this->modul->modul_id, 'pruefungsdatum' => now()->toDateString(),
             'note_wert' => $wert, 'gewichtung_prozent' => $gewicht,
         ])->assertSessionHasNoErrors();
@@ -65,7 +65,7 @@ class RechnerTest extends TestCase
     #[Test]
     public function kategorie_der_note_folgt_aus_dem_modul_nicht_aus_dem_formular(): void
     {
-        $this->actingAs($this->user)->post(route('lernender.noten.store'), [
+        $this->actingAs($this->user)->post(route('learner.grades.store'), [
             'kategorie_id' => Kategorie::where('code', 'BMS')->value('kategorie_id'),
             'typ' => 'modul', 'modul_id' => $this->modul->modul_id, 'pruefungsdatum' => now()->toDateString(), 'note_wert' => 5,
         ])->assertSessionHasNoErrors();
@@ -78,7 +78,7 @@ class RechnerTest extends TestCase
     {
         $this->modulNote(4.0, 50);
 
-        $this->actingAs($this->user)->get(route('lernender.noten.rechner'))
+        $this->actingAs($this->user)->get(route('learner.grades.calculator'))
             ->assertOk()
             ->assertSee('Offene Prüfungen')
             ->assertSee($this->modul->titel);
@@ -89,7 +89,7 @@ class RechnerTest extends TestCase
     {
         $this->modulNote(4.0, 50);
 
-        $antwort = $this->actingAs($this->user)->postJson(route('lernender.noten.rechner.berechnen'), [
+        $antwort = $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
             'ziel' => 'modul:'.$this->modul->modul_id,
             'zielwert' => 5.0,
             'zeilen' => [['element' => 'modul:'.$this->modul->modul_id, 'gewicht' => 50, 'wert' => null]],
@@ -107,7 +107,7 @@ class RechnerTest extends TestCase
     #[Test]
     public function was_waere_wenn_fuer_fach_im_semester(): void
     {
-        $antwort = $this->actingAs($this->user)->postJson(route('lernender.noten.rechner.berechnen'), [
+        $antwort = $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
             'ziel' => 'gesamt',
             'zielwert' => 4.0,
             'zeilen' => [['element' => "fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}", 'gewicht' => 100, 'wert' => 4.5]],
@@ -123,12 +123,12 @@ class RechnerTest extends TestCase
     {
         $fremd = Modul::factory()->create();
 
-        $this->actingAs($this->user)->postJson(route('lernender.noten.rechner.berechnen'), [
+        $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
             'ziel' => 'gesamt', 'zielwert' => 4,
             'zeilen' => [['element' => 'modul:'.$fremd->modul_id, 'gewicht' => 100, 'wert' => null]],
         ])->assertJsonValidationErrors('zeilen.0.element');
 
-        $this->actingAs($this->user)->postJson(route('lernender.noten.rechner.berechnen'), [
+        $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
             'ziel' => 'modul:1@semester:2', 'zielwert' => 4, 'zeilen' => [],
         ])->assertJsonValidationErrors('ziel');
     }
@@ -139,7 +139,7 @@ class RechnerTest extends TestCase
         $this->modulNote(2.0, 100);
         $note = Note::sole();
 
-        $antwort = $this->actingAs($this->user)->postJson(route('lernender.noten.rechner.berechnen'), [
+        $antwort = $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
             'ziel' => 'modul:'.$this->modul->modul_id, 'zielwert' => 4, 'ersetzt' => $note->note_id,
             'zeilen' => [['element' => 'modul:'.$this->modul->modul_id, 'gewicht' => 100, 'wert' => 6]],
         ])->assertOk();
@@ -150,16 +150,16 @@ class RechnerTest extends TestCase
     #[Test]
     public function ziele_speichern_aktualisieren_und_nur_eigene_loeschen(): void
     {
-        $this->actingAs($this->user)->post(route('lernender.ziele.store'), ['ziel' => 'gesamt', 'zielwert' => 4.5])->assertSessionHasNoErrors();
-        $this->actingAs($this->user)->post(route('lernender.ziele.store'), ['ziel' => 'gesamt', 'zielwert' => 5])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post(route('learner.goals.store'), ['ziel' => 'gesamt', 'zielwert' => 4.5])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->post(route('learner.goals.store'), ['ziel' => 'gesamt', 'zielwert' => 5])->assertSessionHasNoErrors();
         $this->assertEquals(5.0, Ziel::sole()->zielwert);
 
-        $this->actingAs($this->user)->post(route('lernender.ziele.store'), ['ziel' => 'fach:'.$this->fach->fach_id.'@semester:1', 'zielwert' => 5])
+        $this->actingAs($this->user)->post(route('learner.goals.store'), ['ziel' => 'fach:'.$this->fach->fach_id.'@semester:1', 'zielwert' => 5])
             ->assertSessionHasErrors('ziel');
 
         $andere = User::factory()->lernender()->create();
-        $this->actingAs($andere)->delete(route('lernender.ziele.destroy', Ziel::sole()->ziel_id))->assertNotFound();
-        $this->actingAs($this->user)->delete(route('lernender.ziele.destroy', Ziel::sole()->ziel_id))->assertRedirect();
+        $this->actingAs($andere)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertNotFound();
+        $this->actingAs($this->user)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertRedirect();
         $this->assertDatabaseCount('ziele', 0);
     }
 
@@ -167,10 +167,10 @@ class RechnerTest extends TestCase
     public function berufsbildner_nutzt_rechner_nur_fuer_betreute(): void
     {
         $bb = User::factory()->berufsbildner()->create();
-        $url = route('berufsbildner.lernende.rechner', $this->lernender->lernender_id);
+        $url = route('trainer.learners.calculator', $this->lernender->lernender_id);
 
         $this->actingAs($bb)->get($url)->assertNotFound();
-        $this->actingAs($bb)->postJson(route('berufsbildner.lernende.rechner.berechnen', $this->lernender->lernender_id), [
+        $this->actingAs($bb)->postJson(route('trainer.learners.calculator.calculate', $this->lernender->lernender_id), [
             'ziel' => 'gesamt', 'zielwert' => 4, 'zeilen' => [],
         ])->assertNotFound();
 

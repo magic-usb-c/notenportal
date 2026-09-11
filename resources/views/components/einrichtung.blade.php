@@ -22,7 +22,7 @@
                             $ok = $stand[$key]['erledigt'];
                         @endphp
                         <li class="shrink-0">
-                            <a href="{{ route('admin.einrichtung', $key) }}" @if($aktiv) aria-current="step" @endif
+                            <a href="{{ route('admin.setup', $key) }}" @if($aktiv) aria-current="step" @endif
                                @class(['flex items-center gap-3 rounded-xl px-3 py-2 min-h-11 transition-colors',
                                    'glass text-text' => $aktiv,
                                    'text-muted hover:text-text hover:bg-accent/5' => ! $aktiv])>

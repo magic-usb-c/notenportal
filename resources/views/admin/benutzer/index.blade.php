@@ -9,7 +9,7 @@
                     Benutzer
                 </div>
             </div>
-            <a href="{{ route('admin.benutzer.create') }}"
+            <a href="{{ route('admin.users.create') }}"
                class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                 + Benutzer anlegen
             </a>
@@ -23,7 +23,7 @@
 
             {{-- Filter --}}
             <div class="glass rounded-2xl p-4">
-                <form method="GET" action="{{ route('admin.benutzer.index') }}"
+                <form method="GET" action="{{ route('admin.users.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
 
                     <div class="sm:col-span-2">
@@ -58,7 +58,7 @@
                                 Suchen
                             </button>
                             @if($suche || $rolleId || $status)
-                                <a href="{{ route('admin.benutzer.index') }}"
+                                <a href="{{ route('admin.users.index') }}"
                                    class="px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm shrink-0 flex items-center">
                                     ×
                                 </a>
@@ -119,13 +119,13 @@
                                     <td class="p-3 text-right">
                                         <div class="flex items-center justify-end gap-3 flex-wrap">
                                             @if($b->lernender_id)
-                                                <a href="{{ route('admin.lernende.show', $b->lernender_id) }}"
+                                                <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
                                                    class="text-sm text-accent hover:underline">Verwalten</a>
                                             @else
-                                            <a href="{{ route('admin.benutzer.edit', $b->benutzer_id) }}"
+                                            <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
                                                class="text-sm text-accent hover:underline">Bearbeiten</a>
                                             <form method="POST"
-                                                  action="{{ route('admin.benutzer.toggle-aktiv', $b->benutzer_id) }}"
+                                                  action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                                   class="inline"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                   onsubmit="return confirm('Status wirklich ändern?');">

@@ -189,7 +189,7 @@ final class Uebersicht
             'stand' => $stand,
             'heatmap' => $this->heatmap($a),
             'verlauf' => $this->verlaufDiagramm($a, $a->semesterIds()),
-            'ziele' => $this->zieleMitBedarf($l, $a, fn (string $ziel, float $wert) => route($bereich.'.lernende.rechner', ['lernender_id' => $id, 'ziel' => $ziel, 'zielwert' => $wert])),
+            'ziele' => $this->zieleMitBedarf($l, $a, fn (string $ziel, float $wert) => route($bereich.'.learners.calculator', ['lernender_id' => $id, 'ziel' => $ziel, 'zielwert' => $wert])),
             'pruefungen' => $pruefungen,
         ];
     }
@@ -235,7 +235,7 @@ final class Uebersicht
     /** @return list<array<string, mixed>> */
     private function zieleMitBedarf(Lernender $l, Auswertung $a, ?\Closure $link = null): array
     {
-        $link ??= fn (string $ziel, float $wert) => route('lernender.noten.rechner', ['ziel' => $ziel, 'zielwert' => $wert]);
+        $link ??= fn (string $ziel, float $wert) => route('learner.grades.calculator', ['ziel' => $ziel, 'zielwert' => $wert]);
         $ziele = Ziel::query()->where('lernender_id', $l->lernender_id)->get();
         if ($ziele->isEmpty()) {
             return [];
@@ -264,20 +264,20 @@ final class Uebersicht
         $liste = [];
         foreach ($ueberfaellig as $p) {
             $liste[] = ['text' => 'Note eintragen: '.$p->bezeichnung(), 'detail' => 'Prüfung vom '.$p->datum->format('d.m.'),
-                'link' => route('lernender.noten.create', ['pruefung' => $p->pruefung_id]), 'ton' => 'gelb'];
+                'link' => route('learner.grades.create', ['pruefung' => $p->pruefung_id]), 'ton' => 'gelb'];
         }
         foreach ($stand->promotion as $p) {
             $kid = $p['kategorie_id'];
             $liste[] =['text' => 'Promotion '.$p['kategorie'].' gefährdet', 'detail' => $a->konfiguration->semesterName($stand->semesterId),
-                'link' => route('lernender.noten.rechner', ['ziel' => 'kategorie:'.$kid.'@semester:'.$stand->semesterId, 'zielwert' => $a->konfiguration->kategorien[$kid]['promotion_min_schnitt'] ?? $a->konfiguration->genuegend]),
+                'link' => route('learner.grades.calculator', ['ziel' => 'kategorie:'.$kid.'@semester:'.$stand->semesterId, 'zielwert' => $a->konfiguration->kategorien[$kid]['promotion_min_schnitt'] ?? $a->konfiguration->genuegend]),
                 'ton' => 'rot'];
         }
         if ($kommentare > 0) {
             $liste[] = ['text' => $kommentare === 1 ? '1 Note mit neuem Kommentar' : $kommentare.' Noten mit neuen Kommentaren', 'detail' => null,
-                'link' => route('lernender.noten.index'), 'ton' => 'accent'];
+                'link' => route('learner.grades.index'), 'ton' => 'accent'];
         }
         foreach (array_slice($fehlendeModule, 0, 4) as $m) {
-            $liste[] = ['text' => $m['name'], 'detail' => 'noch keine Note', 'link' => route('lernender.noten.create', ['bezug' => 'modul:'.$m['id']]), 'ton' => 'neutral'];
+            $liste[] = ['text' => $m['name'], 'detail' => 'noch keine Note', 'link' => route('learner.grades.create', ['bezug' => 'modul:'.$m['id']]), 'ton' => 'neutral'];
         }
 
         return $liste;
@@ -411,16 +411,16 @@ final class Uebersicht
         $semesterReichtBis = $letztesSemesterEnde ? Carbon::parse($letztesSemesterEnde) : null;
 
         $luecken = [
-            ['text' => 'Lernende ohne aktive Betreuung', 'anzahl' => $ohneBetreuung, 'link' => route('admin.lernende.index')],
-            ['text' => 'Lernende ohne aktiven Track', 'anzahl' => $ohneTrack, 'link' => route('admin.lernende.index')],
-            ['text' => 'Module ohne Lernort', 'anzahl' => DB::table('lehrberuf_module')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.stammdaten.lehrberufe.index')],
-            ['text' => 'Fächer ohne Kategorie', 'anzahl' => DB::table('faecher')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.stammdaten.faecher.index')],
+            ['text' => 'Lernende ohne aktive Betreuung', 'anzahl' => $ohneBetreuung, 'link' => route('admin.learners.index')],
+            ['text' => 'Lernende ohne aktiven Track', 'anzahl' => $ohneTrack, 'link' => route('admin.learners.index')],
+            ['text' => 'Module ohne Lernort', 'anzahl' => DB::table('lehrberuf_module')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.professions.index')],
+            ['text' => 'Fächer ohne Kategorie', 'anzahl' => DB::table('faecher')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.subjects.index')],
             ['text' => 'Lehrberufe ohne Module', 'anzahl' => DB::table('lehrberufe as lb')->where('lb.aktiv', 1)
                 ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('lehrberuf_module as m')->whereColumn('m.lehrberuf_id', 'lb.lehrberuf_id'))
                 ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('lehrberuf_faecher as f')->whereColumn('f.lehrberuf_id', 'lb.lehrberuf_id'))->count(),
-                'link' => route('admin.stammdaten.lehrberufe.index')],
+                'link' => route('admin.master-data.professions.index')],
             ['text' => $semesterReichtBis ? 'Semester erfasst bis '.$semesterReichtBis->format('d.m.Y') : 'Keine Semester erfasst',
-                'anzahl' => ! $semesterReichtBis || $semesterReichtBis->lt(now()->addMonths(6)) ? 1 : 0, 'link' => route('admin.stammdaten.semester.index')],
+                'anzahl' => ! $semesterReichtBis || $semesterReichtBis->lt(now()->addMonths(6)) ? 1 : 0, 'link' => route('admin.master-data.semesters.index')],
         ];
 
         return array_values(array_filter($luecken, fn ($l) => $l['anzahl'] > 0));

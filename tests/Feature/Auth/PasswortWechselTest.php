@@ -20,9 +20,9 @@ class PasswortWechselTest extends TestCase
     {
         $this->actingAs($this->mitStartpasswort());
 
-        $this->get(route('lernender.dashboard'))->assertRedirect(route('passwort.wechsel'));
-        $this->get(route('lernender.noten.index'))->assertRedirect(route('passwort.wechsel'));
-        $this->get(route('passwort.wechsel'))->assertOk();
+        $this->get(route('learner.dashboard'))->assertRedirect(route('password.initial'));
+        $this->get(route('learner.grades.index'))->assertRedirect(route('password.initial'));
+        $this->get(route('password.initial'))->assertOk();
     }
 
     #[Test]
@@ -31,7 +31,7 @@ class PasswortWechselTest extends TestCase
         $user = $this->mitStartpasswort();
 
         $this->actingAs($user)
-            ->put(route('passwort.wechsel.speichern'), [
+            ->put(route('password.initial.update'), [
                 'password' => 'EigenesPasswort2026',
                 'password_confirmation' => 'EigenesPasswort2026',
             ])
@@ -40,7 +40,7 @@ class PasswortWechselTest extends TestCase
         $user->refresh();
         $this->assertFalse($user->passwort_wechsel_noetig);
         $this->assertTrue(Hash::check('EigenesPasswort2026', $user->passwort_hash));
-        $this->get(route('lernender.dashboard'))->assertOk();
+        $this->get(route('learner.dashboard'))->assertOk();
     }
 
     #[Test]
@@ -49,8 +49,8 @@ class PasswortWechselTest extends TestCase
         $user = $this->mitStartpasswort();
 
         $this->actingAs($user)
-            ->from(route('passwort.wechsel'))
-            ->put(route('passwort.wechsel.speichern'), [
+            ->from(route('password.initial'))
+            ->put(route('password.initial.update'), [
                 'password' => UserFactory::PASSWORT,
                 'password_confirmation' => UserFactory::PASSWORT,
             ])
@@ -70,7 +70,7 @@ class PasswortWechselTest extends TestCase
     public function ohne_pflicht_fuehrt_die_seite_zum_dashboard(): void
     {
         $this->actingAs(User::factory()->lernender()->create())
-            ->get(route('passwort.wechsel'))
+            ->get(route('password.initial'))
             ->assertRedirect(route('dashboard'));
     }
 }

@@ -16,7 +16,7 @@ class EinstellungenTest extends TestCase
 
         $this->get('/login')->assertSee('Hamilton AG');
         $this->actingAs(User::factory()->lernender()->create())
-            ->get(route('lernender.dashboard'))
+            ->get(route('learner.dashboard'))
             ->assertSee('Hamilton AG');
     }
 

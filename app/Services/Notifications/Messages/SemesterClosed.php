@@ -24,7 +24,7 @@ final class SemesterClosed
             facts: ['Semesterschnitt' => $r['note'] !== null ? NotenSkala::format($r['note']) : '–'],
             table: $rows !== [] ? ['head' => ['Fach / Modul', 'Note'], 'rows' => $rows] : null,
             actionLabel: 'Zeugnis hochladen',
-            actionUrl: route('lernender.dokumente.index'),
+            actionUrl: route('learner.documents.index'),
             digestTitle: 'Semesterabschluss: '.$semester->bezeichnung,
         );
     }
@@ -43,7 +43,7 @@ final class SemesterClosed
             lines: ['Das Semester «'.$semester->bezeichnung.'» ist abgeschlossen. Hier der Überblick über deine Lernenden.'],
             table: ['head' => ['Lernender', 'Semesterschnitt', 'Ungenügende Elemente'], 'rows' => $rows],
             actionLabel: 'Zu den Lernenden',
-            actionUrl: route('berufsbildner.lernende.index'),
+            actionUrl: route('trainer.learners.index'),
             digestTitle: 'Semesterabschluss «'.$semester->bezeichnung.'» – '.count($zeilen).' Lernende',
         );
     }

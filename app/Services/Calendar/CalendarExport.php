@@ -87,7 +87,7 @@ final class CalendarExport
             'DTSTAMP' => new DateTimeImmutable('now', new DateTimeZone('UTC')),
             'DESCRIPTION' => implode("\n", $zeilen),
             'CATEGORIES' => 'Prüfung',
-            'URL' => url('/pruefungen'),
+            'URL' => route('learner.exams.index'),
         ]);
         if ($p->raum) {
             $event->add('LOCATION', $p->raum);

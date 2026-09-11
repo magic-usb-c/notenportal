@@ -37,7 +37,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->create($this->validiere($request, $lernender));
 
-        return redirect()->route('lernender.pruefungen.index')->with('success', 'Prüfung geplant.');
+        return redirect()->route('learner.exams.index')->with('success', 'Prüfung geplant.');
     }
 
     public function update(Request $request, int $pruefung_id): RedirectResponse
@@ -45,7 +45,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->update($this->validiere($request, $lernender));
 
-        return redirect()->route('lernender.pruefungen.index')->with('success', 'Prüfung aktualisiert.');
+        return redirect()->route('learner.exams.index')->with('success', 'Prüfung aktualisiert.');
     }
 
     public function destroy(Request $request, int $pruefung_id): RedirectResponse
@@ -53,7 +53,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->delete();
 
-        return redirect()->route('lernender.pruefungen.index')->with('success', 'Prüfung entfernt.');
+        return redirect()->route('learner.exams.index')->with('success', 'Prüfung entfernt.');
     }
 
     /** @return array<string, mixed> */

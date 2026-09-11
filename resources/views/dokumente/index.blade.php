@@ -92,8 +92,8 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-end gap-1 shrink-0 w-full sm:w-auto">
-                                        @if($d->art === 'zeugnis' && $d->istPdf() && \Illuminate\Support\Facades\Route::has('lernender.dokumente.abgleich'))
-                                            <a href="{{ $r('abgleich', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Abgleich</a>
+                                        @if($d->art === 'zeugnis' && $d->istPdf() && \Illuminate\Support\Facades\Route::has('learner.documents.reconcile'))
+                                            <a href="{{ $r('reconcile', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Abgleich</a>
                                         @endif
                                         @if(in_array($d->mime, \App\Models\Dokument::INLINE, true))
                                             <a href="{{ $r('show', ['dokument_id' => $d->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener"

@@ -19,7 +19,7 @@
     <div class="py-6">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             @if(! $vorschau)
-                <form method="POST" action="{{ $r('lesen') }}" enctype="multipart/form-data" class="glass rounded-2xl p-6 flex flex-col gap-4 max-w-3xl w-full mx-auto"
+                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="glass rounded-2xl p-6 flex flex-col gap-4 max-w-3xl w-full mx-auto"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-12 text-center cursor-pointer transition-colors"
@@ -34,7 +34,7 @@
                     </label>
                     @error('datei')<p class="-mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
-                        <a href="{{ $r('vorlage') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Vorlage (CSV)</a>
+                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Vorlage (CSV)</a>
                         <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Datei lesen</button>
                     </div>
                 </form>
@@ -65,7 +65,7 @@
                     }
                 </script>
 
-                <form method="POST" action="{{ $r('uebernehmen') }}" class="flex flex-col gap-4"
+                <form method="POST" action="{{ $r('apply') }}" class="flex flex-col gap-4"
                       x-data="npImport({{ \Illuminate\Support\Js::from($zeilen) }})" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="zeilen" :value="json">
@@ -159,7 +159,7 @@
                                 x-text="gewaehlt === 1 ? '1 Note importieren' : `${gewaehlt} Noten importieren`"></button>
                     </div>
                 </form>
-                <form id="import-verwerfen" method="POST" action="{{ $r('verwerfen') }}" class="hidden">@csrf</form>
+                <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden">@csrf</form>
             @endif
         </div>
     </div>

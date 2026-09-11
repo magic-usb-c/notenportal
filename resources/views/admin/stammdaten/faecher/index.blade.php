@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Fächer</h2>
-            <a href="{{ route('admin.stammdaten.faecher.create') }}"
+            <a href="{{ route('admin.master-data.subjects.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neues Fach
             </a>
@@ -53,7 +53,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.stammdaten.faecher.edit', $f->fach_id) }}"
+                                    <a href="{{ route('admin.master-data.subjects.edit', $f->fach_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>

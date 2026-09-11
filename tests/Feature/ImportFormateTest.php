@@ -113,7 +113,7 @@ class ImportFormateTest extends TestCase
     {
         $csv = "\xEF\xBB\xBF\"Name\";\"Vorname\";\"Kürzel\";\"E-Mail\"\r\n\"Muster\";\"Max\";\"musmax\";\"max.muster@schule.example\"\r\n\"Beispiel-Meier\";\"Eva\";\"beieva\";\"eva.beispiel@schule.example\"\r\n";
         $this->actingAs($this->user)
-            ->post(route('lernender.noten.import.lesen'), ['datei' => UploadedFile::fake()->createWithContent('lehrpersonen-export.csv', $csv)])
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('lehrpersonen-export.csv', $csv)])
             ->assertSessionHasErrors(['datei' => 'Keine Noten gefunden.']);
 
         $blatt = new Spreadsheet;
@@ -180,12 +180,12 @@ class ImportFormateTest extends TestCase
     #[Test]
     public function abgleich_zeigt_fach_ohne_gegenstueck_als_nicht_zugeordnet(): void
     {
-        $this->actingAs($this->user)->post(route('lernender.dokumente.store'), [
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
             'datei' => UploadedFile::fake()->createWithContent('zeugnis.pdf', $this->pdf(['Zeugnis', 'Deutsch 4.5', 'Italienisch 5.0'])),
             'art' => 'zeugnis', 'semester_id' => $this->semester,
         ])->assertSessionHasNoErrors();
 
-        $html = $this->get(route('lernender.dokumente.abgleich', Dokument::firstOrFail()->dokument_id))
+        $html = $this->get(route('learner.documents.reconcile', Dokument::firstOrFail()->dokument_id))
             ->assertOk()->assertSee('Italienisch')->assertSee('nicht zugeordnet')->getContent();
         $this->assertSame(1, substr_count($html, '][bezug]'));
     }

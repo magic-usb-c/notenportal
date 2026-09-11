@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Module</h2>
-            <a href="{{ route('admin.stammdaten.module.create') }}"
+            <a href="{{ route('admin.master-data.modules.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neues Modul
             </a>
@@ -40,7 +40,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.stammdaten.module.edit', $m->modul_id) }}"
+                                    <a href="{{ route('admin.master-data.modules.edit', $m->modul_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>
@@ -58,7 +58,7 @@
 
             <p class="text-xs text-muted px-1">
                 Module werden über die
-                <a href="{{ route('admin.stammdaten.lehrberufe.index') }}" class="text-accent hover:underline">Lehrberuf-Detailseite</a>
+                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent hover:underline">Lehrberuf-Detailseite</a>
                 einem Lehrberuf zugewiesen.
             </p>
 

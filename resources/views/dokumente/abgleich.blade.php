@@ -23,7 +23,7 @@
 
     <div class="py-6">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
-            <form method="GET" action="{{ $r('abgleich', ['dokument_id' => $dokument->dokument_id]) }}" class="glass rounded-2xl p-4 flex flex-wrap items-end gap-3">
+            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="glass rounded-2xl p-4 flex flex-wrap items-end gap-3">
                 <div>
                     <label for="semester_id" class="block text-xs uppercase tracking-widest text-muted font-medium">Semester</label>
                     <select id="semester_id" name="semester_id" onchange="this.form.submit()"
@@ -46,7 +46,7 @@
             @elseif($zeilen === [])
                 <div class="glass rounded-2xl px-5 py-12 text-center text-sm text-muted">Keine Fächer oder Module erkannt</div>
             @else
-                <form method="POST" action="{{ $r('abgleich.uebernehmen', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
+                <form method="POST" action="{{ $r('reconcile.apply', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="semester_id" value="{{ $semesterId }}">

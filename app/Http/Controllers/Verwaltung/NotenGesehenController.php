@@ -25,7 +25,7 @@ class NotenGesehenController extends VerwaltungController
         // Auch bei bestehender Markierung neu setzen, damit der «Neu»-Badge nach neuen Kommentaren verschwindet
         $this->markieren([$note->note_id], (int) $request->user()->benutzer_id);
 
-        $this->benachrichtigen($lernender, GradeSeen::einzeln($note, route('lernender.noten.index', ['_open' => $note->note_id])));
+        $this->benachrichtigen($lernender, GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
 
         return back()
             ->with('success', 'Note als gesehen markiert.')
@@ -41,7 +41,7 @@ class NotenGesehenController extends VerwaltungController
 
         $anzahl = count($noteIds);
         if ($anzahl > 0) {
-            $this->benachrichtigen($lernender, GradeSeen::sammel($anzahl, route('lernender.noten.index')));
+            $this->benachrichtigen($lernender, GradeSeen::sammel($anzahl, route('learner.grades.index')));
         }
 
         return back()->with('success', $anzahl === 1 ? '1 Note als gesehen markiert.' : $anzahl.' Noten als gesehen markiert.');

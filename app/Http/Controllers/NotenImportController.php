@@ -46,7 +46,7 @@ class NotenImportController extends Controller
             'vorschau' => $request->session()->get($this->schluessel($lernender)),
             'optionen' => $this->noten->bezugOptionen((int) $lernender->lernender_id),
             'r' => fn (string $name) => $this->route($bereich, $lernender, $name),
-            'zurueck' => $bereich ? route($bereich.'.lernende.noten.index', $lernender->lernender_id) : route('lernender.noten.index'),
+            'zurueck' => $bereich ? route($bereich.'.learners.grades.index', $lernender->lernender_id) : route('learner.grades.index'),
         ]);
     }
 
@@ -93,13 +93,13 @@ class NotenImportController extends Controller
             $lernender->loadMissing('benutzer');
             foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
                 Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, GradeAdded::sammel(
-                    $lernender, $ergebnis['neu'], route('berufsbildner.lernende.show', $lernender->lernender_id)
+                    $lernender, $ergebnis['neu'], route('trainer.learners.show', $lernender->lernender_id)
                 ));
             }
         }
 
         $request->session()->forget($this->schluessel($lernender));
-        $ziel = $bereich ? route($bereich.'.lernende.noten.index', $lernender->lernender_id) : route('lernender.noten.index');
+        $ziel = $bereich ? route($bereich.'.learners.grades.index', $lernender->lernender_id) : route('learner.grades.index');
         $antwort = redirect($ziel)->with('success', ($ergebnis['neu'] === 1 ? '1 Note' : $ergebnis['neu'].' Noten').' importiert.');
 
         return $ergebnis['fehler'] !== []
@@ -129,7 +129,7 @@ class NotenImportController extends Controller
     private function kontext(Request $request): array
     {
         $name = (string) $request->route()?->getName();
-        if (str_starts_with($name, 'lernender.')) {
+        if (str_starts_with($name, 'learner.')) {
             $lernender = $request->user()?->lernender;
             abort_if(! $lernender, 403);
 
@@ -137,7 +137,7 @@ class NotenImportController extends Controller
         }
 
         $bereich = Str::before($name, '.');
-        abort_unless(in_array($bereich, ['admin', 'berufsbildner'], true), 404);
+        abort_unless(in_array($bereich, ['admin', 'trainer'], true), 404);
         $lernender = Lernender::sichtbarFuer($request->user())->findOrFail((int) $request->route('lernender_id'));
         Gate::forUser($request->user())->authorize('noteAnlegen', $lernender);
 
@@ -152,7 +152,7 @@ class NotenImportController extends Controller
     private function route(?string $bereich, Lernender $lernender, string $name): string
     {
         return $bereich
-            ? route($bereich.'.lernende.noten.import.'.$name, $lernender->lernender_id)
-            : route('lernender.noten.import.'.$name);
+            ? route($bereich.'.learners.grades.import.'.$name, $lernender->lernender_id)
+            : route('learner.grades.import.'.$name);
     }
 }

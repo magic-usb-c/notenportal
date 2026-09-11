@@ -29,7 +29,7 @@ class MailEinstellungenTest extends TestCase
                 'mail_from_name' => 'Notenportal Test-AG',
                 'mail_redirect_to' => '',
             ])
-            ->assertRedirect(route('admin.betrieb.edit'))
+            ->assertRedirect(route('admin.operations.edit'))
             ->assertSessionHas('success');
 
         $zeile = Einstellung::query()->where('schluessel', MailSettings::PASSWORD)->first();
@@ -68,7 +68,7 @@ class MailEinstellungenTest extends TestCase
                 'mail_from_name' => '',
                 'mail_redirect_to' => '',
             ])
-            ->assertRedirect(route('admin.betrieb.edit'));
+            ->assertRedirect(route('admin.operations.edit'));
 
         $zeile = Einstellung::query()->where('schluessel', MailSettings::PASSWORD)->first();
         $this->assertSame('ErstesPasswort!2026', Crypt::decryptString($zeile->wert));
@@ -113,7 +113,7 @@ class MailEinstellungenTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.mail.test'), ['test_to' => 'empfang@beispielfirma.ch']);
 
-        $response->assertRedirect(route('admin.betrieb.edit'));
+        $response->assertRedirect(route('admin.operations.edit'));
         $response->assertSessionHas('success');
 
         $log = MailLog::where('recipient', 'empfang@beispielfirma.ch')->latest('id')->first();
@@ -131,7 +131,7 @@ class MailEinstellungenTest extends TestCase
         $response = $this->actingAs($admin)
             ->post(route('admin.mail.test'), ['test_to' => 'jemand@beispiel.local']);
 
-        $response->assertRedirect(route('admin.betrieb.edit'));
+        $response->assertRedirect(route('admin.operations.edit'));
         $response->assertSessionHas('error');
 
         $log = MailLog::where('recipient', 'jemand@beispiel.local')->latest('id')->first();

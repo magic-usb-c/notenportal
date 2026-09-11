@@ -28,7 +28,7 @@ class KontoController extends VerwaltungController
         AccountMails::passwordResetByAdmin($lernender->benutzer);
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
             ->with('success', 'Passwort zurückgesetzt.')
             ->with('startpasswort', $passwort);
     }
@@ -43,7 +43,7 @@ class KontoController extends VerwaltungController
         $benutzer->save();
 
         return redirect()
-            ->to($this->zuRoute($request, 'lernende.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
             ->with('success', $benutzer->aktiv ? 'Konto aktiviert.' : 'Konto deaktiviert.');
     }
 }

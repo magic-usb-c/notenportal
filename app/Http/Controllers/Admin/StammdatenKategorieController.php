@@ -45,7 +45,7 @@ class StammdatenKategorieController extends Controller
         ]);
 
         return redirect()
-            ->route('admin.stammdaten.kategorien.index')
+            ->route('admin.master-data.categories.index')
             ->with('success', 'Kategorie angelegt.');
     }
 
@@ -77,7 +77,7 @@ class StammdatenKategorieController extends Controller
             ]);
 
         return redirect()
-            ->route('admin.stammdaten.kategorien.index')
+            ->route('admin.master-data.categories.index')
             ->with('success', 'Kategorie aktualisiert.');
     }
 

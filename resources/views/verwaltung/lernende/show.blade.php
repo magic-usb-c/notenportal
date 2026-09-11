@@ -4,7 +4,7 @@
         <div class="w-full flex items-center justify-between gap-4 flex-wrap">
             <div>
                 <nav class="text-xs text-muted flex items-center gap-1 mb-1" aria-label="Brotkrumen">
-                    <a href="{{ route("{$bereich}.lernende.index") }}" class="hover:text-text transition-colors">Lernende</a>
+                    <a href="{{ route("{$bereich}.learners.index") }}" class="hover:text-text transition-colors">Lernende</a>
                     <span class="text-muted/40">›</span>
                     <span class="text-text">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</span>
                 </nav>
@@ -15,23 +15,23 @@
                 <p class="text-sm text-muted">{{ $lernender->lehrberuf?->name ?? '–' }}@if($lernender->lehrjahr()) · {{ $lernender->lehrjahr() }}. Lehrjahr @endif</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
-                <a href="{{ route("{$bereich}.lernende.noten.index", $lernender->lernender_id) }}"
+                <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">Noten</a>
-                <a href="{{ route("{$bereich}.lernende.dokumente.index", $lernender->lernender_id) }}"
+                <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Dokumente</a>
                 @can('noteAnlegen', $lernender)
-                    <a href="{{ route("{$bereich}.lernende.noten.import.index", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.grades.import.index", $lernender->lernender_id) }}"
                        class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Import</a>
                 @endcan
-                <a href="{{ route("{$bereich}.lernende.rechner", $lernender->lernender_id) }}"
+                <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Rechner</a>
                 @can('update', $lernender)
-                    <a href="{{ route("{$bereich}.lernende.edit", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.edit", $lernender->lernender_id) }}"
                        class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Bearbeiten</a>
                 @endcan
-                <a href="{{ route("{$bereich}.lernende.noten.drucken", $lernender->lernender_id) }}" target="_blank"
+                <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Drucken</a>
-                <a href="{{ route("{$bereich}.lernende.noten.export", $lernender->lernender_id) }}"
+                <a href="{{ route("{$bereich}.learners.grades.export", $lernender->lernender_id) }}"
                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">CSV</a>
             </div>
         </div>
@@ -188,13 +188,13 @@
                     </div>
                     @can('verwalten', $lernender)
                         <div class="flex items-center gap-2 flex-wrap">
-                            <form method="POST" action="{{ route("{$bereich}.lernende.konto.passwort", $lernender->lernender_id) }}"
+                            <form method="POST" action="{{ route("{$bereich}.learners.account.password", $lernender->lernender_id) }}"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                   onsubmit="return confirm('Neues Startpasswort erzeugen? Das bisherige Passwort wird ungültig.');">
                                 @csrf
                                 <button type="submit" :disabled="loading" class="px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Passwort zurücksetzen</button>
                             </form>
-                            <form method="POST" action="{{ route("{$bereich}.lernende.konto.aktiv", $lernender->lernender_id) }}"
+                            <form method="POST" action="{{ route("{$bereich}.learners.account.active", $lernender->lernender_id) }}"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                   onsubmit="return confirm('{{ $benutzer->aktiv ? 'Konto deaktivieren? Anmelden ist danach nicht mehr möglich.' : 'Konto aktivieren?' }}');">
                                 @csrf
@@ -223,7 +223,7 @@
                             </div>
                             @if($offen)
                                 @can('betreuungVerwalten', $lernender)
-                                    <form method="POST" action="{{ route("{$bereich}.betreuungen.beenden", [$lernender->lernender_id, $bt->betreuung_id]) }}"
+                                    <form method="POST" action="{{ route("{$bereich}.supervisions.end", [$lernender->lernender_id, $bt->betreuung_id]) }}"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                           onsubmit="return confirm('Betreuung beenden?');">
                                         @csrf
@@ -238,7 +238,7 @@
                     @endforelse
                 </div>
                 @can('betreuungVerwalten', $lernender)
-                    <form method="POST" action="{{ route("{$bereich}.lernende.betreuung.store", $lernender->lernender_id) }}"
+                    <form method="POST" action="{{ route("{$bereich}.learners.supervision.store", $lernender->lernender_id) }}"
                           class="px-5 py-4 border-t border-border bg-bg/40 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                           onsubmit="return confirm('Betreuung zuweisen? Die bisherige Betreuung endet am Vortag.');">
@@ -282,7 +282,7 @@
                             </div>
                             @if(! $t->end_datum)
                                 @can('verwalten', $lernender)
-                                    <form method="POST" action="{{ route("{$bereich}.tracks.beenden", [$lernender->lernender_id, $t->lernender_track_id]) }}"
+                                    <form method="POST" action="{{ route("{$bereich}.tracks.end", [$lernender->lernender_id, $t->lernender_track_id]) }}"
                                           class="flex items-center gap-2"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                           onsubmit="return confirm('Track {{ $t->track_typ }} beenden?');">
@@ -305,7 +305,7 @@
                     @endforelse
                 </div>
                 @can('verwalten', $lernender)
-                    <form method="POST" action="{{ route("{$bereich}.lernende.tracks.store", $lernender->lernender_id) }}"
+                    <form method="POST" action="{{ route("{$bereich}.learners.tracks.store", $lernender->lernender_id) }}"
                           class="px-5 py-4 border-t border-border bg-bg/40 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf

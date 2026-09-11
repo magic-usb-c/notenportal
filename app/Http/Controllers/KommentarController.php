@@ -52,12 +52,12 @@ class KommentarController extends Controller
         if ($autor->lernender) {
             foreach (Empfaenger::aktiveBetreuer((int) $note->lernender_id) as $betreuer) {
                 Notifier::send($betreuer, NotificationCatalog::COMMENT_ADDED, CommentAdded::content(
-                    $note, $text, $autor, route('berufsbildner.lernende.show', $note->lernender_id)
+                    $note, $text, $autor, route('trainer.learners.show', $note->lernender_id)
                 ));
             }
         } elseif ($note->lernender?->benutzer) {
             Notifier::send($note->lernender->benutzer, NotificationCatalog::COMMENT_ADDED, CommentAdded::content(
-                $note, $text, $autor, route('lernender.noten.index', ['_open' => $note->note_id])
+                $note, $text, $autor, route('learner.grades.index', ['_open' => $note->note_id])
             ));
         }
     }

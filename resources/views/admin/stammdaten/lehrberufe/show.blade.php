@@ -6,7 +6,7 @@
                 <h2 class="font-semibold text-xl text-text">{{ $lehrberuf->name }}</h2>
                 <span class="text-sm text-muted font-mono">{{ $lehrberuf->kuerzel }}</span>
             </div>
-            <a href="{{ route('admin.stammdaten.lehrberufe.index') }}"
+            <a href="{{ route('admin.master-data.professions.index') }}"
                class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
                 Zurück
             </a>
@@ -72,11 +72,11 @@
                                         </td>
                                         <td class="py-2 text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
-                                                  action="{{ route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
+                                                  action="{{ route('admin.master-data.professions.modules.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
                                                 @csrf @method('PATCH')
                                             </form>
                                             <form method="POST"
-                                                  action="{{ route('admin.stammdaten.lehrberufe.module.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
+                                                  action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
                                                   onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
@@ -95,7 +95,7 @@
                 {{-- Modul zuweisen --}}
                 @if($verfuegbareModule->isNotEmpty())
                     <form method="POST"
-                          action="{{ route('admin.stammdaten.lehrberufe.module.assign', $lehrberuf->lehrberuf_id) }}"
+                          action="{{ route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id) }}"
                           class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
@@ -175,7 +175,7 @@
                                         </td>
                                         <td class="py-2 text-right">
                                             <form method="POST"
-                                                  action="{{ route('admin.stammdaten.lehrberufe.faecher.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
+                                                  action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
                                                   onsubmit="return confirm('Fach {{ $f->name }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
@@ -194,7 +194,7 @@
                 {{-- Fach zuweisen --}}
                 @if($verfuegbareFaecher->isNotEmpty())
                     <form method="POST"
-                          action="{{ route('admin.stammdaten.lehrberufe.faecher.assign', $lehrberuf->lehrberuf_id) }}"
+                          action="{{ route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id) }}"
                           class="border-t border-border pt-4 flex gap-3 items-end"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf

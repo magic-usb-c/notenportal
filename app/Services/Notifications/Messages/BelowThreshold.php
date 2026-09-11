@@ -34,8 +34,8 @@ final class BelowThreshold
             table: ['head' => ['Bereich', 'Vorher', 'Neu'], 'rows' => $rows],
             actionLabel: 'Noten ansehen',
             actionUrl: $fuerBetreuer
-                ? route('berufsbildner.lernende.show', $lernender->lernender_id)
-                : route('lernender.noten.index'),
+                ? route('trainer.learners.show', $lernender->lernender_id)
+                : route('learner.grades.index'),
             digestTitle: $betreff,
         );
     }

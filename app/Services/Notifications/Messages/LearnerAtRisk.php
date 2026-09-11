@@ -20,7 +20,7 @@ final class LearnerAtRisk
             lines: ['Der Lernstand von '.$name.' steht auf Rot:'],
             sections: [['title' => 'Gründe', 'text' => implode("\n", array_map(fn ($g) => '- '.$g, $gruende))]],
             actionLabel: 'Zum Cockpit',
-            actionUrl: route('berufsbildner.lernende.show', $lernender->lernender_id),
+            actionUrl: route('trainer.learners.show', $lernender->lernender_id),
             digestTitle: 'Lernstand kritisch: '.$name,
         );
     }

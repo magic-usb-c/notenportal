@@ -1,5 +1,5 @@
 <x-einrichtung schritt="mail" :stand="$stand" titel="E-Mail">
-    <form method="POST" action="{{ route('admin.einrichtung.mail') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.mail') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="glass rounded-2xl p-6">

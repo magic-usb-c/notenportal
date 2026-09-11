@@ -1,9 +1,9 @@
-<x-einrichtung schritt="betrieb" :stand="$stand" titel="Betrieb">
+<x-einrichtung schritt="operations" :stand="$stand" titel="Betrieb">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'text-xs uppercase tracking-widest text-muted font-medium';
     @endphp
-    <form method="POST" action="{{ route('admin.einrichtung.betrieb') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.operations') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="glass rounded-2xl p-6">
@@ -25,6 +25,6 @@
             @include('admin.betrieb._felder', ['werte' => $werte])
         </section>
 
-        @include('admin.einrichtung._fuss', ['schritt' => 'betrieb'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'operations'])
     </form>
 </x-einrichtung>

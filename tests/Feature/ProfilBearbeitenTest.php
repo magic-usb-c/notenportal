@@ -109,9 +109,9 @@ class ProfilBearbeitenTest extends TestCase
     {
         $user = User::factory()->lernender()->create(['darstellung' => 'dunkel']);
 
-        $this->actingAs($user)->get(route('lernender.dashboard'))->assertSeeHtml('<html lang="de" class="dark"');
+        $this->actingAs($user)->get(route('learner.dashboard'))->assertSeeHtml('<html lang="de" class="dark"');
 
-        $this->actingAs($user)->patchJson(route('profile.darstellung'), ['darstellung' => 'hell'])->assertOk();
+        $this->actingAs($user)->patchJson(route('profile.appearance'), ['darstellung' => 'hell'])->assertOk();
         $this->assertSame('hell', $user->refresh()->darstellung);
     }
 }

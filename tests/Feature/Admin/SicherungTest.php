@@ -42,7 +42,7 @@ class SicherungTest extends TestCase
         Storage::disk('local')->put('lernende/7/dokumente/2026/abc.pdf', '%PDF-1.4 Test');
         $admin = User::factory()->admin()->create();
 
-        $this->actingAs($admin)->post(route('admin.betrieb.sicherungen.store'))->assertSessionHas('success');
+        $this->actingAs($admin)->post(route('admin.operations.backups.store'))->assertSessionHas('success');
 
         $liste = app(Sicherung::class)->liste();
         $this->assertCount(1, $liste);
@@ -53,14 +53,14 @@ class SicherungTest extends TestCase
         $zip->close();
         Process::assertRan(fn (PendingProcess $p) => ! str_contains(implode(' ', (array) $p->command), 'password'));
 
-        $this->get(route('admin.betrieb.edit'))->assertOk()->assertSee('Letzte Sicherung');
-        $this->get(route('admin.betrieb.sicherungen.show', $liste[0]['name']))->assertOk()->assertDownload($liste[0]['name']);
-        $this->get(route('admin.betrieb.sicherungen.show', '..%2F.env'))->assertNotFound();
+        $this->get(route('admin.operations.edit'))->assertOk()->assertSee('Letzte Sicherung');
+        $this->get(route('admin.operations.backups.show', $liste[0]['name']))->assertOk()->assertDownload($liste[0]['name']);
+        $this->get(route('admin.operations.backups.show', '..%2F.env'))->assertNotFound();
 
         $this->actingAs(User::factory()->berufsbildner()->create())
-            ->get(route('admin.betrieb.sicherungen.show', $liste[0]['name']))->assertForbidden();
+            ->get(route('admin.operations.backups.show', $liste[0]['name']))->assertForbidden();
 
-        $this->actingAs($admin)->delete(route('admin.betrieb.sicherungen.destroy', $liste[0]['name']))->assertSessionHas('success');
+        $this->actingAs($admin)->delete(route('admin.operations.backups.destroy', $liste[0]['name']))->assertSessionHas('success');
         $this->assertSame([], app(Sicherung::class)->liste());
     }
 
@@ -85,7 +85,7 @@ class SicherungTest extends TestCase
         Process::fake(fn () => Process::result(errorOutput: 'Access denied', exitCode: 2));
 
         $this->actingAs(User::factory()->admin()->create())
-            ->post(route('admin.betrieb.sicherungen.store'))
+            ->post(route('admin.operations.backups.store'))
             ->assertSessionHas('error');
 
         $this->assertStringContainsString('Access denied', (string) Einstellungen::get(Sicherung::FEHLER));

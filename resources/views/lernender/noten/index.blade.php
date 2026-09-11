@@ -14,17 +14,17 @@
 
             <div class="inline-flex items-center glass rounded-full p-1 gap-1" role="group" aria-label="Semester">
                 <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $prevSemesterId])
-                   href="{{ $prevSemesterId ? route('lernender.noten.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="Vorheriges Semester">‹</a>
+                   href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="Vorheriges Semester">‹</a>
                 <span class="px-4 h-8 flex items-center rounded-full bg-accent/10 text-accent text-sm font-semibold whitespace-nowrap">{{ $semLabel }}</span>
                 <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $nextSemesterId])
-                   href="{{ $nextSemesterId ? route('lernender.noten.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="Nächstes Semester">›</a>
+                   href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="Nächstes Semester">›</a>
             </div>
 
             <div class="flex gap-2">
-                <a href="{{ route('lernender.noten.drucken') }}" target="_blank" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Drucken</a>
-                <a href="{{ route('lernender.noten.import.index') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Import</a>
-                <a href="{{ route('lernender.noten.export') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
-                <a href="{{ route('lernender.noten.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                <a href="{{ route('learner.grades.print') }}" target="_blank" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Drucken</a>
+                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Import</a>
+                <a href="{{ route('learner.grades.export') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
+                <a href="{{ route('learner.grades.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                     <span class="text-lg leading-none">+</span> Note
                 </a>
             </div>
@@ -43,7 +43,7 @@
                     @if($kNote !== null)
                         <x-kachel :label="$a->konfiguration->kategorieName($kid)" :note="$kNote"
                                   :sub="'Lehrzeit '.\App\Support\NotenSkala::format($kat['note'], 1)"
-                                  :href="route('lernender.noten.index', $mit(['kategorie_id' => $kid]))" />
+                                  :href="route('learner.grades.index', $mit(['kategorie_id' => $kid]))" />
                     @endif
                 @endforeach
             </div>
@@ -54,10 +54,10 @@
                     <button type="button" role="tab" @click="ansicht = 'alle'" :aria-selected="ansicht === 'alle'" class="px-3 min-h-9 rounded-lg whitespace-nowrap" :class="ansicht === 'alle' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Zeugnisübersicht</button>
                 </div>
                 <div class="flex flex-wrap gap-1.5" x-show="ansicht === 'semester'">
-                    <a href="{{ route('lernender.noten.index', $mit(['kategorie_id' => null])) }}"
+                    <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}"
                        @class(['px-3 min-h-9 inline-flex items-center rounded-full text-sm border transition-colors', 'border-accent/50 bg-accent/10 text-accent' => ! $kategorieId, 'border-border text-muted hover:text-text' => $kategorieId])>Alle</a>
                     @foreach($kategorien as $k)
-                        <a href="{{ route('lernender.noten.index', $mit(['kategorie_id' => $k->kategorie_id])) }}"
+                        <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}"
                            @class(['px-3 min-h-9 inline-flex items-center rounded-full text-sm border transition-colors', 'border-accent/50 bg-accent/10 text-accent' => $kategorieId === $k->kategorie_id, 'border-border text-muted hover:text-text' => $kategorieId !== $k->kategorie_id])>{{ $k->name }}</a>
                     @endforeach
                 </div>
@@ -127,7 +127,7 @@
                                     @endforeach
                                     @if($beleg)
                                         <div class="px-4 py-2 flex justify-end bg-bg/40">
-                                            <form method="POST" action="{{ route($beleg['offen'] ? 'lernender.noten.modul.wiederholen' : 'lernender.noten.modul.fortsetzen', $e->modulId) }}"
+                                            <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
                                                   @if($beleg['offen']) onsubmit="return confirm('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')" @endif
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf
@@ -144,7 +144,7 @@
                 @empty
                     <div class="glass rounded-2xl px-5 py-12 text-center">
                         <p class="text-sm text-muted">Keine Noten in {{ $semLabel }}</p>
-                        <a href="{{ route('lernender.noten.create') }}" class="mt-4 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                        <a href="{{ route('learner.grades.create') }}" class="mt-4 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                             <span class="text-lg leading-none">+</span> Note erfassen
                         </a>
                     </div>
@@ -210,7 +210,7 @@
                 d.addEventListener('toggle', () => {
                     c?.classList.toggle('rotate-90', d.open);
                     if (d.open) {
-                        fetch(`/noten/${d.dataset.noteId}/gesehen`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' } }).catch(() => {});
+                        fetch(`/grades/${d.dataset.noteId}/seen`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' } }).catch(() => {});
                     }
                 });
             });

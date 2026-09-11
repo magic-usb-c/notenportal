@@ -11,8 +11,8 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('passwort-festlegen', [PasswortWechselController::class, 'edit'])->name('passwort.wechsel');
-    Route::put('passwort-festlegen', [PasswortWechselController::class, 'update'])->name('passwort.wechsel.speichern');
+    Route::get('set-password', [PasswortWechselController::class, 'edit'])->name('password.initial');
+    Route::put('set-password', [PasswortWechselController::class, 'update'])->name('password.initial.update');
     Route::put('password', [PasswordController::class, 'update'])->name('password.update');
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });

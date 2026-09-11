@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Dokumente eines Lernenden – für den Lernenden selbst (lernender.dokumente.*) und in der Verwaltung
- * ({bereich}.lernende.dokumente.*, nur sichtbare Lernende). Dateien nie direkt, nur über diese Aktionen.
+ * ({bereich}.learners.documents.*, nur sichtbare Lernende). Dateien nie direkt, nur über diese Aktionen.
  */
 class DokumenteController extends Controller
 {
@@ -38,7 +38,7 @@ class DokumenteController extends Controller
             'darfHochladen' => $this->darfAendern($request, $lernender, $bereich),
             'ich' => (int) $request->user()->benutzer_id,
             'r' => fn (string $name, array $p = []) => $this->route($bereich, $lernender, $name, $p),
-            'zurueck' => $bereich ? route($bereich.'.lernende.show', $lernender->lernender_id) : null,
+            'zurueck' => $bereich ? route($bereich.'.learners.show', $lernender->lernender_id) : null,
         ]);
     }
 
@@ -107,7 +107,7 @@ class DokumenteController extends Controller
         ]);
         $ergebnis = $abgleich->uebernehmen($daten['zeilen'], (int) $daten['semester_id'], (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
 
-        $zurueck = redirect($this->route($bereich, $lernender, 'abgleich', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $daten['semester_id']]));
+        $zurueck = redirect($this->route($bereich, $lernender, 'reconcile', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $daten['semester_id']]));
         if ($ergebnis['neu'] === 0) {
             return $zurueck->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : 'Keine Zeile ausgewählt.');
         }
@@ -124,7 +124,7 @@ class DokumenteController extends Controller
     private function kontext(Request $request): array
     {
         $name = (string) $request->route()?->getName();
-        if (str_starts_with($name, 'lernender.')) {
+        if (str_starts_with($name, 'learner.')) {
             $lernender = $request->user()?->lernender;
             abort_if(! $lernender, 403);
 
@@ -132,7 +132,7 @@ class DokumenteController extends Controller
         }
 
         $bereich = Str::before($name, '.');
-        abort_unless(in_array($bereich, ['admin', 'berufsbildner'], true), 404);
+        abort_unless(in_array($bereich, ['admin', 'trainer'], true), 404);
 
         return [Lernender::sichtbarFuer($request->user())->findOrFail((int) $request->route('lernender_id')), $bereich];
     }
@@ -150,7 +150,7 @@ class DokumenteController extends Controller
     private function route(?string $bereich, Lernender $lernender, string $name, array $parameter = []): string
     {
         return $bereich
-            ? route($bereich.'.lernende.dokumente.'.$name, ['lernender_id' => $lernender->lernender_id, ...$parameter])
-            : route('lernender.dokumente.'.$name, $parameter);
+            ? route($bereich.'.learners.documents.'.$name, ['lernender_id' => $lernender->lernender_id, ...$parameter])
+            : route('learner.documents.'.$name, $parameter);
     }
 }

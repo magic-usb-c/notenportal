@@ -1,8 +1,8 @@
-<x-einrichtung schritt="kategorien" :stand="$stand" titel="Kategorien">
+<x-einrichtung schritt="categories" :stand="$stand" titel="Kategorien">
     @php
         $feld = 'h-10 rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
     @endphp
-    <form method="POST" action="{{ route('admin.einrichtung.kategorien') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.categories') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="glass rounded-2xl overflow-hidden">
@@ -64,6 +64,6 @@
             @endif
         </section>
 
-        @include('admin.einrichtung._fuss', ['schritt' => 'kategorien'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'categories'])
     </form>
 </x-einrichtung>

@@ -14,8 +14,8 @@ class LoginTest extends TestCase
     {
         return [
             'Admin' => ['admin', 'admin.dashboard'],
-            'Berufsbildner' => ['berufsbildner', 'berufsbildner.dashboard'],
-            'Lernender' => ['lernender', 'lernender.dashboard'],
+            'Berufsbildner' => ['berufsbildner', 'trainer.dashboard'],
+            'Lernender' => ['lernender', 'learner.dashboard'],
         ];
     }
 
@@ -92,7 +92,7 @@ class LoginTest extends TestCase
 
         $user->update(['aktiv' => false]);
 
-        $this->get(route('lernender.dashboard'))->assertRedirect(route('login'));
+        $this->get(route('learner.dashboard'))->assertRedirect(route('login'));
         $this->assertGuest();
     }
 

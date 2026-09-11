@@ -22,14 +22,14 @@ class StammdatenNotenlogikTest extends TestCase
         $uek = Kategorie::where('code', 'UEK')->firstOrFail();
 
         $this->actingAs($admin)
-            ->post(route('admin.stammdaten.faecher.store'), [
+            ->post(route('admin.master-data.subjects.store'), [
                 'name' => 'Projektmanagement',
                 'kurzname' => 'PM',
                 'kategorie_id' => $uek->kategorie_id,
                 'track_typ' => '',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('admin.stammdaten.faecher.index'));
+            ->assertRedirect(route('admin.master-data.subjects.index'));
 
         $fach = Fach::where('kurzname', 'PM')->sole();
         $this->assertSame($uek->kategorie_id, $fach->kategorie_id);
@@ -42,7 +42,7 @@ class StammdatenNotenlogikTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->post(route('admin.stammdaten.faecher.store'), [
+            ->post(route('admin.master-data.subjects.store'), [
                 'name' => 'Ohne Kategorie',
                 'kurzname' => 'OK',
                 'track_typ' => '',
@@ -61,7 +61,7 @@ class StammdatenNotenlogikTest extends TestCase
         $uek = Kategorie::where('code', 'UEK')->firstOrFail();
 
         $this->actingAs($admin)
-            ->post(route('admin.stammdaten.lehrberufe.module.assign', $lehrberuf->lehrberuf_id), [
+            ->post(route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id), [
                 'modul_id' => $modul->modul_id,
                 'kategorie_id' => $uek->kategorie_id,
                 'pflicht' => 1,
@@ -95,7 +95,7 @@ class StammdatenNotenlogikTest extends TestCase
         ]);
 
         $this->actingAs($admin)
-            ->patch(route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf->lehrberuf_id, $modul->modul_id]), [
+            ->patch(route('admin.master-data.professions.modules.update', [$lehrberuf->lehrberuf_id, $modul->modul_id]), [
                 'kategorie_id' => $uek->kategorie_id,
             ])
             ->assertSessionHasNoErrors();
@@ -116,7 +116,7 @@ class StammdatenNotenlogikTest extends TestCase
         $kategorie = Kategorie::where('code', 'BMS')->firstOrFail();
 
         $this->actingAs($admin)
-            ->put(route('admin.stammdaten.kategorien.update', $kategorie->kategorie_id), [
+            ->put(route('admin.master-data.categories.update', $kategorie->kategorie_id), [
                 'code' => $kategorie->code,
                 'name' => $kategorie->name,
                 'sortierung' => $kategorie->sortierung,
@@ -129,7 +129,7 @@ class StammdatenNotenlogikTest extends TestCase
                 'promotion_max_minuspunkte' => '',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('admin.stammdaten.kategorien.index'));
+            ->assertRedirect(route('admin.master-data.categories.index'));
 
         $kategorie->refresh();
         $this->assertEquals(0.25, (float) $kategorie->rundung_element);
@@ -146,7 +146,7 @@ class StammdatenNotenlogikTest extends TestCase
         $kategorie = Kategorie::where('code', 'FACH')->firstOrFail();
 
         $this->actingAs($admin)
-            ->put(route('admin.stammdaten.kategorien.update', $kategorie->kategorie_id), [
+            ->put(route('admin.master-data.categories.update', $kategorie->kategorie_id), [
                 'code' => $kategorie->code,
                 'name' => $kategorie->name,
                 'sortierung' => $kategorie->sortierung,

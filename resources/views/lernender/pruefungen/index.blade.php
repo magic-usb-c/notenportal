@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex flex-wrap items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Prüfungen</h2>
-            <a href="{{ route('lernender.noten.rechner') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">
+            <a href="{{ route('learner.grades.calculator') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z"/></svg>
                 Was brauche ich?
             </a>
@@ -22,7 +22,7 @@
 
             <section class="lg:col-span-2 glass rounded-2xl p-5" id="planen">
                 <h3 class="font-semibold text-text mb-4">{{ $b ? 'Prüfung bearbeiten' : 'Prüfung planen' }}</h3>
-                <form method="POST" action="{{ $b ? route('lernender.pruefungen.update', $b->pruefung_id) : route('lernender.pruefungen.store') }}"
+                <form method="POST" action="{{ $b ? route('learner.exams.update', $b->pruefung_id) : route('learner.exams.store') }}"
                       class="flex flex-col gap-4" x-data="{ loading: false, gewicht: @js((string) old('gewichtung_prozent', $b?->gewichtung_prozent ?? 100)) }"
                       @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
@@ -72,7 +72,7 @@
 
                     <div class="flex gap-2">
                         @if($b)
-                            <a href="{{ route('lernender.pruefungen.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">Abbrechen</a>
+                            <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">Abbrechen</a>
                         @endif
                         <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60">{{ $b ? 'Speichern' : 'Planen' }}</button>
                     </div>

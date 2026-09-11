@@ -46,7 +46,7 @@ class EinrichtungController extends Controller
 
     public function __construct(private readonly LernendeErfassungService $erfassung) {}
 
-    public function show(Request $request, string $schritt = 'betrieb'): View
+    public function show(Request $request, string $schritt = 'operations'): View
     {
         abort_unless(array_key_exists($schritt, Einrichtung::SCHRITTE), 404);
 
@@ -70,7 +70,7 @@ class EinrichtungController extends Controller
         Betrieb::speichern($daten);
         $user->update(['vorname' => $daten['vorname'], 'nachname' => $daten['nachname'], 'email' => $daten['email']]);
 
-        return $this->weiter('betrieb', 'Betrieb gespeichert.');
+        return $this->weiter('operations', 'Betrieb gespeichert.');
     }
 
     public function kategorien(Request $request): RedirectResponse
@@ -97,7 +97,7 @@ class EinrichtungController extends Controller
         Einstellungen::set(Einrichtung::KATEGORIEN_GEPRUEFT, '1');
         Konfiguration::vergessen();
 
-        return $this->weiter('kategorien', 'Kategorien gespeichert.');
+        return $this->weiter('categories', 'Kategorien gespeichert.');
     }
 
     public function semester(Request $request): RedirectResponse
@@ -141,7 +141,7 @@ class EinrichtungController extends Controller
 
         $text = ($neu === 1 ? '1 Semester' : $neu.' Semester').' angelegt'.($vorhanden ? ', '.$vorhanden.' bereits vorhanden' : '').'.';
 
-        return $this->weiter('semester', $text);
+        return $this->weiter('semesters', $text);
     }
 
     public function lehrberufe(Request $request): RedirectResponse
@@ -187,7 +187,7 @@ class EinrichtungController extends Controller
         });
         Konfiguration::vergessen();
 
-        return $this->weiter('lehrberufe', ($neuBerufe === 1 ? '1 Lehrberuf' : $neuBerufe.' Lehrberufe').' und '.($neuFaecher === 1 ? '1 Fach' : $neuFaecher.' Fächer').' angelegt.');
+        return $this->weiter('professions', ($neuBerufe === 1 ? '1 Lehrberuf' : $neuBerufe.' Lehrberufe').' und '.($neuFaecher === 1 ? '1 Fach' : $neuFaecher.' Fächer').' angelegt.');
     }
 
     public function module(Request $request): RedirectResponse
@@ -236,7 +236,7 @@ class EinrichtungController extends Controller
         Konfiguration::vergessen();
 
         return redirect()
-            ->route('admin.einrichtung', ['schritt' => 'module', 'lehrberuf_id' => $lehrberufId])
+            ->route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lehrberufId])
             ->with('success', ($neu === 1 ? '1 Modul' : $neu.' Module').' zugeordnet.');
     }
 
@@ -282,7 +282,7 @@ class EinrichtungController extends Controller
 
         $this->merken($request, $zugaenge);
 
-        return redirect()->route('admin.einrichtung', 'personen')
+        return redirect()->route('admin.setup', 'people')
             ->with('success', (count($zugaenge) === 1 ? '1 Konto' : count($zugaenge).' Konten').' angelegt.');
     }
 
@@ -337,7 +337,7 @@ class EinrichtungController extends Controller
 
         $this->merken($request, $zugaenge);
 
-        return redirect()->route('admin.einrichtung', 'personen')
+        return redirect()->route('admin.setup', 'people')
             ->with('success', (count($zugaenge) === 1 ? '1 Lernende/r' : count($zugaenge).' Lernende').' angelegt.');
     }
 
@@ -365,7 +365,7 @@ class EinrichtungController extends Controller
 
     private function weiter(string $schritt, string $meldung): RedirectResponse
     {
-        return redirect()->route('admin.einrichtung', Einrichtung::naechster($schritt))->with('success', $meldung);
+        return redirect()->route('admin.setup', Einrichtung::naechster($schritt))->with('success', $meldung);
     }
 
     /** Sortierung chronologisch neu vergeben (zweistufig, damit eindeutige Werte nie kollidieren). */
@@ -387,18 +387,18 @@ class EinrichtungController extends Controller
         $schuljahr = now()->month >= 8 ? now()->year : now()->year - 1;
 
         return match ($schritt) {
-            'betrieb' => ['werte' => Betrieb::werte(), 'konto' => $request->user()],
-            'kategorien' => ['kategorien' => DB::table('kategorien')->orderBy('sortierung')->get()],
-            'semester' => [
+            'operations' => ['werte' => Betrieb::werte(), 'konto' => $request->user()],
+            'categories' => ['kategorien' => DB::table('kategorien')->orderBy('sortierung')->get()],
+            'semesters' => [
                 'semester' => DB::table('semester')->orderBy('sortierung')->get(['bezeichnung', 'start_datum', 'end_datum']),
                 'vorschlag' => ['herbst' => ($schuljahr - 3).'-08-01', 'fruehling' => ($schuljahr - 2).'-02-01', 'bis' => $schuljahr + 4],
             ],
-            'lehrberufe' => [
+            'professions' => [
                 'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['kuerzel', 'name']),
                 'faecher' => DB::table('faecher')->get(['name', 'track_typ']),
             ],
-            'module' => $this->moduleDaten($request),
-            'personen' => [
+            'modules' => $this->moduleDaten($request),
+            'people' => [
                 'lehrberufe' => DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get(['lehrberuf_id', 'kuerzel', 'name']),
                 'berufsbildner' => DB::table('berufsbildner as bb')
                     ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')

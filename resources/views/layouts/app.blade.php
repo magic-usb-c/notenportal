@@ -25,7 +25,7 @@
             window.npToggleTheme = function () {
                 const dunkel = document.documentElement.classList.toggle('dark');
                 try { localStorage.setItem('theme', dunkel ? 'dark' : 'light'); } catch (e) {}
-                fetch(@js(route('profile.darstellung')), {
+                fetch(@js(route('profile.appearance')), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',

@@ -25,7 +25,7 @@ abstract class VerwaltungController extends Controller
     protected function bereich(Request $request): string
     {
         $bereich = Str::before((string) $request->route()?->getName(), '.');
-        abort_unless(in_array($bereich, ['admin', 'berufsbildner'], true), 404);
+        abort_unless(in_array($bereich, ['admin', 'trainer'], true), 404);
 
         return $bereich;
     }
@@ -41,7 +41,7 @@ abstract class VerwaltungController extends Controller
         $sichtbar = Lernender::sichtbarFuer($request->user())->whereKey($lernenderId)->exists();
 
         return redirect()
-            ->to($sichtbar ? $this->zuRoute($request, 'lernende.show', $lernenderId) : $this->zuRoute($request, 'lernende.index'))
+            ->to($sichtbar ? $this->zuRoute($request, 'learners.show', $lernenderId) : $this->zuRoute($request, 'learners.index'))
             ->with('success', $meldung);
     }
 }

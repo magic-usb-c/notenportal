@@ -20,7 +20,7 @@ final class LearnerAssigned
             lines: ['Du betreust ab sofort '.$name.($beruf ? ' («'.$beruf.'»)' : '').'.'],
             facts: array_filter(['Lehrberuf' => $beruf, 'Lehrbeginn' => $lernender->lehrbeginn?->format('d.m.Y')]),
             actionLabel: 'Zum Cockpit',
-            actionUrl: route('berufsbildner.lernende.show', $lernender->lernender_id),
+            actionUrl: route('trainer.learners.show', $lernender->lernender_id),
             digestTitle: 'Neue Betreuung: '.$name,
         );
     }

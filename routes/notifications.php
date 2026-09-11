@@ -38,10 +38,10 @@ Route::middleware('guest')->group(function () {
 
 // Admin: Mail-Einstellungen (Teil der Seite Betrieb), Versandprotokoll, Regeln je Anlass
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::put('/betrieb/mail', [MailSettingsController::class, 'update'])->name('mail.update');
+    Route::put('/operations/mail', [MailSettingsController::class, 'update'])->name('mail.update');
     // Eigener Präfix: throttle:max,decay ohne Präfix schlüsselt nur nach Benutzer-ID (nicht nach Route) –
     // ohne diesen Präfix würde dieses niedrige Limit mit anderen throttle:-Routen desselben Benutzers geteilt.
-    Route::post('/betrieb/mail/test', [MailSettingsController::class, 'test'])->middleware('throttle:6,1,mail-test')->name('mail.test');
+    Route::post('/operations/mail/test', [MailSettingsController::class, 'test'])->middleware('throttle:6,1,mail-test')->name('mail.test');
     Route::get('/mail-log', [MailLogController::class, 'index'])->name('mail-log.index');
     Route::post('/mail-log/{id}/retry', [MailLogController::class, 'retry'])->whereNumber('id')->name('mail-log.retry');
     Route::get('/notifications', [NotificationPolicyController::class, 'index'])->name('notifications.index');

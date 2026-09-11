@@ -31,7 +31,7 @@ class DashboardController extends Controller
     public function admin(): View|RedirectResponse
     {
         if (Einrichtung::offen()) {
-            return redirect()->route('admin.einrichtung');
+            return redirect()->route('admin.setup');
         }
 
         return view('dashboards.admin', $this->uebersicht->admin());

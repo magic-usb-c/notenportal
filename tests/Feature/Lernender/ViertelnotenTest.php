@@ -31,7 +31,7 @@ class ViertelnotenTest extends TestCase
     {
         $user = User::factory()->lernender()->create();
         $note = Note::factory()->create(['lernender_id' => $user->lernender->lernender_id]);
-        $route = route('lernender.noten.update', ['note_id' => $note->note_id]);
+        $route = route('learner.grades.update', ['note_id' => $note->note_id]);
 
         $this->actingAs($user)->put($route, ['note_wert' => 4.33])->assertSessionHasErrors('note_wert');
         $this->actingAs($user)->put($route, ['note_wert' => 4.25])->assertSessionDoesntHaveErrors('note_wert');

@@ -69,12 +69,12 @@ class ZeugnisAbgleichTest extends TestCase
     #[Test]
     public function abgleich_seite_laedt_auch_ohne_textlayer_und_ist_geschuetzt(): void
     {
-        $this->actingAs($this->user)->post(route('lernender.dokumente.store'), [
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
             'datei' => UploadedFile::fake()->create('zeugnis.pdf', 30, 'application/pdf'), 'art' => 'zeugnis', 'semester_id' => $this->semester,
         ])->assertSessionHasNoErrors();
         $dokument = Dokument::firstOrFail();
 
-        $this->get(route('lernender.dokumente.abgleich', $dokument->dokument_id))->assertOk()->assertSee('Kein Text im PDF erkannt');
-        $this->actingAs(User::factory()->lernender()->create())->get(route('lernender.dokumente.abgleich', $dokument->dokument_id))->assertNotFound();
+        $this->get(route('learner.documents.reconcile', $dokument->dokument_id))->assertOk()->assertSee('Kein Text im PDF erkannt');
+        $this->actingAs(User::factory()->lernender()->create())->get(route('learner.documents.reconcile', $dokument->dokument_id))->assertNotFound();
     }
 }

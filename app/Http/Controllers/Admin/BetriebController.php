@@ -40,7 +40,7 @@ class BetriebController extends Controller
     {
         Betrieb::speichern($request->validate(Betrieb::regeln()));
 
-        return redirect()->route('admin.betrieb.edit')->with('success', 'Betrieb gespeichert.');
+        return redirect()->route('admin.operations.edit')->with('success', 'Betrieb gespeichert.');
     }
 
     public function sicherungErstellen(): RedirectResponse
@@ -50,10 +50,10 @@ class BetriebController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return redirect()->route('admin.betrieb.edit')->with('error', 'Sicherung fehlgeschlagen: '.mb_substr($e->getMessage(), 0, 200));
+            return redirect()->route('admin.operations.edit')->with('error', 'Sicherung fehlgeschlagen: '.mb_substr($e->getMessage(), 0, 200));
         }
 
-        return redirect()->route('admin.betrieb.edit')->with('success', 'Sicherung '.$name.' erstellt.');
+        return redirect()->route('admin.operations.edit')->with('success', 'Sicherung '.$name.' erstellt.');
     }
 
     public function sicherungHerunterladen(string $name): BinaryFileResponse
@@ -66,7 +66,7 @@ class BetriebController extends Controller
     {
         $this->sicherung->loeschen($name);
 
-        return redirect()->route('admin.betrieb.edit')->with('success', 'Sicherung gelöscht.');
+        return redirect()->route('admin.operations.edit')->with('success', 'Sicherung gelöscht.');
     }
 
     public function kopieSpeichern(Request $request, SicherungKopie $kopie): RedirectResponse
@@ -77,22 +77,22 @@ class BetriebController extends Controller
             return back()->withInput()->withErrors([SicherungKopie::PFAD => $e->getMessage()]);
         }
 
-        return redirect()->route('admin.betrieb.edit')->with('success', $kopie->aktiv() ? 'Kopie ausser Haus gespeichert.' : 'Kopie ausser Haus ausgeschaltet.');
+        return redirect()->route('admin.operations.edit')->with('success', $kopie->aktiv() ? 'Kopie ausser Haus gespeichert.' : 'Kopie ausser Haus ausgeschaltet.');
     }
 
     /** «testen» prüft nur Verbindung und Schreibrecht, «kopieren» spiegelt sofort. */
     public function kopieAusfuehren(Request $request, SicherungKopie $kopie): RedirectResponse
     {
         if (! $kopie->aktiv()) {
-            return redirect()->route('admin.betrieb.edit')->with('error', 'Keine Kopie ausser Haus eingerichtet.');
+            return redirect()->route('admin.operations.edit')->with('error', 'Keine Kopie ausser Haus eingerichtet.');
         }
         $nurTesten = $request->input('aktion') === 'testen';
         try {
             $nurTesten ? $kopie->testen() : $kopie->kopieren();
         } catch (\Throwable $e) {
-            return redirect()->route('admin.betrieb.edit')->with('error', mb_substr($e->getMessage(), 0, 300));
+            return redirect()->route('admin.operations.edit')->with('error', mb_substr($e->getMessage(), 0, 300));
         }
 
-        return redirect()->route('admin.betrieb.edit')->with('success', $nurTesten ? 'Verbindung zum Ziel funktioniert.' : 'Sicherungen kopiert.');
+        return redirect()->route('admin.operations.edit')->with('success', $nurTesten ? 'Verbindung zum Ziel funktioniert.' : 'Sicherungen kopiert.');
     }
 }

@@ -3,7 +3,7 @@
     <x-slot name="header">
         <div class="w-full flex items-center justify-between gap-4">
             <h2 class="font-semibold text-xl text-text">Notenkategorien</h2>
-            <a href="{{ route('admin.stammdaten.kategorien.create') }}"
+            <a href="{{ route('admin.master-data.categories.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
                 <span class="text-lg leading-none">+</span> Neue Kategorie
             </a>
@@ -52,7 +52,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.stammdaten.kategorien.edit', $k->kategorie_id) }}"
+                                    <a href="{{ route('admin.master-data.categories.edit', $k->kategorie_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>

@@ -28,13 +28,13 @@ class StammdatenLueckenTest extends TestCase
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $modul, 'kategorie_id' => $kategorie['FACH']]);
 
         $this->actingAs(User::factory()->admin()->create())
-            ->patch(route('admin.stammdaten.lehrberufe.module.update', [$lehrberuf, $modul]), [
+            ->patch(route('admin.master-data.professions.modules.update', [$lehrberuf, $modul]), [
                 'kategorie_id' => $kategorie['UEK'], 'pflicht' => '0', 'aktiv' => '0', 'empfohlenes_lehrsemester_nr' => '3',
             ])->assertSessionHasNoErrors()->assertSessionHas('success');
 
         $zeile = DB::table('lehrberuf_module')->where('lehrberuf_id', $lehrberuf)->where('modul_id', $modul)->first();
         $this->assertSame([(int) $kategorie['UEK'], 0, 0, 3], [(int) $zeile->kategorie_id, (int) $zeile->pflicht, (int) $zeile->aktiv, (int) $zeile->empfohlenes_lehrsemester_nr]);
-        $this->get(route('admin.stammdaten.lehrberufe.show', $lehrberuf))->assertOk()->assertSee('Testmodul');
+        $this->get(route('admin.master-data.professions.show', $lehrberuf))->assertOk()->assertSee('Testmodul');
     }
 
     #[Test]
@@ -46,8 +46,8 @@ class StammdatenLueckenTest extends TestCase
         DB::table('lernender_tracks')->insert(['lernender_id' => $lernender->lernender_id, 'track_typ' => 'BMS', 'start_datum' => '2091-08-01', 'start_semester_id' => $belegt]);
 
         $this->actingAs(User::factory()->admin()->create());
-        $this->delete(route('admin.stammdaten.semester.destroy', $leer))->assertSessionHas('success');
-        $this->delete(route('admin.stammdaten.semester.destroy', $belegt))->assertSessionHas('error');
+        $this->delete(route('admin.master-data.semesters.destroy', $leer))->assertSessionHas('success');
+        $this->delete(route('admin.master-data.semesters.destroy', $belegt))->assertSessionHas('error');
 
         $this->assertFalse(DB::table('semester')->where('semester_id', $leer)->exists());
         $this->assertTrue(DB::table('semester')->where('semester_id', $belegt)->exists());
@@ -64,17 +64,17 @@ class StammdatenLueckenTest extends TestCase
         ];
         $this->actingAs($admin);
 
-        $this->put(route('admin.benutzer.update', $bb->benutzer_id), $felder($bb, ['Berufsbildner', 'Admin'], 'neuername'))->assertSessionHasNoErrors();
+        $this->put(route('admin.users.update', $bb->benutzer_id), $felder($bb, ['Berufsbildner', 'Admin'], 'neuername'))->assertSessionHasNoErrors();
         $bb = $bb->fresh();
         $this->assertTrue($bb->hasRole('Admin') && $bb->hasRole('Berufsbildner'));
         $this->assertSame('neuername', $bb->benutzername);
 
-        $this->put(route('admin.benutzer.update', $admin->benutzer_id), $felder($admin, ['Berufsbildner']))->assertSessionHasErrors('rollen');
+        $this->put(route('admin.users.update', $admin->benutzer_id), $felder($admin, ['Berufsbildner']))->assertSessionHasErrors('rollen');
 
         $lernender = User::factory()->lernender()->create()->lernender;
         DB::table('betreuungen')->insert(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id, 'lernender_id' => $lernender->lernender_id,
             'gueltig_von' => now()->subMonth()->toDateString()]);
-        $this->put(route('admin.benutzer.update', $bb->benutzer_id), $felder($bb, ['Admin']))->assertSessionHasErrors('rollen');
+        $this->put(route('admin.users.update', $bb->benutzer_id), $felder($bb, ['Admin']))->assertSessionHasErrors('rollen');
         $this->assertTrue($bb->fresh()->hasRole('Berufsbildner'));
     }
 }

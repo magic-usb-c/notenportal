@@ -51,7 +51,7 @@ class StammdatenModuleController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.module.index')
+        return redirect()->route('admin.master-data.modules.index')
             ->with('success', 'Modul angelegt.');
     }
 
@@ -84,7 +84,7 @@ class StammdatenModuleController extends Controller
             'aktualisiert_am' => now(),
         ]);
 
-        return redirect()->route('admin.stammdaten.module.index')
+        return redirect()->route('admin.master-data.modules.index')
             ->with('success', 'Modul aktualisiert.');
     }
 }

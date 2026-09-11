@@ -9,7 +9,7 @@
                     Berufsbildner
                 </div>
             </div>
-            <a href="{{ route('admin.benutzer.create') }}"
+            <a href="{{ route('admin.users.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
                 <span class="text-lg leading-none">+</span>
                 Neuer Benutzer
@@ -61,7 +61,7 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if(($st?->lernende ?? 0) > 0)
-                                                <a href="{{ route('admin.lernende.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
+                                                <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold bg-bg hover:bg-accent hover:text-white transition-colors">
                                                     {{ $st->lernende }}
                                                 </a>
@@ -71,7 +71,7 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($warnOhneNoten)
-                                                <a href="{{ route('admin.lernende.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
+                                                <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
                                                           bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 hover:opacity-80 transition-opacity">
                                                     {{ $st->ohne_noten }}
@@ -82,7 +82,7 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($warnTiefAvg)
-                                                <a href="{{ route('admin.lernende.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
+                                                <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
                                                           bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 hover:opacity-80 transition-opacity">
                                                     {{ $st->tief_avg }}
@@ -93,11 +93,11 @@
                                         </td>
                                         <td class="p-3 text-right">
                                             <div class="flex items-center justify-end gap-2">
-                                                <a href="{{ route('admin.lernende.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
+                                                <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
                                                     Lernende
                                                 </a>
-                                                <a href="{{ route('admin.benutzer.edit', $bb->benutzer_id) }}"
+                                                <a href="{{ route('admin.users.edit', $bb->benutzer_id) }}"
                                                    class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
                                                     Bearbeiten
                                                 </a>

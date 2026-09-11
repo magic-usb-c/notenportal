@@ -46,22 +46,22 @@ class NotenImportTest extends TestCase
     {
         $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n09.03.2026;Sprache;Vortrag;5.0;\n10.03.2026;Turnen;X;4;100\n";
         $this->actingAs($this->user)
-            ->post(route('lernender.noten.import.lesen'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)])
-            ->assertRedirect(route('lernender.noten.import.index'));
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)])
+            ->assertRedirect(route('learner.grades.import.index'));
 
         $vorschau = session('notenimport.'.$this->user->lernender->lernender_id);
         $this->assertSame(['ok', 'pruefen', 'fehler'], array_column($vorschau['zeilen'], 'status'));
         $this->assertSame('modul:'.$this->modul, $vorschau['zeilen'][0]['bezug']);
         $this->assertSame(50.0, $vorschau['zeilen'][0]['gewicht']);
-        $this->get(route('lernender.noten.import.index'))->assertOk()->assertSee('noten.csv');
+        $this->get(route('learner.grades.import.index'))->assertOk()->assertSee('noten.csv');
 
-        $this->post(route('lernender.noten.import.uebernehmen'), ['zeilen' => json_encode($vorschau['zeilen'])])
-            ->assertRedirect(route('lernender.noten.index'))->assertSessionHas('success');
+        $this->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen'])])
+            ->assertRedirect(route('learner.grades.index'))->assertSessionHas('success');
 
         $this->assertEqualsCanonicalizing([4.5, 5.0], Note::query()->pluck('note_wert')->map(fn ($n) => (float) $n)->all());
         $this->assertSame(50.0, (float) Note::query()->where('note_wert', 4.5)->value('gewichtung_prozent'));
 
-        $this->post(route('lernender.noten.import.lesen'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
+        $this->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
         $this->assertSame('doppelt', session('notenimport.'.$this->user->lernender->lernender_id)['zeilen'][0]['status']);
     }
 
@@ -106,8 +106,8 @@ class NotenImportTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
         DB::table('betreuungen')->insert(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id, 'lernender_id' => $lernenderId, 'gueltig_von' => '2024-08-01']);
 
-        $this->actingAs($bb)->get(route('berufsbildner.lernende.noten.import.index', $lernenderId))->assertForbidden();
-        $this->actingAs(User::factory()->admin()->create())->get(route('admin.lernende.noten.import.index', $lernenderId))->assertOk();
-        $this->get(route('admin.lernende.noten.import.vorlage', $lernenderId))->assertOk()->assertSee('Datum;Fach/Modul;Titel;Note;Gewicht', false);
+        $this->actingAs($bb)->get(route('trainer.learners.grades.import.index', $lernenderId))->assertForbidden();
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.learners.grades.import.index', $lernenderId))->assertOk();
+        $this->get(route('admin.learners.grades.import.template', $lernenderId))->assertOk()->assertSee('Datum;Fach/Modul;Titel;Note;Gewicht', false);
     }
 }

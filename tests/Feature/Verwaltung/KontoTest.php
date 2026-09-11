@@ -22,8 +22,8 @@ class KontoTest extends TestCase
         $verwalter = $this->verwalter($rolle, $lernender);
 
         $this->actingAs($verwalter)
-            ->post(route("{$rolle}.lernende.konto.passwort", $lernender->lernender_id))
-            ->assertRedirect(route("{$rolle}.lernende.show", $lernender->lernender_id))
+            ->post(route("{$rolle}.learners.account.password", $lernender->lernender_id))
+            ->assertRedirect(route("{$rolle}.learners.show", $lernender->lernender_id))
             ->assertSessionHas('startpasswort');
 
         $passwort = session('startpasswort');
@@ -35,8 +35,8 @@ class KontoTest extends TestCase
         $this->assertTrue(Validator::make(['p' => $passwort], ['p' => Password::defaults()])->passes());
 
         // Einmalig angezeigt
-        $this->actingAs($verwalter)->get(route("{$rolle}.lernende.show", $lernender->lernender_id))->assertSee($passwort);
-        $this->actingAs($verwalter)->get(route("{$rolle}.lernende.show", $lernender->lernender_id))->assertDontSee($passwort);
+        $this->actingAs($verwalter)->get(route("{$rolle}.learners.show", $lernender->lernender_id))->assertSee($passwort);
+        $this->actingAs($verwalter)->get(route("{$rolle}.learners.show", $lernender->lernender_id))->assertDontSee($passwort);
     }
 
     #[Test]
@@ -47,8 +47,8 @@ class KontoTest extends TestCase
         $verwalter = $this->verwalter($rolle, $lernender);
 
         $this->actingAs($verwalter)
-            ->post(route("{$rolle}.lernende.konto.aktiv", $lernender->lernender_id))
-            ->assertRedirect(route("{$rolle}.lernende.show", $lernender->lernender_id));
+            ->post(route("{$rolle}.learners.account.active", $lernender->lernender_id))
+            ->assertRedirect(route("{$rolle}.learners.show", $lernender->lernender_id));
 
         $this->assertFalse($lernender->benutzer->fresh()->aktiv);
 
@@ -57,7 +57,7 @@ class KontoTest extends TestCase
         $this->assertGuest();
 
         // Wieder aktivieren
-        $this->actingAs($verwalter)->post(route("{$rolle}.lernende.konto.aktiv", $lernender->lernender_id));
+        $this->actingAs($verwalter)->post(route("{$rolle}.learners.account.active", $lernender->lernender_id));
         $this->assertTrue($lernender->benutzer->fresh()->aktiv);
     }
 }

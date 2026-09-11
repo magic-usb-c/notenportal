@@ -94,13 +94,13 @@ class SicherungKopieTest extends TestCase
     public function admin_richtet_kopie_auf_betrieb_ein_und_sicherungslauf_kopiert(): void
     {
         $admin = User::factory()->admin()->create();
-        $this->actingAs($admin)->put(route('admin.betrieb.kopie.update'), [SicherungKopie::ZIEL => 'ordner', SicherungKopie::PFAD => base_path('x')])
+        $this->actingAs($admin)->put(route('admin.operations.offsite.update'), [SicherungKopie::ZIEL => 'ordner', SicherungKopie::PFAD => base_path('x')])
             ->assertSessionHasErrors(SicherungKopie::PFAD);
-        $this->actingAs($admin)->put(route('admin.betrieb.kopie.update'), [SicherungKopie::ZIEL => 'ordner', SicherungKopie::PFAD => $this->ziel])
+        $this->actingAs($admin)->put(route('admin.operations.offsite.update'), [SicherungKopie::ZIEL => 'ordner', SicherungKopie::PFAD => $this->ziel])
             ->assertSessionHas('success');
-        $this->actingAs($admin)->get(route('admin.betrieb.edit'))->assertOk()->assertSee('Kopie ausser Haus')->assertSee('Jetzt kopieren');
-        $this->actingAs($admin)->post(route('admin.betrieb.kopie.run'), ['aktion' => 'testen'])->assertSessionHas('success');
-        $this->actingAs(User::factory()->lernender()->create())->post(route('admin.betrieb.kopie.run'))->assertForbidden();
+        $this->actingAs($admin)->get(route('admin.operations.edit'))->assertOk()->assertSee('Kopie ausser Haus')->assertSee('Jetzt kopieren');
+        $this->actingAs($admin)->post(route('admin.operations.offsite.run'), ['aktion' => 'testen'])->assertSessionHas('success');
+        $this->actingAs(User::factory()->lernender()->create())->post(route('admin.operations.offsite.run'))->assertForbidden();
 
         // Täglicher Lauf: Sicherung erstellen, danach spiegeln
         Process::fake(function (PendingProcess $prozess) {

@@ -37,36 +37,36 @@ class ModulWiederholenTest extends TestCase
     {
         $user = User::factory()->lernender(['lehrberuf_id' => $this->lehrberuf])->create();
         $this->actingAs($user);
-        $note = fn (string $datum, string $wert) => $this->post(route('lernender.noten.store'), [
+        $note = fn (string $datum, string $wert) => $this->post(route('learner.grades.store'), [
             'typ' => 'modul', 'modul_id' => $this->modul, 'pruefungsdatum' => $datum, 'note_wert' => $wert, 'gewichtung_prozent' => 100,
         ])->assertSessionHasNoErrors();
 
         $note('2026-03-02', '3.0');
-        $this->post(route('lernender.noten.modul.fortsetzen', $this->modul))->assertNotFound();
+        $this->post(route('learner.grades.module.resume', $this->modul))->assertNotFound();
 
-        $this->post(route('lernender.noten.modul.wiederholen', $this->modul))->assertSessionHas('success');
+        $this->post(route('learner.grades.module.repeat', $this->modul))->assertSessionHas('success');
         $this->assertSame('2026-03-02', (string) DB::table('modul_belegungen')->where('modul_id', $this->modul)->value('end_datum'));
-        $this->post(route('lernender.noten.modul.fortsetzen', $this->modul))->assertSessionHas('success');
-        $this->post(route('lernender.noten.modul.wiederholen', $this->modul))->assertSessionHas('success');
+        $this->post(route('learner.grades.module.resume', $this->modul))->assertSessionHas('success');
+        $this->post(route('learner.grades.module.repeat', $this->modul))->assertSessionHas('success');
 
         $note('2026-06-01', '5.0');
 
         $lernenderId = (int) $user->lernender->lernender_id;
         $this->assertSame(2, DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->count());
         $this->assertEquals(5.0, app(NotenQuelle::class)->auswertung($lernenderId)->elemente['m'.$this->modul]->note);
-        $this->get(route('lernender.noten.index', ['semester_id' => $this->semester]))->assertOk()->assertSee('2. Versuch');
+        $this->get(route('learner.grades.index', ['semester_id' => $this->semester]))->assertOk()->assertSee('2. Versuch');
     }
 
     #[Test]
     public function fremde_modulbelegung_bleibt_unberuehrt(): void
     {
         $eigentuemer = User::factory()->lernender(['lehrberuf_id' => $this->lehrberuf])->create();
-        $this->actingAs($eigentuemer)->post(route('lernender.noten.store'), [
+        $this->actingAs($eigentuemer)->post(route('learner.grades.store'), [
             'typ' => 'modul', 'modul_id' => $this->modul, 'pruefungsdatum' => '2026-03-02', 'note_wert' => '4.5', 'gewichtung_prozent' => 100,
         ])->assertSessionHasNoErrors();
 
         $this->actingAs(User::factory()->lernender(['lehrberuf_id' => $this->lehrberuf])->create())
-            ->post(route('lernender.noten.modul.wiederholen', $this->modul))
+            ->post(route('learner.grades.module.repeat', $this->modul))
             ->assertNotFound();
 
         $this->assertNull(DB::table('modul_belegungen')->where('modul_id', $this->modul)->value('end_datum'));

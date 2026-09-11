@@ -9,8 +9,8 @@
                 @endif
             </div>
             <div class="flex gap-2">
-                <a href="{{ route('lernender.pruefungen.index') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Prüfung planen</a>
-                <a href="{{ route('lernender.noten.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Prüfung planen</a>
+                <a href="{{ route('learner.grades.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
                     <span class="text-lg leading-none">+</span> Note
                 </a>
             </div>
@@ -57,7 +57,7 @@
                     <div class="relative py-6 text-center">
                         <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Gesamtschnitt</div>
                         <div class="mt-2 text-5xl font-extrabold text-muted/40">–</div>
-                        <a href="{{ route('lernender.noten.create') }}" class="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Erste Note erfassen</a>
+                        <a href="{{ route('learner.grades.create') }}" class="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Erste Note erfassen</a>
                     </div>
                 @endif
 
@@ -77,7 +77,7 @@
             {{-- Kategorien --}}
             <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
                 @forelse($kategorien as $kat)
-                    <a href="{{ route('lernender.noten.index', ['kategorie_id' => $kat['id']]) }}" class="glass glass-lift rounded-2xl p-4 flex flex-col gap-2">
+                    <a href="{{ route('learner.grades.index', ['kategorie_id' => $kat['id']]) }}" class="glass glass-lift rounded-2xl p-4 flex flex-col gap-2">
                         <div class="flex items-center justify-between gap-2">
                             <span class="text-sm font-semibold text-text truncate">{{ $kat['name'] }}</span>
                             @if($kat['promotion'])
@@ -122,7 +122,7 @@
             </x-karte>
 
             {{-- Ziele --}}
-            <x-karte titel="Ziele" class="lg:col-span-7" :link="route('lernender.noten.rechner')" link-text="Rechner">
+            <x-karte titel="Ziele" class="lg:col-span-7" :link="route('learner.grades.calculator')" link-text="Rechner">
                 <div class="flex flex-col gap-3">
                     @forelse($ziele as $z)
                         @php
@@ -159,7 +159,7 @@
                         </a>
                     @empty
                         <div class="py-6 text-center">
-                            <a href="{{ route('lernender.noten.rechner') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Ziel setzen</a>
+                            <a href="{{ route('learner.grades.calculator') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Ziel setzen</a>
                         </div>
                     @endforelse
                 </div>
@@ -188,7 +188,7 @@
             @endif
 
             {{-- Nächste Prüfungen --}}
-            <x-karte titel="Nächste Prüfungen" :class="count($verlauf['labels']) > 0 ? 'lg:col-span-4' : 'lg:col-span-12'" :link="route('lernender.pruefungen.index')" link-text="Planen" :polster="false">
+            <x-karte titel="Nächste Prüfungen" :class="count($verlauf['labels']) > 0 ? 'lg:col-span-4' : 'lg:col-span-12'" :link="route('learner.exams.index')" link-text="Planen" :polster="false">
                 <div class="divide-y divide-border/70">
                     @forelse($naechste as $p)
                         @php $tage = (int) now()->startOfDay()->diffInDays($p->datum, false); @endphp
@@ -227,10 +227,10 @@
             @endif
 
             {{-- Letzte Noten --}}
-            <x-karte titel="Letzte Noten" :class="$anzahlBalken > 0 ? 'lg:col-span-5' : 'lg:col-span-12'" :link="route('lernender.noten.index')" :polster="false">
+            <x-karte titel="Letzte Noten" :class="$anzahlBalken > 0 ? 'lg:col-span-5' : 'lg:col-span-12'" :link="route('learner.grades.index')" :polster="false">
                 <div class="divide-y divide-border/70">
                     @forelse($letzteNoten as $n)
-                        <a href="{{ route('lernender.noten.index', ['_open' => $n->note_id]) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                        <a href="{{ route('learner.grades.index', ['_open' => $n->note_id]) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                             <div class="min-w-0">
                                 <div class="text-sm text-text truncate">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</div>
                                 <div class="text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}@if($n->titel) · {{ $n->titel }}@endif</div>

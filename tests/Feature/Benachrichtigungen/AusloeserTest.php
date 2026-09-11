@@ -56,7 +56,7 @@ class AusloeserTest extends TestCase
         ]);
 
         $this->actingAs($lernenderUser)
-            ->post(route('noten.kommentare.store', $note->note_id), ['kommentar_text' => 'Bitte anschauen, danke.'])
+            ->post(route('comments.store', $note->note_id), ['kommentar_text' => 'Bitte anschauen, danke.'])
             ->assertSessionHas('success');
 
         Notification::assertSentTo($aktiverBb, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::COMMENT_ADDED);
@@ -75,7 +75,7 @@ class AusloeserTest extends TestCase
         $this->betreue($bb, $lernender);
 
         $this->actingAs($bb)
-            ->post(route('noten.kommentare.store', $note->note_id), ['kommentar_text' => 'Gut gemacht!'])
+            ->post(route('comments.store', $note->note_id), ['kommentar_text' => 'Gut gemacht!'])
             ->assertSessionHas('success');
 
         Notification::assertSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::COMMENT_ADDED);
@@ -92,7 +92,7 @@ class AusloeserTest extends TestCase
         $this->betreue($bb, $lernender);
 
         $this->actingAs($bb)
-            ->post(route('berufsbildner.lernende.noten.gesehen', [$lernender->lernender_id, $note->note_id]))
+            ->post(route('trainer.learners.grades.seen', [$lernender->lernender_id, $note->note_id]))
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('notification_digest_items', [
@@ -110,7 +110,7 @@ class AusloeserTest extends TestCase
         $this->betreue($bb, $lernender);
 
         $this->actingAs($bb)
-            ->post(route('berufsbildner.lernende.noten.alle_gesehen', $lernender->lernender_id))
+            ->post(route('trainer.learners.grades.seen_all', $lernender->lernender_id))
             ->assertSessionHas('success');
 
         $this->assertDatabaseCount('notification_digest_items', 0);
@@ -123,7 +123,7 @@ class AusloeserTest extends TestCase
         [$lernenderUser, $lernender, $bb, $note] = $this->korrekturSetup(4.5);
 
         $this->actingAs($bb)
-            ->put(route('berufsbildner.lernende.noten.update', [$lernender->lernender_id, $note->note_id]), [
+            ->put(route('trainer.learners.grades.update', [$lernender->lernender_id, $note->note_id]), [
                 'kategorie_id' => $note->kategorie_id,
                 'typ' => 'fach',
                 'fach_id' => $note->fach_id,
@@ -148,7 +148,7 @@ class AusloeserTest extends TestCase
         [$lernenderUser, $lernender, $bb, $note] = $this->korrekturSetup(4.5);
 
         $this->actingAs($bb)
-            ->put(route('berufsbildner.lernende.noten.update', [$lernender->lernender_id, $note->note_id]), [
+            ->put(route('trainer.learners.grades.update', [$lernender->lernender_id, $note->note_id]), [
                 'kategorie_id' => $note->kategorie_id,
                 'typ' => 'fach',
                 'fach_id' => $note->fach_id,
@@ -187,7 +187,7 @@ class AusloeserTest extends TestCase
         [$lernenderUser, $lernender, $fach, $bb, $ehemaligerBb] = $this->eigeneNoteSetup();
 
         $this->actingAs($lernenderUser)
-            ->post(route('lernender.noten.store'), [
+            ->post(route('learner.grades.store'), [
                 'typ' => 'fach',
                 'fach_id' => $fach->fach_id,
                 'titel' => 'Test',
@@ -214,7 +214,7 @@ class AusloeserTest extends TestCase
         [$lernenderUser, $lernender, $fach, $bb] = $this->eigeneNoteSetup();
 
         $this->actingAs($lernenderUser)
-            ->post(route('lernender.noten.store'), [
+            ->post(route('learner.grades.store'), [
                 'typ' => 'fach',
                 'fach_id' => $fach->fach_id,
                 'titel' => 'Test',
@@ -235,7 +235,7 @@ class AusloeserTest extends TestCase
         [$lernenderUser, $lernender, $fach] = $this->eigeneNoteSetup();
 
         $this->actingAs($lernenderUser)
-            ->post(route('lernender.noten.store'), [
+            ->post(route('learner.grades.store'), [
                 'typ' => 'fach',
                 'fach_id' => $fach->fach_id,
                 'titel' => 'Test',
@@ -289,12 +289,12 @@ class AusloeserTest extends TestCase
 
         $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;Sprache;LB1;4,5;\n09.03.2026;Sprache;LB2;5.0;\n";
         $this->actingAs($lernenderUser)
-            ->post(route('lernender.noten.import.lesen'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
 
         $vorschau = session('notenimport.'.$lernender->lernender_id);
 
         $this->actingAs($lernenderUser)
-            ->post(route('lernender.noten.import.uebernehmen'), ['zeilen' => json_encode($vorschau['zeilen'])])
+            ->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen'])])
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('notification_digest_items', [
@@ -313,7 +313,7 @@ class AusloeserTest extends TestCase
         $neuerBb = User::factory()->berufsbildner()->create(['email' => 'neu@firma.ch']);
 
         $this->actingAs($admin)
-            ->post(route('admin.lernende.betreuung.store', $lernender->lernender_id), [
+            ->post(route('admin.learners.supervision.store', $lernender->lernender_id), [
                 'berufsbildner_id' => $neuerBb->berufsbildner->berufsbildner_id,
                 'gueltig_von' => now()->toDateString(),
             ])

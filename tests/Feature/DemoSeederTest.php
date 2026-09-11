@@ -91,9 +91,9 @@ class DemoSeederTest extends TestCase
             ->where('email', 'like', '%@demo.example')
             ->firstOrFail();
 
-        $this->actingAs($lernenderUser)->get(route('lernender.dashboard'))->assertOk();
-        $this->actingAs($lernenderUser)->get(route('lernender.noten.index'))->assertOk();
-        $this->actingAs($berufsbildnerUser)->get(route('berufsbildner.dashboard'))->assertOk();
+        $this->actingAs($lernenderUser)->get(route('learner.dashboard'))->assertOk();
+        $this->actingAs($lernenderUser)->get(route('learner.grades.index'))->assertOk();
+        $this->actingAs($berufsbildnerUser)->get(route('trainer.dashboard'))->assertOk();
         $this->actingAs($adminUser)->get(route('admin.dashboard'))->assertOk();
     }
 }

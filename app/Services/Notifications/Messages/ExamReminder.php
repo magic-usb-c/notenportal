@@ -37,7 +37,7 @@ final class ExamReminder
                 'Bisheriger Schnitt' => $schnitt !== null ? NotenSkala::format($schnitt) : null,
             ]),
             actionLabel: 'Zur Prüfungsliste',
-            actionUrl: route('lernender.pruefungen.index'),
+            actionUrl: route('learner.exams.index'),
             digestTitle: 'Prüfung in '.$bezug.' am '.$p->datum->format('d.m.Y'),
         );
     }

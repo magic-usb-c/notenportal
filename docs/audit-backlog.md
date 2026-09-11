@@ -89,3 +89,8 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 - `bemerkung`-Feld auf `lernende` fehlt weiterhin (braucht manuelles sudo mysql, siehe CLAUDE.md)
 - border-red-500 vs border-border auf demselben Element: Gewinner hängt von CSS-Reihenfolge ab — falls roter Fehler-Rahmen nicht sichtbar, `!border-red-500` verwenden
+
+## Sprache (11.09.2026) – bewusst weggelassen
+
+- **Klassen, Methoden, Variablen, Views, DB-Tabellen auf Englisch**: Pflichtteil (Routennamen und URL-Pfade) ist umgesetzt, mit 301 von den alten Pfaden (`App\Support\LegacyPaths`). Der Rest berührt ~400 Dateien und das DB-Schema (Tabellen `benutzer`, `lernende`, `noten` … mit Fremdschlüsseln); für den Go-Live am 30.09. zu riskant. Vorgehen danach: pro Bereich ein Workflow mit Haiku-Agents (Umbenennen) und Tests als Netz, DB zuletzt mit Dump/Tag und Views/Aliassen.
+- **Sprachdateien und Umschaltung Deutsch/Englisch pro Benutzer**: alle Texte stehen direkt in den Views; Auslagern nach `lang/` lohnt sich erst, wenn eine zweite Sprache wirklich gebraucht wird. Die Oberfläche bleibt Deutsch.
