@@ -24,7 +24,7 @@
                         class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44">
                     <option value="">{{ __('Alle Rollen') }}</option>
                     @foreach($rollen as $r)
-                        <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ $r->name }}</option>
+                        <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ __($r->name) }}</option>
                     @endforeach
                 </select>
 
@@ -59,7 +59,7 @@
                             @endif
                         </div>
                         <div class="flex items-center justify-between gap-3 mt-3">
-                            <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">{{ $b->rollen ?? '–' }}</span>
+                            <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">{{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}</span>
                             <div class="flex items-center gap-3 flex-wrap">
                                 @if($b->lernender_id)
                                     <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
@@ -125,7 +125,7 @@
                                     <td class="px-3 font-mono text-xs">{{ $b->benutzername }}</td>
                                     <td class="px-3">
                                         <span class="text-xs bg-surface-2 border border-border rounded-md px-2 py-0.5">
-                                            {{ $b->rollen ?? '–' }}
+                                            {{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}
                                         </span>
                                     </td>
                                     <td class="px-3">

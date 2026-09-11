@@ -31,7 +31,7 @@ final class Schluessel
         $js = '/(?<![\w$])(?:np\.)?t\(\s*(?:\'((?:[^\'\\\\]|\\\\.)*)\'|"((?:[^"\\\\]|\\\\.)*)")\s*[,)]/';
         $funde = [];
 
-        $finder = (new Finder)->files()->in([self::basis('app'), self::basis('resources')])->name(['*.php', '*.js'])->notPath('vendor');
+        $finder = (new Finder)->files()->in([self::basis('app'), self::basis('resources')])->name(['*.php', '*.js']);
         foreach ($finder as $datei) {
             $relativ = str_replace('\\', '/', substr($datei->getRealPath(), strlen(self::basis()) + 1));
             $inhalt = $datei->getContents();

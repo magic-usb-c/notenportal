@@ -3,23 +3,23 @@
 
         @if ($paginator->onFirstPage())
             <span class="inline-flex items-center px-3 py-1.5 rounded-xl border border-border text-muted cursor-not-allowed">
-                Zurück
+                {{ __('Zurück') }}
             </span>
         @else
             <a href="{{ $paginator->previousPageUrl() }}" rel="prev"
                class="inline-flex items-center px-3 py-1.5 rounded-xl border border-border text-text hover:bg-bg transition-colors">
-                Zurück
+                {{ __('Zurück') }}
             </a>
         @endif
 
         @if ($paginator->hasMorePages())
             <a href="{{ $paginator->nextPageUrl() }}" rel="next"
                class="inline-flex items-center px-3 py-1.5 rounded-xl border border-border text-text hover:bg-bg transition-colors">
-                Weiter
+                {{ __('Weiter') }}
             </a>
         @else
             <span class="inline-flex items-center px-3 py-1.5 rounded-xl border border-border text-muted cursor-not-allowed">
-                Weiter
+                {{ __('Weiter') }}
             </span>
         @endif
 

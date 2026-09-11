@@ -1,4 +1,5 @@
 {
+    ":anzahl Einträge": ":anzahl entries",
     ":anzahl Minuten": ":anzahl minutes",
     ":anzahl Neuigkeiten im Notenportal": ":anzahl updates in Notenportal",
     ":jahr. Lehrjahr": "Year :jahr",
@@ -167,6 +168,7 @@
     "Verlauf": "Trend",
     "Versandprotokoll": "Mail log",
     "Vorname": "First name",
+    ":von–:bis von :gesamt": ":von–:bis of :gesamt",
     "Was ist passiert, was fehlt dir, was gefällt dir?": "What happened, what are you missing, what do you like?",
     "Weitere Filter": "More filters",
     "Wie Gerät": "Match device",

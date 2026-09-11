@@ -30,7 +30,7 @@
             <label for="{{ $K::ZIEL }}" class="{{ $label }}">{{ __('Ziel') }}</label>
             <select id="{{ $K::ZIEL }}" name="{{ $K::ZIEL }}" x-model="ziel" class="{{ $feld }}">
                 @foreach($K::ZIELE as $schluessel => $text)
-                    <option value="{{ $schluessel }}" @selected($wert($K::ZIEL) === $schluessel)>{{ $text }}</option>
+                    <option value="{{ $schluessel }}" @selected($wert($K::ZIEL) === $schluessel)>{{ __($text) }}</option>
                 @endforeach
             </select>
             @error($K::ZIEL)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror

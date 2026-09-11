@@ -25,7 +25,7 @@
             <label for="mail_encryption" class="{{ $label }}">{{ __('Verschlüsselung') }} *</label>
             <select id="mail_encryption" name="mail_encryption" required class="{{ $feld }}">
                 @foreach(\App\Services\Notifications\MailSettings::ENCRYPTIONS as $wert_key => $wert_label)
-                    <option value="{{ $wert_key }}" @selected($wert('mail_encryption') === $wert_key)>{{ $wert_label }}</option>
+                    <option value="{{ $wert_key }}" @selected($wert('mail_encryption') === $wert_key)>{{ __($wert_label) }}</option>
                 @endforeach
             </select>
             @error('mail_encryption')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror

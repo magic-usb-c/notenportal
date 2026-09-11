@@ -8,7 +8,7 @@
     $datum = fn ($d, $format = 'd.m.Y') => $d ? Carbon::parse($d)->format($format) : '–';
 @endphp
 <!DOCTYPE html>
-<html lang="de-CH">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

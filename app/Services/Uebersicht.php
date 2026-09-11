@@ -380,21 +380,22 @@ final class Uebersicht
     {
         $liste = [];
         foreach ($ueberfaellig as $p) {
-            $liste[] = ['text' => 'Note eintragen: '.$p->bezeichnung(), 'detail' => 'Prüfung vom '.$p->datum->format('d.m.'),
+            $liste[] = ['text' => __('Note eintragen: :bezeichnung', ['bezeichnung' => $p->bezeichnung()]),
+                'detail' => __('Prüfung vom :datum', ['datum' => $p->datum->format('d.m.')]),
                 'link' => route('learner.grades.create', ['pruefung' => $p->pruefung_id]), 'ton' => 'gelb'];
         }
         foreach ($stand->promotion as $p) {
             $kid = $p['kategorie_id'];
-            $liste[] = ['text' => 'Promotion '.$p['kategorie'].' gefährdet', 'detail' => $a->konfiguration->semesterName($stand->semesterId),
+            $liste[] = ['text' => __('Promotion :kategorie gefährdet', ['kategorie' => $p['kategorie']]), 'detail' => $a->konfiguration->semesterName($stand->semesterId),
                 'link' => route('learner.grades.calculator', ['ziel' => 'kategorie:'.$kid.'@semester:'.$stand->semesterId, 'zielwert' => $a->konfiguration->kategorien[$kid]['promotion_min_schnitt'] ?? $a->konfiguration->genuegend]),
                 'ton' => 'rot'];
         }
         if ($kommentare > 0) {
-            $liste[] = ['text' => $kommentare === 1 ? '1 Note mit neuem Kommentar' : $kommentare.' Noten mit neuen Kommentaren', 'detail' => null,
+            $liste[] = ['text' => $kommentare === 1 ? __('1 Note mit neuem Kommentar') : __(':anzahl Noten mit neuen Kommentaren', ['anzahl' => $kommentare]), 'detail' => null,
                 'link' => route('learner.grades.index', ['_open' => $ersteNoteMitKommentar]), 'ton' => 'accent'];
         }
         foreach (array_slice($fehlendeModule, 0, 4) as $m) {
-            $liste[] = ['text' => $m['name'], 'detail' => 'noch keine Note', 'link' => route('learner.grades.create', ['bezug' => 'modul:'.$m['id']]), 'ton' => 'neutral'];
+            $liste[] = ['text' => $m['name'], 'detail' => __('noch keine Note'), 'link' => route('learner.grades.create', ['bezug' => 'modul:'.$m['id']]), 'ton' => 'neutral'];
         }
 
         return $liste;

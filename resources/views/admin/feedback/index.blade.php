@@ -92,7 +92,7 @@
                                     <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
                                     <td class="px-3 py-2.5 whitespace-nowrap align-top">
                                         <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
-                                        <div class="text-xs text-muted">{{ $m->rollen }}</div>
+                                        <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
                                     </td>
                                     <td class="px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
                                     <td class="px-3 py-2.5 max-w-sm align-top">
@@ -119,7 +119,7 @@
                                             <div class="space-y-2 text-sm">
                                                 <p class="whitespace-pre-wrap">{{ $m->text }}</p>
                                                 <dl class="text-xs text-muted space-y-1">
-                                                    <div><dt class="inline font-medium">{{ __('Rolle:') }}</dt> <dd class="inline">{{ $m->rolle ?? '–' }}</dd></div>
+                                                    <div><dt class="inline font-medium">{{ __('Rolle:') }}</dt> <dd class="inline">{{ $m->rolle ? __($m->rolle) : '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">{{ __('Route:') }}</dt> <dd class="inline">{{ $m->route_name ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">{{ __('URL:') }}</dt> <dd class="inline">{{ $m->url ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">{{ __('Viewport:') }}</dt> <dd class="inline">{{ $m->viewport ?? '–' }}</dd></div>

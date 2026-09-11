@@ -4,9 +4,9 @@
         {{-- Ergebnisinfo --}}
         <div class="text-muted">
             @if ($paginator->firstItem())
-                {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} von {{ $paginator->total() }}
+                {{ __(':von–:bis von :gesamt', ['von' => $paginator->firstItem(), 'bis' => $paginator->lastItem(), 'gesamt' => $paginator->total()]) }}
             @else
-                {{ $paginator->count() }} Einträge
+                {{ __(':anzahl Einträge', ['anzahl' => $paginator->count()]) }}
             @endif
         </div>
 
