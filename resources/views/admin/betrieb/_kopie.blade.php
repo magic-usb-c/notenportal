@@ -66,7 +66,7 @@
                 <div class="mt-1 flex items-start gap-2">
                     <code class="flex-1 min-w-0 break-all rounded-xl border border-border bg-input px-3 py-2 text-xs text-text">{{ $schluessel_oeffentlich }}</code>
                     <button type="button" class="shrink-0 inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs"
-                            @click="navigator.clipboard.writeText(@js($schluessel_oeffentlich)); kopiert = true; setTimeout(() => kopiert = false, 2000)"
+                            @click="if (await np.kopieren(@js($schluessel_oeffentlich))) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
                             x-text="kopiert ? @js(__('Kopiert')) : @js(__('Kopieren'))">{{ __('Kopieren') }}</button>
                 </div>
             </div>

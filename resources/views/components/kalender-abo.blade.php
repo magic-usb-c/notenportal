@@ -11,7 +11,7 @@
         <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()" aria-label="{{ __('Abo-Link') }}"
                class="flex-1 min-w-0 h-10 rounded-lg border border-border-strong/70 bg-input px-3 font-mono text-xs text-text">
         <button type="button" class="h-10 shrink-0 rounded-lg glass-btn px-3 text-sm text-text"
-                @click="navigator.clipboard.writeText($refs.link.value); kopiert = true; setTimeout(() => kopiert = false, 2000)">
+                @click="if (await np.kopieren($refs.link.value)) { kopiert = true; setTimeout(() => kopiert = false, 2000) } else { $refs.link.select() }">
             <span x-show="!kopiert">{{ __('Kopieren') }}</span>
             <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
         </button>

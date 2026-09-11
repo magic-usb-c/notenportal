@@ -9,7 +9,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | 1 | Lernende, /grades → «Neue Note» im Seitenpanel: Felder lassen sich nicht bearbeiten, Speichern geht nicht (/grades/create als Seite geht) | erledigt: Ursache war `x-html`, das das Formular bei jeder Eingabe neu setzte |
 | 2 | Feedback-Screenshot ist komplett einfarbig | erledigt: Alpine-Attribute (`@click`, `:class`) sind keine gültigen XML-Namen, das SVG liess sich nicht dekodieren; sie werden in der Kopie entfernt |
 | 3 | Links in Mails führen zu 403: Weiterleitung nach dem Login auf fremde Rollen-URL; die 403-Seite bietet keinen Kontowechsel | erledigt: Ziel-URL nach dem Login nur, wenn die Rolle sie öffnen darf; 403-Seite zeigt das Konto und bietet «Mit anderem Konto anmelden» |
-| 4 | Knopf für das Kalender-Abo fehlt oder funktioniert nicht in allen Rollen | offen |
+| 4 | Knopf für das Kalender-Abo fehlt oder funktioniert nicht in allen Rollen | erledigt: Knopf bei BB/Admin ohne Alpine-Bereich (reagierte nicht); «Kopieren» über http mit Fallback (`np.kopieren`). Fester Platz in den Einstellungen folgt mit #8 |
 | 5 | Englisch: gefühlt die Hälfte noch Deutsch; lange englische Wörter brechen unschön um | offen |
 
 ## P2 – Automatische Prüfungen (fangen P1-artige Fehler künftig ab)

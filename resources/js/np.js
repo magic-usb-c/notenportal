@@ -25,6 +25,33 @@ export async function postJson(url, body) {
     return daten;
 }
 
+// Text in die Zwischenablage. navigator.clipboard gibt es nur über HTTPS (oder localhost) –
+// über http im Firmennetz bleibt nur der alte execCommand-Weg über ein verstecktes Textfeld.
+export async function kopieren(text) {
+    if (navigator.clipboard?.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            return true;
+        } catch {
+            // weiter mit dem Fallback
+        }
+    }
+    const feld = document.createElement('textarea');
+    feld.value = text;
+    feld.setAttribute('readonly', '');
+    feld.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(feld);
+    feld.select();
+    let ok = false;
+    try {
+        ok = document.execCommand('copy');
+    } catch {
+        ok = false;
+    }
+    feld.remove();
+    return ok;
+}
+
 const STANDARD_GRENZEN = { gut: 5.0, genuegend: 4.0, kritisch: 3.5 };
 
 export function stufe(wert, grenzen = STANDARD_GRENZEN) {

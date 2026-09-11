@@ -46,7 +46,7 @@
                         <div class="mt-1 font-mono text-2xl font-bold tracking-wider text-text select-all" x-ref="pw">{{ session('startpasswort') }}</div>
                     </div>
                     <button type="button"
-                            @click="navigator.clipboard.writeText($refs.pw.textContent.trim()); kopiert = true; setTimeout(() => kopiert = false, 2000)"
+                            @click="if (await np.kopieren($refs.pw.textContent.trim())) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
                             class="px-4 h-10 rounded-xl glass-btn text-text text-sm">
                         <span x-show="!kopiert">{{ __('Kopieren') }}</span>
                         <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
