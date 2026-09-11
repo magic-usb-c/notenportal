@@ -6,7 +6,7 @@
 
 const MANIFEST_URL = '/build/manifest.json';
 const OFFLINE_URL = '/offline';
-const ICON_URLS = ['/icons/icon-192.png', '/icons/icon-512.png', '/icons/icon-maskable-512.png'];
+const ICON_URLS = ['/app-icons/icon-192.png', '/app-icons/icon-512.png', '/app-icons/icon-maskable-512.png'];
 const CACHE_PREFIX = 'notenportal-';
 
 async function ladeManifest() {
@@ -66,7 +66,7 @@ self.addEventListener('fetch', (event) => {
     }
 
     // Nur gebaute Assets und Icons aus dem Cache bedienen; alles andere (API, Uploads) normal ans Netz.
-    if (url.pathname.startsWith('/build/') || url.pathname.startsWith('/icons/')) {
+    if (url.pathname.startsWith('/build/') || url.pathname.startsWith('/app-icons/')) {
         event.respondWith(caches.match(request).then((treffer) => treffer ?? fetch(request)));
     }
 });

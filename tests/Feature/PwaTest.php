@@ -36,6 +36,9 @@ class PwaTest extends TestCase
 
         foreach ($manifest['icons'] as $icon) {
             $this->assertFileExists(public_path($icon['src']));
+            // Apache (Debian) belegt /icons/ global per Alias (mod_alias) – dort gäbe es 404,
+            // der Service Worker würde beim Vorab-Cachen scheitern und nie aktiv.
+            $this->assertStringStartsNotWith('/icons/', $icon['src']);
             $this->assertMatchesRegularExpression('/^\d+x\d+$/', $icon['sizes']);
             $this->assertSame('image/png', $icon['type']);
         }
