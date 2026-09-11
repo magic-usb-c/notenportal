@@ -116,7 +116,7 @@
         </div>
 
         <x-drawer name="abo" :titel="__('Kalender-Abo')">
-            @include('verwaltung.pruefungen._abo')
+            <x-kalender-abo :token="$exportToken" :reset-route="route($bereich.'.calendar.token.reset')" />
         </x-drawer>
     </div>
 </x-app-layout>

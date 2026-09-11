@@ -1,12 +1,14 @@
+{{-- Abo-Link zum eigenen iCal-Export (Lernende: Agenda, BB/Admin: Prüfungstermine). Reset-Route kommt vom Aufrufer. --}}
+@props(['token', 'resetRoute'])
 @php
-    $exportUrl = route('calendar.export', ['token' => $exportToken]);
+    $exportUrl = route('calendar.export', ['token' => $token]);
     $webcalUrl = preg_replace('#^https?://#', 'webcal://', $exportUrl);
 @endphp
 <div class="flex flex-col gap-4">
     <p class="text-sm text-muted">{{ __('Diese Adresse in Kalender-Apps (Google, Outlook, Apple) als Kalenderabo hinzufügen.') }}</p>
 
     <div class="flex items-center gap-2" x-data="{ kopiert: false }">
-        <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()"
+        <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()" aria-label="{{ __('Abo-Link') }}"
                class="flex-1 min-w-0 h-10 rounded-lg border border-border-strong/70 bg-input px-3 font-mono text-xs text-text">
         <button type="button" class="h-10 shrink-0 rounded-lg glass-btn px-3 text-sm text-text"
                 @click="navigator.clipboard.writeText($refs.link.value); kopiert = true; setTimeout(() => kopiert = false, 2000)">
@@ -21,7 +23,7 @@
 
     <p class="text-xs text-muted">{{ __('Der Link ist geheim – nicht weitergeben.') }}</p>
 
-    <form method="POST" action="{{ route($bereich.'.calendar.token.reset') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+    <form method="POST" action="{{ $resetRoute }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
           onsubmit="return confirm('{{ __('Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.') }}');">
         @csrf
         <button :disabled="loading" class="text-sm text-accent-text hover:underline disabled:opacity-60">{{ __('Neuen Link erzeugen') }}</button>

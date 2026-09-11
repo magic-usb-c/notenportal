@@ -64,7 +64,6 @@
     "Drucken": "Print",
     "Drucken / PDF": "Print / PDF",
     "Ebene": "Level",
-    "Eigene Agenda abonnieren": "Subscribe to your own agenda",
     "Einzelnoten": "Individual grades",
     "Entfernen": "Remove",
     "Ergebnis in Abhängigkeit der Note": "Result depending on the grade",
@@ -295,5 +294,8 @@
     "Übernehmen": "Apply",
     "übernehmen": "apply",
     "Der Track :track war am :datum nicht aktiv (Track-Zeit: :zeitraum). Fächer dieses Tracks brauchen ein Prüfungsdatum innerhalb der Track-Zeit.": "The :track track was not active on :datum (track period: :zeitraum). Subjects of this track need an exam date within the track period.",
-    "Track am Datum nicht aktiv": "Track not active on this date"
+    "Track am Datum nicht aktiv": "Track not active on this date",
+    "Agenda abonnieren": "Subscribe to agenda",
+    "Schulnetz-Kalender einlesen": "Import Schulnetz calendar",
+    "iCal-Adresse aus dem Schulnetz hinterlegen: Prüfungen, Termine und Lektionen erscheinen dann in der Agenda.": "Enter the iCal address from Schulnetz: exams, events and lessons then appear in the agenda."
 }

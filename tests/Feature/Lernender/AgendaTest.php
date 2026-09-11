@@ -6,6 +6,7 @@ namespace Tests\Feature\Lernender;
 
 use App\Models\CalendarEvent;
 use App\Models\CalendarFeed;
+use App\Models\Dokument;
 use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Services\Calendar\CalendarExport;
 use App\Services\Notifications\Messages\ExamReminder;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -32,7 +34,7 @@ class AgendaTest extends TestCase
         parent::setUp();
         $this->user = User::factory()->lernender()->create();
         $this->modul = Modul::factory()->create(['modul_nummer' => '159', 'titel' => 'Directory Services']);
-        \Illuminate\Support\Facades\DB::table('lehrberuf_module')->insert([
+        DB::table('lehrberuf_module')->insert([
             'lehrberuf_id' => $this->user->lernender->lehrberuf_id,
             'modul_id' => $this->modul->modul_id,
             'kategorie_id' => Kategorie::where('code', 'UEK')->value('kategorie_id') ?? Kategorie::value('kategorie_id'),
@@ -163,7 +165,7 @@ class AgendaTest extends TestCase
         ]);
         $upload->assertSessionHasNoErrors()->assertRedirect();
 
-        $dokument = \App\Models\Dokument::sole();
+        $dokument = Dokument::sole();
         $this->assertSame($p->pruefung_id, $dokument->pruefung_id);
 
         $this->actingAs($this->user)->get(route('learner.documents.show', $dokument->dokument_id))->assertOk();
@@ -281,6 +283,20 @@ class AgendaTest extends TestCase
         $response->assertOk();
         $this->assertStringContainsString('BEGIN:VCALENDAR', $response->getContent());
         $this->assertStringContainsString('LB2', $response->getContent());
+    }
+
+    #[Test]
+    public function agenda_bietet_abo_link_mit_webcal_knopf_an(): void
+    {
+        $token = CalendarExport::token($this->user);
+        $exportUrl = route('calendar.export', ['token' => $token]);
+
+        $this->actingAs($this->user)->get(route('learner.exams.index'))
+            ->assertOk()
+            ->assertSee(__('Agenda abonnieren'))
+            ->assertSee($exportUrl, false)
+            ->assertSee(preg_replace('#^https?://#', 'webcal://', $exportUrl), false)
+            ->assertSee(route('learner.calendar.token.reset'), false);
     }
 
     #[Test]

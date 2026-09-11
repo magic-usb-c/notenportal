@@ -2,11 +2,16 @@
     $label = 'text-sm font-medium text-text';
     $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
     $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
-    $exportUrl = route('calendar.export', ['token' => $exportToken]);
 @endphp
 <div class="flex flex-col gap-6">
-    <section class="flex flex-col gap-4">
-        <h3 class="font-semibold text-text text-sm">{{ __('Kalender-Abo') }}</h3>
+    <section class="flex flex-col gap-3">
+        <h3 class="font-semibold text-text text-sm">{{ __('Agenda abonnieren') }}</h3>
+        <x-kalender-abo :token="$exportToken" :reset-route="route('learner.calendar.token.reset')" />
+    </section>
+
+    <section class="flex flex-col gap-4 pt-4 border-t border-border">
+        <h3 class="font-semibold text-text text-sm">{{ __('Schulnetz-Kalender einlesen') }}</h3>
+        <p class="text-xs text-muted">{{ __('iCal-Adresse aus dem Schulnetz hinterlegen: Prüfungen, Termine und Lektionen erscheinen dann in der Agenda.') }}</p>
         <form method="POST" action="{{ route('learner.calendar.feed.store') }}" class="flex flex-col gap-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <div>
@@ -57,22 +62,4 @@
         @endif
     </section>
 
-    <section class="flex flex-col gap-3 pt-4 border-t border-border">
-        <h3 class="font-semibold text-text text-sm">{{ __('Eigene Agenda abonnieren') }}</h3>
-        <p class="text-xs text-muted">{{ __('Diese Adresse in Kalender-Apps (Google, Outlook, Apple) als Kalenderabo hinzufügen.') }}</p>
-        <div class="flex items-center gap-2" x-data="{ kopiert: false }">
-            <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()"
-                   class="flex-1 min-w-0 rounded-lg border border-border bg-input text-text text-xs px-3 h-10 font-mono">
-            <button type="button" class="px-3 h-10 rounded-lg glass-btn text-text text-sm shrink-0"
-                    @click="navigator.clipboard.writeText($refs.link.value); kopiert = true; setTimeout(() => kopiert = false, 2000)">
-                <span x-show="!kopiert">{{ __('Kopieren') }}</span>
-                <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
-            </button>
-        </div>
-        <form method="POST" action="{{ route('learner.calendar.token.reset') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-              onsubmit="return confirm('{{ __('Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.') }}');">
-            @csrf
-            <button :disabled="loading" class="text-sm text-accent-text hover:underline disabled:opacity-60">{{ __('Neuen Link erzeugen') }}</button>
-        </form>
-    </section>
 </div>
