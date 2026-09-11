@@ -15,16 +15,16 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 ## P2 – Automatische Prüfungen (fangen P1-artige Fehler künftig ab)
 | # | Punkt | Status |
 |---|---|---|
-| 6 | Gezielte, günstige Prüfungen (Playwright-Skripte + Haiku-Auswertung per Skill): Felder in Drawern bedienbar, Formularknöpfe senden ihren Wert, deutsche Reste im englischen Modus, Umbrüche, leere/einfarbige Screenshots, Mail-Links je Rolle, Funktionen je Rolle | offen |
+| 6 | Gezielte, günstige Prüfungen (Playwright-Skripte + Haiku-Auswertung per Skill): Felder in Drawern bedienbar, Formularknöpfe senden ihren Wert, deutsche Reste im englischen Modus, Umbrüche, leere/einfarbige Screenshots, Mail-Links je Rolle, Funktionen je Rolle | in Arbeit |
 
 ## P3 – Bedienung
 | # | Punkt | Status |
 |---|---|---|
 | 7 | Feedback-Kategorie «Lob» → «Sonstiges» | offen |
 | 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | offen |
-| 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | offen |
-| 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | offen |
-| 11 | Restdauer des aktuellen Semesters mit passender Einheit (Monate → Wochen → Tage) | offen |
+| 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | in Arbeit |
+| 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | in Arbeit |
+| 11 | Restdauer des aktuellen Semesters mit passender Einheit (Monate → Wochen → Tage) | in Arbeit (mit #9) |
 
 ## P4 – Funktionen
 | # | Punkt | Status |
