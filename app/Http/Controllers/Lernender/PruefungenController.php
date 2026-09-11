@@ -8,7 +8,6 @@ use App\Http\Controllers\Controller;
 use App\Models\CalendarEvent;
 use App\Models\Lernender;
 use App\Models\Pruefung;
-use App\Services\Calendar\CalendarExport;
 use App\Services\Calendar\SchoolNetDescriptionParser;
 use App\Services\Noten\NoteService;
 use App\Support\Zahl;
@@ -31,8 +30,13 @@ class PruefungenController extends Controller
         private readonly SchoolNetDescriptionParser $parser,
     ) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
+        // Altes Kalender-Abo-Drawer (?kalender=1): serverseitig auf den neuen Kalender-Tab umleiten.
+        if ($request->has('kalender')) {
+            return redirect()->route('settings.calendar');
+        }
+
         $lernender = $request->user()->lernender ?? abort(403);
         $ansicht = $request->query('ansicht') === 'monat' ? 'monat' : 'liste';
         $zeigeLektionen = $request->boolean('lektionen');
@@ -53,7 +57,6 @@ class PruefungenController extends Controller
 
         $eintraege = $this->eintraege($pruefungen, $termine, $erkannt, $lektionen, $heute);
         $bearbeiten = $request->filled('bearbeiten') ? $pruefungen->firstWhere('pruefung_id', $request->integer('bearbeiten')) : null;
-        $feed = $lernender->calendarFeeds()->first();
 
         return view('lernender.agenda.index', [
             'ansicht' => $ansicht,
@@ -63,8 +66,6 @@ class PruefungenController extends Controller
             'monatsraster' => $this->monatsraster($eintraege, $monat),
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
             'bearbeiten' => $bearbeiten,
-            'feed' => $feed,
-            'exportToken' => CalendarExport::token($request->user()),
         ]);
     }
 

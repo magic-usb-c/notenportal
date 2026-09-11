@@ -25,8 +25,6 @@ Route::post('/learners', [LernendeController::class, 'store'])->name('learners.s
 Route::get('/grades/export', [NotenExportController::class, 'alle'])->name('grades.export_all');
 
 Route::get('/exams', [PruefungenController::class, 'index'])->name('exams.index');
-Route::post('/calendar/token', [PruefungenController::class, 'tokenReset'])
-    ->middleware('throttle:10,1,calendar-token')->name('calendar.token.reset');
 
 Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(function () {
     Route::get('/', [LernendeController::class, 'show'])->name('learners.show');

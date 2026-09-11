@@ -99,7 +99,7 @@ final class Navigation
             $befehle[] = ['label' => __('Benutzerkonto anlegen'), 'url' => route('admin.users.create'), 'gruppe' => __('Aktion')];
             $befehle[] = ['label' => __('Semester anlegen'), 'url' => route('admin.master-data.semesters.create'), 'gruppe' => __('Aktion')];
         }
-        $befehle[] = ['label' => __('Profil'), 'url' => route('profile.edit'), 'gruppe' => __('Konto')];
+        $befehle[] = ['label' => __('Profil'), 'url' => route('settings.profile'), 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Benachrichtigungen'), 'url' => route('notifications.settings'), 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Feedback melden'), 'url' => '#feedback-modal', 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Meine Meldungen'), 'url' => route('feedback.index'), 'gruppe' => __('Konto')];

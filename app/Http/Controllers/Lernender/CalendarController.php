@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Models\CalendarFeed;
-use App\Services\Calendar\CalendarExport;
 use App\Services\Calendar\CalendarSync;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -46,7 +45,7 @@ class CalendarController extends Controller
             'import_exams' => $request->boolean('import_exams'),
         ])->save();
 
-        return redirect()->route('learner.exams.index')->with('success', __('Kalender gespeichert.'));
+        return redirect()->route('settings.calendar')->with('success', __('Kalender gespeichert.'));
     }
 
     public function sync(Request $request): RedirectResponse
@@ -54,23 +53,16 @@ class CalendarController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $feed = $lernender->calendarFeeds()->first();
         if (! $feed) {
-            return redirect()->route('learner.exams.index')->with('error', __('Kein Kalender hinterlegt.'));
+            return redirect()->route('settings.calendar')->with('error', __('Kein Kalender hinterlegt.'));
         }
 
         try {
             $stats = $this->sync->sync($feed);
 
-            return redirect()->route('learner.exams.index')
+            return redirect()->route('settings.calendar')
                 ->with('success', __(':events Termine abgeglichen, :exams Prüfungen erkannt.', ['events' => $stats['events'], 'exams' => $stats['exams']]));
         } catch (Throwable $e) {
-            return redirect()->route('learner.exams.index')->with('error', __('Abgleich fehlgeschlagen: :fehler', ['fehler' => $e->getMessage()]));
+            return redirect()->route('settings.calendar')->with('error', __('Abgleich fehlgeschlagen: :fehler', ['fehler' => $e->getMessage()]));
         }
-    }
-
-    public function tokenReset(Request $request): RedirectResponse
-    {
-        CalendarExport::resetToken($request->user());
-
-        return redirect()->route('learner.exams.index')->with('success', __('Neuer Abo-Link erzeugt.'));
     }
 }

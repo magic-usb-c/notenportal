@@ -6,7 +6,11 @@
 
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="max-w-3xl space-y-5">
+        <div class="max-w-3xl">
+
+            @include('settings._tabs')
+
+            <div class="mt-5 space-y-5">
 
             @if($lernender)
                 <div class="rounded-xl border border-border bg-card p-5">
@@ -40,26 +44,27 @@
                 @include('profile.partials.update-profile-information-form')
             </div>
 
-            {{-- Benachrichtigungen --}}
-            <div class="rounded-xl border border-border bg-card p-6">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="min-w-0">
-                        <h3 class="font-semibold text-text text-sm">{{ __('Benachrichtigungen') }}</h3>
-                        <p class="mt-1 text-sm text-muted">{{ __('Wähle, welche Mails du erhältst und wie oft.') }}</p>
+            {{-- Tastenkürzel: bewusst hier statt in einem eigenen Darstellung-Tab (siehe docs/audit-backlog.md) --}}
+            @if($tastenkuerzelAktiv)
+                <div class="rounded-xl border border-border bg-card p-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <h3 class="font-semibold text-text text-sm">{{ __('Tastenkürzel') }}</h3>
+                        </div>
+                        <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))"
+                                class="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl glass-btn text-text text-sm font-medium">
+                            {{ __('Tastenkürzel anzeigen') }}
+                        </button>
                     </div>
-                    <a href="{{ route('notifications.settings') }}"
-                       class="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl glass-btn text-text text-sm font-medium">
-                        {{ __('Einstellen') }}
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                    </a>
                 </div>
-            </div>
+            @endif
 
             {{-- Sprache (nur mit eingeschalteter Sprachwahl), Passwort ändern --}}
             @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('profile.partials.sprache')@endif<div class="rounded-xl border border-border bg-card p-6">
                 @include('profile.partials.update-password-form')
             </div>
 
+            </div>
         </div>
         </div>
     </div>

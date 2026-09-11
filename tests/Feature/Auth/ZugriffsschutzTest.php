@@ -24,7 +24,12 @@ class ZugriffsschutzTest extends TestCase
     /** Routen ohne Rollenbindung; Berechtigung prüft der Controller selbst. */
     private const array OHNE_ROLLE = [
         'dashboard',
-        'profile.edit',
+        'profile.legacy',
+        'settings.index',
+        'settings.profile',
+        'settings.calendar',
+        'settings.calendar.token.reset',
+        'settings.data',
         'profile.update',
         'profile.appearance',
         'profile.preferences',

@@ -360,5 +360,7 @@
     "seit :datum": "since :datum",
     ":n Personen betrifft das auch": ":n people are affected too",
     "Mit einer gleichen Meldung zusammengeführt": "Merged with an identical report",
-    "Eigene Meldung": "Own report"
+    "Eigene Meldung": "Own report",
+    "Einstellungen": "Settings",
+    "Daten": "Data"
 }

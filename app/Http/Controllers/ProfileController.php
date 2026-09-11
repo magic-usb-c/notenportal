@@ -17,34 +17,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    public function edit(Request $request): View
-    {
-        $user = $request->user();
-        $lernender = $user->lernender;
-        $dashboardRolle = DashboardKarten::rolleFuer($user);
-
-        $lehrberuf = $lernender
-            ? DB::table('lehrberufe')->where('lehrberuf_id', $lernender->lehrberuf_id)->first(['name', 'kuerzel'])
-            : null;
-
-        return view('profile.edit', [
-            'user' => $user,
-            'lernender' => $lernender,
-            'lehrberuf' => $lehrberuf,
-            'bmsAktiv' => $lernender && $this->hatAktivenBmsTrack($lernender),
-            'kontrastOption' => Theme::kontrastOptionVerfuegbar(),
-            'praeferenzenOption' => Darstellung::praeferenzenOptionVerfuegbar(),
-            'betriebTheme' => Theme::betrieb(),
-            'praeferenzen' => Darstellung::fuer($user),
-            'dashboardRolle' => $dashboardRolle,
-            'dashboardKarten' => DashboardKarten::fuerRolle($dashboardRolle),
-        ]);
-    }
-
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
@@ -90,7 +65,7 @@ class ProfileController extends Controller
             $lernender->save();
         }
 
-        return redirect()->route('profile.edit')->with('success', __('Profil gespeichert.'));
+        return redirect()->route('settings.profile')->with('success', __('Profil gespeichert.'));
     }
 
     /**
@@ -124,7 +99,7 @@ class ProfileController extends Controller
         $user->kontrast = false;
         $user->save();
 
-        return redirect()->route('profile.edit')->with('success', __('Darstellung auf Standard zurückgesetzt.'));
+        return redirect()->route('settings.profile')->with('success', __('Darstellung auf Standard zurückgesetzt.'));
     }
 
     /** Darstellung aus dem Umschalter in der Navigation (ohne Neuladen). */
@@ -229,6 +204,7 @@ class ProfileController extends Controller
         return array_values(array_diff($alle, $sichtbar));
     }
 
+    /** Duplikat aus SettingsController::hatAktivenBmsTrack() (bewusst, siehe docs/audit-backlog.md). */
     private function hatAktivenBmsTrack(Lernender $lernender): bool
     {
         $heute = now()->toDateString();

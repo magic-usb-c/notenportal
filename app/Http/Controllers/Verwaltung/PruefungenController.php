@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Lernender;
 use App\Models\Pruefung;
-use App\Services\Calendar\CalendarExport;
 use App\Support\Format;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
@@ -66,15 +65,7 @@ class PruefungenController extends VerwaltungController
             'filter' => $filter,
             'lernendeOptionen' => $lernendeOptionen,
             'bereich' => $this->bereich($request),
-            'exportToken' => CalendarExport::token($user),
         ]);
-    }
-
-    public function tokenReset(Request $request): RedirectResponse
-    {
-        CalendarExport::resetToken($request->user());
-
-        return redirect()->to($this->zuRoute($request, 'exams.index'))->with('success', __('Neuer Abo-Link erzeugt.'));
     }
 
     /**

@@ -28,6 +28,7 @@ use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SitzungController;
 use App\Http\Controllers\SprachwahlController;
 use App\Http\Controllers\SucheController;
@@ -143,8 +144,6 @@ Route::middleware(['auth', 'role:Lernender'])
             ->middleware('throttle:10,1,calendar-feed')->name('calendar.feed.store');
         Route::post('/calendar/sync', [LernenderCalendarController::class, 'sync'])
             ->middleware('throttle:6,1,calendar-sync')->name('calendar.sync');
-        Route::post('/calendar/token', [LernenderCalendarController::class, 'tokenReset'])
-            ->middleware('throttle:10,1,calendar-token')->name('calendar.token.reset');
 
         Route::post('/goals', [ZieleController::class, 'store'])->name('goals.store');
         Route::delete('/goals/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('goals.destroy');
@@ -342,7 +341,9 @@ Route::middleware('auth')->group(function () {
  * Profil (Breeze)
  */
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    // Alte URL (vor der Seite «Einstellungen»): dauerhaft auf /settings/profile umleiten.
+    // Kein Route::redirect() – das würde mit der PATCH-Route auf derselben URI kollidieren.
+    Route::get('/profile', fn () => redirect()->route('settings.profile', [], 301))->name('profile.legacy');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/appearance', [ProfileController::class, 'darstellung'])->name('profile.appearance');
     Route::patch('/profile/preferences', [ProfileController::class, 'preferences'])
@@ -357,6 +358,18 @@ Route::middleware('auth')->group(function () {
 /*
  * Ersteinrichtung und Betriebseinstellungen (Admin)
  */
+/**
+ * Einstellungen (/settings/…, alle Rollen, ein Tab je Route – siehe settings/_tabs.blade.php)
+ */
+Route::middleware('auth')->prefix('settings')->name('settings.')->group(function () {
+    Route::get('/', fn () => redirect()->route('settings.profile'))->name('index');
+    Route::get('/profile', [SettingsController::class, 'profile'])->name('profile');
+    Route::get('/calendar', [SettingsController::class, 'calendar'])->name('calendar');
+    Route::post('/calendar/token', [SettingsController::class, 'calendarTokenReset'])
+        ->middleware('throttle:10,1,calendar-token')->name('calendar.token.reset');
+    Route::get('/data', [SettingsController::class, 'data'])->name('data');
+});
+
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/setup/{schritt?}', [EinrichtungController::class, 'show'])
         ->name('setup');

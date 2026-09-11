@@ -3,11 +3,9 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Prüfungstermine')" :zaehler="$anzahl">
             <x-slot:aktionen>
-                {{-- x-data: der Seitenkopf liegt ausserhalb jedes Alpine-Bereichs, sonst reagiert @click nicht --}}
-                <button type="button" x-data @click="$dispatch('open-drawer', 'abo')"
-                        class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
+                <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
                     {{ __('Kalender-Abo') }}
-                </button>
+                </a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -116,8 +114,5 @@
 
         </div>
 
-        <x-drawer name="abo" :titel="__('Kalender-Abo')">
-            <x-kalender-abo :token="$exportToken" :reset-route="route($bereich.'.calendar.token.reset')" />
-        </x-drawer>
     </div>
 </x-app-layout>

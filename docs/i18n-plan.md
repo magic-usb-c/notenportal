@@ -40,7 +40,7 @@ Stand 11.09.2026. Ergänzt Abschnitt 4 des Auftrags (Routen/URLs englisch sind e
   - Gast: Session, dann `Accept-Language` (nur de/en)
   - zuletzt die Einstellung `sprache_standard` (Standard `de`)
   - dazu `Carbon::setLocale()`
-- **Umschalter:** Benutzermenü und Profil, `PUT /profile/locale`, funktioniert wie `darstellung`.
+- **Umschalter:** Einstellungen → Profil (`/settings/profile`, dort auch die Darstellung), `PUT /profile/locale`, funktioniert wie `darstellung`.
 - **Datum:** Helfer `Format::date()` (de→`de_CH`, en→`en_GB`) ersetzt die harten `locale('de_CH')`.
 - **Notenformat:** bleibt in beiden Sprachen `5.0`, kein Formatieren über `Intl`.
 - **Mails:** `User` implementiert `HasLocalePreference`. `Notifier` baut `MailContent` und den `DigestItem`-Text in `App::withLocale($empfaenger->preferredLocale(), …)`, weil beides beim Einreihen als fertiger String entsteht.

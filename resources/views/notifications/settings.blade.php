@@ -6,7 +6,11 @@
 
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="max-w-3xl space-y-5">
+        <div class="max-w-3xl">
+
+            @include('settings._tabs')
+
+            <div class="mt-5 space-y-5">
 
             <p class="text-sm text-muted px-1">{{ __('Du erhältst diese Mails an') }} <span class="text-text font-medium">{{ auth()->user()->email }}</span>.</p>
 
@@ -65,6 +69,8 @@
                     </button>
                 </div>
             </form>
+
+            </div>
         </div>
         </div>
     </div>

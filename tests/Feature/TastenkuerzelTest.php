@@ -22,7 +22,7 @@ class TastenkuerzelTest extends TestCase
         $this->assertSame(route('learner.grades.index'), $ziele['ziele']['n']);
         $this->assertSame(route('learner.exams.index'), $ziele['ziele']['a']);
         $this->assertNull($ziele['ziele']['l']);
-        $this->assertSame(route('profile.edit'), $ziele['ziele']['p']);
+        $this->assertSame(route('settings.profile'), $ziele['ziele']['p']);
         $this->assertSame(route('learner.grades.create'), $ziele['neueNote']);
     }
 
@@ -37,7 +37,7 @@ class TastenkuerzelTest extends TestCase
         $this->assertNull($ziele['ziele']['n']);
         $this->assertSame(route('trainer.exams.index'), $ziele['ziele']['a']);
         $this->assertSame(route('trainer.learners.index'), $ziele['ziele']['l']);
-        $this->assertSame(route('profile.edit'), $ziele['ziele']['p']);
+        $this->assertSame(route('settings.profile'), $ziele['ziele']['p']);
         $this->assertNull($ziele['neueNote']);
     }
 
@@ -52,7 +52,7 @@ class TastenkuerzelTest extends TestCase
         $this->assertNull($ziele['ziele']['n']);
         $this->assertSame(route('admin.exams.index'), $ziele['ziele']['a']);
         $this->assertSame(route('admin.learners.index'), $ziele['ziele']['l']);
-        $this->assertSame(route('profile.edit'), $ziele['ziele']['p']);
+        $this->assertSame(route('settings.profile'), $ziele['ziele']['p']);
         $this->assertNull($ziele['neueNote']);
     }
 

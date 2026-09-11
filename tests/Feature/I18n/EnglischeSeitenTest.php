@@ -81,7 +81,9 @@ class EnglischeSeitenTest extends TestCase
             'learner.documents.index' => route('learner.documents.index'),
             'learner.documents.reconcile' => route('learner.documents.reconcile', $dokument->dokument_id),
             'feedback.index' => route('feedback.index'),
-            'profile.edit' => route('profile.edit'),
+            'settings.profile' => route('settings.profile'),
+            'settings.calendar' => route('settings.calendar'),
+            'settings.data' => route('settings.data'),
             'notifications.settings' => route('notifications.settings'),
         ];
 
@@ -127,7 +129,9 @@ class EnglischeSeitenTest extends TestCase
             'trainer.learners.documents.reconcile' => route('trainer.learners.documents.reconcile', [$lernenderId, $dokument->dokument_id]),
             'trainer.exams.index' => route('trainer.exams.index'),
             'feedback.index' => route('feedback.index'),
-            'profile.edit' => route('profile.edit'),
+            'settings.profile' => route('settings.profile'),
+            'settings.calendar' => route('settings.calendar'),
+            'settings.data' => route('settings.data'),
             'notifications.settings' => route('notifications.settings'),
         ];
 
@@ -227,7 +231,9 @@ class EnglischeSeitenTest extends TestCase
             'admin.master-data.subjects.create' => route('admin.master-data.subjects.create'),
             'admin.master-data.subjects.edit' => route('admin.master-data.subjects.edit', $fachId),
             'feedback.index' => route('feedback.index'),
-            'profile.edit' => route('profile.edit'),
+            'settings.profile' => route('settings.profile'),
+            'settings.calendar' => route('settings.calendar'),
+            'settings.data' => route('settings.data'),
             'notifications.settings' => route('notifications.settings'),
         ];
         foreach (array_keys(Einrichtung::SCHRITTE) as $schritt) {

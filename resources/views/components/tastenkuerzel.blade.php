@@ -17,7 +17,7 @@
             'n' => $zielFuer('noten'),
             'a' => $zielFuer('kalender'),
             'l' => $zielFuer('personen'),
-            'p' => route('profile.edit'),
+            'p' => route('settings.profile'),
         ];
 
         $neueNoteUrl = $istLernender ? route('learner.grades.create') : null;
