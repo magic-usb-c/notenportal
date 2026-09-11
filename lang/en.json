@@ -184,7 +184,6 @@
     "Module": "Modules",
     "Nachname": "Last name",
     "Name": "Name",
-    "Name oder E-Mail der handelnden Person": "Name or email of the acting person",
     "Neu im Notenportal: :titel": "New in Notenportal: :titel",
     "Neue Betreuung": "New supervision",
     "Neue Note": "New grade",
@@ -347,5 +346,6 @@
     "Angemeldet bleiben": "Stay signed in",
     "Du wurdest wegen Inaktivität abgemeldet.": "You were logged out due to inactivity.",
     "Die Sitzung ist abgelaufen. Bitte melde dich erneut an.": "Your session has expired. Please sign in again.",
-    "Ungültige Version.": "Invalid version."
+    "Ungültige Version.": "Invalid version.",
+    "Name oder E-Mail": "Name or email"
 }

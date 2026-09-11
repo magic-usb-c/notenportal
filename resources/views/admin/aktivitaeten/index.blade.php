@@ -10,7 +10,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
             <x-filterleiste :action="route('admin.activity.index')" suche-name="person" :suche-wert="$person"
-                             :suche-platzhalter="__('Name oder E-Mail der handelnden Person')" :zaehler="$eintraege->total()"
+                             :suche-platzhalter="__('Name oder E-Mail')" :zaehler="$eintraege->total()"
                              zaehler-label="{{ __('Einträge') }}" :zurueck="route('admin.activity.index')" :aktive-filter="$aktiveFilter">
                 <label for="aktion" class="sr-only">{{ __('Aktion') }}</label>
                 <select name="aktion" id="aktion" x-on:change="$el.form.requestSubmit()"
