@@ -10,18 +10,18 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | 2 | Feedback-Screenshot ist komplett einfarbig | erledigt: Alpine-Attribute (`@click`, `:class`) sind keine gültigen XML-Namen, das SVG liess sich nicht dekodieren; sie werden in der Kopie entfernt |
 | 3 | Links in Mails führen zu 403: Weiterleitung nach dem Login auf fremde Rollen-URL; die 403-Seite bietet keinen Kontowechsel | erledigt: Ziel-URL nach dem Login nur, wenn die Rolle sie öffnen darf; 403-Seite zeigt das Konto und bietet «Mit anderem Konto anmelden» |
 | 4 | Knopf für das Kalender-Abo fehlt oder funktioniert nicht in allen Rollen | erledigt: Knopf bei BB/Admin ohne Alpine-Bereich (reagierte nicht); «Kopieren» über http mit Fallback (`np.kopieren`). Fester Platz in den Einstellungen folgt mit #8 |
-| 5 | Englisch: gefühlt die Hälfte noch Deutsch; lange englische Wörter brechen unschön um | offen |
+| 5 | Englisch: gefühlt die Hälfte noch Deutsch; lange englische Wörter brechen unschön um | offen; Umfang gemessen (Block A, `sprache.mjs`): 665 von 933 `__()`-Texten fehlen in `lang/en.json` |
 
 ## P2 – Automatische Prüfungen (fangen P1-artige Fehler künftig ab)
 | # | Punkt | Status |
 |---|---|---|
-| 6 | Gezielte, günstige Prüfungen (Playwright-Skripte + Haiku-Auswertung per Skill): Felder in Drawern bedienbar, Formularknöpfe senden ihren Wert, deutsche Reste im englischen Modus, Umbrüche, leere/einfarbige Screenshots, Mail-Links je Rolle, Funktionen je Rolle | in Arbeit |
+| 6 | Gezielte, günstige Prüfungen (Playwright-Skripte + Haiku-Auswertung per Skill): Felder in Drawern bedienbar, Formularknöpfe senden ihren Wert, deutsche Reste im englischen Modus, Umbrüche, leere/einfarbige Screenshots, Mail-Links je Rolle, Funktionen je Rolle | erledigt (Block A): Werkzeuge in `~/tools/visual`, Skill `notenportal-pruefwerkzeuge` |
 
 ## P3 – Bedienung
 | # | Punkt | Status |
 |---|---|---|
 | 7 | Feedback-Kategorie «Lob» → «Sonstiges» | in Arbeit (Block G) |
-| 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | in Arbeit |
+| 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | erledigt (Block C, 136a57d) |
 | 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | in Arbeit |
 | 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | erledigt (Block E) |
 | 11 | Restdauer des aktuellen Semesters mit passender Einheit (Monate → Wochen → Tage) | in Arbeit (mit #9) |
