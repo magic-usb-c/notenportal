@@ -10,12 +10,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Sicherheits-Header für alle Web-Antworten. Setzt nur, was die Antwort nicht selbst setzt
- * (z. B. liefert die Dokument-Ablage eine eigene Sandbox-CSP). Keine CSP hier: Alpine braucht
- * 'unsafe-eval', eine portalweite CSP gehört zur Härtung vor einem Betrieb ausserhalb des Labs.
+ * (z. B. liefert die Dokument-Ablage eine eigene Sandbox-CSP). Die CSP schränkt bewusst keine
+ * Skripte/Styles ein (Alpine braucht 'unsafe-eval', Views haben Inline-Skripte), sondern nur
+ * Einbettung, <base>, Plugins und Formularziele.
  */
 class SicherheitsHeader
 {
     public const HEADER = [
+        'Content-Security-Policy' => "base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'",
         'X-Frame-Options' => 'SAMEORIGIN',
         'X-Content-Type-Options' => 'nosniff',
         'Referrer-Policy' => 'strict-origin-when-cross-origin',

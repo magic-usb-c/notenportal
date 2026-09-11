@@ -36,7 +36,7 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - Least Privilege: erledigt (11.09.) – `np_web` nur DML, `np_migrate` mit DDL; Installer legt für neue Instanzen `<db>_web` (DML) und `<db>_migrate` an
 - ufw auf die berechtigten Netze einschränken
 - php-fpm + mpm_event statt mod_php + prefork
-- Security-Header: X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy erledigt (11.09., Middleware `SicherheitsHeader`); Apache `ServerTokens Prod`/`ServerSignature Off`. Offen: portalweite CSP (Alpine braucht `unsafe-eval`, Inline-Skripte)
+- Security-Header: X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy erledigt (11.09., Middleware `SicherheitsHeader`); Apache `ServerTokens Prod`/`ServerSignature Off`. Minimale CSP (`base-uri`, `object-src 'none'`, `frame-ancestors`, `form-action`) ebenfalls gesetzt; offen: `script-src`/`style-src` (Alpine braucht `unsafe-eval`, Views haben Inline-Skripte – dafür Alpine-CSP-Build und Nonces)
 
 ## Zugang ICT-LAB (Pilot)
 
