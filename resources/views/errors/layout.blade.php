@@ -18,6 +18,7 @@
             } catch(e) {}
         })();
     </script>
+    @include('layouts._pwa-head')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <x-akzent-eigen-stil :hex="$npAkzentEigen ?? null" />
 </head>

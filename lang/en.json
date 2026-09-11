@@ -297,5 +297,8 @@
     "Übersicht": "Overview",
     "→ «Feedback melden» erreichst du uns jederzeit.": "→ “Send feedback” to reach us at any time.",
     "Status": "Status",
-    "Abo-Link": "Subscription link"
+    "Abo-Link": "Subscription link",
+    "Keine Verbindung": "No connection",
+    "Diese Seite ist offline nicht verfügbar. Bitte die Verbindung prüfen und es erneut versuchen.": "This page isn't available offline. Please check the connection and try again.",
+    "Erneut versuchen": "Try again"
 }

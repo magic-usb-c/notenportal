@@ -30,7 +30,35 @@ final class Theme
         'kontrast' => 'Kontrast',
     ];
 
+    /**
+     * Seitenhintergrund je Theme (hell/dunkel) als Hex – Quelle: resources/css/theme.css (--bg).
+     * Für Manifest (background_color/theme_color, nur hell) und <meta name="theme-color"> (hell+dunkel).
+     */
+    private const array HINTERGRUND = [
+        'gletscher' => ['hell' => '#F5F7F9', 'dunkel' => '#0C0F16'],
+        'sandstein' => ['hell' => '#F8F5EF', 'dunkel' => '#14110E'],
+        'pflaume' => ['hell' => '#F7F6FA', 'dunkel' => '#110D17'],
+        'graphit' => ['hell' => '#FAFAFA', 'dunkel' => '#0D0D0D'],
+        'wald' => ['hell' => '#F3F7F4', 'dunkel' => '#09120B'],
+        'abendrot' => ['hell' => '#FDF5F2', 'dunkel' => '#160D0B'],
+        'papier' => ['hell' => '#F7EFE3', 'dunkel' => '#1C140E'],
+        'mitternacht' => ['hell' => '#F5F6FC', 'dunkel' => '#010103'],
+        'kontrast' => ['hell' => '#FFFFFF', 'dunkel' => '#070707'],
+    ];
+
     private static ?bool $spalteVorhanden = null;
+
+    /** Seitenhintergrund (hell) als Hex, für Manifest und <meta name="theme-color">. */
+    public static function hintergrundHell(string $theme): string
+    {
+        return self::HINTERGRUND[$theme]['hell'] ?? self::HINTERGRUND[self::STANDARD]['hell'];
+    }
+
+    /** Seitenhintergrund (dunkel) als Hex, für <meta name="theme-color"> im Dunkelmodus. */
+    public static function hintergrundDunkel(string $theme): string
+    {
+        return self::HINTERGRUND[$theme]['dunkel'] ?? self::HINTERGRUND[self::STANDARD]['dunkel'];
+    }
 
     public static function betrieb(): string
     {

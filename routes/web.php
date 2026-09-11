@@ -23,6 +23,7 @@ use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Lernender\PruefungenController;
 use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
 use App\Http\Controllers\Lernender\ZieleController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SprachwahlController;
@@ -144,6 +145,13 @@ Route::middleware(['auth', 'role:Lernender'])
  */
 Route::get('/calendar/{token}.ics', CalendarExportController::class)
     ->middleware('throttle:60,1,calendar-export')->whereAlphaNumeric('token')->name('calendar.export');
+
+/**
+ * Installierbare Web-App (PWA): Manifest und statische Offline-Seite, beide öffentlich,
+ * ohne Personendaten (siehe public/sw.js für den Service Worker).
+ */
+Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest');
+Route::view('/offline', 'offline')->name('offline');
 
 /**
  * Lernenden-Verwaltung: gleicher Funktionsumfang für Admin und Berufsbildner,

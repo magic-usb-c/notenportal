@@ -4,6 +4,7 @@ import Alpine from 'alpinejs';
 import { registriereCharts } from './charts';
 import { registriereFeedback } from './feedback';
 import { registriereRadiogroup, registriereScrollbereiche, t } from './np';
+import { registrierePwa } from './pwa';
 import { registriereRechner } from './rechner';
 import { registriereSuche } from './suche';
 import { registriereTastenkuerzel } from './tastenkuerzel';
@@ -19,5 +20,6 @@ registriereRechner(Alpine);
 registriereSuche(Alpine);
 registriereTastenkuerzel(Alpine);
 registriereScrollbereiche();
+registrierePwa();
 
 Alpine.start();

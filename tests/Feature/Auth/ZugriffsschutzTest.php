@@ -52,6 +52,7 @@ class ZugriffsschutzTest extends TestCase
         'notifications.unsubscribe', 'notifications.unsubscribe.store',
         'password.request', 'password.email', 'password.reset', 'password.store',
         'calendar.export',
+        'manifest', 'offline', // PWA: Web-App-Manifest und Offline-Seite, öffentlich, ohne Personendaten
         'profile.locale', // Sprachwahl: Gäste nur für die Session, 404 solange sprachwahl_aktiv aus ist
         '{fallbackPlaceholder}', // alte deutsche Pfade → 301 (LegacyPaths), sonst 404
     ];
