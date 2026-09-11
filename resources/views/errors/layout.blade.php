@@ -27,6 +27,15 @@
         <div class="text-7xl font-bold text-muted/30">{{ $code }}</div>
         <h1 class="text-2xl font-semibold text-text">{{ $title }}</h1>
         <p class="text-muted text-sm">{{ $message }}</p>
+        @if($code === 403 && auth()->check())
+            {{-- Häufig: Mail-Link für ein anderes Konto (z. B. Admin-Adresse), geöffnet in einer fremden Sitzung --}}
+            <p class="text-muted text-sm">{{ __('Angemeldet als :name', ['name' => auth()->user()->vorname.' '.auth()->user()->nachname.' ('.auth()->user()->email.')']) }}</p>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <input type="hidden" name="weiter" value="{{ request()->getRequestUri() }}">
+                <button type="submit" class="text-sm text-accent underline underline-offset-2">{{ __('Mit anderem Konto anmelden') }}</button>
+            </form>
+        @endif
         <div class="pt-2">
             @auth
                 <a href="{{ url('/') }}"

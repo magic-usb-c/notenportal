@@ -1,4 +1,6 @@
 {
+    "Angemeldet als :name": "Signed in as :name",
+    "Mit anderem Konto anmelden": "Sign in with a different account",
     ":anzahl Einträge": ":anzahl entries",
     ":anzahl Minuten": ":anzahl minutes",
     ":anzahl Neuigkeiten im Notenportal": ":anzahl updates in Notenportal",
