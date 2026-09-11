@@ -87,4 +87,27 @@ class SchoolNetDescriptionParserTest extends TestCase
         $this->assertSame('Netzwerk, Grundlagen', $r['title']);
         $this->assertSame(30, $r['duration_minutes']);
     }
+
+    #[Test]
+    public function kopfzeile_ohne_kurscode_faellt_auf_summary_zurueck_und_absaetze_bleiben(): void
+    {
+        $text = "Prüfung\nLB3 Netzwerktechnik\nPrüfungsstoff\nTeil A\n\nTeil B\nGewichtung: 25 %\nDauer: 90\nPrüfungsdatum festgelegt am\nnoch offen";
+        $r = (new SchoolNetDescriptionParser)->parse('117-INPE 24 B-abcdef', $text);
+
+        $this->assertSame('117', $r['module_number']);
+        $this->assertSame('abcdef', $r['teacher']);
+        $this->assertSame("Teil A\n\nTeil B", $r['material']);
+        $this->assertSame(25.0, $r['weight_percent']);
+        $this->assertSame(90, $r['duration_minutes']);
+        $this->assertNull($r['scheduled_at']);
+    }
+
+    #[Test]
+    public function ungueltiges_datum_laeuft_ueber_statt_zu_werfen(): void
+    {
+        // Carbon wirft bei 31.02. nicht, sondern rechnet weiter (03.03.) – dokumentiert das tolerante Verhalten.
+        $r = (new SchoolNetDescriptionParser)->parse('x', "Prüfungsdatum festgelegt am\n31.02.2026 08:00");
+
+        $this->assertSame('2026-03-03 08:00', $r['scheduled_at']->format('Y-m-d H:i'));
+    }
 }
