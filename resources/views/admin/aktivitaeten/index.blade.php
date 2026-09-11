@@ -22,10 +22,10 @@
                 </select>
 
                 <x-slot:weitere>
-                    <label for="von" class="sr-only">{{ __('Von') }}</label>
+                    <label for="von" class="self-center text-xs text-muted">{{ __('Von') }}</label>
                     <input type="date" name="von" id="von" value="{{ $von }}" x-on:change="$el.form.requestSubmit()"
                            class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">
-                    <label for="bis" class="sr-only">{{ __('Bis') }}</label>
+                    <label for="bis" class="self-center text-xs text-muted">{{ __('Bis') }}</label>
                     <input type="date" name="bis" id="bis" value="{{ $bis }}" x-on:change="$el.form.requestSubmit()"
                            class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">
                 </x-slot:weitere>
