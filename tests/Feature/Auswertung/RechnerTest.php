@@ -14,6 +14,7 @@ use App\Models\Semester;
 use App\Models\User;
 use App\Models\Ziel;
 use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Rechner;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -100,7 +101,7 @@ class RechnerTest extends TestCase
         $this->assertEquals(5.5, $antwort->json('loesung.note'));
         $this->assertNotEmpty($antwort->json('kurve'));
 
-        $seite = app(\App\Services\Auswertung\Rechner::class)->seite($this->lernender, false);
+        $seite = app(Rechner::class)->seite($this->lernender, false);
         $this->assertSame([['element' => 'modul:'.$this->modul->modul_id, 'gewicht' => 50.0]],
             array_map(fn ($z) => ['element' => $z['element'], 'gewicht' => $z['gewicht']], $seite['vorschlaege']));
     }
