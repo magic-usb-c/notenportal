@@ -24,6 +24,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Noten lesen, korrigieren («geändert von»), kommentieren, als gesehen markieren; Notenblatt, CSV
 - Dokumente der betreuten Lernenden einsehen, hochladen, löschen; Zeugnis-Abgleich (Übernahme und Notenimport nur für Admin)
 - Lernende anlegen, Betreuung, Tracks
+- Prüfungstermine (auch Admin, dann alle Lernenden): kommende 7/30/90 Tage und vergangene ohne Note, nach Woche/Monat gruppiert, Filter nach Lernendem; persönliches iCal-Abo mit Link aufs Cockpit, Texte in der Sprache des Empfängers, Link neu erzeugbar
 
 ## Admin
 - Dashboard: Betriebskennzahlen, Einrichtungslücken (laufende Lehren ohne Betreuung, Lehrberuf, Track, Module), Last pro Berufsbildner, Aktivität 12 Wochen, Jahrgänge je Lehrberuf und Lehrjahr, kritische Lernende, Lehrende bald
@@ -41,7 +42,8 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - «Passwort vergessen» mit Link per Mail (60 Minuten gültig); Mails im gemeinsamen Layout (persönliche Anrede, echte Werte, Knopf ins Portal, Hell/Dunkel), Versand über die Queue mit 3 Versuchen
 - Auslöser: neue Note/Korrektur/Kommentar, Note gesehen, Prüfungserinnerung, fehlende Note nach Prüfung, Inaktivität, Semesterende, Betreuung, Import, Feedback, Sicherung fehlgeschlagen, Passwort geändert
 - Hell/Dunkel serverseitig gespeichert, Flash-Toast, Fehlerseiten 403/404/500
-- Farbthemen Gletscher, Sandstein, Pflaume, Graphit, Kontrast (je hell/dunkel, WCAG AA, Kontrast AAA); Betriebs-Theme auf «Betrieb» mit Vorschau, «Hoher Kontrast» als persönliche Option im Profil
+- Farbthemen Gletscher, Sandstein, Pflaume, Graphit, Wald, Abendrot, Papier, Mitternacht, Kontrast (je hell/dunkel, WCAG AA, Kontrast AAA, per Test geprüft); Betriebs-Theme auf «Betrieb» mit Vorschau
+- Persönliche Darstellung im Profil mit Live-Vorschau: eigenes Theme oder «Wie Betrieb», Akzentfarbe (7 Farben), Schriftgrösse (normal/gross/sehr gross), Bewegungen reduzieren
 - Feedback: schwebender Knopf, Benutzermenü und Ctrl+K «Feedback melden», einmaliger Hinweis nach dem Login; Kategorien Fehler/Idee/Frage/Lob; Seite, Rolle, Browser, Zeit, letzte JS-Fehler und optional ein Screenshot werden automatisch mitgeschickt; Admins antworten, Absender wird benachrichtigt
 - Liquid-Glass-System, Chart.js-Diagramme mit Theme-Tokens
 - Grenzwerte (gut/genügend/kritisch), Rundung Gesamtschnitt und Fristen aus `einstellungen`
