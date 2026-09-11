@@ -20,8 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
 
+        // Global statt in der web-Gruppe: so bekommen auch Redirects und Fehlerseiten aus Exceptions die Header.
+        $middleware->append(SicherheitsHeader::class);
+
         $middleware->appendToGroup('web', [
-            SicherheitsHeader::class,
             SetLocale::class,
             EnsureUserIsActive::class,
             EnsurePasswordChanged::class,

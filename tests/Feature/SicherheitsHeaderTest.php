@@ -31,6 +31,20 @@ class SicherheitsHeaderTest extends TestCase
     }
 
     #[Test]
+    public function redirect_und_fehlerseiten_aus_exceptions_senden_sicherheits_header(): void
+    {
+        // Nicht angemeldet: AuthenticationException → 302 auf /login.
+        $this->get(route('dashboard'))->assertRedirect(route('login'))
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertHeader('X-Content-Type-Options', 'nosniff');
+
+        // Unbekannte Adresse: NotFoundHttpException → 404-Seite.
+        $this->get('/gibt-es-nicht-'.uniqid())->assertNotFound()
+            ->assertHeader('X-Frame-Options', 'SAMEORIGIN')
+            ->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+
+    #[Test]
     public function vorhandene_header_der_antwort_werden_nicht_ueberschrieben(): void
     {
         $antwort = (new SicherheitsHeader)->handle(

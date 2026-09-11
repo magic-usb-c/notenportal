@@ -165,6 +165,7 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 Skript `~/tools/visual/rundgang.mjs` (Playwright + axe-core, alle GET-Seiten je Rolle, 1280/390 px): keine JS-Fehler, kein seitliches Überlaufen.
 - ~~Rechner-Anfrage im Noten-Formular mit 422 bei Noten nach Lehrende~~ erledigt: `Rechner::katalog()` deckt die Prüfungsdaten bestehender Noten ab.
 - ~~axe serious/critical: Footer-Kontrast, Logo-Link ohne Namen (mobil), verschachteltes Element in `<summary>` (Lernenden-Dashboard), scrollbare Tabellen nicht fokussierbar, Link nur per Hover erkennbar (Module), Kontrast Notenblatt-Druck und Semester~~ erledigt; Scrollbereiche zentral über `registriereScrollbereiche()` in `np.js`.
+- Wiederholung 11.09. nach Sicherheits-Headern, Übersetzungen und Stufen-Legende: 106 Seitenaufrufe, keine Befunde.
 - Dokument-Detailseite im Browser (axe) nicht geprüft: keine Dokumente in den Prod-Testdaten. Gerendert und auf Englisch geprüft wird sie in `EnglischeSeitenTest` (lädt ein Dokument hoch).
 
 ## Englische Oberfläche & Abfragen (11.09.2026)
