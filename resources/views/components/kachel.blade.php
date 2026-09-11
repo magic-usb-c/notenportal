@@ -19,7 +19,7 @@
     $tag = $href ? 'a' : 'div';
 @endphp
 <{{ $tag }} @if($href) href="{{ $href }}" @endif {{ $attributes->merge(['class' => 'glass rounded-2xl px-4 py-3.5 block'.($href ? ' glass-lift' : '')]) }}>
-    <div class="text-[11px] uppercase tracking-widest text-muted font-medium truncate">{{ $label }}</div>
+    <div class="text-[11px] uppercase tracking-widest text-muted font-medium leading-snug">{{ $label }}</div>
     <div class="mt-1 text-2xl font-extrabold tabular-nums tracking-tight {{ $farbe }}">{{ $anzeige }}</div>
     @if($sub)
         <div class="text-xs text-muted truncate">{{ $sub }}</div>

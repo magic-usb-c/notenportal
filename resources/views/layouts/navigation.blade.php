@@ -7,7 +7,7 @@
             : [['label' => $e['label'], 'url' => $e['url'], 'gruppe' => 'Seite']])
         ->concat($u ? \App\Support\Navigation::befehle($u) : [])
         ->values();
-    $suchUrl = $u && ($u->hasRole('Admin') || $u->hasRole('Berufsbildner')) ? route('search') : null;
+    $suchUrl = $u ? route('search') : null;
     $name = trim(($u->vorname ?? '').' '.($u->nachname ?? '')) ?: ($u->email ?? '');
     $icon = fn (string $n) => \App\Support\Navigation::icon($n);
 @endphp
@@ -74,7 +74,7 @@
                             <div class="flex items-center gap-3 px-5 border-b border-border/70">
                                 <svg class="w-5 h-5 text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <input x-ref="eingabe" x-model="q" @keydown="taste($event)" type="text"
-                                       placeholder="{{ $suchUrl ? 'Seite, Aktion oder Name' : 'Seite oder Aktion' }}"
+                                       placeholder="{{ $u?->hasRole('Lernender') ? 'Seite, Fach oder Note' : 'Seite, Aktion oder Name' }}"
                                        class="flex-1 h-14 bg-transparent border-0 focus:ring-0 text-text placeholder:text-muted" aria-label="Suchbegriff">
                                 <kbd class="text-[10px] px-1.5 py-0.5 rounded-md border border-border text-muted">Esc</kbd>
                             </div>

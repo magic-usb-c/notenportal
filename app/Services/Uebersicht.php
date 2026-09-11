@@ -59,13 +59,14 @@ final class Uebersicht
         $ueberfaellig = $pruefungen->filter(fn (Pruefung $p) => $p->datum->lt($heute))->values();
         $naechste = $pruefungen->filter(fn (Pruefung $p) => $p->datum->gte($heute))->take(5)->values();
 
-        $ungeleseneKommentare = DB::table('noten as n')
+        $notenMitNeuenKommentaren = DB::table('noten as n')
             ->join('noten_kommentare as nk', 'nk.note_id', '=', 'n.note_id')
             ->leftJoin('noten_gesehen as ng', fn ($j) => $j->on('ng.note_id', '=', 'n.note_id')->where('ng.viewer_benutzer_id', '=', $user->benutzer_id))
             ->where('n.lernender_id', $id)->whereNull('n.geloescht_am')
             ->where('nk.autor_benutzer_id', '!=', $user->benutzer_id)
             ->where(fn ($q) => $q->whereNull('ng.gesehen_am')->orWhereColumn('nk.erstellt_am', '>', 'ng.gesehen_am'))
-            ->distinct()->count('n.note_id');
+            ->distinct()->pluck('n.note_id');
+        $ungeleseneKommentare = $notenMitNeuenKommentaren->count();
 
         $katalog = $this->rechner->katalog($l);
         $lehrsemester = collect($katalog['semester'])->search(fn ($s) => $s['id'] === $katalog['aktuelles_semester']);
@@ -79,7 +80,7 @@ final class Uebersicht
             'auswertung' => $a,
             'kategorien' => $kategorien,
             'ziele' => $this->zieleMitBedarf($l, $a),
-            'zuTun' => $this->zuTunLernender($ueberfaellig, $ungeleseneKommentare, $fehlendeModule, $stand, $a),
+            'zuTun' => $this->zuTunLernender($ueberfaellig, $ungeleseneKommentare, $notenMitNeuenKommentaren->first(), $fehlendeModule, $stand, $a),
             'naechste' => $naechste,
             'verlauf' => $this->verlaufDiagramm($a, $semesterIds),
             'balken' => $this->balkenDiagramm($a, $stand->semesterId),
@@ -259,7 +260,7 @@ final class Uebersicht
     }
 
     /** @return list<array{text: string, detail: ?string, link: string, ton: string}> */
-    private function zuTunLernender(Collection $ueberfaellig, int $kommentare, array $fehlendeModule, Lernstand $stand, Auswertung $a): array
+    private function zuTunLernender(Collection $ueberfaellig, int $kommentare, ?int $ersteNoteMitKommentar, array $fehlendeModule, Lernstand $stand, Auswertung $a): array
     {
         $liste = [];
         foreach ($ueberfaellig as $p) {
@@ -274,7 +275,7 @@ final class Uebersicht
         }
         if ($kommentare > 0) {
             $liste[] = ['text' => $kommentare === 1 ? '1 Note mit neuem Kommentar' : $kommentare.' Noten mit neuen Kommentaren', 'detail' => null,
-                'link' => route('learner.grades.index'), 'ton' => 'accent'];
+                'link' => route('learner.grades.index', ['_open' => $ersteNoteMitKommentar]), 'ton' => 'accent'];
         }
         foreach (array_slice($fehlendeModule, 0, 4) as $m) {
             $liste[] = ['text' => $m['name'], 'detail' => 'noch keine Note', 'link' => route('learner.grades.create', ['bezug' => 'modul:'.$m['id']]), 'ton' => 'neutral'];
@@ -411,8 +412,8 @@ final class Uebersicht
         $semesterReichtBis = $letztesSemesterEnde ? Carbon::parse($letztesSemesterEnde) : null;
 
         $luecken = [
-            ['text' => 'Lernende ohne aktive Betreuung', 'anzahl' => $ohneBetreuung, 'link' => route('admin.learners.index')],
-            ['text' => 'Lernende ohne aktiven Track', 'anzahl' => $ohneTrack, 'link' => route('admin.learners.index')],
+            ['text' => 'Lernende ohne aktive Betreuung', 'anzahl' => $ohneBetreuung, 'link' => route('admin.learners.index', ['warnung' => 'ohne_betreuung'])],
+            ['text' => 'Lernende ohne aktiven Track', 'anzahl' => $ohneTrack, 'link' => route('admin.learners.index', ['warnung' => 'ohne_track'])],
             ['text' => 'Module ohne Lernort', 'anzahl' => DB::table('lehrberuf_module')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.professions.index')],
             ['text' => 'Fächer ohne Kategorie', 'anzahl' => DB::table('faecher')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.subjects.index')],
             ['text' => 'Lehrberufe ohne Module', 'anzahl' => DB::table('lehrberufe as lb')->where('lb.aktiv', 1)

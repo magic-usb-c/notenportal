@@ -12,19 +12,69 @@ use Illuminate\Validation\Rule;
 
 class StammdatenModuleController extends Controller
 {
-    public function index()
+    private const array GRUPPIERUNGEN = ['lehrberuf', 'lernort'];
+
+    public function index(Request $request)
     {
+        $suche = trim((string) $request->input('suche', ''));
+        $lehrberufId = $request->integer('lehrberuf_id') ?: null;
+        $kategorieId = $request->integer('kategorie_id') ?: null;
+        $gruppieren = in_array($request->input('gruppieren'), self::GRUPPIERUNGEN, true) ? $request->input('gruppieren') : '';
+
         $module = DB::table('module as m')
             ->select([
                 'm.modul_id', 'm.modul_nummer', 'm.titel', 'm.aktiv',
                 DB::raw('COUNT(DISTINCT lbm.lehrberuf_id) as lehrberuf_count'),
             ])
             ->leftJoin('lehrberuf_module as lbm', 'lbm.modul_id', '=', 'm.modul_id')
+            ->when($suche !== '', function ($q) use ($suche) {
+                $like = '%'.addcslashes($suche, '%_\\').'%';
+                $q->where(fn ($w) => $w->where('m.modul_nummer', 'like', $like)->orWhere('m.titel', 'like', $like));
+            })
+            ->when($lehrberufId, fn ($q, $id) => $q->whereExists(fn ($e) => $e->select(DB::raw(1))
+                ->from('lehrberuf_module as x')->whereColumn('x.modul_id', 'm.modul_id')->where('x.lehrberuf_id', $id)))
+            ->when($kategorieId, fn ($q, $id) => $q->whereExists(fn ($e) => $e->select(DB::raw(1))
+                ->from('lehrberuf_module as x')->whereColumn('x.modul_id', 'm.modul_id')->where('x.kategorie_id', $id)))
             ->groupBy('m.modul_id', 'm.modul_nummer', 'm.titel', 'm.aktiv')
             ->orderBy('m.modul_nummer')
             ->get();
 
-        return view('admin.stammdaten.module.index', compact('module'));
+        $lehrberufe = DB::table('lehrberufe')->orderBy('name')->get(['lehrberuf_id', 'name']);
+        $kategorien = DB::table('kategorien')->orderBy('sortierung')->get(['kategorie_id', 'name']);
+
+        $gruppen = collect();
+        if ($gruppieren && $module->isNotEmpty()) {
+            $spalte = $gruppieren === 'lehrberuf' ? 'lb.name' : 'k.name';
+            $zuordnungen = DB::table('lehrberuf_module as lbm')
+                ->join('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'lbm.lehrberuf_id')
+                ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')
+                ->whereIn('lbm.modul_id', $module->pluck('modul_id'))
+                ->select(['lbm.modul_id', DB::raw($spalte.' as gruppe')])
+                ->get()
+                ->groupBy('modul_id');
+
+            foreach ($module as $m) {
+                $namen = $zuordnungen->get($m->modul_id, collect())->pluck('gruppe')->filter()->unique();
+                if ($namen->isEmpty()) {
+                    $namen = collect(['Ohne Zuordnung']);
+                }
+                foreach ($namen as $name) {
+                    $gruppen->put($name, ($gruppen->get($name) ?? collect())->push($m));
+                }
+            }
+            $gruppen = $gruppen->sortKeys();
+        }
+
+        return view('admin.stammdaten.module.index', [
+            'module' => $module,
+            'gruppen' => $gruppen,
+            'lehrberufe' => $lehrberufe,
+            'kategorien' => $kategorien,
+            'suche' => $suche,
+            'lehrberufId' => $lehrberufId,
+            'kategorieId' => $kategorieId,
+            'gruppieren' => $gruppieren,
+        ]);
     }
 
     public function create()

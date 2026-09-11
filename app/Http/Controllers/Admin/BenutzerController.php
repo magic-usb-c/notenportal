@@ -168,7 +168,10 @@ class BenutzerController extends Controller
             ]);
             $user->rollen()->sync(DB::table('rollen')->whereIn('name', $rollen)->pluck('rolle_id')->all());
             if ($rollen->contains('Berufsbildner') && ! $berufsbildner) {
-                Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
+                Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore()
+                    ?? Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
+            } elseif (! $rollen->contains('Berufsbildner') && $berufsbildner) {
+                $berufsbildner->delete();
             }
 
             if (! empty($validated['passwort'])) {
@@ -194,10 +197,21 @@ class BenutzerController extends Controller
             return back()->with('error', 'Eigener Account kann nicht deaktiviert werden.');
         }
 
-        $user->aktiv = ! $user->aktiv;
-        $user->save();
+        $neuAktiv = ! $user->aktiv;
 
-        return back()->with('success', $user->aktiv ? 'Benutzer aktiviert.' : 'Benutzer deaktiviert.');
+        DB::transaction(function () use ($user, $neuAktiv) {
+            $berufsbildner = $user->berufsbildner;
+            $user->aktiv = $neuAktiv;
+            $user->save();
+
+            if (! $neuAktiv) {
+                $berufsbildner?->delete();
+            } elseif ($user->rollen()->whereRaw('LOWER(name) = LOWER(?)', ['Berufsbildner'])->exists()) {
+                Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore();
+            }
+        });
+
+        return back()->with('success', $neuAktiv ? 'Benutzer aktiviert.' : 'Benutzer deaktiviert.');
     }
 
     /** Lernenden-Konten werden ausschliesslich über die Lernenden-Verwaltung geändert. */

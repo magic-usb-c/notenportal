@@ -223,13 +223,26 @@
                             </div>
                             @if($offen)
                                 @can('betreuungVerwalten', $lernender)
-                                    <form method="POST" action="{{ route("{$bereich}.supervisions.end", [$lernender->lernender_id, $bt->betreuung_id]) }}"
-                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                          onsubmit="return confirm('Betreuung beenden?');">
+                                    @php $betreuungBeendenModal = 'betreuung-beenden-'.$bt->betreuung_id; @endphp
+                                    <form id="{{ $betreuungBeendenModal }}-form" method="POST" action="{{ route("{$bereich}.supervisions.end", [$lernender->lernender_id, $bt->betreuung_id]) }}"
+                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
-                                        <button type="submit" :disabled="loading"
+                                        <button type="button" @click="$dispatch('open-modal', '{{ $betreuungBeendenModal }}')" :disabled="loading"
                                                 class="px-3 min-h-[36px] rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-60">Beenden</button>
                                     </form>
+                                    <x-modal :name="$betreuungBeendenModal" maxWidth="sm">
+                                        <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="{{ $betreuungBeendenModal }}-titel">
+                                            <h3 id="{{ $betreuungBeendenModal }}-titel" class="font-semibold text-text">Betreuung beenden?</h3>
+                                            <p class="mt-2 text-sm text-muted">Die Betreuung durch {{ $bt->berufsbildner?->benutzer?->vorname }} {{ $bt->berufsbildner?->benutzer?->nachname }} endet ab heute.</p>
+                                            <div class="mt-5 flex justify-end gap-2">
+                                                <button type="button" @click="$dispatch('close-modal', '{{ $betreuungBeendenModal }}')"
+                                                        class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">Abbrechen</button>
+                                                <button type="button"
+                                                        @click="document.getElementById('{{ $betreuungBeendenModal }}-form').requestSubmit(); $dispatch('close-modal', '{{ $betreuungBeendenModal }}')"
+                                                        class="inline-flex h-9 items-center rounded-lg border border-red-300 dark:border-red-800 px-3.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10">Beenden</button>
+                                            </div>
+                                        </div>
+                                    </x-modal>
                                 @endcan
                             @endif
                         </div>
@@ -238,10 +251,10 @@
                     @endforelse
                 </div>
                 @can('betreuungVerwalten', $lernender)
-                    <form method="POST" action="{{ route("{$bereich}.learners.supervision.store", $lernender->lernender_id) }}"
+                    <form id="betreuung-zuweisen-form" method="POST" action="{{ route("{$bereich}.learners.supervision.store", $lernender->lernender_id) }}"
                           class="px-5 py-4 border-t border-border bg-bg/40 grid grid-cols-1 sm:grid-cols-3 gap-3 items-end"
-                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                          onsubmit="return confirm('Betreuung zuweisen? Die bisherige Betreuung endet am Vortag.');">
+                          x-data="{ loading: false }"
+                          @submit="if ($event.defaultPrevented) return; if (!$el.dataset.bestaetigt) { $event.preventDefault(); $dispatch('open-modal', 'betreuung-zuweisen'); } else { loading = true; }">
                         @csrf
                         <div class="sm:col-span-2">
                             <label for="berufsbildner_id" class="{{ $label }}">Berufsbildner *</label>
@@ -263,6 +276,19 @@
                         <button type="submit" :disabled="loading"
                                 class="sm:col-span-3 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary disabled:opacity-60">Zuweisen</button>
                     </form>
+                    <x-modal name="betreuung-zuweisen" maxWidth="sm">
+                        <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="betreuung-zuweisen-titel">
+                            <h3 id="betreuung-zuweisen-titel" class="font-semibold text-text">Betreuung zuweisen?</h3>
+                            <p class="mt-2 text-sm text-muted">Die bisherige Betreuung endet am Vortag.</p>
+                            <div class="mt-5 flex justify-end gap-2">
+                                <button type="button" @click="$dispatch('close-modal', 'betreuung-zuweisen')"
+                                        class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">Abbrechen</button>
+                                <button type="button"
+                                        @click="const f = document.getElementById('betreuung-zuweisen-form'); f.dataset.bestaetigt = '1'; f.requestSubmit(); $dispatch('close-modal', 'betreuung-zuweisen')"
+                                        class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">Zuweisen</button>
+                            </div>
+                        </div>
+                    </x-modal>
                 @endcan
             </div>
 
@@ -289,7 +315,7 @@
                                         @csrf
                                         <label for="end_semester_{{ $t->lernender_track_id }}" class="sr-only">Endsemester</label>
                                         <select id="end_semester_{{ $t->lernender_track_id }}" name="end_semester_id" required
-                                                class="rounded-lg border border-border bg-input text-text text-xs px-2 py-1 min-h-[36px] focus:ring-2 focus:ring-ring focus:border-ring">
+                                                class="rounded-lg border border-border bg-input text-text text-xs pl-2 pr-6 py-1 min-h-[36px] min-w-[7rem] shrink-0 focus:ring-2 focus:ring-ring focus:border-ring">
                                             @foreach($semesterListe as $s)
                                                 <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                             @endforeach

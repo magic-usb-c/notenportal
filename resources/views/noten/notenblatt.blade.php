@@ -60,6 +60,16 @@
             .leiste { display: none; }
             @page { size: A4; margin: 14mm 14mm 12mm 14mm; }
         }
+        @media screen and (max-width: 480px) {
+            body { padding: 4mm; font-size: 9pt; }
+            .leiste { flex-wrap: wrap; gap: 8px; }
+            header { flex-wrap: wrap; gap: 6px; }
+            .rechts { text-align: left; }
+            .eckdaten { grid-template-columns: 1fr 1fr; }
+            .gesamt { grid-column: 1 / -1; text-align: left; }
+            table { display: block; overflow-x: auto; }
+            td.pr span { white-space: normal; margin-right: 6px; }
+        }
     </style>
 </head>
 <body>

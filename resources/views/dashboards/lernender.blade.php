@@ -48,10 +48,13 @@
                                 @endif
                             </div>
                         </div>
-                        <div class="rounded-2xl bg-bg/60 border border-border/70 px-4 py-3">
+                        @php $ungenuegendAnzahl = count($stand->ungenuegend); @endphp
+                        <{{ $ungenuegendAnzahl ? 'a' : 'div' }}
+                            @if($ungenuegendAnzahl) href="{{ route('learner.grades.index', ['semester_id' => $stand->semesterId]) }}" @endif
+                            class="rounded-2xl bg-bg/60 border border-border/70 px-4 py-3 block {{ $ungenuegendAnzahl ? 'hover:bg-accent/5 transition-colors duration-100' : '' }}">
                             <div class="text-[11px] uppercase tracking-widest text-muted">Ungenügend</div>
-                            <div class="mt-0.5 text-2xl font-extrabold tabular-nums {{ count($stand->ungenuegend) ? 'text-red-600 dark:text-red-400' : 'text-text' }}">{{ count($stand->ungenuegend) }}</div>
-                        </div>
+                            <div class="mt-0.5 text-2xl font-extrabold tabular-nums {{ $ungenuegendAnzahl ? 'text-red-600 dark:text-red-400' : 'text-text' }}">{{ $ungenuegendAnzahl }}</div>
+                        </{{ $ungenuegendAnzahl ? 'a' : 'div' }}>
                     </div>
                 @else
                     <div class="relative py-6 text-center">
@@ -150,7 +153,8 @@
                                         <span class="text-green-700 dark:text-green-400 font-medium">Gesichert</span>
                                         @break
                                     @case('unerreichbar')
-                                        <span class="text-red-600 dark:text-red-400 font-medium">Nicht mehr erreichbar · höchstens {{ \App\Support\NotenSkala::format($l['maximum'], 1) }}</span>
+                                        @php $zielGenuegend = $l['maximum'] !== null && $l['maximum'] >= \App\Support\NotenSkala::genuegend() - 1e-9; @endphp
+                                        <span class="{{ $zielGenuegend ? 'text-yellow-700 dark:text-yellow-400' : 'text-red-600 dark:text-red-400' }} font-medium">Nicht mehr erreichbar · höchstens {{ \App\Support\NotenSkala::format($l['maximum'], 1) }}</span>
                                         @break
                                     @default
                                         <span class="{{ $erreicht ? 'text-green-700 dark:text-green-400' : 'text-muted' }}">{{ $erreicht ? 'Erreicht' : 'Keine offenen Prüfungen geplant' }}</span>

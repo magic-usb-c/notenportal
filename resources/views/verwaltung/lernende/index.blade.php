@@ -102,6 +102,7 @@
                             <option value="keine_noten" @selected($filter['warnung'] === 'keine_noten')>Kein Eintrag seit 30 Tagen</option>
                             @if($bereich === 'admin')
                                 <option value="ohne_betreuung" @selected($filter['warnung'] === 'ohne_betreuung')>Ohne Berufsbildner</option>
+                                <option value="ohne_track" @selected($filter['warnung'] === 'ohne_track')>Ohne aktiven Track</option>
                             @endif
                         </select>
                     </div>
@@ -141,7 +142,46 @@
                 </form>
             </div>
 
-            <div class="glass rounded-2xl overflow-hidden">
+            {{-- Kartenansicht mobil: Tabelle mit rechtsbündigen Aktionen liesse sie ausserhalb des Sichtbereichs --}}
+            <div class="md:hidden divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
+                @forelse($zeilen as $z)
+                    @php
+                        $l = $z->lernender;
+                        $initialen = strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1));
+                    @endphp
+                    <div class="p-4 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}">
+                        <div class="flex items-start gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
+                                {{ $initialen ?: '?' }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-medium text-text">{{ $z->nachname }} {{ $z->vorname }}</div>
+                                <div class="text-xs text-muted">{{ $l->lehrberuf?->name ?? '–' }}{{ $z->lehrjahr ? ' · '.$z->lehrjahr.'. Lehrjahr' : '' }}</div>
+                                @if($bereich === 'admin')
+                                    <div class="text-xs text-muted mt-0.5">Berufsbildner: {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}</div>
+                                @endif
+                                <div class="flex items-center gap-3 mt-1.5 text-xs text-muted tabular-nums">
+                                    <span>{{ $z->anzahl }} Noten</span>
+                                    <span class="font-semibold {{ $notenfarbe($z->avg) }}">Ø {{ $z->avg !== null ? number_format($z->avg, 2) : '–' }}</span>
+                                    @if($z->ungelesen > 0)
+                                        <span class="inline-flex px-1.5 py-0.5 rounded-full font-semibold bg-accent text-white">{{ $z->ungelesen }} neu</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-3">
+                            <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
+                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Profil</a>
+                            <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
+                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">Noten</a>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-6 text-center text-sm text-muted">Keine Lernenden gefunden.</div>
+                @endforelse
+            </div>
+
+            <div class="hidden md:block glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">

@@ -69,8 +69,63 @@
                 </form>
             </div>
 
+            {{-- Kartenansicht mobil: Aktionen bleiben ohne seitliches Scrollen erreichbar --}}
+            <div class="md:hidden divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
+                @forelse($benutzer as $b)
+                    @php
+                        $initials = strtoupper(mb_substr($b->vorname ?? '', 0, 1) . mb_substr($b->nachname ?? '', 0, 1));
+                    @endphp
+                    <div class="p-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                {{ $initials ?: '?' }}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-medium text-text truncate">{{ $b->nachname }} {{ $b->vorname }}</div>
+                                <div class="text-xs text-muted truncate">{{ $b->email }} · {{ $b->benutzername }}</div>
+                            </div>
+                            @if($b->aktiv)
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 shrink-0">Aktiv</span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 shrink-0">Inaktiv</span>
+                            @endif
+                        </div>
+                        <div class="flex items-center justify-between gap-3 mt-3">
+                            <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">{{ $b->rollen ?? '–' }}</span>
+                            <div class="flex items-center gap-3 flex-wrap">
+                                @if($b->lernender_id)
+                                    <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
+                                       class="text-sm text-accent hover:underline">Verwalten</a>
+                                @else
+                                    <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
+                                       class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                    <form method="POST"
+                                          action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
+                                          class="inline"
+                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                          onsubmit="return confirm('Status wirklich ändern?');">
+                                        @csrf
+                                        <button :disabled="loading" class="text-sm {{ $b->aktiv ? 'text-red-600 dark:text-red-400 hover:underline' : 'text-green-600 hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                            {{ $b->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="p-5 text-center text-sm text-muted">
+                        @if($suche || $rolleId || $status)
+                            Keine Benutzer für diese Filtereinstellungen gefunden.
+                        @else
+                            Keine Benutzer gefunden.
+                        @endif
+                    </div>
+                @endforelse
+            </div>
+
             {{-- Tabelle --}}
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="hidden md:block glass rounded-2xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">

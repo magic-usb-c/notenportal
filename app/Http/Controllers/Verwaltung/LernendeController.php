@@ -21,7 +21,7 @@ use Illuminate\View\View;
 /** Lernende: Liste, Anlegen, Detail, Bearbeiten. */
 class LernendeController extends VerwaltungController
 {
-    private const array WARNUNGEN = ['tief_avg', 'keine_noten', 'ohne_betreuung'];
+    private const array WARNUNGEN = ['tief_avg', 'keine_noten', 'ohne_betreuung', 'ohne_track'];
 
     private const array SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
 
@@ -82,7 +82,8 @@ class LernendeController extends VerwaltungController
             ->when($filter['lehrjahr'], fn ($z, $jahr) => $z->filter(fn ($r) => $r->lehrjahr === $jahr))
             ->when($filter['warnung'] === 'tief_avg', fn ($z) => $z->filter(fn ($r) => $r->avg !== null && $r->avg < 4.0))
             ->when($filter['warnung'] === 'keine_noten', fn ($z) => $z->filter(fn ($r) => ! $r->lastNote || $r->lastNote < $cutoff))
-            ->when($filter['warnung'] === 'ohne_betreuung', fn ($z) => $z->filter(fn ($r) => ! $r->betreuer));
+            ->when($filter['warnung'] === 'ohne_betreuung', fn ($z) => $z->filter(fn ($r) => ! $r->betreuer))
+            ->when($filter['warnung'] === 'ohne_track', fn ($z) => $z->filter(fn ($r) => ! $r->trackAktiv));
 
         $desc = $filter['dir'] === 'desc';
         $zeilen = match ($filter['sort']) {
@@ -273,6 +274,8 @@ class LernendeController extends VerwaltungController
                 'lehrjahr' => $l->lehrjahr(),
                 'bms' => $l->tracks->contains(fn ($t) => $t->track_typ === 'BMS'
                     && $t->start_datum->toDateString() <= $heute
+                    && (! $t->end_datum || $t->end_datum->toDateString() >= $heute)),
+                'trackAktiv' => $l->tracks->contains(fn ($t) => $t->start_datum->toDateString() <= $heute
                     && (! $t->end_datum || $t->end_datum->toDateString() >= $heute)),
                 'betreuer' => $betreuer,
                 'anzahl' => (int) ($n->anzahl ?? 0),

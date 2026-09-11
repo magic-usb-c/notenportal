@@ -12,7 +12,7 @@
     $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
 @endphp
 
-<form method="POST" action="{{ $action }}" class="flex flex-col gap-6"
+<form method="POST" action="{{ $action }}" class="flex flex-col gap-6" novalidate
       x-data="npNotenFormular(@js([
           'bezug' => (string) $bezug,
           'datum' => $datum,

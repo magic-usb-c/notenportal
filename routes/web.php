@@ -266,7 +266,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback/hint', [FeedbackController::class, 'hinweisSchliessen'])->name('feedback.hint.dismiss');
 });
 
-Route::get('/search', SucheController::class)->middleware(['auth', 'throttle:60,1'])->name('search');
+Route::get('/search', SucheController::class)->middleware(['auth', 'throttle:60,1,search'])->name('search');
 
 /**
  * Kommentare: zugänglich für Lernende und Berufsbildner (Zugriffskontrolle im Controller)
