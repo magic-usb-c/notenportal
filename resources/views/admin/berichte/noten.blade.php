@@ -73,9 +73,25 @@
 
             @if($k['zeugnisnoten'] > 0)
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    <x-karte titel="Verteilung der Zeugnisnoten">
-                        <div class="h-56" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="Verteilung der Zeugnisnoten" role="img"></canvas></div>
-                    </x-karte>
+                    <x-diagramm titel="Verteilung der Zeugnisnoten" frage="Wie verteilen sich die Zeugnisnoten auf die Notenskala?"
+                                :fazit="$k['ungenuegend'].' von '.$k['zeugnisnoten'].' Zeugnisnoten ungenügend, Durchschnitt '.\App\Support\NotenSkala::format($k['schnitt'], 2)">
+                        <x-slot:tabelle>
+                            <table class="w-full text-sm tabular-nums">
+                                <thead class="text-2xs text-muted">
+                                    <tr><th class="text-left px-3 py-2 font-medium">Note</th><th class="text-right px-3 py-2 font-medium">Zeugnisnoten</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($verteilung['labels'] as $i => $label)
+                                        <tr class="border-t border-border">
+                                            <td class="px-3 py-2">{{ $label }}</td>
+                                            <td class="px-3 py-2 text-right">{{ $verteilung['werte'][$i] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </x-slot:tabelle>
+                        <div class="h-56" x-data="npChart('histogramm', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="Verteilung der Zeugnisnoten" role="img"></canvas></div>
+                    </x-diagramm>
 
                     <x-karte titel="Kategorien" :polster="false">
                         <div class="overflow-x-auto">

@@ -129,21 +129,46 @@
                 </div>
             </x-karte>
 
-            {{-- Vergleich --}}
-            @if(count($vergleich['labels']) > 1)
-                <x-karte titel="Im Vergleich" class="lg:col-span-7"
-                         x-data="{ modus: 'gesamt', d: {{ \Illuminate\Support\Js::from($vergleich) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
-                    <x-slot:aktionen>
-                        <div class="flex items-center gap-1 p-0.5 rounded-lg bg-bg/60 border border-border text-xs">
-                            <button type="button" @click="modus = 'gesamt'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'gesamt' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Gesamt</button>
-                            <button type="button" @click="modus = 'semester'" class="px-2.5 min-h-8 rounded-md whitespace-nowrap" :class="modus === 'semester' ? 'bg-card text-accent shadow-sm' : 'text-muted'">Semester</button>
-                        </div>
-                    </x-slot:aktionen>
-                    <div x-data="npChart('balken')" style="height: {{ count($vergleich['labels']) * 28 + 40 }}px"
-                         x-effect="zeichne({ labels: d.labels, werte: d[modus], grenzen: g })">
-                        <canvas x-ref="canvas" role="img" aria-label="Schnitt der Lernenden im Vergleich"></canvas>
+            {{-- Vergleich: Verlauf der Betreuten als Small Multiples, gleiche Skala 1–6 --}}
+            @if($zeilen->isNotEmpty())
+                <x-diagramm titel="Verlauf im Vergleich" frage="Wer weicht vom eigenen Verlauf ab?" class="lg:col-span-7"
+                            :fazit="$kennzahlen['rot'].' von '.$kennzahlen['lernende'].' Lernenden kritisch, Skala 1 bis 6, genügend ab '.\App\Support\NotenSkala::format($grenzen['genuegend'], 1)">
+                    <x-slot:tabelle>
+                        <table class="w-full text-sm tabular-nums">
+                            <thead class="text-2xs text-muted">
+                                <tr><th class="text-left px-3 py-2 font-medium">Lernende</th><th class="text-left px-3 py-2 font-medium">Verlauf je Semester</th><th class="text-right px-3 py-2 font-medium">Aktuell</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach($zeilen as $z)
+                                    @php $verlaufWerte = collect($z->stand->verlauf)->filter(fn ($v) => $v !== null); @endphp
+                                    <tr class="border-t border-border">
+                                        <td class="px-3 py-2">{{ $z->lernender->benutzer->vorname }} {{ $z->lernender->benutzer->nachname }}</td>
+                                        <td class="px-3 py-2">{{ $verlaufWerte->isEmpty() ? '–' : $verlaufWerte->map(fn ($v) => \App\Support\NotenSkala::format($v, 1))->implode(' · ') }}</td>
+                                        <td class="px-3 py-2 text-right">{{ \App\Support\NotenSkala::format($z->stand->semesterNote, 1) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </x-slot:tabelle>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach($zeilen as $z)
+                            @php $verlaufWerte = collect($z->stand->verlauf)->filter(fn ($v) => $v !== null); @endphp
+                            <div class="rounded-lg border border-border/70 p-2">
+                                <div class="mb-1 flex items-center justify-between gap-2">
+                                    <span class="truncate text-xs font-medium text-text">{{ $z->lernender->benutzer->vorname }} {{ mb_substr($z->lernender->benutzer->nachname, 0, 1) }}.</span>
+                                    <x-note :wert="$z->stand->semesterNote" :stellen="1" variante="badge" class="shrink-0" />
+                                </div>
+                                @if($verlaufWerte->isEmpty())
+                                    <p class="flex h-10 items-center text-2xs text-muted">Keine Zeugnisnoten</p>
+                                @else
+                                    <div class="h-10" x-data="npChart('spark', {{ \Illuminate\Support\Js::from(['werte' => $z->stand->verlauf, 'grenzen' => $grenzen]) }})">
+                                        <canvas x-ref="canvas" role="img" aria-label="Verlauf {{ $z->lernender->benutzer->vorname }} {{ $z->lernender->benutzer->nachname }}: {{ $verlaufWerte->map(fn ($v) => \App\Support\NotenSkala::format($v, 1))->implode(', ') }}"></canvas>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
-                </x-karte>
+                </x-diagramm>
             @endif
 
             {{-- Prüfungen --}}

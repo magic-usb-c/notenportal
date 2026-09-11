@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Note;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -34,5 +35,21 @@ class BerichtTest extends TestCase
 
         $this->assertStringContainsString('Berichtmann', $csv);
         $this->assertStringContainsString('Gesamtnote', $csv);
+    }
+
+    #[Test]
+    public function verteilung_der_zeugnisnoten_enthaelt_tabellenalternative(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = User::factory()->lernender()->create();
+        Note::factory()->create(['lernender_id' => $lernender->lernender->lernender_id, 'note_wert' => 4.5]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.reports.grades', ['semester' => 'alle']))
+            ->assertOk()
+            ->assertSee('Verteilung der Zeugnisnoten')
+            ->assertSee('Als Tabelle');
+
+        $response->assertSeeInOrder(['Note', 'Zeugnisnoten', '4.5', '1']);
     }
 }
