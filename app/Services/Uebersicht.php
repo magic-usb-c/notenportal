@@ -200,10 +200,11 @@ final class Uebersicht
         $betreuung = DB::table('betreuungen')->whereIn('lernender_id', $ids)->where('gueltig_von', '<=', now()->toDateString())
             ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
             ->get(['berufsbildner_id', 'lernender_id']);
+        $neuJeBb = $this->ungeseheneNotenProBb($bbs->pluck('berufsbildner_id')->map(fn ($v) => (int) $v)->all(), $ids);
 
-        $proBb = $bbs->map(function ($bb) use ($betreuung, $staende) {
+        $proBb = $bbs->map(function ($bb) use ($betreuung, $staende, $neuJeBb) {
             $betreut = $betreuung->where('berufsbildner_id', $bb->berufsbildner_id)->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
-            $neu = array_sum($this->ungeseheneNoten($betreut, (int) $bb->benutzer_id));
+            $neu = $neuJeBb[(int) $bb->berufsbildner_id] ?? 0;
 
             return (object) [
                 'name' => $bb->vorname.' '.$bb->nachname,
@@ -476,6 +477,40 @@ final class Uebersicht
             ->groupBy('n.lernender_id')
             ->selectRaw('n.lernender_id, COUNT(DISTINCT n.note_id) as anzahl')
             ->pluck('anzahl', 'lernender_id')
+            ->map(fn ($v) => (int) $v)->all();
+    }
+
+    /**
+     * Wie ungeseheneNoten(), aber für mehrere Betrachter (je Berufsbildner seine eigene Sicht) in
+     * einer Abfrage statt einer Abfrage pro Berufsbildner (Admin-Dashboard, Spalte "neu" je Berufsbildner).
+     *
+     * @param  list<int>  $berufsbildnerIds
+     * @param  list<int>  $lernendeIds  nur diese (aktiven) Lernenden zählen
+     * @return array<int, int> ungesehene Noten (Summe über die betreuten Lernenden) je berufsbildner_id
+     */
+    private function ungeseheneNotenProBb(array $berufsbildnerIds, array $lernendeIds): array
+    {
+        if ($berufsbildnerIds === [] || $lernendeIds === []) {
+            return [];
+        }
+
+        $heute = now()->toDateString();
+
+        return DB::table('betreuungen as bt')
+            ->join('berufsbildner as bb', 'bb.berufsbildner_id', '=', 'bt.berufsbildner_id')
+            ->join('noten as n', fn ($j) => $j->on('n.lernender_id', '=', 'bt.lernender_id')->whereNull('n.geloescht_am'))
+            ->leftJoin('noten_gesehen as ng', fn ($j) => $j->on('ng.note_id', '=', 'n.note_id')->on('ng.viewer_benutzer_id', '=', 'bb.benutzer_id'))
+            ->whereIn('bt.berufsbildner_id', $berufsbildnerIds)->whereIn('bt.lernender_id', $lernendeIds)
+            ->where('bt.gueltig_von', '<=', $heute)
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $heute))
+            ->where(fn ($q) => $q->whereNull('ng.gesehen_am')
+                ->orWhereColumn('n.aktualisiert_am', '>', 'ng.gesehen_am')
+                ->orWhereExists(fn ($k) => $k->select(DB::raw(1))->from('noten_kommentare as k')
+                    ->whereColumn('k.note_id', 'n.note_id')->whereColumn('k.erstellt_am', '>', 'ng.gesehen_am')
+                    ->whereColumn('k.autor_benutzer_id', '!=', 'bb.benutzer_id')))
+            ->groupBy('bt.berufsbildner_id')
+            ->selectRaw('bt.berufsbildner_id, COUNT(DISTINCT n.note_id) as anzahl')
+            ->pluck('anzahl', 'berufsbildner_id')
             ->map(fn ($v) => (int) $v)->all();
     }
 
