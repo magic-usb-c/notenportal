@@ -113,6 +113,15 @@ class PwaTest extends TestCase
     }
 
     #[Test]
+    public function sitzungs_skript_meldet_bei_ablauf_ueber_den_service_worker_ab(): void
+    {
+        $pfad = resource_path('js/sitzung.js');
+
+        $this->assertFileExists($pfad);
+        $this->assertStringContainsString('ABMELDEN', file_get_contents($pfad));
+    }
+
+    #[Test]
     public function service_worker_datei_liegt_unter_public_und_beschraenkt_sich_auf_gebaute_assets(): void
     {
         $pfad = public_path('sw.js');

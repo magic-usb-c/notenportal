@@ -342,5 +342,10 @@
     "Abo-Link": "Subscription link",
     "Keine Verbindung": "No connection",
     "Diese Seite ist offline nicht verfügbar. Bitte die Verbindung prüfen und es erneut versuchen.": "This page isn't available offline. Please check the connection and try again.",
-    "Erneut versuchen": "Try again"
+    "Erneut versuchen": "Try again",
+    "Du wirst gleich wegen Inaktivität abgemeldet.": "You'll be logged out soon due to inactivity.",
+    "Angemeldet bleiben": "Stay signed in",
+    "Du wurdest wegen Inaktivität abgemeldet.": "You were logged out due to inactivity.",
+    "Die Sitzung ist abgelaufen. Bitte melde dich erneut an.": "Your session has expired. Please sign in again.",
+    "Ungültige Version.": "Invalid version."
 }

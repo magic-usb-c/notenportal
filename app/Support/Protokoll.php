@@ -63,6 +63,10 @@ final class Protokoll
 
     public const string ADMIN_BETREUUNG_BEENDET = 'admin.betreuung_beendet';
 
+    public const string ADMIN_SYSTEMHINWEIS_GEAENDERT = 'admin.systemhinweis_geaendert';
+
+    public const string ADMIN_SITZUNGSDAUER_GEAENDERT = 'admin.sitzungsdauer_geaendert';
+
     /** Aktionsschlüssel => Anzeige-Label (deutsch, über __() übersetzt). */
     public const array LABELS = [
         self::AUTH_ANMELDUNG_ERFOLGREICH => 'Anmeldung erfolgreich',
@@ -84,6 +88,8 @@ final class Protokoll
         self::ADMIN_NOTENIMPORT_UEBERNOMMEN => 'Notenimport übernommen',
         self::ADMIN_BETREUUNG_ANGELEGT => 'Betreuung angelegt',
         self::ADMIN_BETREUUNG_BEENDET => 'Betreuung beendet',
+        self::ADMIN_SYSTEMHINWEIS_GEAENDERT => 'Systemhinweis geändert',
+        self::ADMIN_SITZUNGSDAUER_GEAENDERT => 'Sitzungsdauer geändert',
     ];
 
     /** Schlüssel, die nie ins Protokoll dürfen (Passwörter, Token, Geheimnisse), unabhängig von Gross-/Kleinschreibung. */

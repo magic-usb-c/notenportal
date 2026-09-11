@@ -6,6 +6,8 @@ use App\Models\Feedback;
 use App\Services\Notifications\MailSettings;
 use App\Support\Darstellung;
 use App\Support\Einstellungen;
+use App\Support\Sitzung;
+use App\Support\Systemhinweis;
 use App\Support\Theme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Lang;
@@ -32,8 +34,22 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable) {
         }
 
+        // Sitzungs-Timeout aus «Betrieb»: läuft sicher vor StartSession (Provider, nicht Middleware-Reihenfolge).
+        try {
+            Sitzung::anwenden();
+        } catch (\Throwable) {
+        }
+
         View::composer(['layouts.app', 'layouts.guest', 'layouts.navigation', 'auth.login'], function ($view) {
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));
+        });
+
+        View::composer('layouts.app', function ($view) {
+            $view->with('systemhinweis', Systemhinweis::aktuell(Auth::user()));
+        });
+
+        View::composer('auth.login', function ($view) {
+            $view->with('loginHinweis', Systemhinweis::fuerLogin());
         });
 
         // Farbthema und persönliche Darstellung serverseitig ins <html> (kein Flackern).

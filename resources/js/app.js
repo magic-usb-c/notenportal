@@ -6,6 +6,7 @@ import { registriereFeedback } from './feedback';
 import { registriereRadiogroup, registriereScrollbereiche, t } from './np';
 import { registrierePwa } from './pwa';
 import { registriereRechner } from './rechner';
+import { registriereSitzung } from './sitzung';
 import { registriereSuche } from './suche';
 import { registriereTastenkuerzel } from './tastenkuerzel';
 
@@ -21,5 +22,6 @@ registriereSuche(Alpine);
 registriereTastenkuerzel(Alpine);
 registriereScrollbereiche();
 registrierePwa();
+registriereSitzung();
 
 Alpine.start();

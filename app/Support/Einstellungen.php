@@ -27,6 +27,22 @@ class Einstellungen
 
     public const THEME = 'theme';
 
+    public const HINWEIS_TEXT = 'hinweis_text';
+
+    public const HINWEIS_ART = 'hinweis_art';
+
+    public const HINWEIS_ZIELGRUPPE = 'hinweis_zielgruppe';
+
+    public const HINWEIS_BEGINN = 'hinweis_beginn';
+
+    public const HINWEIS_ENDE = 'hinweis_ende';
+
+    public const HINWEIS_LOGIN = 'hinweis_login';
+
+    public const HINWEIS_VERSION = 'hinweis_version';
+
+    public const SITZUNG_MINUTEN = 'sitzung_minuten';
+
     private const string CACHE_KEY = 'einstellungen';
 
     public static function get(string $schluessel, ?string $standard = null): ?string

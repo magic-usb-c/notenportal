@@ -522,5 +522,21 @@
     "Überspringen": "Skip",
     "– älter als zwei Tage": "– older than two days",
     "← Zurück": "← Back",
-    "→ umgeleitet an :ziel": "→ redirected to :ziel"
+    "→ umgeleitet an :ziel": "→ redirected to :ziel",
+    "Systemhinweis": "System notice",
+    "Info": "Info",
+    "Zielgruppe": "Audience",
+    "Admins": "Admins",
+    "Beginn": "Start",
+    "Auch auf der Anmeldeseite zeigen": "Also show on the sign-in page",
+    "Hinweis entfernen": "Remove notice",
+    "Hinweis entfernt.": "Notice removed.",
+    "Systemhinweis gespeichert.": "System notice saved.",
+    "Sitzungsdauer": "Session duration",
+    "Minuten bis zur automatischen Abmeldung": "Minutes until automatic sign-out",
+    "Sitzungsdauer gespeichert.": "Session duration saved.",
+    "Systemhinweis geändert": "System notice changed",
+    "Sitzungsdauer geändert": "Session duration changed",
+    "Art": "Type",
+    "Warnung": "Warning"
 }

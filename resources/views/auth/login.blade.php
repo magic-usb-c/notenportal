@@ -4,6 +4,21 @@
         @if($betriebName)<p class="mt-1 text-sm text-muted">{{ $betriebName }}</p>@endif
     </div>
 
+    {{-- Fester Text, der Parameterinhalt selbst wird nie ausgegeben. --}}
+    @if(request()->boolean('abgelaufen'))
+        <div role="alert" class="mb-4 rounded-lg bg-note-ungenuegend/10 px-4 py-3 text-sm text-note-ungenuegend">
+            {{ __('Du wurdest wegen Inaktivität abgemeldet.') }}
+        </div>
+    @endif
+
+    @if($loginHinweis ?? null)
+        @php($npLoginHinweisWarnung = ($loginHinweis['art'] ?? 'info') === 'warnung')
+        <div role="{{ $npLoginHinweisWarnung ? 'alert' : 'status' }}"
+             class="mb-4 whitespace-pre-line rounded-lg px-4 py-3 text-sm {{ $npLoginHinweisWarnung ? 'bg-note-ungenuegend/10 text-note-ungenuegend' : 'bg-accent/10 text-accent-text' }}">
+            {{ $loginHinweis['text'] }}
+        </div>
+    @endif
+
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}" class="space-y-4">

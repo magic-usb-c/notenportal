@@ -54,3 +54,5 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - URLs englisch (`/grades`, `/exams`, `/trainer/learners`, `/admin/setup` …); alte deutsche Lesezeichen leiten dauerhaft (301) weiter
 - Datenauskunft (Art. 25 DSG): eigene Daten als ZIP herunterladen (Benutzermenü, Ctrl+K), Admin für jedes Konto (Benutzerverwaltung); README, Kontodaten, je nach Rolle Noten/Prüfungen/Ziele/Dokumente oder Betreuungen/Kommentare, eigenes Feedback und Versandprotokoll – nie Daten anderer Personen
 - Installierbar (PWA): Web-App-Manifest mit Betriebsname/-Theme, Icons; Offline-Seite bei fehlender Verbindung; Service Worker cacht nur gebaute Assets/Icons (nie Personendaten oder API-Antworten), leert seine Caches beim Abmelden
+- Systemhinweis-Banner (Betrieb): Text, Info/Warnung, Zielgruppe (alle/Lernende/Berufsbildner/Admins), Zeitfenster, optional auf der Anmeldeseite; jeder Benutzer klickt ihn einmal weg, ein neuer Text zeigt ihn wieder
+- Sitzungs-Timeout (Betrieb, 15–480 Minuten): Warnung 2 Minuten vor Ablauf mit «Angemeldet bleiben», automatische Abmeldung bei Inaktivität, über alle offenen Tabs hinweg

@@ -41,6 +41,8 @@ class ZugriffsschutzTest extends TestCase
         'feedback.store',
         'feedback.index',
         'feedback.hint.dismiss',
+        'system-notice.dismiss',
+        'session.keep-alive',
         'search',
         'notifications.settings',
         'notifications.settings.update',

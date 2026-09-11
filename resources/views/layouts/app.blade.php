@@ -138,6 +138,10 @@
         <div class="min-h-screen flex flex-col">
             @include('layouts.navigation')
 
+            @if(Route::has('system-notice.dismiss') && ($systemhinweis ?? null))
+                @include('layouts._systemhinweis')
+            @endif
+
             <!-- Page Heading -->
             {{-- Seitenkopf im selben Container wie der Inhalt: eine bündige Achse --}}
             @isset($header)
@@ -172,6 +176,10 @@
         <x-toast art="erfolg" />
 
         <x-feedback-widget />
+
+        @auth
+            @include('layouts._sitzung')
+        @endauth
 
         <script>
             // Erfolgsmeldungen nach 3 Sekunden ausblenden

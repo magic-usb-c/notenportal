@@ -221,6 +221,49 @@ class EnglischeSeitenTest extends TestCase
     }
 
     // -------------------------------------------------------------------------------------------
+    // Block AE: Systemhinweis-Banner / Sitzungs-Timeout
+    // -------------------------------------------------------------------------------------------
+
+    #[Test]
+    public function login_und_dashboard_mit_systemhinweis_ohne_deutsche_reste(): void
+    {
+        $admin = User::where('email', 'laura.frei@demo.example')->firstOrFail();
+        $admin->update(['locale' => 'en']);
+
+        $hinweisText = 'Geplante Wartung heute Abend, bitte frühzeitig speichern.';
+        $this->actingAs($admin)->put(route('admin.operations.notice.update'), [
+            'hinweis_text' => $hinweisText,
+            'hinweis_art' => 'warnung',
+            'hinweis_zielgruppe' => 'alle',
+            'hinweis_beginn' => '',
+            'hinweis_ende' => '',
+            'hinweis_login' => '1',
+        ])->assertSessionHasNoErrors();
+
+        $bekannt = [...self::bekannteDaten(), $hinweisText];
+
+        // Login-Seite (Gast, Sprache übers Sprachumschalt-Cookie), mit ?abgelaufen=1 und aktivem Hinweis.
+        $loginAntwort = $this->actingAsGuest()
+            ->withHeaders(['Accept-Language' => 'en'])
+            ->get('/login?abgelaufen=1');
+        $loginAntwort->assertOk();
+        $loginAntwort->assertSee('<html lang="en"', false);
+        $loginAntwort->assertSee($hinweisText);
+
+        $loginText = self::ohneBekannteDaten(self::sichtbarerText((string) $loginAntwort->getContent()), $bekannt);
+        $this->assertSame([], self::deutscheReste($loginText), 'Login-Seite (?abgelaufen=1, mit Hinweis): deutsche Reste.');
+
+        // Dashboard mit aktivem Systemhinweis-Banner.
+        $dashboardAntwort = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $dashboardAntwort->assertOk();
+        $dashboardAntwort->assertSee('<html lang="en"', false);
+        $dashboardAntwort->assertSee($hinweisText);
+
+        $dashboardText = self::ohneBekannteDaten(self::sichtbarerText((string) $dashboardAntwort->getContent()), $bekannt);
+        $this->assertSame([], self::deutscheReste($dashboardText), 'Dashboard mit Systemhinweis-Banner: deutsche Reste.');
+    }
+
+    // -------------------------------------------------------------------------------------------
     // Hilfsmittel
     // -------------------------------------------------------------------------------------------
 

@@ -27,8 +27,10 @@ use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\ManifestController;
 use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitzungController;
 use App\Http\Controllers\SprachwahlController;
 use App\Http\Controllers\SucheController;
+use App\Http\Controllers\SystemhinweisController;
 use App\Support\LegacyPaths;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -285,6 +287,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback/hint', [FeedbackController::class, 'hinweisSchliessen'])->name('feedback.hint.dismiss');
 });
 
+/**
+ * Systemhinweis-Banner (Wegklicken) und Sitzungs-Timeout (Keep-Alive): für alle eingeloggten
+ * Rollen, keine eigene Berechtigung nötig.
+ */
+Route::middleware('auth')->group(function () {
+    Route::post('/system-notice/dismiss', [SystemhinweisController::class, 'schliessen'])
+        ->middleware('throttle:20,1,system-notice')->name('system-notice.dismiss');
+    Route::post('/session/keep-alive', [SitzungController::class, 'verlaengern'])
+        ->middleware('throttle:10,1,keep-alive')->name('session.keep-alive');
+});
+
 Route::get('/search', SucheController::class)->middleware(['auth', 'throttle:60,1,search'])->name('search');
 
 /**
@@ -331,6 +344,8 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('/operations/backups/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('operations.backups.destroy');
     Route::put('/operations/offsite', [BetriebController::class, 'kopieSpeichern'])->name('operations.offsite.update');
     Route::post('/operations/offsite', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('operations.offsite.run');
+    Route::put('/operations/notice', [BetriebController::class, 'hinweisSpeichern'])->name('operations.notice.update');
+    Route::put('/operations/session', [BetriebController::class, 'sitzungSpeichern'])->name('operations.session.update');
 });
 
 require __DIR__.'/auth.php';

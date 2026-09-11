@@ -23,6 +23,8 @@
 
             @include('admin.betrieb._theme', ['theme' => old('theme', $theme)])
             @include('admin.betrieb._sprache')
+            @include('admin.betrieb._hinweis')
+            @include('admin.betrieb._sitzung')
 
             <section class="rounded-xl border border-border bg-card p-6 flex flex-col gap-5 mt-5">
                 <h3 class="text-sm font-semibold text-text">{{ __('E-Mail') }}</h3>
