@@ -33,6 +33,11 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
+            // Gruppe www-data braucht Zugriff, auch wenn CLI-Prozesse (ubuntu) Ordner anlegen – sonst scheitert die Sicherung.
+            'permissions' => [
+                'file' => ['public' => 0664, 'private' => 0660],
+                'dir' => ['public' => 0775, 'private' => 0770],
+            ],
             'serve' => false,
             'throw' => false,
             'report' => false,

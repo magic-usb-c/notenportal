@@ -37,6 +37,8 @@ Fehler? → Migration korrigieren, Schritt 3 wiederholen. Prod ist unberührt.
 
 Rückweg testen (Pflicht): `DB_DATABASE=notenportal_probe php artisan notenportal:migrate --rollback && DB_DATABASE=notenportal_probe php artisan notenportal:migrate`
 
+Nur einzelne Migrationen (z. B. wenn ein Agent parallel noch an einer anderen arbeitet): `--path=database/migrations/<datei>.php` (mehrfach möglich), gilt auch für `--rollback`.
+
 WICHTIG: Auf Prod hat der Web-Benutzer `np_web` nur Datenrechte (Least Privilege). `php artisan migrate` scheitert dort mit «command denied». Immer `php artisan notenportal:migrate` verwenden – es nimmt `DB_MIGRATE_USERNAME/-PASSWORD` aus der .env.
 
 ## Schritt 4 – Sofort Prod

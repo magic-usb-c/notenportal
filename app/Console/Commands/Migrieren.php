@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  */
 class Migrieren extends Command
 {
-    protected $signature = 'notenportal:migrate {--rollback : letzten Schritt zurücknehmen} {--pretend : nur SQL anzeigen}';
+    protected $signature = 'notenportal:migrate {--rollback : letzten Schritt zurücknehmen} {--pretend : nur SQL anzeigen} {--path=* : nur diese Migrationsdateien (relativ zum Projekt)}';
 
     protected $description = 'Migrationen mit dem Migrations-Benutzer ausführen';
 
@@ -37,6 +37,7 @@ class Migrieren extends Command
             '--force' => true,
             '--pretend' => $this->option('pretend') ?: null,
             '--step' => $this->option('rollback') ? 1 : null,
+            '--path' => $this->option('path') ?: null,
         ]));
     }
 }
