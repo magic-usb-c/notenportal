@@ -25,6 +25,7 @@ use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SprachwahlController;
 use App\Http\Controllers\SucheController;
+use App\Support\LegacyPaths;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -315,8 +316,8 @@ require __DIR__.'/notifications.php';
 /*
  * Old German paths (before 11.09.2026): 301 to the English path, otherwise 404.
  */
-Route::fallback(function (Illuminate\Http\Request $request) {
-    $target = App\Support\LegacyPaths::redirectTarget($request);
+Route::fallback(function (Request $request) {
+    $target = LegacyPaths::redirectTarget($request);
     abort_if($target === null, 404);
 
     return redirect($target, 301);

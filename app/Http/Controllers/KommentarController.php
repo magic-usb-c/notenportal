@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Lernender;
 use App\Models\Note;
+use App\Models\User;
 use App\Services\Notifications\Empfaenger;
 use App\Services\Notifications\Messages\CommentAdded;
 use App\Services\Notifications\NotificationCatalog;
@@ -47,7 +48,7 @@ class KommentarController extends Controller
     }
 
     /** Autor Lernender → aktive Betreuer, Autor BB/Admin → der Lernende. Nie an den Autor selbst. */
-    private function benachrichtigen(Note $note, string $text, \App\Models\User $autor): void
+    private function benachrichtigen(Note $note, string $text, User $autor): void
     {
         if ($autor->lernender) {
             $zielUrl = route('trainer.learners.show', $note->lernender_id);

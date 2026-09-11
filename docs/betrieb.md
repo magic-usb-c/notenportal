@@ -64,7 +64,7 @@ sudo systemctl reload apache2
 1. Dump: `sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-pilot.sql`, Grösse prüfen.
 2. `git pull` auf `main`, `npm ci && npm run build`, `php artisan notenportal:migrate` (Migrations-Benutzer). `composer install --no-dev` erst, wenn auf der VM nicht mehr getestet wird (entfernt PHPUnit).
 3. `.env`: `APP_ENV=production` (APP_DEBUG=false, APP_URL, LOG_CHANNEL=daily sind gesetzt). Mail-Umleitung auf Seite Betrieb leeren (sonst gehen alle Mails an die Testadresse), Testmail an eine echte Adresse senden, Versandprotokoll prüfen.
-4. Vorschau `php artisan notenportal:pilot-vorbereiten`, dann `php artisan notenportal:pilot-vorbereiten --ausfuehren` (Konten bleiben, Testnoten/Kommentare/Belegungen/Feedback weg, alle Konten müssen ihr Passwort neu setzen).
+4. Vorschau `php artisan notenportal:pilot-vorbereiten`, dann `php artisan notenportal:pilot-vorbereiten --ausfuehren` (Konten bleiben, Testnoten/Kommentare/Belegungen/Feedback weg, alle Konten müssen ihr Passwort neu setzen). Stand 12.09.: Vorschau auf Prod = 75 Noten, 14 Kommentare, 17 Belegungen, 9 Konten; alle Noten auf `@example.local`-Konten (Seed Feb./Jun. 2026), davon 19 bei `david.vonallmen` (5.–18.02.) – falls die behalten werden sollen, vorher über Noten → Export sichern. Probelauf auf i2 ohne Fehler.
 5. Konten der Lernenden von Peter Scherrer prüfen/anlegen (Verwaltung → Lernende), Betreuungen und Tracks kontrollieren.
 6. `php artisan optimize` (Config-, Routen-, View-Cache). Tests laufen dank eigener Cache-Pfade trotzdem nur gegen `*_test`.
 7. Dateirechte-Befehle (siehe oben) ausführen, `/login` über die Lab-IP aufrufen, mit einem Lernenden-Konto Note erfassen und Feedback senden.

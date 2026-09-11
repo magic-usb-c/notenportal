@@ -37,12 +37,11 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Offen (bewusst zurückgestellt)
 
-- **[niedrig] Admin-Formular-Labels** weichen vom CLAUDE.md-Label-Standard ab (`text-sm font-medium text-muted` statt uppercase/tracking) — rein kosmetisch, grosser Diff; bei nächstem Admin-Redesign mitnehmen.
-- **[niedrig] Lichtkanten-Insets im Light-Mode wirkungslos** (weisse 1px-Inset auf weissem Panel) — totes Tuning, kein visueller Schaden. Fix-Idee: Highlight-Farbe als Variable (hell: 15 23 42 / 0.05).
-- **[niedrig] Glow-Alphas themen-unabhängig** (np-glow-yellow hell unsichtbar, red/green hell verwaschen) — Fix-Idee: --glow-scale-Variable (hell 0.6).
+- ~~**[niedrig] Admin-Formular-Labels** weichen vom CLAUDE.md-Label-Standard ab~~ erledigt mit GUI-Paket 5 (einheitlich `text-sm font-medium text-text`, 12.09. geprüft: kein `<label … uppercase>` mehr unter `resources/views/admin`).
+- ~~**[niedrig] Lichtkanten-Insets / Glow-Alphas im Light-Mode**~~ obsolet (12.09. geprüft): `np-glow-*`, `glass-lift`, `np-card-lift` und die Insets wurden in GUI-Paket 1/2 (f82b7e2, 5a6aad0) ersatzlos entfernt, siehe `docs/gui-konzept.md` «Entfallen».
 - ~~**[niedrig] BenutzerController::update speichert vor zweiter Validierung**~~ erledigt (12.09.): bereits ein einziges `validate()` + `DB::transaction` in `Admin\BenutzerController::update` und `Verwaltung\LernendeController::update`; Tests `BenutzerControllerTest::ungueltige_eingabe_speichert_nichts` und `AnlegenUndBearbeitenTest::ungueltiges_bearbeiten_speichert_nichts` grün.
 - ~~**[mittel] markAlleGesehen markiert ALLE Noten, auch ausserhalb des aktiven Filters**~~ erledigt (12.09.): Filter (`kategorie_id`/`semester_id`) wird im Formular mitgeschickt und serverseitig über `NotenGesehenController::gefilterteNoten()` angewendet (geteilt mit dem Zähler in `LernendeNotenController::index`); Test `AlleGesehenTest::markiert_nur_noten_im_aktiven_filter` grün.
-- **[niedrig] BB-Soft-Delete-Inkonsistenz** (Berufsbildner-Model ohne SoftDeletes trotz geloescht_am-Spalte) — adversarial geprüft: kein erreichbarer Exploit-Pfad (kein Code setzt die Spalte). Defense-in-Depth-Kandidat.
+- ~~**[niedrig] BB-Soft-Delete-Inkonsistenz** (Berufsbildner-Model ohne SoftDeletes trotz geloescht_am-Spalte)~~ erledigt (12.09. geprüft): `Berufsbildner` nutzt `SoftDeletes` mit `DELETED_AT = 'geloescht_am'`, Raw-Queries filtern `bb.geloescht_am`.
 
 ## Qualitätsblock Notenlogik & Dashboards (10.09.2026) – bewusst weggelassen
 
@@ -50,7 +49,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **`bewertungsregeln`** entfernt: nie befüllt; Grenzwerte liegen in `einstellungen`, Rundung/Promotion pro Kategorie.
 - **Zielrechner mit unterschiedlichen Noten je offener Prüfung**: alle Unbekannten erhalten dieselbe Note (verständlichste Antwort auf «was brauche ich im Schnitt»). Individuelle Werte gehen über den Was-wäre-wenn-Modus.
 - **Aktivitätsdiagramm Admin nach `erstellt_am`**: in der Demo-DB wirken alle Noten am Seed-Tag erfasst; in echten Daten korrekt. Kein Umbau auf `pruefungsdatum`, weil «Erfassungsaktivität» die Frage ist.
-- **Lichtkanten-/Glow-Feinheiten** (oben, [niedrig]) weiterhin offen – kein Einfluss auf Lesbarkeit.
+- ~~**Lichtkanten-/Glow-Feinheiten**~~ obsolet, siehe oben.
 - **Zebra-Streifen und sticky thead** in Stammdaten-, Berichts- und Dashboard-Tabellen nicht ergänzt: Tabellen liegen in Glass-Karten mit Trennlinien, Zebra auf transparentem Glass wirkt unruhig; die Tabellen sind kurz (< 30 Zeilen) oder paginiert. Bei langen Listen (Lernende > 50) nachrüsten.
 
 ## Erstinbetriebnahme & Stammdaten (10.09.2026) – bewusst weggelassen
@@ -87,7 +86,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Hinweise
 
-- `bemerkung`-Feld auf `lernende` fehlt weiterhin (braucht manuelles sudo mysql, siehe CLAUDE.md)
+- ~~`bemerkung`-Feld auf `lernende` fehlt~~ erledigt (12.09. geprüft): Spalte auf Prod vorhanden, genutzt in `Verwaltung/LernendeController` und `verwaltung/lernende/edit`.
 - border-red-500 vs border-border auf demselben Element: Gewinner hängt von CSS-Reihenfolge ab — falls roter Fehler-Rahmen nicht sichtbar, `!border-red-500` verwenden
 
 ## Sprache (11.09.2026) – bewusst weggelassen
@@ -157,5 +156,5 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 - ~~Mails mit vorgebautem `MailContent` gehen in der Sprache des Auslösers statt des Empfängers: `KommentarController`, `Lernender/NotenController`, `NotenImportController`, `FeedbackController`, `Verwaltung/{NotenGesehen,Betreuung,LernendeNoten}Controller`, `Admin/{Feedback,MailSettings}Controller`, `Auth/{NewPassword,PasswortWechsel,Password}Controller`, `CheckNotifications`, `SicherungErstellen`, `GradeWatcher`, `AccountMails` → Inhalt erst im `Notifier` pro Empfänger bauen.~~ erledigt (12.09.): alle Aufrufe geben den Inhalt als Closure an `Notifier::send`/`dispatch`, `CheckNotifications::melden()` nimmt jetzt `MailContent|Closure`. `AccountMails` und `Auth/{NewPassword,PasswortWechsel,Password}Controller` bauen ihren Text weiterhin ohne `__()` (fest Deutsch) – Closure-Form vorbereitet, aber noch nicht wirklich mehrsprachig; `Admin/MailSettingsController::test()` unverändert, da der Test-Empfänger kein `User` mit eigener Locale ist.
 - Übersetzungen sind portalweit flach (ein Wert pro deutschem Schlüssel, 26 Kollisionen beim Zusammenführen nach Glossar vereinheitlicht). Mehrdeutige Wörter («Semester», «Berufsbildner», «Fehler») bei Bedarf mit Kontext-Schlüsseln lösen.
 - `Dokument::ARTEN`-Labels und die Info-Texte der Einrichtungsschritte (`Einrichtung`-Stand) sind noch unübersetzt.
-- Pint-Altlasten ausserhalb der i18n-Änderungen: `KommentarController` (Imports, FQCN), `routes/web.php` (`Route::fallback`).
+- ~~Pint-Altlasten: `KommentarController`, `routes/web.php`~~ erledigt (12.09.).
 - Nach dem Go-Live: Umbenennungen Code/Model/DB gemäss `docs/i18n-plan.md`.
