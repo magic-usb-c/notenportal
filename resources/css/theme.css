@@ -1,70 +1,101 @@
-:root {
-  --bg: 248 250 252;
-  --card: 255 255 255;
-  --text: 15 23 42;
-  --muted: 71 85 105;   /* Slate-600: 4.5:1+ auch auf Glass/bg (Slate-500 war grenzwertig) */
-  --border: 226 232 240;
-  --input: 255 255 255;
+/* ==========================================================================
+   Design-Tokens Notenportal (Quelle: docs/gui-konzept.md, Abschnitt c/d)
+   --------------------------------------------------------------------------
+   - Werte sind RGB-Tripel, damit rgb(var(--x) / a), die -rgb-Aliase und
+     Chart.js (tokenFarbe) unverändert funktionieren. Quelle ist OKLCH
+     (Kommentar), gerechnet mit ~/tools/kontrast/kontrast.mjs.
+   - Theme über data-theme am <html>, Modus über die Klasse .dark.
+     Gletscher ist Standard (:root). Weitere Themes (Paket 8) NACH diesem
+     Block als [data-theme="…"] und [data-theme="…"].dark anhängen, damit
+     sie die Gletscher-Werte in beiden Modi überschreiben.
+   ========================================================================== */
 
-  --accent: 37 99 235;
-  --ring: 59 130 246;
+/* Theme Gletscher – hell */
+:root,
+[data-theme='gletscher'] {
+  color-scheme: light;
 
-  /* Aliase für rgba()-Nutzung in Glass-Utilities (Werte sind bereits RGB-Tripel) */
-  --bg-rgb: var(--bg);
-  --card-rgb: var(--card);
-  --accent-rgb: var(--accent);
+  --bg: 245 247 249;               /* oklch(0.975 0.004 255) App-Grund */
+  --card: 255 255 255;             /* oklch(1 0 0) Karten, Tabellen */
+  --surface-2: 238 241 246;        /* oklch(0.957 0.007 255) Tabellenkopf, Hover, Segment-Grund */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 17 24 38;                /* oklch(0.21 0.03 262) 16.5:1 auf bg */
+  --muted: 88 97 111;              /* oklch(0.49 0.025 258) 5.5:1 auf surface-2 */
+  --border: 223 227 232;           /* oklch(0.915 0.008 255) Trennlinien (dekorativ) */
+  --border-strong: 140 147 155;    /* oklch(0.66 0.015 255) Eingabefeld-Rand, 3.1:1 auf card */
 
-  /* Glass-Tuning: Hell-Modus braucht andere Border/Schatten als Dunkel-Modus */
-  --glass-border: 15 23 42;        /* dunkle Kante auf hellem Grund */
-  --glass-border-alpha: 0.12;      /* Paritaet mit --border, Panel-Kante sichtbar */
-  --glass-highlight-alpha: 0.9;    /* obere Lichtkante */
-  --glass-shadow-alpha: 0.13;
-  --glass-bg-alpha: 0.7;           /* Weiss braucht mehr Deckung gegen fast-weisses --bg */
-  --glass-subtle-rgb: var(--card); /* Nav hell: Weiss statt bg, sonst null Eigenkontrast */
+  --accent: 40 96 221;             /* oklch(0.53 0.2 263) Primärbutton-Fläche */
+  --accent-contrast: 255 255 255;  /* Text auf accent, 5.5:1 */
+  --accent-text: 31 87 211;        /* oklch(0.5 0.2 263) Links, aktive Navigation, 6.3:1 auf card */
+  --ring: 51 122 239;              /* oklch(0.6 0.19 260) Fokusring, 3.8:1 auf bg */
 
-  /* Diagramme: Serienfarben und Notenstufen (RGB-Tripel, Alpha im Chart) */
-  --chart-1: 37 99 235;
-  --chart-2: 124 58 237;
-  --chart-3: 13 148 136;
-  --chart-4: 217 119 6;
-  --chart-5: 219 39 119;
-  --chart-6: 71 85 105;
-  --note-gut: 21 128 61;
-  --note-genuegend: 4 120 87;
-  --note-knapp: 161 98 7;
-  --note-ungenuegend: 220 38 38;
+  /* Notenstufen (Text auf card und auf 14 % Tint ≥ 4.5:1) */
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 53 110 113;    /* oklch(0.5 0.06 200) gedämpftes Blaugrün */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) Bernstein */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  /* Diagrammserien, Reihenfolge ist Teil der Palette; chart-6 = Kontextgrau */
+  --chart-1: 40 96 221;            /* oklch(0.53 0.2 263) */
+  --chart-2: 214 105 25;           /* oklch(0.64 0.16 50) */
+  --chart-3: 11 148 136;           /* oklch(0.6 0.104 185) */
+  --chart-4: 109 71 184;           /* oklch(0.5 0.17 295) */
+  --chart-5: 198 60 138;           /* oklch(0.58 0.19 350) */
+  --chart-6: 120 129 140;          /* oklch(0.6 0.02 255) */
+
+  /* Elevation (Abschnitt c): hell über Schatten, dunkel über hellere Flächen */
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);    /* Fläche gehobener Elemente (E1) */
 }
 
-.dark {
-  --bg: 2 6 23;
-  --card: 15 23 42;
-  --text: 226 232 240;
-  --muted: 148 163 184;
-  --border: 51 65 85;
-  --input: 2 6 23;
+/* Theme Gletscher – dunkel (kein Schwarz, Accent-Button dunkel beschriftet) */
+.dark,
+[data-theme='gletscher'].dark {
+  color-scheme: dark;
 
-  --accent: 59 130 246;
-  --ring: 96 165 250;
+  --bg: 12 15 22;                  /* oklch(0.17 0.015 262) */
+  --card: 21 26 34;                /* oklch(0.215 0.018 262) */
+  --surface-2: 31 36 46;           /* oklch(0.26 0.02 262) */
+  --input: 16 20 27;               /* oklch(0.19 0.016 262) */
+  --text: 232 235 241;             /* oklch(0.94 0.008 255) */
+  --muted: 156 165 177;            /* oklch(0.72 0.02 255) */
+  --border: 43 49 59;              /* oklch(0.31 0.02 262) */
+  --border-strong: 96 102 114;     /* oklch(0.51 0.02 262) 3.0:1 auf card */
 
+  --accent: 89 160 249;            /* oklch(0.7 0.15 255) */
+  --accent-contrast: 12 15 22;     /* oklch(0.17 0.015 262) 7.1:1 auf accent */
+  --accent-text: 109 173 255;      /* oklch(0.74 0.136 255) */
+  --ring: 96 167 255;              /* oklch(0.72 0.148 255) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 134 204 207;   /* oklch(0.8 0.07 200) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 70 147 241;           /* oklch(0.66 0.16 255) */
+  --chart-2: 221 111 35;           /* oklch(0.66 0.16 50) */
+  --chart-3: 32 168 155;           /* oklch(0.66 0.11 185) */
+  --chart-4: 143 110 219;          /* oklch(0.62 0.16 295) */
+  --chart-5: 216 85 155;           /* oklch(0.64 0.18 350) */
+  --chart-6: 126 135 146;          /* oklch(0.62 0.02 255) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Aliase für rgb(var(--x-rgb) / a) – werden am Element berechnet, gelten
+   darum automatisch für jedes Theme und beide Modi. */
+:root {
   --bg-rgb: var(--bg);
   --card-rgb: var(--card);
+  --surface-2-rgb: var(--surface-2);
+  --text-rgb: var(--text);
+  --muted-rgb: var(--muted);
+  --border-rgb: var(--border);
+  --border-strong-rgb: var(--border-strong);
   --accent-rgb: var(--accent);
-
-  --glass-border: 255 255 255;     /* helle Kante auf dunklem Grund */
-  --glass-border-alpha: 0.10;
-  --glass-highlight-alpha: 0.18;
-  --glass-shadow-alpha: 0.26;
-  --glass-bg-alpha: 0.55;          /* mehr Transparenz, Tiefen-Gradient scheint durch */
-  --glass-subtle-rgb: var(--bg);
-
-  --chart-1: 96 165 250;
-  --chart-2: 167 139 250;
-  --chart-3: 45 212 191;
-  --chart-4: 251 191 36;
-  --chart-5: 244 114 182;
-  --chart-6: 148 163 184;
-  --note-gut: 74 222 128;
-  --note-genuegend: 52 211 153;
-  --note-knapp: 250 204 21;
-  --note-ungenuegend: 248 113 113;
 }

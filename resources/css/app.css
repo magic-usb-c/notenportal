@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/inter';
 @import './theme.css' layer(base);
 
 @plugin '@tailwindcss/forms';
@@ -11,24 +12,73 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
-   Wechsel der Variablen im Dark Mode auch bei /alpha-Modifiern greift */
+   Wechsel der Variablen (Modus, Theme) auch bei /alpha-Modifiern greift */
 @theme inline {
-  --font-sans: Figtree, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji';
-
   --color-bg: rgb(var(--bg));
   --color-card: rgb(var(--card));
+  --color-surface-2: rgb(var(--surface-2));
   --color-text: rgb(var(--text));
   --color-muted: rgb(var(--muted));
   --color-border: rgb(var(--border));
+  --color-border-strong: rgb(var(--border-strong));
   --color-input: rgb(var(--input));
   --color-accent: rgb(var(--accent));
+  --color-accent-contrast: rgb(var(--accent-contrast));
+  --color-accent-text: rgb(var(--accent-text));
   --color-ring: rgb(var(--ring));
+
+  --color-note-gut: rgb(var(--note-gut));
+  --color-note-genuegend: rgb(var(--note-genuegend));
+  --color-note-knapp: rgb(var(--note-knapp));
+  --color-note-ungenuegend: rgb(var(--note-ungenuegend));
+
+  --shadow-e1: var(--elev-1);
+  --shadow-e2: var(--elev-2);
+  --shadow-e3: var(--elev-3);
+}
+
+/* Schrift, Typo-Skala (1.2, Zeilenhöhen im 4-px-Raster), Radien, Motion */
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --text-2xs: 0.75rem;              /* 12 px Tabellenkopf, Achsen, Meta */
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.8125rem;             /* 13 px Hilfetext, Sekundärzeile */
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.875rem;              /* 14 px UI-Grundschrift */
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;                /* 16 px Fliesstext, Formulare mobil */
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.25rem;               /* 20 px Kartentitel gross, Drawer-Titel */
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.5rem;                /* 24 px Seitentitel (h1) */
+  --text-xl--line-height: 2rem;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.875rem;             /* 30 px Kennzahl in Statuszeile */
+  --text-2xl--line-height: 2.25rem;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-display: 3rem;             /* 48 px eine Heldenzahl pro Seite */
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+
+  /* Übergang bis zum Umbau der Views: Versalien-Sperrung und extrabold gedämpft */
+  --tracking-widest: 0.04em;
+  --font-weight-extrabold: 700;
+
+  /* rounded-3xl entfällt: Alias auf 16 px (= rounded-2xl) */
+  --radius-3xl: 1rem;
+
+  --ease-in: cubic-bezier(0.3, 0, 1, 1);
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 }
 
 @layer base {
-    /* Scrollbare Tabellen: absolut positionierte Kinder (sr-only) bleiben im Container statt die Seite zu verbreitern */
-    .overflow-x-auto { position: relative; }
+  /* Scrollbare Tabellen: absolut positionierte Kinder (sr-only) bleiben im Container statt die Seite zu verbreitern */
+  .overflow-x-auto { position: relative; }
 
   /* Rahmen ohne Farbklasse tragen den Token statt currentColor */
   *,
@@ -39,84 +89,87 @@
     border-color: rgb(var(--border));
   }
 
+  html {
+    font-feature-settings: 'cv11';   /* Inter: einstöckiges a, ruhigeres Schriftbild */
+    text-rendering: optimizeLegibility;
+  }
+
   button:not(:disabled),
   [role='button']:not(:disabled) {
     cursor: pointer;
   }
+
+  /* Alpine.js: Elemente mit x-cloak bis zur Initialisierung verstecken */
+  [x-cloak] { display: none !important; }
 }
 
-@utility np-card-lift {
-  /* Card-Lift Utility – kann via .np-card-lift verwendet werden */
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    border-color 150ms ease;
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px -10px rgb(var(--accent) / 0.25);
-  }
-}
-
-@utility np-btn-tactile {
-  /* Tactile button feedback */
-  transition:
-    transform 100ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    opacity 150ms ease;
-  &:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
-  &:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
-  }
-}
+/* ==========================================================================
+   Flächen und Glas (Konzept c: G0 Inhalt, G1 Leiste, G2 Overlay, Scrim)
+   Deckung ≥ 0.78, damit Text die Token-Kontraste hält.
+   ========================================================================== */
 
 @utility glass {
-  /* ============================================================
-     Liquid Glass System
-     Theme-bewusst über --glass-* Variablen aus theme.css
-     ============================================================ */
+  /* Bestandsklasse für Inhaltskarten → G0/E0: feste Fläche, kein Glas */
+  background-color: rgb(var(--card));
+  border: 1px solid rgb(var(--border));
+  box-shadow: none;
+  /* Dialoge (Modal, Suche) bekommen E3 */
+  &:where([role='dialog'], [aria-modal='true']) {
+    box-shadow: var(--elev-3);
+    border-color: rgb(var(--border-strong) / 0.3);
+  }
+}
 
-  /* Primäre Variante: Hero-Panels, Dashboard-Kacheln, Formulare */
-  background: rgb(var(--card-rgb) / var(--glass-bg-alpha));
-  backdrop-filter: blur(24px) saturate(180%) brightness(105%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(105%);
-  border: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
-  border-top-color: rgb(
-    var(--glass-border) / calc(var(--glass-border-alpha) * 1.8)
-  );
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.04),
-    0 8px 32px -8px rgba(0, 0, 0, var(--glass-shadow-alpha)),
-    0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.35))
-      inset,
-    0 -1px 0 0 rgba(0, 0, 0, 0.06) inset;
+@utility glass-bar {
+  /* G1 Leiste: Hauptnavigation, Sticky-Toolbar */
+  background-color: rgb(var(--card-rgb) / 0.78);
+  backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid rgb(var(--border));
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: rgb(var(--card));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
+  }
 }
 
 @utility glass-subtle {
-  /* Subtile Variante: Navigation, Leisten — deutlich transparent, schwebend */
-  background: rgb(var(--glass-subtle-rgb) / 0.62);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border-bottom: 1px solid rgb(var(--glass-border) / var(--glass-border-alpha));
-  box-shadow:
-    0 8px 32px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 0.7)),
-    0 1px 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.3)) inset;
+  /* Bestandsname der Navigation = G1 */
+  @apply glass-bar;
+}
+
+@utility glass-overlay {
+  /* G2 Overlay: Befehlspalette, Menüs, Toasts, Popover */
+  background-color: rgb(var(--card-rgb) / 0.88);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgb(var(--border-strong) / 0.3);
+  box-shadow: var(--elev-2);
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: rgb(var(--card));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
+  }
+}
+
+@utility glass-scrim {
+  /* hinter Drawer und Modal */
+  background-color: rgb(var(--bg-rgb) / 0.6);
+  backdrop-filter: blur(2px);
 }
 
 @utility glass-btn {
-  /* Button-Variante */
-  background: rgb(var(--card-rgb) / 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid
-    rgb(var(--glass-border) / calc(var(--glass-border-alpha) * 1.4));
-  transition: all 150ms ease;
-  &:hover {
-    background: rgb(var(--accent-rgb) / 0.16);
-    border-color: rgb(var(--accent-rgb) / 0.4);
-    box-shadow: 0 0 16px -4px rgb(var(--accent-rgb) / 0.3);
+  /* Bestandsklasse = Sekundärbutton: feste Fläche, kräftiger Rand */
+  background-color: rgb(var(--card));
+  border: 1px solid rgb(var(--border-strong) / 0.6);
+  transition-property: background-color, border-color, color;
+  transition-duration: 100ms;
+  transition-timing-function: var(--ease-out);
+  &:hover:not(:disabled) {
+    background-color: rgb(var(--surface-2));
+    border-color: rgb(var(--border-strong));
   }
   &:focus-visible {
     outline: 2px solid rgb(var(--ring));
@@ -125,82 +178,68 @@
 }
 
 @utility np-btn-primary {
+  /* Primärbutton (mit bg-accent): Text immer accent-contrast, kein Scale, kein Glow */
+  color: rgb(var(--accent-contrast));
+  transition-property: background-color, color, opacity;
+  transition-duration: 100ms;
+  transition-timing-function: var(--ease-out);
+  &:hover:not(:disabled) {
+    background-color: rgb(var(--accent) / 0.9);
+  }
   &:focus-visible {
     outline: 2px solid rgb(var(--ring));
     outline-offset: 2px;
   }
-
-  /* Primär-Button: tactile + Glow */
-  transition:
-    transform 150ms ease,
-    box-shadow 200ms ease,
-    opacity 150ms ease;
-  &:hover:not(:disabled) {
-    transform: scale(1.02);
-    box-shadow:
-      0 0 20px -5px rgb(var(--accent-rgb) / 0.5),
-      0 0 40px -10px rgb(var(--accent-rgb) / 0.25);
-  }
-  &:active:not(:disabled) {
-    transform: scale(0.97);
-  }
-}
-
-@utility accent-glow {
-  /* Accent-Glow für wichtige Elemente (Primär-Buttons, Score-Card) */
-  box-shadow:
-    0 0 20px -5px rgb(var(--accent-rgb) / 0.4),
-    0 0 40px -10px rgb(var(--accent-rgb) / 0.2);
 }
 
 @utility glass-lift {
-  /* Hover-Lift mit Glass-Tiefe */
-  transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    border-color 150ms ease;
+  /* Bestand: klickbare Karte → E1 bei Hover, ohne Bewegung */
+  transition-property: background-color, border-color, box-shadow;
+  transition-duration: 100ms;
+  transition-timing-function: var(--ease-out);
   &:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 12px 40px -8px rgba(0, 0, 0, calc(var(--glass-shadow-alpha) * 1.6)),
-      0 1px 0 0 rgba(255, 255, 255, calc(var(--glass-highlight-alpha) * 0.5))
-        inset;
+    background-color: rgb(var(--elev-hover-bg));
+    border-color: rgb(var(--border-strong) / 0.5);
+    box-shadow: var(--elev-1);
   }
 }
 
-@utility np-glow-green {
-  /* Note-Badges: dezenter Glow in der Badge-Farbe */
-  box-shadow: 0 0 14px -4px rgb(34 197 94 / 0.55);
+@utility np-card-lift {
+  @apply glass-lift;
 }
 
-@utility np-glow-emerald {
-  box-shadow: 0 0 12px -4px rgb(16 185 129 / 0.45);
+@utility np-btn-tactile {
+  /* Bestand: nur noch Farbübergang, keine Bewegung */
+  transition-property: background-color, border-color, color, opacity;
+  transition-duration: 100ms;
 }
 
-@utility np-glow-yellow {
-  box-shadow: 0 0 12px -4px rgb(234 179 8 / 0.4);
+/* Entfallen (Konzept c): Glow-Effekte. Namen bleiben als wirkungslose Aliase,
+   damit bestehende Views und App\Support\NotenSkala nicht brechen. */
+@utility accent-glow { --np-entfallen: 1; }
+@utility np-glow-green { --np-entfallen: 1; }
+@utility np-glow-emerald { --np-entfallen: 1; }
+@utility np-glow-yellow { --np-entfallen: 1; }
+@utility np-glow-red { --np-entfallen: 1; }
+@utility np-text-glow-green { --np-entfallen: 1; }
+@utility np-text-glow-emerald { --np-entfallen: 1; }
+@utility np-text-glow-yellow { --np-entfallen: 1; }
+@utility np-text-glow-red { --np-entfallen: 1; }
+
+/* Weisser Text auf Accent (Bestand text-white) → accent-contrast, damit der
+   Dunkelmodus (heller Accent) lesbar bleibt. Specificity 0,2,0 schlägt text-white. */
+@layer utilities {
+  .bg-accent.text-white,
+  .bg-accent .text-white,
+  .np-btn-primary.text-white,
+  .hover\:bg-accent.hover\:text-white:hover {
+    color: rgb(var(--accent-contrast));
+  }
 }
 
-@utility np-glow-red {
-  box-shadow: 0 0 14px -4px rgb(239 68 68 / 0.55);
-}
-
-@utility np-text-glow-green {
-  /* Text-Glow für Noten-Zahlen (Hero-Ø im Accordion-Header, Zeilen-Noten) */
-  filter: drop-shadow(0 0 6px rgb(34 197 94 / 0.4));
-}
-
-@utility np-text-glow-emerald {
-  filter: drop-shadow(0 0 6px rgb(16 185 129 / 0.35));
-}
-
-@utility np-text-glow-yellow {
-  filter: drop-shadow(0 0 6px rgb(202 138 4 / 0.35));
-}
-
-@utility np-text-glow-red {
-  filter: drop-shadow(0 0 6px rgb(239 68 68 / 0.4));
-}
+/* ==========================================================================
+   Motion: nur pro Komponente, keine globale Transition (Konzept c)
+   ========================================================================== */
 
 @utility np-loading {
   &#np-progress {
@@ -220,68 +259,46 @@
 }
 
 @utility np-fade-in {
-  /* Fade-in für Badges/Werte beim ersten Render */
-  animation: np-fade-in 400ms ease both;
-}
-
-@layer base {
-  /* Alpine.js: Elemente mit x-cloak bis zur Initialisierung verstecken */
-  [x-cloak] { display: none !important; }
-
-  /* Globale, dezente Transitions für ein "lebendigeres" Gefühl. Nur Farben + Schatten,
-     damit Layout-Properties (z. B. width, transform) explizit pro Element gesteuert werden. */
-  *, *::before, *::after {
-    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-    transition-duration: 150ms;
-    transition-timing-function: ease;
-  }
-
-  /* Reduced Motion respektieren */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      transition: none !important;
-      animation: none !important;
-    }
-  }
-
-  /* Subtiler Tiefen-Gradient hinter dem Content, damit Glass-Transparenz sichtbar wird */
-  body {
-    background-image:
-      radial-gradient(ellipse at 12% 38%, rgb(var(--accent-rgb) / 0.045) 0%, transparent 52%),
-      radial-gradient(ellipse at 88% 12%, rgb(var(--accent-rgb) / 0.03) 0%, transparent 48%);
-    background-attachment: fixed;
-  }
+  animation: np-fade 150ms var(--ease-out) both;
 }
 
 @layer components {
-  /* Akkordeon Slide-In (für <details>-Inhalte) */
+  /* Akkordeon (für <details>-Inhalte) */
   details[open] > summary ~ * {
-    animation: np-slide-down 200ms ease;
+    animation: np-slide-down 200ms var(--ease-out);
   }
-}
 
-@layer components {
   /* Page-Progress-Bar (oben, 2px, accent) */
   #np-progress {
     position: fixed;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     height: 2px;
     width: 0%;
     background: rgb(var(--accent));
-    box-shadow: 0 0 8px rgb(var(--accent) / 0.7);
     z-index: 9999;
     opacity: 0;
     transition: width 300ms ease, opacity 200ms ease;
     pointer-events: none;
   }
+
+  /* Reduzierte Bewegung: Überblendung statt Bewegung */
+  @media (prefers-reduced-motion: reduce) {
+    details[open] > summary ~ * {
+      animation-name: np-fade;
+    }
+    #np-progress {
+      transition: opacity 150ms ease;
+    }
+  }
 }
 
 @keyframes np-slide-down {
-  from { opacity: 0; transform: translateY(-6px); }
+  from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes np-fade-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
+@keyframes np-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
