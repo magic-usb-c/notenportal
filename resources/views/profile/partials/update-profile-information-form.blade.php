@@ -106,6 +106,8 @@
                     $altAkzent = $altAkzent === null || array_key_exists($altAkzent, \App\Support\Darstellung::AKZENTE) ? $altAkzent : ($praeferenzen['akzent'] ?? null);
                     $altSchrift = old('schrift', $praeferenzen['schrift'] ?? 'normal');
                     $altSchrift = in_array($altSchrift, \App\Support\Darstellung::SCHRIFTGROESSEN, true) ? $altSchrift : ($praeferenzen['schrift'] ?? 'normal');
+                    $altDichte = old('dichte', $praeferenzen['dichte'] ?? 'normal');
+                    $altDichte = in_array($altDichte, \App\Support\Darstellung::DICHTEN, true) ? $altDichte : ($praeferenzen['dichte'] ?? 'normal');
                     $altBewegungReduziert = (bool) old('bewegung_reduziert', ($praeferenzen['bewegung'] ?? 'normal') === 'reduziert');
                 @endphp
                 <div class="mt-5 flex flex-col gap-5"
@@ -113,6 +115,7 @@
                          theme: @js($altTheme ?? ''),
                          akzent: @js($altAkzent ?? ''),
                          schrift: @js($altSchrift),
+                         dichte: @js($altDichte),
                          bewegungReduziert: @js($altBewegungReduziert),
                          dunkel: document.documentElement.classList.contains('dark'),
                          betriebTheme: @js($betriebTheme),
@@ -126,6 +129,8 @@
                              }
                              if (this.schrift === 'normal') delete document.documentElement.dataset.schrift;
                              else document.documentElement.dataset.schrift = this.schrift;
+                             if (this.dichte === 'normal') delete document.documentElement.dataset.dichte;
+                             else document.documentElement.dataset.dichte = this.dichte;
                              if (this.bewegungReduziert) document.documentElement.dataset.bewegung = 'reduziert';
                              else delete document.documentElement.dataset.bewegung;
                          },
@@ -195,11 +200,52 @@
                         @error('schrift')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
+                    {{-- Dichte: Tabellenzeilen, Karten-Padding und -Abstände (Live-Vorschau wie Farbthema/Schrift) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Dichte') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['normal' => __('Normal'), 'kompakt' => __('Kompakt')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="dichte" value="{{ $wert }}" class="sr-only" x-model="dichte" @change="anwenden()"
+                                           @checked($altDichte === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('dichte')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
                     <label for="bewegung_reduziert" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                         <input id="bewegung_reduziert" name="bewegung_reduziert" type="checkbox" value="1" x-model="bewegungReduziert" @change="anwenden()"
                                class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
                         {{ __('Bewegungen reduzieren') }}
                     </label>
+
+                    {{-- Übersicht: Dashboard-Karten der eigenen Rolle ein-/ausblenden (App\Support\DashboardKarten) --}}
+                    @if(($dashboardRolle ?? null) && ($dashboardKarten ?? []))
+                        @php
+                            $kartenStandardSichtbar = array_values(array_diff(array_keys($dashboardKarten), $praeferenzen['karten_ausgeblendet'] ?? []));
+                            $altKartenSichtbar = (array) old('karten', $kartenStandardSichtbar);
+                        @endphp
+                        <fieldset>
+                            <legend class="text-sm font-medium text-text">{{ __('Übersicht') }}</legend>
+                            <p class="mt-1 text-xs text-muted">{{ __('Karten auf dem Dashboard ein- oder ausblenden.') }}</p>
+                            <input type="hidden" name="karten_uebermittelt" value="1">
+                            <div class="mt-2 flex flex-col gap-1.5">
+                                @foreach($dashboardKarten as $schluessel => $bezeichnung)
+                                    <label class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
+                                        <input type="checkbox" name="karten[]" value="{{ $schluessel }}"
+                                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30"
+                                               @checked(in_array($schluessel, $altKartenSichtbar, true))>
+                                        {{ __(':karte anzeigen', ['karte' => __($bezeichnung)]) }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('karten')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                            @error('karten.*')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                        </fieldset>
+                    @endif
                 </div>
             @elseif($kontrastOption ?? false)
                 <label for="kontrast" class="mt-3 flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">

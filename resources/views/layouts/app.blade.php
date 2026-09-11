@@ -5,7 +5,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $darstellung === 'dunkel' ? 'dark' : '' }}" data-theme="{{ $npTheme ?? 'gletscher' }}"
       @if($npAkzent ?? null) data-akzent="{{ $npAkzent }}" @endif
       @if(($npSchrift ?? 'normal') !== 'normal') data-schrift="{{ $npSchrift }}" @endif
-      @if(($npBewegung ?? 'normal') !== 'normal') data-bewegung="{{ $npBewegung }}" @endif>
+      @if(($npBewegung ?? 'normal') !== 'normal') data-bewegung="{{ $npBewegung }}" @endif
+      @if(($npDichte ?? 'normal') !== 'normal') data-dichte="{{ $npDichte }}" @endif>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,7 +26,14 @@
                 document.documentElement.classList.toggle('dark', dunkel);
             })();
 
+            {{-- Meldung im vorhandenen Toast (unten rechts, siehe <x-toast> weiter unten),
+                 wenn ein optimistisch übernommener Schnellwechsel nicht gespeichert werden konnte. --}}
+            function npFehlermeldung() {
+                window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Änderung konnte nicht gespeichert werden.')) } }));
+            }
+
             window.npToggleTheme = function () {
+                const vorherDunkel = document.documentElement.classList.contains('dark');
                 const dunkel = document.documentElement.classList.toggle('dark');
                 try { localStorage.setItem('theme', dunkel ? 'dark' : 'light'); } catch (e) {}
                 fetch(@js(route('profile.appearance')), {
@@ -36,6 +44,72 @@
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify({ darstellung: dunkel ? 'dunkel' : 'hell' }),
+                }).then(function (antwort) {
+                    if (antwort.ok) return;
+                    document.documentElement.classList.toggle('dark', vorherDunkel);
+                    try { localStorage.setItem('theme', vorherDunkel ? 'dark' : 'light'); } catch (e) {}
+                    npFehlermeldung();
+                }).catch(function () {
+                    document.documentElement.classList.toggle('dark', vorherDunkel);
+                    try { localStorage.setItem('theme', vorherDunkel ? 'dark' : 'light'); } catch (e) {}
+                    npFehlermeldung();
+                });
+            };
+
+            {{-- Schnellwechsel aus der Befehlspalette (resources/js/suche.js): '#art:wert' –
+                 Attribut sofort setzen (kein Warten auf die Antwort), dann speichern. Schlägt das
+                 PATCH fehl (Netzwerk, 419 abgelaufene Sitzung, sonstiger Fehlerstatus), wird der
+                 optimistisch gesetzte Wert zurückgesetzt und eine Meldung angezeigt. --}}
+            window.npBefehl = function (ziel) {
+                const treffer = /^#(darstellung|theme|schrift|dichte):(.+)$/.exec(ziel);
+                if (!treffer) return;
+                const [, art, wert] = treffer;
+                const root = document.documentElement;
+
+                const vorher = {
+                    dunkel: root.classList.contains('dark'),
+                    theme: root.dataset.theme,
+                    schrift: root.dataset.schrift,
+                    dichte: root.dataset.dichte,
+                };
+                const zuruecksetzen = function () {
+                    root.classList.toggle('dark', vorher.dunkel);
+                    if (vorher.theme === undefined) delete root.dataset.theme; else root.dataset.theme = vorher.theme;
+                    if (vorher.schrift === undefined) delete root.dataset.schrift; else root.dataset.schrift = vorher.schrift;
+                    if (vorher.dichte === undefined) delete root.dataset.dichte; else root.dataset.dichte = vorher.dichte;
+                    npFehlermeldung();
+                };
+
+                if (art === 'darstellung') {
+                    let dunkel = wert === 'dunkel';
+                    if (wert === 'system') {
+                        dunkel = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    }
+                    root.classList.toggle('dark', dunkel);
+                    try {
+                        if (wert === 'system') localStorage.removeItem('theme');
+                        else localStorage.setItem('theme', dunkel ? 'dark' : 'light');
+                    } catch (e) {}
+                } else if (art === 'theme') {
+                    root.dataset.theme = wert;
+                } else if (art === 'schrift' || art === 'dichte') {
+                    const attribut = art === 'schrift' ? 'schrift' : 'dichte';
+                    if (wert === 'normal') delete root.dataset[attribut];
+                    else root.dataset[attribut] = wert;
+                }
+
+                fetch(@js(route('profile.preferences')), {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ [art]: wert }),
+                }).then(function (antwort) {
+                    if (!antwort.ok) zuruecksetzen();
+                }).catch(function () {
+                    zuruecksetzen();
                 });
             };
         </script>

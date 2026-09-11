@@ -76,6 +76,7 @@ class ProfileTest extends TestCase
                 'akzent' => 'petrol',
                 'schrift' => 'gross',
                 'bewegung_reduziert' => '1',
+                'dichte' => 'kompakt',
             ])
             ->assertSessionHasNoErrors();
 
@@ -85,8 +86,68 @@ class ProfileTest extends TestCase
             'akzent' => 'petrol',
             'schrift' => 'gross',
             'bewegung' => 'reduziert',
+            'dichte' => 'kompakt',
+            'karten_ausgeblendet' => [],
         ], $user->praeferenzen);
         $this->assertFalse($user->kontrast);
+    }
+
+    #[Test]
+    public function dashboard_karten_werden_beim_speichern_ausgeblendet(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                'schrift' => 'normal',
+                'karten_uebermittelt' => '1',
+                'karten' => ['stand', 'ziele'],
+            ])
+            ->assertSessionHasNoErrors();
+
+        $ausgeblendet = $user->refresh()->praeferenzen['karten_ausgeblendet'];
+        sort($ausgeblendet);
+        $this->assertSame(['als_naechstes', 'letzte_noten', 'verlauf', 'wo_stehe_ich'], $ausgeblendet);
+    }
+
+    #[Test]
+    public function unbekannte_karte_wird_abgewiesen(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                'schrift' => 'normal',
+                'karten_uebermittelt' => '1',
+                'karten' => ['stand', 'nicht-vorhanden'],
+            ])
+            ->assertSessionHasErrors('karten.1');
+
+        $this->assertNull($user->refresh()->praeferenzen);
+    }
+
+    #[Test]
+    public function alle_karten_abwaehlen_wird_abgewiesen(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                'schrift' => 'normal',
+                'karten_uebermittelt' => '1',
+                'karten' => [],
+            ])
+            ->assertSessionHasErrors('karten');
+
+        $this->assertNull($user->refresh()->praeferenzen);
     }
 
     #[Test]

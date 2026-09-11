@@ -287,6 +287,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile/appearance', [ProfileController::class, 'darstellung'])->name('profile.appearance');
+    Route::patch('/profile/preferences', [ProfileController::class, 'preferences'])
+        ->middleware('throttle:30,1,preferences')->name('profile.preferences');
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
 });
 

@@ -44,7 +44,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Auslöser: neue Note/Korrektur/Kommentar, Note gesehen, Prüfungserinnerung, fehlende Note nach Prüfung, Inaktivität, Semesterende, Betreuung, Import, Feedback, Sicherung fehlgeschlagen, Passwort geändert
 - Hell/Dunkel serverseitig gespeichert, Flash-Toast, Fehlerseiten 403/404/500
 - Farbthemen Gletscher, Sandstein, Pflaume, Graphit, Wald, Abendrot, Papier, Mitternacht, Kontrast (je hell/dunkel, WCAG AA, Kontrast AAA, per Test geprüft); Betriebs-Theme auf «Betrieb» mit Vorschau
-- Persönliche Darstellung im Profil mit Live-Vorschau: eigenes Theme oder «Wie Betrieb», Akzentfarbe (7 Farben), Schriftgrösse (normal/gross/sehr gross), Bewegungen reduzieren
+- Persönliche Darstellung im Profil mit Live-Vorschau: eigenes Theme oder «Wie Betrieb», Akzentfarbe (7 Farben), Schriftgrösse (normal/gross/sehr gross), Dichte (normal/kompakt: kleinere Tabellenzeilen und Kartenabstände), Bewegungen reduzieren; Übersicht: Dashboard-Karten der eigenen Rolle einzeln aus-/einblenden (mind. eine sichtbar); Schnellwechsel für Theme/Schrift/Dichte auch über Ctrl+K
 - Feedback: schwebender Knopf, Benutzermenü und Ctrl+K «Feedback melden», einmaliger Hinweis nach dem Login; Kategorien Fehler/Idee/Frage/Lob; Seite, Rolle, Browser, Zeit, letzte JS-Fehler und optional ein Screenshot werden automatisch mitgeschickt; Admins antworten, Absender wird benachrichtigt
 - Liquid-Glass-System, Chart.js-Diagramme mit Theme-Tokens
 - Grenzwerte (gut/genügend/kritisch), Rundung Gesamtschnitt und Fristen aus `einstellungen`

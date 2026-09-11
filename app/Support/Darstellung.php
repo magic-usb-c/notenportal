@@ -28,6 +28,12 @@ final class Darstellung
 
     public const array BEWEGUNGEN = [self::BEWEGUNG_NORMAL, self::BEWEGUNG_REDUZIERT];
 
+    public const string DICHTE_NORMAL = 'normal';
+
+    public const string DICHTE_KOMPAKT = 'kompakt';
+
+    public const array DICHTEN = [self::DICHTE_NORMAL, self::DICHTE_KOMPAKT];
+
     /** Wert => Bezeichnung */
     public const array AKZENTE = [
         'blau' => 'Blau',
@@ -62,7 +68,7 @@ final class Darstellung
      * Gültige, aufbereitete Präferenzen für die Seite. Ungültige oder fehlende Werte
      * fallen auf den Standard zurück (theme/akzent: null = wie Betrieb/Theme).
      *
-     * @return array{theme: ?string, akzent: ?string, schrift: string, bewegung: string}
+     * @return array{theme: ?string, akzent: ?string, schrift: string, bewegung: string, dichte: string, karten_ausgeblendet: list<string>}
      */
     public static function fuer(?User $user): array
     {
@@ -88,6 +94,28 @@ final class Darstellung
             $bewegung = self::BEWEGUNG_NORMAL;
         }
 
-        return ['theme' => $theme, 'akzent' => $akzent, 'schrift' => $schrift, 'bewegung' => $bewegung];
+        $dichte = $rohdaten['dichte'] ?? self::DICHTE_NORMAL;
+        if (! in_array($dichte, self::DICHTEN, true)) {
+            $dichte = self::DICHTE_NORMAL;
+        }
+
+        $kartenAusgeblendet = $rohdaten['karten_ausgeblendet'] ?? [];
+        if (! is_array($kartenAusgeblendet)) {
+            $kartenAusgeblendet = [];
+        }
+        $gueltigeKarten = DashboardKarten::alleSchluessel();
+        $kartenAusgeblendet = array_values(array_unique(array_filter(
+            $kartenAusgeblendet,
+            fn ($wert) => is_string($wert) && in_array($wert, $gueltigeKarten, true)
+        )));
+
+        return [
+            'theme' => $theme,
+            'akzent' => $akzent,
+            'schrift' => $schrift,
+            'bewegung' => $bewegung,
+            'dichte' => $dichte,
+            'karten_ausgeblendet' => $kartenAusgeblendet,
+        ];
     }
 }

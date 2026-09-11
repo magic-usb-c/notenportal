@@ -103,6 +103,43 @@ final class Navigation
         $befehle[] = ['label' => __('Feedback melden'), 'url' => '#feedback-modal', 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Meine Meldungen'), 'url' => route('feedback.index'), 'gruppe' => __('Konto')];
 
+        foreach (self::darstellungsBefehle() as $befehl) {
+            $befehle[] = $befehl;
+        }
+
+        return $befehle;
+    }
+
+    /**
+     * Schnellwechsel für die Befehlspalette (Darstellung, Farbthema, Schrift, Dichte). Ausgeführt
+     * clientseitig (resources/js/suche.js liest die Ziel-URL '#art:wert'), gespeichert über
+     * PATCH /profile/preferences bzw. /profile/appearance.
+     *
+     * @return list<array{label: string, url: string, gruppe: string}>
+     */
+    private static function darstellungsBefehle(): array
+    {
+        $gruppe = __('Darstellung');
+        $befehle = [
+            ['label' => __('Darstellung: Hell'), 'url' => '#darstellung:hell', 'gruppe' => $gruppe],
+            ['label' => __('Darstellung: Dunkel'), 'url' => '#darstellung:dunkel', 'gruppe' => $gruppe],
+            ['label' => __('Darstellung: Wie Gerät'), 'url' => '#darstellung:system', 'gruppe' => $gruppe],
+        ];
+
+        if (! Darstellung::praeferenzenOptionVerfuegbar()) {
+            return $befehle;
+        }
+
+        foreach (Theme::THEMES as $wert => $name) {
+            $befehle[] = ['label' => __('Theme: :name', ['name' => $name]), 'url' => '#theme:'.$wert, 'gruppe' => $gruppe];
+        }
+
+        $befehle[] = ['label' => __('Schrift: Normal'), 'url' => '#schrift:normal', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Schrift: Gross'), 'url' => '#schrift:gross', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Schrift: Sehr gross'), 'url' => '#schrift:sehr-gross', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Dichte: Normal'), 'url' => '#dichte:normal', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Dichte: Kompakt'), 'url' => '#dichte:kompakt', 'gruppe' => $gruppe];
+
         return $befehle;
     }
 

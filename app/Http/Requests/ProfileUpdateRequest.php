@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Support\Darstellung;
+use App\Support\DashboardKarten;
 use App\Support\Theme;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,11 +27,18 @@ class ProfileUpdateRequest extends FormRequest
         ];
 
         if (Darstellung::praeferenzenOptionVerfuegbar()) {
+            $rolle = DashboardKarten::rolleFuer($user);
+
             $regeln += [
                 'theme' => ['nullable', Rule::in(array_keys(Theme::THEMES))],
                 'akzent' => ['nullable', Rule::in(array_keys(Darstellung::AKZENTE))],
                 'schrift' => ['nullable', Rule::in(Darstellung::SCHRIFTGROESSEN)],
                 'bewegung_reduziert' => ['nullable', 'boolean'],
+                'dichte' => ['nullable', Rule::in(Darstellung::DICHTEN)],
+                // «karten_uebermittelt» (verstecktes Feld im Formular) unterscheidet «Abschnitt nicht
+                // angezeigt/gesendet» von «Benutzer hat alle Karten abgewählt» (min. eine Pflicht).
+                'karten' => [Rule::requiredIf($this->boolean('karten_uebermittelt') && $rolle !== null), 'array'],
+                'karten.*' => [Rule::in(array_keys(DashboardKarten::fuerRolle($rolle)))],
             ];
         }
 

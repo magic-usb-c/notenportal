@@ -12,10 +12,10 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-raster max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             {{-- Braucht Aufmerksamkeit --}}
-            @if(count($aufmerksamkeit))
+            @if(($sichtbar['aufmerksamkeit'] ?? true) && count($aufmerksamkeit))
                 <x-karte :titel="__('Braucht Aufmerksamkeit')" :polster="false">
                     <div class="divide-y divide-border/70">
                         @foreach($aufmerksamkeit as $eintrag)
@@ -36,6 +36,7 @@
             @endif
 
             {{-- Meine Lernenden --}}
+            @if($sichtbar['lernende'] ?? true)
             <x-karte :titel="__('Meine Lernenden')" :polster="false"
                      x-data="{
                         filter: 'alle',
@@ -132,9 +133,11 @@
                     </div>
                 @endif
             </x-karte>
+            @endif
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {{-- Nächste 14 Tage --}}
+                @if($sichtbar['agenda'] ?? true)
                 <x-karte :titel="__('Nächste 14 Tage')" :link="route('trainer.exams.index')" :link-text="__('Alle Termine')" class="lg:col-span-8" :polster="false">
                     @if($agenda->isEmpty())
                         <p class="px-5 py-8 text-center text-sm text-muted">{{ __('Keine geplant') }}</p>
@@ -159,9 +162,10 @@
                         </div>
                     @endif
                 </x-karte>
+                @endif
 
                 {{-- Lehrende bald --}}
-                @if($lehrende->isNotEmpty())
+                @if(($sichtbar['lehrende'] ?? true) && $lehrende->isNotEmpty())
                     <x-karte :titel="__('Lehrende bald')" class="lg:col-span-4" :polster="false">
                         <div class="divide-y divide-border/70">
                             @foreach($lehrende as $l)

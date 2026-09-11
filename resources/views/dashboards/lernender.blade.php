@@ -26,9 +26,10 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-flow-row-dense lg:grid-cols-12 lg:px-8">
+        <div class="np-raster mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-flow-row-dense lg:grid-cols-12 lg:px-8">
 
             {{-- Stand: Heldenzahl, Bullet Graph, Semester, Kategorien --}}
+            @if($sichtbar['stand'] ?? true)
             <x-karte titel="{{ __('Stand') }}" class="lg:col-span-8">
                 @if($a->gesamtNote !== null)
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
@@ -75,8 +76,10 @@
                     </p>
                 @endif
             </x-karte>
+            @endif
 
             {{-- Als Nächstes: Überfälliges oben, dann Hinweise, Prüfungen, fehlende Module --}}
+            @if($sichtbar['als_naechstes'] ?? true)
             @php $spalte = collect($alsNaechstes)->contains(fn ($t) => $t['datum'] !== null) ? 'w-10' : 'w-2'; @endphp
             <x-karte titel="{{ __('Als Nächstes') }}" class="lg:col-span-4 lg:self-start" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
                 @if($alsNaechstes)
@@ -110,9 +113,10 @@
                     </p>
                 @endif
             </x-karte>
+            @endif
 
             {{-- Wo stehe ich pro Fach und Modul --}}
-            @if($anzahlBalken > 0)
+            @if(($sichtbar['wo_stehe_ich'] ?? true) && $anzahlBalken > 0)
                 <x-karte titel="{{ __('Wo stehe ich') }}" class="lg:col-span-8"
                          x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
                     <x-slot:aktionen>
@@ -159,7 +163,7 @@
             @endif
 
             {{-- Ziele: nur wenn gesetzt --}}
-            @if($ziele)
+            @if(($sichtbar['ziele'] ?? true) && $ziele)
                 <x-karte titel="{{ __('Ziele') }}" class="lg:col-span-4" :link="route('learner.grades.calculator')" :link-text="__('Rechner')" :polster="false">
                     <ul class="divide-y divide-border">
                         @foreach($ziele as $z)
@@ -198,7 +202,7 @@
             @endif
 
             {{-- Verlauf: mobil zugeklappt --}}
-            @if(count($verlauf['labels']) > 0)
+            @if(($sichtbar['verlauf'] ?? true) && count($verlauf['labels']) > 0)
                 <details open x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }" x-init="$el.open = {{ $desktop }}"
                          class="group relative rounded-xl border border-border bg-card lg:col-span-8">
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
@@ -258,7 +262,7 @@
             @endif
 
             {{-- Letzte Noten: mobil zugeklappt --}}
-            @if($letzteNoten->isNotEmpty())
+            @if(($sichtbar['letzte_noten'] ?? true) && $letzteNoten->isNotEmpty())
                 <details open x-init="$el.open = {{ $desktop }}" class="group relative rounded-xl border border-border bg-card lg:col-span-4">
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
                              @click="if ({{ $desktop }}) $event.preventDefault()">

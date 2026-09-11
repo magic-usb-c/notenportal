@@ -156,6 +156,16 @@ class ThemeTest extends TestCase
     }
 
     #[Test]
+    public function data_dichte_wird_nur_gesetzt_wenn_nicht_standard(): void
+    {
+        $standard = User::factory()->lernender()->create();
+        $this->actingAs($standard)->get(route('learner.dashboard'))->assertDontSee('data-dichte', false);
+
+        $kompakt = User::factory()->lernender()->create(['praeferenzen' => ['dichte' => 'kompakt']]);
+        $this->actingAs($kompakt)->get(route('learner.dashboard'))->assertSee('data-dichte="kompakt"', false);
+    }
+
+    #[Test]
     public function beim_theme_kontrast_wird_data_akzent_nicht_gesetzt(): void
     {
         $user = User::factory()->lernender()->create([

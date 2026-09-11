@@ -48,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('npAkzent', $theme === Theme::KONTRAST ? null : $praeferenzen['akzent']);
             $view->with('npSchrift', $praeferenzen['schrift']);
             $view->with('npBewegung', $praeferenzen['bewegung']);
+            $view->with('npDichte', $praeferenzen['dichte']);
         });
 
         View::composer('layouts.navigation', function ($view) {

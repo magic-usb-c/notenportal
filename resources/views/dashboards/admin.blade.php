@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="np-raster max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Statuszeile --}}
             <div class="lg:col-span-12 flex flex-wrap items-baseline gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-5 py-3">
@@ -39,7 +39,7 @@
             </div>
 
             {{-- Handlungsbedarf: eine Liste statt mehrerer Karten (Einrichtungslücken, Sicherung, Meldungen, kritische Lernende) --}}
-            @if($handlungsbedarf)
+            @if(($sichtbar['handlungsbedarf'] ?? true) && $handlungsbedarf)
                 <section class="lg:col-span-12 rounded-xl border border-border bg-card overflow-hidden">
                     <h3 class="px-5 pt-4 pb-2 text-sm font-semibold text-text">{{ __('Handlungsbedarf') }}</h3>
                     <div class="divide-y divide-border/70">
@@ -70,42 +70,46 @@
             @endif
 
             {{-- Berufsbildner --}}
-            <x-karte :titel="__('Berufsbildner')" class="lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
-                        <thead class="sticky top-0 bg-surface-2">
-                            <tr>
-                                <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Kritisch') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Beobachten') }}</th>
-                                <th scope="col" class="h-9 px-5 text-right text-2xs font-medium text-muted">{{ __('Ungesehen') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-border">
-                            @forelse($proBb as $bb)
-                                <tr class="h-11">
-                                    <td class="px-5 text-text">{{ $bb->name }}</td>
-                                    <td class="px-3 text-right text-muted">{{ $bb->lernende }}</td>
-                                    <td class="px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
-                                    <td class="px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
-                                    <td class="px-5 text-right {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
+            @if($sichtbar['berufsbildner'] ?? true)
+                <x-karte :titel="__('Berufsbildner')" class="lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm tabular-nums">
+                            <thead class="sticky top-0 bg-surface-2">
+                                <tr>
+                                    <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Kritisch') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Beobachten') }}</th>
+                                    <th scope="col" class="h-9 px-5 text-right text-2xs font-medium text-muted">{{ __('Ungesehen') }}</th>
                                 </tr>
-                            @empty
-                                <tr><td colspan="5" class="px-5 py-8 text-center text-muted">{{ __('Noch keine Berufsbildner') }}</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </x-karte>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @forelse($proBb as $bb)
+                                    <tr class="h-11">
+                                        <td class="px-5 text-text">{{ $bb->name }}</td>
+                                        <td class="px-3 text-right text-muted">{{ $bb->lernende }}</td>
+                                        <td class="px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
+                                        <td class="px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
+                                        <td class="px-5 text-right {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="5" class="px-5 py-8 text-center text-muted">{{ __('Noch keine Berufsbildner') }}</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </x-karte>
+            @endif
 
-            <x-karte :titel="__('Erfasste Noten pro Woche')" class="lg:col-span-5">
-                <div class="h-52" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">
-                    <canvas x-ref="canvas" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}"></canvas>
-                </div>
-            </x-karte>
+            @if($sichtbar['aktivitaet'] ?? true)
+                <x-karte :titel="__('Erfasste Noten pro Woche')" class="lg:col-span-5">
+                    <div class="h-52" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">
+                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}"></canvas>
+                    </div>
+                </x-karte>
+            @endif
 
-            @if($lehrende->isNotEmpty())
+            @if(($sichtbar['lehrende'] ?? true) && $lehrende->isNotEmpty())
                 <x-karte :titel="__('Lehrende bald')" class="lg:col-span-12" :polster="false">
                     <div class="divide-y divide-border/70">
                         @foreach($lehrende as $l)
