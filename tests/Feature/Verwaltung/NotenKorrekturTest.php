@@ -46,6 +46,15 @@ class NotenKorrekturTest extends TestCase
     }
 
     #[Test]
+    public function notenliste_filter_hat_ohne_js_einen_absende_button(): void
+    {
+        $this->actingAs($this->bb)
+            ->get(route('trainer.learners.grades.index', $this->lernender->lernender_id))
+            ->assertOk()
+            ->assertSeeInOrder(['<noscript>', 'Filtern', '</noscript>'], false);
+    }
+
+    #[Test]
     public function berufsbildner_korrigiert_note_und_lernender_sieht_geaendert_von(): void
     {
         $this->actingAs($this->bb)

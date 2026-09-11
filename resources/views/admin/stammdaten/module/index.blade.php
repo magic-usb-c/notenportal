@@ -73,11 +73,11 @@
                             <table class="w-full text-sm tabular-nums">
                                 <thead class="sticky top-0 bg-surface-2">
                                     <tr>
-                                        <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Nummer</th>
-                                        <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Titel</th>
-                                        <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
-                                        <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                                        <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Nummer</th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Titel</th>
+                                        <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
+                                        <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border">
@@ -97,11 +97,11 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Nummer</th>
-                                <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Titel</th>
-                                <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
-                                <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                                <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Nummer</th>
+                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Titel</th>
+                                <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
+                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
+                                <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">

@@ -106,10 +106,10 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Paket 3 – Lernende (11.09.2026) – bewusst weggelassen
 
-- Drawer für «+ Note» nur auf `/grades`; auf der Übersicht führt «+ Note» noch auf die Seite `grades/create` (Drawer dort bräuchte das Formular-Markup auch im Dashboard).
+- ~~Drawer für «+ Note» nur auf `/grades`; auf der Übersicht führt «+ Note» noch auf die Seite `grades/create`.~~ erledigt (11.09., Reste-Session): `NoteService::drawerNachFehler()` + neue Komponente `<x-noten-drawer>` extrahiert, Dashboard (`dashboards/lernender.blade.php`) nutzt jetzt denselben Drawer wie `/grades`.
 - Kein «Als Tabelle»-Umschalter für die Diagramme «Wo stehe ich» und «Verlauf» (Screenreader bekommen nur `aria-label`/Tooltip).
-- Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.
-- `np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).
+- ~~Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.~~ erledigt (11.09., Reste-Session): `x-radiogroup`-Direktive in `np.js` (Roving Tabindex + Pfeiltasten), angewendet auf alle `role="radiogroup"`-Container in `resources/views` (native `<input type="radio">` in `notifications/settings.blade.php` bewusst unverändert, dort bereits nativ bedienbar).
+- ~~`np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).~~ erledigt (11.09., Reste-Session): `TEXT`-Map auf `text-note-*`-Tokens umgestellt.
 - Bullet Graph beschriftet nur Grenzwerte (3.5/4.0/5.0), keine Bandnamen; lange Fach-/Modulnamen in «Wo stehe ich» mobil auf 16 Zeichen gekürzt (voll im Tooltip).
 - `x-sparkline` zeigt jetzt standardmässig den letzten Wert als Zahl – auch in der BB-Tabelle; dort ggf. `:zahl="false"` setzen (Paket 4).
 - Einzelnoten-Tabelle mobil: Spalte «Schnitt vor Rundung» ab `sm` ausgeblendet.
@@ -130,6 +130,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - Erledigt: Admin-Übersicht neu strukturiert – eine «Handlungsbedarf»-Liste oben (Einrichtungslücken, Sicherung älter als 2 Tage, offene Meldungen, kritische Lernende) statt vier Karten, Kennzahlen als Statuszeile, Berufsbildner-Last- und Erfassung-12-Wochen-Karten bleiben. Backend dafür: `Uebersicht::admin()` liefert jetzt `handlungsbedarf` statt `einrichtung`/`kritisch`/`jahrgaenge`, neue private Methode `adminHandlungsbedarf()`.
 - Erledigt: `admin/einrichtung/*` und `admin/berichte/noten` auf `<x-seitenkopf>` umgestellt; Diagramm-Logik in `admin/berichte/noten` unverändert gelassen.
 - Erledigt: Bare-`glass`-Alias durch Tokens (`rounded-2xl border border-border bg-card` bzw. `rounded-xl …`) ersetzt, `glass-btn` unverändert gelassen; dabei auch verstreute Farb-Hardcodes (`red-*`, `green-*`, `yellow-*`) auf Noten-Tokens umgestellt.
+- Erledigt (Reste-Session, 11.09.): letzter verbliebener Nutzer des Alias (`layouts/guest.blade.php`) auf Tokens umgestellt; `@utility glass` danach ohne Nutzer und aus `resources/css/app.css` entfernt (`glass-overlay`/`glass-bar`/`glass-scrim`/`glass-btn` bleiben bestehen).
 - Test: `tests/Feature/Admin/DashboardTest.php` neu (Statuszeile/Handlungsbedarf, Sicherung-Alter-Hinweis) – zusammen mit dem restlichen Admin/Verwaltung-Testset grün (67 bzw. 45 Tests via `DB_DATABASE=notenportal_d_test`).
 - Bug gefunden und behoben (nicht Teil der eigentlichen Aufgabe, aber blockierend): `admin/benutzer/index.blade.php` mischte die Inline-Form `@php(...)` mit einer späteren Block-Form `@php … @endphp` im selben Template – Blade paart beim Kompilieren den *ersten* `@php` unabhängig von seiner Form mit dem *nächsten* `@endphp` und verschluckte dadurch den kompletten Abschnitt dazwischen (Filterleiste, Tabelle) als unkompilierten Rohblock, was zu einem 500er auf `/admin/users` führte. Fix: Zeile auf reines `<?php … ?>` umgestellt; nur diese eine Zeile geändert, keine Alt-Logik berührt.
 - Bewusst weggelassen: Migration der Karte «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard in den Notenbericht (`admin/berichte/noten`) – laut Vorgabe darf die Diagramm-Logik dort nicht angefasst werden; die Karte wurde nur aus dem Dashboard entfernt, eine gleichwertige Darstellung im Notenbericht steht noch aus (nächstes Paket).
@@ -137,7 +138,15 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Sichtprüfung Pakete 3–5 (11.09.2026)
 
-- Admin «Erfasste Noten pro Woche»: KW-Beschriftungen schräg; laut Konzept jede 4. KW beschriften, nicht schräg (`charts.js`).
-- `/admin/learners` mobil: jede Karte hat einen gefüllten «Noten»-Button → mehrere Primäraktionen; «Noten» sekundär oder Zeilenklick.
-- Lernenden-Verlauf: Direktlabels kürzerer Reihen («ÜK», «ABU») stehen auf der Linie am Reihenende statt rechts neben der Grafik.
+- ~~Admin «Erfasste Noten pro Woche»: KW-Beschriftungen schräg; laut Konzept jede 4. KW beschriften, nicht schräg (`charts.js`).~~ erledigt (Reste-Session): `maxRotation`/`minRotation` 0, Tick-`callback` beschriftet nur jede 4. KW (von rechts gezählt).
+- ~~`/admin/learners` mobil: jede Karte hat einen gefüllten «Noten»-Button → mehrere Primäraktionen; «Noten» sekundär oder Zeilenklick.~~ erledigt (Reste-Session): «Noten»-Link auf sekundären Stil (Rahmen statt `bg-accent`) umgestellt, «Profil» bleibt einzige Primäraktion.
+- ~~Lernenden-Verlauf: Direktlabels kürzerer Reihen («ÜK», «ABU») stehen auf der Linie am Reihenende statt rechts neben der Grafik.~~ erledigt (Reste-Session): `direktlabelPlugin` verankert die X-Position jetzt immer am rechten Plot-Rand (`chartArea.right + 6`) statt am eigenen letzten Datenpunkt der Reihe.
 - «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard entfernt, im Notenbericht noch nicht ergänzt.
+
+## Nachbesserungen Sichtprüfung Paket 5 (11.09.2026, Reste-Session)
+
+Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
+
+- Filterformular in `verwaltung/noten/index.blade.php` liess sich ohne JS nicht absenden (nur `onchange` auf den `<select>`n) → `<noscript>`-Button «Filtern» ergänzt; Test `NotenKorrekturTest::notenliste_filter_hat_ohne_js_einen_absende_button`.
+- `filterleiste.blade.php`: «Weitere Filter»-Panel nutzte `x-cloak` und blieb ohne JS dauerhaft unsichtbar (z. B. «Inaktive anzeigen» in `verwaltung/lernende/index`) → `x-cloak` entfernt, Alpine-State startet offen (`offen: true`), wenn in «Weitere» aktive Filter stehen.
+- `scope="col"` auf allen `<th>` ergänzt in: `verwaltung/lernende/index`, `admin/benutzer/index`, `admin/feedback/index`, `admin/berufsbildner/index`, `admin/stammdaten/{module,kategorien,lehrberufe,faecher,semester}/index`, `admin/mail-log/index`, `dashboards/admin` (Berufsbildner-Last-Tabelle). `admin/notifications/index` und `verwaltung/noten/index` enthalten keine `<th>` (keine Tabelle) — nichts zu ändern.

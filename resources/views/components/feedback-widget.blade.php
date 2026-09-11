@@ -47,7 +47,7 @@
             </div>
             <p class="mb-4 text-sm text-muted">Fehler, Ideen, Fragen oder Lob – alles ist willkommen.</p>
 
-            <div class="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-0.5 sm:grid-cols-4" role="radiogroup" aria-label="Kategorie">
+            <div class="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-0.5 sm:grid-cols-4" role="radiogroup" x-radiogroup aria-label="Kategorie">
                 @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
                     <button type="button" @click="kategorie = '{{ $value }}'" role="radio"
                             :aria-checked="kategorie === '{{ $value }}'"

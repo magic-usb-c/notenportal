@@ -97,6 +97,9 @@
                             @endforeach
                         </select>
                     </div>
+                    <noscript>
+                        <button type="submit" class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary">Filtern</button>
+                    </noscript>
                     @if($gefiltert)
                         <div class="flex">
                             <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"

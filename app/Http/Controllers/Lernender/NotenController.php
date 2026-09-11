@@ -143,41 +143,8 @@ class NotenController extends Controller
             'nextSemesterId' => $nextSemesterId,
             'anzahl' => $notes->count(),
             'belegungen' => $belegungen,
-            'drawerFehler' => $this->drawerNachFehler($request, $lernender),
+            'drawerFehler' => $this->noteService->drawerNachFehler($request, $lernender),
         ]);
-    }
-
-    /**
-     * Validierungsfehler aus dem Drawer: Formular mit alter Eingabe wieder im Drawer anzeigen.
-     *
-     * @return array{titel: string, daten: array<string, mixed>}|null
-     */
-    private function drawerNachFehler(Request $request, Lernender $lernender): ?array
-    {
-        $kontext = (string) $request->old('_drawer', '');
-        if ($kontext === '') {
-            return null;
-        }
-
-        $daten = [
-            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
-            'semesterListe' => $this->noteService->semesterListe(),
-            'drawer' => $kontext,
-        ];
-        if ($kontext === 'neu') {
-            return ['titel' => 'Neue Note', 'daten' => $daten];
-        }
-        if (preg_match('/^bearbeiten:(\d+)$/', $kontext, $m)) {
-            $note = Note::query()
-                ->with(['fach', 'modulBelegung.modul'])
-                ->where('note_id', (int) $m[1])
-                ->where('lernender_id', (int) $lernender->lernender_id)
-                ->first();
-
-            return $note ? ['titel' => 'Note bearbeiten', 'daten' => $daten + ['note' => $note]] : null;
-        }
-
-        return null;
     }
 
     public function create(Request $request)

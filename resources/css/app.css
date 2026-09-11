@@ -122,18 +122,6 @@
    Deckung ≥ 0.78, damit Text die Token-Kontraste hält.
    ========================================================================== */
 
-@utility glass {
-  /* Bestandsklasse für Inhaltskarten → G0/E0: feste Fläche, kein Glas */
-  background-color: rgb(var(--card));
-  border: 1px solid rgb(var(--border));
-  box-shadow: none;
-  /* Dialoge (Modal, Suche) bekommen E3 */
-  &:where([role='dialog'], [aria-modal='true']) {
-    box-shadow: var(--elev-3);
-    border-color: rgb(var(--border-strong) / 0.3);
-  }
-}
-
 @utility glass-bar {
   /* G1 Leiste: Hauptnavigation, Sticky-Toolbar */
   background-color: rgb(var(--card-rgb) / 0.78);

@@ -75,11 +75,11 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-5 text-left text-2xs font-medium text-muted">Name</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Lernende</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Kritisch</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Beobachten</th>
-                                <th class="h-9 px-5 text-right text-2xs font-medium text-muted">Ungesehen</th>
+                                <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">Name</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">Lernende</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">Kritisch</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">Beobachten</th>
+                                <th scope="col" class="h-9 px-5 text-right text-2xs font-medium text-muted">Ungesehen</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">

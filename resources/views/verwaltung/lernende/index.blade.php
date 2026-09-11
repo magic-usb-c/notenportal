@@ -132,7 +132,7 @@
                             <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
                                class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Profil</a>
                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">Noten</a>
+                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Noten</a>
                         </div>
                     </div>
                 @empty
@@ -145,16 +145,16 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">{!! $sortLink('name', 'Name') !!}</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('lehrjahr', 'Lehrberuf / Lj') !!}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{!! $sortLink('name', 'Name') !!}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('lehrjahr', 'Lehrberuf / Lj') !!}</th>
                                 @if($bereich === 'admin')
-                                    <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Berufsbildner</th>
+                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Berufsbildner</th>
                                 @endif
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Noten</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('last_note', 'Letzte Note') !!}</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('avg', 'Ø gesamt') !!}</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Status</th>
-                                <th class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Noten</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('last_note', 'Letzte Note') !!}</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('avg', 'Ø gesamt') !!}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Status</th>
+                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">

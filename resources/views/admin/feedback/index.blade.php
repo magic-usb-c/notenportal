@@ -50,12 +50,12 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Datum</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Absender</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Kategorie</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Text</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Aktionen</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Datum</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Absender</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Kategorie</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Text</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Aktionen</th>
                             </tr>
                         </thead>
                         @forelse($meldungen as $m)

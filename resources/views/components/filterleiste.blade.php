@@ -17,7 +17,7 @@
     «Filtern»-Button), No-JS-Fallback per <noscript>-Button. «Weitere Filter» als Disclosure.
     Mobil: Suche + Button «Filter (n)», der Primär- und Weitere Filter gemeinsam aufklappt.
 --}}
-<div x-data="{ offen: false }" class="rounded-xl border border-border bg-card p-3">
+<div x-data="{ offen: {{ $aktiveWeitere > 0 ? 'true' : 'false' }} }" class="rounded-xl border border-border bg-card p-3">
     <form method="{{ $method }}" action="{{ $action }}" class="flex flex-col gap-3">
         {{ $hidden ?? '' }}
 
@@ -74,7 +74,8 @@
         </div>
 
         @isset($weitere)
-            <div x-show="offen" x-transition.opacity.duration.150ms x-cloak
+            {{-- kein x-cloak: ohne JS bleibt der Block sichtbar (bzw. bei aktiven Weitere-Filtern serverseitig offen) --}}
+            <div x-show="offen" x-transition.opacity.duration.150ms
                  class="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
                 {{ $weitere }}
             </div>

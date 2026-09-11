@@ -30,10 +30,10 @@ export function stufe(wert, grenzen = STANDARD_GRENZEN) {
 }
 
 const TEXT = {
-    gut: 'text-green-700 dark:text-green-400',
-    genuegend: 'text-emerald-700 dark:text-emerald-400',
-    knapp: 'text-yellow-700 dark:text-yellow-400',
-    ungenuegend: 'text-red-600 dark:text-red-400',
+    gut: 'text-note-gut',
+    genuegend: 'text-note-genuegend',
+    knapp: 'text-note-knapp',
+    ungenuegend: 'text-note-ungenuegend',
 };
 
 export function notenKlasse(wert, grenzen) {
@@ -65,4 +65,36 @@ export function tokenFarbe(name, alpha = 1) {
 export function notenFarbe(wert, grenzen, alpha = 1) {
     const s = stufe(wert, grenzen);
     return s ? tokenFarbe(`--note-${s}`, alpha) : tokenFarbe('--muted', alpha);
+}
+
+// Segmented Control (role="radiogroup"): Pfeiltasten links/rechts bewegen den Fokus und wählen
+// (roving tabindex – nur ein [role="radio"] ist im Tab-Weg). Einsatz: <div role="radiogroup" x-radiogroup>.
+export function registriereRadiogroup(Alpine) {
+    Alpine.directive('radiogroup', (el, directive, { cleanup }) => {
+        const radios = () => Array.from(el.querySelectorAll('[role="radio"]'))
+            .filter((r) => !r.disabled && r.getAttribute('aria-disabled') !== 'true' && r.offsetParent !== null);
+
+        const rovingTabindex = () => {
+            const liste = radios();
+            const aktiv = liste.find((r) => r.getAttribute('aria-checked') === 'true') ?? liste[0];
+            liste.forEach((r) => r.setAttribute('tabindex', r === aktiv ? '0' : '-1'));
+        };
+
+        rovingTabindex();
+        // aria-checked (Auswahl) und style/class (x-show-Sichtbarkeit) ändern sich reaktiv über Alpine
+        const beobachter = new MutationObserver(rovingTabindex);
+        beobachter.observe(el, { attributes: true, attributeFilter: ['aria-checked', 'style', 'class'], subtree: true });
+        cleanup(() => beobachter.disconnect());
+
+        el.addEventListener('keydown', (ev) => {
+            if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+            const liste = radios();
+            const i = liste.indexOf(document.activeElement);
+            if (i === -1) return;
+            ev.preventDefault();
+            const naechster = liste[(i + (ev.key === 'ArrowRight' ? 1 : -1) + liste.length) % liste.length];
+            naechster.focus();
+            naechster.click();
+        });
+    });
 }

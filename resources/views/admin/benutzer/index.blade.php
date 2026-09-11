@@ -98,11 +98,11 @@
                     <table class="w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Benutzer</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Benutzername</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Rollen</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
-                                <th class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Benutzer</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Benutzername</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Rollen</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
+                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">

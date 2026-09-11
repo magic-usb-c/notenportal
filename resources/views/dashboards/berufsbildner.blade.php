@@ -49,7 +49,7 @@
                 <x-slot:aktionen>
                     <input type="search" x-model="suche" placeholder="Suchen" aria-label="Lernende suchen"
                            class="h-8 w-28 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
-                    <div role="radiogroup" aria-label="Filter" class="hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex">
+                    <div role="radiogroup" x-radiogroup aria-label="Filter" class="hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex">
                         <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Alle ' + zaehlAlle"></button>
                         <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Kritisch ' + zaehlKritisch"></button>
                         <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Beobachten ' + zaehlBeobachten"></button>

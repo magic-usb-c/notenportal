@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Services\Noten\NoteService;
 use App\Services\Uebersicht;
 use App\Support\Einrichtung;
 use Illuminate\Http\RedirectResponse;
@@ -12,13 +13,19 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __construct(private readonly Uebersicht $uebersicht) {}
+    public function __construct(
+        private readonly Uebersicht $uebersicht,
+        private readonly NoteService $noteService,
+    ) {}
 
     public function lernender(Request $request): View
     {
         $lernender = $request->user()->lernender ?? abort(403);
 
-        return view('dashboards.lernender', $this->uebersicht->lernender($lernender->load('lehrberuf'), $request->user()));
+        $daten = $this->uebersicht->lernender($lernender->load('lehrberuf'), $request->user());
+        $daten['drawerFehler'] = $this->noteService->drawerNachFehler($request, $lernender);
+
+        return view('dashboards.lernender', $daten);
     }
 
     public function berufsbildner(Request $request): View

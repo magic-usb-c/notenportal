@@ -67,7 +67,7 @@
 
             {{-- Werkzeugzeile: Ansicht links, Kategorien rechts --}}
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-sm" role="radiogroup" aria-label="Ansicht">
+                <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="Ansicht">
                     <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'" class="{{ $segment }}">Semester</button>
                     <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'" class="{{ $segment }}">Zeugnisübersicht</button>
                 </div>
@@ -187,57 +187,9 @@
     </div>
 
     {{-- Erfassen/Bearbeiten im Drawer; create/edit bleiben als Seiten für Direktlinks und ohne JS --}}
-    <div x-data="npNoteDrawer(@js(['titel' => $drawerFehler['titel'] ?? 'Neue Note', 'server' => (bool) $drawerFehler]))"
-         x-on:np-note.window="oeffnen($event.detail.url, $event.detail.titel)">
-        <x-drawer name="note" titel="Note">
-            <x-slot:kopf><span x-text="titel">{{ $drawerFehler['titel'] ?? 'Neue Note' }}</span></x-slot:kopf>
-            @if($drawerFehler)
-                <template x-if="server">
-                    <div>@include('lernender.noten.partials.formular', $drawerFehler['daten'])</div>
-                </template>
-            @endif
-            <div x-show="! server" x-html="html"></div>
-            <div x-show="laedt" x-cloak class="flex flex-col gap-4" aria-hidden="true">
-                <div class="mx-auto h-20 w-36 rounded-xl bg-surface-2"></div>
-                <div class="h-10 rounded-lg bg-surface-2"></div>
-                <div class="h-10 rounded-lg bg-surface-2"></div>
-            </div>
-        </x-drawer>
-    </div>
+    <x-noten-drawer :fehler="$drawerFehler" />
 
     <script>
-        function npNoteDrawer(start) {
-            return {
-                titel: start.titel,
-                server: start.server,
-                html: '',
-                laedt: false,
-                init() {
-                    if (this.server) this.$nextTick(() => this.$dispatch('open-drawer', 'note'));
-                },
-                async oeffnen(url, titel) {
-                    this.titel = titel;
-                    this.server = false;
-                    this.html = '';
-                    this.laedt = true;
-                    this.$dispatch('open-drawer', 'note');
-                    try {
-                        const ziel = new URL(url, window.location.origin);
-                        ziel.searchParams.set('drawer', '1');
-                        // X-Requested-With: die Session merkt sich den Fragment-Abruf nicht als «vorherige URL»
-                        const res = await fetch(ziel, { headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' } });
-                        if (!res.ok || res.redirected) throw new Error(res.status);
-                        this.html = await res.text();
-                        this.$nextTick(() => this.$root.querySelector('#note_wert')?.focus());
-                    } catch (e) {
-                        window.location.href = url;
-                    } finally {
-                        this.laedt = false;
-                    }
-                },
-            };
-        }
-
         function npTitelEdit(initial, url) {
             return {
                 titel: initial,

@@ -16,7 +16,8 @@
         <x-seitenkopf titel="Hallo {{ auth()->user()->vorname }}" :untertitel="$meta">
             <x-slot:aktionen>
                 <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Prüfung planen</a>
-                <a href="{{ route('learner.grades.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: 'Neue Note' })"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none" aria-hidden="true">+</span> Note
                 </a>
             </x-slot:aktionen>
@@ -68,7 +69,8 @@
                 @else
                     <p class="flex items-center gap-3 text-sm text-muted">
                         Noch keine Noten
-                        <a href="{{ route('learner.grades.create') }}" class="text-accent-text underline-offset-2 hover:underline">Erste Note erfassen</a>
+                        <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: 'Neue Note' })"
+                           class="text-accent-text underline-offset-2 hover:underline">Erste Note erfassen</a>
                     </p>
                 @endif
             </x-karte>
@@ -113,7 +115,7 @@
                 <x-karte titel="Wo stehe ich" class="lg:col-span-8"
                          x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
                     <x-slot:aktionen>
-                        <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" aria-label="Zeitraum">
+                        <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="Zeitraum">
                             <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length"
                                     class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs" x-text="d.semester.name"></button>
                             <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'"
@@ -177,7 +179,7 @@
                     </summary>
                     <div class="px-5 pb-5">
                         <div class="mb-2 flex flex-wrap items-center justify-end gap-2 lg:absolute lg:right-5 lg:top-2 lg:mb-0">
-                            <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" aria-label="Ebene">
+                            <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="Ebene">
                                 <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'"
                                         class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">Kategorien</button>
                                 <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length"
@@ -225,4 +227,7 @@
             @endif
         </div>
     </div>
+
+    {{-- Erfassen im Drawer wie auf /grades --}}
+    <x-noten-drawer :fehler="$drawerFehler" />
 </x-app-layout>

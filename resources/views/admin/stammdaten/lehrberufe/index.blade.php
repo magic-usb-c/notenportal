@@ -19,10 +19,10 @@
                 <table class="w-full text-sm">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Kürzel</th>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                            <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Kürzel</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
+                            <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">

@@ -51,14 +51,14 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Zeit</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Empfänger</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Anlass</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Betreff</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
-                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Versuche</th>
-                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Fehler</th>
-                                <th class="h-9 px-3 text-right"><span class="sr-only">Aktion</span></th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Zeit</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Empfänger</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Anlass</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Betreff</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Versuche</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Fehler</th>
+                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">Aktion</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">

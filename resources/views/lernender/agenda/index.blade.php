@@ -2,7 +2,7 @@
     <x-slot name="title">Agenda</x-slot>
     <x-slot name="header">
         <x-seitenkopf titel="Agenda">
-            <div class="inline-flex rounded-lg bg-bg/60 border border-border p-0.5 text-sm" role="radiogroup" aria-label="Ansicht">
+            <div class="inline-flex rounded-lg bg-bg/60 border border-border p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="Ansicht">
                 <a href="{{ route('learner.exams.index', array_filter(['ansicht' => null, 'lektionen' => $zeigeLektionen ? 1 : null])) }}"
                    role="radio" aria-checked="{{ $ansicht === 'liste' ? 'true' : 'false' }}"
                    class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'liste' ? 'bg-card text-accent shadow-xs' : 'text-muted' }}">Liste</a>

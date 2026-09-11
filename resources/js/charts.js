@@ -72,7 +72,8 @@ const direktlabelPlugin = {
             const letzter = punkte[punkte.length - 1];
             if (!letzter) return;
             const breite = ctx.measureText(ds.label).width;
-            const x = Math.max(chartArea.left, Math.min(letzter.x + 6, chart.width - breite - 2));
+            // Immer rechts neben dem Plotbereich verankert (nie auf der Linie), Höhe nach dem letzten Punkt der Reihe
+            const x = Math.min(chartArea.right + 6, chart.width - breite - 2);
             labels.push({ text: ds.label, farbe: ds.borderColor, x, breite, y: letzter.y });
         });
 
@@ -279,7 +280,11 @@ const BAUER = {
                 plugins: { ...basis().plugins, legend: { display: false },
                     tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${c.parsed.y}` } } },
                 scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: tokenFarbe('--border', 0.7) }, border: { display: false } },
-                    x: { grid: { display: false }, border: { display: false } } },
+                    // nur jede 4. Beschriftung (z. B. KW), nie schräg
+                    x: { grid: { display: false }, border: { display: false },
+                        // von rechts (aktuellste Woche) her jede 4. beschriften, nie schräg
+                        ticks: { maxRotation: 0, minRotation: 0, autoSkip: false,
+                            callback(v, i) { return (this.chart.data.labels.length - 1 - i) % 4 === 0 ? this.getLabelForValue(v) : ''; } } } },
             },
         };
     },

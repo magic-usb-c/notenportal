@@ -27,7 +27,7 @@
 
     <body class="font-sans antialiased bg-bg text-text">
         <div class="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-bg">
-            <div class="w-full max-w-sm glass rounded-2xl overflow-hidden px-6 py-8">
+            <div class="w-full max-w-sm rounded-2xl border border-border bg-card overflow-hidden px-6 py-8">
                 {{ $slot }}
             </div>
 

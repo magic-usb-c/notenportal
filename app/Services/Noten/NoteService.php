@@ -6,10 +6,10 @@ use App\Models\Fach;
 use App\Models\Kategorie;
 use App\Models\Lernender;
 use App\Models\ModulBelegung;
-use App\Models\ModulNoteGruppe;
 use App\Models\Note;
 use App\Models\Semester;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -367,6 +367,40 @@ class NoteService
         uksort($gruppen, fn ($a, $b) => array_search($a, $reihenfolge, true) <=> array_search($b, $reihenfolge, true));
 
         return $gruppen;
+    }
+
+    /**
+     * Validierungsfehler aus dem Notendrawer (Erfassen/Bearbeiten): Formular mit alter Eingabe
+     * wieder im Drawer anzeigen – unabhängig davon, von welcher Seite der Drawer geöffnet wurde.
+     *
+     * @return array{titel: string, daten: array<string, mixed>}|null
+     */
+    public function drawerNachFehler(Request $request, Lernender $lernender): ?array
+    {
+        $kontext = (string) $request->old('_drawer', '');
+        if ($kontext === '') {
+            return null;
+        }
+
+        $daten = [
+            'bezugOptionen' => $this->bezugOptionen((int) $lernender->lernender_id),
+            'semesterListe' => $this->semesterListe(),
+            'drawer' => $kontext,
+        ];
+        if ($kontext === 'neu') {
+            return ['titel' => 'Neue Note', 'daten' => $daten];
+        }
+        if (preg_match('/^bearbeiten:(\d+)$/', $kontext, $m)) {
+            $note = Note::query()
+                ->with(['fach', 'modulBelegung.modul'])
+                ->where('note_id', (int) $m[1])
+                ->where('lernender_id', (int) $lernender->lernender_id)
+                ->first();
+
+            return $note ? ['titel' => 'Note bearbeiten', 'daten' => $daten + ['note' => $note]] : null;
+        }
+
+        return null;
     }
 
     /**

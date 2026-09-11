@@ -19,14 +19,14 @@
                 <table class="w-full text-sm tabular-nums">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Code</th>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
-                            <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Sortierung</th>
-                            <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Rundung</th>
-                            <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Gewicht</th>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Promotion</th>
-                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                            <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Code</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
+                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Sortierung</th>
+                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Rundung</th>
+                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Gewicht</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Promotion</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
+                            <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">

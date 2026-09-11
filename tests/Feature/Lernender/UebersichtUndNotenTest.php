@@ -104,6 +104,28 @@ class UebersichtUndNotenTest extends TestCase
     }
 
     #[Test]
+    public function dashboard_note_knopf_oeffnet_denselben_drawer_wie_grades(): void
+    {
+        $this->get(route('learner.dashboard'))->assertOk()
+            ->assertSee("dispatch('np-note'", false)
+            ->assertSee('npNoteDrawer(', false);
+    }
+
+    #[Test]
+    public function fehler_im_dashboard_drawer_oeffnet_das_formular_dort_wieder(): void
+    {
+        $this->from(route('learner.dashboard'))
+            ->post(route('learner.grades.store'), ['_drawer' => 'neu', 'typ' => 'modul', 'modul_id' => $this->modul, 'note_wert' => '9'])
+            ->assertRedirect(route('learner.dashboard'))
+            ->assertSessionHasErrors(['note_wert', 'pruefungsdatum']);
+
+        $this->get(route('learner.dashboard'))->assertOk()
+            ->assertSee('x-if="server"', false)
+            ->assertSee('name="_drawer" value="neu"', false)
+            ->assertSee('id="note_wert-fehler"', false);
+    }
+
+    #[Test]
     public function drawer_laedt_nur_das_formular_und_bleibt_bei_fremden_noten_zu(): void
     {
         $this->note('4.5');
