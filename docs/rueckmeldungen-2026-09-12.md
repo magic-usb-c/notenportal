@@ -21,7 +21,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | # | Punkt | Status |
 |---|---|---|
 | 7 | Feedback-Kategorie «Lob» → «Sonstiges» | offen |
-| 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | offen |
+| 8 | Benutzermenü entschlacken (Einstellungen, Feedback, Abmelden); eigene Einstellungsseite für Tastenkürzel, Benachrichtigungen, Datenexport, Sprache, Themes, Kalender und Integrationen | in Arbeit |
 | 9 | Semesteranzeige relativ je Lernender («1. Semester» statt «24/25-1»), überall im GUI | in Arbeit |
 | 10 | Notenrechner übersichtlicher und verständlicher; öffnet standardmässig den relevantesten Tab (Fach/Modul), nicht «Gesamt» | in Arbeit |
 | 11 | Restdauer des aktuellen Semesters mit passender Einheit (Monate → Wochen → Tage) | in Arbeit (mit #9) |
@@ -33,4 +33,4 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | 13 | Layout nutzt das Browserfenster zu wenig: breitere Container, mehrspaltig auf grossen Bildschirmen, Skalierung prüfen | offen |
 | 14 | Modulstatus: Dauer seit Beginn, Abgabetermine je Modul/Fach (verknüpft mit Prüfungen), Fortschritt bis zum nächsten und letzten Termin, bewerteter Anteil nach Gewichtung | offen (Migration) |
 | 15 | Kalender bearbeitbar synchronisieren (Outlook, Nextcloud CalDAV u. a.), nicht nur iCal lesend; Termine auch aus externem Kalender ins Portal | offen (Design läuft) |
-| 16 | Datenimporte intelligenter: exakt so, wie die Datenbank es erwartet (Zuordnung, Vorschau, Validierung) | offen |
+| 16 | Datenimporte intelligenter: exakt so, wie die Datenbank es erwartet (Zuordnung, Vorschau, Validierung) | in Arbeit (H1–H3: Vorschau prüft die DB-Regeln, alles-oder-nichts) |
