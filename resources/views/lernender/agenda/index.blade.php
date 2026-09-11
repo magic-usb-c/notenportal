@@ -11,20 +11,14 @@
                    class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'monat' ? 'bg-card text-accent shadow-xs' : 'text-muted' }}">{{ __('Monat') }}</a>
             </div>
             <x-slot:aktionen>
-                <a href="{{ route('learner.exams.index') }}?kalender=1" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Kalender-Abo') }}</a>
+                <a href="{{ route('learner.exams.index') }}?kalender=1" x-data @click.prevent="$dispatch('open-drawer', 'kalender')" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Kalender-Abo') }}</a>
                 <a href="{{ route('learner.grades.calculator') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Was brauche ich?') }}</a>
-                <a href="{{ route('learner.exams.index') }}?planen=1" class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">{{ __('Prüfung planen') }}</a>
+                <a href="{{ route('learner.exams.index') }}?planen=1" x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">{{ __('Prüfung planen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
 
-    <div class="py-6" x-data="{
-            init() {
-                @if($bearbeiten || request()->has('planen')) this.$dispatch('open-drawer', 'pruefung'); @endif
-                @if(request()->has('kalender')) this.$dispatch('open-drawer', 'kalender'); @endif
-            },
-            tagAusgewaehlt: null,
-        }">
+    <div class="py-6" x-data="{ tagAusgewaehlt: null }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
@@ -143,11 +137,11 @@
             @endif
         </div>
 
-        <x-drawer name="pruefung" :titel="$bearbeiten ? __('Prüfung bearbeiten') : __('Prüfung planen')">
+        <x-drawer name="pruefung" :offen="$bearbeiten || request()->has('planen')" :titel="$bearbeiten ? __('Prüfung bearbeiten') : __('Prüfung planen')">
             @include('lernender.agenda._form')
         </x-drawer>
 
-        <x-drawer name="kalender" titel="{{ __('Kalender-Abo') }}">
+        <x-drawer name="kalender" :offen="request()->has('kalender')" titel="{{ __('Kalender-Abo') }}">
             @include('lernender.agenda._kalender')
         </x-drawer>
 

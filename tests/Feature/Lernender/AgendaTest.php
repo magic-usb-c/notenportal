@@ -300,6 +300,17 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function drawer_oeffnet_per_parameter_serverseitig(): void
+    {
+        // Ein open-drawer aus dem init() der Seite käme vor dem Listener der Drawer an – deshalb Startzustand vom Server.
+        $this->actingAs($this->user)->get(route('learner.exams.index'))
+            ->assertOk()->assertDontSee('offen: true', false);
+
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['kalender' => 1]))
+            ->assertOk()->assertSee('offen: true', false);
+    }
+
+    #[Test]
     public function reminder_inhalt_enthaelt_pruefungsart_dauer_hilfsmittel_stoff_und_notizen(): void
     {
         $p = $this->planen([

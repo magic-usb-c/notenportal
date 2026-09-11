@@ -2,6 +2,7 @@
     'name',
     'titel' => null,
     'breite' => 'md',
+    'offen' => false,   // beim Laden geöffnet (z. B. ?planen=1) – ein open-drawer aus einem äusseren init() käme vor dem Listener
 ])
 
 @php
@@ -14,7 +15,7 @@
 --}}
 <div
     x-data="{
-        offen: false,
+        offen: @js((bool) $offen),
         focusables() {
             let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, [tabindex]:not([tabindex=\'-1\'])'
             return [...$el.querySelectorAll(selector)].filter(el => ! el.hasAttribute('disabled'))
@@ -24,6 +25,7 @@
         naechsterFokus() { return this.focusables()[(this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1)] || this.ersterFokus() },
         vorherigerFokus() { return this.focusables()[Math.max(0, this.focusables().indexOf(document.activeElement)) - 1] || this.letzterFokus() },
     }"
+    x-init="offen && $nextTick(() => ersterFokus()?.focus())"
     x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { offen = true; $nextTick(() => ersterFokus()?.focus()) }"
     x-on:close-drawer.window="$event.detail === '{{ $name }}' ? offen = false : null"
     x-on:keydown.escape.window="offen = false"
