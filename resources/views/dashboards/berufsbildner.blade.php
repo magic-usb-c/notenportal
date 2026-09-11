@@ -135,7 +135,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {{-- Nächste 14 Tage --}}
-                <x-karte :titel="__('Nächste 14 Tage')" class="lg:col-span-8" :polster="false">
+                <x-karte :titel="__('Nächste 14 Tage')" :link="route('trainer.exams.index')" :link-text="__('Alle Termine')" class="lg:col-span-8" :polster="false">
                     @if($agenda->isEmpty())
                         <p class="px-5 py-8 text-center text-sm text-muted">{{ __('Keine geplant') }}</p>
                     @else

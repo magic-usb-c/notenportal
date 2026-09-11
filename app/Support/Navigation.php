@@ -39,6 +39,7 @@ final class Navigation
             $user->hasRole('Admin') => [
                 self::link(__('Übersicht'), 'admin.dashboard', ['admin.dashboard'], 'start'),
                 self::link(__('Lernende'), 'admin.learners.index', ['admin.learners.*', 'admin.grades.*'], 'personen'),
+                self::link(__('Prüfungstermine'), 'admin.exams.index', ['admin.exams.*'], 'kalender'),
                 self::gruppe(__('Personen'), 'personen', [
                     self::link(__('Berufsbildner'), 'admin.trainers.index', ['admin.trainers.*']),
                     self::link(__('Benutzerkonten'), 'admin.users.index', ['admin.users.*']),
@@ -60,6 +61,7 @@ final class Navigation
             $user->hasRole('Berufsbildner') => [
                 self::link(__('Übersicht'), 'trainer.dashboard', ['trainer.dashboard'], 'start'),
                 self::link(__('Lernende'), 'trainer.learners.index', ['trainer.learners.*', 'trainer.grades.*'], 'personen'),
+                self::link(__('Prüfungstermine'), 'trainer.exams.index', ['trainer.exams.*'], 'kalender'),
             ],
             $user->hasRole('Lernender') => [
                 self::link(__('Übersicht'), 'learner.dashboard', ['learner.dashboard'], 'start'),

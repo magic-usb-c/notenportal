@@ -346,6 +346,31 @@ class AbfragenAnzahlTest extends TestCase
         $this->assertWaechstNicht($klein, $gross, 60, 'Lernenden-Detail');
     }
 
+    #[Test]
+    public function berufsbildner_pruefungstermine_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $betrieb = $this->betrieb();
+        $semester = $this->semesterReihe(2);
+        $bbUser = User::factory()->berufsbildner()->create();
+        $bbId = $bbUser->berufsbildner->berufsbildner_id;
+
+        $macheLernende = function (int $anzahl) use ($betrieb, $semester, $bbId) {
+            for ($i = 0; $i < $anzahl; $i++) {
+                $lernender = $this->lernender($betrieb, Carbon::parse($semester->first()->start_datum), Carbon::parse($semester->last()->end_datum));
+                Betreuung::factory()->create(['berufsbildner_id' => $bbId, 'lernender_id' => $lernender->lernender_id]);
+                $this->pruefungen($betrieb, $lernender, 2);
+            }
+        };
+
+        $macheLernende(3);
+        $klein = $this->abfragenFuer(fn () => $this->actingAs($bbUser)->get(route('trainer.exams.index'))->assertOk());
+
+        $macheLernende(12);
+        $gross = $this->abfragenFuer(fn () => $this->actingAs($bbUser)->get(route('trainer.exams.index'))->assertOk());
+
+        $this->assertWaechstNicht($klein, $gross, 40, 'Berufsbildner-Prüfungstermine');
+    }
+
     // --- Admin: Dashboard, Lernende, Berichte, Mail-Log --------------------------------------
 
     #[Test]

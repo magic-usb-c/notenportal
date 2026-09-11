@@ -96,7 +96,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Agenda, Feedback, Themes (11.09.2026)
 
-- iCal-Export-Oberfläche für Berufsbildner/Admins: Server kann es (`CalendarExport::forUser`), Anzeige nur für Lernende gebaut – Bedarf im Pilot abwarten.
+- ~~iCal-Export-Oberfläche für Berufsbildner/Admins: Server kann es (`CalendarExport::forUser`), Anzeige nur für Lernende gebaut – Bedarf im Pilot abwarten.~~ erledigt 11.09.: Seite «Prüfungstermine» (`/exams`) mit Abo-Box (Link, Kopieren, `webcal://`, Neuen-Link-Button) für Berufsbildner/Admin gebaut, Termin-URL im iCal zeigt für sie neu aufs Lernenden-Cockpit, alle iCal-Texte in der Sprache des Empfängers.
 - Feedback: keine Screenshot-Vorschau vor dem Senden (Aufnahme erst beim Senden, robuster); keine Duplikaterkennung.
 - Agenda-Query-Parameter (`ansicht`, `monat`) noch deutsch; bei der späteren Code-Umbenennung mitziehen (LegacyPaths betrifft nur Pfade).
 - Mobile Filterformulare (Lernende, Benutzer) sehr lang: Filterleiste in GUI-Paket 5.

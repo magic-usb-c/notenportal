@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Einstellungen;
 use DateTimeImmutable;
 use DateTimeZone;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 use Sabre\VObject\Component\VCalendar;
 
@@ -40,10 +41,21 @@ final class CalendarExport
 
     public function forUser(User $user): string
     {
+        $vorherigeLocale = App::getLocale();
+        App::setLocale($user->preferredLocale());
+        try {
+            return $this->kalenderFuer($user);
+        } finally {
+            App::setLocale($vorherigeLocale);
+        }
+    }
+
+    private function kalenderFuer(User $user): string
+    {
         $betrieb = (string) Einstellungen::get(Einstellungen::BETRIEB_NAME, '');
         $kalender = new VCalendar([
             'PRODID' => '-//Notenportal//Agenda//DE',
-            'X-WR-CALNAME' => 'Notenportal'.($betrieb !== '' ? ' '.$betrieb : '').' – Prüfungen',
+            'X-WR-CALNAME' => 'Notenportal'.($betrieb !== '' ? ' '.$betrieb : '').' – '.__('Prüfungen'),
             'X-WR-TIMEZONE' => (string) config('app.timezone'),
             'X-PUBLISHED-TTL' => 'PT1H',
             'REFRESH-INTERVAL' => 'PT1H',
@@ -53,11 +65,13 @@ final class CalendarExport
         $lernender = $user->lernender;
         $ids = $lernender ? [(int) $lernender->lernender_id] : Lernender::sichtbarFuer($user)->pluck('lernender_id')->map(fn ($id) => (int) $id)->all();
         $mitName = $lernender === null;
+        // Einmal pro Abo bestimmen: hasRole() fragt die DB bei jedem Aufruf ab.
+        $cockpitRoute = $mitName ? ($user->hasRole('Admin') ? 'admin.learners.show' : 'trainer.learners.show') : null;
 
         Pruefung::query()->whereIn('lernender_id', $ids ?: [0])
             ->whereDate('datum', '>=', now()->subDays(self::DAYS_BACK)->toDateString())
             ->with(['fach', 'modul', 'lernender.benutzer', 'note'])->orderBy('datum')->get()
-            ->each(fn (Pruefung $p) => $this->pruefung($kalender, $p, $mitName));
+            ->each(fn (Pruefung $p) => $this->pruefung($kalender, $p, $mitName, $cockpitRoute));
 
         if ($lernender) {
             CalendarEvent::query()->where('lernender_id', $lernender->lernender_id)->where('kind', CalendarEvent::APPOINTMENT)
@@ -68,26 +82,34 @@ final class CalendarExport
         return $kalender->serialize();
     }
 
-    private function pruefung(VCalendar $kalender, Pruefung $p, bool $mitName): void
+    /** URL im Termin: eigene Agenda (Lernender) bzw. Cockpit des Lernenden (Berufsbildner/Admin). */
+    private function pruefungUrl(Pruefung $p, ?string $cockpitRoute): string
+    {
+        return $cockpitRoute === null
+            ? route('learner.exams.index')
+            : route($cockpitRoute, ['lernender_id' => $p->lernender_id]);
+    }
+
+    private function pruefung(VCalendar $kalender, Pruefung $p, bool $mitName, ?string $cockpitRoute): void
     {
         $name = $mitName ? ($p->lernender?->benutzer?->vorname.' '.$p->lernender?->benutzer?->nachname).': ' : '';
         $titel = trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : ''));
         $zeilen = array_filter([
-            $p->pruefungsart ? 'Prüfungsart: '.$p->pruefungsart : null,
-            $p->dauer_minuten ? 'Dauer: '.$p->dauer_minuten.' Minuten' : null,
-            $p->hilfsmittel ? 'Hilfsmittel: '.$p->hilfsmittel : null,
-            'Gewichtung: '.rtrim(rtrim(number_format((float) $p->gewichtung_prozent, 2, '.', ''), '0'), '.').' %',
-            $p->note ? 'Note: '.rtrim(rtrim(number_format((float) $p->note->note_wert, 2, '.', ''), '0'), '.') : null,
-            $p->stoff ? "\nPrüfungsstoff:\n".$p->stoff : null,
+            $p->pruefungsart ? __('Prüfungsart').': '.$p->pruefungsart : null,
+            $p->dauer_minuten ? __('Dauer').': '.__(':minuten Minuten', ['minuten' => $p->dauer_minuten]) : null,
+            $p->hilfsmittel ? __('Erlaubte Hilfsmittel').': '.$p->hilfsmittel : null,
+            __('Gewichtung').': '.rtrim(rtrim(number_format((float) $p->gewichtung_prozent, 2, '.', ''), '0'), '.').' %',
+            $p->note ? __('Note').': '.rtrim(rtrim(number_format((float) $p->note->note_wert, 2, '.', ''), '0'), '.') : null,
+            $p->stoff ? "\n".__('Prüfungsstoff').":\n".$p->stoff : null,
         ]);
 
         $event = $kalender->add('VEVENT', [
             'UID' => 'pruefung-'.$p->pruefung_id.'@'.parse_url((string) config('app.url'), PHP_URL_HOST),
-            'SUMMARY' => $name.'Prüfung '.$titel,
+            'SUMMARY' => $name.__('Prüfung').' '.$titel,
             'DTSTAMP' => new DateTimeImmutable('now', new DateTimeZone('UTC')),
             'DESCRIPTION' => implode("\n", $zeilen),
-            'CATEGORIES' => 'Prüfung',
-            'URL' => route('learner.exams.index'),
+            'CATEGORIES' => __('Prüfung'),
+            'URL' => $this->pruefungUrl($p, $cockpitRoute),
         ]);
         if ($p->raum) {
             $event->add('LOCATION', $p->raum);

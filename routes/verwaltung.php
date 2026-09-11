@@ -14,6 +14,7 @@ use App\Http\Controllers\Verwaltung\LernendeController;
 use App\Http\Controllers\Verwaltung\LernendeNotenController;
 use App\Http\Controllers\Verwaltung\NotenExportController;
 use App\Http\Controllers\Verwaltung\NotenGesehenController;
+use App\Http\Controllers\Verwaltung\PruefungenController;
 use App\Http\Controllers\Verwaltung\RechnerController;
 use App\Http\Controllers\Verwaltung\TrackController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,10 @@ Route::get('/learners', [LernendeController::class, 'index'])->name('learners.in
 Route::get('/learners/create', [LernendeController::class, 'create'])->name('learners.create');
 Route::post('/learners', [LernendeController::class, 'store'])->name('learners.store');
 Route::get('/grades/export', [NotenExportController::class, 'alle'])->name('grades.export_all');
+
+Route::get('/exams', [PruefungenController::class, 'index'])->name('exams.index');
+Route::post('/calendar/token', [PruefungenController::class, 'tokenReset'])
+    ->middleware('throttle:10,1,calendar-token')->name('calendar.token.reset');
 
 Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(function () {
     Route::get('/', [LernendeController::class, 'show'])->name('learners.show');

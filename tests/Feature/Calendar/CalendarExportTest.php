@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Calendar;
 
+use App\Http\Middleware\SetLocale;
 use App\Models\Betreuung;
 use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
 use App\Models\User;
 use App\Services\Calendar\CalendarExport;
+use App\Support\Einstellungen;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Sabre\VObject\Reader;
@@ -73,5 +75,70 @@ class CalendarExportTest extends TestCase
         $this->assertSame($a, CalendarExport::token($this->lernender->fresh()));
         $this->assertSame(48, strlen($a));
         $this->assertNotSame($a, CalendarExport::resetToken($this->lernender));
+    }
+
+    #[Test]
+    public function berufsbildner_termin_url_zeigt_auf_cockpit_des_lernenden(): void
+    {
+        $bb = User::factory()->berufsbildner()->create();
+        Betreuung::create([
+            'berufsbildner_id' => $bb->berufsbildner->berufsbildner_id,
+            'lernender_id' => $this->lernender->lernender->lernender_id,
+            'gueltig_von' => now()->subYear()->toDateString(),
+        ]);
+
+        $event = Reader::read(app(CalendarExport::class)->forUser($bb))->VEVENT;
+
+        $this->assertSame(
+            route('trainer.learners.show', ['lernender_id' => $this->lernender->lernender->lernender_id]),
+            (string) $event->URL,
+        );
+    }
+
+    #[Test]
+    public function admin_termin_url_zeigt_auf_cockpit_des_lernenden(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $event = Reader::read(app(CalendarExport::class)->forUser($admin))->VEVENT;
+
+        $this->assertSame(
+            route('admin.learners.show', ['lernender_id' => $this->lernender->lernender->lernender_id]),
+            (string) $event->URL,
+        );
+    }
+
+    #[Test]
+    public function abo_texte_folgen_der_sprache_des_empfaengers(): void
+    {
+        $bb = User::factory()->berufsbildner()->create(['locale' => 'en']);
+        Betreuung::create([
+            'berufsbildner_id' => $bb->berufsbildner->berufsbildner_id,
+            'lernender_id' => $this->lernender->lernender->lernender_id,
+            'gueltig_von' => now()->subYear()->toDateString(),
+        ]);
+        Einstellungen::set(SetLocale::WAHL_AKTIV, '1');
+
+        $ics = app(CalendarExport::class)->forUser($bb);
+        $event = Reader::read($ics)->VEVENT;
+
+        $this->assertStringContainsString('Duration: 45 minutes', (string) $event->DESCRIPTION);
+        $this->assertStringContainsString('Weighting', (string) $event->DESCRIPTION);
+        $this->assertStringContainsString('Exam', (string) $event->SUMMARY);
+        $this->assertSame('de', app()->getLocale(), 'Locale muss nach dem Export wieder zurückgesetzt sein.');
+    }
+
+    #[Test]
+    public function neuer_abo_link_macht_alten_ungueltig(): void
+    {
+        $altesToken = CalendarExport::token($this->lernender);
+        $this->get(route('calendar.export', ['token' => $altesToken]))->assertOk();
+
+        $this->actingAs($this->lernender)->post(route('learner.calendar.token.reset'))->assertRedirect();
+
+        $this->get(route('calendar.export', ['token' => $altesToken]))->assertNotFound();
+        $neuesToken = CalendarExport::token($this->lernender->fresh());
+        $this->assertNotSame($altesToken, $neuesToken);
+        $this->get(route('calendar.export', ['token' => $neuesToken]))->assertOk();
     }
 }
