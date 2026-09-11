@@ -1,19 +1,20 @@
 <x-app-layout>
     <x-slot name="title">Feedback</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Feedback</h2>
-            <a href="{{ route('admin.feedback.export', request()->query()) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
-                CSV-Export
-            </a>
-        </div>
+        <x-seitenkopf titel="Feedback">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.feedback.export', request()->query()) }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
+                    CSV-Export
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-            <div class="glass rounded-2xl p-4">
+            <div class="rounded-xl border border-border bg-card p-4">
                 <form method="GET" action="{{ route('admin.feedback.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
@@ -57,7 +58,7 @@
                 </form>
             </div>
 
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
@@ -111,16 +112,12 @@
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
                                     <td class="p-3 whitespace-nowrap align-top">
-                                        @php
-                                            $statusClasses = match ($m->status) {
-                                                \App\Models\Feedback::STATUS_ERLEDIGT => 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-                                                \App\Models\Feedback::STATUS_IN_ARBEIT => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-                                                default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
-                                            };
-                                        @endphp
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $statusClasses }}">
-                                            {{ \App\Models\Feedback::STATUS[$m->status] ?? $m->status }}
-                                        </span>
+                                        <x-status :status="match ($m->status) {
+                                                \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
+                                                \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
+                                                default => 'gelb',
+                                            }"
+                                            :text="\App\Models\Feedback::STATUS[$m->status] ?? $m->status" />
                                     </td>
                                     <td class="p-3 text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open"
@@ -179,11 +176,11 @@
                                                 </div>
                                                 <div class="flex items-center gap-3">
                                                     <button type="button" @click="speichern()" :disabled="saving"
-                                                            class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm disabled:opacity-50">
+                                                            class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm disabled:opacity-50">
                                                         <span x-show="!saving">Speichern</span>
                                                         <span x-show="saving">…</span>
                                                     </button>
-                                                    <span x-show="savedOk" x-cloak class="text-xs text-green-700 dark:text-green-400">Gespeichert.</span>
+                                                    <span x-show="savedOk" x-cloak class="text-xs text-note-gut">Gespeichert.</span>
                                                 </div>
                                             </div>
                                         </div>

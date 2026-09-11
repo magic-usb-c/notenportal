@@ -14,6 +14,9 @@ $maxWidth = [
 ][$maxWidth];
 @endphp
 
+{{-- An <body> gehängt, damit kein Stapelkontext der Seite den Scrim unter die Navigation drückt --}}
+<div x-data class="contents">
+<template x-teleport="body">
 <div
     x-data="{
         show: @js($show),
@@ -44,33 +47,35 @@ $maxWidth = [
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
     x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
     x-show="show"
-    class="fixed inset-0 overflow-y-auto px-4 py-6 sm:px-0 z-50"
+    class="fixed inset-0 z-[70] overflow-y-auto px-4 py-6 sm:px-0 sm:pt-[12vh]"
     style="display: {{ $show ? 'block' : 'none' }};"
 >
+    {{-- Scrim über der ganzen Seite, auch über der Navigation (z-50) --}}
     <div
         x-show="show"
-        class="fixed inset-0 transform transition-all"
+        class="fixed inset-0 glass-scrim"
         x-on:click="show = false"
-        x-transition:enter="ease-out duration-300"
+        aria-hidden="true"
+        x-transition:enter="transition-opacity ease-out duration-300"
         x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-200"
+        x-transition:leave="transition-opacity ease-in duration-200"
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
-    >
-        <div class="absolute inset-0 bg-black opacity-60"></div>
-    </div>
+    ></div>
 
     <div
         x-show="show"
-        class="mb-6 glass accent-glow text-text rounded-2xl overflow-hidden transform transition-all sm:w-full {{ $maxWidth }} sm:mx-auto"
-        x-transition:enter="ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave="ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        class="relative mb-6 overflow-hidden rounded-2xl border border-border-strong/30 bg-card text-text shadow-e3 sm:mx-auto sm:w-full {{ $maxWidth }}"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
     >
         {{ $slot }}
     </div>
+</div>
+</template>
 </div>

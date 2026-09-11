@@ -7,7 +7,7 @@
     <div>
         <label for="betrieb_name" class="{{ $label }}">Name des Betriebs *</label>
         <input id="betrieb_name" name="betrieb_name" type="text" required maxlength="120" value="{{ $wert('betrieb_name') }}" class="{{ $feld }}" autocomplete="organization">
-        @error('betrieb_name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+        @error('betrieb_name')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
     </div>
 
     <div x-data="{ gut: {{ (float) $wert('note_gut') }}, gen: {{ (float) $wert('note_genuegend') }}, krit: {{ (float) $wert('note_kritisch') }},
@@ -17,7 +17,7 @@
                 <div>
                     <label for="{{ $k }}" class="{{ $label }}">{{ $text }} *</label>
                     <input id="{{ $k }}" name="{{ $k }}" type="number" required min="1" max="6" step="0.05" value="{{ $wert($k) }}" x-model.number="{{ $modell }}" class="{{ $feld }} tabular-nums">
-                    @error($k)<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error($k)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
             @endforeach
         </div>
@@ -38,17 +38,17 @@
                     <option value="{{ $r }}" @selected(abs((float) $wert('rundung_gesamt') - (float) $r) < 0.0001)>{{ $r }}</option>
                 @endforeach
             </select>
-            @error('rundung_gesamt')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            @error('rundung_gesamt')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="frist_inaktiv_tage" class="{{ $label }}">Ohne neue Note nach (Tage) *</label>
             <input id="frist_inaktiv_tage" name="frist_inaktiv_tage" type="number" required min="7" max="365" value="{{ $wert('frist_inaktiv_tage') }}" class="{{ $feld }} tabular-nums">
-            @error('frist_inaktiv_tage')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            @error('frist_inaktiv_tage')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="frist_lehrende_tage" class="{{ $label }}">Lehrende ankündigen (Tage vorher) *</label>
             <input id="frist_lehrende_tage" name="frist_lehrende_tage" type="number" required min="7" max="365" value="{{ $wert('frist_lehrende_tage') }}" class="{{ $feld }} tabular-nums">
-            @error('frist_lehrende_tage')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            @error('frist_lehrende_tage')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </div>
     </div>
 </div>

@@ -1,20 +1,20 @@
 <x-app-layout>
     <x-slot name="title">Fächer</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Fächer</h2>
-            <a href="{{ route('admin.master-data.subjects.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
-                <span class="text-lg leading-none">+</span> Neues Fach
-            </a>
-        </div>
+        <x-seitenkopf titel="Fächer">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.subjects.create') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                    <span class="text-lg leading-none">+</span> Neues Fach
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-bg border-b border-border text-muted">
@@ -36,8 +36,7 @@
                                 <td class="px-4 py-3 text-muted">{{ $f->kategorie_name }}</td>
                                 <td class="px-4 py-3">
                                     @if($f->track_typ)
-                                        <span class="px-2 py-0.5 rounded-full text-xs
-                                            {{ $f->track_typ === 'BMS' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300' }}">
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-surface-2 text-text">
                                             {{ $f->track_typ }}
                                         </span>
                                     @else
@@ -47,7 +46,7 @@
                                 <td class="px-4 py-3 text-muted">{{ $f->lehrberuf_count }}</td>
                                 <td class="px-4 py-3">
                                     @if($f->aktiv)
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-note-gut/14 text-note-gut">aktiv</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>
                                     @endif
@@ -68,7 +67,6 @@
                 </table>
             </div>
             </div>
-
 
         </div>
     </div>

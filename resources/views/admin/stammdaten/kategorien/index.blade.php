@@ -1,20 +1,20 @@
 <x-app-layout>
     <x-slot name="title">Kategorien</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Notenkategorien</h2>
-            <a href="{{ route('admin.master-data.categories.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
-                <span class="text-lg leading-none">+</span> Neue Kategorie
-            </a>
-        </div>
+        <x-seitenkopf titel="Notenkategorien">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.categories.create') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                    <span class="text-lg leading-none">+</span> Neue Kategorie
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-bg border-b border-border text-muted">
@@ -39,14 +39,14 @@
                                 <td class="px-4 py-3 text-muted">{{ number_format((float) $k->gewicht_gesamt, 2) }}</td>
                                 <td class="px-4 py-3">
                                     @if(! is_null($k->promotion_min_schnitt))
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-note-gut/14 text-note-gut">aktiv</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">–</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
                                     @if($k->aktiv)
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>
+                                        <span class="px-2 py-0.5 rounded-full text-xs bg-note-gut/14 text-note-gut">aktiv</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>
                                     @endif

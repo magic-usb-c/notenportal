@@ -1,11 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Benachrichtigungen</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Benachrichtigungen</h2>
+        <x-seitenkopf titel="Benachrichtigungen" schmal />
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-5">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl space-y-5">
 
             <p class="text-sm text-muted px-1">Du erhältst diese Mails an <span class="text-text font-medium">{{ auth()->user()->email }}</span>.</p>
 
@@ -16,7 +17,7 @@
 
                 @foreach($gruppenLabels as $gruppeKey => $gruppeLabel)
                     @continue(empty($gruppen[$gruppeKey]))
-                    <div class="glass rounded-2xl p-5">
+                    <div class="rounded-xl border border-border bg-card p-5">
                         <h3 class="font-semibold text-text text-sm mb-1">{{ $gruppeLabel }}</h3>
                         <div class="flex flex-col divide-y divide-border">
                             @foreach($gruppen[$gruppeKey] as $a)
@@ -43,7 +44,7 @@
                                                 <input type="radio" name="frequenz[{{ $a['type'] }}]" value="{{ $f }}" class="peer sr-only"
                                                        @checked($a['aktuell'] === $f) @disabled($a['mandatory'])>
                                                 <span class="block px-3 min-h-9 leading-9 rounded-lg text-xs sm:text-sm font-medium text-muted transition-colors
-                                                             peer-checked:bg-accent peer-checked:text-white
+                                                             peer-checked:bg-accent peer-checked:text-accent-contrast
                                                              peer-disabled:cursor-not-allowed peer-disabled:opacity-70
                                                              peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
                                                     {{ $frequenzen[$f] }}
@@ -59,11 +60,12 @@
 
                 <div>
                     <button type="submit" :disabled="loading"
-                            class="h-11 px-6 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+                            class="h-11 px-6 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
                         Speichern
                     </button>
                 </div>
             </form>
+        </div>
         </div>
     </div>
 </x-app-layout>

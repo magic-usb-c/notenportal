@@ -4,10 +4,11 @@
     'stellen' => null,    // null = Note (4.25/4.5), Zahl = Durchschnitt mit fester Stellenzahl
 ])
 @php
+    // Farbe nur bei knapp/ungenügend, ungenügend zusätzlich unterstrichen (NotenSkala)
     $skala = \App\Support\NotenSkala::class;
     $klasse = match ($variante) {
-        'badge' => 'inline-flex items-center justify-center min-w-12 px-2 py-1 rounded-xl font-bold text-sm tabular-nums '.$skala::badge($wert),
-        'hero' => 'font-extrabold tabular-nums tracking-tight '.$skala::text($wert).' '.$skala::glow($wert),
+        'badge' => 'inline-flex h-6 min-w-11 items-center justify-center rounded-md px-1.5 text-sm font-semibold tabular-nums '.$skala::badge($wert),
+        'hero' => 'font-semibold '.$skala::text($wert),
         default => 'font-semibold tabular-nums '.$skala::text($wert),
     };
 @endphp

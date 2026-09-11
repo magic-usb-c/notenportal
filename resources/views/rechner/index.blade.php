@@ -1,15 +1,11 @@
 <x-app-layout>
     <x-slot name="title">Rechner</x-slot>
     <x-slot name="header">
-        <div class="w-full flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-text">Rechner</h2>
-                @if($lernender)
-                    <p class="text-sm text-muted">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</p>
-                @endif
-            </div>
-            <a href="{{ $zurueck }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurück</a>
-        </div>
+        <x-seitenkopf titel="Rechner" :untertitel="$lernender ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null">
+            <x-slot:aktionen>
+                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
@@ -20,7 +16,7 @@
 
     <div class="py-6"
          x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start]))">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             {{-- Gespeicherte Ziele --}}
             <div class="flex flex-wrap items-center gap-2" x-show="ziele.length" x-cloak>
@@ -47,7 +43,7 @@
 
                 {{-- Eingaben --}}
                 <div class="lg:col-span-5 flex flex-col gap-5">
-                    <section class="glass rounded-2xl p-5 flex flex-col gap-4">
+                    <section class="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
                         <div role="tablist" aria-label="Ebene" class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-bg/60 border border-border">
                             @foreach($ebenen as $wert => $name)
                                 <button type="button" role="tab" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')"
@@ -113,7 +109,7 @@
                         </div>
                     </section>
 
-                    <section class="glass rounded-2xl overflow-hidden">
+                    <section class="rounded-xl border border-border bg-card overflow-hidden">
                         <div class="px-5 py-4 flex items-center justify-between gap-3 border-b border-border/70">
                             <h3 class="font-semibold text-text">Offene Prüfungen <span class="ml-1 text-sm text-muted tabular-nums" x-text="offene"></span></h3>
                             <div class="flex gap-1.5">
@@ -132,7 +128,7 @@
                                                 <option :value="String(o.id)" x-text="o.name" :selected="String(o.id) === z.id"></option>
                                             </template>
                                         </select>
-                                        <button type="button" @click="entferne(z.nr)" class="w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10" aria-label="Prüfung entfernen">×</button>
+                                        <button type="button" @click="entferne(z.nr)" class="w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="Prüfung entfernen">×</button>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <select x-show="z.typ === 'fach'" x-model="z.semester" class="flex-1 min-w-0 {{ $feld }}" aria-label="Semester">
@@ -160,10 +156,8 @@
 
                 {{-- Ergebnis --}}
                 <div class="lg:col-span-7 flex flex-col gap-5">
-                    <section class="glass rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden transition-opacity" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
-                        <div class="absolute -top-20 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full bg-accent/10 blur-3xl pointer-events-none"></div>
-
-                        <p x-show="fehler" x-cloak class="relative text-sm text-red-600 dark:text-red-400" x-text="fehler"></p>
+                    <section class="rounded-xl border border-border bg-card p-6 sm:p-8 text-center transition-opacity" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
+                        <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
 
                         <template x-if="ergebnis && !fehler">
                             <div class="relative">
@@ -193,14 +187,14 @@
                         </template>
                     </section>
 
-                    <section class="glass rounded-2xl p-5" x-show="kurve" x-cloak>
+                    <section class="rounded-xl border border-border bg-card p-5" x-show="kurve" x-cloak>
                         <h3 class="text-sm font-semibold text-text mb-3">Ergebnis je Note in den offenen Prüfungen</h3>
                         <div class="h-56" x-data="npChart('kurve')" x-effect="zeichne(kurve)">
                             <canvas x-ref="canvas" role="img" aria-label="Ergebnis in Abhängigkeit der Note"></canvas>
                         </div>
                     </section>
 
-                    <section class="glass rounded-2xl overflow-hidden" x-show="ergebnis?.vergleich?.length" x-cloak>
+                    <section class="rounded-xl border border-border bg-card overflow-hidden" x-show="ergebnis?.vergleich?.length" x-cloak>
                         <div class="px-5 py-3 border-b border-border/70 flex items-center justify-between">
                             <h3 class="text-sm font-semibold text-text">Auswirkung</h3>
                             <span class="text-xs text-muted tabular-nums" x-show="ergebnis?.loesung.status === 'benoetigt'" x-text="'mit ' + fmt(ergebnis?.loesung.note, 2)"></span>
@@ -214,7 +208,7 @@
                                         <span class="text-muted" aria-hidden="true">→</span>
                                         <span class="font-bold min-w-10 text-right" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></span>
                                         <span class="w-12 text-right text-xs"
-                                              :class="delta(v.vorher, v.nachher) > 0 ? 'text-green-700 dark:text-green-400' : (delta(v.vorher, v.nachher) < 0 ? 'text-red-600 dark:text-red-400' : 'text-muted')"
+                                              :class="delta(v.vorher, v.nachher) > 0 ? 'text-note-gut' : (delta(v.vorher, v.nachher) < 0 ? 'text-note-ungenuegend' : 'text-muted')"
                                               x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '' : (delta(v.vorher, v.nachher) > 0 ? '+' : '') + fmt(delta(v.vorher, v.nachher), 2)"></span>
                                     </span>
                                 </div>
@@ -222,11 +216,11 @@
                         </div>
                     </section>
 
-                    <section class="glass rounded-2xl p-5 flex flex-col gap-3" x-show="ergebnis?.promotion?.length" x-cloak>
+                    <section class="rounded-xl border border-border bg-card p-5 flex flex-col gap-3" x-show="ergebnis?.promotion?.length" x-cloak>
                         <h3 class="text-sm font-semibold text-text">Promotion</h3>
                         <template x-for="p in ergebnis?.promotion ?? []" :key="p.kategorie + p.semester">
                             <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3"
-                                 :class="p.nachher.erfuellt ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'">
+                                 :class="p.nachher.erfuellt ? 'border-note-gut/30 bg-note-gut/5' : 'border-note-ungenuegend/30 bg-note-ungenuegend/5'">
                                 <div class="text-sm">
                                     <span class="font-semibold text-text" x-text="p.kategorie"></span>
                                     <span class="text-muted" x-text="p.semester"></span>
@@ -236,7 +230,7 @@
                                     <span>ungenügend <b class="text-text" x-text="p.nachher.ungenuegend"></b></span>
                                     <span>Minuspunkte <b class="text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></b></span>
                                     <span class="px-2 py-0.5 rounded-full font-semibold"
-                                          :class="p.nachher.erfuellt ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'"
+                                          :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'"
                                           x-text="p.nachher.erfuellt ? 'erfüllt' : 'gefährdet'"></span>
                                 </div>
                             </div>

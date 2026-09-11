@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Meine Meldungen</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Meine Meldungen</h2>
+        <x-seitenkopf titel="Meine Meldungen" schmal />
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
-            <div class="glass rounded-2xl overflow-hidden">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
@@ -22,9 +22,9 @@
                             @forelse($meldungen as $m)
                                 @php
                                     $statusClasses = match ($m->status) {
-                                        \App\Models\Feedback::STATUS_ERLEDIGT => 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300',
-                                        \App\Models\Feedback::STATUS_IN_ARBEIT => 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
-                                        default => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300',
+                                        \App\Models\Feedback::STATUS_ERLEDIGT => 'bg-note-gut/14 text-note-gut',
+                                        \App\Models\Feedback::STATUS_IN_ARBEIT => 'bg-accent/10 text-accent-text',
+                                        default => 'bg-note-knapp/14 text-note-knapp',
                                     };
                                     $gekuerzt = mb_strlen($m->text) > 140;
                                 @endphp

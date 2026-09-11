@@ -31,7 +31,7 @@
     x-on:keydown.shift.tab.prevent="vorherigerFokus().focus()"
     x-show="offen"
     x-cloak
-    class="fixed inset-0 z-50"
+    class="fixed inset-0 z-[70]"
     style="display: none;"
 >
     <div
@@ -43,7 +43,7 @@
         x-transition:leave-start="opacity-100"
         x-transition:leave-end="opacity-0"
         x-on:click="offen = false"
-        class="absolute inset-0 bg-black/50"
+        class="absolute inset-0 glass-scrim"
         aria-hidden="true"
     ></div>
 
@@ -58,13 +58,13 @@
         role="dialog"
         aria-modal="true"
         @if($titel) aria-label="{{ $titel }}" @endif
-        class="absolute inset-y-0 right-0 w-full {{ $breiten }} bg-card border-l border-border shadow-2xl flex flex-col"
+        class="absolute inset-y-0 right-0 w-full {{ $breiten }} bg-card border-l border-border shadow-e3 flex flex-col"
     >
         @if($titel || isset($kopf))
             <div class="flex items-center justify-between gap-3 px-5 h-14 shrink-0 border-b border-border">
                 <h2 class="font-semibold text-text truncate">{{ $kopf ?? $titel }}</h2>
                 <button type="button" @click="offen = false" aria-label="Schliessen"
-                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg shrink-0">
+                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-surface-2 shrink-0">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>

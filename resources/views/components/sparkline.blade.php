@@ -19,12 +19,12 @@
 @endphp
 <svg {{ $attributes->merge(['class' => 'overflow-visible']) }} width="{{ $breite }}" height="{{ $hoehe }}" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img"
      aria-label="Verlauf {{ collect($werte)->filter()->map(fn ($v) => \App\Support\NotenSkala::format($v))->implode(', ') }}">
-    <line x1="0" x2="{{ $breite }}" y1="{{ $y($grenze) }}" y2="{{ $y($grenze) }}" class="stroke-red-500/40" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="0" x2="{{ $breite }}" y1="{{ $y($grenze) }}" y2="{{ $y($grenze) }}" class="stroke-border-strong/60" stroke-width="1" stroke-dasharray="3 3"/>
     @if(count($punkte) > 1)
         <polyline fill="none" class="stroke-accent" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"
                   points="{{ collect($punkte)->map(fn ($p) => $p[0].','.$p[1])->implode(' ') }}"/>
     @endif
     @if($letzter)
-        <circle cx="{{ $letzter[0] }}" cy="{{ $letzter[1] }}" r="2.75" class="{{ str_replace('bg-', 'fill-', \App\Support\NotenSkala::balken($letzter[2])) }}"/>
+        <circle cx="{{ $letzter[0] }}" cy="{{ $letzter[1] }}" r="2.75" class="{{ str_replace('bg-', 'fill-', \App\Support\NotenSkala::punkt($letzter[2])) }}"/>
     @endif
 </svg>

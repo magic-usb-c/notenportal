@@ -1,18 +1,14 @@
 <x-app-layout>
     <x-slot name="title">Übersicht</x-slot>
     <x-slot name="header">
-        <div class="w-full flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-text">Betrieb</h2>
-                <p class="text-sm text-muted">{{ now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY') }}</p>
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ route('admin.users.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Benutzer anlegen</a>
-                <a href="{{ route('admin.learners.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+        <x-seitenkopf titel="Betrieb" :untertitel="now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY')">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.users.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Benutzer anlegen</a>
+                <a href="{{ route('admin.learners.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none">+</span> Lernende
                 </a>
-            </div>
-        </div>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
@@ -27,7 +23,7 @@
             </div>
 
             @if($einrichtung)
-                <section class="lg:col-span-12 glass rounded-2xl overflow-hidden border-l-4 border-l-yellow-500">
+                <section class="lg:col-span-12 rounded-xl border border-border bg-card overflow-hidden border-l-4 border-l-note-knapp">
                     <h3 class="px-5 pt-4 pb-2 text-sm font-semibold text-text">Einrichtung unvollständig</h3>
                     <div class="divide-y divide-border/70">
                         @foreach($einrichtung as $e)
@@ -35,7 +31,7 @@
                                 <span class="text-sm text-text">{{ $e['text'] }}</span>
                                 <span class="flex items-center gap-3">
                                     @if($e['anzahl'] > 1 || ! str_starts_with($e['text'], 'Semester'))
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-yellow-500/15 text-yellow-800 dark:text-yellow-300 tabular-nums">{{ $e['anzahl'] }}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-note-knapp/15 text-note-knapp tabular-nums">{{ $e['anzahl'] }}</span>
                                     @endif
                                     <span class="text-xs text-accent">Beheben ›</span>
                                 </span>
@@ -63,8 +59,8 @@
                                 <tr>
                                     <td class="px-5 py-2.5 text-text">{{ $bb->name }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums">{{ $bb->lernende }}</td>
-                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->rot ? 'text-red-600 dark:text-red-400 font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
-                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->gelb ? 'text-yellow-700 dark:text-yellow-400 font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
+                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
                                     <td class="px-5 py-2.5 text-right tabular-nums {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
                                 </tr>
                             @empty

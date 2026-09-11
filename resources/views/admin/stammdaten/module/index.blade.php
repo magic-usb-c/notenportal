@@ -1,13 +1,14 @@
 <x-app-layout>
     <x-slot name="title">Module</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Module</h2>
-            <a href="{{ route('admin.master-data.modules.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
-                <span class="text-lg leading-none">+</span> Neues Modul
-            </a>
-        </div>
+        <x-seitenkopf titel="Module">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.modules.create') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                    <span class="text-lg leading-none">+</span> Neues Modul
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
@@ -20,7 +21,7 @@
                 <td class="px-4 py-3 text-text">'.e($m->titel).'</td>
                 <td class="px-4 py-3 text-muted">'.e((string) $m->lehrberuf_count).'</td>
                 <td class="px-4 py-3">'.($m->aktiv
-                    ? '<span class="px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">aktiv</span>'
+                    ? '<span class="px-2 py-0.5 rounded-full text-xs bg-note-gut/14 text-note-gut">aktiv</span>'
                     : '<span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>').'</td>
                 <td class="px-4 py-3 text-right">
                     <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
@@ -30,10 +31,10 @@
     @endphp
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
             {{-- Suche + Filter --}}
-            <div class="glass rounded-2xl p-4">
+            <div class="rounded-xl border border-border bg-card p-4">
                 <form method="GET" action="{{ route('admin.master-data.modules.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
@@ -67,7 +68,7 @@
                         </select>
                     </div>
                     <div class="flex gap-2 lg:col-span-4">
-                        <button type="submit" class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">Filtern</button>
+                        <button type="submit" class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm">Filtern</button>
                         @if($aktiveFilter > 0 || $gruppieren !== '')
                             <a href="{{ route('admin.master-data.modules.index') }}" class="inline-flex items-center px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">Zurücksetzen</a>
                         @endif
@@ -77,7 +78,7 @@
 
             @if($gruppieren !== '')
                 @forelse($gruppen as $name => $zeilen)
-                    <div class="glass rounded-2xl overflow-hidden">
+                    <div class="rounded-xl border border-border bg-card overflow-hidden">
                         <div class="px-4 py-2.5 border-b border-border bg-bg/40">
                             <h3 class="text-sm font-semibold text-text">{{ $name }}</h3>
                         </div>
@@ -101,10 +102,10 @@
                         </div>
                     </div>
                 @empty
-                    <div class="glass rounded-2xl p-6 text-center text-muted">Keine Module gefunden.</div>
+                    <div class="rounded-xl border border-border bg-card p-6 text-center text-muted">Keine Module gefunden.</div>
                 @endforelse
             @else
-                <div class="glass rounded-2xl overflow-hidden">
+                <div class="rounded-xl border border-border bg-card overflow-hidden">
                     <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead class="bg-bg border-b border-border text-muted">

@@ -1,9 +1,8 @@
 <a {{
     $attributes->merge([
         'class' =>
-            'block w-full px-4 py-2 text-start text-sm leading-5 ' .
-            'text-text hover:bg-card/60 ' .
-            'focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-bg ' .
-            'transition duration-150 ease-in-out'
+            'flex w-full items-center rounded-lg px-3 min-h-9 text-start text-sm text-text ' .
+            'transition-colors duration-100 hover:bg-surface-2 ' .
+            'focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring'
     ])
 }}>{{ $slot }}</a>

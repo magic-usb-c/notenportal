@@ -4,8 +4,7 @@
     @disabled($disabled)
     {{ $attributes->merge([
         'class' =>
-            'w-full rounded-xl bg-input text-text border border-border shadow-xs ' .
-            'placeholder:text-muted/70 ' .
-            'focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-ring'
+            'h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text ' .
+            'placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30'
     ]) }}
 >

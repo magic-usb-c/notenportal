@@ -9,30 +9,27 @@
     @endphp
 
     <x-slot name="header">
-        <div class="w-full flex flex-wrap items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Noten</h2>
-
-            <div class="inline-flex items-center glass rounded-full p-1 gap-1" role="group" aria-label="Semester">
+        <x-seitenkopf titel="Noten">
+            <div class="inline-flex items-center rounded-lg border border-border bg-card p-1 gap-1" role="group" aria-label="Semester">
                 <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $prevSemesterId])
                    href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="Vorheriges Semester">‹</a>
-                <span class="px-4 h-8 flex items-center rounded-full bg-accent/10 text-accent text-sm font-semibold whitespace-nowrap">{{ $semLabel }}</span>
+                <span class="px-4 h-8 flex items-center rounded-full bg-surface-2 text-text text-sm font-semibold whitespace-nowrap">{{ $semLabel }}</span>
                 <a @class(['inline-flex items-center justify-center w-9 h-9 rounded-full text-text hover:bg-accent/10', 'pointer-events-none opacity-30' => ! $nextSemesterId])
                    href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="Nächstes Semester">›</a>
             </div>
-
-            <div class="flex gap-2">
-                <a href="{{ route('learner.grades.print') }}" target="_blank" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Drucken</a>
-                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">Import</a>
-                <a href="{{ route('learner.grades.export') }}" class="inline-flex items-center px-3 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
-                <a href="{{ route('learner.grades.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+            <x-slot:aktionen>
+                <a href="{{ route('learner.grades.print') }}" target="_blank" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Drucken</a>
+                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Import</a>
+                <a href="{{ route('learner.grades.export') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">CSV</a>
+                <a href="{{ route('learner.grades.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none">+</span> Note
                 </a>
-            </div>
-        </div>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6" x-data="{ ansicht: @js(request('ansicht') === 'alle' ? 'alle' : 'semester') }">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             {{-- Stand im Semester --}}
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -90,7 +87,7 @@
                                 $offen = $e?->offenGewicht();
                                 $fortschritt = $e && $e->zielGewicht ? (int) min(100, round($e->gewichtSumme / $e->zielGewicht * 100)) : null;
                             @endphp
-                            <details class="np-details glass rounded-2xl overflow-hidden">
+                            <details class="np-details rounded-xl border border-border bg-card overflow-hidden">
                                 <summary class="cursor-pointer select-none px-4 py-3 flex items-center justify-between gap-3 list-none hover:bg-accent/5 transition-colors">
                                     <div class="flex items-center gap-3 min-w-0 flex-1">
                                         <span class="np-chevron text-muted transition-transform duration-200 shrink-0" aria-hidden="true">
@@ -107,7 +104,7 @@
                                                 @if($fortschritt !== null)
                                                     <span aria-hidden="true">·</span>
                                                     <span class="flex items-center gap-1.5">
-                                                        <span class="w-20 h-1 rounded-full bg-accent/15 overflow-hidden"><span class="block h-full {{ $fortschritt >= 100 ? 'bg-green-500' : 'bg-accent' }}" style="width: {{ $fortschritt }}%"></span></span>
+                                                        <span class="w-20 h-1 rounded-full bg-accent/15 overflow-hidden"><span class="block h-full {{ $fortschritt >= 100 ? 'bg-note-gut' : 'bg-accent' }}" style="width: {{ $fortschritt }}%"></span></span>
                                                         {{ $fortschritt >= 100 ? 'abgeschlossen' : \App\Support\Zahl::prozent($offen).' offen' }}
                                                     </span>
                                                 @endif
@@ -142,9 +139,9 @@
                         @endforeach
                     </section>
                 @empty
-                    <div class="glass rounded-2xl px-5 py-12 text-center">
+                    <div class="rounded-xl border border-border bg-card px-5 py-12 text-center">
                         <p class="text-sm text-muted">Keine Noten in {{ $semLabel }}</p>
-                        <a href="{{ route('learner.grades.create') }}" class="mt-4 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+                        <a href="{{ route('learner.grades.create') }}" class="mt-4 inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">
                             <span class="text-lg leading-none">+</span> Note erfassen
                         </a>
                     </div>

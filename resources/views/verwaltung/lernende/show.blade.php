@@ -1,40 +1,35 @@
 <x-app-layout>
     <x-slot name="title">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <div>
-                <nav class="text-xs text-muted flex items-center gap-1 mb-1" aria-label="Brotkrumen">
-                    <a href="{{ route("{$bereich}.learners.index") }}" class="hover:text-text transition-colors">Lernende</a>
-                    <span class="text-muted/40">›</span>
-                    <span class="text-text">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</span>
-                </nav>
-                <div class="flex items-center gap-3">
-                    <h2 class="font-semibold text-xl text-text">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</h2>
-                    <x-status :status="$stand->status" />
-                </div>
-                <p class="text-sm text-muted">{{ $lernender->lehrberuf?->name ?? '–' }}@if($lernender->lehrjahr()) · {{ $lernender->lehrjahr() }}. Lehrjahr @endif</p>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
+        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="Brotkrumen">
+            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">Lernende</a>
+            <span class="text-muted/40">›</span>
+            <span class="text-text">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</span>
+        </nav>
+        <x-seitenkopf :titel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname"
+                       :untertitel="($lernender->lehrberuf?->name ?? '–').($lernender->lehrjahr() ? ' · '.$lernender->lehrjahr().'. Lehrjahr' : '')">
+            <x-status :status="$stand->status" />
+            <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                   class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary whitespace-nowrap">Noten</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">Noten</a>
                 <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}"
-                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Dokumente</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Dokumente</a>
                 @can('noteAnlegen', $lernender)
                     <a href="{{ route("{$bereich}.learners.grades.import.index", $lernender->lernender_id) }}"
-                       class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Import</a>
+                       class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Import</a>
                 @endcan
                 <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}"
-                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Rechner</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Rechner</a>
                 @can('update', $lernender)
                     <a href="{{ route("{$bereich}.learners.edit", $lernender->lernender_id) }}"
-                       class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Bearbeiten</a>
+                       class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Bearbeiten</a>
                 @endcan
                 <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
-                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">Drucken</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Drucken</a>
                 <a href="{{ route("{$bereich}.learners.grades.export", $lernender->lernender_id) }}"
-                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm whitespace-nowrap">CSV</a>
-            </div>
-        </div>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">CSV</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
@@ -42,7 +37,7 @@
         $a = $stand->auswertung;
         $delta = $stand->delta();
         $datum = fn ($d) => $d ? \Carbon\Carbon::parse($d)->format('d.m.Y') : '–';
-        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $label = 'text-xs font-medium text-muted';
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $heute = today();
     @endphp
@@ -51,7 +46,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             @if(session('startpasswort'))
-                <div class="lg:col-span-12 glass accent-glow rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4"
+                <div class="lg:col-span-12 rounded-xl border border-border bg-card p-5 flex flex-wrap items-center justify-between gap-4"
                      x-data="{ kopiert: false }">
                     <div>
                         <div class="{{ $label }}">Startpasswort · wird nur einmal angezeigt</div>
@@ -67,9 +62,8 @@
             @endif
 
             {{-- Stand --}}
-            <section class="lg:col-span-4 glass rounded-3xl p-6 flex flex-col gap-4 relative overflow-hidden">
-                <div class="absolute -top-24 -right-16 w-64 h-64 rounded-full bg-accent/10 blur-3xl pointer-events-none" aria-hidden="true"></div>
-                <div class="relative flex items-start justify-between gap-3">
+            <section class="lg:col-span-4 rounded-xl border border-border bg-card p-6 flex flex-col gap-4">
+                <div class="flex items-start justify-between gap-3">
                     <div>
                         <div class="{{ $label }}">Gesamtschnitt</div>
                         <x-note :wert="$a->gesamtNote" variante="hero" :stellen="1" class="block text-5xl mt-1" />
@@ -78,21 +72,21 @@
                         <div class="{{ $label }}">{{ $a->konfiguration->semesterName($stand->semesterId) }}</div>
                         <x-note :wert="$stand->semesterNote" :stellen="1" class="text-2xl font-extrabold" />
                         @if($delta !== null && $delta != 0)
-                            <div class="text-xs font-semibold {{ $delta > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">{{ $delta > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format($delta, 1) }}</div>
+                            <div class="text-xs font-semibold {{ $delta > 0 ? 'text-text' : 'text-note-knapp' }}">{{ $delta > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format($delta, 1) }}</div>
                         @endif
                     </div>
                 </div>
-                <div class="relative flex flex-col gap-1.5">
+                <div class="flex flex-col gap-1.5">
                     @forelse($stand->gruende as $g)
                         <div class="flex items-center gap-2 text-sm">
-                            <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $stand->status === 'rot' ? 'bg-red-500' : 'bg-yellow-500' }}" aria-hidden="true"></span>
+                            <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $stand->status === 'rot' ? 'bg-note-ungenuegend' : 'bg-note-knapp' }}" aria-hidden="true"></span>
                             <span class="text-text">{{ $g }}</span>
                         </div>
                     @empty
-                        <div class="text-sm text-green-700 dark:text-green-400">Keine Auffälligkeiten</div>
+                        <div class="text-sm text-text">Keine Auffälligkeiten</div>
                     @endforelse
                 </div>
-                <div class="relative mt-auto pt-3 border-t border-border/70 grid grid-cols-2 gap-3 text-xs text-muted">
+                <div class="mt-auto pt-3 border-t border-border/70 grid grid-cols-2 gap-3 text-xs text-muted">
                     <div>Letzte Prüfung<div class="text-sm text-text">{{ $stand->letztePruefung?->format('d.m.Y') ?? '–' }}</div></div>
                     <div>Lehrende<div class="text-sm text-text">{{ $datum($lernender->lehrende) }}</div></div>
                 </div>
@@ -148,7 +142,7 @@
                         <div class="px-5 py-2.5 flex items-center justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="text-sm text-text truncate">{{ $p->bezeichnung() }}</div>
-                                <div class="text-xs {{ $vorbei ? 'text-yellow-700 dark:text-yellow-400 font-medium' : 'text-muted' }}">{{ $p->datum->format('d.m.Y') }}{{ $vorbei ? ' · Note fehlt' : '' }} · {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</div>
+                                <div class="text-xs {{ $vorbei ? 'text-note-knapp font-medium' : 'text-muted' }}">{{ $p->datum->format('d.m.Y') }}{{ $vorbei ? ' · Note fehlt' : '' }} · {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</div>
                             </div>
                         </div>
                     @empty
@@ -178,9 +172,9 @@
                 <div class="flex flex-col gap-3">
                     <div class="flex items-center gap-2 flex-wrap">
                         @if($benutzer->aktiv)
-                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Aktiv</span>
+                            <x-status status="gut" text="Aktiv" />
                         @else
-                            <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Inaktiv</span>
+                            <x-status status="neutral" text="Inaktiv" />
                         @endif
                         @if($benutzer->passwort_wechsel_noetig)
                             <span class="inline-flex px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-muted">Passwortwechsel ausstehend</span>
@@ -199,7 +193,7 @@
                                   onsubmit="return confirm('{{ $benutzer->aktiv ? 'Konto deaktivieren? Anmelden ist danach nicht mehr möglich.' : 'Konto aktivieren?' }}');">
                                 @csrf
                                 <button type="submit" :disabled="loading"
-                                        class="px-4 h-10 rounded-xl text-sm border disabled:opacity-60 {{ $benutzer->aktiv ? 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-500/10' : 'border-border text-text hover:bg-accent/5' }}">
+                                        class="px-4 h-10 rounded-xl text-sm border disabled:opacity-60 {{ $benutzer->aktiv ? 'border-note-ungenuegend/40 text-note-ungenuegend hover:bg-note-ungenuegend/10' : 'border-border text-text hover:bg-accent/5' }}">
                                     {{ $benutzer->aktiv ? 'Deaktivieren' : 'Aktivieren' }}
                                 </button>
                             </form>
@@ -209,7 +203,7 @@
             </x-karte>
 
             {{-- Betreuungen --}}
-            <div class="lg:col-span-6 glass rounded-2xl overflow-hidden">
+            <div class="lg:col-span-6 rounded-xl border border-border bg-card overflow-hidden">
                 <div class="px-5 py-4 border-b border-border"><h3 class="font-semibold text-text text-sm">Betreuung</h3></div>
                 <div class="divide-y divide-border">
                     @forelse($lernender->betreuungen as $bt)
@@ -228,7 +222,7 @@
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         <button type="button" @click="$dispatch('open-modal', '{{ $betreuungBeendenModal }}')" :disabled="loading"
-                                                class="px-3 min-h-[36px] rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-60">Beenden</button>
+                                                class="px-3 min-h-[36px] rounded-lg text-note-ungenuegend text-xs hover:bg-note-ungenuegend/10 disabled:opacity-60">Beenden</button>
                                     </form>
                                     <x-modal :name="$betreuungBeendenModal" maxWidth="sm">
                                         <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="{{ $betreuungBeendenModal }}-titel">
@@ -239,7 +233,7 @@
                                                         class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">Abbrechen</button>
                                                 <button type="button"
                                                         @click="document.getElementById('{{ $betreuungBeendenModal }}-form').requestSubmit(); $dispatch('close-modal', '{{ $betreuungBeendenModal }}')"
-                                                        class="inline-flex h-9 items-center rounded-lg border border-red-300 dark:border-red-800 px-3.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10">Beenden</button>
+                                                        class="inline-flex h-9 items-center rounded-lg bg-note-ungenuegend px-3.5 text-sm font-medium text-accent-contrast">Beenden</button>
                                             </div>
                                         </div>
                                     </x-modal>
@@ -266,15 +260,15 @@
                                     </option>
                                 @endforeach
                             </select>
-                            @error('berufsbildner_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('berufsbildner_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="gueltig_von" class="{{ $label }}">Ab *</label>
                             <input id="gueltig_von" type="date" name="gueltig_von" required value="{{ old('gueltig_von', now()->toDateString()) }}" class="{{ $feld }}">
-                            @error('gueltig_von')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('gueltig_von')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <button type="submit" :disabled="loading"
-                                class="sm:col-span-3 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary disabled:opacity-60">Zuweisen</button>
+                                class="sm:col-span-3 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary disabled:opacity-60">Zuweisen</button>
                     </form>
                     <x-modal name="betreuung-zuweisen" maxWidth="sm">
                         <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="betreuung-zuweisen-titel">
@@ -293,7 +287,7 @@
             </div>
 
             {{-- Tracks --}}
-            <div class="lg:col-span-6 glass rounded-2xl overflow-hidden">
+            <div class="lg:col-span-6 rounded-xl border border-border bg-card overflow-hidden">
                 <div class="px-5 py-4 border-b border-border"><h3 class="font-semibold text-text text-sm">Schul-Tracks</h3></div>
                 <div class="divide-y divide-border">
                     @forelse($lernender->tracks as $t)
@@ -321,7 +315,7 @@
                                             @endforeach
                                         </select>
                                         <button type="submit" :disabled="loading"
-                                                class="px-3 min-h-[36px] rounded-lg border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs hover:bg-red-500/10 disabled:opacity-60">Beenden</button>
+                                                class="px-3 min-h-[36px] rounded-lg text-note-ungenuegend text-xs hover:bg-note-ungenuegend/10 disabled:opacity-60">Beenden</button>
                                     </form>
                                 @endcan
                             @endif
@@ -341,12 +335,12 @@
                                 <option value="BMS">BMS</option>
                                 <option value="ABU">ABU</option>
                             </select>
-                            @error('track_typ')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('track_typ')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="start_datum" class="{{ $label }}">Start *</label>
                             <input id="start_datum" type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}" class="{{ $feld }}">
-                            @error('start_datum')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('start_datum')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="start_semester_id" class="{{ $label }}">Semester *</label>
@@ -355,10 +349,10 @@
                                     <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                 @endforeach
                             </select>
-                            @error('start_semester_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('start_semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <button type="submit" :disabled="loading"
-                                class="sm:col-span-3 h-10 rounded-xl bg-accent text-white text-sm np-btn-primary disabled:opacity-60">Track starten</button>
+                                class="sm:col-span-3 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary disabled:opacity-60">Track starten</button>
                     </form>
                 @endcan
             </div>

@@ -6,6 +6,10 @@ namespace App\Support;
 
 /**
  * Einzige Stelle für Notenstufen und ihre Farben. Grenzen kommen aus den Einstellungen.
+ *
+ * Einsatzregel (docs/gui-konzept.md, d): Farbe nur für Abweichung. Gut und genügend
+ * stehen in Text-Farbe, knapp und ungenügend tragen ihre Notenfarbe; ungenügend
+ * zusätzlich mit Form (Unterstrich), damit die Stufe nie nur an der Farbe hängt.
  */
 final class NotenSkala
 {
@@ -17,33 +21,45 @@ final class NotenSkala
 
     public const string UNGENUEGEND = 'ungenuegend';
 
+    private const string FORM = 'underline decoration-2 underline-offset-4';
+
     private const array TEXT = [
+        self::GUT => 'text-text',
+        self::GENUEGEND => 'text-text',
+        self::KNAPP => 'text-note-knapp',
+        self::UNGENUEGEND => 'text-note-ungenuegend '.self::FORM,
+    ];
+
+    /** Volle Stufenfarbe (Legenden, Diagramme), unabhängig von der Einsatzregel. */
+    private const array FARBE = [
         self::GUT => 'text-note-gut',
         self::GENUEGEND => 'text-note-genuegend',
         self::KNAPP => 'text-note-knapp',
         self::UNGENUEGEND => 'text-note-ungenuegend',
     ];
 
+    /** Balken neutral, nur knapp und ungenügend farbig. */
     private const array BALKEN = [
+        self::GUT => 'bg-chart-6',
+        self::GENUEGEND => 'bg-chart-6',
+        self::KNAPP => 'bg-note-knapp',
+        self::UNGENUEGEND => 'bg-note-ungenuegend',
+    ];
+
+    /** Statuspunkt: gut darf als Punkt erscheinen. */
+    private const array PUNKT = [
         self::GUT => 'bg-note-gut',
-        self::GENUEGEND => 'bg-note-genuegend',
+        self::GENUEGEND => 'bg-chart-6',
         self::KNAPP => 'bg-note-knapp',
         self::UNGENUEGEND => 'bg-note-ungenuegend',
     ];
 
     /** Text in Notenfarbe auf 14 % Tint derselben Farbe (Kontrast in theme.css gerechnet). */
     private const array BADGE = [
-        self::GUT => 'bg-note-gut/14 text-note-gut',
-        self::GENUEGEND => 'bg-note-genuegend/14 text-note-genuegend',
+        self::GUT => 'bg-surface-2 text-text',
+        self::GENUEGEND => 'bg-surface-2 text-text',
         self::KNAPP => 'bg-note-knapp/14 text-note-knapp',
-        self::UNGENUEGEND => 'bg-note-ungenuegend/14 text-note-ungenuegend',
-    ];
-
-    private const array GLOW = [
-        self::GUT => 'np-text-glow-green',
-        self::GENUEGEND => 'np-text-glow-emerald',
-        self::KNAPP => 'np-text-glow-yellow',
-        self::UNGENUEGEND => 'np-text-glow-red',
+        self::UNGENUEGEND => 'bg-note-ungenuegend/14 text-note-ungenuegend '.self::FORM,
     ];
 
     /** @return array{gut: float, genuegend: float, kritisch: float} */
@@ -82,19 +98,24 @@ final class NotenSkala
         return self::TEXT[self::stufe($wert)] ?? 'text-muted';
     }
 
+    public static function farbe(float|string|null $wert): string
+    {
+        return self::FARBE[self::stufe($wert)] ?? 'text-muted';
+    }
+
     public static function balken(float|string|null $wert): string
     {
         return self::BALKEN[self::stufe($wert)] ?? 'bg-muted/30';
     }
 
-    public static function badge(float|string|null $wert): string
+    public static function punkt(float|string|null $wert): string
     {
-        return self::BADGE[self::stufe($wert)] ?? 'bg-bg text-muted';
+        return self::PUNKT[self::stufe($wert)] ?? 'bg-muted/30';
     }
 
-    public static function glow(float|string|null $wert): string
+    public static function badge(float|string|null $wert): string
     {
-        return self::GLOW[self::stufe($wert)] ?? '';
+        return self::BADGE[self::stufe($wert)] ?? 'bg-surface-2 text-muted';
     }
 
     /** Farbe einer benötigten Note nach Schwierigkeit: bis Genügend+0.5 gut machbar, ab Gut+0.25 schwer. */
@@ -106,9 +127,9 @@ final class NotenSkala
         $g = self::grenzen();
 
         return match (true) {
-            (float) $wert <= $g['genuegend'] + 0.5 => self::TEXT[self::GUT],
-            (float) $wert <= $g['gut'] + 0.25 => self::TEXT[self::KNAPP],
-            default => self::TEXT[self::UNGENUEGEND],
+            (float) $wert <= $g['genuegend'] + 0.5 => self::FARBE[self::GUT],
+            (float) $wert <= $g['gut'] + 0.25 => self::FARBE[self::KNAPP],
+            default => self::FARBE[self::UNGENUEGEND],
         };
     }
 

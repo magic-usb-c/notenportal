@@ -1,27 +1,29 @@
 <x-app-layout>
     <x-slot name="title">Betrieb</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Betrieb</h2>
-            <a href="{{ route('admin.setup') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Einrichtung</a>
-        </div>
+        <x-seitenkopf titel="Betrieb" schmal>
+            <x-slot:aktionen>
+                <a href="{{ route('admin.setup') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Einrichtung</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            <form method="POST" action="{{ route('admin.operations.update') }}" class="glass rounded-2xl p-6 flex flex-col gap-6"
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl">
+            <form method="POST" action="{{ route('admin.operations.update') }}" class="rounded-xl border border-border bg-card p-6 flex flex-col gap-6"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('PUT')
                 @include('admin.betrieb._felder', ['werte' => $werte])
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
                 </div>
             </form>
 
             @include('admin.betrieb._theme', ['theme' => old('theme', $theme)])
 
-            <section class="glass rounded-2xl p-6 flex flex-col gap-5 mt-5">
+            <section class="rounded-xl border border-border bg-card p-6 flex flex-col gap-5 mt-5">
                 <h3 class="text-sm font-semibold text-text">E-Mail</h3>
                 <form method="POST" action="{{ route('admin.mail.update') }}" class="flex flex-col gap-5"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -29,7 +31,7 @@
                     @method('PUT')
                     @include('admin.betrieb._mail', ['werte' => $mailWerte])
                     <div class="flex justify-end">
-                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
                     </div>
                 </form>
 
@@ -47,11 +49,11 @@
                 $veraltet = $letzteSicherung && $letzteSicherung->lt(now()->subDays(2));
                 $groesse = fn (int $b) => $b >= 1048576 ? number_format($b / 1048576, 1).' MB' : max(1, (int) round($b / 1024)).' KB';
             @endphp
-            <section class="glass rounded-2xl overflow-hidden mt-5">
+            <section class="rounded-xl border border-border bg-card overflow-hidden mt-5">
                 <div class="px-6 pt-5 pb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h3 class="text-sm font-semibold text-text">Sicherungen</h3>
-                        <p @class(['text-xs mt-0.5', 'text-muted' => ! $veraltet && ! $sicherungFehler, 'text-red-600 dark:text-red-400' => $veraltet || $sicherungFehler])>
+                        <p @class(['text-xs mt-0.5', 'text-muted' => ! $veraltet && ! $sicherungFehler, 'text-note-ungenuegend' => $veraltet || $sicherungFehler])>
                             @if($sicherungFehler)
                                 Letzter Versuch fehlgeschlagen: {{ $sicherungFehler }}
                             @elseif($letzteSicherung)
@@ -84,7 +86,7 @@
                                     @csrf
                                     @method('DELETE')
                                     <button :disabled="loading" aria-label="Sicherung {{ $s['datum']->format('d.m.Y H:i') }} löschen"
-                                            class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 disabled:opacity-60">×</button>
+                                            class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">×</button>
                                 </form>
                             </li>
                         @endforeach
@@ -92,6 +94,7 @@
                 @endif
                 @include('admin.betrieb._kopie', ['kopie' => $kopie, 'werte' => $kopieWerte, 'schluessel_oeffentlich' => $kopieSchluessel])
             </section>
+        </div>
         </div>
     </div>
 </x-app-layout>

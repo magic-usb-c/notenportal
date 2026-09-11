@@ -1,14 +1,15 @@
 <x-app-layout>
     <x-slot name="title">Mein Profil</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Mein Profil</h2>
+        <x-seitenkopf titel="Mein Profil" schmal />
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-5">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl space-y-5">
 
             @if($lernender)
-                <div class="glass rounded-2xl p-5">
+                <div class="rounded-xl border border-border bg-card p-5">
                     <h3 class="font-semibold text-text text-sm">Lehrausbildung</h3>
                     <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         <div>
@@ -35,12 +36,12 @@
             @endif
 
             {{-- Profil bearbeiten --}}
-            <div class="glass rounded-2xl p-6">
+            <div class="rounded-xl border border-border bg-card p-6">
                 @include('profile.partials.update-profile-information-form')
             </div>
 
             {{-- Benachrichtigungen --}}
-            <div class="glass rounded-2xl p-6">
+            <div class="rounded-xl border border-border bg-card p-6">
                 <div class="flex items-center justify-between gap-4">
                     <div>
                         <h3 class="font-semibold text-text text-sm">Benachrichtigungen</h3>
@@ -55,10 +56,11 @@
             </div>
 
             {{-- Passwort ändern --}}
-            <div class="glass rounded-2xl p-6">
+            <div class="rounded-xl border border-border bg-card p-6">
                 @include('profile.partials.update-password-form')
             </div>
 
+        </div>
         </div>
     </div>
 </x-app-layout>

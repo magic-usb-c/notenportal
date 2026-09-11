@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Benachrichtigungen</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Benachrichtigungen</h2>
+        <x-seitenkopf titel="Benachrichtigungen" />
     </x-slot>
 
     @php
@@ -11,7 +11,7 @@
     @endphp
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('admin.notifications.update') }}" class="flex flex-col gap-5"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
@@ -20,7 +20,7 @@
                 @foreach($gruppen as $gruppenKey => $gruppenLabel)
                     @php $anlaesseInGruppe = array_filter($anlaesse, fn ($a) => $a['group'] === $gruppenKey); @endphp
                     @continue(empty($anlaesseInGruppe))
-                    <section class="glass rounded-2xl overflow-hidden">
+                    <section class="rounded-xl border border-border bg-card overflow-hidden">
                         <h3 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ $gruppenLabel }}</h3>
                         <div class="divide-y divide-border">
                             @foreach($anlaesseInGruppe as $type => $a)
@@ -71,11 +71,11 @@
                                                 <input id="param-{{ $type }}-{{ $name }}" type="number" name="policies[{{ $type }}][params][{{ $name }}]"
                                                        value="{{ old('policies.'.$type.'.params.'.$name, $a['paramWerte'][$name]) }}"
                                                        min="{{ $p['min'] }}" max="{{ $p['max'] }}" @disabled($a['locked'] ?? false) class="{{ $feld }} tabular-nums w-24">
-                                                @error('policies.'.$type.'.params.'.$name)<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                                                @error('policies.'.$type.'.params.'.$name)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                             </div>
                                         @endforeach
                                     </div>
-                                    @error('policies.'.$type.'.frequency')<p class="text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                                    @error('policies.'.$type.'.frequency')<p class="text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                 </div>
                             @endforeach
                         </div>
@@ -83,7 +83,7 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
                 </div>
             </form>
         </div>

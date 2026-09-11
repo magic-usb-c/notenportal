@@ -1,33 +1,26 @@
 <x-app-layout>
     <x-slot name="title">Berufsbildner</x-slot>
     <x-slot name="header">
-        <div class="w-full flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-4">
-                <h2 class="font-semibold text-xl text-text">Berufsbildner</h2>
-                <div class="text-sm text-muted pl-4 border-l border-border">
-                    <span class="text-lg font-bold text-text tabular-nums">{{ $berufsbildner->count() }}</span>
-                    Berufsbildner
-                </div>
-            </div>
-            <a href="{{ route('admin.users.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
-                <span class="text-lg leading-none">+</span>
-                Neuer Benutzer
-            </a>
-        </div>
+        <x-seitenkopf titel="Berufsbildner" :zaehler="$berufsbildner->count()">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.users.create') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
+                    Neuer Benutzer
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
-
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
             @if($berufsbildner->isEmpty())
-                <div class="glass rounded-2xl px-5 py-10 text-center text-muted text-sm">
+                <div class="rounded-xl border border-border bg-card px-5 py-10 text-center text-muted text-sm">
                     Keine aktiven Berufsbildner gefunden.
                 </div>
             @else
                 {{-- Übersicht-Tabelle --}}
-                <div class="glass rounded-2xl overflow-hidden">
+                <div class="rounded-xl border border-border bg-card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm text-text">
                             <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
@@ -62,7 +55,7 @@
                                         <td class="p-3 text-center">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
-                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold bg-bg hover:bg-accent hover:text-white transition-colors">
+                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold bg-bg hover:bg-accent hover:text-accent-contrast transition-colors">
                                                     {{ $st->lernende }}
                                                 </a>
                                             @else
@@ -73,7 +66,7 @@
                                             @if($warnOhneNoten)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
-                                                          bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300 hover:opacity-80 transition-opacity">
+                                                          bg-note-knapp/14 text-note-knapp hover:opacity-80 transition-opacity">
                                                     {{ $st->ohne_noten }}
                                                 </a>
                                             @else
@@ -84,7 +77,7 @@
                                             @if($warnTiefAvg)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
-                                                          bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 hover:opacity-80 transition-opacity">
+                                                          bg-note-ungenuegend/14 text-note-ungenuegend hover:opacity-80 transition-opacity">
                                                     {{ $st->tief_avg }}
                                                 </a>
                                             @else
@@ -98,7 +91,7 @@
                                                     Lernende
                                                 </a>
                                                 <a href="{{ route('admin.users.edit', $bb->benutzer_id) }}"
-                                                   class="px-3 py-1.5 rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">
+                                                   class="px-3 py-1.5 rounded-xl bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">
                                                     Bearbeiten
                                                 </a>
                                             </div>
@@ -116,11 +109,11 @@
                 {{-- Legende --}}
                 <div class="flex flex-wrap gap-4 text-xs text-muted px-1">
                     <span class="flex items-center gap-1.5">
-                        <span class="inline-block w-3 h-3 rounded-sm bg-yellow-200 dark:bg-yellow-800"></span>
+                        <span class="inline-block w-3 h-3 rounded-sm bg-note-knapp"></span>
                         Kein Noteneintrag in den letzten 30 Tagen
                     </span>
                     <span class="flex items-center gap-1.5">
-                        <span class="inline-block w-3 h-3 rounded-sm bg-red-200 dark:bg-red-800"></span>
+                        <span class="inline-block w-3 h-3 rounded-sm bg-note-ungenuegend"></span>
                         Ø aktuelles Semester unter 4.0
                     </span>
                     <span class="text-muted">Klick auf Zahl → gefilterte Lernenden-Liste</span>

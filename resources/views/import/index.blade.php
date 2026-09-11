@@ -5,24 +5,20 @@
     @endphp
 
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <div class="min-w-0">
-                @if($bereich)
-                    <div class="text-sm text-muted truncate">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</div>
-                @endif
-                <h2 class="font-semibold text-xl text-text">Notenimport</h2>
-            </div>
-            <a href="{{ $zurueck }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurück</a>
-        </div>
+        <x-seitenkopf titel="Notenimport" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null" :schmal="! $vorschau">
+            <x-slot:aktionen>
+                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             @if(! $vorschau)
-                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="glass rounded-2xl p-6 flex flex-col gap-4 max-w-3xl w-full mx-auto"
+                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="rounded-xl border border-border bg-card p-6 flex flex-col gap-4 max-w-3xl w-full"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
-                    <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-12 text-center cursor-pointer transition-colors"
+                    <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-12 text-center cursor-pointer transition-colors"
                            :class="ueber ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'"
                            @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
                            @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
@@ -32,10 +28,10 @@
                         <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only" accept=".xlsx,.xls,.ods,.csv,.pdf"
                                @change="name = $event.target.files[0]?.name ?? ''">
                     </label>
-                    @error('datei')<p class="-mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
                         <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Vorlage (CSV)</a>
-                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Datei lesen</button>
+                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Datei lesen</button>
                     </div>
                 </form>
             @else
@@ -55,10 +51,10 @@
                             alle(an) { this.zeilen.forEach((z) => { z.uebernehmen = an; }); },
                             farbe(s) {
                                 return {
-                                    ok: 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-                                    pruefen: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+                                    ok: 'bg-note-gut/14 text-note-gut',
+                                    pruefen: 'bg-note-knapp/14 text-note-knapp',
                                     doppelt: 'bg-bg text-muted border border-border',
-                                    fehler: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+                                    fehler: 'bg-note-ungenuegend/14 text-note-ungenuegend',
                                 }[s] ?? '';
                             },
                         };
@@ -70,7 +66,7 @@
                     @csrf
                     <input type="hidden" name="zeilen" :value="json">
 
-                    <section class="glass rounded-2xl p-5 flex flex-wrap items-center gap-x-8 gap-y-3">
+                    <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-x-8 gap-y-3">
                         <div class="min-w-0">
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
@@ -87,16 +83,16 @@
                                 <div>
                                     <dt class="text-[11px] uppercase tracking-widest text-muted">{{ $text }}</dt>
                                     <dd @class(['text-xl font-bold tabular-nums',
-                                        'text-green-700 dark:text-green-400' => $status === 'ok',
-                                        'text-yellow-700 dark:text-yellow-400' => $status === 'pruefen',
+                                        'text-note-gut' => $status === 'ok',
+                                        'text-note-knapp' => $status === 'pruefen',
                                         'text-muted' => $status === 'doppelt',
-                                        'text-red-600 dark:text-red-400' => $status === 'fehler'])>{{ $anzahl[$status] ?? 0 }}</dd>
+                                        'text-note-ungenuegend' => $status === 'fehler'])>{{ $anzahl[$status] ?? 0 }}</dd>
                                 </div>
                             @endforeach
                         </dl>
                     </section>
 
-                    <section class="glass rounded-2xl overflow-hidden">
+                    <section class="rounded-xl border border-border bg-card overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-text">
                                 <thead class="text-xs text-muted">
@@ -125,9 +121,9 @@
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>
-                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="`Datum Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-red-500!'"></td>
+                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="`Datum Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-note-ungenuegend!'"></td>
                                             <td class="px-2 py-1.5 min-w-56">
-                                                <select x-model="z.bezug" :aria-label="`Fach oder Modul Zeile ${z.nr}`" class="{{ $feld }}" :class="! z.bezug && 'border-red-500!'">
+                                                <select x-model="z.bezug" :aria-label="`Fach oder Modul Zeile ${z.nr}`" class="{{ $feld }}" :class="! z.bezug && 'border-note-ungenuegend!'">
                                                     <option value="">–</option>
                                                     @foreach($optionen as $gruppe => $liste)
                                                         <optgroup label="{{ $gruppe }}">
@@ -140,7 +136,7 @@
                                                 <div class="mt-0.5 text-[11px] text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
                                             <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="`Titel Zeile ${z.nr}`" class="{{ $feld }}"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="`Note Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-red-500!'"></td>
+                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="`Note Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
                                             <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="`Gewicht Zeile ${z.nr}`" class="{{ $feld }} tabular-nums"></td>
                                             <td class="px-3 py-1.5 whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="farbe(z.status)" x-text="z.meldung || 'bereit'"></span>
@@ -155,7 +151,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Verwerfen</button>
                         <button type="submit" :disabled="loading || gewaehlt === 0"
-                                class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60"
+                                class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60"
                                 x-text="gewaehlt === 1 ? '1 Note importieren' : `${gewaehlt} Noten importieren`"></button>
                     </div>
                 </form>

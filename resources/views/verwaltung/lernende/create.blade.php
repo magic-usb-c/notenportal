@@ -1,29 +1,29 @@
 <x-app-layout>
     <x-slot name="title">Lernender erfassen</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <div>
-                <nav class="text-xs text-muted flex items-center gap-1 mb-1" aria-label="Brotkrumen">
-                    <a href="{{ route("{$bereich}.learners.index") }}" class="hover:text-text transition-colors">Lernende</a>
-                    <span class="text-muted/40">›</span>
-                    <span class="text-text">Erfassen</span>
-                </nav>
-                <h2 class="font-semibold text-xl text-text">Lernender erfassen</h2>
-            </div>
-            <a href="{{ route("{$bereich}.learners.index") }}"
-               class="px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">Zurück</a>
-        </div>
+        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="Brotkrumen">
+            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">Lernende</a>
+            <span class="text-muted/40">›</span>
+            <span class="text-text">Erfassen</span>
+        </nav>
+        <x-seitenkopf titel="Lernender erfassen" schmal>
+            <x-slot:aktionen>
+                <a href="{{ route("{$bereich}.learners.index") }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $label = 'text-xs font-medium text-muted';
     @endphp
 
     <div class="py-6">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl">
             <form method="POST" action="{{ route("{$bereich}.learners.store") }}"
-                  class="glass rounded-2xl p-6 space-y-5"
+                  class="rounded-xl border border-border bg-card p-6 space-y-5"
                   x-data="{ track: @js(old('track_typ', '')), loading: false }"
                   @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
@@ -32,12 +32,12 @@
                     <div>
                         <label for="vorname" class="{{ $label }}">Vorname *</label>
                         <input id="vorname" type="text" name="vorname" value="{{ old('vorname') }}" required maxlength="100" class="{{ $feld }}">
-                        @error('vorname')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('vorname')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div>
                         <label for="nachname" class="{{ $label }}">Nachname *</label>
                         <input id="nachname" type="text" name="nachname" value="{{ old('nachname') }}" required maxlength="100" class="{{ $feld }}">
-                        @error('nachname')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('nachname')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
@@ -45,12 +45,12 @@
                     <div>
                         <label for="email" class="{{ $label }}">E-Mail *</label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required maxlength="255" class="{{ $feld }}">
-                        @error('email')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('email')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="benutzername" class="{{ $label }}">Benutzername * <span class="normal-case tracking-normal">(Buchstaben, Ziffern, . _ -)</span></label>
+                        <label for="benutzername" class="{{ $label }}">Benutzername * <span class="font-normal">(Buchstaben, Ziffern, . _ -)</span></label>
                         <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername') }}" required maxlength="50" class="{{ $feld }} font-mono">
-                        @error('benutzername')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('benutzername')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
@@ -63,19 +63,19 @@
                                 <option value="{{ $lb->lehrberuf_id }}" @selected(old('lehrberuf_id') == $lb->lehrberuf_id)>{{ $lb->name }}</option>
                             @endforeach
                         </select>
-                        @error('lehrberuf_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('lehrberuf_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="lehrbeginn" class="{{ $label }}">Lehrbeginn *</label>
                             <input id="lehrbeginn" type="date" name="lehrbeginn" value="{{ old('lehrbeginn') }}" required class="{{ $feld }}">
-                            @error('lehrbeginn')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('lehrbeginn')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="lehrende" class="{{ $label }}">Lehrende</label>
                             <input id="lehrende" type="date" name="lehrende" value="{{ old('lehrende') }}" class="{{ $feld }}">
-                            @error('lehrende')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('lehrende')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                     </div>
 
@@ -87,7 +87,7 @@
                                 <option value="BMS">BMS</option>
                                 <option value="ABU">ABU</option>
                             </select>
-                            @error('track_typ')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('track_typ')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div x-show="track" x-cloak>
                             <label for="track_semester_id" class="{{ $label }}">Startsemester *</label>
@@ -97,7 +97,7 @@
                                     <option value="{{ $s->semester_id }}" @selected(old('track_semester_id') == $s->semester_id)>{{ $s->bezeichnung }}</option>
                                 @endforeach
                             </select>
-                            @error('track_semester_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('track_semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                     </div>
 
@@ -112,22 +112,23 @@
                                     </option>
                                 @endforeach
                             </select>
-                            @error('berufsbildner_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('berufsbildner_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                     @endisset
 
                     <div>
                         <label for="bemerkung" class="{{ $label }}">Bemerkung (intern)</label>
                         <textarea id="bemerkung" name="bemerkung" rows="3" maxlength="5000" class="{{ $feld }}">{{ old('bemerkung') }}</textarea>
-                        @error('bemerkung')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                        @error('bemerkung')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                 </div>
 
                 <button type="submit" :disabled="loading"
-                        class="w-full h-12 rounded-xl bg-accent text-white font-semibold hover:opacity-90 active:scale-[0.97] transition-all duration-150 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                        class="w-full h-12 rounded-xl bg-accent text-accent-contrast font-semibold hover:opacity-90 transition-colors duration-150 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
                     Lernender anlegen
                 </button>
             </form>
+            </div>
         </div>
     </div>
 </x-app-layout>

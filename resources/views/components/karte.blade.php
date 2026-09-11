@@ -4,17 +4,18 @@
     'linkText' => 'Alle',
     'polster' => true,
 ])
-<section {{ $attributes->merge(['class' => 'glass rounded-2xl overflow-hidden flex flex-col']) }}>
+{{-- Inhaltskarte E0: feste Fläche, kein Glas, kein Schatten --}}
+<section {{ $attributes->merge(['class' => 'rounded-xl border border-border bg-card overflow-hidden flex flex-col']) }}>
     @if($titel || isset($aktionen))
-        <div class="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
-            <h3 class="text-sm font-semibold text-text">{{ $titel }}</h3>
+        <header class="flex min-h-12 items-center justify-between gap-3 px-5 py-2">
+            <h2 class="text-sm font-semibold text-text">{{ $titel }}</h2>
             <div class="flex items-center gap-2">
                 {{ $aktionen ?? '' }}
                 @if($link)
-                    <a href="{{ $link }}" class="text-xs text-accent hover:underline whitespace-nowrap">{{ $linkText }}</a>
+                    <a href="{{ $link }}" class="whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline">{{ $linkText }}</a>
                 @endif
             </div>
-        </div>
+        </header>
     @endif
     <div @class(['flex-1', 'px-5 pb-5' => $polster])>
         {{ $slot }}

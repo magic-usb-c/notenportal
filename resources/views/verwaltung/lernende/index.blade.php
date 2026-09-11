@@ -1,29 +1,22 @@
 <x-app-layout>
     <x-slot name="title">Lernende</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-4">
-                <h2 class="font-semibold text-xl text-text">Lernende</h2>
-                <div class="text-sm text-muted pl-4 border-l border-border">
-                    <span class="text-lg font-bold text-text tabular-nums">{{ $zeilen->count() }}</span>
-                    {{ $zeilen->count() === 1 ? 'Lernender' : 'Lernende' }}
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
+        <x-seitenkopf titel="Lernende" :zaehler="$zeilen->count()">
+            <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.grades.export_all") }}"
-                   class="inline-flex items-center gap-1.5 px-4 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm">
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     Alle Noten (CSV)
                 </a>
                 <a href="{{ route("{$bereich}.learners.create") }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary whitespace-nowrap text-sm">
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none">+</span>
                     Lernender erfassen
                 </a>
-            </div>
-        </div>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
@@ -40,33 +33,27 @@
             return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="inline-flex items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
         };
 
-        $notenfarbe = fn (?float $v) => $v === null ? 'text-muted'
-            : ($v >= 5.0 ? 'text-green-700 dark:text-green-400'
-            : ($v >= 4.0 ? 'text-emerald-700 dark:text-emerald-400'
-            : ($v >= 3.5 ? 'text-yellow-700 dark:text-yellow-400'
-            : 'text-red-600 dark:text-red-400')));
-
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
     @endphp
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
             {{-- Suche + Filter --}}
-            <div class="glass rounded-2xl p-4">
+            <div class="rounded-xl border border-border bg-card p-4">
                 <form method="GET" action="{{ route("{$bereich}.learners.index") }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
                     <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
 
                     <div>
-                        <label for="suche" class="text-xs uppercase tracking-widest text-muted font-medium">Suche</label>
+                        <label for="suche" class="text-xs font-medium text-muted">Suche</label>
                         <input type="search" name="suche" id="suche" value="{{ $filter['suche'] }}"
                                placeholder="Name, E-Mail, Benutzername" class="{{ $feld }}">
                     </div>
 
                     <div>
-                        <label for="lehrberuf_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lehrberuf</label>
+                        <label for="lehrberuf_id" class="text-xs font-medium text-muted">Lehrberuf</label>
                         <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="">Alle</option>
                             @foreach($lehrberufe as $lb)
@@ -76,7 +63,7 @@
                     </div>
 
                     <div>
-                        <label for="lehrjahr" class="text-xs uppercase tracking-widest text-muted font-medium">Lehrjahr</label>
+                        <label for="lehrjahr" class="text-xs font-medium text-muted">Lehrjahr</label>
                         <select name="lehrjahr" id="lehrjahr" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="">Alle</option>
                             @foreach([1, 2, 3, 4] as $jahr)
@@ -86,7 +73,7 @@
                     </div>
 
                     <div>
-                        <label for="bms" class="text-xs uppercase tracking-widest text-muted font-medium">BMS</label>
+                        <label for="bms" class="text-xs font-medium text-muted">BMS</label>
                         <select name="bms" id="bms" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="">Alle</option>
                             <option value="ja" @selected($filter['bms'] === 'ja')>Mit BMS</option>
@@ -95,7 +82,7 @@
                     </div>
 
                     <div>
-                        <label for="warnung" class="text-xs uppercase tracking-widest text-muted font-medium">Warnung</label>
+                        <label for="warnung" class="text-xs font-medium text-muted">Warnung</label>
                         <select name="warnung" id="warnung" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="">Alle</option>
                             <option value="tief_avg" @selected($filter['warnung'] === 'tief_avg')>Ø unter 4.0</option>
@@ -109,7 +96,7 @@
 
                     @if($bereich === 'admin')
                         <div>
-                            <label for="berufsbildner_id" class="text-xs uppercase tracking-widest text-muted font-medium">Berufsbildner</label>
+                            <label for="berufsbildner_id" class="text-xs font-medium text-muted">Berufsbildner</label>
                             <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()" class="{{ $feld }}">
                                 <option value="">Alle</option>
                                 @foreach($berufsbildnerListe as $bb)
@@ -122,7 +109,7 @@
                     @endif
 
                     <div>
-                        <label for="inaktive" class="text-xs uppercase tracking-widest text-muted font-medium">Status</label>
+                        <label for="inaktive" class="text-xs font-medium text-muted">Status</label>
                         <select name="inaktive" id="inaktive" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="0" @selected(! $filter['inaktive'])>Nur aktive</option>
                             <option value="1" @selected($filter['inaktive'])>Inkl. inaktive</option>
@@ -130,11 +117,11 @@
                     </div>
 
                     <div class="flex gap-2">
-                        <button type="submit" class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm">Filtern</button>
+                        <button type="submit" class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm">Filtern</button>
                         @if($aktiveFilter > 0)
                             <a href="{{ route("{$bereich}.learners.index") }}"
                                class="inline-flex items-center gap-2 px-3 py-2 h-10 rounded-xl glass-btn text-text text-sm">
-                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-white text-[10px] font-bold">{{ $aktiveFilter }}</span>
+                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-accent-contrast text-[10px] font-bold">{{ $aktiveFilter }}</span>
                                 Zurücksetzen
                             </a>
                         @endif
@@ -143,7 +130,7 @@
             </div>
 
             {{-- Kartenansicht mobil: Tabelle mit rechtsbündigen Aktionen liesse sie ausserhalb des Sichtbereichs --}}
-            <div class="md:hidden divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
+            <div class="md:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
                 @forelse($zeilen as $z)
                     @php
                         $l = $z->lernender;
@@ -162,9 +149,9 @@
                                 @endif
                                 <div class="flex items-center gap-3 mt-1.5 text-xs text-muted tabular-nums">
                                     <span>{{ $z->anzahl }} Noten</span>
-                                    <span class="font-semibold {{ $notenfarbe($z->avg) }}">Ø {{ $z->avg !== null ? number_format($z->avg, 2) : '–' }}</span>
+                                    <span class="font-semibold">Ø <x-note :wert="$z->avg" :stellen="2" /></span>
                                     @if($z->ungelesen > 0)
-                                        <span class="inline-flex px-1.5 py-0.5 rounded-full font-semibold bg-accent text-white">{{ $z->ungelesen }} neu</span>
+                                        <span class="inline-flex px-1.5 py-0.5 rounded-full font-semibold bg-accent text-accent-contrast">{{ $z->ungelesen }} neu</span>
                                     @endif
                                 </div>
                             </div>
@@ -173,7 +160,7 @@
                             <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
                                class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Profil</a>
                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">Noten</a>
+                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">Noten</a>
                         </div>
                     </div>
                 @empty
@@ -181,7 +168,7 @@
                 @endforelse
             </div>
 
-            <div class="hidden md:block glass rounded-2xl overflow-hidden">
+            <div class="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
@@ -222,18 +209,18 @@
                                                         <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-accent/10 text-accent">BMS</span>
                                                     @endif
                                                     @if($bereich === 'admin' && ! $z->betreuer && $l->benutzer->aktiv)
-                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300">Ohne BB</span>
+                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-knapp/14 text-note-knapp">Ohne BB</span>
                                                     @endif
                                                     @if($tagSeit === null || $tagSeit > 30)
-                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300">
+                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-knapp/14 text-note-knapp">
                                                             {{ $tagSeit === null ? 'Keine Noten' : $tagSeit.'d kein Eintrag' }}
                                                         </span>
                                                     @endif
                                                     @if($z->avg !== null && $z->avg < 4.0)
-                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">Ø unter 4.0</span>
+                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-ungenuegend/10 text-note-ungenuegend">Ø unter 4.0</span>
                                                     @endif
                                                     @if($z->ungelesen > 0)
-                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold bg-accent text-white">{{ $z->ungelesen }} neu</span>
+                                                        <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold bg-accent text-accent-contrast">{{ $z->ungelesen }} neu</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -252,15 +239,15 @@
                                     <td class="p-3 text-center text-muted whitespace-nowrap">
                                         {{ $z->lastNote ? \Carbon\Carbon::parse($z->lastNote)->format('d.m.Y') : '–' }}
                                     </td>
-                                    <td class="p-3 text-center font-semibold tabular-nums {{ $notenfarbe($z->avg) }}">
-                                        {{ $z->avg !== null ? number_format($z->avg, 2) : '–' }}
+                                    <td class="p-3 text-center">
+                                        <x-note :wert="$z->avg" :stellen="2" />
                                     </td>
                                     <td class="p-3 text-right">
                                         <div class="flex items-center justify-end gap-2">
                                             <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
                                                class="inline-flex items-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">Profil</a>
                                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                                               class="inline-flex items-center px-3 min-h-[36px] rounded-xl bg-accent text-white text-xs np-btn-primary whitespace-nowrap">Noten</a>
+                                               class="inline-flex items-center px-3 min-h-[36px] rounded-xl bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">Noten</a>
                                         </div>
                                     </td>
                                 </tr>

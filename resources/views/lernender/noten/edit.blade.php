@@ -1,12 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Note bearbeiten</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Note bearbeiten</h2>
+        <x-seitenkopf titel="Note bearbeiten" schmal />
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="glass rounded-3xl p-6 sm:p-8">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl rounded-xl border border-border bg-card p-6 sm:p-8">
                 @include('noten._formular', [
                     'action' => route('learner.grades.update', $note->note_id),
                     'zurueck' => route('learner.grades.index', ['semester_id' => $note->semester_id]),

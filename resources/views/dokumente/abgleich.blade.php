@@ -7,23 +7,18 @@
     @endphp
 
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <div class="min-w-0">
-                <div class="text-sm text-muted truncate">
-                    @if($bereich){{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }} · @endif{{ $dokument->titel }}
-                </div>
-                <h2 class="font-semibold text-xl text-text">Zeugnis-Abgleich</h2>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zeugnis öffnen</a>
-                <a href="{{ $r('index') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurück</a>
-            </div>
-        </div>
+        <x-seitenkopf titel="Zeugnis-Abgleich"
+                      :untertitel="($bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname.' · ' : '').$dokument->titel">
+            <x-slot:aktionen>
+                <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zeugnis öffnen</a>
+                <a href="{{ $r('index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
-            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="glass rounded-2xl p-4 flex flex-wrap items-end gap-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="rounded-xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
                 <div>
                     <label for="semester_id" class="block text-xs uppercase tracking-widest text-muted font-medium">Semester</label>
                     <select id="semester_id" name="semester_id" onchange="this.form.submit()"
@@ -42,15 +37,15 @@
             </form>
 
             @if(! $ergebnis['text'])
-                <div class="glass rounded-2xl px-5 py-12 text-center text-sm text-muted">Kein Text im PDF erkannt</div>
+                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">Kein Text im PDF erkannt</div>
             @elseif($zeilen === [])
-                <div class="glass rounded-2xl px-5 py-12 text-center text-sm text-muted">Keine Fächer oder Module erkannt</div>
+                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">Keine Fächer oder Module erkannt</div>
             @else
                 <form method="POST" action="{{ $r('reconcile.apply', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="semester_id" value="{{ $semesterId }}">
-                    <section class="glass rounded-2xl overflow-hidden">
+                    <section class="rounded-xl border border-border bg-card overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-text">
                                 <thead class="text-xs text-muted">
@@ -79,7 +74,7 @@
                                             <td class="px-3 py-2.5 text-right tabular-nums {{ \App\Support\NotenSkala::text($z['portal']) }}">{{ \App\Support\NotenSkala::format($z['portal'], 1) }}</td>
                                             <td @class(['px-3 py-2.5 text-right tabular-nums',
                                                 'text-muted' => $z['status'] !== 'abweichung',
-                                                'text-yellow-700 dark:text-yellow-400 font-semibold' => $z['status'] === 'abweichung'])>
+                                                'text-note-knapp font-semibold' => $z['status'] === 'abweichung'])>
                                                 {{ $z['differenz'] !== null ? ($z['differenz'] > 0 ? '+' : '').\App\Support\NotenSkala::format($z['differenz'], 1) : '–' }}
                                             </td>
                                             <td class="px-5 py-2.5">
@@ -101,7 +96,7 @@
                     </section>
                     @if($fehlend->isNotEmpty() && $darfUebernehmen && $semesterId)
                         <div class="flex justify-end">
-                            <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Zeugnisnoten übernehmen</button>
+                            <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Zeugnisnoten übernehmen</button>
                         </div>
                     @endif
                 </form>

@@ -68,16 +68,19 @@ Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via 
 |---|---|---|
 | `rounded-xl border border-border bg-card` | E0 | **Standard für alle Inhaltskarten** |
 | `glass` (Bestand) | = E0 | feste Karte; auf `role="dialog"` automatisch E3-Schatten. Neu nicht mehr verwenden. |
-| `glass-bar` (`glass-subtle` = Alias) | G1 | nur Hauptnavigation, Sticky-Toolbar |
+| `glass-bar` | G1 | nur Hauptnavigation, Sticky-Toolbar |
 | `glass-overlay` | G2 | Befehlspalette, Menüs, Toasts, Popover |
 | `glass-scrim` | Scrim | hinter Drawer/Modal |
-| `glass-lift` (Bestand) | E1 | Hover klickbarer Karten (Fläche/Schatten, keine Bewegung) |
+| `transition-colors duration-100 hover:border-border-strong/50 hover:bg-surface-2/60` | E1 | Hover klickbarer Karten/Zeilen (keine Bewegung) |
 
 - Glas **nie** auf Karten, Tabellen, Formularen, Diagrammen oder grossen Panels.
-- Entfernt und wirkungslos (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-text-glow-*`, `np-card-lift`, `np-btn-tactile`, Radial-Gradient auf `body`, globale `transition` auf `*`, Scale-Effekte (`active:scale-*`, `hover:scale-*`), `blur-3xl`-Deko-Orbs.
+- Entfernt (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-text-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, `NotenSkala::glow()`, Radial-Gradient auf `body`, globale `transition` auf `*`, Scale-Effekte (`active:scale-*`, `hover:scale-*`), `blur-3xl`-Deko-Orbs.
 - Radien: `rounded-md` Badge · `rounded-lg` Button/Input/Segment · `rounded-xl` Karte/Tabelle · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Avatar/Punkt. `rounded-3xl` verboten (ist Alias auf 16 px).
 - Abstände im 4-px-Raster: Karte `p-4`/`p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`/`gap-10`.
 - Container überall `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`; Seitenkopf im selben Container. Lese-/Formularseiten `max-w-3xl` links bündig.
+- Seitenkopf nur über `<x-seitenkopf titel untertitel zaehler schmal>` im Slot `header` (Layout setzt ihn ohne Band in den Container); Aktionen im Slot `aktionen`, höchstens eine Primäraktion; Default-Slot = Bedienelement neben dem Titel. Inhalt darunter: `<div class="py-6"><div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">` (Formular: innen `<div class="max-w-3xl">` + `schmal`).
+- Toast nur über `<x-toast art="erfolg|fehler">` (Layout rendert Flash automatisch), Menüs über `<x-dropdown>` (G2). Modal und Drawer liegen auf `z-[70]` über der Navigation.
+- Notenfarben kommen aus `NotenSkala::text()/badge()` (Einsatzregel eingebaut: gut/genügend neutral, knapp/ungenügend farbig, ungenügend unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()` (Legenden), Punkte `NotenSkala::punkt()`.
 
 ## 6. Bewegung
 - Transitions nur pro Komponente: `transition-colors duration-100` (Hover), 150 ms (Menü, Segment), 200 ms (Akkordeon, Drawer), 300 ms (Modal). Easing `ease-out`.

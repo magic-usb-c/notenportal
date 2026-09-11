@@ -1,20 +1,20 @@
 <x-app-layout>
     <x-slot name="title">Semester</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <h2 class="font-semibold text-xl text-text">Semester</h2>
-            <a href="{{ route('admin.master-data.semesters.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary">
-                <span class="text-lg leading-none">+</span> Neues Semester
-            </a>
-        </div>
+        <x-seitenkopf titel="Semester">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.semesters.create') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                    <span class="text-lg leading-none">+</span> Neues Semester
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="bg-bg border-b border-border text-muted">
@@ -36,7 +36,7 @@
                                 <td class="px-4 py-3 font-semibold text-text">
                                     {{ $s->bezeichnung }}
                                     @if($isAktiv)
-                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-green-500/15 text-green-700 dark:text-green-400">aktuell</span>
+                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-note-gut/15 text-note-gut">aktuell</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
@@ -49,7 +49,7 @@
                                           onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf @method('DELETE')
-                                        <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60">Löschen</button>
+                                        <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">Löschen</button>
                                     </form>
                                 </td>
                             </tr>

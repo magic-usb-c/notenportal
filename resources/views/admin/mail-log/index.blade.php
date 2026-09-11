@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Versandprotokoll</x-slot>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-text">Versandprotokoll</h2>
+        <x-seitenkopf titel="Versandprotokoll" />
     </x-slot>
 
     @php
@@ -15,18 +15,15 @@
     @endphp
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 flex flex-col gap-4">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 @foreach($kacheln as $k)
-                    <div class="glass rounded-2xl p-4">
-                        <div class="text-2xl font-bold text-text tabular-nums">{{ $k['wert'] }}</div>
-                        <div class="text-xs text-muted mt-1">{{ $k['label'] }}</div>
-                    </div>
+                    <x-kachel :label="$k['label']" :wert="$k['wert']" />
                 @endforeach
             </div>
 
-            <div class="glass rounded-2xl p-4">
+            <div class="rounded-xl border border-border bg-card p-4">
                 <form method="GET" action="{{ route('admin.mail-log.index') }}"
                       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
                     <div>
@@ -55,7 +52,7 @@
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                     </div>
                     <div class="flex items-center gap-2">
-                        <button type="submit" class="inline-flex px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Suchen</button>
+                        <button type="submit" class="inline-flex px-4 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">Suchen</button>
                         @if($status || $type || $q)
                             <a href="{{ route('admin.mail-log.index') }}" class="inline-flex px-3 h-10 rounded-xl glass-btn text-text items-center text-sm">Zurücksetzen</a>
                         @endif
@@ -63,7 +60,7 @@
                 </form>
             </div>
 
-            <div class="glass rounded-2xl overflow-hidden">
+            <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">

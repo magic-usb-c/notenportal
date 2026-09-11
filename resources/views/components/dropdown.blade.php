@@ -1,7 +1,7 @@
 @props([
     'align' => 'right',
     'width' => '48',
-    'contentClasses' => 'py-1 bg-card text-text'
+    'contentClasses' => 'p-1 text-text',
 ])
 
 @php
@@ -13,27 +13,29 @@ $alignmentClasses = match ($align) {
 
 $width = match ($width) {
     '48' => 'w-48',
+    '56' => 'w-56',
     default => $width,
 };
 @endphp
 
+{{-- Menü (G2 Overlay): Glas nur für die schwebende Ebene, 150 ms --}}
 <div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false" @close.stop="open = false">
     <div @click="open = ! open">
         {{ $trigger }}
     </div>
 
     <div x-show="open"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-75"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-        class="absolute z-50 mt-2 {{ $width }} rounded-xl shadow-lg {{ $alignmentClasses }}"
+        x-transition:enter="transition-opacity ease-out duration-150"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-in duration-100"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="absolute z-50 mt-1.5 {{ $width }} rounded-xl glass-overlay {{ $alignmentClasses }}"
         style="display: none;"
         @click="open = false"
     >
-        <div class="rounded-xl border border-border {{ $contentClasses }}">
+        <div class="{{ $contentClasses }}">
             {{ $content }}
         </div>
     </div>

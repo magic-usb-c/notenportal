@@ -6,7 +6,7 @@
 
 /* Klassen, die nur per Alpine :class gesetzt werden */
 @source inline('rotate-90 rotate-180');
-@source inline('fill-{green,emerald,yellow,red}-500');
+@source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-6 fill-muted/30');
 
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -148,11 +148,6 @@
   }
 }
 
-@utility glass-subtle {
-  /* Bestandsname der Navigation = G1 */
-  @apply glass-bar;
-}
-
 @utility glass-overlay {
   /* G2 Overlay: Befehlspalette, Menüs, Toasts, Popover */
   background-color: rgb(var(--card-rgb) / 0.88);
@@ -205,40 +200,6 @@
     outline-offset: 2px;
   }
 }
-
-@utility glass-lift {
-  /* Bestand: klickbare Karte → E1 bei Hover, ohne Bewegung */
-  transition-property: background-color, border-color, box-shadow;
-  transition-duration: 100ms;
-  transition-timing-function: var(--ease-out);
-  &:hover {
-    background-color: rgb(var(--elev-hover-bg));
-    border-color: rgb(var(--border-strong) / 0.5);
-    box-shadow: var(--elev-1);
-  }
-}
-
-@utility np-card-lift {
-  @apply glass-lift;
-}
-
-@utility np-btn-tactile {
-  /* Bestand: nur noch Farbübergang, keine Bewegung */
-  transition-property: background-color, border-color, color, opacity;
-  transition-duration: 100ms;
-}
-
-/* Entfallen (Konzept c): Glow-Effekte. Namen bleiben als wirkungslose Aliase,
-   damit bestehende Views und App\Support\NotenSkala nicht brechen. */
-@utility accent-glow { --np-entfallen: 1; }
-@utility np-glow-green { --np-entfallen: 1; }
-@utility np-glow-emerald { --np-entfallen: 1; }
-@utility np-glow-yellow { --np-entfallen: 1; }
-@utility np-glow-red { --np-entfallen: 1; }
-@utility np-text-glow-green { --np-entfallen: 1; }
-@utility np-text-glow-emerald { --np-entfallen: 1; }
-@utility np-text-glow-yellow { --np-entfallen: 1; }
-@utility np-text-glow-red { --np-entfallen: 1; }
 
 /* Weisser Text auf Accent (Bestand text-white) → accent-contrast, damit der
    Dunkelmodus (heller Accent) lesbar bleibt. Specificity 0,2,0 schlägt text-white. */

@@ -1,20 +1,15 @@
 <x-app-layout>
     <x-slot name="title">Übersicht</x-slot>
     <x-slot name="header">
-        <div class="w-full flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-text">Hallo {{ auth()->user()->vorname }}</h2>
-                @if($lehrzeit)
-                    <p class="text-sm text-muted">{{ $lehrzeit['beruf'] }}@if($lehrzeit['lehrjahr']) · {{ $lehrzeit['lehrjahr'] }}. Lehrjahr @endif</p>
-                @endif
-            </div>
-            <div class="flex gap-2">
-                <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm">Prüfung planen</a>
-                <a href="{{ route('learner.grades.create') }}" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">
+        <x-seitenkopf titel="Hallo {{ auth()->user()->vorname }}"
+                      :untertitel="$lehrzeit ? $lehrzeit['beruf'].($lehrzeit['lehrjahr'] ? ' · '.$lehrzeit['lehrjahr'].'. Lehrjahr' : '') : null">
+            <x-slot:aktionen>
+                <a href="{{ route('learner.exams.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Prüfung planen</a>
+                <a href="{{ route('learner.grades.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none">+</span> Note
                 </a>
-            </div>
-        </div>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     @php
@@ -23,26 +18,25 @@
     @endphp
 
     <div class="py-6">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Stand: Gesamtschnitt, Semester, Lehrzeit --}}
-            <section class="lg:col-span-5 glass rounded-3xl p-6 relative overflow-hidden flex flex-col">
-                <div class="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-accent/10 blur-3xl pointer-events-none" aria-hidden="true"></div>
+            <section class="lg:col-span-5 rounded-xl border border-border bg-card p-6 flex flex-col">
                 @if($a->gesamtNote !== null)
                     <div class="relative flex items-start justify-between gap-4">
                         <div>
-                            <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Gesamtschnitt</div>
+                            <div class="text-xs font-medium text-muted">Gesamtschnitt</div>
                             <x-note :wert="$a->gesamtNote" variante="hero" :stellen="1" class="block mt-1 text-6xl" />
                         </div>
                         <x-sparkline :werte="$stand->verlauf" :breite="120" :hoehe="44" class="mt-3" />
                     </div>
                     <div class="relative mt-5 grid grid-cols-2 gap-3">
-                        <div class="rounded-2xl bg-bg/60 border border-border/70 px-4 py-3">
-                            <div class="text-[11px] uppercase tracking-widest text-muted">{{ $a->konfiguration->semesterName($stand->semesterId) }}</div>
+                        <div class="rounded-xl bg-bg/60 border border-border/70 px-4 py-3">
+                            <div class="text-xs font-medium text-muted">{{ $a->konfiguration->semesterName($stand->semesterId) }}</div>
                             <div class="mt-0.5 flex items-baseline gap-2">
                                 <x-note :wert="$stand->semesterNote" :stellen="1" class="text-2xl font-extrabold" />
                                 @if($delta !== null && $delta != 0)
-                                    <span class="text-xs font-semibold {{ $delta > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                    <span class="text-xs font-semibold {{ $delta > 0 ? 'text-note-gut' : 'text-note-ungenuegend' }}">
                                         {{ $delta > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format($delta, 1) }}
                                     </span>
                                 @endif
@@ -51,16 +45,16 @@
                         @php $ungenuegendAnzahl = count($stand->ungenuegend); @endphp
                         <{{ $ungenuegendAnzahl ? 'a' : 'div' }}
                             @if($ungenuegendAnzahl) href="{{ route('learner.grades.index', ['semester_id' => $stand->semesterId]) }}" @endif
-                            class="rounded-2xl bg-bg/60 border border-border/70 px-4 py-3 block {{ $ungenuegendAnzahl ? 'hover:bg-accent/5 transition-colors duration-100' : '' }}">
-                            <div class="text-[11px] uppercase tracking-widest text-muted">Ungenügend</div>
-                            <div class="mt-0.5 text-2xl font-extrabold tabular-nums {{ $ungenuegendAnzahl ? 'text-red-600 dark:text-red-400' : 'text-text' }}">{{ $ungenuegendAnzahl }}</div>
+                            class="rounded-xl bg-bg/60 border border-border/70 px-4 py-3 block {{ $ungenuegendAnzahl ? 'hover:bg-accent/5 transition-colors duration-100' : '' }}">
+                            <div class="text-xs font-medium text-muted">Ungenügend</div>
+                            <div class="mt-0.5 text-2xl font-extrabold tabular-nums {{ $ungenuegendAnzahl ? 'text-note-ungenuegend' : 'text-text' }}">{{ $ungenuegendAnzahl }}</div>
                         </{{ $ungenuegendAnzahl ? 'a' : 'div' }}>
                     </div>
                 @else
                     <div class="relative py-6 text-center">
-                        <div class="text-[11px] uppercase tracking-widest text-muted font-medium">Gesamtschnitt</div>
+                        <div class="text-xs font-medium text-muted">Gesamtschnitt</div>
                         <div class="mt-2 text-5xl font-extrabold text-muted/40">–</div>
-                        <a href="{{ route('learner.grades.create') }}" class="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Erste Note erfassen</a>
+                        <a href="{{ route('learner.grades.create') }}" class="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">Erste Note erfassen</a>
                     </div>
                 @endif
 
@@ -80,7 +74,7 @@
             {{-- Kategorien --}}
             <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
                 @forelse($kategorien as $kat)
-                    <a href="{{ route('learner.grades.index', ['kategorie_id' => $kat['id']]) }}" class="glass glass-lift rounded-2xl p-4 flex flex-col gap-2">
+                    <a href="{{ route('learner.grades.index', ['kategorie_id' => $kat['id']]) }}" class="rounded-xl border border-border bg-card p-4 flex flex-col gap-2 transition-colors hover:bg-surface-2/60">
                         <div class="flex items-center justify-between gap-2">
                             <span class="text-sm font-semibold text-text truncate">{{ $kat['name'] }}</span>
                             @if($kat['promotion'])
@@ -96,7 +90,7 @@
                         </div>
                     </a>
                 @empty
-                    <div class="sm:col-span-2 glass rounded-2xl p-8 text-center text-sm text-muted">Noch keine Noten</div>
+                    <div class="sm:col-span-2 rounded-xl border border-border bg-card p-8 text-center text-sm text-muted">Noch keine Noten</div>
                 @endforelse
             </div>
 
@@ -108,7 +102,7 @@
                 <div class="divide-y divide-border/70">
                     @forelse($zuTun as $t)
                         <a href="{{ $t['link'] }}" class="px-5 py-3 flex items-center gap-3 hover:bg-accent/5 transition-colors">
-                            <span @class(['w-2 h-2 rounded-full shrink-0', 'bg-red-500' => $t['ton'] === 'rot', 'bg-yellow-500' => $t['ton'] === 'gelb', 'bg-accent' => $t['ton'] === 'accent', 'bg-muted/50' => $t['ton'] === 'neutral']) aria-hidden="true"></span>
+                            <span @class(['w-2 h-2 rounded-full shrink-0', 'bg-note-ungenuegend' => $t['ton'] === 'rot', 'bg-note-knapp' => $t['ton'] === 'gelb', 'bg-accent' => $t['ton'] === 'accent', 'bg-muted/50' => $t['ton'] === 'neutral']) aria-hidden="true"></span>
                             <span class="flex-1 min-w-0">
                                 <span class="block text-sm text-text truncate">{{ $t['text'] }}</span>
                                 @if($t['detail'])<span class="block text-xs text-muted">{{ $t['detail'] }}</span>@endif
@@ -117,7 +111,7 @@
                         </a>
                     @empty
                         <div class="px-5 py-8 flex flex-col items-center gap-2 text-sm text-muted">
-                            <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            <svg class="w-8 h-8 text-note-gut" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             Alles erledigt
                         </div>
                     @endforelse
@@ -132,7 +126,7 @@
                             $l = $z['loesung'];
                             $erreicht = $z['aktuell'] !== null && $z['aktuell'] >= $z['zielwert'] - 1e-9;
                         @endphp
-                        <a href="{{ $z['link'] }}" class="rounded-2xl border border-border/70 bg-bg/40 hover:bg-accent/5 px-4 py-3 flex flex-col gap-2 transition-colors">
+                        <a href="{{ $z['link'] }}" class="rounded-xl border border-border/70 bg-bg/40 hover:bg-accent/5 px-4 py-3 flex flex-col gap-2 transition-colors">
                             <div class="flex items-center justify-between gap-3">
                                 <span class="text-sm font-medium text-text truncate">{{ $z['label'] }}</span>
                                 <span class="text-sm tabular-nums shrink-0">
@@ -150,14 +144,14 @@
                                         <span class="font-bold tabular-nums {{ \App\Support\NotenSkala::bedarf($l['note']) }}">{{ \App\Support\NotenSkala::format($l['note'], 2) }}</span>
                                         @break
                                     @case('erreicht')
-                                        <span class="text-green-700 dark:text-green-400 font-medium">Gesichert</span>
+                                        <span class="text-note-gut font-medium">Gesichert</span>
                                         @break
                                     @case('unerreichbar')
                                         @php $zielGenuegend = $l['maximum'] !== null && $l['maximum'] >= \App\Support\NotenSkala::genuegend() - 1e-9; @endphp
-                                        <span class="{{ $zielGenuegend ? 'text-yellow-700 dark:text-yellow-400' : 'text-red-600 dark:text-red-400' }} font-medium">Nicht mehr erreichbar · höchstens {{ \App\Support\NotenSkala::format($l['maximum'], 1) }}</span>
+                                        <span class="{{ $zielGenuegend ? 'text-note-knapp' : 'text-note-ungenuegend' }} font-medium">Nicht mehr erreichbar · höchstens {{ \App\Support\NotenSkala::format($l['maximum'], 1) }}</span>
                                         @break
                                     @default
-                                        <span class="{{ $erreicht ? 'text-green-700 dark:text-green-400' : 'text-muted' }}">{{ $erreicht ? 'Erreicht' : 'Keine offenen Prüfungen geplant' }}</span>
+                                        <span class="{{ $erreicht ? 'text-note-gut' : 'text-muted' }}">{{ $erreicht ? 'Erreicht' : 'Keine offenen Prüfungen geplant' }}</span>
                                 @endswitch
                             </div>
                         </a>

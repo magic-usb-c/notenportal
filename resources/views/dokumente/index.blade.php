@@ -14,26 +14,22 @@
     @endphp
 
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <div class="min-w-0">
-                @if($bereich)
-                    <div class="text-sm text-muted truncate">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</div>
-                @endif
-                <h2 class="font-semibold text-xl text-text">Dokumente</h2>
-            </div>
+        <x-seitenkopf titel="Dokumente" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null">
             @if($zurueck)
-                <a href="{{ $zurueck }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurück</a>
+                <x-slot:aktionen>
+                    <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+                </x-slot:aktionen>
             @endif
-        </div>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             @if($darfHochladen)
-                <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" class="glass rounded-2xl p-5 flex flex-col gap-4"
+                <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" class="rounded-xl border border-border bg-card p-5 flex flex-col gap-4"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
-                    <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed px-4 py-7 text-center cursor-pointer transition-colors"
+                    <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-7 text-center cursor-pointer transition-colors"
                            :class="ueber ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'"
                            @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
                            @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
@@ -43,7 +39,7 @@
                         <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only"
                                accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls,.ods,.csv,.docx" @change="name = $event.target.files[0]?.name ?? ''">
                     </label>
-                    @error('datei')<p class="-mt-2 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
 
                     <div class="grid sm:grid-cols-[10rem_12rem_minmax(0,1fr)_auto] gap-3 items-end">
                         <div>
@@ -62,26 +58,26 @@
                                     <option value="{{ $s->semester_id }}" @selected((int) old('semester_id') === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
                                 @endforeach
                             </select>
-                            @error('semester_id')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
                             <label for="titel" class="{{ $label }}">Titel</label>
                             <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" class="{{ $feld }}">
-                            @error('titel')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error('titel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
-                        <button type="submit" :disabled="loading" class="inline-flex items-center justify-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Hochladen</button>
+                        <button type="submit" :disabled="loading" class="inline-flex items-center justify-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Hochladen</button>
                     </div>
                 </form>
             @endif
 
             @if($dokumente->isEmpty())
-                <div class="glass rounded-2xl px-5 py-12 text-center text-sm text-muted">Noch keine Dokumente</div>
+                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">Noch keine Dokumente</div>
             @else
                 @foreach(\App\Models\Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))
                     <section class="flex flex-col gap-2">
                         <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ $artName }} · {{ $gruppen[$art]->count() }}</h3>
-                        <ul class="glass rounded-2xl divide-y divide-border overflow-hidden">
+                        <ul class="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
                                 <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">
                                     <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
@@ -109,7 +105,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                 <button :disabled="loading" aria-label="{{ $d->titel }} löschen"
-                                                        class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10 disabled:opacity-60">×</button>
+                                                        class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">×</button>
                                             </form>
                                         @endif
                                     </div>

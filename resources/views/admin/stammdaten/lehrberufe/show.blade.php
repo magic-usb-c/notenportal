@@ -1,24 +1,21 @@
 <x-app-layout>
     <x-slot name="title">Lehrberuf</x-slot>
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4">
-            <div>
-                <h2 class="font-semibold text-xl text-text">{{ $lehrberuf->name }}</h2>
-                <span class="text-sm text-muted font-mono">{{ $lehrberuf->kuerzel }}</span>
-            </div>
-            <a href="{{ route('admin.master-data.professions.index') }}"
-               class="px-4 py-2 h-10 rounded-xl glass-btn text-text text-sm">
-                Zurück
-            </a>
-        </div>
+        <x-seitenkopf :titel="$lehrberuf->name" :untertitel="$lehrberuf->kuerzel">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.professions.index') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
+                    Zurück
+                </a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
-
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ========== MODULE ========== --}}
-            <div class="glass rounded-2xl p-5 space-y-4">
+            <div class="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">Module</h3>
                     <span class="text-xs text-muted">{{ $zugewieseneModule->count() }} zugewiesen</span>
@@ -80,7 +77,7 @@
                                                   onsubmit="return confirm('Modul {{ $m->modul_nummer }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -132,7 +129,7 @@
                         </div>
                         <div>
                             <button type="submit" :disabled="loading"
-                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
                                 Zuweisen
                             </button>
                         </div>
@@ -141,7 +138,7 @@
             </div>
 
             {{-- ========== FÄCHER ========== --}}
-            <div class="glass rounded-2xl p-5 space-y-4">
+            <div class="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">Fächer (berufsspezifisch)</h3>
                     <span class="text-xs text-muted">{{ $zugewieseneFaecher->count() }} zugewiesen</span>
@@ -165,8 +162,7 @@
                                         <td class="py-2 pr-4 text-text">{{ $f->name }}</td>
                                         <td class="py-2 pr-4">
                                             @if($f->track_typ)
-                                                <span class="px-2 py-0.5 rounded-full text-xs
-                                                    bg-accent/10 text-accent">
+                                                <span class="px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent">
                                                     {{ $f->track_typ }}
                                                 </span>
                                             @else
@@ -179,7 +175,7 @@
                                                   onsubmit="return confirm('Fach {{ $f->name }} entfernen?')"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-red-600 dark:text-red-400 hover:bg-red-500/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
+                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60 disabled:cursor-not-allowed">Entfernen</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -209,7 +205,7 @@
                             </select>
                         </div>
                         <button type="submit" :disabled="loading"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-white np-btn-primary text-sm whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                                class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
                             Zuweisen
                         </button>
                     </form>
