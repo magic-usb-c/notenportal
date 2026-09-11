@@ -6,6 +6,8 @@ namespace Tests\Feature\Calendar;
 
 use App\Http\Middleware\SetLocale;
 use App\Models\Betreuung;
+use App\Models\CalendarEvent;
+use App\Models\CalendarFeed;
 use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
@@ -140,5 +142,49 @@ class CalendarExportTest extends TestCase
         $neuesToken = CalendarExport::token($this->lernender->fresh());
         $this->assertNotSame($altesToken, $neuesToken);
         $this->get(route('calendar.export', ['token' => $neuesToken]))->assertOk();
+    }
+
+    #[Test]
+    public function raum_wird_ort_und_abgesagte_pruefung_wird_als_abgesagt_markiert(): void
+    {
+        $this->pruefung->forceFill(['raum' => 'Zimmer 204', 'abgesagt_am' => now()])->save();
+
+        $event = Reader::read(app(CalendarExport::class)->forUser($this->lernender))->VEVENT;
+
+        $this->assertSame('Zimmer 204', (string) $event->LOCATION);
+        $this->assertSame('CANCELLED', (string) $event->STATUS);
+    }
+
+    #[Test]
+    public function lernender_exportiert_importierte_termine_aber_keine_lektionen(): void
+    {
+        $lernenderId = $this->lernender->lernender->lernender_id;
+        $feed = CalendarFeed::create(['lernender_id' => $lernenderId, 'url' => 'https://schulnetz.example/geheim']);
+        $termin = fn (array $werte) => CalendarEvent::create([
+            'lernender_id' => $lernenderId, 'calendar_feed_id' => $feed->id, 'uid' => uniqid('t', true),
+            'kind' => CalendarEvent::APPOINTMENT, 'starts_at' => now()->addDays(3)->setTime(8, 0), ...$werte,
+        ]);
+        $termin(['summary' => 'Elternabend', 'description' => 'Aula', 'location' => 'Chur', 'ends_at' => now()->addDays(3)->setTime(9, 30)]);
+        $termin(['summary' => 'Sporttag', 'all_day' => true, 'starts_at' => now()->addDays(4)->startOfDay()]);
+        $termin(['summary' => 'Lektion Mathe', 'kind' => CalendarEvent::LESSON]);
+        $termin(['summary' => 'Alter Termin', 'starts_at' => now()->subDays(90)]);
+
+        $events = collect(Reader::read(app(CalendarExport::class)->forUser($this->lernender))->select('VEVENT'))
+            ->keyBy(fn ($e) => (string) $e->SUMMARY);
+
+        $this->assertEqualsCanonicalizing(
+            ['Elternabend', 'Sporttag'],
+            $events->keys()->reject(fn ($s) => str_contains($s, 'Prüfung'))->values()->all(),
+        );
+        $elternabend = $events['Elternabend'];
+        $this->assertSame('Aula', (string) $elternabend->DESCRIPTION);
+        $this->assertSame('Chur', (string) $elternabend->LOCATION);
+        $this->assertSame(90 * 60, $elternabend->DTEND->getDateTime()->getTimestamp() - $elternabend->DTSTART->getDateTime()->getTimestamp());
+        $this->assertFalse($events['Sporttag']->DTSTART->hasTime(), 'Ganztägige Termine als DATE ohne Uhrzeit.');
+
+        // Berufsbildner-Abo enthält nur Prüfungen, nie die privaten Termine der Lernenden.
+        $bb = User::factory()->berufsbildner()->create();
+        Betreuung::create(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id, 'lernender_id' => $lernenderId, 'gueltig_von' => now()->subYear()->toDateString()]);
+        $this->assertStringNotContainsString('Elternabend', app(CalendarExport::class)->forUser($bb));
     }
 }
