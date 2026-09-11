@@ -71,7 +71,15 @@
             @endif
 
             @if($dokumente->isEmpty())
-                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">{{ __('Noch keine Dokumente') }}</div>
+                <div class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-5 py-10 text-center">
+                    <span class="inline-flex size-11 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                        <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+                    </span>
+                    <p class="text-sm font-medium text-text">{{ __('Noch keine Dokumente') }}</p>
+                    @if($bereich === null)
+                        <p class="max-w-md text-sm text-muted">{{ __('Leg hier Zeugnisse und Semesterberichte ab. Aus einem PDF-Zeugnis kannst du deine Noten danach mit dem Portal abgleichen.') }}</p>
+                    @endif
+                </div>
             @else
                 @foreach(\App\Models\Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))
