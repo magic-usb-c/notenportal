@@ -60,6 +60,9 @@
                             @empty
                                 <tr>
                                     <td colspan="5" class="p-10 text-center text-muted">
+                                        <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                                            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z"/></svg>
+                                        </span>
                                         <p class="text-text font-medium mb-1">{{ __('Noch keine Meldungen') }}</p>
                                         <p class="text-sm max-w-sm mx-auto">
                                             {{ __('Fehler, Ideen, Fragen oder Lob – über das Benutzermenü oder mit') }}

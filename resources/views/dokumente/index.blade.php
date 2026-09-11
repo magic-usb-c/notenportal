@@ -72,7 +72,7 @@
 
             @if($dokumente->isEmpty())
                 <div class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-5 py-10 text-center">
-                    <span class="inline-flex size-11 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                    <span class="inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
                         <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
                     </span>
                     <p class="text-sm font-medium text-text">{{ __('Noch keine Dokumente') }}</p>
