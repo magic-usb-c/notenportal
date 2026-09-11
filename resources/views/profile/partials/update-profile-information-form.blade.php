@@ -109,28 +109,65 @@
                     $altDichte = old('dichte', $praeferenzen['dichte'] ?? 'normal');
                     $altDichte = in_array($altDichte, \App\Support\Darstellung::DICHTEN, true) ? $altDichte : ($praeferenzen['dichte'] ?? 'normal');
                     $altBewegungReduziert = (bool) old('bewegung_reduziert', ($praeferenzen['bewegung'] ?? 'normal') === 'reduziert');
+                    $altAkzentEigen = old('akzent_eigen', $praeferenzen['akzent_eigen'] ?? '') ?: null;
+                    $altAkzentEigen = \App\Support\Farbe::istGueltigerHex($altAkzentEigen) ? strtolower($altAkzentEigen) : ($praeferenzen['akzent_eigen'] ?? null);
+                    $altSchriftart = old('schriftart', $praeferenzen['schriftart'] ?? 'standard');
+                    $altSchriftart = in_array($altSchriftart, \App\Support\Darstellung::SCHRIFTARTEN, true) ? $altSchriftart : ($praeferenzen['schriftart'] ?? 'standard');
+                    $altEcken = old('ecken', $praeferenzen['ecken'] ?? 'rund');
+                    $altEcken = in_array($altEcken, \App\Support\Darstellung::ECKEN, true) ? $altEcken : ($praeferenzen['ecken'] ?? 'rund');
+                    $altTransparenz = old('transparenz', $praeferenzen['transparenz'] ?? 'normal');
+                    $altTransparenz = in_array($altTransparenz, \App\Support\Darstellung::TRANSPARENZEN, true) ? $altTransparenz : ($praeferenzen['transparenz'] ?? 'normal');
+                    $altTastenkuerzel = old('tastenkuerzel', $praeferenzen['tastenkuerzel'] ?? 'an');
+                    $altTastenkuerzel = in_array($altTastenkuerzel, \App\Support\Darstellung::TASTENKUERZEL, true) ? $altTastenkuerzel : ($praeferenzen['tastenkuerzel'] ?? 'an');
+                    $startseitenOptionen = \App\Support\Darstellung::STARTSEITEN[$dashboardRolle ?? null] ?? null;
+                    $altStartseite = old('startseite', $praeferenzen['startseite'] ?? 'dashboard');
+                    $altStartseite = $startseitenOptionen && array_key_exists($altStartseite, $startseitenOptionen) ? $altStartseite : ($praeferenzen['startseite'] ?? 'dashboard');
                 @endphp
                 <div class="mt-5 flex flex-col gap-5"
                      x-data="{
                          theme: @js($altTheme ?? ''),
                          akzent: @js($altAkzent ?? ''),
+                         akzentEigen: @js($altAkzentEigen ?? '#2563eb'),
                          schrift: @js($altSchrift),
+                         schriftart: @js($altSchriftart),
                          dichte: @js($altDichte),
+                         ecken: @js($altEcken),
+                         transparenz: @js($altTransparenz),
                          bewegungReduziert: @js($altBewegungReduziert),
                          dunkel: document.documentElement.classList.contains('dark'),
                          betriebTheme: @js($betriebTheme),
                          effektivTheme() { return this.theme || this.betriebTheme; },
+                         {{-- Vorschau der eigenen Farbe: sofort sichtbar (Farbton), aber ohne die
+                              serverseitige Kontrastgarantie (App\Support\Farbe) – die gilt erst nach dem
+                              Speichern/Neuladen über die vom Server gerenderte <x-akzent-eigen-stil>.
+                              Bewusste Vereinfachung, siehe docs/audit-backlog.md «Persönliche Darstellung II». --}}
+                         hexZuRgb(hex) {
+                             const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex || '');
+                             return m ? [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)].join(' ') : null;
+                         },
                          anwenden() {
                              document.documentElement.dataset.theme = this.effektivTheme();
                              if (this.effektivTheme() === 'kontrast' || !this.akzent) {
                                  delete document.documentElement.dataset.akzent;
+                                 document.documentElement.style.removeProperty('--accent');
+                             } else if (this.akzent === 'eigen') {
+                                 document.documentElement.dataset.akzent = 'eigen';
+                                 const rgb = this.hexZuRgb(this.akzentEigen);
+                                 if (rgb) document.documentElement.style.setProperty('--accent', rgb);
                              } else {
                                  document.documentElement.dataset.akzent = this.akzent;
+                                 document.documentElement.style.removeProperty('--accent');
                              }
                              if (this.schrift === 'normal') delete document.documentElement.dataset.schrift;
                              else document.documentElement.dataset.schrift = this.schrift;
+                             if (this.schriftart === 'standard') delete document.documentElement.dataset.schriftart;
+                             else document.documentElement.dataset.schriftart = this.schriftart;
                              if (this.dichte === 'normal') delete document.documentElement.dataset.dichte;
                              else document.documentElement.dataset.dichte = this.dichte;
+                             if (this.ecken === 'rund') delete document.documentElement.dataset.ecken;
+                             else document.documentElement.dataset.ecken = this.ecken;
+                             if (this.transparenz === 'normal') delete document.documentElement.dataset.transparenz;
+                             else document.documentElement.dataset.transparenz = this.transparenz;
                              if (this.bewegungReduziert) document.documentElement.dataset.bewegung = 'reduziert';
                              else delete document.documentElement.dataset.bewegung;
                          },
@@ -180,8 +217,20 @@
                                     <span class="sr-only">{{ __($name) }}</span>
                                 </label>
                             @endforeach
+                            <label class="flex cursor-pointer flex-col items-center gap-1.5 has-focus-visible:outline-2 has-focus-visible:outline-ring rounded-lg p-1">
+                                <input type="radio" name="akzent" value="eigen" class="sr-only" x-model="akzent" @change="anwenden()"
+                                       x-bind:disabled="effektivTheme() === 'kontrast'" @checked($altAkzent === 'eigen')>
+                                <span class="relative block h-8 w-8 rounded-full" x-bind:class="{ 'ring-2 ring-accent ring-offset-2 ring-offset-bg': akzent === 'eigen' }">
+                                    <input type="color" name="akzent_eigen" x-model="akzentEigen" @input="akzent = 'eigen'; anwenden()"
+                                           x-bind:disabled="effektivTheme() === 'kontrast'"
+                                           class="block h-8 w-8 cursor-pointer rounded-full border border-border-strong/40 bg-transparent p-0"
+                                           aria-label="{{ __('Eigene Farbe wählen') }}">
+                                </span>
+                                <span class="text-2xs text-muted">{{ __('Eigene Farbe') }}</span>
+                            </label>
                         </div>
                         @error('akzent')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                        @error('akzent_eigen')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
                     {{-- Schriftgrösse --}}
@@ -200,6 +249,22 @@
                         @error('schrift')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
+                    {{-- Schriftart: reine System-Schriftstapel (kein Fremdladen) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Schriftart') }}</legend>
+                        <div class="mt-2 grid grid-cols-3 gap-2">
+                            @foreach(['standard' => __('Standard'), 'serif' => __('Serif'), 'lesefreundlich' => __('Lesefreundlich')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="schriftart" value="{{ $wert }}" class="sr-only" x-model="schriftart" @change="anwenden()"
+                                           @checked($altSchriftart === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('schriftart')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
                     {{-- Dichte: Tabellenzeilen, Karten-Padding und -Abstände (Live-Vorschau wie Farbthema/Schrift) --}}
                     <fieldset>
                         <legend class="text-sm font-medium text-text">{{ __('Dichte') }}</legend>
@@ -216,11 +281,78 @@
                         @error('dichte')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
+                    {{-- Ecken: Rundungen der Flächen (Karten, Buttons, Felder) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Ecken') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['rund' => __('Rund'), 'eckig' => __('Eckig')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="ecken" value="{{ $wert }}" class="sr-only" x-model="ecken" @change="anwenden()"
+                                           @checked($altEcken === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('ecken')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    {{-- Transparenz: schaltet Liquid-Glass/Blur auf Leiste und Overlay ab (deckende Fläche) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Transparenz') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['normal' => __('Normal'), 'reduziert' => __('Reduziert')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="transparenz" value="{{ $wert }}" class="sr-only" x-model="transparenz" @change="anwenden()"
+                                           @checked($altTransparenz === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('transparenz')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
                     <label for="bewegung_reduziert" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                         <input id="bewegung_reduziert" name="bewegung_reduziert" type="checkbox" value="1" x-model="bewegungReduziert" @change="anwenden()"
                                class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
                         {{ __('Bewegungen reduzieren') }}
                     </label>
+
+                    {{-- Tastenkürzel: schaltet sowohl den Dialog als auch dessen Listener ab --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Tastenkürzel') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['an' => __('An'), 'aus' => __('Aus')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="tastenkuerzel" value="{{ $wert }}" class="sr-only"
+                                           @checked($altTastenkuerzel === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('tastenkuerzel')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    {{-- Startseite: nur die für die eigene Rolle gültigen Ziele (App\Support\Darstellung::STARTSEITEN) --}}
+                    @if($startseitenOptionen)
+                        <fieldset>
+                            <legend class="text-sm font-medium text-text">{{ __('Startseite') }}</legend>
+                            <p class="mt-1 text-xs text-muted">{{ __('Ziel nach der Anmeldung, sofern kein Link direkt auf eine andere Seite führte.') }}</p>
+                            <div class="mt-2 grid grid-cols-3 gap-2">
+                                @foreach(array_keys($startseitenOptionen) as $wert)
+                                    <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                                  has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                        <input type="radio" name="startseite" value="{{ $wert }}" class="sr-only"
+                                               @checked($altStartseite === $wert)>
+                                        {{ __(\App\Support\Darstellung::STARTSEITE_BEZEICHNUNG[$wert] ?? $wert) }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            @error('startseite')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                        </fieldset>
+                    @endif
 
                     {{-- Übersicht: Dashboard-Karten der eigenen Rolle ein-/ausblenden (App\Support\DashboardKarten) --}}
                     @if(($dashboardRolle ?? null) && ($dashboardKarten ?? []))
@@ -263,4 +395,15 @@
             </button>
         </div>
     </form>
+
+    @if($praeferenzenOption ?? false)
+        <form method="POST" action="{{ route('profile.preferences.reset') }}" class="mt-3"
+              onsubmit="return confirm(@js(__('Darstellung wirklich auf Standard zurücksetzen?')));">
+            @csrf
+            @method('delete')
+            <button type="submit" class="px-4 py-2 h-9 rounded-xl glass-btn text-sm text-text">
+                {{ __('Auf Standard zurücksetzen') }}
+            </button>
+        </form>
+    @endif
 </section>

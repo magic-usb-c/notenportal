@@ -10,6 +10,8 @@
     $suchUrl = $u ? route('search') : null;
     $name = trim(($u->vorname ?? '').' '.($u->nachname ?? '')) ?: ($u->email ?? '');
     $icon = fn (string $n) => \App\Support\Navigation::icon($n);
+    // Einmal bestimmen: Menüpunkt und Dialog hängen beide davon ab (Profil «Darstellung»).
+    $tastenkuerzelAktiv = $u && \App\Support\Darstellung::fuer($u)['tastenkuerzel'] === \App\Support\Darstellung::TASTENKUERZEL_AN;
 
     // Ruhige Leiste: inaktiv gedimmt, aktiv Textfarbe + 2-px-Unterstrich in Accent.
     // Zwischen lg und xl kompakter (Logo-Text, Feedback-Knopf aus, weniger Abstand), sonst läuft die Admin-Leiste bei 1024 px über.
@@ -135,7 +137,9 @@
                         <div class="my-1 border-t border-border"></div>
                         <x-dropdown-link :href="route('profile.edit')">{{ __('Profil') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('notifications.settings')">{{ __('Benachrichtigungen') }}</x-dropdown-link>
-                        <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))">{{ __('Tastenkürzel') }}</x-dropdown-link>
+                        @if($tastenkuerzelAktiv)
+                            <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))">{{ __('Tastenkürzel') }}</x-dropdown-link>
+                        @endif
                         <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">{{ __('Feedback melden') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('feedback.index')">{{ __('Meine Meldungen') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('profile.data-export')">{{ __('Meine Daten herunterladen') }}</x-dropdown-link>
@@ -199,5 +203,5 @@
         </div>
     </div>
 
-    <x-tastenkuerzel :eintraege="$eintraege" />
+    <x-tastenkuerzel :eintraege="$eintraege" :aktiv="$tastenkuerzelAktiv" />
 </nav>

@@ -1,8 +1,13 @@
 {{-- $eintraege aus layouts/navigation übernehmen: ein zweiter Navigation::fuer()-Aufruf kostet Abfragen (AbfragenAnzahlTest) --}}
-@props(['eintraege' => null])
+@props(['eintraege' => null, 'aktiv' => null])
 @auth
     @php
         $u = auth()->user();
+        // Persönlich abgeschaltet (Profil «Darstellung»): weder Listener noch Dialog rendern.
+        $tastenkuerzelAktiv = $aktiv ?? \App\Support\Darstellung::fuer($u)['tastenkuerzel'] === \App\Support\Darstellung::TASTENKUERZEL_AN;
+    @endphp
+    @if($tastenkuerzelAktiv)
+    @php
         $istLernender = $u->hasRole('Lernender');
         $eintraege ??= \App\Support\Navigation::fuer($u);
         $zielFuer = fn (string $icon) => collect($eintraege)->first(fn ($e) => ($e['icon'] ?? null) === $icon)['url'] ?? null;
@@ -66,4 +71,5 @@
             </div>
         </template>
     </div>
+    @endif
 @endauth

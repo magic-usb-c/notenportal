@@ -2,7 +2,10 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $npTheme ?? 'gletscher' }}"
       @if($npAkzent ?? null) data-akzent="{{ $npAkzent }}" @endif
       @if(($npSchrift ?? 'normal') !== 'normal') data-schrift="{{ $npSchrift }}" @endif
-      @if(($npBewegung ?? 'normal') !== 'normal') data-bewegung="{{ $npBewegung }}" @endif>
+      @if(($npSchriftart ?? 'standard') !== 'standard') data-schriftart="{{ $npSchriftart }}" @endif
+      @if(($npBewegung ?? 'normal') !== 'normal') data-bewegung="{{ $npBewegung }}" @endif
+      @if(($npEcken ?? 'rund') !== 'rund') data-ecken="{{ $npEcken }}" @endif
+      @if(($npTransparenz ?? 'normal') !== 'normal') data-transparenz="{{ $npTransparenz }}" @endif>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,6 +29,7 @@
 
         {{-- Schrift (Inter Variable) ist über app.css selbst gehostet, kein externer Aufruf --}}
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <x-akzent-eigen-stil :hex="$npAkzentEigen ?? null" />
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">

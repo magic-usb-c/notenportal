@@ -55,12 +55,19 @@ class ProfileController extends Controller
 
         if (Darstellung::praeferenzenOptionVerfuegbar()) {
             $theme = $daten['theme'] ?? null ?: null;
+            $akzent = ($daten['akzent'] ?? null) ?: null;
             $user->praeferenzen = [
                 'theme' => $theme,
-                'akzent' => ($daten['akzent'] ?? null) ?: null,
+                'akzent' => $akzent,
+                'akzent_eigen' => $akzent === Darstellung::AKZENT_EIGEN ? ($daten['akzent_eigen'] ?? null) : null,
                 'schrift' => $daten['schrift'] ?? Darstellung::SCHRIFT_NORMAL,
+                'schriftart' => $daten['schriftart'] ?? Darstellung::SCHRIFTART_STANDARD,
                 'bewegung' => $request->boolean('bewegung_reduziert') ? Darstellung::BEWEGUNG_REDUZIERT : Darstellung::BEWEGUNG_NORMAL,
                 'dichte' => $daten['dichte'] ?? Darstellung::DICHTE_NORMAL,
+                'ecken' => $daten['ecken'] ?? Darstellung::ECKEN_RUND,
+                'transparenz' => $daten['transparenz'] ?? Darstellung::TRANSPARENZ_NORMAL,
+                'tastenkuerzel' => $daten['tastenkuerzel'] ?? Darstellung::TASTENKUERZEL_AN,
+                'startseite' => $daten['startseite'] ?? 'dashboard',
                 'karten_ausgeblendet' => $this->kartenAusgeblendet($request, $user),
             ];
             // Alt-Logik (Theme::fuer ohne Präferenzen) bleibt konsistent: Kontrast auch hier gesetzt.
@@ -82,6 +89,38 @@ class ProfileController extends Controller
         }
 
         return redirect()->route('profile.edit')->with('success', __('Profil gespeichert.'));
+    }
+
+    /**
+     * «Auf Standard zurücksetzen» (Profil «Darstellung»): alle Felder dieses Formularabschnitts
+     * auf den Standard, ausser die ausgeblendeten Dashboard-Karten (eigener Abschnitt) und die
+     * Spalte «darstellung» (hell/dunkel-Umschalter, unabhängig von den Präferenzen).
+     */
+    public function resetPreferences(Request $request): RedirectResponse
+    {
+        abort_unless(Darstellung::praeferenzenOptionVerfuegbar(), 404);
+
+        $user = $request->user();
+        $aktuell = Darstellung::fuer($user);
+
+        $user->praeferenzen = [
+            'theme' => null,
+            'akzent' => null,
+            'akzent_eigen' => null,
+            'schrift' => Darstellung::SCHRIFT_NORMAL,
+            'schriftart' => Darstellung::SCHRIFTART_STANDARD,
+            'bewegung' => Darstellung::BEWEGUNG_NORMAL,
+            'dichte' => Darstellung::DICHTE_NORMAL,
+            'ecken' => Darstellung::ECKEN_RUND,
+            'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
+            'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
+            'startseite' => 'dashboard',
+            'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
+        ];
+        $user->kontrast = false;
+        $user->save();
+
+        return redirect()->route('profile.edit')->with('success', __('Darstellung auf Standard zurückgesetzt.'));
     }
 
     /** Darstellung aus dem Umschalter in der Navigation (ohne Neuladen). */

@@ -58,12 +58,18 @@ export function registriereSuche(Alpine) {
             if (e.key === 'Enter' && this.liste[this.index]) { e.preventDefault(); this.gehe(this.liste[this.index]); }
         },
 
-        // «Feedback melden» öffnet den Dialog, Darstellungs-Befehle setzen Attribute/speichern
-        // sofort (window.npBefehl, Layout) – beides ohne Navigation.
+        // «Feedback melden»/«Tastenkürzel anzeigen» öffnen einen Dialog, Darstellungs-Befehle
+        // setzen Attribute/speichern sofort (window.npBefehl, Layout) – beides ohne Navigation.
         gehe(treffer) {
             if (treffer.url === '#feedback-modal') {
                 this.offen = false;
                 window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }));
+
+                return;
+            }
+            if (treffer.url === '#tastenkuerzel-modal') {
+                this.offen = false;
+                window.dispatchEvent(new CustomEvent('open-tastenkuerzel'));
 
                 return;
             }

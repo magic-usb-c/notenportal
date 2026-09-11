@@ -107,6 +107,15 @@
   html[data-schrift='gross'] { font-size: 112.5%; }
   html[data-schrift='sehr-gross'] { font-size: 125%; }
 
+  /* Persönliche Schriftart (Profil «Darstellung»): reine System-Schriftstapel, nichts wird nachgeladen */
+  html[data-schriftart='serif'] body {
+    font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  }
+  html[data-schriftart='lesefreundlich'] body {
+    font-family: 'Atkinson Hyperlegible', Verdana, Tahoma, sans-serif;
+    letter-spacing: 0.01em;
+  }
+
   /* Persönlich reduzierte Bewegung: wie prefers-reduced-motion, aber per Schalter */
   [data-bewegung='reduziert'] {
     scroll-behavior: auto;
@@ -249,6 +258,30 @@
     [data-dichte='kompakt'] .np-raster .gap-4 { gap: 0.75rem; }     /* 16px -> 12px, zwischen Karten */
     [data-dichte='kompakt'] .np-raster.gap-5,
     [data-dichte='kompakt'] .np-raster .gap-5 { gap: 1rem; }        /* 20px -> 16px, zwischen Karten */
+  }
+}
+
+/* Persönliche Ecken (Profil «Darstellung»): stark reduzierte Radien über dieselben
+   Variablen, die Tailwinds rounded-md/lg/xl/2xl/3xl referenzieren. rounded-full
+   (Avatar, Status-Punkt) ist nicht Token-basiert und bleibt bewusst unverändert. */
+@layer utilities {
+  [data-ecken='eckig'] {
+    --radius-md: 0.1875rem;
+    --radius-lg: 0.25rem;
+    --radius-xl: 0.375rem;
+    --radius-2xl: 0.5rem;
+    --radius-3xl: 0.5rem;
+  }
+}
+
+/* Persönlich reduzierte Transparenz (Profil «Darstellung»): wie prefers-reduced-transparency,
+   aber per Schalter – deckende Fläche statt Liquid-Glass/Blur auf Leiste und Overlay.
+   .glass-btn ist bereits deckend, das unbenutzte bare .glass hat keine CSS-Definition. */
+@layer utilities {
+  [data-transparenz='reduziert'] .glass-bar,
+  [data-transparenz='reduziert'] .glass-overlay {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
   }
 }
 

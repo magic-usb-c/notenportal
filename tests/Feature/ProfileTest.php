@@ -84,9 +84,15 @@ class ProfileTest extends TestCase
         $this->assertSame([
             'theme' => 'wald',
             'akzent' => 'petrol',
+            'akzent_eigen' => null,
             'schrift' => 'gross',
+            'schriftart' => 'standard',
             'bewegung' => 'reduziert',
             'dichte' => 'kompakt',
+            'ecken' => 'rund',
+            'transparenz' => 'normal',
+            'tastenkuerzel' => 'an',
+            'startseite' => 'dashboard',
             'karten_ausgeblendet' => [],
         ], $user->praeferenzen);
         $this->assertFalse($user->kontrast);

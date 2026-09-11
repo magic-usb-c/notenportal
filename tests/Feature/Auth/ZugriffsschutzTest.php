@@ -28,6 +28,7 @@ class ZugriffsschutzTest extends TestCase
         'profile.update',
         'profile.appearance',
         'profile.preferences',
+        'profile.preferences.reset',
         'profile.data-export',
         'password.update',
         'password.initial',

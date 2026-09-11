@@ -166,6 +166,65 @@ class ThemeTest extends TestCase
     }
 
     #[Test]
+    public function data_schriftart_ecken_transparenz_werden_nur_gesetzt_wenn_nicht_standard(): void
+    {
+        $standard = User::factory()->lernender()->create();
+        $response = $this->actingAs($standard)->get(route('learner.dashboard'));
+        $response->assertDontSee('data-schriftart', false);
+        $response->assertDontSee('data-ecken', false);
+        $response->assertDontSee('data-transparenz', false);
+
+        $angepasst = User::factory()->lernender()->create([
+            'praeferenzen' => ['schriftart' => 'serif', 'ecken' => 'eckig', 'transparenz' => 'reduziert'],
+        ]);
+        $response = $this->actingAs($angepasst)->get(route('learner.dashboard'));
+        $response->assertSee('data-schriftart="serif"', false);
+        $response->assertSee('data-ecken="eckig"', false);
+        $response->assertSee('data-transparenz="reduziert"', false);
+    }
+
+    #[Test]
+    public function data_schriftart_ecken_transparenz_stehen_auch_auf_gast_und_fehler_layout(): void
+    {
+        $angepasst = User::factory()->lernender()->create([
+            'praeferenzen' => ['schriftart' => 'lesefreundlich', 'ecken' => 'eckig', 'transparenz' => 'reduziert'],
+        ]);
+
+        // errors.layout: z. B. 403 bei einem für Lernende gesperrten Admin-Bereich.
+        $response = $this->actingAs($angepasst)->get(route('admin.dashboard'));
+        $response->assertForbidden();
+        $response->assertSee('data-schriftart="lesefreundlich"', false);
+        $response->assertSee('data-ecken="eckig"', false);
+        $response->assertSee('data-transparenz="reduziert"', false);
+
+        // layouts.guest: z. B. /login, allerdings ohne angemeldeten Benutzer (kein npAkzentEigen dort möglich)
+        $this->get('/login')->assertDontSee('data-schriftart', false);
+    }
+
+    #[Test]
+    public function eigene_farbe_erscheint_nur_bei_gueltigem_gespeichertem_wert(): void
+    {
+        $ohne = User::factory()->lernender()->create();
+        $this->actingAs($ohne)->get(route('learner.dashboard'))->assertDontSee("[data-akzent='eigen']", false);
+
+        $mit = User::factory()->lernender()->create(['praeferenzen' => ['akzent' => 'eigen', 'akzent_eigen' => '#3355ff']]);
+        $response = $this->actingAs($mit)->get(route('learner.dashboard'));
+        $response->assertSee("[data-akzent='eigen']", false);
+        $response->assertDontSee('#3355ff');
+        $response->assertDontSee('#3355FF');
+    }
+
+    #[Test]
+    public function eigene_farbe_entfaellt_beim_theme_kontrast(): void
+    {
+        $user = User::factory()->lernender()->create([
+            'praeferenzen' => ['theme' => 'kontrast', 'akzent' => 'eigen', 'akzent_eigen' => '#3355ff'],
+        ]);
+
+        $this->actingAs($user)->get(route('learner.dashboard'))->assertDontSee("[data-akzent='eigen']", false);
+    }
+
+    #[Test]
     public function beim_theme_kontrast_wird_data_akzent_nicht_gesetzt(): void
     {
         $user = User::factory()->lernender()->create([

@@ -62,6 +62,29 @@ class TastenkuerzelTest extends TestCase
         $this->get(route('login'))->assertDontSee('npTastenkuerzel', false);
     }
 
+    #[Test]
+    public function bei_abgeschalteter_praeferenz_gibt_es_weder_dialog_noch_befehl(): void
+    {
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['tastenkuerzel' => 'aus']]);
+
+        $response = $this->actingAs($user)->get(route('learner.dashboard'));
+        $response->assertOk();
+        $response->assertDontSee('npTastenkuerzel', false);
+        $response->assertDontSee('#tastenkuerzel-modal', false);
+        // Auch kein toter Menüpunkt im Benutzermenü (Listener fehlt ja).
+        $response->assertDontSee('open-tastenkuerzel', false);
+    }
+
+    #[Test]
+    public function befehl_erscheint_nur_wenn_eingeschaltet(): void
+    {
+        $an = User::factory()->lernender()->create();
+        $this->actingAs($an)->get(route('learner.dashboard'))->assertSee('#tastenkuerzel-modal', false);
+
+        $aus = User::factory()->lernender()->create(['praeferenzen' => ['tastenkuerzel' => 'aus']]);
+        $this->actingAs($aus)->get(route('learner.dashboard'))->assertDontSee('#tastenkuerzel-modal', false);
+    }
+
     /**
      * Illuminate\Support\Js::from() bettet die Konfiguration nicht als rohes JSON ein, sondern als
      * `JSON.parse('…')` mit \uXXXX-Escapes (sicher für ein HTML-Attribut) – hier wird das genauso

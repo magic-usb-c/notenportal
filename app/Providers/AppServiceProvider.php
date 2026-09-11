@@ -44,11 +44,15 @@ class AppServiceProvider extends ServiceProvider
             $praeferenzen = Darstellung::fuer($user);
 
             $view->with('npTheme', $theme);
-            // Beim effektiven Theme «kontrast» wird data-akzent nicht gesetzt.
+            // Beim effektiven Theme «kontrast» werden data-akzent und die eigene Farbe nicht gesetzt.
             $view->with('npAkzent', $theme === Theme::KONTRAST ? null : $praeferenzen['akzent']);
+            $view->with('npAkzentEigen', $theme === Theme::KONTRAST ? null : $praeferenzen['akzent_eigen']);
             $view->with('npSchrift', $praeferenzen['schrift']);
+            $view->with('npSchriftart', $praeferenzen['schriftart']);
             $view->with('npBewegung', $praeferenzen['bewegung']);
             $view->with('npDichte', $praeferenzen['dichte']);
+            $view->with('npEcken', $praeferenzen['ecken']);
+            $view->with('npTransparenz', $praeferenzen['transparenz']);
         });
 
         View::composer('layouts.navigation', function ($view) {

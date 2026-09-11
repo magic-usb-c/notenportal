@@ -103,6 +103,9 @@ final class Navigation
         $befehle[] = ['label' => __('Feedback melden'), 'url' => '#feedback-modal', 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Meine Meldungen'), 'url' => route('feedback.index'), 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Meine Daten herunterladen'), 'url' => route('profile.data-export'), 'gruppe' => __('Konto')];
+        if (Darstellung::fuer($user)['tastenkuerzel'] === Darstellung::TASTENKUERZEL_AN) {
+            $befehle[] = ['label' => __('Tastenkürzel anzeigen'), 'url' => '#tastenkuerzel-modal', 'gruppe' => __('Konto')];
+        }
 
         foreach (self::darstellungsBefehle() as $befehl) {
             $befehle[] = $befehl;
