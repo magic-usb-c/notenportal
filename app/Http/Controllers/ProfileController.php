@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Lernender;
+use App\Support\Theme;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class ProfileController extends Controller
             'lernender' => $lernender,
             'lehrberuf' => $lehrberuf,
             'bmsAktiv' => $lernender && $this->hatAktivenBmsTrack($lernender),
+            'kontrastOption' => Theme::kontrastOptionVerfuegbar(),
         ]);
     }
 
@@ -39,6 +41,9 @@ class ProfileController extends Controller
         $lernender = $user->lernender;
 
         $user->fill(Arr::only($daten, $lernender ? ['email', 'darstellung'] : ['vorname', 'nachname', 'email', 'darstellung']));
+        if (Theme::kontrastOptionVerfuegbar()) {
+            $user->kontrast = $request->boolean('kontrast');
+        }
         $user->save();
 
         if ($lernender) {

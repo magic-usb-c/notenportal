@@ -22,10 +22,10 @@
             @endforeach
         </div>
         <div class="mt-3 flex h-2 rounded-full overflow-hidden" aria-hidden="true">
-            <div class="bg-red-500 transition-all" :style="`width: ${b(krit)}%`"></div>
-            <div class="bg-yellow-500 transition-all" :style="`width: ${Math.max(0, b(gen) - b(krit))}%`"></div>
-            <div class="bg-emerald-500 transition-all" :style="`width: ${Math.max(0, b(gut) - b(gen))}%`"></div>
-            <div class="bg-green-500 flex-1"></div>
+            <div class="bg-note-ungenuegend transition-all" :style="`width: ${b(krit)}%`"></div>
+            <div class="bg-note-knapp transition-all" :style="`width: ${Math.max(0, b(gen) - b(krit))}%`"></div>
+            <div class="bg-note-genuegend transition-all" :style="`width: ${Math.max(0, b(gut) - b(gen))}%`"></div>
+            <div class="bg-note-gut flex-1"></div>
         </div>
         <div class="mt-1 flex justify-between text-[11px] text-muted tabular-nums" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
     </div>

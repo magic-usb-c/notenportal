@@ -11,10 +11,12 @@ use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
+use App\Http\Controllers\CalendarExportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
+use App\Http\Controllers\Lernender\CalendarController as LernenderCalendarController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Lernender\PruefungenController;
 use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
@@ -110,7 +112,7 @@ Route::middleware(['auth', 'role:Lernender'])
     });
 
 /**
- * Lernender: geplante Prüfungen und Ziele
+ * Lernender: Agenda (eigene Prüfungen, Schulnetz-Termine/-Lektionen, Kalender-Abo) und Ziele
  */
 Route::middleware(['auth', 'role:Lernender'])
     ->name('learner.')
@@ -119,9 +121,25 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::post('/exams', [PruefungenController::class, 'store'])->name('exams.store');
         Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('exams.update');
         Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('exams.destroy');
+        Route::post('/exams/detected/{calendar_event_id}/adopt', [PruefungenController::class, 'adopt'])
+            ->whereNumber('calendar_event_id')->name('exams.adopt');
+
+        Route::post('/calendar/feed', [LernenderCalendarController::class, 'feedStore'])
+            ->middleware('throttle:10,1,calendar-feed')->name('calendar.feed.store');
+        Route::post('/calendar/sync', [LernenderCalendarController::class, 'sync'])
+            ->middleware('throttle:6,1,calendar-sync')->name('calendar.sync');
+        Route::post('/calendar/token', [LernenderCalendarController::class, 'tokenReset'])
+            ->middleware('throttle:10,1,calendar-token')->name('calendar.token.reset');
+
         Route::post('/goals', [ZieleController::class, 'store'])->name('goals.store');
         Route::delete('/goals/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('goals.destroy');
     });
+
+/**
+ * Öffentlicher iCal-Abo-Link (Token statt Login) für Lernende, Berufsbildner und Admin.
+ */
+Route::get('/calendar/{token}.ics', CalendarExportController::class)
+    ->middleware('throttle:60,1,calendar-export')->whereAlphaNumeric('token')->name('calendar.export');
 
 /**
  * Lernenden-Verwaltung: gleicher Funktionsumfang für Admin und Berufsbildner,
@@ -234,6 +252,8 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/feedback/export', [AdminFeedbackController::class, 'export'])->name('feedback.export');
         Route::patch('/feedback/{feedback_id}', [AdminFeedbackController::class, 'update'])
             ->whereNumber('feedback_id')->name('feedback.update');
+        Route::get('/feedback/{feedback_id}/screenshot', [AdminFeedbackController::class, 'screenshot'])
+            ->whereNumber('feedback_id')->name('feedback.screenshot');
     });
 
 /**
@@ -243,6 +263,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])
         ->middleware('throttle:10,1')->name('feedback.store');
+    Route::post('/feedback/hint', [FeedbackController::class, 'hinweisSchliessen'])->name('feedback.hint.dismiss');
 });
 
 Route::get('/search', SucheController::class)->middleware(['auth', 'throttle:60,1'])->name('search');
@@ -279,6 +300,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     }
     Route::get('/operations', [BetriebController::class, 'edit'])->name('operations.edit');
     Route::put('/operations', [BetriebController::class, 'update'])->name('operations.update');
+    Route::put('/operations/theme', [BetriebController::class, 'themeSpeichern'])->name('operations.theme.update');
     Route::post('/operations/backups', [BetriebController::class, 'sicherungErstellen'])->name('operations.backups.store');
     Route::get('/operations/backups/{name}', [BetriebController::class, 'sicherungHerunterladen'])->name('operations.backups.show');
     Route::delete('/operations/backups/{name}', [BetriebController::class, 'sicherungLoeschen'])->name('operations.backups.destroy');

@@ -12,7 +12,7 @@ class FeedbackViewportTest extends TestCase
     public function viewport_akzeptiert_nur_breite_mal_hoehe(): void
     {
         $this->actingAs(User::factory()->lernender()->create());
-        $meldung = ['kategorie' => 'bug', 'text' => 'Knopf reagiert nicht'];
+        $meldung = ['kategorie' => 'fehler', 'text' => 'Knopf reagiert nicht'];
 
         $this->postJson(route('feedback.store'), $meldung + ['viewport' => '=1+1'])
             ->assertStatus(422)

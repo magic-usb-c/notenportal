@@ -20,6 +20,7 @@ class ProfileUpdateRequest extends FormRequest
             'email' => ['required', 'email', 'max:255', Rule::unique('benutzer', 'email')->ignore($user->benutzer_id, 'benutzer_id')],
             'current_password' => [Rule::requiredIf(fn () => $this->input('email') !== $user->email), 'nullable', 'current_password'],
             'darstellung' => ['required', Rule::in(['system', 'hell', 'dunkel'])],
+            'kontrast' => ['nullable', 'boolean'],
         ];
 
         if ($user->lernender) {

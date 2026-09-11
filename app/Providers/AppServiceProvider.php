@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Feedback;
 use App\Services\Notifications\MailSettings;
 use App\Support\Einstellungen;
+use App\Support\Theme;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
@@ -26,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['layouts.app', 'layouts.guest', 'layouts.navigation', 'auth.login'], function ($view) {
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));
+        });
+
+        // Farbthema serverseitig ins <html data-theme> (kein Flackern)
+        View::composer(['layouts.app', 'layouts.guest'], function ($view) {
+            $view->with('npTheme', Theme::fuer(Auth::user()));
         });
 
         View::composer('layouts.navigation', function ($view) {

@@ -9,8 +9,11 @@ use App\Services\Betrieb\Sicherung;
 use App\Services\Betrieb\SicherungKopie;
 use App\Services\Notifications\MailSettings;
 use App\Support\Betrieb;
+use App\Support\Einstellungen;
+use App\Support\Theme;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -24,6 +27,7 @@ class BetriebController extends Controller
 
         return view('admin.betrieb.edit', [
             'werte' => Betrieb::werte(),
+            'theme' => Theme::betrieb(),
             'mailWerte' => $mailWerte,
             'testTo' => $mailWerte[MailSettings::REDIRECT_TO] ?: (string) $request->user()->email,
             'sicherungen' => $this->sicherung->liste(),
@@ -41,6 +45,14 @@ class BetriebController extends Controller
         Betrieb::speichern($request->validate(Betrieb::regeln()));
 
         return redirect()->route('admin.operations.edit')->with('success', 'Betrieb gespeichert.');
+    }
+
+    public function themeSpeichern(Request $request): RedirectResponse
+    {
+        $wert = $request->validate(['theme' => ['required', Rule::in(array_keys(Theme::THEMES))]])['theme'];
+        Einstellungen::set(Einstellungen::THEME, $wert);
+
+        return redirect()->route('admin.operations.edit')->with('success', 'Farbthema '.Theme::THEMES[$wert].' gespeichert.');
     }
 
     public function sicherungErstellen(): RedirectResponse

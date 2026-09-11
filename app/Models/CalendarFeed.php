@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Abonnierte iCal-Adresse eines Lernenden (z. B. Schulnetz-Stundenplan oder -Prüfungen).
  * Die URL enthält meist ein persönliches Geheimnis → verschlüsselt gespeichert, nie ausgegeben.
  */
-#[Fillable(['lernender_id', 'label', 'url', 'import_lessons', 'import_appointments', 'last_synced_at', 'last_status', 'last_error', 'events_count'])]
+#[Fillable(['lernender_id', 'label', 'url', 'import_lessons', 'import_appointments', 'import_exams', 'last_synced_at', 'last_status', 'last_error', 'events_count'])]
 #[Hidden(['url'])]
 #[Table(name: 'calendar_feeds')]
 class CalendarFeed extends Model
@@ -24,7 +24,7 @@ class CalendarFeed extends Model
 
     public const string ERROR = 'error';
 
-    protected $attributes = ['import_lessons' => true, 'import_appointments' => true, 'events_count' => 0];
+    protected $attributes = ['import_lessons' => true, 'import_appointments' => true, 'import_exams' => true, 'events_count' => 0];
 
     public function lernender(): BelongsTo
     {
@@ -48,6 +48,7 @@ class CalendarFeed extends Model
             'url' => 'encrypted',
             'import_lessons' => 'boolean',
             'import_appointments' => 'boolean',
+            'import_exams' => 'boolean',
             'last_synced_at' => 'datetime',
         ];
     }

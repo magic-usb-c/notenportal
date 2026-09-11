@@ -2,14 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\FeedbackController;
 use App\Models\Feedback;
+use App\Models\NotificationMark;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FeedbackTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Storage::fake('local');
+    }
+
     public static function rollen(): array
     {
         return [['admin'], ['berufsbildner'], ['lernender']];
@@ -41,6 +51,7 @@ class FeedbackTest extends TestCase
         $eintrag = Feedback::where('benutzer_id', $user->benutzer_id)->firstOrFail();
         $this->assertNotNull($eintrag->user_agent);
         $this->assertSame(Feedback::STATUS_OFFEN, $eintrag->status);
+        $this->assertSame($user->rollen()->pluck('name')->first(), $eintrag->rolle);
     }
 
     #[Test]
@@ -87,7 +98,7 @@ class FeedbackTest extends TestCase
 
         Feedback::factory()->create([
             'benutzer_id' => $lernender->benutzer_id,
-            'kategorie' => Feedback::KATEGORIE_BUG,
+            'kategorie' => Feedback::KATEGORIE_FEHLER,
             'status' => Feedback::STATUS_OFFEN,
             'text' => 'Bug-Meldung im Rechner',
         ]);
@@ -161,7 +172,7 @@ class FeedbackTest extends TestCase
         for ($i = 1; $i <= 10; $i++) {
             $this->actingAs($user)
                 ->postJson(route('feedback.store'), [
-                    'kategorie' => 'feedback',
+                    'kategorie' => 'idee',
                     'text' => 'Meldung Nummer '.$i,
                 ])
                 ->assertCreated();
@@ -169,7 +180,7 @@ class FeedbackTest extends TestCase
 
         $this->actingAs($user)
             ->postJson(route('feedback.store'), [
-                'kategorie' => 'feedback',
+                'kategorie' => 'idee',
                 'text' => 'Meldung Nummer 11',
             ])
             ->assertStatus(429);
@@ -189,5 +200,114 @@ class FeedbackTest extends TestCase
         $inhalt = $response->streamedContent();
         $this->assertStringContainsString('Datum;Nachname;Vorname', $inhalt);
         $this->assertStringContainsString('Export-Testmeldung', $inhalt);
+    }
+
+    #[Test]
+    public function meldung_mit_screenshot_und_js_fehlern_wird_gespeichert(): void
+    {
+        $user = User::factory()->lernender()->create();
+        $bild = UploadedFile::fake()->image('screenshot.jpg', 1200, 800)->size(500);
+
+        $response = $this->actingAs($user)->post(route('feedback.store'), [
+            'kategorie' => 'fehler',
+            'text' => 'Der Speichern-Knopf reagiert nicht.',
+            'route_name' => 'learner.grades.index',
+            'url' => '/grades',
+            'viewport' => '1280x800',
+            'js_fehler' => json_encode(['Fehler 1', 'Fehler 2', 'Fehler 3', 'Fehler 4 (wird verworfen, nur die letzten 3 zählen)']),
+            'screenshot' => $bild,
+        ], ['Accept' => 'application/json']);
+
+        $response->assertCreated();
+
+        $eintrag = Feedback::where('benutzer_id', $user->benutzer_id)->firstOrFail();
+        $this->assertTrue($eintrag->hatScreenshot());
+        Storage::disk('local')->assertExists($eintrag->screenshot_pfad);
+        $this->assertCount(3, $eintrag->js_fehler);
+        $this->assertSame(['Fehler 2', 'Fehler 3', 'Fehler 4 (wird verworfen, nur die letzten 3 zählen)'], $eintrag->js_fehler);
+    }
+
+    #[Test]
+    public function screenshot_mit_falschem_dateityp_wird_abgelehnt(): void
+    {
+        $user = User::factory()->lernender()->create();
+        $datei = UploadedFile::fake()->create('schadcode.php', 10, 'application/x-php');
+
+        $this->actingAs($user)->post(route('feedback.store'), [
+            'kategorie' => 'fehler',
+            'text' => 'Screenshot mit falschem Typ.',
+            'screenshot' => $datei,
+        ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['screenshot']);
+    }
+
+    #[Test]
+    public function zu_grosser_screenshot_wird_abgelehnt(): void
+    {
+        $user = User::factory()->lernender()->create();
+        $zuGross = UploadedFile::fake()->image('gross.jpg')->size(2500); // > 1536 KB
+
+        $this->actingAs($user)->post(route('feedback.store'), [
+            'kategorie' => 'fehler',
+            'text' => 'Screenshot ist zu gross.',
+            'screenshot' => $zuGross,
+        ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['screenshot']);
+    }
+
+    #[Test]
+    public function nur_admin_sieht_screenshot_fremder_meldungen(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $melder = User::factory()->lernender()->create();
+        $anderer = User::factory()->lernender()->create();
+
+        $bild = UploadedFile::fake()->image('screenshot.jpg', 800, 600)->size(200);
+        $feedback = Feedback::factory()->create(['benutzer_id' => $melder->benutzer_id]);
+        $feedback->update([
+            'screenshot_pfad' => $bild->storeAs('feedback/2026', 'test.jpg', 'local'),
+            'screenshot_mime' => 'image/jpeg',
+            'screenshot_groesse' => $bild->getSize(),
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertOk();
+        $this->actingAs($anderer)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertForbidden();
+        $this->actingAs($melder)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertForbidden();
+    }
+
+    #[Test]
+    public function screenshot_route_liefert_404_ohne_screenshot(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $feedback = Feedback::factory()->create();
+
+        $this->actingAs($admin)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertNotFound();
+    }
+
+    #[Test]
+    public function login_hinweis_erscheint_einmal_und_verschwindet_nach_dem_schliessen(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $seite = $this->actingAs($user)->get(route('learner.dashboard'));
+        $seite->assertSee('erreichst du uns jederzeit');
+
+        $this->actingAs($user)->postJson(route('feedback.hint.dismiss'))->assertOk();
+
+        $this->assertDatabaseHas('notification_marks', [
+            'user_id' => $user->benutzer_id,
+            'type' => FeedbackController::HINWEIS_TYP,
+            'subject_key' => FeedbackController::HINWEIS_SCHLUESSEL,
+        ]);
+
+        $nachDemSchliessen = $this->actingAs($user)->get(route('learner.dashboard'));
+        $nachDemSchliessen->assertOk();
+        $nachDemSchliessen->assertDontSee('erreichst du uns jederzeit');
+        $this->assertSame(
+            1,
+            NotificationMark::where('user_id', $user->benutzer_id)->where('type', FeedbackController::HINWEIS_TYP)->count(),
+        );
     }
 }

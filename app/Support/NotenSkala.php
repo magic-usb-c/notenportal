@@ -18,24 +18,25 @@ final class NotenSkala
     public const string UNGENUEGEND = 'ungenuegend';
 
     private const array TEXT = [
-        self::GUT => 'text-green-700 dark:text-green-400',
-        self::GENUEGEND => 'text-emerald-700 dark:text-emerald-400',
-        self::KNAPP => 'text-yellow-700 dark:text-yellow-400',
-        self::UNGENUEGEND => 'text-red-600 dark:text-red-400',
+        self::GUT => 'text-note-gut',
+        self::GENUEGEND => 'text-note-genuegend',
+        self::KNAPP => 'text-note-knapp',
+        self::UNGENUEGEND => 'text-note-ungenuegend',
     ];
 
     private const array BALKEN = [
-        self::GUT => 'bg-green-500',
-        self::GENUEGEND => 'bg-emerald-500',
-        self::KNAPP => 'bg-yellow-500',
-        self::UNGENUEGEND => 'bg-red-500',
+        self::GUT => 'bg-note-gut',
+        self::GENUEGEND => 'bg-note-genuegend',
+        self::KNAPP => 'bg-note-knapp',
+        self::UNGENUEGEND => 'bg-note-ungenuegend',
     ];
 
+    /** Text in Notenfarbe auf 14 % Tint derselben Farbe (Kontrast in theme.css gerechnet). */
     private const array BADGE = [
-        self::GUT => 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300',
-        self::GENUEGEND => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-        self::KNAPP => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
-        self::UNGENUEGEND => 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+        self::GUT => 'bg-note-gut/14 text-note-gut',
+        self::GENUEGEND => 'bg-note-genuegend/14 text-note-genuegend',
+        self::KNAPP => 'bg-note-knapp/14 text-note-knapp',
+        self::UNGENUEGEND => 'bg-note-ungenuegend/14 text-note-ungenuegend',
     ];
 
     private const array GLOW = [

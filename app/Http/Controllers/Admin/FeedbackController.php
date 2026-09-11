@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Services\Feedback\Screenshot;
 use App\Services\Notifications\Messages\FeedbackAnswered;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
@@ -83,6 +84,15 @@ class FeedbackController extends Controller
         return redirect()->back()->with('success', 'Status aktualisiert.');
     }
 
+    /** Screenshot einer Meldung – nur für Admins, nie öffentlich oder für die meldende Person. */
+    public function screenshot(int $feedback_id, Screenshot $screenshotService): StreamedResponse
+    {
+        $feedback = Feedback::query()->findOrFail($feedback_id);
+        abort_unless($feedback->hatScreenshot(), 404);
+
+        return $screenshotService->ausliefern($feedback);
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $rows = Feedback::query()
@@ -91,9 +101,9 @@ class FeedbackController extends Controller
             ->select([
                 'feedback.erstellt_am',
                 'b.nachname', 'b.vorname', 'b.email',
-                'feedback.kategorie', 'feedback.status',
+                'feedback.rolle', 'feedback.kategorie', 'feedback.status',
                 'feedback.text', 'feedback.route_name', 'feedback.url',
-                'feedback.viewport',
+                'feedback.viewport', 'feedback.browser',
             ])
             ->get();
 
@@ -102,7 +112,7 @@ class FeedbackController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Datum', 'Nachname', 'Vorname', 'E-Mail', 'Kategorie', 'Status', 'Text', 'Route', 'URL', 'Viewport'], ';');
+            fputcsv($out, ['Datum', 'Nachname', 'Vorname', 'E-Mail', 'Rolle', 'Kategorie', 'Status', 'Text', 'Route', 'URL', 'Viewport', 'Browser'], ';');
 
             foreach ($rows as $r) {
                 fputcsv($out, [
@@ -110,12 +120,14 @@ class FeedbackController extends Controller
                     Csv::safe($r->nachname),
                     Csv::safe($r->vorname),
                     Csv::safe($r->email),
+                    Csv::safe($r->rolle ?? ''),
                     Feedback::KATEGORIEN[$r->kategorie] ?? $r->kategorie,
                     Feedback::STATUS[$r->status] ?? $r->status,
                     Csv::safe($r->text),
                     Csv::safe($r->route_name ?? ''),
                     Csv::safe($r->url ?? ''),
                     Csv::safe($r->viewport ?? ''),
+                    Csv::safe($r->browser ?? ''),
                 ], ';');
             }
 

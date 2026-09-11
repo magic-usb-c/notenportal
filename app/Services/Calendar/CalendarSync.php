@@ -81,7 +81,9 @@ final class CalendarSync
 
                 $info = $this->parser->parse($summary, $beschreibung);
                 $kind = $this->kind($info, $summary, $beschreibung);
-                if (($kind === CalendarEvent::LESSON && ! $feed->import_lessons) || ($kind === CalendarEvent::APPOINTMENT && ! $feed->import_appointments)) {
+                if (($kind === CalendarEvent::LESSON && ! $feed->import_lessons)
+                    || ($kind === CalendarEvent::APPOINTMENT && ! $feed->import_appointments)
+                    || ($kind === CalendarEvent::EXAM && ! $feed->import_exams)) {
                     continue;
                 }
 

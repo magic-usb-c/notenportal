@@ -70,6 +70,11 @@ class Lernender extends Model
         return $this->hasMany(Pruefung::class, 'lernender_id', 'lernender_id');
     }
 
+    public function calendarFeeds(): HasMany
+    {
+        return $this->hasMany(CalendarFeed::class, 'lernender_id', 'lernender_id');
+    }
+
     public function ziele(): HasMany
     {
         return $this->hasMany(Ziel::class, 'lernender_id', 'lernender_id');

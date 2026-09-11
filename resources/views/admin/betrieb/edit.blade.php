@@ -19,6 +19,8 @@
                 </div>
             </form>
 
+            @include('admin.betrieb._theme', ['theme' => old('theme', $theme)])
+
             <section class="glass rounded-2xl p-6 flex flex-col gap-5 mt-5">
                 <h3 class="text-sm font-semibold text-text">E-Mail</h3>
                 <form method="POST" action="{{ route('admin.mail.update') }}" class="flex flex-col gap-5"

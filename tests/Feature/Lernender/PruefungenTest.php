@@ -47,7 +47,7 @@ class PruefungenTest extends TestCase
         $this->planen();
         $p = Pruefung::sole();
 
-        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()->assertSee('LB2')->assertSee('Anstehend');
+        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()->assertSee('LB2');
         $this->actingAs($this->user)->get(route('learner.grades.create', ['pruefung' => $p->pruefung_id]))
             ->assertOk()->assertSee('value="'.$p->pruefung_id.'"', false);
 

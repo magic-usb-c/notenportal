@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'lernender_id',
     'semester_id',
+    'pruefung_id',
     'art',
     'titel',
     'originalname',
@@ -28,7 +29,7 @@ class Dokument extends Model
 
     public const UPDATED_AT = 'aktualisiert_am';
 
-    public const array ARTEN = ['zeugnis' => 'Zeugnis', 'notenliste' => 'Notenliste', 'sonstiges' => 'Sonstiges'];
+    public const array ARTEN = ['zeugnis' => 'Zeugnis', 'notenliste' => 'Notenliste', 'pruefung' => 'Prüfung', 'sonstiges' => 'Sonstiges'];
 
     /** Im Browser anzeigbar (mit Sandbox-CSP ausgeliefert). */
     public const array INLINE = ['application/pdf', 'image/png', 'image/jpeg'];
@@ -46,6 +47,11 @@ class Dokument extends Model
     public function semester(): BelongsTo
     {
         return $this->belongsTo(Semester::class, 'semester_id', 'semester_id');
+    }
+
+    public function pruefung(): BelongsTo
+    {
+        return $this->belongsTo(Pruefung::class, 'pruefung_id', 'pruefung_id');
     }
 
     public function hochgeladenVon(): BelongsTo

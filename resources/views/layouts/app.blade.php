@@ -2,7 +2,7 @@
 @php
     $darstellung = auth()->user()?->darstellung ?? 'system';
 @endphp
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $darstellung === 'dunkel' ? 'dark' : '' }}" data-theme="gletscher">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="{{ $darstellung === 'dunkel' ? 'dark' : '' }}" data-theme="{{ $npTheme ?? 'gletscher' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">

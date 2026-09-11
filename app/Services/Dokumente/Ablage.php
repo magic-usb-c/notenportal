@@ -43,7 +43,7 @@ final class Ablage
         ];
     }
 
-    public function speichern(Lernender $lernender, UploadedFile $datei, array $daten, int $benutzerId): Dokument
+    public function speichern(Lernender $lernender, UploadedFile $datei, array $daten, int $benutzerId, ?int $pruefungId = null): Dokument
     {
         $endung = strtolower($datei->getClientOriginalExtension()) ?: ($datei->guessExtension() ?? 'bin');
         $original = mb_substr($datei->getClientOriginalName(), 0, 255);
@@ -56,6 +56,7 @@ final class Ablage
         return Dokument::create([
             'lernender_id' => $lernender->lernender_id,
             'semester_id' => $daten['semester_id'] ?? null,
+            'pruefung_id' => $pruefungId,
             'art' => $daten['art'],
             'titel' => filled($daten['titel'] ?? null) ? $daten['titel'] : (pathinfo($original, PATHINFO_FILENAME) ?: 'Dokument'),
             'originalname' => $original,

@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -47,8 +48,15 @@ class DokumenteController extends Controller
         [$lernender, $bereich] = $this->kontext($request);
         abort_unless($this->darfAendern($request, $lernender, $bereich), 403);
 
-        $daten = $request->validate(Ablage::regeln(), [], ['datei' => 'Datei', 'art' => 'Art', 'semester_id' => 'Semester', 'titel' => 'Titel']);
-        $dokument = $this->ablage->speichern($lernender, $request->file('datei'), $daten, (int) $request->user()->benutzer_id);
+        $regeln = Ablage::regeln();
+        $regeln['pruefung_id'] = ['nullable', 'integer', Rule::exists('pruefungen', 'pruefung_id')->where('lernender_id', $lernender->lernender_id)];
+        $daten = $request->validate($regeln, [], ['datei' => 'Datei', 'art' => 'Art', 'semester_id' => 'Semester', 'titel' => 'Titel']);
+        $pruefungId = $daten['pruefung_id'] ?? null;
+        $dokument = $this->ablage->speichern($lernender, $request->file('datei'), $daten, (int) $request->user()->benutzer_id, $pruefungId ? (int) $pruefungId : null);
+
+        if ($pruefungId) {
+            return back()->with('success', '«'.$dokument->titel.'» angehängt.');
+        }
 
         return redirect($this->route($bereich, $lernender, 'index'))->with('success', '«'.$dokument->titel.'» gespeichert.');
     }

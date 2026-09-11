@@ -64,7 +64,7 @@ final class Navigation
             $user->hasRole('Lernender') => [
                 self::link('Übersicht', 'learner.dashboard', ['learner.dashboard'], 'start'),
                 self::link('Noten', 'learner.grades.index', ['learner.grades.index', 'learner.grades.create', 'learner.grades.edit', 'learner.grades.print', 'learner.grades.import.*'], 'noten'),
-                self::link('Prüfungen', 'learner.exams.index', ['learner.exams.*'], 'kalender'),
+                self::link('Agenda', 'learner.exams.index', ['learner.exams.*'], 'kalender'),
                 self::link('Rechner', 'learner.grades.calculator', ['learner.grades.calculator'], 'rechner'),
                 self::link('Dokumente', 'learner.documents.index', ['learner.documents.*'], 'dokument'),
             ],
@@ -84,7 +84,7 @@ final class Navigation
         $befehle = [];
         if ($user->hasRole('Lernender')) {
             $befehle[] = ['label' => 'Note erfassen', 'url' => route('learner.grades.create'), 'gruppe' => 'Aktion'];
-            $befehle[] = ['label' => 'Prüfung planen', 'url' => route('learner.exams.index').'#planen', 'gruppe' => 'Aktion'];
+            $befehle[] = ['label' => 'Prüfung planen', 'url' => route('learner.exams.index').'?planen=1', 'gruppe' => 'Aktion'];
             $befehle[] = ['label' => 'Notenblatt drucken', 'url' => route('learner.grades.print'), 'gruppe' => 'Aktion'];
         }
         if ($user->hasRole('Admin') || $user->hasRole('Berufsbildner')) {
@@ -98,6 +98,7 @@ final class Navigation
         }
         $befehle[] = ['label' => 'Profil', 'url' => route('profile.edit'), 'gruppe' => 'Konto'];
         $befehle[] = ['label' => 'Benachrichtigungen', 'url' => route('notifications.settings'), 'gruppe' => 'Konto'];
+        $befehle[] = ['label' => 'Feedback melden', 'url' => '#feedback-modal', 'gruppe' => 'Konto'];
         $befehle[] = ['label' => 'Meine Meldungen', 'url' => route('feedback.index'), 'gruppe' => 'Konto'];
 
         return $befehle;

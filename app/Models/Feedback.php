@@ -12,12 +12,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'benutzer_id',
+    'rolle',
     'kategorie',
     'text',
     'route_name',
     'url',
     'user_agent',
+    'browser',
     'viewport',
+    'js_fehler',
+    'screenshot_pfad',
+    'screenshot_mime',
+    'screenshot_groesse',
     'status',
     'admin_notiz',
     'erledigt_am',
@@ -31,16 +37,19 @@ class Feedback extends Model
 
     public const UPDATED_AT = 'aktualisiert_am';
 
-    public const KATEGORIE_FEEDBACK = 'feedback';
+    public const KATEGORIE_FEHLER = 'fehler';
 
     public const KATEGORIE_IDEE = 'idee';
 
-    public const KATEGORIE_BUG = 'bug';
+    public const KATEGORIE_FRAGE = 'frage';
+
+    public const KATEGORIE_LOB = 'lob';
 
     public const KATEGORIEN = [
-        self::KATEGORIE_FEEDBACK => 'Feedback',
+        self::KATEGORIE_FEHLER => 'Fehler',
         self::KATEGORIE_IDEE => 'Idee',
-        self::KATEGORIE_BUG => 'Bug',
+        self::KATEGORIE_FRAGE => 'Frage',
+        self::KATEGORIE_LOB => 'Lob',
     ];
 
     public const STATUS_OFFEN = 'offen';
@@ -61,11 +70,17 @@ class Feedback extends Model
             'erstellt_am' => 'datetime',
             'aktualisiert_am' => 'datetime',
             'erledigt_am' => 'datetime',
+            'js_fehler' => 'array',
         ];
     }
 
     public function benutzer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'benutzer_id', 'benutzer_id');
+    }
+
+    public function hatScreenshot(): bool
+    {
+        return filled($this->screenshot_pfad);
     }
 }

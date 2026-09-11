@@ -89,13 +89,20 @@
             <div class="mt-2 grid grid-cols-3 gap-2">
                 @foreach(['system' => 'Wie Gerät', 'hell' => 'Hell', 'dunkel' => 'Dunkel'] as $wert => $label)
                     <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
-                                  has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                  has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
                         <input type="radio" name="darstellung" value="{{ $wert }}" class="sr-only"
                                @checked(old('darstellung', $user->darstellung) === $wert)>
                         {{ $label }}
                     </label>
                 @endforeach
             </div>
+            @if($kontrastOption ?? false)
+                <label for="kontrast" class="mt-3 flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
+                    <input id="kontrast" name="kontrast" type="checkbox" value="1" @checked(old('kontrast', $user->kontrast))
+                           class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
+                    Hoher Kontrast
+                </label>
+            @endif
         </fieldset>
 
         <div class="pt-1">

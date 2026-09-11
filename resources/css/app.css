@@ -32,6 +32,13 @@
   --color-note-knapp: rgb(var(--note-knapp));
   --color-note-ungenuegend: rgb(var(--note-ungenuegend));
 
+  --color-chart-1: rgb(var(--chart-1));
+  --color-chart-2: rgb(var(--chart-2));
+  --color-chart-3: rgb(var(--chart-3));
+  --color-chart-4: rgb(var(--chart-4));
+  --color-chart-5: rgb(var(--chart-5));
+  --color-chart-6: rgb(var(--chart-6));
+
   --shadow-e1: var(--elev-1);
   --shadow-e2: var(--elev-2);
   --shadow-e3: var(--elev-3);
@@ -92,6 +99,13 @@
   html {
     font-feature-settings: 'cv11';   /* Inter: einstöckiges a, ruhigeres Schriftbild */
     text-rendering: optimizeLegibility;
+    /* Sprungziele (#anker, ?_open=, scrollIntoView) nicht unter der Sticky-Navigation (h-16) */
+    scroll-padding-top: 5rem;
+  }
+
+  :target,
+  details[data-note-id] {
+    scroll-margin-top: 5rem;
   }
 
   button:not(:disabled),

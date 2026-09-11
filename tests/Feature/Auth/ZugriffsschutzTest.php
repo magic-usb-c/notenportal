@@ -35,6 +35,7 @@ class ZugriffsschutzTest extends TestCase
         'comments.destroy',
         'feedback.store',
         'feedback.index',
+        'feedback.hint.dismiss',
         'search',
         'notifications.settings',
         'notifications.settings.update',
@@ -45,6 +46,7 @@ class ZugriffsschutzTest extends TestCase
         '/', 'login', 'up',
         'notifications.unsubscribe', 'notifications.unsubscribe.store',
         'password.request', 'password.email', 'password.reset', 'password.store',
+        'calendar.export',
         '{fallbackPlaceholder}', // alte deutsche Pfade → 301 (LegacyPaths), sonst 404
     ];
 

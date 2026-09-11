@@ -344,7 +344,7 @@ class AusloeserTest extends TestCase
         $melder = User::factory()->lernender()->create(['email' => 'melder@firma.ch']);
 
         $this->actingAs($melder)
-            ->postJson(route('feedback.store'), ['kategorie' => 'bug', 'text' => 'Es funktioniert nicht...'])
+            ->postJson(route('feedback.store'), ['kategorie' => 'fehler', 'text' => 'Es funktioniert nicht...'])
             ->assertCreated();
 
         Notification::assertNotSentTo($inaktiverAdmin, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::FEEDBACK_RECEIVED);

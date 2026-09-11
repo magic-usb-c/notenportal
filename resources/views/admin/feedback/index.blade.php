@@ -135,12 +135,32 @@
                                             <div class="space-y-2 text-sm">
                                                 <p class="whitespace-pre-wrap">{{ $m->text }}</p>
                                                 <dl class="text-xs text-muted space-y-1">
+                                                    <div><dt class="inline font-medium">Rolle:</dt> <dd class="inline">{{ $m->rolle ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">Route:</dt> <dd class="inline">{{ $m->route_name ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">URL:</dt> <dd class="inline">{{ $m->url ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">Viewport:</dt> <dd class="inline">{{ $m->viewport ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">Browser:</dt> <dd class="inline">{{ $m->user_agent ?? '–' }}</dd></div>
+                                                    <div><dt class="inline font-medium">Browser:</dt> <dd class="inline">{{ $m->browser ?? $m->user_agent ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">E-Mail:</dt> <dd class="inline">{{ $m->email }}</dd></div>
                                                 </dl>
+                                                @if(!empty($m->js_fehler))
+                                                    <div>
+                                                        <p class="font-medium text-xs text-muted mt-2">Letzte JS-Fehler</p>
+                                                        <ul class="text-xs text-muted list-disc list-inside">
+                                                            @foreach($m->js_fehler as $fehler)
+                                                                <li class="break-words">{{ $fehler }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
+                                                @if($m->hatScreenshot())
+                                                    <div>
+                                                        <p class="font-medium text-xs text-muted mt-2 mb-1">Screenshot</p>
+                                                        <a href="{{ route('admin.feedback.screenshot', $m->feedback_id) }}" target="_blank" rel="noopener">
+                                                            <img src="{{ route('admin.feedback.screenshot', $m->feedback_id) }}" alt="Screenshot der Meldung"
+                                                                 class="max-w-full max-h-64 rounded-xl border border-border">
+                                                        </a>
+                                                    </div>
+                                                @endif
                                             </div>
                                             <div class="space-y-2">
                                                 <div>
@@ -153,7 +173,7 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label for="notiz-{{ $m->feedback_id }}" class="text-xs uppercase tracking-widest text-muted font-medium">Admin-Notiz</label>
+                                                    <label for="notiz-{{ $m->feedback_id }}" class="text-xs uppercase tracking-widest text-muted font-medium">Antwort an die meldende Person</label>
                                                     <textarea id="notiz-{{ $m->feedback_id }}" x-model="notiz" rows="3"
                                                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm"></textarea>
                                                 </div>

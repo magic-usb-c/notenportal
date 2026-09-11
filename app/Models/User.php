@@ -24,6 +24,7 @@ use Illuminate\Notifications\Notifiable;
     'aktiv',
     'passwort_wechsel_noetig',
     'darstellung',
+    'kontrast',
 ])]
 #[Hidden([
     'passwort_hash',
@@ -105,6 +106,7 @@ class User extends Authenticatable
         return [
             'aktiv' => 'boolean',
             'passwort_wechsel_noetig' => 'boolean',
+            'kontrast' => 'boolean',
             'erstellt_am' => 'datetime',
             'aktualisiert_am' => 'datetime',
             'geloescht_am' => 'datetime',

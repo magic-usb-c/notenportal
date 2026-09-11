@@ -33,7 +33,10 @@ app/Services/
 app/Policies/      LernenderPolicy (view, update, verwalten, betreuungVerwalten, noteAnlegen/-Korrigieren/-Loeschen)
 app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zahl, Navigation (Menü je Rolle, Befehle),
                    Einrichtung (Schritte, Stand, Vorlagen, Semesterplan, Modulparser), Betrieb, KategorieRegeln,
-                   LegacyPaths (alte deutsche Pfade → 301 auf die englischen, über Route::fallback am Ende von routes/web.php)
+                   LegacyPaths (alte deutsche Pfade → 301 auf die englischen, über Route::fallback am Ende von routes/web.php),
+                   Theme (Betriebs-Theme aus Einstellung «theme», benutzer.kontrast überschreibt → <html data-theme>),
+                   Browser (User-Agent → kurzer Text für Feedback)
+app/Services/Feedback/Screenshot  optionaler Screenshot (modern-screenshot im Browser) privat auf Disk «local», nur Admins über den Feedback-Controller
 routes/            Routennamen und URL-Pfade englisch (learner.*, trainer.*, admin.*; z.B. /grades, /trainer/learners, /admin/master-data);
                    Parameter ({lernender_id} …), Controller, Views und DB bleiben vorerst deutsch
 app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten

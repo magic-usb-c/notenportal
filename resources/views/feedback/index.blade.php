@@ -15,6 +15,7 @@
                                 <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
                                 <th class="text-left p-3">Text</th>
                                 <th class="text-left p-3 whitespace-nowrap">Status</th>
+                                <th class="text-left p-3">Antwort</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -48,10 +49,24 @@
                                             {{ \App\Models\Feedback::STATUS[$m->status] ?? $m->status }}
                                         </span>
                                     </td>
+                                    <td class="p-3 max-w-xs">
+                                        @if($m->admin_notiz)
+                                            <span class="whitespace-pre-wrap">{{ $m->admin_notiz }}</span>
+                                        @else
+                                            <span class="text-muted">–</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="p-6 text-center text-muted">Keine Meldungen erfasst.</td>
+                                    <td colspan="5" class="p-10 text-center text-muted">
+                                        <p class="text-text font-medium mb-1">Noch keine Meldungen</p>
+                                        <p class="text-sm max-w-sm mx-auto">
+                                            Fehler, Ideen, Fragen oder Lob – über das Benutzermenü oder mit
+                                            <kbd class="px-1 py-0.5 rounded-md border border-border text-xs">Strg/Cmd K</kbd>
+                                            unter «Feedback melden» erreichst du uns jederzeit.
+                                        </p>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>

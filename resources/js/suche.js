@@ -55,7 +55,18 @@ export function registriereSuche(Alpine) {
         taste(e) {
             if (e.key === 'ArrowDown') { e.preventDefault(); this.index = Math.min(this.index + 1, this.liste.length - 1); }
             if (e.key === 'ArrowUp') { e.preventDefault(); this.index = Math.max(this.index - 1, 0); }
-            if (e.key === 'Enter' && this.liste[this.index]) { e.preventDefault(); window.location.href = this.liste[this.index].url; }
+            if (e.key === 'Enter' && this.liste[this.index]) { e.preventDefault(); this.gehe(this.liste[this.index]); }
+        },
+
+        // «Feedback melden» öffnet den Dialog statt zu navigieren – einzige Aktion in der Palette ohne eigene Seite.
+        gehe(treffer) {
+            if (treffer.url === '#feedback-modal') {
+                this.offen = false;
+                window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }));
+
+                return;
+            }
+            window.location.href = treffer.url;
         },
     }));
 }

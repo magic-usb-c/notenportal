@@ -3,11 +3,14 @@
    --------------------------------------------------------------------------
    - Werte sind RGB-Tripel, damit rgb(var(--x) / a), die -rgb-Aliase und
      Chart.js (tokenFarbe) unverändert funktionieren. Quelle ist OKLCH
-     (Kommentar), gerechnet mit ~/tools/kontrast/kontrast.mjs.
-   - Theme über data-theme am <html>, Modus über die Klasse .dark.
-     Gletscher ist Standard (:root). Weitere Themes (Paket 8) NACH diesem
-     Block als [data-theme="…"] und [data-theme="…"].dark anhängen, damit
-     sie die Gletscher-Werte in beiden Modi überschreiben.
+     (Kommentar) in ~/tools/kontrast/paletten.json, gerechnet und geprüft mit
+     kontrast.mjs (Text ≥ 4.5:1, Kontrast-Theme ≥ 7:1, UI/Grafik ≥ 3:1).
+   - Theme über data-theme am <html> (serverseitig, App\Support\Theme),
+     Modus über die Klasse .dark. Gletscher ist Standard (:root). Jedes
+     weitere Theme definiert alle Tokens für hell und dunkel und steht NACH
+     Gletscher, damit es dessen Werte in beiden Modi überschreibt.
+   - Notenfarben: gut = Grün, genügend = gedämpftes Schieferblau (Farbton
+     240, klar von gut unterscheidbar, auch bei Deuteranopie).
    ========================================================================== */
 
 /* Theme Gletscher – hell */
@@ -15,27 +18,25 @@
 [data-theme='gletscher'] {
   color-scheme: light;
 
-  --bg: 245 247 249;               /* oklch(0.975 0.004 255) App-Grund */
-  --card: 255 255 255;             /* oklch(1 0 0) Karten, Tabellen */
-  --surface-2: 238 241 246;        /* oklch(0.957 0.007 255) Tabellenkopf, Hover, Segment-Grund */
+  --bg: 245 247 249;               /* oklch(0.975 0.004 255) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 238 241 246;        /* oklch(0.957 0.007 255) */
   --input: 255 255 255;            /* oklch(1 0 0) */
-  --text: 17 24 38;                /* oklch(0.21 0.03 262) 16.5:1 auf bg */
-  --muted: 88 97 111;              /* oklch(0.49 0.025 258) 5.5:1 auf surface-2 */
-  --border: 223 227 232;           /* oklch(0.915 0.008 255) Trennlinien (dekorativ) */
-  --border-strong: 140 147 155;    /* oklch(0.66 0.015 255) Eingabefeld-Rand, 3.1:1 auf card */
+  --text: 17 24 38;                /* oklch(0.21 0.03 262) */
+  --muted: 88 97 111;              /* oklch(0.49 0.025 258) */
+  --border: 223 227 232;           /* oklch(0.915 0.008 255) */
+  --border-strong: 137 144 152;    /* oklch(0.65 0.015 255) */
 
-  --accent: 40 96 221;             /* oklch(0.53 0.2 263) Primärbutton-Fläche */
-  --accent-contrast: 255 255 255;  /* Text auf accent, 5.5:1 */
-  --accent-text: 31 87 211;        /* oklch(0.5 0.2 263) Links, aktive Navigation, 6.3:1 auf card */
-  --ring: 51 122 239;              /* oklch(0.6 0.19 260) Fokusring, 3.8:1 auf bg */
+  --accent: 40 96 221;             /* oklch(0.53 0.2 263) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 31 87 211;        /* oklch(0.5 0.2 263) */
+  --ring: 51 122 239;              /* oklch(0.6 0.19 260) */
 
-  /* Notenstufen (Text auf card und auf 14 % Tint ≥ 4.5:1) */
   --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
-  --note-genuegend: 53 110 113;    /* oklch(0.5 0.06 200) gedämpftes Blaugrün */
-  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) Bernstein */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
   --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
 
-  /* Diagrammserien, Reihenfolge ist Teil der Palette; chart-6 = Kontextgrau */
   --chart-1: 40 96 221;            /* oklch(0.53 0.2 263) */
   --chart-2: 214 105 25;           /* oklch(0.64 0.16 50) */
   --chart-3: 11 148 136;           /* oklch(0.6 0.104 185) */
@@ -43,14 +44,13 @@
   --chart-5: 198 60 138;           /* oklch(0.58 0.19 350) */
   --chart-6: 120 129 140;          /* oklch(0.6 0.02 255) */
 
-  /* Elevation (Abschnitt c): hell über Schatten, dunkel über hellere Flächen */
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
-  --elev-hover-bg: var(--card);    /* Fläche gehobener Elemente (E1) */
+  --elev-hover-bg: var(--card);
 }
 
-/* Theme Gletscher – dunkel (kein Schwarz, Accent-Button dunkel beschriftet) */
+/* Theme Gletscher – dunkel */
 .dark,
 [data-theme='gletscher'].dark {
   color-scheme: dark;
@@ -62,15 +62,15 @@
   --text: 232 235 241;             /* oklch(0.94 0.008 255) */
   --muted: 156 165 177;            /* oklch(0.72 0.02 255) */
   --border: 43 49 59;              /* oklch(0.31 0.02 262) */
-  --border-strong: 96 102 114;     /* oklch(0.51 0.02 262) 3.0:1 auf card */
+  --border-strong: 96 102 114;     /* oklch(0.51 0.02 262) */
 
   --accent: 89 160 249;            /* oklch(0.7 0.15 255) */
-  --accent-contrast: 12 15 22;     /* oklch(0.17 0.015 262) 7.1:1 auf accent */
+  --accent-contrast: 12 15 22;     /* oklch(0.17 0.015 262) */
   --accent-text: 109 173 255;      /* oklch(0.74 0.136 255) */
   --ring: 96 167 255;              /* oklch(0.72 0.148 255) */
 
   --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
-  --note-genuegend: 134 204 207;   /* oklch(0.8 0.07 200) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
   --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
   --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
 
@@ -87,9 +87,304 @@
   --elev-hover-bg: var(--surface-2);
 }
 
-/* Aliase für rgb(var(--x-rgb) / a) – werden am Element berechnet, gelten
-   darum automatisch für jedes Theme und beide Modi. */
-:root {
+/* Theme Sandstein – hell */
+[data-theme='sandstein'] {
+  color-scheme: light;
+
+  --bg: 248 245 239;               /* oklch(0.97 0.008 80) */
+  --card: 254 253 251;             /* oklch(0.995 0.003 85) */
+  --surface-2: 240 236 229;        /* oklch(0.945 0.01 80) */
+  --input: 254 253 251;            /* oklch(0.995 0.003 85) */
+  --text: 37 30 24;                /* oklch(0.24 0.015 60) */
+  --muted: 108 97 88;              /* oklch(0.5 0.02 65) */
+  --border: 226 221 213;           /* oklch(0.9 0.012 80) */
+  --border-strong: 148 140 132;    /* oklch(0.645 0.015 70) */
+
+  --accent: 0 102 120;             /* oklch(0.47 0.083 215) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 1 99 116;         /* oklch(0.46 0.081 215) */
+  --ring: 5 130 152;               /* oklch(0.56 0.098 215) */
+
+  --note-gut: 47 116 52;           /* oklch(0.5 0.12 145) */
+  --note-genuegend: 60 105 131;    /* oklch(0.5 0.065 235) */
+  --note-knapp: 145 92 8;          /* oklch(0.52 0.11 70) */
+  --note-ungenuegend: 186 45 31;   /* oklch(0.52 0.18 30) */
+
+  --chart-1: 3 137 160;            /* oklch(0.58 0.102 215) */
+  --chart-2: 207 111 25;           /* oklch(0.64 0.15 55) */
+  --chart-3: 158 79 152;           /* oklch(0.55 0.14 330) */
+  --chart-4: 139 140 39;           /* oklch(0.62 0.12 110) */
+  --chart-5: 86 88 171;            /* oklch(0.5 0.13 280) */
+  --chart-6: 134 127 119;          /* oklch(0.6 0.015 70) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Sandstein – dunkel */
+[data-theme='sandstein'].dark {
+  color-scheme: dark;
+
+  --bg: 20 17 14;                  /* oklch(0.18 0.008 70) */
+  --card: 31 27 23;                /* oklch(0.225 0.009 70) */
+  --surface-2: 42 38 33;           /* oklch(0.27 0.01 70) */
+  --input: 24 21 18;               /* oklch(0.2 0.008 70) */
+  --text: 235 231 224;             /* oklch(0.93 0.01 85) */
+  --muted: 170 164 154;            /* oklch(0.72 0.015 80) */
+  --border: 54 50 45;              /* oklch(0.32 0.01 70) */
+  --border-strong: 108 102 96;     /* oklch(0.515 0.012 70) */
+
+  --accent: 93 187 198;            /* oklch(0.74 0.09 205) */
+  --accent-contrast: 20 17 14;     /* oklch(0.18 0.008 70) */
+  --accent-text: 103 197 207;      /* oklch(0.77 0.09 205) */
+  --ring: 100 194 204;             /* oklch(0.76 0.09 205) */
+
+  --note-gut: 122 207 126;         /* oklch(0.78 0.14 145) */
+  --note-genuegend: 153 197 223;   /* oklch(0.8 0.06 235) */
+  --note-knapp: 240 190 103;       /* oklch(0.83 0.12 80) */
+  --note-ungenuegend: 252 124 105; /* oklch(0.73 0.16 30) */
+
+  --chart-1: 51 163 180;           /* oklch(0.66 0.1 210) */
+  --chart-2: 214 117 35;           /* oklch(0.66 0.15 55) */
+  --chart-3: 187 106 180;          /* oklch(0.64 0.14 330) */
+  --chart-4: 151 152 54;           /* oklch(0.66 0.12 110) */
+  --chart-5: 120 123 210;          /* oklch(0.62 0.13 280) */
+  --chart-6: 140 133 125;          /* oklch(0.62 0.015 70) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Pflaume – hell */
+[data-theme='pflaume'] {
+  color-scheme: light;
+
+  --bg: 247 246 250;               /* oklch(0.975 0.005 300) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 240 238 245;        /* oklch(0.952 0.01 300) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 29 23 39;                /* oklch(0.22 0.03 300) */
+  --muted: 102 96 114;             /* oklch(0.5 0.03 300) */
+  --border: 228 225 234;           /* oklch(0.915 0.012 300) */
+  --border-strong: 145 141 154;    /* oklch(0.65 0.02 300) */
+
+  --accent: 115 63 191;            /* oklch(0.5 0.19 298) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 110 56 184;       /* oklch(0.48 0.19 298) */
+  --ring: 137 91 213;              /* oklch(0.58 0.18 298) */
+
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  --chart-1: 115 63 191;           /* oklch(0.5 0.19 298) */
+  --chart-2: 204 114 0;            /* oklch(0.64 0.15 60) */
+  --chart-3: 10 147 142;           /* oklch(0.6 0.102 190) */
+  --chart-4: 3 107 185;            /* oklch(0.52 0.146 250) */
+  --chart-5: 205 57 118;           /* oklch(0.58 0.19 0) */
+  --chart-6: 130 126 139;          /* oklch(0.6 0.02 300) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Pflaume – dunkel */
+[data-theme='pflaume'].dark {
+  color-scheme: dark;
+
+  --bg: 17 13 23;                  /* oklch(0.17 0.02 300) */
+  --card: 27 23 34;                /* oklch(0.215 0.022 300) */
+  --surface-2: 38 33 46;           /* oklch(0.26 0.025 300) */
+  --input: 21 18 28;               /* oklch(0.19 0.02 300) */
+  --text: 236 234 241;             /* oklch(0.94 0.01 300) */
+  --muted: 170 164 182;            /* oklch(0.73 0.025 300) */
+  --border: 50 46 59;              /* oklch(0.31 0.025 300) */
+  --border-strong: 104 98 117;     /* oklch(0.51 0.03 300) */
+
+  --accent: 184 151 240;           /* oklch(0.74 0.13 300) */
+  --accent-contrast: 17 13 23;     /* oklch(0.17 0.02 300) */
+  --accent-text: 192 162 245;      /* oklch(0.77 0.12 300) */
+  --ring: 190 157 247;             /* oklch(0.76 0.13 300) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 161 122 223;          /* oklch(0.66 0.15 300) */
+  --chart-2: 24 167 161;           /* oklch(0.66 0.11 190) */
+  --chart-3: 211 120 18;           /* oklch(0.66 0.15 60) */
+  --chart-4: 222 83 136;           /* oklch(0.64 0.18 0) */
+  --chart-5: 71 144 216;           /* oklch(0.64 0.13 250) */
+  --chart-6: 136 132 145;          /* oklch(0.62 0.02 300) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Graphit – hell */
+[data-theme='graphit'] {
+  color-scheme: light;
+
+  --bg: 250 250 250;               /* oklch(0.985 0 0) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 242 242 242;        /* oklch(0.962 0 0) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 22 22 22;                /* oklch(0.2 0 0) */
+  --muted: 99 99 99;               /* oklch(0.5 0 0) */
+  --border: 225 225 225;           /* oklch(0.91 0 0) */
+  --border-strong: 144 144 144;    /* oklch(0.655 0 0) */
+
+  --accent: 31 31 31;              /* oklch(0.24 0 0) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 31 31 31;         /* oklch(0.24 0 0) */
+  --ring: 31 109 216;              /* oklch(0.55 0.18 258) */
+
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  --chart-1: 46 46 46;             /* oklch(0.3 0 0) */
+  --chart-2: 21 108 221;           /* oklch(0.55 0.19 258) */
+  --chart-3: 11 148 136;           /* oklch(0.6 0.104 185) */
+  --chart-4: 214 105 25;           /* oklch(0.64 0.16 50) */
+  --chart-5: 198 60 138;           /* oklch(0.58 0.19 350) */
+  --chart-6: 148 148 148;          /* oklch(0.665 0 0) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Graphit – dunkel */
+[data-theme='graphit'].dark {
+  color-scheme: dark;
+
+  --bg: 13 13 13;                  /* oklch(0.16 0 0) */
+  --card: 23 23 23;                /* oklch(0.205 0 0) */
+  --surface-2: 34 34 34;           /* oklch(0.25 0 0) */
+  --input: 18 18 18;               /* oklch(0.18 0 0) */
+  --text: 238 238 238;             /* oklch(0.95 0 0) */
+  --muted: 161 161 161;            /* oklch(0.71 0 0) */
+  --border: 46 46 46;              /* oklch(0.3 0 0) */
+  --border-strong: 101 101 101;    /* oklch(0.505 0 0) */
+
+  --accent: 238 238 238;           /* oklch(0.95 0 0) */
+  --accent-contrast: 18 18 18;     /* oklch(0.18 0 0) */
+  --accent-text: 238 238 238;      /* oklch(0.95 0 0) */
+  --ring: 89 160 249;              /* oklch(0.7 0.15 255) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 228 228 228;          /* oklch(0.92 0 0) */
+  --chart-2: 70 147 241;           /* oklch(0.66 0.16 255) */
+  --chart-3: 32 168 155;           /* oklch(0.66 0.11 185) */
+  --chart-4: 221 111 35;           /* oklch(0.66 0.16 50) */
+  --chart-5: 216 85 155;           /* oklch(0.64 0.18 350) */
+  --chart-6: 113 113 113;          /* oklch(0.55 0 0) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Kontrast (hoher Kontrast, Text AAA) – hell */
+[data-theme='kontrast'] {
+  color-scheme: light;
+
+  --bg: 255 255 255;               /* oklch(1 0 0) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 238 240 244;        /* oklch(0.955 0.005 262) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 7 11 20;                 /* oklch(0.15 0.02 262) */
+  --muted: 61 67 77;               /* oklch(0.38 0.02 262) */
+  --border: 122 129 141;           /* oklch(0.6 0.02 262) */
+  --border-strong: 93 100 111;     /* oklch(0.5 0.02 262) */
+
+  --accent: 6 60 183;              /* oklch(0.42 0.2 263) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 1 53 177;         /* oklch(0.4 0.2 263) */
+  --ring: 6 60 183;                /* oklch(0.42 0.2 263) */
+
+  --note-gut: 1 86 36;             /* oklch(0.395 0.108 150) */
+  --note-genuegend: 31 76 106;     /* oklch(0.4 0.07 240) */
+  --note-knapp: 113 61 2;          /* oklch(0.415 0.096 60) */
+  --note-ungenuegend: 148 2 13;    /* oklch(0.42 0.17 27) */
+
+  --chart-1: 16 70 193;            /* oklch(0.45 0.2 263) */
+  --chart-2: 184 75 3;             /* oklch(0.55 0.156 45) */
+  --chart-3: 5 149 131;            /* oklch(0.6 0.108 180) */
+  --chart-4: 94 59 163;            /* oklch(0.45 0.16 295) */
+  --chart-5: 181 28 121;           /* oklch(0.52 0.2 350) */
+  --chart-6: 79 86 97;             /* oklch(0.45 0.02 262) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Kontrast (hoher Kontrast, Text AAA) – dunkel */
+[data-theme='kontrast'].dark {
+  color-scheme: dark;
+
+  --bg: 7 7 7;                     /* oklch(0.13 0 0) */
+  --card: 13 15 20;                /* oklch(0.17 0.01 262) */
+  --surface-2: 24 27 32;           /* oklch(0.22 0.012 262) */
+  --input: 7 7 7;                  /* oklch(0.13 0 0) */
+  --text: 248 248 248;             /* oklch(0.98 0 0) */
+  --muted: 199 203 209;            /* oklch(0.84 0.01 262) */
+  --border: 122 129 141;           /* oklch(0.6 0.02 262) */
+  --border-strong: 152 159 171;    /* oklch(0.7 0.02 262) */
+
+  --accent: 150 201 254;           /* oklch(0.82 0.092 250) */
+  --accent-contrast: 7 7 7;        /* oklch(0.13 0 0) */
+  --accent-text: 162 207 255;      /* oklch(0.84 0.082 250) */
+  --ring: 168 210 254;             /* oklch(0.85 0.076 250) */
+
+  --note-gut: 127 233 152;         /* oklch(0.85 0.15 150) */
+  --note-genuegend: 171 215 248;   /* oklch(0.86 0.065 240) */
+  --note-knapp: 255 209 107;       /* oklch(0.88 0.13 85) */
+  --note-ungenuegend: 255 160 152; /* oklch(0.8 0.114 25) */
+
+  --chart-1: 70 151 228;           /* oklch(0.66 0.14 250) */
+  --chart-2: 216 92 158;           /* oklch(0.65 0.17 350) */
+  --chart-3: 214 117 35;           /* oklch(0.66 0.15 55) */
+  --chart-4: 32 168 155;           /* oklch(0.66 0.11 185) */
+  --chart-5: 150 124 219;          /* oklch(0.65 0.14 295) */
+  --chart-6: 152 159 171;          /* oklch(0.7 0.02 262) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Graphit: Accent = Tinte, darum Links im Inhalt immer unterstrichen */
+[data-theme='graphit'] main a:is(.text-accent-text, .text-accent) {
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+
+/* Aliase für rgb(var(--x-rgb) / a). Auch an jedem [data-theme] neu
+   berechnet, damit Vorschauflächen mit eigenem Theme stimmen. */
+:root,
+[data-theme] {
   --bg-rgb: var(--bg);
   --card-rgb: var(--card);
   --surface-2-rgb: var(--surface-2);

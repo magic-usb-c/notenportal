@@ -81,6 +81,7 @@
                             <div class="max-h-[50vh] overflow-y-auto p-2">
                                 <template x-for="(t, i) in liste" :key="t.url + t.label">
                                     <a :href="t.url" @mouseenter="index = i"
+                                       @click="t.url === '#feedback-modal' ? ($event.preventDefault(), gehe(t)) : null"
                                        class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl"
                                        :class="i === index ? 'bg-accent/10 text-accent' : 'text-text'">
                                         <span class="min-w-0">
@@ -114,6 +115,7 @@
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">Profil</x-dropdown-link>
                         <x-dropdown-link :href="route('notifications.settings')">Benachrichtigungen</x-dropdown-link>
+                        <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">Feedback melden</x-dropdown-link>
                         <x-dropdown-link :href="route('feedback.index')">Meine Meldungen</x-dropdown-link>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -158,6 +160,8 @@
             </div>
             <a href="{{ route('profile.edit') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Profil</a>
             <a href="{{ route('notifications.settings') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Benachrichtigungen</a>
+            <button type="button" @click="open = false; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
+                    class="w-full text-left flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Feedback melden</button>
             <a href="{{ route('feedback.index') }}" class="flex items-center px-3 min-h-11 rounded-xl text-text hover:bg-accent/5">Meine Meldungen</a>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
