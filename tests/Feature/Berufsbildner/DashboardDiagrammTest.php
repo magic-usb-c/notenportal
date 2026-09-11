@@ -13,7 +13,7 @@ use Tests\TestCase;
 class DashboardDiagrammTest extends TestCase
 {
     #[Test]
-    public function dashboard_rendert_verlauf_im_vergleich_als_small_multiples(): void
+    public function dashboard_zeigt_klassentabelle_mit_sparkline(): void
     {
         $bb = User::factory()->berufsbildner()->create();
         $lernender = User::factory()->lernender()->create(['nachname' => 'Diagrammfrau']);
@@ -28,9 +28,9 @@ class DashboardDiagrammTest extends TestCase
         $this->actingAs($bb)
             ->get(route('trainer.dashboard'))
             ->assertOk()
-            ->assertSee('Verlauf im Vergleich')
+            ->assertSee('Meine Lernenden')
             ->assertSee('Diagrammfrau')
-            ->assertSee('Als Tabelle');
+            ->assertSee('role="radiogroup"', false);
     }
 
     #[Test]
@@ -40,6 +40,7 @@ class DashboardDiagrammTest extends TestCase
 
         $this->actingAs($bb)
             ->get(route('trainer.dashboard'))
-            ->assertOk();
+            ->assertOk()
+            ->assertSee('Alle 0 Lernenden im Plan');
     }
 }

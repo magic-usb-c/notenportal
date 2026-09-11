@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Berufsbildner;
 use App\Models\Lernender;
+use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
-use App\Services\Auswertung\LernstandRechner;
 use App\Services\Uebersicht;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -165,7 +165,7 @@ class LernendeController extends VerwaltungController
 
         return view('verwaltung.lernende.show', [
             'lernender' => $lernender,
-            ...$this->uebersicht->lernendenDetail($lernender, $this->bereich($request)),
+            ...$this->uebersicht->lernendenDetail($lernender, $this->bereich($request), $request->user()),
             'semesterListe' => DB::table('semester')->orderBy('sortierung')->get(),
             'berufsbildnerListe' => $this->berufsbildnerListe(),
         ]);
