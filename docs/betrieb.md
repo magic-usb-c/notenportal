@@ -108,6 +108,7 @@ sudo systemctl reload apache2
 | 11.09.2026 | Restore-Test: Nachtsicherungs-Fehler 02:30 lag vor Fix 52781f5; Probelauf `notenportal:sicherung` als www-data (wie Cron) ok (`notenportal-20260911-113535.zip`). `datenbank.sql` daraus in `notenportal_probe` eingespielt: 38 Tabellen, Zeilenzahlen identisch mit Prod (ausser `cache_locks`); Dokumente im ZIP 2 = 2 auf Disk. |
 | 11.09.2026 | `/etc/apache2/conf-available/security.conf`: `ServerTokens OS` → `Prod`, `ServerSignature On` → `Off` (Kopie `security.conf.vor-servertokens`), `apache2ctl configtest` ok, `systemctl reload apache2`. Header zeigt nur noch `Server: Apache`. Gilt für Prod und i2. |
 | 11.09.2026 | Dump `notenportal-20260911-1731-vor-praeferenzen.sql` + Tag `vor-praeferenzen`, Migration `2026_09_11_000009_benutzer_praeferenzen` (`benutzer.praeferenzen` JSON nullable: persönliches Theme, Akzentfarbe, Schriftgrösse, Bewegung) erst auf `notenportal_probe` (inkl. Rollback), dann `notenportal`. |
+| 11.09.2026 | `apt install php8.3-pcov` (Coverage für `php artisan test --coverage`), sofort `phpdismod -s apache2 pcov` + `systemctl reload apache2`: pcov nur in der CLI, Prod/i2 (mod_php) ohne. Rückbau: `apt remove php8.3-pcov`. |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.
