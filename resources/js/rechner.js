@@ -204,4 +204,94 @@ export function registriereRechner(Alpine) {
             return format(v);
         },
     }));
+
+    // Notenrechner-Drawer der Notenseite: mehrere hypothetische Noten (immer mit Wert, kein Ziel) simulieren –
+    // rechnet über denselben Endpunkt/dieselbe Engine, speichert nichts (siehe RechnerController::simulieren()).
+    Alpine.data('npNotenrechnerDrawer', (cfg) => ({
+        zeilen: [],
+        vergleich: [],
+        promotion: [],
+        laedt: false,
+        fehler: null,
+        timer: null,
+
+        init() {
+            this.neueZeile();
+            this.$watch(() => JSON.stringify(this.zeilen), () => this.planen());
+        },
+
+        neueZeile() {
+            if (this.zeilen.length >= 10) return;
+            this.zeilen.push({ nr: ++zeilenNummer, bezug: '', datum: cfg.heute, gewicht: '100', wert: '' });
+        },
+
+        entferne(nr) {
+            this.zeilen = this.zeilen.filter((z) => z.nr !== nr);
+        },
+
+        semesterVon(datum) {
+            return cfg.semesterListe.find((s) => s.start <= datum && s.ende >= datum) ?? null;
+        },
+
+        planen() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => this.berechnen(), 250);
+        },
+
+        get gueltigeZeilen() {
+            return this.zeilen
+                .filter((z) => z.bezug && z.datum && z.wert !== '')
+                .map((z) => {
+                    const [typ, id] = z.bezug.split(':');
+                    const gewicht = parseFloat(z.gewicht);
+
+                    return {
+                        typ,
+                        fach_id: typ === 'fach' ? id : null,
+                        modul_id: typ === 'modul' ? id : null,
+                        pruefungsdatum: z.datum,
+                        note_wert: parseFloat(z.wert),
+                        gewichtung_prozent: Number.isFinite(gewicht) ? gewicht : null,
+                    };
+                })
+                .filter((z) => Number.isFinite(z.note_wert) && z.note_wert >= 1 && z.note_wert <= 6);
+        },
+
+        async berechnen() {
+            const zeilen = this.gueltigeZeilen;
+            if (!zeilen.length) {
+                this.vergleich = [];
+                this.promotion = [];
+                this.fehler = null;
+                return;
+            }
+
+            this.laedt = true;
+            try {
+                const r = await postJson(cfg.berechnenUrl, { zeilen });
+                this.vergleich = r.vergleich.filter((z) => z.vorher !== z.nachher);
+                this.promotion = r.promotion;
+                this.fehler = null;
+            } catch (e) {
+                this.fehler = e.message;
+                this.vergleich = [];
+                this.promotion = [];
+            } finally {
+                this.laedt = false;
+            }
+        },
+
+        klasse(v) {
+            return notenKlasse(v, cfg.grenzen);
+        },
+
+        fmt(v, stellen = null) {
+            return format(v, stellen);
+        },
+
+        delta(a, b) {
+            if (a === null || b === null) return null;
+            return Math.round((b - a) * 100) / 100;
+        },
+    }));
 }

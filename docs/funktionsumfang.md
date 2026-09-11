@@ -11,6 +11,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Benachrichtigungen: pro Anlass sofort, Tageszusammenfassung (18:00) oder nie; vom Admin erzwungene Anlässe gesperrt sichtbar; Abmelden per Link in jeder Mail
 - Ziele (Gesamt, Kategorie, Fach, Modul) mit benötigter Note
 - Notenrechner vorwärts (Was-wäre-wenn mit geplanten/angenommenen Noten, Vergleich vorher/nachher) und rückwärts (benötigte Note für ein Ziel, Kurve)
+- Notenrechner-Drawer direkt auf der Notenseite (Knopf «Notenrechner», `?rechner=1`): bis zu 10 hypothetische Noten gleichzeitig erfassen, Auswirkung auf Kategorie-, Semester- und Gesamtschnitt je alt → neu mit Differenz sowie Promotionsstand; reine Simulation, es wird nichts gespeichert
 - Notenblatt zum Drucken/PDF (Zeugnisnoten je Semester, Prüfungen, Promotion, Unterschriften), CSV-Export
 - Kommentare lesen, Titel inline bearbeiten, Deep-Link `?_open=<note_id>`
 - Modul wiederholen: aktuelle Belegung schliessen, ab der ersten neuen Note zählt nur der neue Versuch; zurücknehmbar, solange keine neue Note erfasst ist

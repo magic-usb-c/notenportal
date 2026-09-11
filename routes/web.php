@@ -81,6 +81,7 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
         Route::get('/calculator', [LernenderRechnerController::class, 'index'])->name('calculator');
         Route::post('/calculator', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('calculator.calculate');
+        Route::post('/calculator/simulate', [LernenderRechnerController::class, 'simulieren'])->middleware('throttle:30,1')->name('calculator.simulate');
         Route::get('/import', [NotenImportController::class, 'index'])->name('import.index');
         Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('import.read');
         Route::post('/import/apply', [NotenImportController::class, 'uebernehmen'])->name('import.apply');

@@ -31,6 +31,8 @@
                    href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}">›</a>
             </div>
             <x-slot:aktionen>
+                <a href="{{ route('learner.grades.index') }}?rechner=1" x-data @click.prevent="$dispatch('open-drawer', 'rechner')"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Notenrechner') }}</a>
                 <a href="{{ route('learner.grades.import.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Import') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -188,6 +190,96 @@
 
     {{-- Erfassen/Bearbeiten im Drawer; create/edit bleiben als Seiten für Direktlinks und ohne JS --}}
     <x-noten-drawer :fehler="$drawerFehler" />
+
+    {{-- Notenrechner: bis zu 10 hypothetische Noten gleichzeitig, Auswirkung alt → neu; speichert nichts --}}
+    <x-drawer name="rechner" :offen="request()->has('rechner')" titel="{{ __('Notenrechner') }}" breite="lg">
+        <div x-data="npNotenrechnerDrawer(@js([
+                'semesterListe' => $semesterListe,
+                'berechnenUrl' => route('learner.grades.calculator.simulate'),
+                'grenzen' => \App\Support\NotenSkala::grenzen(),
+                'heute' => now()->toDateString(),
+            ]))" class="flex flex-col gap-5">
+            <p class="text-sm text-muted">{{ __('Nur eine Simulation – es wird nichts gespeichert.') }}</p>
+
+            <div class="flex flex-col gap-3">
+                <template x-for="z in zeilen" :key="z.nr">
+                    <div class="flex flex-col gap-2 rounded-xl border border-border bg-surface-2/40 p-3">
+                        <div class="flex items-center gap-2">
+                            <select x-model="z.bezug" class="h-10 min-w-0 flex-1 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30" aria-label="{{ __('Fach / Modul') }}">
+                                <option value="">{{ __('Bitte wählen') }}</option>
+                                @foreach($bezugOptionen as $gruppe => $optionen)
+                                    <optgroup label="{{ $gruppe }}">
+                                        @foreach($optionen as $o)
+                                            <option value="{{ $o['wert'] }}">{{ $o['label'] }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            </select>
+                            <button type="button" @click="entferne(z.nr)" class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-note-ungenuegend/10 hover:text-note-ungenuegend" aria-label="{{ __('Note entfernen') }}">×</button>
+                        </div>
+                        <input type="date" x-model="z.datum" class="h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30" aria-label="{{ __('Prüfungsdatum') }}">
+                        <p class="text-xs" :class="semesterVon(z.datum) ? 'text-muted' : 'text-note-knapp'"
+                           x-text="semesterVon(z.datum) ? @js(__('Semester ')) + semesterVon(z.datum).name : (z.datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
+                        <div class="flex items-center gap-2">
+                            <div class="relative w-24 shrink-0">
+                                <input type="number" min="0" max="100" step="1" x-model="z.gewicht"
+                                       class="h-10 w-full rounded-lg border border-border-strong/70 bg-input py-2 pl-2 pr-6 text-right text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30"
+                                       aria-label="{{ __('Gewichtung in Prozent') }}">
+                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
+                            </div>
+                            <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="4.5"
+                                   class="h-10 flex-1 rounded-lg border-2 border-border-strong/70 bg-input text-center text-sm font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0"
+                                   :class="klasse(z.wert)" aria-label="{{ __('Note') }}">
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <button type="button" @click="neueZeile()" x-show="zeilen.length < 10"
+                    class="inline-flex h-9 items-center gap-1.5 self-start rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
+                <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Note hinzufügen') }}
+            </button>
+
+            <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
+
+            <section x-show="vergleich.length" x-cloak class="overflow-hidden rounded-xl border border-border bg-card transition-opacity" :class="laedt ? 'opacity-70' : ''">
+                <div class="border-b border-border/70 px-4 py-2.5">
+                    <h3 class="text-sm font-semibold text-text">{{ __('Auswirkung') }}</h3>
+                </div>
+                <div class="divide-y divide-border/70">
+                    <template x-for="v in vergleich" :key="v.text">
+                        <div class="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                            <span class="truncate text-muted" x-text="v.label"></span>
+                            <span class="flex shrink-0 items-center gap-2 tabular-nums">
+                                <span class="text-muted" x-text="fmt(v.vorher)"></span>
+                                <span class="text-muted" aria-hidden="true">→</span>
+                                <span class="min-w-10 text-right font-bold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></span>
+                                <span class="w-12 text-right text-xs"
+                                      :class="delta(v.vorher, v.nachher) > 0 ? 'text-note-gut' : (delta(v.vorher, v.nachher) < 0 ? 'text-note-ungenuegend' : 'text-muted')"
+                                      x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '' : (delta(v.vorher, v.nachher) > 0 ? '+' : '') + fmt(delta(v.vorher, v.nachher), 2)"></span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+            </section>
+
+            <section x-show="promotion.length" x-cloak class="flex flex-col gap-2">
+                <h3 class="text-sm font-semibold text-text">{{ __('Promotion') }}</h3>
+                <template x-for="p in promotion" :key="p.kategorie + p.semester">
+                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5"
+                         :class="p.nachher.erfuellt ? 'border-note-gut/30 bg-note-gut/5' : 'border-note-ungenuegend/30 bg-note-ungenuegend/5'">
+                        <div class="text-sm">
+                            <span class="font-semibold text-text" x-text="p.kategorie"></span>
+                            <span class="text-muted" x-text="p.semester"></span>
+                        </div>
+                        <span class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                              :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'"
+                              x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
+                    </div>
+                </template>
+            </section>
+        </div>
+    </x-drawer>
 
     <script>
         function npTitelEdit(initial, url) {

@@ -144,6 +144,8 @@ class NotenController extends Controller
             'anzahl' => $notes->count(),
             'belegungen' => $belegungen,
             'drawerFehler' => $this->noteService->drawerNachFehler($request, $lernender),
+            'bezugOptionen' => $this->noteService->bezugOptionen($lernenderId),
+            'semesterListe' => $this->noteService->semesterListe(),
         ]);
     }
 
