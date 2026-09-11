@@ -4,6 +4,7 @@ use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SicherheitsHeader;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->appendToGroup('web', [
+            SicherheitsHeader::class,
             SetLocale::class,
             EnsureUserIsActive::class,
             EnsurePasswordChanged::class,
