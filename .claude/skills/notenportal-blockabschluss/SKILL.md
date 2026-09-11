@@ -54,10 +54,16 @@ Echte Befunde fixen, dann Schritt 3 wiederholen. Nicht Umgesetztes mit Begründu
 
 ## 8. Commit + Push + Merge
 ```bash
+set -o pipefail                                                             # sonst zählt bei `check | tail` nur tail
 git status --short | grep -E '(^|/)\.env' && echo "STOPP: .env im Commit"   # darf nichts ausgeben
-git add -A && git commit -m "Feat: <Deutsch, Imperativ, eine Zeile>" && git push
-git push origin feature/claude-fertigstellung:main                          # Fast-Forward nach main
+git add <pfade des blocks>                                                  # explizit, nie -A (tmp-testdaten/, fremde Agent-Hunks)
+rest=$(git status --short | grep -v '^[MADR] ' || true); [ -z "$rest" ] || echo "Nicht gestaged: $rest"
+git commit -m "Feat: <Deutsch, Imperativ, eine Zeile>" -m "Claude-Session: <link>"
+git log --oneline -1                                                        # Pflicht: stimmt die Meldung?
+git push && git push origin feature/claude-fertigstellung:main              # Fast-Forward nach main
 ```
+Nie `[ -z "$(git status --short)" ]` als Gate nach `git add` – gestagte Dateien zählen mit, der Commit wird still übersprungen.
+Liegen in einer Datei Hunks eines anderen, noch laufenden Agents: nur die eigenen Hunks stagen (`git diff datei > p; …; git apply --cached --recount p`).
 Präfixe: `Feat:` `Fix:` `GUI:` `Refactor:` `Test:` `Docs:` `Chore:`. Lokal gibt es keinen main-Branch.
 Merge schlägt fehl (kein Fast-Forward)? → `git fetch && git log --oneline HEAD..origin/main` ansehen, nie force-pushen.
 
