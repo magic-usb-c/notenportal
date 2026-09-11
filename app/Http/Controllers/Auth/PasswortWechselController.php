@@ -36,7 +36,7 @@ class PasswortWechselController extends Controller
         ]);
 
         if (Hash::check($validated['password'], $user->passwort_hash)) {
-            return back()->withErrors(['password' => 'Das neue Passwort muss sich vom bisherigen unterscheiden.']);
+            return back()->withErrors(['password' => __('Das neue Passwort muss sich vom bisherigen unterscheiden.')]);
         }
 
         $user->update([
@@ -46,12 +46,12 @@ class PasswortWechselController extends Controller
         $request->session()->regenerate();
 
         Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, fn () => new MailContent(
-            subject: 'Dein Passwort wurde geändert',
-            title: 'Dein Passwort wurde geändert',
-            facts: ['Zeitpunkt' => now()->format('d.m.Y H:i')],
-            outro: ['Warst du das nicht? Dann melde dich bei einem Admin.'],
+            subject: __('Dein Passwort wurde geändert'),
+            title: __('Dein Passwort wurde geändert'),
+            facts: [__('Zeitpunkt') => now()->format('d.m.Y H:i')],
+            outro: [__('Warst du das nicht? Dann melde dich bei einem Admin.')],
         ));
 
-        return redirect()->route('dashboard')->with('success', 'Passwort gespeichert.');
+        return redirect()->route('dashboard')->with('success', __('Passwort gespeichert.'));
     }
 }

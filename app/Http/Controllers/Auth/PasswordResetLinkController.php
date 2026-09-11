@@ -24,6 +24,6 @@ class PasswordResetLinkController extends Controller
         Password::broker()->sendResetLink($request->only('email'));
 
         // Immer dieselbe neutrale Meldung, egal ob die Adresse existiert oder aktiv ist (keine Konto-Enumeration).
-        return back()->with('status', 'Falls diese E-Mail-Adresse registriert ist, wurde ein Link zum Zurücksetzen verschickt.');
+        return back()->with('status', __('Falls diese E-Mail-Adresse registriert ist, wurde ein Link zum Zurücksetzen verschickt.'));
     }
 }

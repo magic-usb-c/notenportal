@@ -81,20 +81,33 @@ final class NotenImport
                 continue;
             }
 
-            $meldung = match (true) {
-                $datum === null => $roh('datum') === '' ? 'Datum fehlt' : 'Datum nicht erkannt',
-                $note === null => $roh('note') === '' ? 'Note fehlt' : 'Note ungültig',
-                $gewicht === false => 'Gewicht ungültig',
-                $bezug === null => 'Fach/Modul nicht erkannt',
-                isset($vorhanden[$bezug.'|'.$datum.'|'.number_format($note, 2)]) => 'bereits erfasst',
-                $trackFehlt => __('Track am Datum nicht aktiv'),
-                ! $sicher => 'Zuordnung prüfen',
+            // Interner Code statt der (übersetzten) Meldung, damit $status davon unabhängig bleibt.
+            $code = match (true) {
+                $datum === null => $roh('datum') === '' ? 'datum_fehlt' : 'datum_unbekannt',
+                $note === null => $roh('note') === '' ? 'note_fehlt' : 'note_ungueltig',
+                $gewicht === false => 'gewicht_ungueltig',
+                $bezug === null => 'bezug_unbekannt',
+                isset($vorhanden[$bezug.'|'.$datum.'|'.number_format($note, 2)]) => 'vorhanden',
+                $trackFehlt => 'track_fehlt',
+                ! $sicher => 'pruefen',
                 default => null,
             };
-            $status = match ($meldung) {
+            $meldung = match ($code) {
+                null => null,
+                'datum_fehlt' => __('Datum fehlt'),
+                'datum_unbekannt' => __('Datum nicht erkannt'),
+                'note_fehlt' => __('Note fehlt'),
+                'note_ungueltig' => __('Note ungültig'),
+                'gewicht_ungueltig' => __('Gewicht ungültig'),
+                'bezug_unbekannt' => __('Fach/Modul nicht erkannt'),
+                'vorhanden' => __('bereits erfasst'),
+                'track_fehlt' => __('Track am Datum nicht aktiv'),
+                'pruefen' => __('Zuordnung prüfen'),
+            };
+            $status = match ($code) {
                 null => 'ok',
-                'bereits erfasst' => 'doppelt',
-                'Zuordnung prüfen' => 'pruefen',
+                'vorhanden' => 'doppelt',
+                'pruefen' => 'pruefen',
                 default => 'fehler',
             };
 
@@ -135,9 +148,9 @@ final class NotenImport
                     'titel' => ['nullable', 'string', 'max:150'],
                     'note' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
                     'gewicht' => ['nullable', 'numeric', 'min:0', 'max:100'],
-                ], [], ['datum' => 'Datum', 'bezug' => 'Fach/Modul', 'note' => 'Note', 'gewicht' => 'Gewicht']);
+                ], [], ['datum' => __('Datum'), 'bezug' => __('Fach/Modul'), 'note' => __('Note'), 'gewicht' => __('Gewicht')]);
                 if ($pruefung->fails()) {
-                    $fehler[] = 'Zeile '.$nr.': '.$pruefung->errors()->first();
+                    $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => $pruefung->errors()->first()]);
 
                     continue;
                 }
@@ -153,7 +166,7 @@ final class NotenImport
                         'gewichtung_prozent' => $z['gewicht'] ?? 100,
                     ], $lernenderId);
                 } catch (ValidationException $e) {
-                    $fehler[] = 'Zeile '.$nr.': '.collect($e->errors())->flatten()->first();
+                    $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => collect($e->errors())->flatten()->first()]);
 
                     continue;
                 }

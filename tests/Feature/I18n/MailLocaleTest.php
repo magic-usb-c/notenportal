@@ -13,6 +13,7 @@ use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Models\User;
 use App\Notifications\PortalMail;
+use App\Services\Notifications\AccountMails;
 use App\Services\Notifications\MailContent;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
@@ -58,6 +59,19 @@ class MailLocaleTest extends TestCase
 
         Notification::assertSentTo($englisch, PortalMail::class, fn ($mail, $kanaele, $empfaenger, $locale) => $locale === 'en');
         Notification::assertSentTo($deutsch, PortalMail::class, fn ($mail, $kanaele, $empfaenger, $locale) => $locale === 'de');
+    }
+
+    /** Konto-Mail (AccountMails, Broker «invites») wird ebenfalls in der Sprache des Empfängers gebaut. */
+    #[Test]
+    public function konto_mail_in_der_sprache_des_empfaengers(): void
+    {
+        $englisch = $this->empfaenger('en', 'english');
+
+        AccountMails::accountCreated($englisch);
+
+        $log = MailLog::where('user_id', $englisch->benutzer_id)->where('type', NotificationCatalog::ACCOUNT_CREATED)->sole();
+        $this->assertSame('Your account in Notenportal', $log->subject);
+        $this->assertSame(['An account was set up for you in Notenportal.'], $log->payload['lines']);
     }
 
     #[Test]

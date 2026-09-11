@@ -88,11 +88,11 @@ final class Einrichtung
 
         return [
             'operations' => ['erledigt' => $name !== '', 'info' => $name],
-            'categories' => ['erledigt' => Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1', 'info' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1)).' aktiv'],
+            'categories' => ['erledigt' => Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1', 'info' => __(':anzahl aktiv', ['anzahl' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1))])],
             'semesters' => ['erledigt' => $semester->isNotEmpty(), 'info' => $semester->isEmpty() ? '' : $semester->first().' – '.$semester->last()],
-            'professions' => ['erledigt' => $lehrberufe > 0, 'info' => $lehrberufe.' Lehrberufe · '.$faecher.' Fächer'],
-            'modules' => ['erledigt' => $module > 0, 'info' => $module.' Zuordnungen'],
-            'people' => ['erledigt' => $bb + $lernende > 0, 'info' => $bb.' Berufsbildner · '.$lernende.' Lernende'],
+            'professions' => ['erledigt' => $lehrberufe > 0, 'info' => __(':lehrberufe Lehrberufe · :faecher Fächer', ['lehrberufe' => $lehrberufe, 'faecher' => $faecher])],
+            'modules' => ['erledigt' => $module > 0, 'info' => __(':anzahl Zuordnungen', ['anzahl' => $module])],
+            'people' => ['erledigt' => $bb + $lernende > 0, 'info' => __(':bb Berufsbildner · :lernende Lernende', ['bb' => $bb, 'lernende' => $lernende])],
             'mail' => ['erledigt' => MailSettings::values()['source'] !== 'none', 'info' => ''],
             'finish' => ['erledigt' => ! self::offen(), 'info' => ''],
         ];

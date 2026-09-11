@@ -42,6 +42,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/')->with('status', 'Du wurdest abgemeldet.');
+        return redirect('/')->with('status', __('Du wurdest abgemeldet.'));
     }
 }

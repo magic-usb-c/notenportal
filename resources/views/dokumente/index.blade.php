@@ -46,7 +46,7 @@
                             <label for="art" class="{{ $label }}">{{ __('Art') }} *</label>
                             <select id="art" name="art" class="{{ $feld }}">
                                 @foreach(\App\Models\Dokument::ARTEN as $wert => $text)
-                                    <option value="{{ $wert }}" @selected(old('art', 'zeugnis') === $wert)>{{ $text }}</option>
+                                    <option value="{{ $wert }}" @selected(old('art', 'zeugnis') === $wert)>{{ \App\Models\Dokument::label($wert) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -76,7 +76,7 @@
                 @foreach(\App\Models\Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))
                     <section class="flex flex-col gap-2">
-                        <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ $artName }} · {{ $gruppen[$art]->count() }}</h3>
+                        <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ \App\Models\Dokument::label($art) }} · {{ $gruppen[$art]->count() }}</h3>
                         <ul class="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
                                 <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">

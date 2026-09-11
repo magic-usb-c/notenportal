@@ -219,7 +219,7 @@ final class Rechner
         try {
             return Zielgroesse::parse($text);
         } catch (InvalidArgumentException) {
-            throw ValidationException::withMessages([$feld => 'Ungültige Auswahl.']);
+            throw ValidationException::withMessages([$feld => __('Ungültige Auswahl.')]);
         }
     }
 
@@ -242,7 +242,7 @@ final class Rechner
             return new Leistung($modul['kategorie_id'], null, $el->id, $datum ? null : $katalog['aktuelles_semester'], $datum, $wert, $gewicht, $quelle);
         }
 
-        throw ValidationException::withMessages([$feld => 'Ungültige Auswahl.']);
+        throw ValidationException::withMessages([$feld => __('Ungültige Auswahl.')]);
     }
 
     /**

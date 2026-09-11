@@ -34,6 +34,12 @@ class Dokument extends Model
     /** Im Browser anzeigbar (mit Sandbox-CSP ausgeliefert). */
     public const array INLINE = ['application/pdf', 'image/png', 'image/jpeg'];
 
+    /** Übersetzte Bezeichnung einer Dokumentart (Anzeige) – der gespeicherte Wert (`art`) bleibt deutsch. */
+    public static function label(string $art): string
+    {
+        return __(self::ARTEN[$art] ?? $art);
+    }
+
     protected function casts(): array
     {
         return ['groesse' => 'integer', 'erstellt_am' => 'datetime'];

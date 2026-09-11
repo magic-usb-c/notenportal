@@ -97,7 +97,7 @@ final class Ablage
         $benutzer = $dokument->lernender?->benutzer;
         $teile = array_filter([
             $benutzer?->nachname, $benutzer?->vorname,
-            Dokument::ARTEN[$dokument->art] ?? null,
+            isset(Dokument::ARTEN[$dokument->art]) ? Dokument::label($dokument->art) : null,
             $dokument->semester?->bezeichnung,
             $dokument->art === 'sonstiges' ? $dokument->titel : null,
         ]);
