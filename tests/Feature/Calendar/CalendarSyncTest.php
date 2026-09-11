@@ -6,6 +6,7 @@ namespace Tests\Feature\Calendar;
 
 use App\Models\CalendarEvent;
 use App\Models\CalendarFeed;
+use App\Models\Fach;
 use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
@@ -169,5 +170,73 @@ class CalendarSyncTest extends TestCase
 
         $this->assertStringNotContainsString('geheim', $roh);
         $this->assertSame('schulnetz.example', $this->feed->fresh()->host());
+    }
+
+    #[Test]
+    public function termin_ohne_beginn_wird_uebersprungen_und_dauer_ersetzt_das_ende(): void
+    {
+        $stats = app(CalendarSync::class)->apply($this->feed, $this->ics([
+            "BEGIN:VEVENT\r\nUID:ohne-beginn\r\nDTSTAMP:20260901T120000Z\r\nSUMMARY:Kaputt\r\nEND:VEVENT\r\n",
+            "BEGIN:VEVENT\r\nUID:mit-dauer\r\nDTSTAMP:20260901T120000Z\r\nDTSTART;TZID=Europe/Zurich:"
+                .CarbonImmutable::now('Europe/Zurich')->addDays(2)->setTime(19, 0)->format('Ymd\THis')
+                ."\r\nDURATION:PT90M\r\nSUMMARY:Elternabend\r\nEND:VEVENT\r\n",
+        ]));
+
+        $this->assertSame(1, $stats['events']);
+        $termin = CalendarEvent::sole();
+        $this->assertSame('Elternabend', $termin->summary);
+        $this->assertSame(90, (int) $termin->starts_at->diffInMinutes($termin->ends_at));
+    }
+
+    #[Test]
+    public function abruf_folgt_weiterleitung_und_meldet_http_fehler_und_uebergroesse(): void
+    {
+        Http::fake(['https://93.184.216.34/*' => Http::sequence()
+            ->push('', 302, ['Location' => '/neu.ics'])
+            ->push($this->ics([$this->pruefungsEvent()]), 200)
+            ->push('Serverfehler', 500)
+            ->push('BEGIN:VCALENDAR'.str_repeat('x', 5 * 1024 * 1024 + 1), 200)]);
+        $this->feed->update(['url' => 'https://93.184.216.34/cal.ics']);
+
+        $this->assertSame(1, app(CalendarSync::class)->sync($this->feed->fresh())['exams']);
+        Http::assertSent(fn ($anfrage) => $anfrage->url() === 'https://93.184.216.34/neu.ics');
+
+        foreach (['HTTP 500', 'grösser als 5 MB'] as $erwartet) {
+            try {
+                app(CalendarSync::class)->sync($this->feed->fresh());
+                $this->fail("Fehler «{$erwartet}» erwartet");
+            } catch (RuntimeException $e) {
+                $this->assertStringContainsString($erwartet, $e->getMessage());
+            }
+        }
+        $this->assertSame(CalendarFeed::ERROR, $this->feed->fresh()->last_status);
+    }
+
+    #[Test]
+    public function pruefung_ohne_modulnummer_wird_ueber_das_fachkuerzel_zugeordnet(): void
+    {
+        $fach = Fach::factory()->create(['name' => 'Mathematik', 'kurzname' => 'MATH']);
+        $start = CarbonImmutable::now('Europe/Zurich')->addDays(10)->setTime(10, 0);
+
+        $stats = app(CalendarSync::class)->apply($this->feed, $this->ics([
+            $this->event('exam-math', $start, 'MATH-INPE 24 B-diemar', "Prüfung\nMATH-INPE 24 B-diemar LB2: Algebra"),
+        ]));
+
+        $this->assertSame(1, $stats['exams']);
+        $this->assertSame($fach->fach_id, Pruefung::sole()->fach_id);
+        $this->assertNull(Pruefung::sole()->modul_id);
+    }
+
+    #[Test]
+    public function unaufloesbare_adresse_wird_abgelehnt_oeffentliche_ipv6_erlaubt(): void
+    {
+        try {
+            CalendarSync::assertPublicUrl('https://gibt-es-nicht.invalid/x.ics');
+            $this->fail('Nicht auflösbare Adresse hätte abgelehnt werden müssen');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('nicht auflösbar', $e->getMessage());
+        }
+
+        $this->assertSame(['2001:4860:4860::8888'], CalendarSync::assertPublicUrl('https://[2001:4860:4860::8888]/x.ics'));
     }
 }

@@ -54,6 +54,12 @@ final class CalendarSync
         $kalender = Reader::read($ics, Reader::OPTION_FORGIVING | Reader::OPTION_IGNORE_INVALID_LINES);
         $von = now()->subDays(self::DAYS_BACK)->startOfDay();
         $bis = now()->addDays(self::DAYS_AHEAD);
+        // Ein einzelner Termin ohne DTSTART liesse expand() abstürzen und damit den ganzen Abgleich scheitern.
+        foreach ($kalender->select('VEVENT') as $event) {
+            if (! isset($event->DTSTART)) {
+                $kalender->remove($event);
+            }
+        }
         $kalender = $kalender->expand($von->toDateTime(), $bis->toDateTime());
         $zone = new DateTimeZone((string) config('app.timezone'));
         $lernender = $feed->lernender()->firstOrFail();
@@ -67,9 +73,6 @@ final class CalendarSync
         DB::transaction(function () use ($kalender, $feed, $zone, $lernender, $module, $faecher, &$stats, &$gesehen, &$pruefungenGesehen, $von) {
             foreach ($kalender->select('VEVENT') as $event) {
                 /** @var VEvent $event */
-                if (! isset($event->DTSTART)) {
-                    continue;
-                }
                 $uid = mb_substr(trim((string) ($event->UID ?? '')) ?: md5((string) $event->serialize()), 0, 255);
                 $ganztags = ! $event->DTSTART->hasTime();
                 $start = CarbonImmutable::instance($event->DTSTART->getDateTime())->setTimezone($zone);
