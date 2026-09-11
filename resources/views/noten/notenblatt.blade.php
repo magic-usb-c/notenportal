@@ -24,7 +24,7 @@
         .sub { font-size: 12pt; margin-top: 2px; }
         .rechts { text-align: right; font-size: 9pt; color: #555; line-height: 1.5; }
         .eckdaten { display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 12px; align-items: center; background: #f5f5f5; border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; }
-        .eckdaten label { display: block; font-size: 7.5pt; color: #777; text-transform: uppercase; letter-spacing: 0.08em; }
+        .eckdaten label { display: block; font-size: 7.5pt; color: #666; text-transform: uppercase; letter-spacing: 0.08em; }
         .eckdaten span { font-weight: 600; }
         .gesamt { text-align: right; }
         .gesamt strong { display: block; font-size: 22pt; line-height: 1; }
@@ -50,11 +50,11 @@
         .n-ok { color: #166534; }
         .n-knapp { color: #854d0e; }
         .n-tief { color: #991b1b; }
-        .leer { color: #777; margin: 20px 0; }
+        .leer { color: #666; margin: 20px 0; }
         .unterschriften { display: flex; gap: 40px; margin-top: 32px; break-inside: avoid; }
         .unterschriften div { flex: 1; border-bottom: 1px solid #1a1a1a; height: 36px; }
-        .unterschriften p { font-size: 8pt; color: #777; margin-top: 4px; }
-        footer { margin-top: 18px; font-size: 8pt; color: #999; border-top: 1px solid #ddd; padding-top: 6px; }
+        .unterschriften p { font-size: 8pt; color: #666; margin-top: 4px; }
+        footer { margin-top: 18px; font-size: 8pt; color: #666; border-top: 1px solid #ddd; padding-top: 6px; }
         @media print {
             body { padding: 0; max-width: none; }
             .leiste { display: none; }

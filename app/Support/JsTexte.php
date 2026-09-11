@@ -25,6 +25,7 @@ final class JsTexte
         'Screenshot wird erstellt…',
         'Senden',
         'Senden…',
+        'Tabelle',
         'Ziel :wert',
         'genügend :wert',
     ];

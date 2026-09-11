@@ -159,3 +159,10 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 - Rest laut `notenportal:i18n-scan` (bewusst offen): `vendor/pagination/*` (eigene deutsche Laravel-Views), CSV-Vorlage `NotenImport::vorlage()` (Kopfzeilen bleiben deutsch, der Import erkennt beide), Beispielwerte in Platzhaltern, Kürzel BMS/ABU.
 - ~~Pint-Altlasten: `KommentarController`, `routes/web.php`~~ erledigt (12.09.).
 - Nach dem Go-Live: Umbenennungen Code/Model/DB gemäss `docs/i18n-plan.md`.
+
+## Browser-Rundgang (12.09.2026)
+
+Skript `~/tools/visual/rundgang.mjs` (Playwright + axe-core, alle GET-Seiten je Rolle, 1280/390 px): keine JS-Fehler, kein seitliches Überlaufen.
+- ~~Rechner-Anfrage im Noten-Formular mit 422 bei Noten nach Lehrende~~ erledigt: `Rechner::katalog()` deckt die Prüfungsdaten bestehender Noten ab.
+- ~~axe serious/critical: Footer-Kontrast, Logo-Link ohne Namen (mobil), verschachteltes Element in `<summary>` (Lernenden-Dashboard), scrollbare Tabellen nicht fokussierbar, Link nur per Hover erkennbar (Module), Kontrast Notenblatt-Druck und Semester~~ erledigt; Scrollbereiche zentral über `registriereScrollbereiche()` in `np.js`.
+- Dokument-Detailseite nicht geprüft: keine Dokumente in den Testdaten.

@@ -22,7 +22,7 @@
 
 <nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-bar sticky top-0 z-50 print:hidden" aria-label="{{ __('Hauptnavigation') }}">
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-        <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
             <x-application-logo class="size-8" />
             <span class="hidden leading-tight md:block">
                 <span class="block text-sm font-semibold text-text">Notenportal</span>

@@ -74,6 +74,27 @@ export function notenFarbe(wert, grenzen, alpha = 1) {
     return s ? tokenFarbe(`--note-${s}`, alpha) : tokenFarbe('--muted', alpha);
 }
 
+// Scrollbare Tabellen (overflow-x-auto) in den Tab-Weg holen und benennen (axe scrollable-region-focusable).
+// Name: <caption>, sonst nächstliegende Überschrift (h1–h3) in Karte oder Seitenkopf, sonst Fallback.
+export function registriereScrollbereiche() {
+    document.querySelectorAll('.overflow-x-auto').forEach((el) => {
+        if (el.hasAttribute('role') || !el.querySelector('table')) return;
+
+        const caption = el.querySelector('table > caption')?.textContent.trim();
+        let label = caption || null;
+        for (let knoten = el; !label && knoten; knoten = knoten.parentElement) {
+            for (let geschwister = knoten.previousElementSibling; !label && geschwister; geschwister = geschwister.previousElementSibling) {
+                const h = geschwister.matches('h1,h2,h3') ? geschwister : geschwister.querySelector('h1,h2,h3');
+                if (h?.textContent.trim()) label = h.textContent.trim();
+            }
+        }
+
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'region');
+        el.setAttribute('aria-label', label || t('Tabelle'));
+    });
+}
+
 // Segmented Control (role="radiogroup"): Pfeiltasten links/rechts bewegen den Fokus und wählen
 // (roving tabindex – nur ein [role="radio"] ist im Tab-Weg). Einsatz: <div role="radiogroup" x-radiogroup>.
 export function registriereRadiogroup(Alpine) {

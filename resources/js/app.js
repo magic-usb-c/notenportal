@@ -3,7 +3,7 @@ import './bootstrap';
 import Alpine from 'alpinejs';
 import { registriereCharts } from './charts';
 import { registriereFeedback } from './feedback';
-import { registriereRadiogroup, t } from './np';
+import { registriereRadiogroup, registriereScrollbereiche, t } from './np';
 import { registriereRechner } from './rechner';
 import { registriereSuche } from './suche';
 
@@ -16,5 +16,6 @@ registriereFeedback(Alpine);
 registriereRadiogroup(Alpine);
 registriereRechner(Alpine);
 registriereSuche(Alpine);
+registriereScrollbereiche();
 
 Alpine.start();

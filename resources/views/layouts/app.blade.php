@@ -65,7 +65,7 @@
                 {{ $slot }}
             </main>
 
-            <footer class="py-4 text-center text-xs text-muted/70">
+            <footer class="py-4 text-center text-xs text-muted">
                 Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
             </footer>
         </div>

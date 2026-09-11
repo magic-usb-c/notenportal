@@ -126,7 +126,7 @@
 
             <p class="text-xs text-muted px-1">
                 {{ __('Module werden über die') }}
-                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent hover:underline">{{ __('Lehrberuf-Detailseite') }}</a>
+                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent underline underline-offset-2">{{ __('Lehrberuf-Detailseite') }}</a>
                 {{ __('einem Lehrberuf zugewiesen.') }}
             </p>
 

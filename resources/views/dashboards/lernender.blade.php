@@ -271,15 +271,13 @@
 
             {{-- Letzte Noten: mobil zugeklappt --}}
             @if($letzteNoten->isNotEmpty())
-                <details open x-init="$el.open = {{ $desktop }}" class="group rounded-xl border border-border bg-card lg:col-span-4">
+                <details open x-init="$el.open = {{ $desktop }}" class="group relative rounded-xl border border-border bg-card lg:col-span-4">
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
                              @click="if ({{ $desktop }}) $event.preventDefault()">
                         <h2 class="text-sm font-semibold text-text">{{ __('Letzte Noten') }}</h2>
-                        <span class="flex items-center gap-3">
-                            <a href="{{ route('learner.grades.index') }}" class="hidden whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:inline">{{ __('Alle') }}</a>
-                            <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
-                        </span>
+                        <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
                     </summary>
+                    <a href="{{ route('learner.grades.index') }}" class="hidden whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:absolute lg:right-5 lg:top-2 lg:inline">{{ __('Alle') }}</a>
                     <ul class="divide-y divide-border border-t border-border">
                         @foreach($letzteNoten as $n)
                             <li>
