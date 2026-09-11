@@ -11,5 +11,11 @@
         'hero' => 'font-semibold '.$skala::text($wert),
         default => 'font-semibold tabular-nums '.$skala::text($wert),
     };
+    // Präferenz «Notenanzeige»: nur beim bisherigen Standardfall (Durchschnitt, 1 Nachkommastelle)
+    // durch die persönliche Einstellung ersetzt – Notenblatt/Exporte/Mails rufen NotenSkala::format()
+    // direkt auf und bleiben unberührt; :stellen="2"-Stellen (z. B. Verwaltungslisten) unverändert.
+    $anzeigeStellen = $stellen === 1
+        ? (int) (\App\Support\Darstellung::fuer(auth()->user())['notenanzeige'] ?? \App\Support\Darstellung::NOTENANZEIGE_1)
+        : $stellen;
 @endphp
-<span {{ $attributes->merge(['class' => $klasse]) }}>{{ $skala::format($wert, $stellen) }}</span>
+<span {{ $attributes->merge(['class' => $klasse]) }}>{{ $skala::format($wert, $anzeigeStellen) }}</span>

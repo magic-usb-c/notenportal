@@ -144,6 +144,8 @@ final class Navigation
         $befehle[] = ['label' => __('Schrift: Sehr gross'), 'url' => '#schrift:sehr-gross', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Dichte: Normal'), 'url' => '#dichte:normal', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Dichte: Kompakt'), 'url' => '#dichte:kompakt', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Diagrammfarben: Standard'), 'url' => '#diagramm:standard', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Diagrammfarben: Farbenblind'), 'url' => '#diagramm:farbenblind', 'gruppe' => $gruppe];
 
         return $befehle;
     }

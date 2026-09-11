@@ -34,6 +34,19 @@ final class Darstellung
 
     public const array DICHTEN = [self::DICHTE_NORMAL, self::DICHTE_KOMPAKT];
 
+    public const string DIAGRAMM_STANDARD = 'standard';
+
+    public const string DIAGRAMM_FARBENBLIND = 'farbenblind';
+
+    public const array DIAGRAMME = [self::DIAGRAMM_STANDARD, self::DIAGRAMM_FARBENBLIND];
+
+    /** Nachkommastellen für Notendurchschnitte auf interaktiven Seiten (siehe <x-note>); Notenblatt/Exporte/Mails unverändert. */
+    public const string NOTENANZEIGE_1 = '1';
+
+    public const string NOTENANZEIGE_2 = '2';
+
+    public const array NOTENANZEIGEN = [self::NOTENANZEIGE_1, self::NOTENANZEIGE_2];
+
     /** Wert => Bezeichnung */
     public const array AKZENTE = [
         'blau' => 'Blau',
@@ -131,7 +144,7 @@ final class Darstellung
      * Gültige, aufbereitete Präferenzen für die Seite. Ungültige oder fehlende Werte
      * fallen auf den Standard zurück (theme/akzent/akzent_eigen: null = wie Betrieb/Theme).
      *
-     * @return array{theme: ?string, akzent: ?string, akzent_eigen: ?string, schrift: string, schriftart: string, bewegung: string, dichte: string, ecken: string, transparenz: string, tastenkuerzel: string, startseite: string, karten_ausgeblendet: list<string>}
+     * @return array{theme: ?string, akzent: ?string, akzent_eigen: ?string, schrift: string, schriftart: string, bewegung: string, dichte: string, diagramm: string, notenanzeige: string, ecken: string, transparenz: string, tastenkuerzel: string, startseite: string, karten_ausgeblendet: list<string>}
      */
     public static function fuer(?User $user): array
     {
@@ -175,6 +188,16 @@ final class Darstellung
         $dichte = $rohdaten['dichte'] ?? self::DICHTE_NORMAL;
         if (! in_array($dichte, self::DICHTEN, true)) {
             $dichte = self::DICHTE_NORMAL;
+        }
+
+        $diagramm = $rohdaten['diagramm'] ?? self::DIAGRAMM_STANDARD;
+        if (! in_array($diagramm, self::DIAGRAMME, true)) {
+            $diagramm = self::DIAGRAMM_STANDARD;
+        }
+
+        $notenanzeige = $rohdaten['notenanzeige'] ?? self::NOTENANZEIGE_1;
+        if (! in_array($notenanzeige, self::NOTENANZEIGEN, true)) {
+            $notenanzeige = self::NOTENANZEIGE_1;
         }
 
         $ecken = $rohdaten['ecken'] ?? self::ECKEN_RUND;
@@ -224,6 +247,8 @@ final class Darstellung
             'schriftart' => $schriftart,
             'bewegung' => $bewegung,
             'dichte' => $dichte,
+            'diagramm' => $diagramm,
+            'notenanzeige' => $notenanzeige,
             'ecken' => $ecken,
             'transparenz' => $transparenz,
             'tastenkuerzel' => $tastenkuerzel,

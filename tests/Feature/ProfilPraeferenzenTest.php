@@ -86,7 +86,7 @@ class ProfilPraeferenzenTest extends TestCase
     public function nur_der_uebergebene_schluessel_wird_geaendert(): void
     {
         $user = User::factory()->lernender()->create([
-            'praeferenzen' => ['theme' => 'wald', 'akzent' => 'petrol', 'schrift' => 'gross', 'bewegung' => 'reduziert', 'dichte' => 'kompakt', 'karten_ausgeblendet' => ['ziele']],
+            'praeferenzen' => ['theme' => 'wald', 'akzent' => 'petrol', 'schrift' => 'gross', 'bewegung' => 'reduziert', 'dichte' => 'kompakt', 'diagramm' => 'farbenblind', 'karten_ausgeblendet' => ['ziele']],
         ]);
 
         $this->actingAs($user)
@@ -100,7 +100,32 @@ class ProfilPraeferenzenTest extends TestCase
             'schrift' => 'sehr-gross',
             'bewegung' => 'reduziert',
             'dichte' => 'kompakt',
+            'diagramm' => 'farbenblind',
             'karten_ausgeblendet' => ['ziele'],
         ], $user->praeferenzen);
+    }
+
+    #[Test]
+    public function diagramm_wird_gespeichert(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patchJson(route('profile.preferences'), ['diagramm' => 'farbenblind'])
+            ->assertOk();
+
+        $this->assertSame('farbenblind', $user->refresh()->praeferenzen['diagramm']);
+    }
+
+    #[Test]
+    public function ungueltiger_diagramm_wert_wird_mit_422_abgewiesen(): void
+    {
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['diagramm' => 'standard']]);
+
+        $this->actingAs($user)
+            ->patchJson(route('profile.preferences'), ['diagramm' => 'infrarot'])
+            ->assertStatus(422);
+
+        $this->assertSame('standard', $user->refresh()->praeferenzen['diagramm']);
     }
 }

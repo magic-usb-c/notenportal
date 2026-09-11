@@ -64,6 +64,8 @@ class ProfileController extends Controller
                 'schriftart' => $daten['schriftart'] ?? Darstellung::SCHRIFTART_STANDARD,
                 'bewegung' => $request->boolean('bewegung_reduziert') ? Darstellung::BEWEGUNG_REDUZIERT : Darstellung::BEWEGUNG_NORMAL,
                 'dichte' => $daten['dichte'] ?? Darstellung::DICHTE_NORMAL,
+                'diagramm' => $daten['diagramm'] ?? Darstellung::DIAGRAMM_STANDARD,
+                'notenanzeige' => $daten['notenanzeige'] ?? Darstellung::NOTENANZEIGE_1,
                 'ecken' => $daten['ecken'] ?? Darstellung::ECKEN_RUND,
                 'transparenz' => $daten['transparenz'] ?? Darstellung::TRANSPARENZ_NORMAL,
                 'tastenkuerzel' => $daten['tastenkuerzel'] ?? Darstellung::TASTENKUERZEL_AN,
@@ -111,6 +113,8 @@ class ProfileController extends Controller
             'schriftart' => Darstellung::SCHRIFTART_STANDARD,
             'bewegung' => Darstellung::BEWEGUNG_NORMAL,
             'dichte' => Darstellung::DICHTE_NORMAL,
+            'diagramm' => Darstellung::DIAGRAMM_STANDARD,
+            'notenanzeige' => Darstellung::NOTENANZEIGE_1,
             'ecken' => Darstellung::ECKEN_RUND,
             'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
             'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
@@ -157,6 +161,9 @@ class ProfileController extends Controller
         if ($request->has('dichte')) {
             $regeln['dichte'] = [Rule::in(Darstellung::DICHTEN)];
         }
+        if ($request->has('diagramm')) {
+            $regeln['diagramm'] = [Rule::in(Darstellung::DIAGRAMME)];
+        }
         if ($request->has('bewegung')) {
             $regeln['bewegung'] = [Rule::in(Darstellung::BEWEGUNGEN)];
         }
@@ -169,7 +176,7 @@ class ProfileController extends Controller
             $user->darstellung = $validiert['darstellung'];
         }
 
-        $praefSchluessel = array_intersect_key($validiert, array_flip(['theme', 'akzent', 'schrift', 'dichte', 'bewegung']));
+        $praefSchluessel = array_intersect_key($validiert, array_flip(['theme', 'akzent', 'schrift', 'dichte', 'diagramm', 'bewegung']));
         if ($praefSchluessel !== []) {
             $aktuell = Darstellung::fuer($user);
             $theme = array_key_exists('theme', $praefSchluessel) ? ($praefSchluessel['theme'] ?: null) : $aktuell['theme'];
@@ -181,6 +188,7 @@ class ProfileController extends Controller
                 'schrift' => $praefSchluessel['schrift'] ?? $aktuell['schrift'],
                 'bewegung' => $praefSchluessel['bewegung'] ?? $aktuell['bewegung'],
                 'dichte' => $praefSchluessel['dichte'] ?? $aktuell['dichte'],
+                'diagramm' => $praefSchluessel['diagramm'] ?? $aktuell['diagramm'],
                 'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
             ];
             if (array_key_exists('theme', $praefSchluessel)) {

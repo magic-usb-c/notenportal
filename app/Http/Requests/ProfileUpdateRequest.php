@@ -39,6 +39,8 @@ class ProfileUpdateRequest extends FormRequest
                 'schriftart' => ['nullable', Rule::in(Darstellung::SCHRIFTARTEN)],
                 'bewegung_reduziert' => ['nullable', 'boolean'],
                 'dichte' => ['nullable', Rule::in(Darstellung::DICHTEN)],
+                'diagramm' => ['nullable', Rule::in(Darstellung::DIAGRAMME)],
+                'notenanzeige' => ['nullable', Rule::in(Darstellung::NOTENANZEIGEN)],
                 'ecken' => ['nullable', Rule::in(Darstellung::ECKEN)],
                 'transparenz' => ['nullable', Rule::in(Darstellung::TRANSPARENZEN)],
                 'tastenkuerzel' => ['nullable', Rule::in(Darstellung::TASTENKUERZEL)],

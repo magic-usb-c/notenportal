@@ -166,6 +166,35 @@ class ThemeTest extends TestCase
     }
 
     #[Test]
+    public function data_diagramm_wird_nur_gesetzt_wenn_nicht_standard(): void
+    {
+        $standard = User::factory()->lernender()->create();
+        $this->actingAs($standard)->get(route('learner.dashboard'))->assertDontSee('data-diagramm', false);
+
+        $farbenblind = User::factory()->lernender()->create(['praeferenzen' => ['diagramm' => 'farbenblind']]);
+        $this->actingAs($farbenblind)->get(route('learner.dashboard'))->assertSee('data-diagramm="farbenblind"', false);
+    }
+
+    public static function neueThemes(): array
+    {
+        return [['fjord'], ['bernstein'], ['schiefer']];
+    }
+
+    #[Test]
+    #[DataProvider('neueThemes')]
+    public function neues_theme_kann_persoenlich_gewaehlt_werden_und_steht_im_html(string $theme): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => $theme])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($theme, $user->refresh()->praeferenzen['theme']);
+        $this->actingAs($user)->get(route('learner.dashboard'))->assertSee('data-theme="'.$theme.'"', false);
+    }
+
+    #[Test]
     public function data_schriftart_ecken_transparenz_werden_nur_gesetzt_wenn_nicht_standard(): void
     {
         $standard = User::factory()->lernender()->create();

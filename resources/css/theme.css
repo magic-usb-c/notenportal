@@ -607,6 +607,222 @@
   --elev-hover-bg: var(--surface-2);
 }
 
+/* Theme Fjord – hell */
+[data-theme='fjord'] {
+  color-scheme: light;
+
+  --bg: 241 248 248;               /* oklch(0.973 0.007 200) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 229 242 242;        /* oklch(0.951 0.013 200) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 10 30 31;                /* oklch(0.22 0.026 200) */
+  --muted: 79 101 102;             /* oklch(0.49 0.026 200) */
+  --border: 212 225 226;           /* oklch(0.9 0.014 200) */
+  --border-strong: 128 146 146;    /* oklch(0.645 0.02 200) */
+
+  --accent: 2 98 100;              /* oklch(0.45 0.076 198) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 5 88 91;          /* oklch(0.42 0.07 198) */
+  --ring: 5 114 116;               /* oklch(0.5 0.084 198) */
+
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  --chart-1: 2 98 100;             /* oklch(0.45 0.076 198) */
+  --chart-2: 169 90 20;            /* oklch(0.55 0.128 55) */
+  --chart-3: 160 76 154;           /* oklch(0.55 0.15 330) */
+  --chart-4: 114 74 171;           /* oklch(0.5 0.15 300) */
+  --chart-5: 172 48 49;            /* oklch(0.5 0.16 25) */
+  --chart-6: 115 132 133;          /* oklch(0.6 0.02 200) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Fjord – dunkel */
+[data-theme='fjord'].dark {
+  color-scheme: dark;
+
+  --bg: 5 18 19;                   /* oklch(0.17 0.02 200) */
+  --card: 12 29 29;                /* oklch(0.215 0.022 200) */
+  --surface-2: 21 40 41;           /* oklch(0.26 0.024 200) */
+  --input: 8 23 23;                /* oklch(0.19 0.02 200) */
+  --text: 226 238 238;             /* oklch(0.94 0.013 200) */
+  --muted: 149 169 170;            /* oklch(0.72 0.022 200) */
+  --border: 35 52 53;              /* oklch(0.31 0.022 200) */
+  --border-strong: 88 106 107;     /* oklch(0.51 0.022 200) */
+
+  --accent: 53 185 189;            /* oklch(0.72 0.11 198) */
+  --accent-contrast: 5 18 19;      /* oklch(0.17 0.02 200) */
+  --accent-text: 83 193 197;       /* oklch(0.75 0.1 198) */
+  --ring: 79 190 193;              /* oklch(0.74 0.1 198) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 32 173 177;           /* oklch(0.68 0.11 198) */
+  --chart-2: 211 120 18;           /* oklch(0.66 0.15 60) */
+  --chart-3: 196 109 189;          /* oklch(0.66 0.15 330) */
+  --chart-4: 157 111 227;          /* oklch(0.64 0.17 300) */
+  --chart-5: 229 85 81;            /* oklch(0.64 0.18 25) */
+  --chart-6: 121 138 139;          /* oklch(0.62 0.02 200) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Bernstein – hell */
+[data-theme='bernstein'] {
+  color-scheme: light;
+
+  --bg: 251 245 237;               /* oklch(0.972 0.012 75) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 246 236 223;        /* oklch(0.948 0.02 75) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 40 29 20;                /* oklch(0.24 0.024 60) */
+  --muted: 112 96 82;              /* oklch(0.5 0.03 65) */
+  --border: 229 221 209;           /* oklch(0.9 0.018 75) */
+  --border-strong: 151 140 126;    /* oklch(0.645 0.024 72) */
+
+  --accent: 133 89 0;              /* oklch(0.5 0.105 76) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 120 78 1;         /* oklch(0.46 0.097 74) */
+  --ring: 144 97 4;                /* oklch(0.53 0.11 76) */
+
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  --chart-1: 133 89 0;             /* oklch(0.5 0.105 76) */
+  --chart-2: 1 111 130;            /* oklch(0.5 0.088 215) */
+  --chart-3: 57 121 73;            /* oklch(0.52 0.1 150) */
+  --chart-4: 105 75 150;           /* oklch(0.48 0.12 300) */
+  --chart-5: 168 53 62;            /* oklch(0.5 0.15 20) */
+  --chart-6: 130 121 110;          /* oklch(0.58 0.02 70) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Bernstein – dunkel */
+[data-theme='bernstein'].dark {
+  color-scheme: dark;
+
+  --bg: 27 18 9;                   /* oklch(0.19 0.022 65) */
+  --card: 38 28 18;                /* oklch(0.235 0.024 65) */
+  --surface-2: 50 38 27;           /* oklch(0.28 0.026 65) */
+  --input: 32 22 13;               /* oklch(0.21 0.023 65) */
+  --text: 238 227 215;             /* oklch(0.92 0.02 70) */
+  --muted: 176 162 148;            /* oklch(0.72 0.026 68) */
+  --border: 62 51 40;              /* oklch(0.33 0.024 65) */
+  --border-strong: 116 102 90;     /* oklch(0.52 0.026 65) */
+
+  --accent: 238 168 47;            /* oklch(0.78 0.15 76) */
+  --accent-contrast: 27 18 9;      /* oklch(0.19 0.022 65) */
+  --accent-text: 241 176 71;       /* oklch(0.8 0.14 76) */
+  --ring: 237 173 68;              /* oklch(0.79 0.14 76) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 217 149 7;            /* oklch(0.72 0.15 76) */
+  --chart-2: 77 166 187;           /* oklch(0.68 0.09 215) */
+  --chart-3: 105 178 122;          /* oklch(0.7 0.11 150) */
+  --chart-4: 160 124 219;          /* oklch(0.66 0.14 300) */
+  --chart-5: 230 109 113;          /* oklch(0.68 0.15 20) */
+  --chart-6: 151 141 130;          /* oklch(0.65 0.02 70) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Schiefer – hell */
+[data-theme='schiefer'] {
+  color-scheme: light;
+
+  --bg: 244 247 250;               /* oklch(0.975 0.005 250) */
+  --card: 255 255 255;             /* oklch(1 0 0) */
+  --surface-2: 236 241 245;        /* oklch(0.955 0.008 250) */
+  --input: 255 255 255;            /* oklch(1 0 0) */
+  --text: 22 27 33;                /* oklch(0.22 0.014 250) */
+  --muted: 89 97 107;              /* oklch(0.49 0.018 250) */
+  --border: 217 223 229;           /* oklch(0.9 0.01 250) */
+  --border-strong: 135 143 151;    /* oklch(0.645 0.016 250) */
+
+  --accent: 53 79 106;             /* oklch(0.42 0.055 250) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 46 71 98;         /* oklch(0.39 0.055 250) */
+  --ring: 67 96 126;               /* oklch(0.48 0.06 250) */
+
+  --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
+
+  --chart-1: 53 79 106;            /* oklch(0.42 0.055 250) */
+  --chart-2: 172 113 62;           /* oklch(0.6 0.1 60) */
+  --chart-3: 44 128 124;           /* oklch(0.55 0.08 190) */
+  --chart-4: 109 83 152;           /* oklch(0.5 0.11 300) */
+  --chart-5: 164 81 123;           /* oklch(0.55 0.12 350) */
+  --chart-6: 122 129 137;          /* oklch(0.6 0.015 250) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Schiefer – dunkel (gedeckt: Akzent bewusst zurückhaltend, kein reines Weiss) */
+[data-theme='schiefer'].dark {
+  color-scheme: dark;
+
+  --bg: 9 14 18;                   /* oklch(0.16 0.012 250) */
+  --card: 18 24 29;                /* oklch(0.205 0.014 250) */
+  --surface-2: 28 34 41;           /* oklch(0.25 0.016 250) */
+  --input: 13 18 23;               /* oklch(0.18 0.013 250) */
+  --text: 227 232 238;             /* oklch(0.93 0.01 250) */
+  --muted: 154 162 171;            /* oklch(0.71 0.016 250) */
+  --border: 40 47 54;              /* oklch(0.3 0.016 250) */
+  --border-strong: 93 102 111;     /* oklch(0.505 0.018 250) */
+
+  --accent: 124 156 188;           /* oklch(0.68 0.06 250) */
+  --accent-contrast: 9 14 18;      /* oklch(0.16 0.012 250) */
+  --accent-text: 139 168 198;      /* oklch(0.72 0.055 250) */
+  --ring: 130 162 195;             /* oklch(0.7 0.06 250) */
+
+  --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+
+  --chart-1: 124 156 188;          /* oklch(0.68 0.06 250) */
+  --chart-2: 198 137 86;           /* oklch(0.68 0.1 60) */
+  --chart-3: 68 164 158;           /* oklch(0.66 0.09 190) */
+  --chart-4: 152 122 202;          /* oklch(0.64 0.12 300) */
+  --chart-5: 198 104 151;          /* oklch(0.64 0.13 350) */
+  --chart-6: 107 114 122;          /* oklch(0.55 0.015 250) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
 /* Theme Kontrast (hoher Kontrast, Text AAA) – hell */
 [data-theme='kontrast'] {
   color-scheme: light;
@@ -795,6 +1011,31 @@
   --accent-text: 254 137 139;      /* oklch(0.76 0.15 20) */
   --ring: 255 131 134;             /* oklch(0.75 0.15 20) */
   --chart-1: 248 118 122;          /* oklch(0.72 0.16 20) */
+}
+
+/* Diagrammfarben «Farbenblind» (Profil «Darstellung», App\Support\Darstellung::DIAGRAMM_FARBENBLIND):
+   ersetzt --chart-1..6 jedes Themes durch die Okabe-Ito-Palette (ohne Schwarz und Himmelblau, das zu
+   nah an Blau liegt) – gegen die card-Fläche aller Themes (inkl. Kontrast) auf ≥3:1 (Grafik) geprüft,
+   wie die Akzentfarben oben. Steht nach allen Themes und Akzentfarben, damit [data-diagramm='farbenblind']
+   (Spezifität wie ein Theme-Block) sie per Quellreihenfolge für --chart-1..6 schlägt – auch wenn eine
+   Akzentfarbe ihrerseits --chart-1 setzt. Notenfarben (--note-…) bleiben unverändert: sie sind kein
+   eigener Diagramm-Token, eine Überschreibung würde auch Badges/Tabellen ausserhalb von Diagrammen
+   treffen (docs/audit-backlog.md). */
+[data-diagramm='farbenblind'] {
+  --chart-1: 0 104 164;            /* oklch(0.5 0.131 244) – Blau */
+  --chart-2: 159 69 1;             /* oklch(0.5 0.17 47.5) – Vermillion */
+  --chart-3: 4 117 85;             /* oklch(0.5 0.13 165.5) – Grün */
+  --chart-4: 145 68 113;           /* oklch(0.5 0.118 346.3) – Purpur */
+  --chart-5: 109 102 0;            /* oklch(0.5 0.172 105) – Gelb */
+  --chart-6: 132 90 3;             /* oklch(0.5 0.158 76.8) – Orange */
+}
+[data-diagramm='farbenblind'].dark {
+  --chart-1: 83 172 240;           /* oklch(0.72 0.131 244) */
+  --chart-2: 248 125 54;           /* oklch(0.72 0.17 47.5) */
+  --chart-3: 63 190 145;           /* oklch(0.72 0.13 165.5) */
+  --chart-4: 218 133 180;          /* oklch(0.72 0.118 346.3) */
+  --chart-5: 179 169 4;            /* oklch(0.72 0.172 105) */
+  --chart-6: 216 150 7;            /* oklch(0.72 0.158 76.8) */
 }
 
 /* Aliase für rgb(var(--x-rgb) / a). Auch an jedem [data-theme] neu

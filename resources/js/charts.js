@@ -348,7 +348,7 @@ export function registriereCharts(Alpine) {
             init() {
                 if (aktuell) this.zeichne(aktuell);
                 beobachter = new MutationObserver(() => aktuell && this.zeichne(aktuell));
-                beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+                beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-diagramm'] });
             },
             zeichne(neu) {
                 if (!neu) return;

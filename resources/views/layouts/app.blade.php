@@ -8,6 +8,7 @@
       @if(($npSchriftart ?? 'standard') !== 'standard') data-schriftart="{{ $npSchriftart }}" @endif
       @if(($npBewegung ?? 'normal') !== 'normal') data-bewegung="{{ $npBewegung }}" @endif
       @if(($npDichte ?? 'normal') !== 'normal') data-dichte="{{ $npDichte }}" @endif
+      @if(($npDiagramm ?? 'standard') !== 'standard') data-diagramm="{{ $npDiagramm }}" @endif
       @if(($npEcken ?? 'rund') !== 'rund') data-ecken="{{ $npEcken }}" @endif
       @if(($npTransparenz ?? 'normal') !== 'normal') data-transparenz="{{ $npTransparenz }}" @endif>
     <head>
@@ -64,22 +65,26 @@
                  PATCH fehl (Netzwerk, 419 abgelaufene Sitzung, sonstiger Fehlerstatus), wird der
                  optimistisch gesetzte Wert zurückgesetzt und eine Meldung angezeigt. --}}
             window.npBefehl = function (ziel) {
-                const treffer = /^#(darstellung|theme|schrift|dichte):(.+)$/.exec(ziel);
+                const treffer = /^#(darstellung|theme|schrift|dichte|diagramm):(.+)$/.exec(ziel);
                 if (!treffer) return;
                 const [, art, wert] = treffer;
                 const root = document.documentElement;
+                // Neutraler Wert je Attribut: ohne Präferenz wird kein data-* gesetzt (siehe layouts/app.blade.php Kopf).
+                const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard' };
 
                 const vorher = {
                     dunkel: root.classList.contains('dark'),
                     theme: root.dataset.theme,
                     schrift: root.dataset.schrift,
                     dichte: root.dataset.dichte,
+                    diagramm: root.dataset.diagramm,
                 };
                 const zuruecksetzen = function () {
                     root.classList.toggle('dark', vorher.dunkel);
                     if (vorher.theme === undefined) delete root.dataset.theme; else root.dataset.theme = vorher.theme;
                     if (vorher.schrift === undefined) delete root.dataset.schrift; else root.dataset.schrift = vorher.schrift;
                     if (vorher.dichte === undefined) delete root.dataset.dichte; else root.dataset.dichte = vorher.dichte;
+                    if (vorher.diagramm === undefined) delete root.dataset.diagramm; else root.dataset.diagramm = vorher.diagramm;
                     npFehlermeldung();
                 };
 
@@ -95,10 +100,9 @@
                     } catch (e) {}
                 } else if (art === 'theme') {
                     root.dataset.theme = wert;
-                } else if (art === 'schrift' || art === 'dichte') {
-                    const attribut = art === 'schrift' ? 'schrift' : 'dichte';
-                    if (wert === 'normal') delete root.dataset[attribut];
-                    else root.dataset[attribut] = wert;
+                } else if (art === 'schrift' || art === 'dichte' || art === 'diagramm') {
+                    if (wert === neutral[art]) delete root.dataset[art];
+                    else root.dataset[art] = wert;
                 }
 
                 fetch(@js(route('profile.preferences')), {

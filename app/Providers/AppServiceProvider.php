@@ -51,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('npSchriftart', $praeferenzen['schriftart']);
             $view->with('npBewegung', $praeferenzen['bewegung']);
             $view->with('npDichte', $praeferenzen['dichte']);
+            $view->with('npDiagramm', $praeferenzen['diagramm']);
             $view->with('npEcken', $praeferenzen['ecken']);
             $view->with('npTransparenz', $praeferenzen['transparenz']);
         });

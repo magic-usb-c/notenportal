@@ -108,6 +108,10 @@
                     $altSchrift = in_array($altSchrift, \App\Support\Darstellung::SCHRIFTGROESSEN, true) ? $altSchrift : ($praeferenzen['schrift'] ?? 'normal');
                     $altDichte = old('dichte', $praeferenzen['dichte'] ?? 'normal');
                     $altDichte = in_array($altDichte, \App\Support\Darstellung::DICHTEN, true) ? $altDichte : ($praeferenzen['dichte'] ?? 'normal');
+                    $altDiagramm = old('diagramm', $praeferenzen['diagramm'] ?? 'standard');
+                    $altDiagramm = in_array($altDiagramm, \App\Support\Darstellung::DIAGRAMME, true) ? $altDiagramm : ($praeferenzen['diagramm'] ?? 'standard');
+                    $altNotenanzeige = old('notenanzeige', $praeferenzen['notenanzeige'] ?? '1');
+                    $altNotenanzeige = in_array($altNotenanzeige, \App\Support\Darstellung::NOTENANZEIGEN, true) ? $altNotenanzeige : ($praeferenzen['notenanzeige'] ?? '1');
                     $altBewegungReduziert = (bool) old('bewegung_reduziert', ($praeferenzen['bewegung'] ?? 'normal') === 'reduziert');
                     $altAkzentEigen = old('akzent_eigen', $praeferenzen['akzent_eigen'] ?? '') ?: null;
                     $altAkzentEigen = \App\Support\Farbe::istGueltigerHex($altAkzentEigen) ? strtolower($altAkzentEigen) : ($praeferenzen['akzent_eigen'] ?? null);
@@ -131,6 +135,7 @@
                          schrift: @js($altSchrift),
                          schriftart: @js($altSchriftart),
                          dichte: @js($altDichte),
+                         diagramm: @js($altDiagramm),
                          ecken: @js($altEcken),
                          transparenz: @js($altTransparenz),
                          bewegungReduziert: @js($altBewegungReduziert),
@@ -164,6 +169,8 @@
                              else document.documentElement.dataset.schriftart = this.schriftart;
                              if (this.dichte === 'normal') delete document.documentElement.dataset.dichte;
                              else document.documentElement.dataset.dichte = this.dichte;
+                             if (this.diagramm === 'standard') delete document.documentElement.dataset.diagramm;
+                             else document.documentElement.dataset.diagramm = this.diagramm;
                              if (this.ecken === 'rund') delete document.documentElement.dataset.ecken;
                              else document.documentElement.dataset.ecken = this.ecken;
                              if (this.transparenz === 'normal') delete document.documentElement.dataset.transparenz;
@@ -281,6 +288,22 @@
                         @error('dichte')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
+                    {{-- Diagrammfarben: «Farbenblind» ersetzt nur --chart-1..6 (Okabe-Ito-Palette) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Diagrammfarben') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['standard' => __('Standard'), 'farbenblind' => __('Farbenblind')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="diagramm" value="{{ $wert }}" class="sr-only" x-model="diagramm" @change="anwenden()"
+                                           @checked($altDiagramm === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('diagramm')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
                     {{-- Ecken: Rundungen der Flächen (Karten, Buttons, Felder) --}}
                     <fieldset>
                         <legend class="text-sm font-medium text-text">{{ __('Ecken') }}</legend>
@@ -333,6 +356,24 @@
                             @endforeach
                         </div>
                         @error('tastenkuerzel')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    {{-- Notenanzeige: Nachkommastellen der Notendurchschnitte auf interaktiven Seiten
+                         (<x-note>); Notenblatt/Exporte/Mails bleiben unverändert, daher keine Live-Vorschau. --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Notenanzeige') }}</legend>
+                        <p class="mt-1 text-xs text-muted">{{ __('Nachkommastellen bei Notendurchschnitten (nur Anzeige, nicht bei Notenblatt und Exporten).') }}</p>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['1' => __('1 Nachkommastelle'), '2' => __('2 Nachkommastellen')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="notenanzeige" value="{{ $wert }}" class="sr-only"
+                                           @checked($altNotenanzeige === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('notenanzeige')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </fieldset>
 
                     {{-- Startseite: nur die für die eigene Rolle gültigen Ziele (App\Support\Darstellung::STARTSEITEN) --}}

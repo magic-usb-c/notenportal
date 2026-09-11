@@ -89,6 +89,8 @@ class ProfileTest extends TestCase
             'schriftart' => 'standard',
             'bewegung' => 'reduziert',
             'dichte' => 'kompakt',
+            'diagramm' => 'standard',
+            'notenanzeige' => '1',
             'ecken' => 'rund',
             'transparenz' => 'normal',
             'tastenkuerzel' => 'an',

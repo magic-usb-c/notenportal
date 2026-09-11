@@ -27,6 +27,9 @@ final class Theme
         'abendrot' => 'Abendrot',
         'papier' => 'Papier',
         'mitternacht' => 'Mitternacht',
+        'fjord' => 'Fjord',
+        'bernstein' => 'Bernstein',
+        'schiefer' => 'Schiefer',
         'kontrast' => 'Kontrast',
     ];
 
@@ -43,6 +46,9 @@ final class Theme
         'abendrot' => ['hell' => '#FDF5F2', 'dunkel' => '#160D0B'],
         'papier' => ['hell' => '#F7EFE3', 'dunkel' => '#1C140E'],
         'mitternacht' => ['hell' => '#F5F6FC', 'dunkel' => '#010103'],
+        'fjord' => ['hell' => '#F1F8F8', 'dunkel' => '#051213'],
+        'bernstein' => ['hell' => '#FBF5ED', 'dunkel' => '#1B1209'],
+        'schiefer' => ['hell' => '#F4F7FA', 'dunkel' => '#090E12'],
         'kontrast' => ['hell' => '#FFFFFF', 'dunkel' => '#070707'],
     ];
 

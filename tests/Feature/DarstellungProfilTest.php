@@ -139,7 +139,8 @@ class DarstellungProfilTest extends TestCase
             'praeferenzen' => [
                 'theme' => 'wald', 'akzent' => 'eigen', 'akzent_eigen' => '#3355ff',
                 'schrift' => 'gross', 'schriftart' => 'serif', 'bewegung' => 'reduziert',
-                'dichte' => 'kompakt', 'ecken' => 'eckig', 'transparenz' => 'reduziert',
+                'dichte' => 'kompakt', 'diagramm' => 'farbenblind', 'notenanzeige' => '2',
+                'ecken' => 'eckig', 'transparenz' => 'reduziert',
                 'tastenkuerzel' => 'aus', 'startseite' => 'noten',
                 'karten_ausgeblendet' => ['ziele'],
             ],
@@ -155,10 +156,42 @@ class DarstellungProfilTest extends TestCase
             'theme' => null, 'akzent' => null, 'akzent_eigen' => null,
             'schrift' => Darstellung::SCHRIFT_NORMAL, 'schriftart' => Darstellung::SCHRIFTART_STANDARD,
             'bewegung' => Darstellung::BEWEGUNG_NORMAL, 'dichte' => Darstellung::DICHTE_NORMAL,
+            'diagramm' => Darstellung::DIAGRAMM_STANDARD, 'notenanzeige' => Darstellung::NOTENANZEIGE_1,
             'ecken' => Darstellung::ECKEN_RUND, 'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
             'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN, 'startseite' => 'dashboard',
             'karten_ausgeblendet' => ['ziele'],
         ], $user->praeferenzen);
+    }
+
+    #[Test]
+    public function diagramm_und_notenanzeige_werden_gespeichert(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'email' => $user->email, 'darstellung' => 'hell',
+                'diagramm' => 'farbenblind', 'notenanzeige' => '2',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame('farbenblind', $user->praeferenzen['diagramm']);
+        $this->assertSame('2', $user->praeferenzen['notenanzeige']);
+    }
+
+    #[Test]
+    public function ungueltige_diagramm_und_notenanzeige_werte_werden_abgewiesen(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'diagramm' => 'infrarot'])
+            ->assertSessionHasErrors('diagramm');
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'notenanzeige' => '3'])
+            ->assertSessionHasErrors('notenanzeige');
     }
 
     #[Test]
