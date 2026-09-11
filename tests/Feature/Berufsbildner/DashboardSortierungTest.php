@@ -34,6 +34,7 @@ class DashboardSortierungTest extends TestCase
             ->assertOk()
             ->getContent();
 
+        $html = $this->tabelle($html);
         $this->assertLessThan(strpos($html, 'Tiefnote'), strpos($html, 'Hochnote'));
 
         $htmlAsc = $this->actingAs($bb)
@@ -41,6 +42,7 @@ class DashboardSortierungTest extends TestCase
             ->assertOk()
             ->getContent();
 
+        $htmlAsc = $this->tabelle($htmlAsc);
         $this->assertLessThan(strpos($htmlAsc, 'Hochnote'), strpos($htmlAsc, 'Tiefnote'));
     }
 
@@ -63,8 +65,8 @@ class DashboardSortierungTest extends TestCase
 
         // Beide Antworten sortieren nach dem Default (Status, dann Nachname): Aaron vor Zumstein,
         // keine Spalte als aktiv markiert.
-        $this->assertLessThan(strpos($standard, 'Zumstein'), strpos($standard, 'Aaron'));
-        $this->assertLessThan(strpos($ungueltig, 'Zumstein'), strpos($ungueltig, 'Aaron'));
+        $this->assertLessThan(strpos($this->tabelle($standard), 'Zumstein'), strpos($this->tabelle($standard), 'Aaron'));
+        $this->assertLessThan(strpos($this->tabelle($ungueltig), 'Zumstein'), strpos($this->tabelle($ungueltig), 'Aaron'));
         $this->assertStringNotContainsString('aria-sort="ascending"', $ungueltig);
         $this->assertStringNotContainsString('aria-sort="descending"', $ungueltig);
     }
@@ -105,5 +107,14 @@ class DashboardSortierungTest extends TestCase
         $this->assertStringContainsString('role="radiogroup"', $html);
         $this->assertStringNotContainsString('hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex', $html);
         $this->assertStringContainsString('overflow-x-auto', $html);
+    }
+
+    /** Nur der Tabellenkörper «Meine Lernenden»: Namen stehen weiter oben schon in «Handlungsbedarf» (andere Reihenfolge). */
+    private function tabelle(string $html): string
+    {
+        $start = strpos($html, '<tbody>');
+        $this->assertNotFalse($start, 'Tabelle «Meine Lernenden» fehlt');
+
+        return substr($html, $start, (int) strpos($html, '</tbody>', $start) - $start);
     }
 }
