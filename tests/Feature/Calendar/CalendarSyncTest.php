@@ -132,7 +132,8 @@ class CalendarSyncTest extends TestCase
     {
         $this->assertSame('https://schulnetz.example/x.ics', CalendarSync::normalizeUrl(' webcal://schulnetz.example/x.ics '));
 
-        foreach (['http://127.0.0.1/x.ics', 'http://10.1.2.3/x.ics', 'http://[::1]/x.ics', 'ftp://example.org/x.ics', 'kein-link'] as $url) {
+        foreach (['http://127.0.0.1/x.ics', 'http://10.1.2.3/x.ics', 'http://[::1]/x.ics', 'http://[::ffff:169.254.169.254]/x.ics',
+            'http://[::ffff:127.0.0.1]/x.ics', 'http://[64:ff9b::a00:1]/x.ics', 'ftp://example.org/x.ics', 'kein-link'] as $url) {
             try {
                 CalendarSync::assertPublicUrl($url);
                 $this->fail("{$url} hätte abgelehnt werden müssen");

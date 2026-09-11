@@ -152,7 +152,27 @@ final class CalendarSync
                 $ip = str_contains($ips[0], ':') ? '['.$ips[0].']' : $ips[0];
                 $anfrage = $anfrage->withOptions(['curl' => [CURLOPT_RESOLVE => [$host.':'.$port.':'.$ip]]]);
             }
-            $antwort = $anfrage->get($url);
+            // Grösse schon während des Downloads begrenzen, nicht erst danach (sonst landet eine Riesenantwort im Speicher)
+            $zuGross = false;
+            $anfrage = $anfrage->withOptions([
+                'on_headers' => function ($r) use (&$zuGross) {
+                    if ((int) $r->getHeaderLine('Content-Length') > self::MAX_BYTES) {
+                        $zuGross = true;
+                        throw new RuntimeException('zu gross');
+                    }
+                },
+                'progress' => function ($total, $geladen) use (&$zuGross) {
+                    if ($geladen > self::MAX_BYTES) {
+                        $zuGross = true;
+                        throw new RuntimeException('zu gross');
+                    }
+                },
+            ]);
+            try {
+                $antwort = $anfrage->get($url);
+            } catch (\Throwable $e) {
+                throw $zuGross ? new RuntimeException('Kalenderdatei ist grösser als 5 MB.') : $e;
+            }
             if ($antwort->redirect() && $antwort->header('Location')) {
                 $url = (string) \GuzzleHttp\Psr7\UriResolver::resolve(new \GuzzleHttp\Psr7\Uri($url), new \GuzzleHttp\Psr7\Uri($antwort->header('Location')));
                 continue;
@@ -203,12 +223,29 @@ final class CalendarSync
             throw new RuntimeException('Adresse nicht auflösbar.');
         }
         foreach ($ips as $ip) {
-            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            $v4 = self::eingebetteteIpv4($ip);
+            if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
+                || ($v4 !== null && ! filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))) {
                 throw new RuntimeException('Interne Adressen sind nicht erlaubt.');
             }
         }
 
         return array_values($ips);
+    }
+
+    /** IPv4 in IPv6 (::ffff:a.b.c.d, ::a.b.c.d, NAT64 64:ff9b::/96) – filter_var erkennt diese nicht als privat. */
+    private static function eingebetteteIpv4(string $ip): ?string
+    {
+        $bin = @inet_pton($ip);
+        if ($bin === false || strlen($bin) !== 16) {
+            return null;
+        }
+        $kopf = substr($bin, 0, 12);
+        if ($kopf === str_repeat("\0", 10)."\xff\xff" || $kopf === str_repeat("\0", 12) || $kopf === "\x00\x64\xff\x9b".str_repeat("\0", 8)) {
+            return inet_ntop(substr($bin, 12));
+        }
+
+        return null;
     }
 
     private function kind(array $info, string $summary, string $beschreibung): string
