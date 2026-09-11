@@ -3,6 +3,10 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Benutzer bearbeiten')" :untertitel="$user->nachname.' '.$user->vorname" schmal>
             <x-slot:aktionen>
+                <a href="{{ route('admin.users.data-export', $user->benutzer_id) }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
+                    {{ __('Daten herunterladen') }}
+                </a>
                 <a href="{{ route('admin.users.index') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
                     {{ __('Zurück') }}

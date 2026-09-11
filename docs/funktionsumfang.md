@@ -50,3 +50,4 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Grenzwerte (gut/genügend/kritisch), Rundung Gesamtschnitt und Fristen aus `einstellungen`
 - Deaktivierte Benutzer sofort ausgesperrt; CSV-Exporte mit Formel-Injection-Schutz
 - URLs englisch (`/grades`, `/exams`, `/trainer/learners`, `/admin/setup` …); alte deutsche Lesezeichen leiten dauerhaft (301) weiter
+- Datenauskunft (Art. 25 DSG): eigene Daten als ZIP herunterladen (Benutzermenü, Ctrl+K), Admin für jedes Konto (Benutzerverwaltung); README, Kontodaten, je nach Rolle Noten/Prüfungen/Ziele/Dokumente oder Betreuungen/Kommentare, eigenes Feedback und Versandprotokoll – nie Daten anderer Personen

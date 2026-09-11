@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BenutzerController as AdminBenutzerController;
 use App\Http\Controllers\Admin\BerichtController as AdminBerichtController;
 use App\Http\Controllers\Admin\BerufsbildnerController as AdminBerufsbildnerController;
 use App\Http\Controllers\Admin\BetriebController;
+use App\Http\Controllers\Admin\DatenauskunftController as AdminDatenauskunftController;
 use App\Http\Controllers\Admin\EinrichtungController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\CalendarExportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DatenauskunftController;
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
@@ -168,6 +170,8 @@ Route::middleware(['auth', 'role:Admin'])
         Route::put('/users/{benutzer_id}', [AdminBenutzerController::class, 'update'])->name('users.update');
         Route::post('/users/{benutzer_id}/toggle-active', [AdminBenutzerController::class, 'toggleAktiv'])
             ->name('users.toggle-active');
+        Route::get('/users/{benutzer_id}/data-export', [AdminDatenauskunftController::class, 'zeigen'])
+            ->whereNumber('benutzer_id')->middleware('throttle:3,1,data-export')->name('users.data-export');
 
         // Stammdaten: Lehrberufe (inkl. Modul- & Fach-Zuweisung)
         Route::get('/master-data/professions', [StammdatenLehrberufeController::class, 'index'])
@@ -289,6 +293,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile/appearance', [ProfileController::class, 'darstellung'])->name('profile.appearance');
     Route::patch('/profile/preferences', [ProfileController::class, 'preferences'])
         ->middleware('throttle:30,1,preferences')->name('profile.preferences');
+    Route::get('/profile/data-export', [DatenauskunftController::class, 'eigene'])
+        ->middleware(['password.confirm', 'throttle:3,1,data-export'])->name('profile.data-export');
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
 });
 

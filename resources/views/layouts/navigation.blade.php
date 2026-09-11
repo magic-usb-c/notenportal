@@ -138,6 +138,7 @@
                         <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))">{{ __('Tastenkürzel') }}</x-dropdown-link>
                         <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">{{ __('Feedback melden') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('feedback.index')">{{ __('Meine Meldungen') }}</x-dropdown-link>
+                        <x-dropdown-link :href="route('profile.data-export')">{{ __('Meine Daten herunterladen') }}</x-dropdown-link>
                         @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('layouts._sprache', ['klasse' => 'flex w-full items-center rounded-lg px-3 min-h-9 text-start text-sm text-text transition-colors duration-100 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring'])@endif<div class="my-1 border-t border-border"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -190,6 +191,7 @@
             <button type="button" @click="open = false; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
                     class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">{{ __('Feedback melden') }}</button>
             <a href="{{ route('feedback.index') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">{{ __('Meine Meldungen') }}</a>
+            <a href="{{ route('profile.data-export') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">{{ __('Meine Daten herunterladen') }}</a>
             @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('layouts._sprache', ['klasse' => $mobil.' w-full text-left text-muted hover:bg-surface-2 hover:text-text'])@endif<form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">{{ __('Abmelden') }}</button>

@@ -108,9 +108,15 @@ class LoginTest extends TestCase
     #[Test]
     public function registrierung_existiert_nicht(): void
     {
-        foreach (['/register', '/verify-email', '/confirm-password'] as $uri) {
+        foreach (['/register', '/verify-email'] as $uri) {
             $this->get($uri)->assertNotFound();
         }
+    }
+
+    #[Test]
+    public function passwortbestaetigung_existiert_und_verlangt_anmeldung(): void
+    {
+        $this->get('/confirm-password')->assertRedirect(route('login'));
     }
 
     #[Test]

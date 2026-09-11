@@ -102,6 +102,7 @@ final class Navigation
         $befehle[] = ['label' => __('Benachrichtigungen'), 'url' => route('notifications.settings'), 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Feedback melden'), 'url' => '#feedback-modal', 'gruppe' => __('Konto')];
         $befehle[] = ['label' => __('Meine Meldungen'), 'url' => route('feedback.index'), 'gruppe' => __('Konto')];
+        $befehle[] = ['label' => __('Meine Daten herunterladen'), 'url' => route('profile.data-export'), 'gruppe' => __('Konto')];
 
         foreach (self::darstellungsBefehle() as $befehl) {
             $befehle[] = $befehl;
