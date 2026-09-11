@@ -43,7 +43,7 @@
             {{-- Benachrichtigungen --}}
             <div class="rounded-xl border border-border bg-card p-6">
                 <div class="flex items-center justify-between gap-4">
-                    <div>
+                    <div class="min-w-0">
                         <h3 class="font-semibold text-text text-sm">{{ __('Benachrichtigungen') }}</h3>
                         <p class="mt-1 text-sm text-muted">{{ __('Wähle, welche Mails du erhältst und wie oft.') }}</p>
                     </div>

@@ -96,7 +96,112 @@
                     </label>
                 @endforeach
             </div>
-            @if($kontrastOption ?? false)
+
+            @if($praeferenzenOption ?? false)
+                @php
+                    // Abgewiesene Werte (Validierungsfehler) zeigen wieder die gespeicherte Wahl statt gar keine
+                    $altTheme = old('theme', $praeferenzen['theme'] ?? '') ?: null;
+                    $altTheme = $altTheme === null || array_key_exists($altTheme, \App\Support\Theme::THEMES) ? $altTheme : ($praeferenzen['theme'] ?? null);
+                    $altAkzent = old('akzent', $praeferenzen['akzent'] ?? '') ?: null;
+                    $altAkzent = $altAkzent === null || array_key_exists($altAkzent, \App\Support\Darstellung::AKZENTE) ? $altAkzent : ($praeferenzen['akzent'] ?? null);
+                    $altSchrift = old('schrift', $praeferenzen['schrift'] ?? 'normal');
+                    $altSchrift = in_array($altSchrift, \App\Support\Darstellung::SCHRIFTGROESSEN, true) ? $altSchrift : ($praeferenzen['schrift'] ?? 'normal');
+                    $altBewegungReduziert = (bool) old('bewegung_reduziert', ($praeferenzen['bewegung'] ?? 'normal') === 'reduziert');
+                @endphp
+                <div class="mt-5 flex flex-col gap-5"
+                     x-data="{
+                         theme: @js($altTheme ?? ''),
+                         akzent: @js($altAkzent ?? ''),
+                         schrift: @js($altSchrift),
+                         bewegungReduziert: @js($altBewegungReduziert),
+                         dunkel: document.documentElement.classList.contains('dark'),
+                         betriebTheme: @js($betriebTheme),
+                         effektivTheme() { return this.theme || this.betriebTheme; },
+                         anwenden() {
+                             document.documentElement.dataset.theme = this.effektivTheme();
+                             if (this.effektivTheme() === 'kontrast' || !this.akzent) {
+                                 delete document.documentElement.dataset.akzent;
+                             } else {
+                                 document.documentElement.dataset.akzent = this.akzent;
+                             }
+                             if (this.schrift === 'normal') delete document.documentElement.dataset.schrift;
+                             else document.documentElement.dataset.schrift = this.schrift;
+                             if (this.bewegungReduziert) document.documentElement.dataset.bewegung = 'reduziert';
+                             else delete document.documentElement.dataset.bewegung;
+                         },
+                     }"
+                     x-init="new MutationObserver(() => dunkel = document.documentElement.classList.contains('dark'))
+                                 .observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })">
+
+                    {{-- Theme --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Farbthema') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <label class="cursor-pointer rounded-xl border border-border p-2 transition-colors duration-100 hover:border-border-strong/60
+                                          has-checked:border-accent has-checked:ring-2 has-checked:ring-accent/30 has-focus-visible:outline-2 has-focus-visible:outline-ring">
+                                <input type="radio" name="theme" value="" class="sr-only" x-model="theme" @change="anwenden()" @checked($altTheme === null)>
+                                <x-theme-vorschau :theme="$betriebTheme" x-bind:class="{ 'dark': dunkel }" />
+                                <span class="mt-2 block px-0.5 text-sm font-medium text-text">{{ __('Wie Betrieb (:name)', ['name' => \App\Support\Theme::THEMES[$betriebTheme] ?? $betriebTheme]) }}</span>
+                            </label>
+                            @foreach(\App\Support\Theme::THEMES as $wert => $name)
+                                <label class="cursor-pointer rounded-xl border border-border p-2 transition-colors duration-100 hover:border-border-strong/60
+                                              has-checked:border-accent has-checked:ring-2 has-checked:ring-accent/30 has-focus-visible:outline-2 has-focus-visible:outline-ring">
+                                    <input type="radio" name="theme" value="{{ $wert }}" class="sr-only" x-model="theme" @change="anwenden()" @checked($altTheme === $wert)>
+                                    <x-theme-vorschau :theme="$wert" x-bind:class="{ 'dark': dunkel }" />
+                                    <span class="mt-2 block px-0.5 text-sm font-medium text-text">{{ $name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('theme')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    {{-- Akzentfarbe: ohne Wirkung beim Theme «Kontrast» --}}
+                    <fieldset :class="{ 'opacity-40': effektivTheme() === 'kontrast' }">
+                        <legend class="text-sm font-medium text-text">{{ __('Akzentfarbe') }}</legend>
+                        <div class="mt-2 flex flex-wrap gap-3">
+                            <label class="flex cursor-pointer flex-col items-center gap-1.5 has-focus-visible:outline-2 has-focus-visible:outline-ring rounded-lg p-1">
+                                <input type="radio" name="akzent" value="" class="sr-only" x-model="akzent" @change="anwenden()"
+                                       x-bind:disabled="effektivTheme() === 'kontrast'" @checked($altAkzent === null)>
+                                <span x-bind:class="{ 'dark': dunkel, 'ring-2 ring-accent ring-offset-2 ring-offset-bg': akzent === '' }"
+                                      class="block h-8 w-8 rounded-full border border-border-strong/40 bg-accent"></span>
+                                <span class="sr-only">{{ __('Theme-Farbe') }}</span>
+                            </label>
+                            @foreach(\App\Support\Darstellung::AKZENTE as $wert => $name)
+                                <label class="flex cursor-pointer flex-col items-center gap-1.5 has-focus-visible:outline-2 has-focus-visible:outline-ring rounded-lg p-1">
+                                    <input type="radio" name="akzent" value="{{ $wert }}" class="sr-only" x-model="akzent" @change="anwenden()"
+                                           x-bind:disabled="effektivTheme() === 'kontrast'" @checked($altAkzent === $wert)>
+                                    <span data-akzent="{{ $wert }}" x-bind:class="{ 'dark': dunkel, 'ring-2 ring-accent ring-offset-2 ring-offset-bg': akzent === @js($wert) }"
+                                          class="block h-8 w-8 rounded-full border border-border-strong/40 bg-accent"></span>
+                                    <span class="sr-only">{{ __($name) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('akzent')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    {{-- Schriftgrösse --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Schriftgrösse') }}</legend>
+                        <div class="mt-2 grid grid-cols-3 gap-2">
+                            @foreach(['normal' => __('Normal'), 'gross' => __('Gross'), 'sehr-gross' => __('Sehr gross')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="schrift" value="{{ $wert }}" class="sr-only" x-model="schrift" @change="anwenden()"
+                                           @checked($altSchrift === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('schrift')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
+
+                    <label for="bewegung_reduziert" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
+                        <input id="bewegung_reduziert" name="bewegung_reduziert" type="checkbox" value="1" x-model="bewegungReduziert" @change="anwenden()"
+                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
+                        {{ __('Bewegungen reduzieren') }}
+                    </label>
+                </div>
+            @elseif($kontrastOption ?? false)
                 <label for="kontrast" class="mt-3 flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                     <input id="kontrast" name="kontrast" type="checkbox" value="1" @checked(old('kontrast', $user->kontrast))
                            class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">

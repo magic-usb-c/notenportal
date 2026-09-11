@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Feedback;
 use App\Services\Notifications\MailSettings;
+use App\Support\Darstellung;
 use App\Support\Einstellungen;
 use App\Support\Theme;
 use Illuminate\Support\Facades\Auth;
@@ -35,9 +36,18 @@ class AppServiceProvider extends ServiceProvider
             $view->with('betriebName', Einstellungen::get(Einstellungen::BETRIEB_NAME));
         });
 
-        // Farbthema serverseitig ins <html data-theme> (kein Flackern)
-        View::composer(['layouts.app', 'layouts.guest'], function ($view) {
-            $view->with('npTheme', Theme::fuer(Auth::user()));
+        // Farbthema und persönliche Darstellung serverseitig ins <html> (kein Flackern).
+        // errors.layout: Fehlerseiten (403/404/500) sieht auch ein angemeldeter Benutzer.
+        View::composer(['layouts.app', 'layouts.guest', 'errors.layout'], function ($view) {
+            $user = Auth::user();
+            $theme = Theme::fuer($user);
+            $praeferenzen = Darstellung::fuer($user);
+
+            $view->with('npTheme', $theme);
+            // Beim effektiven Theme «kontrast» wird data-akzent nicht gesetzt.
+            $view->with('npAkzent', $theme === Theme::KONTRAST ? null : $praeferenzen['akzent']);
+            $view->with('npSchrift', $praeferenzen['schrift']);
+            $view->with('npBewegung', $praeferenzen['bewegung']);
         });
 
         View::composer('layouts.navigation', function ($view) {

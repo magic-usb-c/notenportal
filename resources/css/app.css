@@ -103,6 +103,31 @@
     scroll-padding-top: 5rem;
   }
 
+  /* Persönliche Schriftgrösse (Profil «Darstellung»): skaliert die ganze rem-Skala */
+  html[data-schrift='gross'] { font-size: 112.5%; }
+  html[data-schrift='sehr-gross'] { font-size: 125%; }
+
+  /* Persönlich reduzierte Bewegung: wie prefers-reduced-motion, aber per Schalter */
+  [data-bewegung='reduziert'] {
+    scroll-behavior: auto;
+  }
+  [data-bewegung='reduziert'] *,
+  [data-bewegung='reduziert'] ::before,
+  [data-bewegung='reduziert'] ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* wie bei prefers-reduced-motion: Überblendung statt Bewegung */
+  [data-bewegung='reduziert'] details[open] > summary ~ * {
+    animation-name: np-fade;
+    animation-duration: 150ms !important;
+  }
+  [data-bewegung='reduziert'] #np-progress {
+    transition: opacity 150ms ease !important;
+  }
+
   :target,
   details[data-note-id] {
     scroll-margin-top: 5rem;

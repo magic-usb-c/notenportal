@@ -303,6 +303,310 @@
   --elev-hover-bg: var(--surface-2);
 }
 
+/* Theme Wald – hell */
+[data-theme='wald'] {
+  color-scheme: light;
+
+  --bg: 243 247 244;              /* oklch(0.973 0.007 150) */
+  --card: 255 255 255;            /* oklch(1 0 0) */
+  --surface-2: 233 241 234;       /* oklch(0.951 0.013 150) */
+  --input: 255 255 255;           /* oklch(1 0 0) */
+
+  --text: 17 30 21;               /* oklch(0.22 0.026 152) */
+  --muted: 86 101 89;             /* oklch(0.49 0.026 152) */
+
+  --border: 216 225 217;          /* oklch(0.9 0.014 150) */
+  --border-strong: 133 145 135;   /* oklch(0.645 0.02 150) */
+
+  --accent: 25 102 50;            /* oklch(0.45 0.11 150) */
+  --accent-contrast: 255 255 255; /* oklch(1 0 0) */
+  --accent-text: 11 93 42;        /* oklch(0.42 0.11 150) */
+  --ring: 33 118 60;              /* oklch(0.5 0.12 150) */
+
+  --note-gut: 19 119 56;          /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;   /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;         /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;  /* oklch(0.52 0.19 27) */
+
+  --chart-1: 25 102 50;           /* oklch(0.45 0.11 150) */
+  --chart-2: 166 92 3;            /* oklch(0.55 0.128 60) */
+  --chart-3: 6 128 144;           /* oklch(0.55 0.094 210) */
+  --chart-4: 114 74 171;          /* oklch(0.5 0.15 300) */
+  --chart-5: 172 48 49;           /* oklch(0.5 0.16 25) */
+  --chart-6: 120 132 122;         /* oklch(0.6 0.02 150) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Wald – dunkel */
+[data-theme='wald'].dark {
+  color-scheme: dark;
+
+  --bg: 9 18 11;                  /* oklch(0.17 0.02 150) */
+  --card: 18 28 20;               /* oklch(0.215 0.022 150) */
+  --surface-2: 28 39 30;          /* oklch(0.26 0.024 150) */
+  --input: 13 22 15;              /* oklch(0.19 0.02 150) */
+
+  --text: 229 238 231;            /* oklch(0.94 0.013 150) */
+  --muted: 155 169 157;           /* oklch(0.72 0.022 150) */
+
+  --border: 41 52 42;             /* oklch(0.31 0.022 150) */
+  --border-strong: 94 106 95;     /* oklch(0.51 0.022 150) */
+
+  --accent: 83 190 112;           /* oklch(0.72 0.15 150) */
+  --accent-contrast: 9 18 11;     /* oklch(0.17 0.02 150) */
+  --accent-text: 101 198 125;     /* oklch(0.75 0.14 150) */
+  --ring: 98 195 122;             /* oklch(0.74 0.14 150) */
+
+  --note-gut: 103 210 131;        /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;  /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;       /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109;/* oklch(0.72 0.17 25) */
+
+  --chart-1: 69 177 100;          /* oklch(0.68 0.15 150) */
+  --chart-2: 211 120 18;          /* oklch(0.66 0.15 60) */
+  --chart-3: 25 164 183;          /* oklch(0.66 0.11 210) */
+  --chart-4: 157 111 227;         /* oklch(0.64 0.17 300) */
+  --chart-5: 229 85 81;           /* oklch(0.64 0.18 25) */
+  --chart-6: 126 138 128;         /* oklch(0.62 0.02 150) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Abendrot – hell */
+[data-theme='abendrot'] {
+  color-scheme: light;
+
+  --bg: 253 245 242;              /* oklch(0.975 0.009 40) */
+  --card: 255 255 255;            /* oklch(1 0 0) */
+  --surface-2: 250 236 232;       /* oklch(0.953 0.016 40) */
+  --input: 255 255 255;           /* oklch(1 0 0) */
+
+  --text: 35 23 21;               /* oklch(0.22 0.02 30) */
+  --muted: 111 91 88;             /* oklch(0.49 0.026 30) */
+
+  --border: 232 219 214;          /* oklch(0.9 0.016 40) */
+  --border-strong: 156 139 133;   /* oklch(0.65 0.022 40) */
+
+  --accent: 197 54 55;            /* oklch(0.55 0.18 25) */
+  --accent-contrast: 255 255 255; /* oklch(1 0 0) */
+  --accent-text: 179 34 40;       /* oklch(0.5 0.18 25) */
+  --ring: 203 70 68;              /* oklch(0.58 0.17 25) */
+
+  --note-gut: 19 119 56;          /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;   /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;         /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;  /* oklch(0.52 0.19 27) */
+
+  --chart-1: 197 54 55;           /* oklch(0.55 0.18 25) */
+  --chart-2: 10 147 142;          /* oklch(0.6 0.102 190) */
+  --chart-3: 41 102 204;          /* oklch(0.53 0.17 260) */
+  --chart-4: 114 74 171;          /* oklch(0.5 0.15 300) */
+  --chart-5: 127 114 33;          /* oklch(0.55 0.1 100) */
+  --chart-6: 139 124 119;         /* oklch(0.6 0.02 40) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Abendrot – dunkel */
+[data-theme='abendrot'].dark {
+  color-scheme: dark;
+
+  --bg: 22 13 11;                 /* oklch(0.17 0.017 30) */
+  --card: 34 22 20;               /* oklch(0.215 0.019 30) */
+  --surface-2: 45 32 30;          /* oklch(0.26 0.021 30) */
+  --input: 27 17 15;              /* oklch(0.19 0.018 30) */
+
+  --text: 242 233 231;            /* oklch(0.94 0.011 30) */
+  --muted: 177 160 157;           /* oklch(0.72 0.021 30) */
+
+  --border: 58 44 42;             /* oklch(0.31 0.021 30) */
+  --border-strong: 114 98 95;     /* oklch(0.51 0.021 30) */
+
+  --accent: 244 123 116;          /* oklch(0.72 0.15 25) */
+  --accent-contrast: 22 13 11;    /* oklch(0.17 0.017 30) */
+  --accent-text: 250 136 128;     /* oklch(0.75 0.14 25) */
+  --ring: 247 133 125;            /* oklch(0.74 0.14 25) */
+
+  --note-gut: 103 210 131;        /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;  /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;       /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109;/* oklch(0.72 0.17 25) */
+
+  --chart-1: 230 110 104;         /* oklch(0.68 0.15 25) */
+  --chart-2: 24 167 161;          /* oklch(0.66 0.11 190) */
+  --chart-3: 89 145 237;          /* oklch(0.66 0.15 260) */
+  --chart-4: 157 111 227;         /* oklch(0.64 0.17 300) */
+  --chart-5: 160 148 70;          /* oklch(0.66 0.1 100) */
+  --chart-6: 145 130 125;         /* oklch(0.62 0.02 40) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Papier – hell */
+[data-theme='papier'] {
+  color-scheme: light;
+
+  --bg: 247 239 227;              /* oklch(0.955 0.018 80) */
+  --card: 254 250 241;            /* oklch(0.985 0.012 85) */
+  --surface-2: 240 231 216;       /* oklch(0.93 0.022 80) */
+  --input: 254 250 241;           /* oklch(0.985 0.012 85) */
+
+  --text: 53 37 27;               /* oklch(0.28 0.03 55) */
+  --muted: 113 95 81;             /* oklch(0.5 0.032 60) */
+
+  --border: 221 211 197;          /* oklch(0.87 0.022 75) */
+  --border-strong: 148 135 121;   /* oklch(0.63 0.026 70) */
+
+  --accent: 130 71 23;            /* oklch(0.46 0.1 55) */
+  --accent-contrast: 255 255 255; /* oklch(1 0 0) */
+  --accent-text: 126 58 6;        /* oklch(0.43 0.11 50) */
+  --ring: 152 85 33;              /* oklch(0.52 0.11 55) */
+
+  --note-gut: 16 117 55;          /* oklch(0.495 0.13 150) */
+  --note-genuegend: 59 105 135;   /* oklch(0.5 0.07 240) */
+  --note-knapp: 147 87 4;         /* oklch(0.515 0.114 65) */
+  --note-ungenuegend: 190 35 35;  /* oklch(0.52 0.19 27) */
+
+  --chart-1: 130 71 23;           /* oklch(0.46 0.1 55) */
+  --chart-2: 1 111 130;           /* oklch(0.5 0.088 215) */
+  --chart-3: 57 121 73;           /* oklch(0.52 0.1 150) */
+  --chart-4: 105 75 150;          /* oklch(0.48 0.12 300) */
+  --chart-5: 168 53 62;           /* oklch(0.5 0.15 20) */
+  --chart-6: 130 121 110;         /* oklch(0.58 0.02 70) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Papier – dunkel */
+[data-theme='papier'].dark {
+  color-scheme: dark;
+
+  --bg: 28 20 14;                 /* oklch(0.2 0.018 60) */
+  --card: 40 30 23;               /* oklch(0.245 0.02 60) */
+  --surface-2: 52 41 32;          /* oklch(0.29 0.022 60) */
+  --input: 33 25 18;              /* oklch(0.22 0.019 60) */
+
+  --text: 238 226 213;            /* oklch(0.92 0.022 70) */
+  --muted: 176 162 148;           /* oklch(0.72 0.026 65) */
+
+  --border: 65 53 45;             /* oklch(0.34 0.022 60) */
+  --border-strong: 119 105 94;    /* oklch(0.53 0.024 60) */
+
+  --accent: 225 162 99;           /* oklch(0.76 0.11 65) */
+  --accent-contrast: 28 20 14;    /* oklch(0.2 0.018 60) */
+  --accent-text: 228 170 113;     /* oklch(0.78 0.1 65) */
+  --ring: 225 167 110;            /* oklch(0.77 0.1 65) */
+
+  --note-gut: 103 210 131;        /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;  /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;       /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109;/* oklch(0.72 0.17 25) */
+
+  --chart-1: 209 142 70;          /* oklch(0.7 0.12 65) */
+  --chart-2: 77 166 187;          /* oklch(0.68 0.09 215) */
+  --chart-3: 105 178 122;         /* oklch(0.7 0.11 150) */
+  --chart-4: 160 124 219;         /* oklch(0.66 0.14 300) */
+  --chart-5: 230 112 95;          /* oklch(0.68 0.15 30) */
+  --chart-6: 151 141 130;         /* oklch(0.65 0.02 70) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
+/* Theme Mitternacht – hell */
+[data-theme='mitternacht'] {
+  color-scheme: light;
+
+  --bg: 245 246 252;              /* oklch(0.975 0.007 275) */
+  --card: 255 255 255;            /* oklch(1 0 0) */
+  --surface-2: 236 239 248;       /* oklch(0.952 0.013 275) */
+  --input: 255 255 255;           /* oklch(1 0 0) */
+
+  --text: 21 23 39;               /* oklch(0.21 0.032 277) */
+  --muted: 92 95 111;             /* oklch(0.49 0.026 277) */
+
+  --border: 221 223 231;          /* oklch(0.905 0.011 275) */
+  --border-strong: 138 141 152;   /* oklch(0.645 0.017 275) */
+
+  --accent: 70 64 190;            /* oklch(0.46 0.19 278) */
+  --accent-contrast: 255 255 255; /* oklch(1 0 0) */
+  --accent-text: 63 54 180;       /* oklch(0.43 0.19 278) */
+  --ring: 88 89 208;              /* oklch(0.53 0.18 278) */
+
+  --note-gut: 19 119 56;          /* oklch(0.5 0.13 150) */
+  --note-genuegend: 59 105 135;   /* oklch(0.5 0.07 240) */
+  --note-knapp: 150 88 2;         /* oklch(0.52 0.116 65) */
+  --note-ungenuegend: 190 35 35;  /* oklch(0.52 0.19 27) */
+
+  --chart-1: 70 64 190;           /* oklch(0.46 0.19 278) */
+  --chart-2: 185 87 156;          /* oklch(0.6 0.15 340) */
+  --chart-3: 4 139 145;           /* oklch(0.58 0.098 200) */
+  --chart-4: 166 92 3;            /* oklch(0.55 0.128 60) */
+  --chart-5: 59 131 78;           /* oklch(0.55 0.11 150) */
+  --chart-6: 125 127 140;         /* oklch(0.6 0.02 278) */
+
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-hover-bg: var(--card);
+}
+
+/* Theme Mitternacht – dunkel (OLED: Grund echtem Schwarz sehr nah) */
+[data-theme='mitternacht'].dark {
+  color-scheme: dark;
+
+  --bg: 1 1 3;                    /* oklch(0.07 0.012 275) */
+  --card: 4 5 10;                 /* oklch(0.115 0.016 275) */
+  --surface-2: 11 13 22;          /* oklch(0.16 0.02 275) */
+  --input: 2 2 5;                 /* oklch(0.09 0.014 275) */
+
+  --text: 233 235 243;            /* oklch(0.94 0.012 275) */
+  --muted: 160 164 179;           /* oklch(0.72 0.022 275) */
+
+  --border: 31 33 43;             /* oklch(0.25 0.02 275) */
+  --border-strong: 88 91 105;     /* oklch(0.475 0.022 275) */
+
+  --accent: 155 160 255;          /* oklch(0.74 0.136 280) */
+  --accent-contrast: 1 1 3;       /* oklch(0.07 0.012 275) */
+  --accent-text: 165 172 254;     /* oklch(0.77 0.118 280) */
+  --ring: 162 168 254;            /* oklch(0.76 0.124 280) */
+
+  --note-gut: 103 210 131;        /* oklch(0.78 0.15 150) */
+  --note-genuegend: 152 196 228;  /* oklch(0.8 0.065 240) */
+  --note-knapp: 243 189 92;       /* oklch(0.83 0.13 80) */
+  --note-ungenuegend: 253 115 109;/* oklch(0.72 0.17 25) */
+
+  --chart-1: 141 146 249;         /* oklch(0.7 0.15 280) */
+  --chart-2: 215 108 183;         /* oklch(0.68 0.16 340) */
+  --chart-3: 56 171 177;          /* oklch(0.68 0.1 200) */
+  --chart-4: 218 126 30;          /* oklch(0.68 0.15 60) */
+  --chart-5: 93 173 112;          /* oklch(0.68 0.12 150) */
+  --chart-6: 110 113 126;         /* oklch(0.55 0.02 278) */
+
+  --elev-1: none;
+  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
+  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-hover-bg: var(--surface-2);
+}
+
 /* Theme Kontrast (hoher Kontrast, Text AAA) – hell */
 [data-theme='kontrast'] {
   color-scheme: light;
@@ -379,6 +683,118 @@
 [data-theme='graphit'] main a:is(.text-accent-text, .text-accent) {
   text-decoration-line: underline;
   text-underline-offset: 2px;
+}
+
+/* Persönliche Akzentfarbe (Profil «Darstellung»): überschreibt --accent, --accent-contrast,
+   --accent-text, --ring, --chart-1 des gewählten Theme. Steht nach allen Themes, damit
+   [data-akzent='x'].dark (Spezifität 0,2,0) den Theme-Dunkelblock (ebenfalls 0,2,0) per
+   Quellreihenfolge schlägt; im hellen Modus greift automatisch nur der helle Block. Beim
+   effektiven Theme «kontrast» wird data-akzent serverseitig nicht gesetzt. Werte geprüft
+   gegen bg/card/surface-2/input aller Nicht-Kontrast-Themes (Text 4.5:1, UI/Grafik 3:1). */
+
+[data-akzent='blau'] {
+  --accent: 30 82 198;             /* oklch(0.48 0.19 263) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 18 69 185;        /* oklch(0.44 0.19 263) */
+  --ring: 41 95 212;               /* oklch(0.52 0.19 263) */
+  --chart-1: 30 82 198;            /* oklch(0.48 0.19 263) */
+}
+[data-akzent='blau'].dark {
+  --accent: 96 167 255;            /* oklch(0.72 0.15 255) */
+  --accent-contrast: 10 16 23;     /* oklch(0.17 0.018 255) */
+  --accent-text: 122 180 254;      /* oklch(0.76 0.14 255) */
+  --ring: 115 177 255;             /* oklch(0.75 0.14 255) */
+  --chart-1: 96 167 255;           /* oklch(0.72 0.15 255) */
+}
+
+[data-akzent='petrol'] {
+  --accent: 1 101 105;             /* oklch(0.46 0.11 200) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 4 88 92;          /* oklch(0.42 0.11 200) */
+  --ring: 5 113 118;               /* oklch(0.5 0.12 200) */
+  --chart-1: 1 101 105;            /* oklch(0.46 0.11 200) */
+}
+[data-akzent='petrol'].dark {
+  --accent: 63 192 192;            /* oklch(0.74 0.11 195) */
+  --accent-contrast: 6 18 18;      /* oklch(0.17 0.018 195) */
+  --accent-text: 94 203 203;       /* oklch(0.78 0.1 195) */
+  --ring: 91 200 200;              /* oklch(0.77 0.1 195) */
+  --chart-1: 63 192 192;           /* oklch(0.74 0.11 195) */
+}
+
+[data-akzent='gruen'] {
+  --accent: 24 106 35;             /* oklch(0.46 0.13 145) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 4 94 23;          /* oklch(0.42 0.13 145) */
+  --ring: 39 118 47;               /* oklch(0.5 0.13 145) */
+  --chart-1: 24 106 35;            /* oklch(0.46 0.13 145) */
+}
+[data-akzent='gruen'].dark {
+  --accent: 104 195 109;           /* oklch(0.74 0.15 145) */
+  --accent-contrast: 10 18 11;     /* oklch(0.17 0.018 145) */
+  --accent-text: 122 207 126;      /* oklch(0.78 0.14 145) */
+  --ring: 119 203 123;             /* oklch(0.77 0.14 145) */
+  --chart-1: 104 195 109;          /* oklch(0.74 0.15 145) */
+}
+
+[data-akzent='violett'] {
+  --accent: 107 48 175;            /* oklch(0.46 0.19 300) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 96 34 162;        /* oklch(0.42 0.19 300) */
+  --ring: 118 62 189;              /* oklch(0.5 0.19 300) */
+  --chart-1: 107 48 175;           /* oklch(0.46 0.19 300) */
+}
+[data-akzent='violett'].dark {
+  --accent: 185 149 246;           /* oklch(0.74 0.14 300) */
+  --accent-contrast: 17 14 22;     /* oklch(0.17 0.018 300) */
+  --accent-text: 196 164 254;      /* oklch(0.78 0.13 300) */
+  --ring: 193 160 251;             /* oklch(0.77 0.13 300) */
+  --chart-1: 185 149 246;          /* oklch(0.74 0.14 300) */
+}
+
+[data-akzent='magenta'] {
+  --accent: 167 1 109;             /* oklch(0.48 0.21 350) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 148 3 96;         /* oklch(0.44 0.2 350) */
+  --ring: 181 28 121;              /* oklch(0.52 0.2 350) */
+  --chart-1: 167 1 109;            /* oklch(0.48 0.21 350) */
+}
+[data-akzent='magenta'].dark {
+  --accent: 247 121 186;           /* oklch(0.74 0.17 350) */
+  --accent-contrast: 22 12 16;     /* oklch(0.17 0.018 350) */
+  --accent-text: 254 140 197;      /* oklch(0.78 0.16 350) */
+  --ring: 254 134 194;             /* oklch(0.77 0.16 350) */
+  --chart-1: 247 121 186;          /* oklch(0.74 0.17 350) */
+}
+
+[data-akzent='orange'] {
+  --accent: 150 76 4;              /* oklch(0.5 0.15 55) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 131 59 1;         /* oklch(0.44 0.15 50) */
+  --ring: 163 83 3;                /* oklch(0.53 0.15 55) */
+  --chart-1: 150 76 4;             /* oklch(0.5 0.15 55) */
+}
+[data-akzent='orange'].dark {
+  --accent: 241 154 75;            /* oklch(0.76 0.14 60) */
+  --accent-contrast: 21 14 8;      /* oklch(0.17 0.018 60) */
+  --accent-text: 251 169 98;       /* oklch(0.8 0.13 60) */
+  --ring: 247 165 95;              /* oklch(0.79 0.13 60) */
+  --chart-1: 241 154 75;           /* oklch(0.76 0.14 60) */
+}
+
+[data-akzent='rot'] {
+  --accent: 172 1 26;              /* oklch(0.47 0.2 25) */
+  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
+  --accent-text: 148 0 21;         /* oklch(0.42 0.19 25) */
+  --ring: 186 29 39;               /* oklch(0.51 0.19 25) */
+  --chart-1: 172 1 26;             /* oklch(0.47 0.2 25) */
+}
+[data-akzent='rot'].dark {
+  --accent: 248 118 122;           /* oklch(0.72 0.16 20) */
+  --accent-contrast: 23 12 12;     /* oklch(0.17 0.018 20) */
+  --accent-text: 254 137 139;      /* oklch(0.76 0.15 20) */
+  --ring: 255 131 134;             /* oklch(0.75 0.15 20) */
+  --chart-1: 248 118 122;          /* oklch(0.72 0.16 20) */
 }
 
 /* Aliase für rgb(var(--x-rgb) / a). Auch an jedem [data-theme] neu

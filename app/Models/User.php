@@ -27,6 +27,7 @@ use Illuminate\Notifications\Notifiable;
     'passwort_wechsel_noetig',
     'darstellung',
     'kontrast',
+    'praeferenzen',
     'locale',
 ])]
 #[Hidden([
@@ -118,6 +119,7 @@ class User extends Authenticatable implements HasLocalePreference
             'aktiv' => 'boolean',
             'passwort_wechsel_noetig' => 'boolean',
             'kontrast' => 'boolean',
+            'praeferenzen' => 'array',
             'erstellt_am' => 'datetime',
             'aktualisiert_am' => 'datetime',
             'geloescht_am' => 'datetime',

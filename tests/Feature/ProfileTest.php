@@ -9,6 +9,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
+/**
+ * @see ThemeTest für Präferenz-Vorrang und Theme::fuer()
+ */
 class ProfileTest extends TestCase
 {
     public static function rollen(): array
@@ -58,5 +61,80 @@ class ProfileTest extends TestCase
             ->assertSessionHasErrorsIn('updatePassword', 'current_password');
 
         $this->assertTrue(Hash::check(UserFactory::PASSWORT, $user->refresh()->passwort_hash));
+    }
+
+    #[Test]
+    public function darstellungspraeferenzen_werden_gespeichert(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                'theme' => 'wald',
+                'akzent' => 'petrol',
+                'schrift' => 'gross',
+                'bewegung_reduziert' => '1',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $user->refresh();
+        $this->assertSame([
+            'theme' => 'wald',
+            'akzent' => 'petrol',
+            'schrift' => 'gross',
+            'bewegung' => 'reduziert',
+        ], $user->praeferenzen);
+        $this->assertFalse($user->kontrast);
+    }
+
+    #[Test]
+    public function darstellungspraeferenzen_ohne_theme_und_akzent_werden_als_wie_betrieb_gespeichert(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                'theme' => '',
+                'akzent' => '',
+                'schrift' => 'normal',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $user->refresh();
+        $this->assertNull($user->praeferenzen['theme']);
+        $this->assertNull($user->praeferenzen['akzent']);
+        $this->assertSame('normal', $user->praeferenzen['schrift']);
+        $this->assertSame('normal', $user->praeferenzen['bewegung']);
+    }
+
+    public static function ungueltigeDarstellungsfelder(): array
+    {
+        return [
+            'unbekanntes Theme' => ['theme', 'neon'],
+            'unbekannter Akzent' => ['akzent', 'himbeer'],
+            'unbekannte Schriftgroesse' => ['schrift', 'winzig'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('ungueltigeDarstellungsfelder')]
+    public function ungueltige_darstellungswerte_werden_abgewiesen(string $feld, string $wert): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->patch(route('profile.update'), [
+                'email' => $user->email,
+                'darstellung' => 'system',
+                $feld => $wert,
+            ])
+            ->assertSessionHasErrors($feld);
+
+        $this->assertNull($user->refresh()->praeferenzen);
     }
 }

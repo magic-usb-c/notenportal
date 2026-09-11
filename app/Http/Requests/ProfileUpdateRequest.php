@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Darstellung;
+use App\Support\Theme;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +24,15 @@ class ProfileUpdateRequest extends FormRequest
             'darstellung' => ['required', Rule::in(['system', 'hell', 'dunkel'])],
             'kontrast' => ['nullable', 'boolean'],
         ];
+
+        if (Darstellung::praeferenzenOptionVerfuegbar()) {
+            $regeln += [
+                'theme' => ['nullable', Rule::in(array_keys(Theme::THEMES))],
+                'akzent' => ['nullable', Rule::in(array_keys(Darstellung::AKZENTE))],
+                'schrift' => ['nullable', Rule::in(Darstellung::SCHRIFTGROESSEN)],
+                'bewegung_reduziert' => ['nullable', 'boolean'],
+            ];
+        }
 
         if ($user->lernender) {
             return $regeln + [

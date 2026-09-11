@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\SetLocale;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Lernender;
+use App\Support\Darstellung;
 use App\Support\Theme;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -33,6 +34,9 @@ class ProfileController extends Controller
             'lehrberuf' => $lehrberuf,
             'bmsAktiv' => $lernender && $this->hatAktivenBmsTrack($lernender),
             'kontrastOption' => Theme::kontrastOptionVerfuegbar(),
+            'praeferenzenOption' => Darstellung::praeferenzenOptionVerfuegbar(),
+            'betriebTheme' => Theme::betrieb(),
+            'praeferenzen' => Darstellung::fuer($user),
         ]);
     }
 
@@ -43,9 +47,21 @@ class ProfileController extends Controller
         $lernender = $user->lernender;
 
         $user->fill(Arr::only($daten, $lernender ? ['email', 'darstellung'] : ['vorname', 'nachname', 'email', 'darstellung']));
-        if (Theme::kontrastOptionVerfuegbar()) {
+
+        if (Darstellung::praeferenzenOptionVerfuegbar()) {
+            $theme = $daten['theme'] ?? null ?: null;
+            $user->praeferenzen = [
+                'theme' => $theme,
+                'akzent' => ($daten['akzent'] ?? null) ?: null,
+                'schrift' => $daten['schrift'] ?? Darstellung::SCHRIFT_NORMAL,
+                'bewegung' => $request->boolean('bewegung_reduziert') ? Darstellung::BEWEGUNG_REDUZIERT : Darstellung::BEWEGUNG_NORMAL,
+            ];
+            // Alt-Logik (Theme::fuer ohne Präferenzen) bleibt konsistent: Kontrast auch hier gesetzt.
+            $user->kontrast = $theme === Theme::KONTRAST;
+        } elseif (Theme::kontrastOptionVerfuegbar()) {
             $user->kontrast = $request->boolean('kontrast');
         }
+
         $user->save();
 
         if ($lernender) {

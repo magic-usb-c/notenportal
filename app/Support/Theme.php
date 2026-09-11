@@ -23,6 +23,10 @@ final class Theme
         'sandstein' => 'Sandstein',
         'pflaume' => 'Pflaume',
         'graphit' => 'Graphit',
+        'wald' => 'Wald',
+        'abendrot' => 'Abendrot',
+        'papier' => 'Papier',
+        'mitternacht' => 'Mitternacht',
         'kontrast' => 'Kontrast',
     ];
 
@@ -35,9 +39,14 @@ final class Theme
         return array_key_exists($wert, self::THEMES) ? $wert : self::STANDARD;
     }
 
-    /** Theme für die Seite: persönlicher Kontrast vor Betriebs-Theme. */
+    /** Theme für die Seite: persönliches Theme > alter Kontrast-Schalter > Betriebs-Theme. */
     public static function fuer(?User $user): string
     {
+        $persoenlich = Darstellung::fuer($user)['theme'] ?? null;
+        if ($persoenlich !== null) {
+            return $persoenlich;
+        }
+
         if ($user && $user->getAttribute('kontrast')) {
             return self::KONTRAST;
         }

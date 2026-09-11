@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\I18n;
 
 use App\Models\Feedback;
+use App\Support\Darstellung;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -62,7 +63,7 @@ final class Schluessel
     /** Werte, die per __($variable) übersetzt werden und deshalb nicht literal im Code stehen. */
     public static function dynamisch(): array
     {
-        return array_values(Feedback::KATEGORIEN);
+        return [...array_values(Feedback::KATEGORIEN), ...array_values(Darstellung::AKZENTE)];
     }
 
     /** @return array<string, array<string, string>> Datei (relativ) => Übersetzungen */

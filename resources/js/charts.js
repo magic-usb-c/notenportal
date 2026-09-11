@@ -9,13 +9,19 @@ Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearS
 
 const serie = (i, alpha = 1) => tokenFarbe(`--chart-${(i % 6) + 1}`, alpha);
 
+// Bewegung reduziert: persönliche Einstellung (data-bewegung) oder Systemeinstellung
+function bewegungReduziert() {
+    return document.documentElement.dataset.bewegung === 'reduziert'
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
 function basis() {
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.color = tokenFarbe('--muted');
     return {
         responsive: true,
         maintainAspectRatio: false,
-        animation: { duration: 350 },
+        animation: bewegungReduziert() ? false : { duration: 350 },
         interaction: { mode: 'index', intersect: false },
         plugins: {
             legend: { labels: { usePointStyle: true, boxWidth: 8, filter: (item) => !item.text.startsWith('_') } },
