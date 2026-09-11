@@ -22,6 +22,7 @@ HARTE REGELN: keine schreibenden git-Befehle (add/commit/stash/checkout/reset/re
 Nie tmp-testdaten/ oder .env anfassen, keine echten Namen/Noten in Fixtures oder Doku.
 Keine Migration auf Prod: nur `DB_DATABASE=<eigene>_test`. Neue Spalten im Code mit Schema::hasColumn-Guard (statisch gecacht), bis die Hauptsession migriert hat.
 Tests nur: `DB_DATABASE=<eigene>_test php artisan test` (prüfen, dass diese DB wirklich benutzt wird).
+Prod-Schutz: Code, der auf jeder Seite läuft (Provider, Layouts, Navigation, Darstellung), erst lauffähig ablegen – nach jedem solchen Edit `php -l` und `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/login` = 200.
 UI: Schweizer Hochdeutsch (ss statt ß), Texte mit __() + Englisch in lang/en.json bzw. lang/areas/*/en.json.
 Abschluss: vendor/bin/pint auf geänderte PHP-Dateien; volle Suite grün; `grep -rn "ß" resources/views lang` leer;
 .claude/hooks/view-pruefung.sh auf geänderte Views; `npm run build` nur wenn CSS/JS/neue Tailwind-Klassen (melden).

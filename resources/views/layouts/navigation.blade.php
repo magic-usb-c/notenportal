@@ -11,9 +11,10 @@
     $name = trim(($u->vorname ?? '').' '.($u->nachname ?? '')) ?: ($u->email ?? '');
     $icon = fn (string $n) => \App\Support\Navigation::icon($n);
 
-    // Ruhige Leiste: inaktiv gedimmt, aktiv Textfarbe + 2-px-Unterstrich in Accent
-    $punkt = 'relative inline-flex h-14 items-center gap-1.5 px-3 text-sm font-medium transition-colors duration-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring';
-    $aktiv = 'text-text after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent';
+    // Ruhige Leiste: inaktiv gedimmt, aktiv Textfarbe + 2-px-Unterstrich in Accent.
+    // Zwischen lg und xl kompakter (Logo-Text, Feedback-Knopf aus, weniger Abstand), sonst läuft die Admin-Leiste bei 1024 px über.
+    $punkt = 'relative inline-flex h-14 items-center gap-1.5 px-2 xl:px-3 text-sm font-medium transition-colors duration-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring';
+    $aktiv = 'text-text after:absolute after:inset-x-2 xl:after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent';
     $inaktiv = 'text-muted hover:text-text';
     $badge = 'inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-accent/12 px-1 text-2xs font-semibold tabular-nums text-accent-text';
     $werkzeug = 'inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors duration-100 hover:bg-surface-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
@@ -24,7 +25,7 @@
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
             <x-application-logo class="size-8" />
-            <span class="hidden leading-tight md:block">
+            <span class="hidden leading-tight md:block lg:hidden xl:block">
                 <span class="block text-sm font-semibold text-text">Notenportal</span>
                 @if($betriebName ?? null)<span class="block text-2xs text-muted">{{ $betriebName }}</span>@endif
             </span>
@@ -71,7 +72,7 @@
                         class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-2.5 text-sm text-muted hover:text-text md:px-3" aria-label="{{ __('Suchen') }}">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <span class="hidden md:inline">{{ __('Suchen') }}</span>
-                    <kbd class="hidden rounded-md border border-border px-1.5 py-0.5 font-sans text-2xs text-muted md:inline">Ctrl K</kbd>
+                    <kbd class="hidden rounded-md border border-border px-1.5 py-0.5 font-sans text-2xs text-muted md:inline lg:hidden xl:inline">Ctrl K</kbd>
                 </button>
 
                 <template x-teleport="body">
@@ -107,7 +108,7 @@
             </div>
 
             <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
-                    class="{{ $werkzeug }} hidden lg:inline-flex" aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
+                    class="{{ $werkzeug }} hidden xl:inline-flex" aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
                 <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             </button>
 
@@ -121,7 +122,8 @@
                     <x-slot name="trigger">
                         <button class="inline-flex h-9 items-center gap-2 rounded-lg pl-1 pr-2 text-sm text-muted transition-colors duration-100 hover:bg-surface-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                             <span class="inline-flex size-7 items-center justify-center rounded-full bg-surface-2 text-xs font-semibold text-text">{{ mb_strtoupper(mb_substr($u->vorname ?? '', 0, 1).mb_substr($u->nachname ?? '', 0, 1)) }}</span>
-                            <span class="max-w-40 truncate">{{ $name }}</span>
+                            {{-- Name erst ab 2xl sichtbar (steht auch im Menükopf): bis 1536 px reicht der Platz neben 7 Admin-Einträgen nicht --}}
+                            <span class="sr-only 2xl:not-sr-only 2xl:max-w-40 2xl:truncate">{{ $name }}</span>
                             <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                         </button>
                     </x-slot>
@@ -133,6 +135,7 @@
                         <div class="my-1 border-t border-border"></div>
                         <x-dropdown-link :href="route('profile.edit')">{{ __('Profil') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('notifications.settings')">{{ __('Benachrichtigungen') }}</x-dropdown-link>
+                        <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))">{{ __('Tastenkürzel') }}</x-dropdown-link>
                         <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">{{ __('Feedback melden') }}</x-dropdown-link>
                         <x-dropdown-link :href="route('feedback.index')">{{ __('Meine Meldungen') }}</x-dropdown-link>
                         @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('layouts._sprache', ['klasse' => 'flex w-full items-center rounded-lg px-3 min-h-9 text-start text-sm text-text transition-colors duration-100 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring'])@endif<div class="my-1 border-t border-border"></div>
@@ -193,4 +196,6 @@
             </form>
         </div>
     </div>
+
+    <x-tastenkuerzel :eintraege="$eintraege" />
 </nav>

@@ -39,6 +39,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 
 ## Global
 - Suche/Befehlspalette (Ctrl+K): Lernende, Konten (Admin), Seiten
+- Tastenkürzel: «?» Übersicht, «g» + Buchstabe Navigation (rollenabhängige Ziele), «/» Suche, «n» neue Note (Lernende); Benutzermenü, ausserhalb von Eingabefeldern
 - «Passwort vergessen» mit Link per Mail (60 Minuten gültig); Mails im gemeinsamen Layout (persönliche Anrede, echte Werte, Knopf ins Portal, Hell/Dunkel), Versand über die Queue mit 3 Versuchen
 - Auslöser: neue Note/Korrektur/Kommentar, Note gesehen, Prüfungserinnerung, fehlende Note nach Prüfung, Inaktivität, Semesterende, Betreuung, Import, Feedback, Sicherung fehlgeschlagen, Passwort geändert
 - Hell/Dunkel serverseitig gespeichert, Flash-Toast, Fehlerseiten 403/404/500

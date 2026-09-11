@@ -184,3 +184,9 @@ Block U: eigenes Theme/Akzent/Schriftgrösse/Bewegung je Benutzer (`benutzer.pra
 - Bewusst weggelassen: kein Integrationstest für den Guard-Zustand „Spalte `praeferenzen` fehlt noch“ (alte Kontrast-Checkbox) – die Testdatenbank wird über `RefreshDatabase` immer vollständig migriert, ein Zwischenzustand liesse sich nur über Reflection auf den statischen Cache in `Darstellung::praeferenzenOptionVerfuegbar()` erzwingen; das Verhalten selbst ist durch den bestehenden Zweig in `ProfileController::update()`/`ProfileUpdateRequest` sowie das analoge, bereits getestete Muster `Theme::kontrastOptionVerfuegbar()` abgedeckt.
 - `docs/gui-konzept.md` Abschnitt d) nur kurz nachgeführt (Themetabelle, Akzent-Absatz); die maschinell erzeugten Pro-Theme-Kontrasttabellen (`gen-md.mjs`) wurden nicht neu für Wald/Abendrot/Papier/Mitternacht erzeugt – die eigentliche Kontrastprüfung läuft jetzt ohnehin dauerhaft über `tests/Feature/ThemeKontrastTest.php` (parst `theme.css` direkt) statt über die Doku.
 - Orphane Übersetzung `"Hilfsmittel"` in `lang/en.json` entfernt (nicht Teil dieses Auftrags, aber vom Schlüssel-Scan-Test aufgedeckt und in derselben Session mit entfernt, da sonst der geforderte grüne Testlauf nicht möglich war): kein Code verwendet den Schlüssel mehr, nur noch `"Erlaubte Hilfsmittel"`.
+
+## Tastenkürzel (11.09.2026)
+
+- Offen: Tastenkürzel zusätzlich als Einträge in der Befehlspalette (Ctrl+K) anzeigen.
+- Offen: Präferenz «Tastenkürzel aus» im Profil (für Screenreader-Nutzer mit eigenen Einzeltasten-Kürzeln).
+- Offen: Unter 1024 px (Tablet mit Tastatur) kein sichtbarer Einstieg in die Tastenkürzel-Übersicht – nur «?». Eintrag im mobilen Menü erst, wenn Nachfrage besteht (Touch-Geräte brauchen ihn nicht).

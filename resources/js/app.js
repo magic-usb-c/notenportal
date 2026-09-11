@@ -6,6 +6,7 @@ import { registriereFeedback } from './feedback';
 import { registriereRadiogroup, registriereScrollbereiche, t } from './np';
 import { registriereRechner } from './rechner';
 import { registriereSuche } from './suche';
+import { registriereTastenkuerzel } from './tastenkuerzel';
 
 window.Alpine = Alpine;
 // Übersetzungen auch für Inline-Skripte und Alpine-Ausdrücke in Blade: np.t(schluessel)
@@ -16,6 +17,7 @@ registriereFeedback(Alpine);
 registriereRadiogroup(Alpine);
 registriereRechner(Alpine);
 registriereSuche(Alpine);
+registriereTastenkuerzel(Alpine);
 registriereScrollbereiche();
 
 Alpine.start();
