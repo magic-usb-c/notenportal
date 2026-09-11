@@ -5,7 +5,7 @@
     <form method="POST" action="{{ route('admin.setup.categories') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="glass rounded-2xl overflow-hidden">
+        <section class="rounded-2xl border border-border bg-card overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-text">
                     <thead class="text-xs text-muted">
@@ -58,7 +58,7 @@
                 </table>
             </div>
             @if($errors->any())
-                <ul class="px-4 py-3 border-t border-border text-xs text-red-600 dark:text-red-400 flex flex-col gap-1">
+                <ul class="px-4 py-3 border-t border-border text-xs text-note-ungenuegend flex flex-col gap-1">
                     @foreach(collect($errors->all())->unique() as $f)<li>{{ $f }}</li>@endforeach
                 </ul>
             @endif

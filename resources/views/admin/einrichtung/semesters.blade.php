@@ -1,7 +1,7 @@
 <x-einrichtung schritt="semesters" :stand="$stand" titel="Semester">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
-        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $label = 'text-sm font-medium text-text';
         $start = ['herbst' => old('herbst', $vorschlag['herbst']), 'fruehling' => old('fruehling', $vorschlag['fruehling']), 'bis' => (int) old('bis_jahr', $vorschlag['bis'])];
     @endphp
     <script>
@@ -35,22 +35,22 @@
     <form method="POST" action="{{ route('admin.setup.semesters') }}" class="flex flex-col gap-5"
           x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')))" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="glass rounded-2xl p-6 flex flex-col gap-5">
+        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-5">
             <div class="grid sm:grid-cols-3 gap-4">
                 <div>
                     <label for="herbst" class="{{ $label }}">Erstes Herbstsemester ab *</label>
                     <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
-                    @error('herbst')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('herbst')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="fruehling" class="{{ $label }}">Erstes Frühlingssemester ab *</label>
                     <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}">
-                    @error('fruehling')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('fruehling')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="bis_jahr" class="{{ $label }}">Bis Schuljahr *</label>
                     <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}">
-                    @error('bis_jahr')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('bis_jahr')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
             </div>
 
@@ -71,7 +71,7 @@
         </section>
 
         @if($semester->isNotEmpty())
-            <section class="glass rounded-2xl p-5">
+            <section class="rounded-2xl border border-border bg-card p-5">
                 <h3 class="text-sm font-semibold text-text mb-3">Vorhanden</h3>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)

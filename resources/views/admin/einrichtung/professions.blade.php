@@ -13,7 +13,7 @@
           x-data="{ loading: false, eigene: {{ \Illuminate\Support\Js::from(old('eigene', [['kuerzel' => '', 'name' => '']])) }} }"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="glass rounded-2xl p-6 flex flex-col gap-4">
+        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
             <h3 class="text-sm font-semibold text-text">Lehrberufe</h3>
             <div class="grid sm:grid-cols-2 gap-2">
                 @foreach($vorlagen as $kuerzel => $name)
@@ -44,14 +44,14 @@
                         <input :name="`eigene[${i}][kuerzel]`" x-model="e.kuerzel" maxlength="10" placeholder="Kürzel" aria-label="Kürzel" class="{{ $feld }} w-28 uppercase">
                         <input :name="`eigene[${i}][name]`" x-model="e.name" maxlength="200" placeholder="Weiterer Lehrberuf" aria-label="Weiterer Lehrberuf" class="{{ $feld }} flex-1 min-w-0">
                         <button type="button" @click="eigene.splice(i, 1)" x-show="eigene.length > 1" aria-label="Zeile entfernen"
-                                class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10">×</button>
+                                class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
                     </div>
                 </template>
                 <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="self-start inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">+ Weiterer Lehrberuf</button>
             </div>
         </section>
 
-        <section class="glass rounded-2xl p-6 grid md:grid-cols-2 gap-6">
+        <section class="rounded-2xl border border-border bg-card p-6 grid md:grid-cols-2 gap-6">
             @foreach(\App\Support\Einrichtung::FAECHER as $track => $liste)
                 <div>
                     <h3 class="text-sm font-semibold text-text mb-3">Fächer {{ $track }}</h3>
@@ -74,7 +74,7 @@
         </section>
 
         @if($errors->any())
-            <ul class="glass rounded-2xl px-5 py-3 text-xs text-red-600 dark:text-red-400 flex flex-col gap-1">
+            <ul class="rounded-2xl border border-border bg-card px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
                 @foreach(collect($errors->all())->unique() as $f)<li>{{ $f }}</li>@endforeach
             </ul>
         @endif

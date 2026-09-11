@@ -14,24 +14,52 @@
     <div class="py-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            <div class="lg:col-span-12 grid grid-cols-2 md:grid-cols-5 gap-4">
-                <x-kachel label="Lernende" :wert="$kennzahlen['lernende']" :href="route('admin.learners.index')" />
-                <x-kachel label="Berufsbildner" :wert="$kennzahlen['berufsbildner']" :href="route('admin.trainers.index')" />
-                <x-kachel label="Noten {{ $kennzahlen['semester'] }}" :wert="$kennzahlen['noten_semester']" :href="route('admin.reports.grades')" />
-                <x-kachel label="Kritisch" :wert="$kennzahlen['rot']" :ton="$kennzahlen['rot'] ? 'rot' : 'neutral'" :sub="$kennzahlen['gelb'].' beobachten'" />
-                <x-kachel label="Offene Meldungen" :wert="$kennzahlen['feedback']" :ton="$kennzahlen['feedback'] ? 'accent' : 'neutral'" :href="route('admin.feedback.index')" />
+            {{-- Statuszeile --}}
+            <div class="lg:col-span-12 flex flex-wrap items-baseline gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-5 py-3">
+                <a href="{{ route('admin.learners.index') }}" class="flex items-baseline gap-1.5 hover:opacity-80">
+                    <span class="text-2xl font-semibold tabular-nums text-text">{{ $kennzahlen['lernende'] }}</span>
+                    <span class="text-xs text-muted">Lernende</span>
+                </a>
+                <a href="{{ route('admin.trainers.index') }}" class="flex items-baseline gap-1.5 hover:opacity-80">
+                    <span class="text-2xl font-semibold tabular-nums text-text">{{ $kennzahlen['berufsbildner'] }}</span>
+                    <span class="text-xs text-muted">Berufsbildner</span>
+                </a>
+                <a href="{{ route('admin.reports.grades') }}" class="flex items-baseline gap-1.5 hover:opacity-80">
+                    <span class="text-2xl font-semibold tabular-nums text-text">{{ $kennzahlen['noten_semester'] }}</span>
+                    <span class="text-xs text-muted">Noten {{ $kennzahlen['semester'] }}</span>
+                </a>
+                <span class="flex items-baseline gap-1.5">
+                    <span class="text-2xl font-semibold tabular-nums {{ $kennzahlen['rot'] ? 'text-note-ungenuegend' : 'text-text' }}">{{ $kennzahlen['rot'] }}</span>
+                    <span class="text-xs text-muted">kritisch · {{ $kennzahlen['gelb'] }} beobachten</span>
+                </span>
+                <a href="{{ route('admin.feedback.index') }}" class="flex items-baseline gap-1.5 hover:opacity-80">
+                    <span class="text-2xl font-semibold tabular-nums {{ $kennzahlen['feedback'] ? 'text-accent' : 'text-text' }}">{{ $kennzahlen['feedback'] }}</span>
+                    <span class="text-xs text-muted">offene Meldungen</span>
+                </a>
             </div>
 
-            @if($einrichtung)
-                <section class="lg:col-span-12 rounded-xl border border-border bg-card overflow-hidden border-l-4 border-l-note-knapp">
-                    <h3 class="px-5 pt-4 pb-2 text-sm font-semibold text-text">Einrichtung unvollständig</h3>
+            {{-- Handlungsbedarf: eine Liste statt mehrerer Karten (Einrichtungslücken, Sicherung, Meldungen, kritische Lernende) --}}
+            @if($handlungsbedarf)
+                <section class="lg:col-span-12 rounded-xl border border-border bg-card overflow-hidden">
+                    <h3 class="px-5 pt-4 pb-2 text-sm font-semibold text-text">Handlungsbedarf</h3>
                     <div class="divide-y divide-border/70">
-                        @foreach($einrichtung as $e)
-                            <a href="{{ $e['link'] }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
-                                <span class="text-sm text-text">{{ $e['text'] }}</span>
-                                <span class="flex items-center gap-3">
-                                    @if($e['anzahl'] > 1 || ! str_starts_with($e['text'], 'Semester'))
-                                        <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-note-knapp/15 text-note-knapp tabular-nums">{{ $e['anzahl'] }}</span>
+                        @foreach($handlungsbedarf as $h)
+                            <a href="{{ $h['link'] }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
+                                <div class="min-w-0">
+                                    <div class="text-sm text-text truncate">{{ $h['text'] }}</div>
+                                    @if($h['meta'])
+                                        <div class="text-xs text-muted truncate">{{ $h['meta'] }}</div>
+                                    @endif
+                                </div>
+                                <span class="flex shrink-0 items-center gap-3">
+                                    @if($h['note'] !== null)
+                                        <x-note :wert="$h['note']" variante="badge" />
+                                    @elseif($h['badge'] !== null)
+                                        <span @class(['px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums',
+                                            'bg-note-ungenuegend/15 text-note-ungenuegend' => $h['ton'] === 'rot',
+                                            'bg-note-knapp/15 text-note-knapp' => $h['ton'] === 'gelb',
+                                            'bg-accent/15 text-accent' => $h['ton'] === 'accent',
+                                        ])>{{ $h['badge'] }}</span>
                                     @endif
                                     <span class="text-xs text-accent">Beheben ›</span>
                                 </span>
@@ -44,24 +72,24 @@
             {{-- Berufsbildner --}}
             <x-karte titel="Berufsbildner" class="lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="text-[11px] uppercase tracking-widest text-muted">
-                            <tr class="border-y border-border/70">
-                                <th class="text-left font-medium px-5 py-2">Name</th>
-                                <th class="text-right font-medium px-3 py-2">Lernende</th>
-                                <th class="text-right font-medium px-3 py-2">Kritisch</th>
-                                <th class="text-right font-medium px-3 py-2">Beobachten</th>
-                                <th class="text-right font-medium px-5 py-2">Ungesehen</th>
+                    <table class="w-full text-sm tabular-nums">
+                        <thead class="sticky top-0 bg-surface-2">
+                            <tr>
+                                <th class="h-9 px-5 text-left text-2xs font-medium text-muted">Name</th>
+                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Lernende</th>
+                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Kritisch</th>
+                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted">Beobachten</th>
+                                <th class="h-9 px-5 text-right text-2xs font-medium text-muted">Ungesehen</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border/60">
+                        <tbody class="divide-y divide-border">
                             @forelse($proBb as $bb)
-                                <tr>
-                                    <td class="px-5 py-2.5 text-text">{{ $bb->name }}</td>
-                                    <td class="px-3 py-2.5 text-right tabular-nums">{{ $bb->lernende }}</td>
-                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
-                                    <td class="px-3 py-2.5 text-right tabular-nums {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
-                                    <td class="px-5 py-2.5 text-right tabular-nums {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                <tr class="h-11">
+                                    <td class="px-5 text-text">{{ $bb->name }}</td>
+                                    <td class="px-3 text-right text-muted">{{ $bb->lernende }}</td>
+                                    <td class="px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
+                                    <td class="px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
+                                    <td class="px-5 text-right {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5" class="px-5 py-8 text-center text-muted">Noch keine Berufsbildner</td></tr>
@@ -74,30 +102,6 @@
             <x-karte titel="Erfasste Noten pro Woche" class="lg:col-span-5">
                 <div class="h-52" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => 'Noten']) }})">
                     <canvas x-ref="canvas" role="img" aria-label="Erfasste Noten pro Woche"></canvas>
-                </div>
-            </x-karte>
-
-            @if($jahrgaenge['serien'])
-                <x-karte titel="Gesamtschnitt nach Lehrjahr" class="lg:col-span-7">
-                    <div class="h-64" x-data="npChart('gruppen', {{ \Illuminate\Support\Js::from($jahrgaenge) }})">
-                        <canvas x-ref="canvas" role="img" aria-label="Gesamtschnitt je Lehrberuf und Lehrjahr"></canvas>
-                    </div>
-                </x-karte>
-            @endif
-
-            <x-karte titel="Kritisch" :class="$jahrgaenge['serien'] ? 'lg:col-span-5' : 'lg:col-span-12'" :polster="false">
-                <div class="divide-y divide-border/70">
-                    @forelse($kritisch as $k)
-                        <a href="{{ route('admin.learners.show', $k->lernender->lernender_id) }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
-                            <div class="min-w-0">
-                                <div class="text-sm text-text truncate">{{ $k->lernender->benutzer->vorname }} {{ $k->lernender->benutzer->nachname }}</div>
-                                <div class="text-xs text-muted truncate">{{ implode(' · ', array_slice($k->stand->gruende, 0, 2)) }}</div>
-                            </div>
-                            <x-note :wert="$k->stand->semesterNote" variante="badge" />
-                        </a>
-                    @empty
-                        <div class="px-5 py-8 text-center text-sm text-muted">Niemand kritisch</div>
-                    @endforelse
                 </div>
             </x-karte>
 

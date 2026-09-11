@@ -97,7 +97,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="lg:col-span-2">
-                            <label for="modul_id" class="text-xs uppercase tracking-widest text-muted font-medium">Modul hinzufügen</label>
+                            <label for="modul_id" class="text-sm font-medium text-text">Modul hinzufügen</label>
                             <select id="modul_id" name="modul_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>
@@ -107,7 +107,7 @@
                             </select>
                         </div>
                         <div>
-                            <label for="kategorie_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lernort *</label>
+                            <label for="kategorie_id" class="text-sm font-medium text-text">Lernort *</label>
                             <select id="kategorie_id" name="kategorie_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 @foreach($kategorien as $k)
@@ -116,7 +116,7 @@
                             </select>
                         </div>
                         <div>
-                            <label for="empfohlenes_lehrsemester_nr" class="text-xs uppercase tracking-widest text-muted font-medium">Empfohlenes Semester</label>
+                            <label for="empfohlenes_lehrsemester_nr" class="text-sm font-medium text-text">Empfohlenes Semester</label>
                             <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                         </div>
@@ -195,7 +195,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         <div class="flex-1">
-                            <label for="fach_id" class="text-xs uppercase tracking-widest text-muted font-medium">Fach hinzufügen</label>
+                            <label for="fach_id" class="text-sm font-medium text-text">Fach hinzufügen</label>
                             <select id="fach_id" name="fach_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
                                 <option value="">Bitte wählen…</option>

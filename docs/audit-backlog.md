@@ -102,4 +102,42 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - Agenda-Query-Parameter (`ansicht`, `monat`) noch deutsch; bei der späteren Code-Umbenennung mitziehen (LegacyPaths betrifft nur Pfade).
 - Mobile Filterformulare (Lernende, Benutzer) sehr lang: Filterleiste in GUI-Paket 5.
 - `Uebersicht::berufsbildner()` liefert `vergleich` noch, das BB-Dashboard nutzt seit Paket 6 Small Multiples – entfernen, sobald Paket 4 das Dashboard umbaut.
-- Senkrechte Genügend-Linie für `balken()` (Lernenden-Dashboard) mit Paket 3.
+- ~~Senkrechte Genügend-Linie für `balken()` (Lernenden-Dashboard) mit Paket 3.~~ erledigt.
+
+## Paket 3 – Lernende (11.09.2026) – bewusst weggelassen
+
+- Drawer für «+ Note» nur auf `/grades`; auf der Übersicht führt «+ Note» noch auf die Seite `grades/create` (Drawer dort bräuchte das Formular-Markup auch im Dashboard).
+- Kein «Als Tabelle»-Umschalter für die Diagramme «Wo stehe ich» und «Verlauf» (Screenreader bekommen nur `aria-label`/Tooltip).
+- Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.
+- `np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).
+- Bullet Graph beschriftet nur Grenzwerte (3.5/4.0/5.0), keine Bandnamen; lange Fach-/Modulnamen in «Wo stehe ich» mobil auf 16 Zeichen gekürzt (voll im Tooltip).
+- `x-sparkline` zeigt jetzt standardmässig den letzten Wert als Zahl – auch in der BB-Tabelle; dort ggf. `:zahl="false"` setzen (Paket 4).
+- Einzelnoten-Tabelle mobil: Spalte «Schnitt vor Rundung» ab `sm` ausgeblendet.
+
+## Paket 4 – Berufsbildner (11.09.2026) – bewusst weggelassen
+
+- `Uebersicht::berufsbildner()` liefert `vergleich`/`vergleichDiagramm()` nicht mehr – die Small-Multiples-Karte «Verlauf im Vergleich» (Paket 6) entfällt, «Im Vergleich» ist jetzt die sortierbare Verlauf-Spalte in der Tabelle (siehe Zeile 104 oben, damit erledigt).
+- Spalten der Tabelle «Meine Lernenden» sind nicht klicksortierbar (Blueprint erwähnt Sortierbarkeit); Sortierung aktuell fix nach Status/Nachname.
+- Segment-Filter (`role="radiogroup"`) in «Meine Lernenden» ist ab `sm` sichtbar, auf 390px-Mobil ausgeblendet (Platzgründe, wie schon im alten Dashboard) – Suche bleibt dort die einzige Einschränkung.
+- `x-sparkline` in Tabelle und Cockpit-Stand mit `:zahl="false"` verwendet, um die Redundanz mit der danebenstehenden Semester-/Gesamt-Note zu vermeiden (löst den Hinweis aus Paket 3 oben).
+- Keine «Vorher»-Screenshots erstellt, bevor die Änderungen begannen (Vorgabe verpasst); nur «Nachher»-Screenshots (hell/dunkel/mobil) unter `~/tools/out/paket4/` liegen vor.
+- Cockpit-Reiter «Noten», «Dokumente», «Rechner» verlinken auf die bestehenden Einzelseiten statt Inline-Panels zu zeigen (kein eigener Seiteninhalt für diese Tabs im Blueprint verlangt).
+
+## Paket 5 – Tabellen & Admin (11.09.2026)
+
+- Erledigt: Filterleiste (`x-filterleiste`) auf allen gefilterten Admin-Indexseiten (Benutzer, Lernende, Module, Semester, Feedback, Mail-Log); Tabellen auf Katalog-Design (44px-Zeilen, sticky `bg-surface-2`-Header ohne Versalien, rechtsbündige `tabular-nums`-Zahlen, Hover/Focus-Reveal-Aktionen, auf Mobil immer sichtbar).
+- Erledigt: Formular-Labels von Versalien/`tracking-widest` auf `text-sm font-medium text-text` vereinheitlicht (Admin-Einrichtung, Benutzer, Stammdaten, Lernende, Noten, Profil, Rechner, Dokumente, Import) – absichtlich unverändert gelassen: Statistik-Kacheln/Sektionsüberschriften im Dashboard-Stil (z. B. `einrichtung/modules.blade.php`, `rechner/index.blade.php`, `dokumente/index.blade.php`, `import/index.blade.php`) sowie ein erzwungenes Versal-Kürzelfeld (`einrichtung/professions.blade.php`).
+- Erledigt: Admin-Übersicht neu strukturiert – eine «Handlungsbedarf»-Liste oben (Einrichtungslücken, Sicherung älter als 2 Tage, offene Meldungen, kritische Lernende) statt vier Karten, Kennzahlen als Statuszeile, Berufsbildner-Last- und Erfassung-12-Wochen-Karten bleiben. Backend dafür: `Uebersicht::admin()` liefert jetzt `handlungsbedarf` statt `einrichtung`/`kritisch`/`jahrgaenge`, neue private Methode `adminHandlungsbedarf()`.
+- Erledigt: `admin/einrichtung/*` und `admin/berichte/noten` auf `<x-seitenkopf>` umgestellt; Diagramm-Logik in `admin/berichte/noten` unverändert gelassen.
+- Erledigt: Bare-`glass`-Alias durch Tokens (`rounded-2xl border border-border bg-card` bzw. `rounded-xl …`) ersetzt, `glass-btn` unverändert gelassen; dabei auch verstreute Farb-Hardcodes (`red-*`, `green-*`, `yellow-*`) auf Noten-Tokens umgestellt.
+- Test: `tests/Feature/Admin/DashboardTest.php` neu (Statuszeile/Handlungsbedarf, Sicherung-Alter-Hinweis) – zusammen mit dem restlichen Admin/Verwaltung-Testset grün (67 bzw. 45 Tests via `DB_DATABASE=notenportal_d_test`).
+- Bug gefunden und behoben (nicht Teil der eigentlichen Aufgabe, aber blockierend): `admin/benutzer/index.blade.php` mischte die Inline-Form `@php(...)` mit einer späteren Block-Form `@php … @endphp` im selben Template – Blade paart beim Kompilieren den *ersten* `@php` unabhängig von seiner Form mit dem *nächsten* `@endphp` und verschluckte dadurch den kompletten Abschnitt dazwischen (Filterleiste, Tabelle) als unkompilierten Rohblock, was zu einem 500er auf `/admin/users` führte. Fix: Zeile auf reines `<?php … ?>` umgestellt; nur diese eine Zeile geändert, keine Alt-Logik berührt.
+- Bewusst weggelassen: Migration der Karte «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard in den Notenbericht (`admin/berichte/noten`) – laut Vorgabe darf die Diagramm-Logik dort nicht angefasst werden; die Karte wurde nur aus dem Dashboard entfernt, eine gleichwertige Darstellung im Notenbericht steht noch aus (nächstes Paket).
+- Keine «Vorher»-Screenshots erstellt (wie schon in Paket 4); nur «Nachher» (hell/dunkel/mobil) unter `~/tools/out/paket5/`.
+
+## Sichtprüfung Pakete 3–5 (11.09.2026)
+
+- Admin «Erfasste Noten pro Woche»: KW-Beschriftungen schräg; laut Konzept jede 4. KW beschriften, nicht schräg (`charts.js`).
+- `/admin/learners` mobil: jede Karte hat einen gefüllten «Noten»-Button → mehrere Primäraktionen; «Noten» sekundär oder Zeilenklick.
+- Lernenden-Verlauf: Direktlabels kürzerer Reihen («ÜK», «ABU») stehen auf der Linie am Reihenende statt rechts neben der Grafik.
+- «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard entfernt, im Notenbericht noch nicht ergänzt.

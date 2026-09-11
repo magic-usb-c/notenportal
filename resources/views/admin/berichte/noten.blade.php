@@ -13,24 +13,23 @@
     @endphp
 
     <x-slot name="header">
-        <div class="w-full flex items-center justify-between gap-4 flex-wrap">
-            <h2 class="font-semibold text-xl text-text">Notenbericht <span class="text-muted font-normal">· {{ $semesterName }}</span></h2>
-            <div class="flex items-center gap-2 print:hidden">
-                <button type="button" onclick="window.print()" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Drucken</button>
+        <x-seitenkopf titel="Notenbericht" :untertitel="$semesterName">
+            <x-slot:aktionen>
+                <button type="button" onclick="window.print()" class="inline-flex items-center px-4 h-9 rounded-lg glass-btn text-text text-sm print:hidden">Drucken</button>
                 <a href="{{ route('admin.reports.grades.export', request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id'])) }}"
-                   class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">CSV</a>
-            </div>
-        </div>
+                   class="inline-flex items-center px-4 h-9 rounded-lg glass-btn text-text text-sm print:hidden">CSV</a>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
-            <form method="GET" action="{{ route('admin.reports.grades') }}" class="glass rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
+            <form method="GET" action="{{ route('admin.reports.grades') }}" class="rounded-2xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
                 <input type="hidden" name="sort" value="{{ $sort }}">
                 <input type="hidden" name="dir" value="{{ $dir }}">
                 <div>
-                    <label for="semester" class="text-xs uppercase tracking-widest text-muted font-medium">Zeitraum</label>
+                    <label for="semester" class="text-sm font-medium text-text">Zeitraum</label>
                     <select name="semester" id="semester" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                         <option value="alle" @selected($sid === null)>Ganze Lehrzeit</option>
                         @foreach($semester as $s)
@@ -39,7 +38,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="lehrberuf_id" class="text-xs uppercase tracking-widest text-muted font-medium">Lehrberuf</label>
+                    <label for="lehrberuf_id" class="text-sm font-medium text-text">Lehrberuf</label>
                     <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                         <option value="">Alle Lehrberufe</option>
                         @foreach($lehrberufe as $lb)
@@ -48,7 +47,7 @@
                     </select>
                 </div>
                 <div>
-                    <label for="berufsbildner_id" class="text-xs uppercase tracking-widest text-muted font-medium">Berufsbildner</label>
+                    <label for="berufsbildner_id" class="text-sm font-medium text-text">Berufsbildner</label>
                     <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                         <option value="">Alle</option>
                         @foreach($berufsbildner as $bb)
@@ -111,9 +110,9 @@
                                             <td class="px-5 py-2.5 font-medium">{{ $kat['name'] }} <span class="text-xs text-muted font-normal">{{ $kat['anzahl'] }}</span></td>
                                             <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($kat['schnitt']) }}">{{ \App\Support\NotenSkala::format($kat['schnitt'], 2) }}</td>
                                             <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ \App\Support\NotenSkala::format($kat['min'], 1) }} – {{ \App\Support\NotenSkala::format($kat['max'], 1) }}</td>
-                                            <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $kat['ungenuegend'], 'text-muted' => ! $kat['ungenuegend']])>{{ $kat['ungenuegend'] }}</td>
+                                            <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $kat['ungenuegend'], 'text-muted' => ! $kat['ungenuegend']])>{{ $kat['ungenuegend'] }}</td>
                                             @if($sid)
-                                                <td @class(['px-5 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $kat['gefaehrdet'], 'text-muted' => ! $kat['gefaehrdet']])>{{ $kat['gefaehrdet'] }}</td>
+                                                <td @class(['px-5 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $kat['gefaehrdet'], 'text-muted' => ! $kat['gefaehrdet']])>{{ $kat['gefaehrdet'] }}</td>
                                             @endif
                                         </tr>
                                     @endforeach
@@ -133,7 +132,7 @@
                                     <span class="font-bold tabular-nums {{ \App\Support\NotenSkala::text($s['schnitt']) }}">{{ \App\Support\NotenSkala::format($s['schnitt'], 2) }}</span>
                                 </div>
                                 <div class="h-1.5 rounded-full bg-accent/10 overflow-hidden"><div class="h-full rounded-full {{ \App\Support\NotenSkala::balken($s['schnitt']) }}" style="width: {{ $breite }}%"></div></div>
-                                <div class="text-xs text-muted">{{ $s['anzahl'] }} {{ $s['anzahl'] === 1 ? 'Zeugnisnote' : 'Zeugnisnoten' }}@if($s['ungenuegend']) · <span class="text-red-600 dark:text-red-400">{{ $s['ungenuegend'] }} ungenügend</span>@endif</div>
+                                <div class="text-xs text-muted">{{ $s['anzahl'] }} {{ $s['anzahl'] === 1 ? 'Zeugnisnote' : 'Zeugnisnoten' }}@if($s['ungenuegend']) · <span class="text-note-ungenuegend">{{ $s['ungenuegend'] }} ungenügend</span>@endif</div>
                             </li>
                         @endforeach
                     </ul>
@@ -176,7 +175,7 @@
                                     @if($sid)
                                         <td class="px-3 py-2.5 text-right font-semibold tabular-nums {{ \App\Support\NotenSkala::text($z->semester) }}">{{ \App\Support\NotenSkala::format($z->semester, 1) }}</td>
                                     @endif
-                                    <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-red-600 dark:text-red-400 font-semibold' => $z->ungenuegend, 'text-muted' => ! $z->ungenuegend])>{{ $z->ungenuegend }}</td>
+                                    <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $z->ungenuegend, 'text-muted' => ! $z->ungenuegend])>{{ $z->ungenuegend }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ $z->pruefungen }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
                                     <td class="px-5 py-2.5 text-right print:hidden">

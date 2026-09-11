@@ -1,7 +1,7 @@
 <x-einrichtung schritt="modules" :stand="$stand" titel="Module">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-        $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+        $label = 'text-sm font-medium text-text';
         $beispiele = [
             'schule' => "431 Aufträge im IT-Umfeld selbstständig durchführen\n162 Daten analysieren und modellieren",
             'uek' => "106 Datenbanken abfragen, bearbeiten und warten\n187 ICT-Arbeitsplatz in Betrieb nehmen",
@@ -9,7 +9,7 @@
     @endphp
 
     @if($lehrberufe->isEmpty())
-        <section class="glass rounded-2xl p-8 flex flex-col items-center gap-3 text-center">
+        <section class="rounded-2xl border border-border bg-card p-8 flex flex-col items-center gap-3 text-center">
             <p class="text-sm text-muted">Noch keine Lehrberufe</p>
             <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Lehrberufe anlegen</a>
         </section>
@@ -31,26 +31,26 @@
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="hidden" name="lehrberuf_id" value="{{ $aktiv->lehrberuf_id }}">
-            <section class="glass rounded-2xl p-6 flex flex-col gap-4">
+            <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
                 <h3 class="text-sm font-semibold text-text">{{ $aktiv->name }}</h3>
                 <div class="grid md:grid-cols-2 gap-4">
                     @foreach(['schule' => 'Module Schule', 'uek' => 'Module ÜK'] as $name => $text)
                         <div>
                             <label for="{{ $name }}" class="{{ $label }}">{{ $text }}</label>
                             <textarea id="{{ $name }}" name="{{ $name }}" rows="8" placeholder="{{ $beispiele[$name] }}" class="{{ $feld }} font-mono text-sm">{{ old($name) }}</textarea>
-                            @error($name)<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                            @error($name)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                     @endforeach
                 </div>
                 <div class="w-56">
                     <label for="ziel" class="{{ $label }}">Gewichtssumme je Modul *</label>
                     <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} tabular-nums">
-                    @error('ziel')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+                    @error('ziel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
             </section>
 
             @if($zugeordnet->isNotEmpty())
-                <section class="glass rounded-2xl p-5">
+                <section class="rounded-2xl border border-border bg-card p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold text-text">Zugeordnet · {{ $zugeordnet->count() }}</h3>
                         <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">Pflicht, Semester und Lernort bearbeiten</a>

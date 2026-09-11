@@ -19,7 +19,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Name *</label>
+                        <label for="name" class="text-sm font-medium text-text">Name *</label>
                         <input type="text" id="name" name="name" value="{{ old('name', $fach->name) }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-note-ungenuegend @enderror">
                         @error('name')
@@ -28,7 +28,7 @@
                     </div>
 
                     <div>
-                        <label for="kurzname" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel *</label>
+                        <label for="kurzname" class="text-sm font-medium text-text">Kürzel *</label>
                         <input type="text" id="kurzname" name="kurzname" value="{{ old('kurzname', $fach->kurzname) }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kurzname') border-note-ungenuegend @enderror">
                         @error('kurzname')
@@ -38,7 +38,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="track_typ" class="text-xs uppercase tracking-widest text-muted font-medium">Track</label>
+                            <label for="track_typ" class="text-sm font-medium text-text">Track</label>
                             <select id="track_typ" name="track_typ"
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-note-ungenuegend @enderror">
                                 <option value="" @selected(old('track_typ', $fach->track_typ) === null || old('track_typ', $fach->track_typ) === '')>Kein Track</option>
@@ -51,7 +51,7 @@
                         </div>
 
                         <div>
-                            <label for="kategorie_id" class="text-xs uppercase tracking-widest text-muted font-medium">Kategorie *</label>
+                            <label for="kategorie_id" class="text-sm font-medium text-text">Kategorie *</label>
                             <select id="kategorie_id" name="kategorie_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kategorie_id') border-note-ungenuegend @enderror">
                                 @foreach($kategorien as $k)

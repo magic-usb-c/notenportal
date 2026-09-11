@@ -14,61 +14,48 @@
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-            <div class="rounded-xl border border-border bg-card p-4">
-                <form method="GET" action="{{ route('admin.feedback.index') }}"
-                      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                    <div>
-                        <label for="status" class="text-xs uppercase tracking-widest text-muted font-medium">Status</label>
-                        <select name="status" id="status" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="" @selected($status === '')>Alle</option>
-                            @foreach(\App\Models\Feedback::STATUS as $value => $label)
-                                <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="kategorie" class="text-xs uppercase tracking-widest text-muted font-medium">Kategorie</label>
-                        <select name="kategorie" id="kategorie" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="" @selected($kategorie === '')>Alle</option>
-                            @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
-                                <option value="{{ $value }}" @selected($kategorie === $value)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div>
-                        <label for="rolle" class="text-xs uppercase tracking-widest text-muted font-medium">Rolle</label>
-                        <select name="rolle" id="rolle" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="" @selected($rolle === '')>Alle</option>
-                            <option value="Admin" @selected($rolle === 'Admin')>Admin</option>
-                            <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>Berufsbildner</option>
-                            <option value="Lernender" @selected($rolle === 'Lernender')>Lernender</option>
-                        </select>
-                    </div>
-                    @if($status || $kategorie || $rolle)
-                        <div>
-                            <a href="{{ route('admin.feedback.index') }}"
-                               class="inline-flex px-3 py-2 h-10 rounded-xl glass-btn text-text items-center text-sm">
-                                Filter zurücksetzen
-                            </a>
-                        </div>
-                    @endif
-                </form>
-            </div>
+            @php($aktiveFilter = collect([$status, $kategorie, $rolle])->filter()->count())
+            <x-filterleiste :action="route('admin.feedback.index')" :zaehler="$meldungen->total()" zaehler-label="Meldungen"
+                             :zurueck="route('admin.feedback.index')" :aktive-filter="$aktiveFilter">
+                <label for="status" class="sr-only">Status</label>
+                <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
+                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
+                    <option value="" @selected($status === '')>Status: alle</option>
+                    @foreach(\App\Models\Feedback::STATUS as $value => $label)
+                        <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+
+                <label for="kategorie" class="sr-only">Kategorie</label>
+                <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()"
+                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44">
+                    <option value="" @selected($kategorie === '')>Kategorie: alle</option>
+                    @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
+                        <option value="{{ $value }}" @selected($kategorie === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+
+                <label for="rolle" class="sr-only">Rolle</label>
+                <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()"
+                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
+                    <option value="" @selected($rolle === '')>Rolle: alle</option>
+                    <option value="Admin" @selected($rolle === 'Admin')>Admin</option>
+                    <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>Berufsbildner</option>
+                    <option value="Lernender" @selected($rolle === 'Lernender')>Lernender</option>
+                </select>
+            </x-filterleiste>
 
             <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
-                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
+                        <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="text-left p-3 whitespace-nowrap">Datum</th>
-                                <th class="text-left p-3 whitespace-nowrap">Absender</th>
-                                <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
-                                <th class="text-left p-3">Text</th>
-                                <th class="text-left p-3 whitespace-nowrap">Status</th>
-                                <th class="text-right p-3 whitespace-nowrap">Aktionen</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Datum</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Absender</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Kategorie</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Text</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
+                                <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Aktionen</th>
                             </tr>
                         </thead>
                         @forelse($meldungen as $m)
@@ -100,18 +87,18 @@
                                         }
                                     },
                                 }"
-                                class="divide-y divide-border even:bg-bg/30">
-                                <tr>
-                                    <td class="p-3 text-muted whitespace-nowrap align-top">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
-                                    <td class="p-3 whitespace-nowrap align-top">
+                                class="divide-y divide-border">
+                                <tr class="hover:bg-surface-2/60">
+                                    <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
+                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">
                                         <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
                                         <div class="text-xs text-muted">{{ $m->rollen }}</div>
                                     </td>
-                                    <td class="p-3 whitespace-nowrap align-top">{{ \App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie }}</td>
-                                    <td class="p-3 max-w-sm align-top">
+                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">{{ \App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie }}</td>
+                                    <td class="px-3 py-2.5 max-w-sm align-top">
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
-                                    <td class="p-3 whitespace-nowrap align-top">
+                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">
                                         <x-status :status="match ($m->status) {
                                                 \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
                                                 \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
@@ -119,15 +106,15 @@
                                             }"
                                             :text="\App\Models\Feedback::STATUS[$m->status] ?? $m->status" />
                                     </td>
-                                    <td class="p-3 text-right align-top whitespace-nowrap">
+                                    <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open"
-                                                class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg">
+                                                class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2">
                                             <span x-text="open ? 'Schliessen' : 'Details'"></span>
                                         </button>
                                     </td>
                                 </tr>
                                 <tr x-show="open" x-cloak>
-                                    <td colspan="6" class="p-4 bg-bg/40">
+                                    <td colspan="6" class="p-4 bg-surface-2/60">
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                             <div class="space-y-2 text-sm">
                                                 <p class="whitespace-pre-wrap">{{ $m->text }}</p>
@@ -161,7 +148,7 @@
                                             </div>
                                             <div class="space-y-2">
                                                 <div>
-                                                    <label for="status-{{ $m->feedback_id }}" class="text-xs uppercase tracking-widest text-muted font-medium">Status</label>
+                                                    <label for="status-{{ $m->feedback_id }}" class="text-sm font-medium text-text">Status</label>
                                                     <select id="status-{{ $m->feedback_id }}" x-model="status"
                                                             class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                                                         @foreach(\App\Models\Feedback::STATUS as $value => $label)
@@ -170,7 +157,7 @@
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label for="notiz-{{ $m->feedback_id }}" class="text-xs uppercase tracking-widest text-muted font-medium">Antwort an die meldende Person</label>
+                                                    <label for="notiz-{{ $m->feedback_id }}" class="text-sm font-medium text-text">Antwort an die meldende Person</label>
                                                     <textarea id="notiz-{{ $m->feedback_id }}" x-model="notiz" rows="3"
                                                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm"></textarea>
                                                 </div>

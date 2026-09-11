@@ -36,7 +36,7 @@
         $darfKorrigieren = auth()->user()->can('noteKorrigieren', $lernender);
         $darfLoeschen = auth()->user()->can('noteLoeschen', $lernender);
         $viewerId = (int) auth()->user()->benutzer_id;
-        $label = 'text-xs font-medium text-muted';
+        $label = 'text-sm font-medium text-text';
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring';
         $gefiltert = request()->filled('kategorie_id') || request()->filled('semester_id');
     @endphp
@@ -97,13 +97,12 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="flex gap-2">
-                        <button class="px-4 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm">Filtern</button>
-                        @if($gefiltert)
+                    @if($gefiltert)
+                        <div class="flex">
                             <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
                                class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">Zurücksetzen</a>
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </form>
             </div>
 

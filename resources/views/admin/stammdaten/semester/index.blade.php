@@ -16,14 +16,14 @@
 
             <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-bg border-b border-border text-muted">
+                <table class="w-full text-sm tabular-nums">
+                    <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium">Bezeichnung</th>
-                            <th class="px-4 py-3 text-left font-medium">Von</th>
-                            <th class="px-4 py-3 text-left font-medium">Bis</th>
-                            <th class="px-4 py-3 text-left font-medium">Sortierung</th>
-                            <th class="px-4 py-3"></th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Bezeichnung</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Von</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Bis</th>
+                            <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Sortierung</th>
+                            <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
@@ -32,25 +32,27 @@
                             @php
                                 $isAktiv = $s->start_datum <= $today && $s->end_datum >= $today;
                             @endphp
-                            <tr class="hover:bg-bg/50 {{ $isAktiv ? 'bg-accent/5' : '' }}">
-                                <td class="px-4 py-3 font-semibold text-text">
+                            <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60 {{ $isAktiv ? 'bg-accent/5' : '' }}">
+                                <td class="px-4 font-semibold text-text">
                                     {{ $s->bezeichnung }}
                                     @if($isAktiv)
-                                        <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-note-gut/15 text-note-gut">aktuell</span>
+                                        <span class="ml-2 px-2 py-0.5 rounded-md text-xs bg-note-gut/15 text-note-gut">aktuell</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
-                                <td class="px-4 py-3 text-muted tabular-nums">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
-                                <td class="px-4 py-3 text-muted">{{ $s->sortierung }}</td>
-                                <td class="px-4 py-3 text-right">
-                                    <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
-                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
-                                    <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
-                                          onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
-                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                        @csrf @method('DELETE')
-                                        <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">Löschen</button>
-                                    </form>
+                                <td class="px-4 text-muted">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
+                                <td class="px-4 text-muted">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
+                                <td class="px-4 text-right text-muted">{{ $s->sortierung }}</td>
+                                <td class="px-4 text-right">
+                                    <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                                        <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
+                                           class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">Bearbeiten</a>
+                                        <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
+                                              onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
+                                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                            @csrf @method('DELETE')
+                                            <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">Löschen</button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         @empty

@@ -11,56 +11,31 @@
         </x-seitenkopf>
     </x-slot>
 
+    <?php $aktiveFilter = collect([$suche, $rolleId, $status])->filter()->count(); ?>
+
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-            {{-- Filter --}}
-            <div class="rounded-xl border border-border bg-card p-4">
-                <form method="GET" action="{{ route('admin.users.index') }}"
-                      class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <x-filterleiste :action="route('admin.users.index')" suche-name="suche" :suche-wert="$suche"
+                             suche-platzhalter="Name, E-Mail oder Benutzername" :zaehler="$benutzer->count()"
+                             :zurueck="route('admin.users.index')" :aktive-filter="$aktiveFilter">
+                <label for="rolle_id" class="sr-only">Rolle</label>
+                <select name="rolle_id" id="rolle_id" x-on:change="$el.form.requestSubmit()"
+                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44">
+                    <option value="">Alle Rollen</option>
+                    @foreach($rollen as $r)
+                        <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ $r->name }}</option>
+                    @endforeach
+                </select>
 
-                    <div class="sm:col-span-2">
-                        <label for="suche" class="text-xs uppercase tracking-widest text-muted font-medium">Suche</label>
-                        <input type="text" name="suche" id="suche" value="{{ $suche }}"
-                               placeholder="Name, E-Mail oder Benutzername…"
-                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                    </div>
-
-                    <div>
-                        <label for="rolle_id" class="text-xs uppercase tracking-widest text-muted font-medium">Rolle</label>
-                        <select name="rolle_id" id="rolle_id" onchange="this.form.submit()"
-                                class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                            <option value="">Alle Rollen</option>
-                            @foreach($rollen as $r)
-                                <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ $r->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="status" class="text-xs uppercase tracking-widest text-muted font-medium">Status</label>
-                        <div class="flex gap-2 mt-1">
-                            <select name="status" id="status" onchange="this.form.submit()"
-                                    class="flex-1 rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
-                                <option value="" @selected($status === '')>Alle</option>
-                                <option value="aktiv" @selected($status === 'aktiv')>Aktiv</option>
-                                <option value="inaktiv" @selected($status === 'inaktiv')>Inaktiv</option>
-                            </select>
-                            <button type="submit"
-                                    class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary whitespace-nowrap text-sm shrink-0">
-                                Suchen
-                            </button>
-                            @if($suche || $rolleId || $status)
-                                <a href="{{ route('admin.users.index') }}"
-                                   class="px-3 py-2 h-10 rounded-xl glass-btn text-text whitespace-nowrap text-sm shrink-0 flex items-center">
-                                    ×
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-
-                </form>
-            </div>
+                <label for="status" class="sr-only">Status</label>
+                <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
+                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-36">
+                    <option value="" @selected($status === '')>Status: alle</option>
+                    <option value="aktiv" @selected($status === 'aktiv')>Aktiv</option>
+                    <option value="inaktiv" @selected($status === 'inaktiv')>Inaktiv</option>
+                </select>
+            </x-filterleiste>
 
             {{-- Kartenansicht mobil: Aktionen bleiben ohne seitliches Scrollen erreichbar --}}
             <div class="md:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
@@ -120,14 +95,14 @@
             {{-- Tabelle --}}
             <div class="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
+                    <table class="w-full text-sm text-text">
+                        <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th class="text-left p-3">Benutzer</th>
-                                <th class="text-left p-3 whitespace-nowrap">Benutzername</th>
-                                <th class="text-left p-3">Rollen</th>
-                                <th class="text-center p-3 whitespace-nowrap">Status</th>
-                                <th class="text-right p-3">Aktion</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Benutzer</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Benutzername</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Rollen</th>
+                                <th class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
+                                <th class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -135,10 +110,10 @@
                                 @php
                                     $initials = strtoupper(mb_substr($b->vorname ?? '', 0, 1) . mb_substr($b->nachname ?? '', 0, 1));
                                 @endphp
-                                <tr class="even:bg-bg/30 hover:bg-accent/5 transition-colors duration-100">
-                                    <td class="p-3">
+                                <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
+                                    <td class="px-3">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
                                                 {{ $initials ?: '?' }}
                                             </div>
                                             <div class="min-w-0">
@@ -147,27 +122,27 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="p-3 font-mono text-xs">{{ $b->benutzername }}</td>
-                                    <td class="p-3">
-                                        <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">
+                                    <td class="px-3 font-mono text-xs">{{ $b->benutzername }}</td>
+                                    <td class="px-3">
+                                        <span class="text-xs bg-surface-2 border border-border rounded-md px-2 py-0.5">
                                             {{ $b->rollen ?? '–' }}
                                         </span>
                                     </td>
-                                    <td class="p-3 text-center">
+                                    <td class="px-3">
                                         @if($b->aktiv)
                                             <x-status status="gruen" text="Aktiv" />
                                         @else
                                             <x-status status="rot" text="Inaktiv" />
                                         @endif
                                     </td>
-                                    <td class="p-3 text-right">
-                                        <div class="flex items-center justify-end gap-3 flex-wrap">
+                                    <td class="px-3 text-right">
+                                        <div class="flex items-center justify-end gap-3 flex-wrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                             @if($b->lernender_id)
                                                 <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                                   class="text-sm text-accent hover:underline">Verwalten</a>
+                                                   class="text-sm text-accent-text hover:underline">Verwalten</a>
                                             @else
                                             <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                               class="text-sm text-accent hover:underline">Bearbeiten</a>
+                                               class="text-sm text-accent-text hover:underline">Bearbeiten</a>
                                             <form method="POST"
                                                   action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                                   class="inline"
@@ -196,12 +171,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                @if($benutzer->isNotEmpty())
-                    <div class="px-4 py-2 border-t border-border text-xs text-muted">
-                        {{ $benutzer->count() }} Benutzer
-                    </div>
-                @endif
             </div>
 
         </div>

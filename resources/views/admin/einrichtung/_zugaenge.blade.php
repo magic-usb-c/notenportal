@@ -1,5 +1,5 @@
 @if($zugaenge)
-    <section class="glass rounded-2xl overflow-hidden">
+    <section class="rounded-2xl border border-border bg-card overflow-hidden">
         <div class="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
             <h3 class="text-sm font-semibold text-text">Zugänge · {{ count($zugaenge) }}</h3>
             <button type="button" onclick="window.print()" class="inline-flex items-center px-3 min-h-9 rounded-lg glass-btn text-text text-sm print:hidden">Drucken</button>

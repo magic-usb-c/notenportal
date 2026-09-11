@@ -2,15 +2,15 @@
     @php
         $offen = collect($stand)->except('finish')->reject(fn ($s) => $s['erledigt']);
     @endphp
-    <section class="glass rounded-2xl overflow-hidden print:hidden">
+    <section class="rounded-2xl border border-border bg-card overflow-hidden print:hidden">
         <ul class="divide-y divide-border">
             @foreach(\App\Support\Einrichtung::SCHRITTE as $key => $name)
                 @continue($key === 'finish')
                 @php $ok = $stand[$key]['erledigt']; @endphp
                 <li class="flex items-center gap-3 px-5 py-3">
                     <span @class(['w-7 h-7 rounded-full inline-flex items-center justify-center shrink-0 text-xs font-bold',
-                        'bg-green-500/15 text-green-700 dark:text-green-400' => $ok,
-                        'bg-yellow-500/15 text-yellow-700 dark:text-yellow-400' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
+                        'bg-note-gut/15 text-note-gut' => $ok,
+                        'bg-note-knapp/15 text-note-knapp' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
                     <span class="flex-1 min-w-0">
                         <span class="block text-sm font-medium text-text">{{ $name }}</span>
                         <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : 'offen' }}</span>

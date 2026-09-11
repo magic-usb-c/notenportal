@@ -18,7 +18,7 @@
                     @csrf
 
                     <div>
-                        <label for="bezeichnung" class="text-xs uppercase tracking-widest text-muted font-medium">Bezeichnung * <span class="text-xs font-normal">(z.B. 2025/1)</span></label>
+                        <label for="bezeichnung" class="text-sm font-medium text-text">Bezeichnung * <span class="text-xs font-normal">(z.B. 2025/1)</span></label>
                         <input type="text" id="bezeichnung" name="bezeichnung" value="{{ old('bezeichnung') }}" required maxlength="20"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('bezeichnung') border-note-ungenuegend @enderror">
                         @error('bezeichnung')
@@ -28,7 +28,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="start_datum" class="text-xs uppercase tracking-widest text-muted font-medium">Von *</label>
+                            <label for="start_datum" class="text-sm font-medium text-text">Von *</label>
                             <input type="date" id="start_datum" name="start_datum" value="{{ old('start_datum') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('start_datum') border-note-ungenuegend @enderror">
                             @error('start_datum')
@@ -36,7 +36,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="end_datum" class="text-xs uppercase tracking-widest text-muted font-medium">Bis *</label>
+                            <label for="end_datum" class="text-sm font-medium text-text">Bis *</label>
                             <input type="date" id="end_datum" name="end_datum" value="{{ old('end_datum') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('end_datum') border-note-ungenuegend @enderror">
                             @error('end_datum')
@@ -46,7 +46,7 @@
                     </div>
 
                     <div>
-                        <label for="sortierung" class="text-xs uppercase tracking-widest text-muted font-medium">Sortierung</label>
+                        <label for="sortierung" class="text-sm font-medium text-text">Sortierung</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung') }}" min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('sortierung') border-note-ungenuegend @enderror">
                         @error('sortierung')

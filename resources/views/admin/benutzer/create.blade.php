@@ -24,7 +24,7 @@
                     {{-- ---- Stammdaten ---- --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="vorname" class="text-xs uppercase tracking-widest text-muted font-medium">Vorname *</label>
+                            <label for="vorname" class="text-sm font-medium text-text">Vorname *</label>
                             <input type="text" name="vorname" id="vorname" value="{{ old('vorname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-note-ungenuegend @enderror">
                             @error('vorname')
@@ -32,7 +32,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="nachname" class="text-xs uppercase tracking-widest text-muted font-medium">Nachname *</label>
+                            <label for="nachname" class="text-sm font-medium text-text">Nachname *</label>
                             <input type="text" name="nachname" id="nachname" value="{{ old('nachname') }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-note-ungenuegend @enderror">
                             @error('nachname')
@@ -42,7 +42,7 @@
                     </div>
 
                     <div>
-                        <label for="email" class="text-xs uppercase tracking-widest text-muted font-medium">E-Mail *</label>
+                        <label for="email" class="text-sm font-medium text-text">E-Mail *</label>
                         <input type="email" name="email" id="email" value="{{ old('email') }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-note-ungenuegend @enderror">
                         @error('email')
@@ -51,7 +51,7 @@
                     </div>
 
                     <div>
-                        <label for="benutzername" class="text-xs uppercase tracking-widest text-muted font-medium">
+                        <label for="benutzername" class="text-sm font-medium text-text">
                             Benutzername * <span class="text-xs font-normal">(Buchstaben, Ziffern, . _ -)</span>
                         </label>
                         <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername') }}" required
@@ -79,7 +79,7 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label for="passwort" class="text-xs uppercase tracking-widest text-muted font-medium">Passwort * <span class="text-xs font-normal">(mind. 10 Zeichen, Buchstaben und Ziffern)</span></label>
+                                <label for="passwort" class="text-sm font-medium text-text">Passwort * <span class="text-xs font-normal">(mind. 10 Zeichen, Buchstaben und Ziffern)</span></label>
                                 <button type="button" @click="generieren()"
                                         class="text-xs text-accent hover:underline">
                                     Generieren
@@ -93,7 +93,7 @@
                         </div>
                         <div>
                             <div class="flex items-center justify-between">
-                                <label for="passwort_confirmation" class="text-xs uppercase tracking-widest text-muted font-medium">Passwort bestätigen *</label>
+                                <label for="passwort_confirmation" class="text-sm font-medium text-text">Passwort bestätigen *</label>
                                 <button type="button" @click="show = !show"
                                         class="text-xs text-muted hover:text-text">
                                     <span x-show="!show">Anzeigen</span>
@@ -107,7 +107,7 @@
 
                     {{-- ---- Rolle: visuelle Card-Auswahl ---- --}}
                     <div>
-                        <label class="text-xs uppercase tracking-widest text-muted font-medium">Rolle *</label>
+                        <label class="text-sm font-medium text-text">Rolle *</label>
                         <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             @foreach($rollen as $r)
                                 @php

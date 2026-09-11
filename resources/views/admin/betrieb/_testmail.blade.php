@@ -1,6 +1,6 @@
 @php
     $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-    $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+    $label = 'text-sm font-medium text-text';
 @endphp
 <form method="POST" action="{{ route('admin.mail.test') }}" class="flex flex-wrap items-end gap-3"
       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

@@ -9,13 +9,13 @@
 
         @if($lernender)
             <div>
-                <span class="text-xs uppercase tracking-widest text-muted font-medium">Name</span>
+                <span class="text-sm font-medium text-text">Name</span>
                 <p class="mt-1 text-text">{{ $user->vorname }} {{ $user->nachname }}</p>
             </div>
         @else
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="vorname" class="text-xs uppercase tracking-widest text-muted font-medium">Vorname *</label>
+                    <label for="vorname" class="text-sm font-medium text-text">Vorname *</label>
                     <input id="vorname" name="vorname" type="text"
                            value="{{ old('vorname', $user->vorname) }}" required autocomplete="given-name"
                            class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
@@ -25,7 +25,7 @@
                     @enderror
                 </div>
                 <div>
-                    <label for="nachname" class="text-xs uppercase tracking-widest text-muted font-medium">Nachname *</label>
+                    <label for="nachname" class="text-sm font-medium text-text">Nachname *</label>
                     <input id="nachname" name="nachname" type="text"
                            value="{{ old('nachname', $user->nachname) }}" required autocomplete="family-name"
                            class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
@@ -38,7 +38,7 @@
         @endif
 
         <div>
-            <label for="email" class="text-xs uppercase tracking-widest text-muted font-medium">E-Mail *</label>
+            <label for="email" class="text-sm font-medium text-text">E-Mail *</label>
             <input id="email" name="email" type="email" x-model="email" required autocomplete="email"
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-note-ungenuegend! @enderror">
@@ -48,7 +48,7 @@
         </div>
 
         <div x-show="email !== original" x-cloak>
-            <label for="current_password" class="text-xs uppercase tracking-widest text-muted font-medium">Aktuelles Passwort *</label>
+            <label for="current_password" class="text-sm font-medium text-text">Aktuelles Passwort *</label>
             <input id="current_password" name="current_password" type="password" autocomplete="current-password"
                    class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
                           focus:ring-2 focus:ring-ring focus:border-ring @error('current_password') border-note-ungenuegend! @enderror">
@@ -60,7 +60,7 @@
         @if($lernender)
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label for="klasse_schule" class="text-xs uppercase tracking-widest text-muted font-medium">Klasse Berufsfachschule</label>
+                    <label for="klasse_schule" class="text-sm font-medium text-text">Klasse Berufsfachschule</label>
                     <input id="klasse_schule" name="klasse_schule" type="text" maxlength="30"
                            value="{{ old('klasse_schule', $lernender->klasse_schule) }}" placeholder="z. B. INF24b"
                            class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
@@ -71,7 +71,7 @@
                 </div>
                 @if($bmsAktiv)
                     <div>
-                        <label for="klasse_bms" class="text-xs uppercase tracking-widest text-muted font-medium">Klasse BMS</label>
+                        <label for="klasse_bms" class="text-sm font-medium text-text">Klasse BMS</label>
                         <input id="klasse_bms" name="klasse_bms" type="text" maxlength="30"
                                value="{{ old('klasse_bms', $lernender->klasse_bms) }}"
                                class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
@@ -85,7 +85,7 @@
         @endif
 
         <fieldset>
-            <legend class="text-xs uppercase tracking-widest text-muted font-medium">Darstellung</legend>
+            <legend class="text-sm font-medium text-text">Darstellung</legend>
             <div class="mt-2 grid grid-cols-3 gap-2">
                 @foreach(['system' => 'Wie Gerät', 'hell' => 'Hell', 'dunkel' => 'Dunkel'] as $wert => $label)
                     <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer

@@ -23,7 +23,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="vorname" class="text-xs uppercase tracking-widest text-muted font-medium">Vorname *</label>
+                            <label for="vorname" class="text-sm font-medium text-text">Vorname *</label>
                             <input type="text" name="vorname" id="vorname" value="{{ old('vorname', $user->vorname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-note-ungenuegend @enderror">
                             @error('vorname')
@@ -31,7 +31,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="nachname" class="text-xs uppercase tracking-widest text-muted font-medium">Nachname *</label>
+                            <label for="nachname" class="text-sm font-medium text-text">Nachname *</label>
                             <input type="text" name="nachname" id="nachname" value="{{ old('nachname', $user->nachname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-note-ungenuegend @enderror">
                             @error('nachname')
@@ -41,7 +41,7 @@
                     </div>
 
                     <div>
-                        <label for="email" class="text-xs uppercase tracking-widest text-muted font-medium">E-Mail *</label>
+                        <label for="email" class="text-sm font-medium text-text">E-Mail *</label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-note-ungenuegend @enderror">
                         @error('email')
@@ -50,7 +50,7 @@
                     </div>
 
                     <div>
-                        <label for="benutzername" class="text-xs uppercase tracking-widest text-muted font-medium">Benutzername *</label>
+                        <label for="benutzername" class="text-sm font-medium text-text">Benutzername *</label>
                         <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername', $user->benutzername) }}" required maxlength="50" pattern="[A-Za-z0-9._\-]+"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('benutzername') border-note-ungenuegend @enderror">
                         @error('benutzername')
@@ -59,7 +59,7 @@
                     </div>
 
                     <fieldset>
-                        <legend class="text-xs uppercase tracking-widest text-muted font-medium">Rollen *</legend>
+                        <legend class="text-sm font-medium text-text">Rollen *</legend>
                         <div class="mt-2 flex flex-wrap gap-2">
                             @foreach(['Admin', 'Berufsbildner'] as $rolle)
                                 <label class="inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10">
@@ -93,7 +93,7 @@
                          }">
                         <div>
                             <div class="flex items-center justify-between">
-                                <label for="passwort" class="text-xs uppercase tracking-widest text-muted font-medium">
+                                <label for="passwort" class="text-sm font-medium text-text">
                                     Neues Passwort
                                 </label>
                                 <div class="flex items-center gap-3">
@@ -116,7 +116,7 @@
                         </div>
 
                         <div>
-                            <label for="passwort_confirmation" class="text-xs uppercase tracking-widest text-muted font-medium">Passwort bestätigen</label>
+                            <label for="passwort_confirmation" class="text-sm font-medium text-text">Passwort bestätigen</label>
                             <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>

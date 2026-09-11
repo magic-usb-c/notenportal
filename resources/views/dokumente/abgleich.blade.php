@@ -20,7 +20,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="rounded-xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
                 <div>
-                    <label for="semester_id" class="block text-xs uppercase tracking-widest text-muted font-medium">Semester</label>
+                    <label for="semester_id" class="block text-sm font-medium text-text">Semester</label>
                     <select id="semester_id" name="semester_id" onchange="this.form.submit()"
                             class="mt-1 w-48 rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         <option value="">–</option>

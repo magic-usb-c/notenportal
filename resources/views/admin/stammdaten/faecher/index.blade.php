@@ -16,44 +16,44 @@
 
             <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-bg border-b border-border text-muted">
+                <table class="w-full text-sm tabular-nums">
+                    <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th class="px-4 py-3 text-left font-medium">Kürzel</th>
-                            <th class="px-4 py-3 text-left font-medium">Name</th>
-                            <th class="px-4 py-3 text-left font-medium">Kategorie</th>
-                            <th class="px-4 py-3 text-left font-medium">Track</th>
-                            <th class="px-4 py-3 text-left font-medium">Lehrberufe</th>
-                            <th class="px-4 py-3 text-left font-medium">Status</th>
-                            <th class="px-4 py-3"></th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Kürzel</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Kategorie</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Track</th>
+                            <th class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
+                            <th class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
+                            <th class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
                         @forelse($faecher as $f)
-                            <tr class="hover:bg-bg/50">
-                                <td class="px-4 py-3 font-mono font-semibold text-text">{{ $f->kurzname }}</td>
-                                <td class="px-4 py-3 text-text">{{ $f->name }}</td>
-                                <td class="px-4 py-3 text-muted">{{ $f->kategorie_name }}</td>
-                                <td class="px-4 py-3">
+                            <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
+                                <td class="px-4 font-mono font-semibold text-text">{{ $f->kurzname }}</td>
+                                <td class="px-4 text-text">{{ $f->name }}</td>
+                                <td class="px-4 text-muted">{{ $f->kategorie_name }}</td>
+                                <td class="px-4">
                                     @if($f->track_typ)
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-surface-2 text-text">
+                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-text">
                                             {{ $f->track_typ }}
                                         </span>
                                     @else
                                         <span class="text-xs text-muted">–</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-muted">{{ $f->lehrberuf_count }}</td>
-                                <td class="px-4 py-3">
+                                <td class="px-4 text-right text-muted">{{ $f->lehrberuf_count }}</td>
+                                <td class="px-4">
                                     @if($f->aktiv)
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-note-gut/14 text-note-gut">aktiv</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">aktiv</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-full text-xs bg-bg text-muted border border-border">inaktiv</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">inaktiv</span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3 text-right">
+                                <td class="px-4 text-right">
                                     <a href="{{ route('admin.master-data.subjects.edit', $f->fach_id) }}"
-                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Bearbeiten</a>
+                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">Bearbeiten</a>
                                 </td>
                             </tr>
                         @empty

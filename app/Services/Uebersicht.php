@@ -16,7 +16,10 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Zielrechner;
+use App\Services\Betrieb\Sicherung;
 use App\Support\Einstellungen;
+use App\Support\NotenSkala;
+use App\Support\Zahl;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -75,22 +78,80 @@ final class Uebersicht
             ->filter(fn ($m) => $m['empfohlen'] !== null && $m['empfohlen'] <= $lehrsemester && ! isset($a->elemente['m'.$m['id']]) && ! in_array($m['id'], $geplanteModule, true))
             ->values()->all();
 
+        $zuTun = $this->zuTunLernender($ueberfaellig, $ungeleseneKommentare, $notenMitNeuenKommentaren->first(), $fehlendeModule, $stand, $a);
+
         return [
             'stand' => $stand,
             'auswertung' => $a,
             'kategorien' => $kategorien,
             'ziele' => $this->zieleMitBedarf($l, $a),
-            'zuTun' => $this->zuTunLernender($ueberfaellig, $ungeleseneKommentare, $notenMitNeuenKommentaren->first(), $fehlendeModule, $stand, $a),
-            'naechste' => $naechste,
+            'zielGesamt' => $this->lernenderGesamtziel($l),
+            'alsNaechstes' => $this->lernenderAlsNaechstes($zuTun, $stand, $naechste, $heute),
             'verlauf' => $this->verlaufDiagramm($a, $semesterIds),
             'balken' => $this->balkenDiagramm($a, $stand->semesterId),
             'letzteNoten' => $l->noten()->with(['fach', 'modulBelegung.modul'])->latest('pruefungsdatum')->latest('note_id')->limit(4)->get(),
             'lehrzeit' => $this->lehrzeit($l),
-            'grenzen' => \App\Support\NotenSkala::grenzen(),
+            'grenzen' => NotenSkala::grenzen(),
         ];
     }
 
-    /** Berufsbildner: wo steht wer, und wo kippt es. */
+    /**
+     * «Als Nächstes»: Überfälliges und Gefährdetes oben, dann ungenügende Zeugnisnoten, Hinweise,
+     * geplante Prüfungen und zuletzt Module ohne Note.
+     *
+     * @param  list<array{text: string, detail: ?string, link: string, ton: string}>  $zuTun
+     * @return list<array{text: string, detail: ?string, link: string, ton: string, datum: ?Carbon, rechts: ?string}>
+     */
+    private function lernenderAlsNaechstes(array $zuTun, Lernstand $stand, Collection $naechste, Carbon $heute): array
+    {
+        $nach = fn (string ...$toene) => array_values(array_filter($zuTun, fn (array $t) => in_array($t['ton'], $toene, true)));
+
+        $ungenuegend = [];
+        if ($stand->ungenuegend) {
+            $anzahl = count($stand->ungenuegend);
+            $ungenuegend[] = [
+                'text' => $anzahl === 1 ? 'Ungenügend: '.$stand->ungenuegend[0]->label : $anzahl.' ungenügende Zeugnisnoten',
+                'detail' => $anzahl === 1
+                    ? 'Zeugnisnote '.NotenSkala::format($stand->ungenuegend[0]->note)
+                    : implode(', ', array_map(fn (Element $e) => $e->label, $stand->ungenuegend)),
+                'link' => route('learner.grades.index', ['semester_id' => $stand->semesterId]),
+                'ton' => 'rot',
+            ];
+        }
+
+        $termine = $naechste->map(function (Pruefung $p) use ($heute) {
+            $tage = (int) $heute->diffInDays($p->datum, false);
+
+            return [
+                'text' => $p->bezeichnung(),
+                'detail' => match (true) {
+                    $tage <= 0 => 'heute',
+                    $tage === 1 => 'morgen',
+                    default => 'in '.$tage.' Tagen',
+                },
+                'link' => route('learner.exams.index'),
+                'ton' => 'termin',
+                'datum' => $p->datum,
+                'rechts' => Zahl::prozent($p->gewichtung_prozent),
+            ];
+        })->all();
+
+        return array_map(
+            fn (array $t) => $t + ['datum' => null, 'rechts' => null],
+            [...$nach('gelb', 'rot'), ...$ungenuegend, ...$nach('accent'), ...$termine, ...$nach('neutral')],
+        );
+    }
+
+    /** Zielmarke im Bullet Graph: gesetztes Ziel für den Gesamtschnitt. */
+    private function lernenderGesamtziel(Lernender $l): ?float
+    {
+        $ziel = Ziel::query()->where('lernender_id', $l->lernender_id)->get()
+            ->first(fn (Ziel $z) => (string) $z->zielgroesse() === 'gesamt');
+
+        return $ziel ? (float) $ziel->zielwert : null;
+    }
+
+    /** Berufsbildner: wen muss ich heute anschauen? */
     public function berufsbildner(User $user): array
     {
         $lernende = Lernender::sichtbarFuer($user)
@@ -100,28 +161,23 @@ final class Uebersicht
         $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
         $staende = $this->lernstaende->fuer($ids);
         $neu = $this->ungeseheneNoten($ids, (int) $user->benutzer_id);
+        $pruefungen = Pruefung::query()->offen()->whereIn('lernender_id', $ids)->with(['fach', 'modul', 'lernender.benutzer'])
+            ->where('datum', '>=', now()->toDateString())->orderBy('datum')->get();
+        $naechstePruefung = $pruefungen->groupBy('lernender_id')->map->first();
 
         $zeilen = $lernende->map(fn (Lernender $l) => (object) [
             'lernender' => $l,
             'stand' => $staende[$l->lernender_id],
             'neu' => (int) ($neu[$l->lernender_id] ?? 0),
             'lehrjahr' => $l->lehrjahr(),
+            'naechstePruefung' => $naechstePruefung->get($l->lernender_id),
         ])->sortBy([fn ($a, $b) => $a->stand->rang() <=> $b->stand->rang(), fn ($a, $b) => strcoll($a->lernender->benutzer->nachname, $b->lernender->benutzer->nachname)])->values();
 
         return [
             'zeilen' => $zeilen,
-            'kennzahlen' => [
-                'lernende' => $zeilen->count(),
-                'neu' => $zeilen->sum('neu'),
-                'rot' => $zeilen->filter(fn ($z) => $z->stand->status === Lernstand::ROT)->count(),
-                'gelb' => $zeilen->filter(fn ($z) => $z->stand->status === Lernstand::GELB)->count(),
-            ],
-            'brennpunkte' => $this->brennpunkte($zeilen),
-            'vergleich' => $this->vergleichDiagramm($zeilen),
-            'pruefungen' => Pruefung::query()->offen()->whereIn('lernender_id', $ids)->with(['fach', 'modul', 'lernender.benutzer'])
-                ->whereBetween('datum', [now()->toDateString(), now()->addDays(14)->toDateString()])->orderBy('datum')->get(),
+            'aufmerksamkeit' => $this->bbAufmerksamkeit($zeilen),
+            'agenda' => $this->bbAgenda($pruefungen->filter(fn (Pruefung $p) => $p->datum->lte(now()->addDays(14)))->values()),
             'lehrende' => $this->lehrendeBald($lernende),
-            'grenzen' => \App\Support\NotenSkala::grenzen(),
         ];
     }
 
@@ -154,32 +210,86 @@ final class Uebersicht
             ];
         });
 
+        $feedbackOffen = DB::table('feedback')->where('status', 'offen')->count();
+        $einrichtung = $this->einrichtungsluecken(
+            $lernende->filter(fn (Lernender $l) => ! $l->lehrende || ! $l->lehrende->isPast())->pluck('lernender_id')->map(fn ($v) => (int) $v)->all(),
+            $betreuung
+        );
+        $kritisch = $lernende->filter(fn (Lernender $l) => $staende[$l->lernender_id]->status === Lernstand::ROT)
+            ->map(fn (Lernender $l) => (object) ['lernender' => $l, 'stand' => $staende[$l->lernender_id]])->values();
+
         return [
             'kennzahlen' => [
                 'lernende' => count($ids),
                 'berufsbildner' => $bbs->count(),
                 'noten_semester' => $aktuell ? DB::table('noten')->whereNull('geloescht_am')->where('semester_id', $aktuell)->count() : 0,
                 'semester' => $k->semesterName($aktuell),
-                'feedback' => DB::table('feedback')->where('status', 'offen')->count(),
+                'feedback' => $feedbackOffen,
                 'rot' => count(array_filter($staende, fn (Lernstand $s) => $s->status === Lernstand::ROT)),
                 'gelb' => count(array_filter($staende, fn (Lernstand $s) => $s->status === Lernstand::GELB)),
             ],
-            'einrichtung' => $this->einrichtungsluecken(
-                $lernende->filter(fn (Lernender $l) => ! $l->lehrende || ! $l->lehrende->isPast())->pluck('lernender_id')->map(fn ($v) => (int) $v)->all(),
-                $betreuung
-            ),
+            'handlungsbedarf' => $this->adminHandlungsbedarf($einrichtung, $kritisch, $feedbackOffen),
             'proBb' => $proBb,
             'aktivitaet' => $this->aktivitaet(),
-            'jahrgaenge' => $this->jahrgangsDiagramm($lernende, $staende),
             'lehrende' => $this->lehrendeBald($lernende),
-            'kritisch' => $lernende->filter(fn (Lernender $l) => $staende[$l->lernender_id]->status === Lernstand::ROT)
-                ->map(fn (Lernender $l) => (object) ['lernender' => $l, 'stand' => $staende[$l->lernender_id]])->values(),
-            'grenzen' => \App\Support\NotenSkala::grenzen(),
+            'grenzen' => NotenSkala::grenzen(),
         ];
     }
 
-    /** Lernenden-Detail für Admin und Berufsbildner. */
-    public function lernendenDetail(Lernender $l, string $bereich): array
+    /**
+     * Admin-Dashboard: eine Liste für allen Handlungsbedarf (Einrichtungslücken, Sicherung
+     * älter als 2 Tage, offene Feedback-Meldungen, kritische Lernende), statt vier Karten.
+     *
+     * @return list<array{text: string, meta: ?string, badge: ?int, note: ?float, ton: string, link: string}>
+     */
+    private function adminHandlungsbedarf(array $einrichtung, Collection $kritisch, int $feedbackOffen): array
+    {
+        $eintraege = [];
+
+        foreach ($einrichtung as $e) {
+            $eintraege[] = ['text' => $e['text'], 'meta' => null, 'badge' => $e['anzahl'], 'note' => null, 'ton' => 'gelb', 'link' => $e['link']];
+        }
+
+        $letzteSicherung = app(Sicherung::class)->letzte();
+        if (! $letzteSicherung || $letzteSicherung->lt(now()->subDays(2))) {
+            $tage = $letzteSicherung ? (int) $letzteSicherung->diffInDays(now()) : null;
+            $eintraege[] = [
+                'text' => $tage !== null ? 'Letzte Sicherung vor '.$tage.' Tagen' : 'Noch keine Sicherung erstellt',
+                'meta' => null,
+                'badge' => $tage,
+                'note' => null,
+                'ton' => $tage !== null ? 'gelb' : 'rot',
+                'link' => route('admin.operations.edit'),
+            ];
+        }
+
+        if ($feedbackOffen > 0) {
+            $eintraege[] = [
+                'text' => $feedbackOffen === 1 ? '1 offene Meldung' : $feedbackOffen.' offene Meldungen',
+                'meta' => null,
+                'badge' => $feedbackOffen,
+                'note' => null,
+                'ton' => 'accent',
+                'link' => route('admin.feedback.index'),
+            ];
+        }
+
+        foreach ($kritisch as $kr) {
+            $eintraege[] = [
+                'text' => $kr->lernender->benutzer->vorname.' '.$kr->lernender->benutzer->nachname,
+                'meta' => $kr->stand->gruende ? implode(' · ', array_slice($kr->stand->gruende, 0, 2)) : null,
+                'badge' => null,
+                'note' => $kr->stand->semesterNote,
+                'ton' => 'rot',
+                'link' => route('admin.learners.show', $kr->lernender->lernender_id),
+            ];
+        }
+
+        return $eintraege;
+    }
+
+    /** Lernenden-Detail (Cockpit) für Admin und Berufsbildner. */
+    public function lernendenDetail(Lernender $l, string $bereich, User $betrachter): array
     {
         $id = (int) $l->lernender_id;
         $stand = $this->lernstaende->fuer([$id])[$id];
@@ -189,9 +299,10 @@ final class Uebersicht
         return [
             'stand' => $stand,
             'heatmap' => $this->heatmap($a),
-            'verlauf' => $this->verlaufDiagramm($a, $a->semesterIds()),
             'ziele' => $this->zieleMitBedarf($l, $a, fn (string $ziel, float $wert) => route($bereich.'.learners.calculator', ['lernender_id' => $id, 'ziel' => $ziel, 'zielwert' => $wert])),
             'pruefungen' => $pruefungen,
+            'letzteNoten' => $l->noten()->with(['fach', 'modulBelegung.modul'])->latest('pruefungsdatum')->latest('note_id')->limit(6)->get(),
+            'neu' => $this->ungeseheneNoten([$id], (int) $betrachter->benutzer_id)[$id] ?? 0,
         ];
     }
 
@@ -269,7 +380,7 @@ final class Uebersicht
         }
         foreach ($stand->promotion as $p) {
             $kid = $p['kategorie_id'];
-            $liste[] =['text' => 'Promotion '.$p['kategorie'].' gefährdet', 'detail' => $a->konfiguration->semesterName($stand->semesterId),
+            $liste[] = ['text' => 'Promotion '.$p['kategorie'].' gefährdet', 'detail' => $a->konfiguration->semesterName($stand->semesterId),
                 'link' => route('learner.grades.calculator', ['ziel' => 'kategorie:'.$kid.'@semester:'.$stand->semesterId, 'zielwert' => $a->konfiguration->kategorien[$kid]['promotion_min_schnitt'] ?? $a->konfiguration->genuegend]),
                 'ton' => 'rot'];
         }
@@ -364,33 +475,33 @@ final class Uebersicht
             ->map(fn ($v) => (int) $v)->all();
     }
 
-    /** Einzelne Zeugnisnoten, die kippen: ungenügend oder deutlicher Rückgang. */
-    private function brennpunkte(Collection $zeilen): array
+    /**
+     * Lernende mit Status rot/gelb oder neuen Noten, mit den Gründen als Text.
+     *
+     * @return list<array{zeile: object, gruende: list<string>}>
+     */
+    private function bbAufmerksamkeit(Collection $zeilen): array
     {
-        $liste = [];
-        foreach ($zeilen as $z) {
-            foreach ($z->stand->ungenuegend as $e) {
-                $liste[] = ['zeile' => $z, 'label' => $e->label, 'note' => $e->note, 'vorher' => null];
-            }
-            foreach ($z->stand->einbrueche as $e) {
-                $liste[] = ['zeile' => $z, 'label' => $e['label'], 'note' => $e['nachher'], 'vorher' => $e['vorher']];
-            }
-        }
-        usort($liste, fn ($a, $b) => $a['note'] <=> $b['note']);
-
-        return array_slice($liste, 0, 8);
+        return $zeilen->filter(fn ($z) => $z->stand->status !== Lernstand::GRUEN || $z->neu > 0)
+            ->map(fn ($z) => ['zeile' => $z, 'gruende' => $this->bbGruende($z)])
+            ->values()->all();
     }
 
-    private function vergleichDiagramm(Collection $zeilen): array
+    /** @return list<string> */
+    private function bbGruende(object $z): array
     {
-        $sortiert = $zeilen->filter(fn ($z) => $z->stand->auswertung->gesamtNote !== null)
-            ->sortByDesc(fn ($z) => $z->stand->auswertung->gesamtNote)->values();
+        $gruende = $z->stand->gruende;
+        if ($z->neu > 0) {
+            $gruende[] = $z->neu === 1 ? '1 neue Note' : $z->neu.' neue Noten';
+        }
 
-        return [
-            'labels' => $sortiert->map(fn ($z) => $z->lernender->benutzer->vorname.' '.mb_substr($z->lernender->benutzer->nachname, 0, 1).'.')->all(),
-            'gesamt' => $sortiert->map(fn ($z) => $z->stand->auswertung->gesamtNote)->all(),
-            'semester' => $sortiert->map(fn ($z) => $z->stand->semesterNote)->all(),
-        ];
+        return $gruende;
+    }
+
+    /** Prüfungen der nächsten 14 Tage nach Tag gruppiert. @return Collection<string, Collection<int, Pruefung>> */
+    private function bbAgenda(Collection $pruefungen): Collection
+    {
+        return $pruefungen->groupBy(fn (Pruefung $p) => $p->datum->toDateString());
     }
 
     private function lehrendeBald(Collection $lernende): Collection

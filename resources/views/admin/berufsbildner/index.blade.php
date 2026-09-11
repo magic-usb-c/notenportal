@@ -22,14 +22,14 @@
                 {{-- Übersicht-Tabelle --}}
                 <div class="rounded-xl border border-border bg-card overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-text">
-                            <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
+                        <table class="w-full text-sm tabular-nums">
+                            <thead class="sticky top-0 z-10 bg-surface-2">
                                 <tr>
-                                    <th class="text-left p-3">Berufsbildner</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Lernende</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Ohne Noteneintrag</th>
-                                    <th class="text-center p-3 whitespace-nowrap">Ø &lt; 4.0</th>
-                                    <th class="text-right p-3">Aktionen</th>
+                                    <th class="h-9 px-3 text-left text-2xs font-medium text-muted">Berufsbildner</th>
+                                    <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Lernende</th>
+                                    <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Ohne Noteneintrag</th>
+                                    <th class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Ø &lt; 4.0</th>
+                                    <th class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
@@ -40,10 +40,10 @@
                                         $warnTiefAvg   = ($st?->tief_avg ?? 0) > 0;
                                     @endphp
                                     @php $bbInitials = strtoupper(mb_substr($bb->vorname ?? '', 0, 1) . mb_substr($bb->nachname ?? '', 0, 1)); @endphp
-                                    <tr class="even:bg-bg/30 hover:bg-accent/5 transition-colors duration-100">
-                                        <td class="p-3">
+                                    <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
+                                        <td class="px-3 text-left">
                                             <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                                <div class="w-8 h-8 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
                                                     {{ $bbInitials ?: '?' }}
                                                 </div>
                                                 <div class="min-w-0">
@@ -52,20 +52,20 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="p-3 text-center">
+                                        <td class="px-3 text-right">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
-                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold bg-bg hover:bg-accent hover:text-accent-contrast transition-colors">
+                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold bg-surface-2 hover:bg-accent hover:text-accent-contrast transition-colors">
                                                     {{ $st->lernende }}
                                                 </a>
                                             @else
                                                 <span class="text-muted">0</span>
                                             @endif
                                         </td>
-                                        <td class="p-3 text-center">
+                                        <td class="px-3 text-right">
                                             @if($warnOhneNoten)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
-                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
+                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
                                                           bg-note-knapp/14 text-note-knapp hover:opacity-80 transition-opacity">
                                                     {{ $st->ohne_noten }}
                                                 </a>
@@ -73,10 +73,10 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="p-3 text-center">
+                                        <td class="px-3 text-right">
                                             @if($warnTiefAvg)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
-                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-xl font-semibold
+                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
                                                           bg-note-ungenuegend/14 text-note-ungenuegend hover:opacity-80 transition-opacity">
                                                     {{ $st->tief_avg }}
                                                 </a>
@@ -84,14 +84,14 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="p-3 text-right">
-                                            <div class="flex items-center justify-end gap-2">
+                                        <td class="px-3 text-right">
+                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
-                                                   class="px-3 py-1.5 rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">
+                                                   class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2 whitespace-nowrap">
                                                     Lernende
                                                 </a>
                                                 <a href="{{ route('admin.users.edit', $bb->benutzer_id) }}"
-                                                   class="px-3 py-1.5 rounded-xl bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">
+                                                   class="px-3 py-1.5 rounded-lg bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">
                                                     Bearbeiten
                                                 </a>
                                             </div>
@@ -100,9 +100,6 @@
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
-                    <div class="px-4 py-2 border-t border-border text-xs text-muted">
-                        {{ $berufsbildner->count() }} Berufsbildner
                     </div>
                 </div>
 

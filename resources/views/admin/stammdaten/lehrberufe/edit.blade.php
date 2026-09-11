@@ -23,7 +23,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="kuerzel" class="text-xs uppercase tracking-widest text-muted font-medium">Kürzel *</label>
+                        <label for="kuerzel" class="text-sm font-medium text-text">Kürzel *</label>
                         <input type="text" id="kuerzel" name="kuerzel" value="{{ old('kuerzel', $lehrberuf->kuerzel) }}" required maxlength="10"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kuerzel') border-note-ungenuegend @enderror">
                         @error('kuerzel')
@@ -32,7 +32,7 @@
                     </div>
 
                     <div>
-                        <label for="name" class="text-xs uppercase tracking-widest text-muted font-medium">Bezeichnung *</label>
+                        <label for="name" class="text-sm font-medium text-text">Bezeichnung *</label>
                         <input type="text" id="name" name="name" value="{{ old('name', $lehrberuf->name) }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-note-ungenuegend @enderror">
                         @error('name')

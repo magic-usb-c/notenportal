@@ -1,6 +1,6 @@
 @php
     $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-    $label = 'text-xs uppercase tracking-widest text-muted font-medium';
+    $label = 'text-sm font-medium text-text';
     $wert = fn (string $k) => old($k, $werte[$k]);
 @endphp
 <div class="flex flex-col gap-6">

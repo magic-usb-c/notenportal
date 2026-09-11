@@ -57,7 +57,7 @@
                                     <div class="flex flex-wrap items-end gap-3">
                                         @if(count($a['frequencies']) > 1)
                                             <div>
-                                                <label for="frequency-{{ $type }}" class="text-xs uppercase tracking-widest text-muted font-medium">Standard-Frequenz</label>
+                                                <label for="frequency-{{ $type }}" class="text-sm font-medium text-text">Standard-Frequenz</label>
                                                 <select id="frequency-{{ $type }}" name="policies[{{ $type }}][frequency]" @disabled($a['locked'] ?? false) class="{{ $feld }}">
                                                     @foreach($a['frequencies'] as $f)
                                                         <option value="{{ $f }}" @selected($a['frequency'] === $f)>{{ \App\Services\Notifications\NotificationCatalog::FREQUENCIES[$f] }}</option>
@@ -67,7 +67,7 @@
                                         @endif
                                         @foreach($a['params'] as $name => $p)
                                             <div>
-                                                <label for="param-{{ $type }}-{{ $name }}" class="text-xs uppercase tracking-widest text-muted font-medium">{{ $p['label'] }}</label>
+                                                <label for="param-{{ $type }}-{{ $name }}" class="text-sm font-medium text-text">{{ $p['label'] }}</label>
                                                 <input id="param-{{ $type }}-{{ $name }}" type="number" name="policies[{{ $type }}][params][{{ $name }}]"
                                                        value="{{ old('policies.'.$type.'.params.'.$name, $a['paramWerte'][$name]) }}"
                                                        min="{{ $p['min'] }}" max="{{ $p['max'] }}" @disabled($a['locked'] ?? false) class="{{ $feld }} tabular-nums w-24">
