@@ -118,6 +118,22 @@ class SicherungKopieTest extends TestCase
     }
 
     #[Test]
+    public function aktion_testen_kopiert_nicht_ohne_aktion_kopiert_es(): void
+    {
+        Storage::disk('local')->put('sicherungen/notenportal-20260910-023000.zip', 'a');
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->put(route('admin.operations.offsite.update'), [SicherungKopie::ZIEL => 'ordner', SicherungKopie::PFAD => $this->ziel]);
+
+        $this->actingAs($admin)->post(route('admin.operations.offsite.run'), ['aktion' => 'testen'])
+            ->assertSessionHas('success', __('Verbindung zum Ziel funktioniert.'));
+        $this->assertFileDoesNotExist($this->ziel.'/notenportal-20260910-023000.zip', 'aktion=testen darf nicht kopieren');
+
+        $this->actingAs($admin)->post(route('admin.operations.offsite.run'))
+            ->assertSessionHas('success', __('Sicherungen kopiert.'));
+        $this->assertFileExists($this->ziel.'/notenportal-20260910-023000.zip', 'ohne aktion wird tatsächlich kopiert');
+    }
+
+    #[Test]
     public function erzeugt_ssh_schluessel_einmal(): void
     {
         $kopie = app(SicherungKopie::class);
