@@ -16,7 +16,9 @@
                 <div>@include('lernender.noten.partials.formular', $fehler['daten'])</div>
             </template>
         @endif
-        <div x-show="! server" x-html="html"></div>
+        {{-- Kein x-html: dessen Effekt merkte sich die Daten des eingefügten Formulars und setzte es bei
+             jeder Eingabe neu – die Felder blieben leer. Eingefügt wird direkt, Alpine initialisiert per Observer. --}}
+        <div x-show="! server" data-np-inhalt></div>
         <div x-show="laedt" x-cloak class="flex flex-col gap-4" aria-hidden="true">
             <div class="mx-auto h-20 w-36 rounded-xl bg-surface-2"></div>
             <div class="h-10 rounded-lg bg-surface-2"></div>
@@ -30,7 +32,6 @@
         return {
             titel: start.titel,
             server: start.server,
-            html: '',
             laedt: false,
             init() {
                 if (this.server) this.$nextTick(() => this.$dispatch('open-drawer', 'note'));
@@ -38,7 +39,7 @@
             async oeffnen(url, titel) {
                 this.titel = titel;
                 this.server = false;
-                this.html = '';
+                this.$root.querySelector('[data-np-inhalt]').innerHTML = '';
                 this.laedt = true;
                 this.$dispatch('open-drawer', 'note');
                 try {
@@ -47,7 +48,7 @@
                     // X-Requested-With: die Session merkt sich den Fragment-Abruf nicht als «vorherige URL»
                     const res = await fetch(ziel, { headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' } });
                     if (!res.ok || res.redirected) throw new Error(res.status);
-                    this.html = await res.text();
+                    this.$root.querySelector('[data-np-inhalt]').innerHTML = await res.text();
                     this.$nextTick(() => this.$root.querySelector('#note_wert')?.focus());
                 } catch (e) {
                     window.location.href = url;
