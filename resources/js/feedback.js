@@ -20,6 +20,17 @@ function merkeFehler(text) {
 window.addEventListener('error', (e) => merkeFehler(`${e.message ?? 'Fehler'} (${e.filename ?? '?'}:${e.lineno ?? '?'})`));
 window.addEventListener('unhandledrejection', (e) => merkeFehler('Promise: ' + (e.reason?.message ?? e.reason ?? 'unbekannt')));
 
+// Alpine-Attribute (@click, :class, x-on:…) sind keine gültigen XML-Namen: Die Kopie wird als SVG
+// gerendert, das sich mit ihnen nicht dekodieren lässt – der Screenshot war dann nur Hintergrundfarbe.
+function entferneAlpineAttribute(wurzel) {
+    if (wurzel.nodeType !== 1) return;
+    for (const el of [wurzel, ...wurzel.querySelectorAll('*')]) {
+        for (const a of [...el.attributes]) {
+            if (!/^[A-Za-z_][\w.-]*$/.test(a.name)) el.removeAttribute(a.name);
+        }
+    }
+}
+
 /**
  * Screenshot des Hauptinhalts (nicht Navigation/Modal, die liegen ausserhalb von <main>).
  * Passwortfelder werden vor der Aufnahme ausgeblendet. Verkleinert auf max. 1600 px Breite,
@@ -41,7 +52,13 @@ async function erstelleScreenshot() {
         type: 'image/jpeg',
         backgroundColor: getComputedStyle(document.body).backgroundColor || '#ffffff',
         filter: (node) => !(node instanceof HTMLInputElement && node.type === 'password'),
+        onCloneNode: entferneAlpineAttribute,
     };
+
+    // Einblend-Animationen (np-fade, opacity 0 → 1) starten in der Kopie neu bei Bild 0.
+    const stopp = document.createElement('style');
+    stopp.textContent = '*,*::before,*::after{animation:none!important;transition:none!important}';
+    document.head.appendChild(stopp);
 
     try {
         let blob = await domToBlob(wurzel, optionen);
@@ -54,6 +71,8 @@ async function erstelleScreenshot() {
         return blob;
     } catch {
         return null;
+    } finally {
+        stopp.remove();
     }
 }
 
