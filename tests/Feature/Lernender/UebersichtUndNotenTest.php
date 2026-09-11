@@ -63,6 +63,24 @@ class UebersichtUndNotenTest extends TestCase
     }
 
     #[Test]
+    public function dashboard_bietet_tabellenalternative_fuer_wo_stehe_ich_und_verlauf(): void
+    {
+        $this->note('5.0');
+
+        $response = $this->get(route('learner.dashboard'))->assertOk();
+
+        $response->assertSee('<table', false)
+            ->assertSee('<caption', false)
+            ->assertSee('scope="col"', false)
+            ->assertSee('scope="row"', false);
+
+        $response->assertSeeInOrder([
+            'Wo stehe ich', 'Als Tabelle', 'Aufträge durchführen', '5.0',
+            'Verlauf', 'Als Tabelle', 'Semesterschnitt',
+        ], false);
+    }
+
+    #[Test]
     public function ungenuegende_zeugnisnote_steht_unter_als_naechstes(): void
     {
         $this->note('3.0');

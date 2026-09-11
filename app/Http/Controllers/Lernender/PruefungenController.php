@@ -104,9 +104,9 @@ class PruefungenController extends Controller
         ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
         [$typ, $id] = explode(':', $daten['bezug']);
         try {
-            $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id);
-        } catch (ValidationException) {
-            throw ValidationException::withMessages(['bezug' => __('Dieses Fach oder Modul ist nicht verfügbar.')]);
+            $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id, $event->starts_at);
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages(['bezug' => $this->bezugFehler($e, $typ)]);
         }
 
         $info = $this->parser->parse($event->summary, $event->description);
@@ -130,6 +130,15 @@ class PruefungenController extends Controller
         return redirect()->route('learner.exams.index')->with('success', __('Prüfung übernommen.'));
     }
 
+    /** Track-/Datumsmeldung aus kategorieFuer durchreichen (z. B. «Track BMS war am … nicht aktiv»), sonst allgemein. */
+    private function bezugFehler(ValidationException $e, string $typ): string
+    {
+        $m = collect($e->errors())->flatten()->first();
+
+        return $typ === 'fach' && $m !== __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')
+            ? $m : __('Dieses Fach oder Modul ist nicht verfügbar.');
+    }
+
     /** @return array<string, mixed> */
     private function validiere(Request $request, Lernender $lernender): array
     {
@@ -148,9 +157,9 @@ class PruefungenController extends Controller
 
         [$typ, $id] = explode(':', $daten['bezug']);
         try {
-            $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id);
-        } catch (ValidationException) {
-            throw ValidationException::withMessages(['bezug' => __('Dieses Fach oder Modul ist nicht verfügbar.')]);
+            $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id, CarbonImmutable::parse($daten['datum']));
+        } catch (ValidationException $e) {
+            throw ValidationException::withMessages(['bezug' => $this->bezugFehler($e, $typ)]);
         }
 
         return [

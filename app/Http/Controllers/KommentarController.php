@@ -50,13 +50,14 @@ class KommentarController extends Controller
     private function benachrichtigen(Note $note, string $text, \App\Models\User $autor): void
     {
         if ($autor->lernender) {
+            $zielUrl = route('trainer.learners.show', $note->lernender_id);
             foreach (Empfaenger::aktiveBetreuer((int) $note->lernender_id) as $betreuer) {
-                Notifier::send($betreuer, NotificationCatalog::COMMENT_ADDED, CommentAdded::content(
-                    $note, $text, $autor, route('trainer.learners.show', $note->lernender_id)
+                Notifier::send($betreuer, NotificationCatalog::COMMENT_ADDED, fn () => CommentAdded::content(
+                    $note, $text, $autor, $zielUrl
                 ));
             }
         } elseif ($note->lernender?->benutzer) {
-            Notifier::send($note->lernender->benutzer, NotificationCatalog::COMMENT_ADDED, CommentAdded::content(
+            Notifier::send($note->lernender->benutzer, NotificationCatalog::COMMENT_ADDED, fn () => CommentAdded::content(
                 $note, $text, $autor, route('learner.grades.index', ['_open' => $note->note_id])
             ));
         }

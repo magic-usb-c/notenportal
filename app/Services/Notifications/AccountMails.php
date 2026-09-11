@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Password;
  * Mails rund um Konten: Eröffnung und Admin-Reset. Nutzt den Broker «invites»
  * (config/auth.php), gültig 7 Tage – im Gegensatz zum kurzlebigen «Passwort
  * vergessen»-Link (Broker «users», siehe User::sendPasswordResetNotification).
+ * Inhalt als Closure: subject/title/facts sind hier (noch) nicht via __() übersetzt,
+ * aber Notifier soll den Inhalt trotzdem einheitlich erst pro Empfänger bauen.
  */
 final class AccountMails
 {
@@ -19,7 +21,7 @@ final class AccountMails
     {
         $token = Password::broker('invites')->createToken($user);
 
-        Notifier::dispatch($user, NotificationCatalog::ACCOUNT_CREATED, new MailContent(
+        Notifier::dispatch($user, NotificationCatalog::ACCOUNT_CREATED, fn () => new MailContent(
             subject: 'Dein Konto im Notenportal',
             title: 'Dein Konto im Notenportal',
             lines: ['Für dich wurde ein Konto im Notenportal eingerichtet.'],
@@ -37,7 +39,7 @@ final class AccountMails
     {
         $token = Password::broker('invites')->createToken($user);
 
-        Notifier::dispatch($user, NotificationCatalog::PASSWORD_RESET, new MailContent(
+        Notifier::dispatch($user, NotificationCatalog::PASSWORD_RESET, fn () => new MailContent(
             subject: 'Dein Passwort wurde zurückgesetzt',
             title: 'Dein Passwort wurde zurückgesetzt',
             lines: ['Dein Passwort wurde zurückgesetzt.'],

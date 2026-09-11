@@ -45,7 +45,7 @@ class PasswortWechselController extends Controller
         ]);
         $request->session()->regenerate();
 
-        Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, new MailContent(
+        Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, fn () => new MailContent(
             subject: 'Dein Passwort wurde geändert',
             title: 'Dein Passwort wurde geändert',
             facts: ['Zeitpunkt' => now()->format('d.m.Y H:i')],

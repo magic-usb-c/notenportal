@@ -22,6 +22,7 @@ use App\Services\Notifications\Messages\SemesterClosed;
 use App\Services\Notifications\Messages\SemesterEnding;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use Closure;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -65,7 +66,8 @@ class CheckNotifications extends Command
             ->get();
     }
 
-    private function melden(User $empfaenger, string $type, string $key, MailContent $inhalt, string $log): void
+    /** @param  MailContent|Closure(): MailContent  $inhalt */
+    private function melden(User $empfaenger, string $type, string $key, MailContent|Closure $inhalt, string $log): void
     {
         if ($this->dryRun) {
             $this->line('[dry-run] '.$log.' → '.$empfaenger->email);
@@ -99,7 +101,7 @@ class CheckNotifications extends Command
 
             $this->melden(
                 $benutzer, NotificationCatalog::EXAM_REMINDER, 'pruefung:'.$p->pruefung_id,
-                ExamReminder::content($p), 'Prüfung '.$p->bezeichnung().' am '.$p->datum->format('d.m.Y')
+                fn () => ExamReminder::content($p), 'Prüfung '.$p->bezeichnung().' am '.$p->datum->format('d.m.Y')
             );
         }
     }
@@ -136,7 +138,7 @@ class CheckNotifications extends Command
 
             $this->melden(
                 $l->benutzer, NotificationCatalog::INACTIVITY, 'inaktiv:'.$l->lernender_id.':'.$periode,
-                Inactivity::content($l, $tageSeit), 'Inaktivität '.$tageSeit.' Tage ('.$l->benutzer->email.')'
+                fn () => Inactivity::content($l, $tageSeit), 'Inaktivität '.$tageSeit.' Tage ('.$l->benutzer->email.')'
             );
         }
     }
@@ -176,7 +178,7 @@ class CheckNotifications extends Command
 
                 $this->melden(
                     $l->benutzer, NotificationCatalog::SEMESTER_ENDING, 'semester_ending:'.$semesterEintrag->semester_id.':'.$l->lernender_id,
-                    SemesterEnding::content($semesterEintrag, $offenePruefungen, $offeneModule),
+                    fn () => SemesterEnding::content($semesterEintrag, $offenePruefungen, $offeneModule),
                     'Semesterende '.$semesterEintrag->bezeichnung.' ('.$l->benutzer->email.')'
                 );
             }
@@ -209,7 +211,7 @@ class CheckNotifications extends Command
 
                 $this->melden(
                     $l->benutzer, NotificationCatalog::SEMESTER_CLOSED, 'semester:'.$semesterEintrag->semester_id,
-                    SemesterClosed::lernender($semesterEintrag, $a),
+                    fn () => SemesterClosed::lernender($semesterEintrag, $a),
                     'Semesterabschluss '.$semesterEintrag->bezeichnung.' ('.$l->benutzer->email.')'
                 );
 
@@ -225,7 +227,7 @@ class CheckNotifications extends Command
             foreach ($betreuerZeilen as $eintrag) {
                 $this->melden(
                     $eintrag['user'], NotificationCatalog::SEMESTER_CLOSED, 'semester:'.$semesterEintrag->semester_id,
-                    SemesterClosed::betreuer($semesterEintrag, $eintrag['zeilen']),
+                    fn () => SemesterClosed::betreuer($semesterEintrag, $eintrag['zeilen']),
                     'Semesterabschluss '.$semesterEintrag->bezeichnung.' – Betreuer ('.$eintrag['user']->email.')'
                 );
             }
@@ -258,7 +260,7 @@ class CheckNotifications extends Command
             foreach (Empfaenger::aktiveBetreuer((int) $l->lernender_id) as $betreuerUser) {
                 $this->melden(
                     $betreuerUser, NotificationCatalog::LEARNER_AT_RISK, $schluessel,
-                    LearnerAtRisk::content($l, $stand->gruende),
+                    fn () => LearnerAtRisk::content($l, $stand->gruende),
                     'Lernstand kritisch '.$l->benutzer->email.' ('.$betreuerUser->email.')'
                 );
             }

@@ -40,8 +40,8 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - **[niedrig] Admin-Formular-Labels** weichen vom CLAUDE.md-Label-Standard ab (`text-sm font-medium text-muted` statt uppercase/tracking) — rein kosmetisch, grosser Diff; bei nächstem Admin-Redesign mitnehmen.
 - **[niedrig] Lichtkanten-Insets im Light-Mode wirkungslos** (weisse 1px-Inset auf weissem Panel) — totes Tuning, kein visueller Schaden. Fix-Idee: Highlight-Farbe als Variable (hell: 15 23 42 / 0.05).
 - **[niedrig] Glow-Alphas themen-unabhängig** (np-glow-yellow hell unsichtbar, red/green hell verwaschen) — Fix-Idee: --glow-scale-Variable (hell 0.6).
-- **[niedrig] BenutzerController::update speichert vor zweiter Validierung** — Teil-Update bei Fehler im Lernenden-Teil. Fix: Regel-Sets zu einem validate() zusammenführen + DB::transaction.
-- **[mittel] markAlleGesehen markiert ALLE Noten, auch ausserhalb des aktiven Filters** — Button ist jetzt klar beschriftet («Alle N als gesehen markieren»), echte Filter-Einschränkung wäre Folgearbeit (Filter-Parameter im Form mitschicken).
+- ~~**[niedrig] BenutzerController::update speichert vor zweiter Validierung**~~ erledigt (12.09.): bereits ein einziges `validate()` + `DB::transaction` in `Admin\BenutzerController::update` und `Verwaltung\LernendeController::update`; Tests `BenutzerControllerTest::ungueltige_eingabe_speichert_nichts` und `AnlegenUndBearbeitenTest::ungueltiges_bearbeiten_speichert_nichts` grün.
+- ~~**[mittel] markAlleGesehen markiert ALLE Noten, auch ausserhalb des aktiven Filters**~~ erledigt (12.09.): Filter (`kategorie_id`/`semester_id`) wird im Formular mitgeschickt und serverseitig über `NotenGesehenController::gefilterteNoten()` angewendet (geteilt mit dem Zähler in `LernendeNotenController::index`); Test `AlleGesehenTest::markiert_nur_noten_im_aktiven_filter` grün.
 - **[niedrig] BB-Soft-Delete-Inkonsistenz** (Berufsbildner-Model ohne SoftDeletes trotz geloescht_am-Spalte) — adversarial geprüft: kein erreichbarer Exploit-Pfad (kein Code setzt die Spalte). Defense-in-Depth-Kandidat.
 
 ## Qualitätsblock Notenlogik & Dashboards (10.09.2026) – bewusst weggelassen
@@ -78,7 +78,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## E-Mail, Agenda-Backend, Go-Live, echte Daten (11.09.2026) – bewusst weggelassen
 
-- **Tracks nach Datum der Note**: `NoteService::erlaubteFaecher` gibt Fächer nach den heute aktiven Tracks frei. Wer die BM verlassen hat, kann alte BM-Zeugnisnoten nicht übernehmen. Richtig wäre: Track gültig am Prüfungsdatum. Eingriff in den Rechenkern → eigener Block mit Tests.
+- ~~**Tracks nach Datum der Note**: `NoteService::erlaubteFaecher` gibt Fächer nach den heute aktiven Tracks frei. Wer die BM verlassen hat, kann alte BM-Zeugnisnoten nicht übernehmen. Richtig wäre: Track gültig am Prüfungsdatum. Eingriff in den Rechenkern → eigener Block mit Tests.~~ erledigt (12.09.): `erlaubteFaecher(…, ?$stichtag)` (Standard heute, Rechner unverändert); Auswahllisten zeigen Fächer aller bisherigen Tracks (`auswahlFaecher`), Speichern/Bearbeiten/Import/Agenda prüfen den Track am Prüfungsdatum mit klarer Meldung; Import-Vorschau markiert «Track am Datum nicht aktiv». Tests: `TrackNachDatumTest`.
 - **Schulnetz-«Zeugnisnoten» im Notenimport ohne Datum**: das PDF enthält nur Semesterspalten; das Datum wird in der Vorschau gesetzt. Automatisch aus dem Semesterende ableiten wäre möglich, falsch zugeordnete Semester wären aber schwer zu sehen.
 - **Scans ohne Text** (siehe OCR oben) und **Ø-Spalte ohne Tabulator** im Zeugnis: nicht zuverlässig von einer Semesternote zu trennen.
 - **S3/WebDAV als Kopie-Ziel**: siehe Datensicherung.
@@ -93,7 +93,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 ## Sprache (11.09.2026) – bewusst weggelassen
 
 - **Klassen, Methoden, Variablen, Views, DB-Tabellen auf Englisch**: Pflichtteil (Routennamen und URL-Pfade) ist umgesetzt, mit 301 von den alten Pfaden (`App\Support\LegacyPaths`). Der Rest berührt ~400 Dateien und das DB-Schema (Tabellen `benutzer`, `lernende`, `noten` … mit Fremdschlüsseln); für den Go-Live am 30.09. zu riskant. Vorgehen danach: pro Bereich ein Workflow mit Haiku-Agents (Umbenennen) und Tests als Netz, DB zuletzt mit Dump/Tag und Views/Aliassen.
-- **Sprachdateien und Umschaltung Deutsch/Englisch pro Benutzer**: alle Texte stehen direkt in den Views; Auslagern nach `lang/` lohnt sich erst, wenn eine zweite Sprache wirklich gebraucht wird. Die Oberfläche bleibt Deutsch.
+- ~~**Sprachdateien und Umschaltung Deutsch/Englisch pro Benutzer**~~ überholt: Gerüst umgesetzt am 12.09. (siehe «Sprache DE/EN» unten, `docs/i18n-plan.md`).
 
 ## Agenda, Feedback, Themes (11.09.2026)
 
@@ -107,7 +107,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 ## Paket 3 – Lernende (11.09.2026) – bewusst weggelassen
 
 - ~~Drawer für «+ Note» nur auf `/grades`; auf der Übersicht führt «+ Note» noch auf die Seite `grades/create`.~~ erledigt (11.09., Reste-Session): `NoteService::drawerNachFehler()` + neue Komponente `<x-noten-drawer>` extrahiert, Dashboard (`dashboards/lernender.blade.php`) nutzt jetzt denselben Drawer wie `/grades`.
-- Kein «Als Tabelle»-Umschalter für die Diagramme «Wo stehe ich» und «Verlauf» (Screenreader bekommen nur `aria-label`/Tooltip).
+- ~~Kein «Als Tabelle»-Umschalter für die Diagramme «Wo stehe ich» und «Verlauf» (Screenreader bekommen nur `aria-label`/Tooltip).~~ erledigt (12.09.): `<details>`-Tabellenalternative (gleiches Muster wie `<x-diagramm>`) unter beiden Diagrammen ergänzt, serverseitig aus denselben Daten gerendert (`resources/views/dashboards/lernender.blade.php`); Test `UebersichtUndNotenTest::dashboard_bietet_tabellenalternative_fuer_wo_stehe_ich_und_verlauf`.
 - ~~Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.~~ erledigt (11.09., Reste-Session): `x-radiogroup`-Direktive in `np.js` (Roving Tabindex + Pfeiltasten), angewendet auf alle `role="radiogroup"`-Container in `resources/views` (native `<input type="radio">` in `notifications/settings.blade.php` bewusst unverändert, dort bereits nativ bedienbar).
 - ~~`np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).~~ erledigt (11.09., Reste-Session): `TEXT`-Map auf `text-note-*`-Tokens umgestellt.
 - Bullet Graph beschriftet nur Grenzwerte (3.5/4.0/5.0), keine Bandnamen; lange Fach-/Modulnamen in «Wo stehe ich» mobil auf 16 Zeichen gekürzt (voll im Tooltip).
@@ -133,7 +133,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - Erledigt (Reste-Session, 11.09.): letzter verbliebener Nutzer des Alias (`layouts/guest.blade.php`) auf Tokens umgestellt; `@utility glass` danach ohne Nutzer und aus `resources/css/app.css` entfernt (`glass-overlay`/`glass-bar`/`glass-scrim`/`glass-btn` bleiben bestehen).
 - Test: `tests/Feature/Admin/DashboardTest.php` neu (Statuszeile/Handlungsbedarf, Sicherung-Alter-Hinweis) – zusammen mit dem restlichen Admin/Verwaltung-Testset grün (67 bzw. 45 Tests via `DB_DATABASE=notenportal_d_test`).
 - Bug gefunden und behoben (nicht Teil der eigentlichen Aufgabe, aber blockierend): `admin/benutzer/index.blade.php` mischte die Inline-Form `@php(...)` mit einer späteren Block-Form `@php … @endphp` im selben Template – Blade paart beim Kompilieren den *ersten* `@php` unabhängig von seiner Form mit dem *nächsten* `@endphp` und verschluckte dadurch den kompletten Abschnitt dazwischen (Filterleiste, Tabelle) als unkompilierten Rohblock, was zu einem 500er auf `/admin/users` führte. Fix: Zeile auf reines `<?php … ?>` umgestellt; nur diese eine Zeile geändert, keine Alt-Logik berührt.
-- Bewusst weggelassen: Migration der Karte «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard in den Notenbericht (`admin/berichte/noten`) – laut Vorgabe darf die Diagramm-Logik dort nicht angefasst werden; die Karte wurde nur aus dem Dashboard entfernt, eine gleichwertige Darstellung im Notenbericht steht noch aus (nächstes Paket).
+- ~~Bewusst weggelassen: Migration der Karte «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard in den Notenbericht (`admin/berichte/noten`).~~ erledigt (12.09.): kompakte Karte in `admin/berichte/noten.blade.php` (Tabelle Lehrjahr/Ø/Lernende), `Bericht::nachLehrjahr()` gruppiert die bereits vorhandenen `gesamt`-Werte aus dem Rechenkern nach `Lernender::lehrjahr()`; Test `BerichtTest::gesamtschnitt_nach_lehrjahr_gruppiert_und_zaehlt_lernende`.
 - Keine «Vorher»-Screenshots erstellt (wie schon in Paket 4); nur «Nachher» (hell/dunkel/mobil) unter `~/tools/out/paket5/`.
 
 ## Sichtprüfung Pakete 3–5 (11.09.2026)
@@ -141,7 +141,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - ~~Admin «Erfasste Noten pro Woche»: KW-Beschriftungen schräg; laut Konzept jede 4. KW beschriften, nicht schräg (`charts.js`).~~ erledigt (Reste-Session): `maxRotation`/`minRotation` 0, Tick-`callback` beschriftet nur jede 4. KW (von rechts gezählt).
 - ~~`/admin/learners` mobil: jede Karte hat einen gefüllten «Noten»-Button → mehrere Primäraktionen; «Noten» sekundär oder Zeilenklick.~~ erledigt (Reste-Session): «Noten»-Link auf sekundären Stil (Rahmen statt `bg-accent`) umgestellt, «Profil» bleibt einzige Primäraktion.
 - ~~Lernenden-Verlauf: Direktlabels kürzerer Reihen («ÜK», «ABU») stehen auf der Linie am Reihenende statt rechts neben der Grafik.~~ erledigt (Reste-Session): `direktlabelPlugin` verankert die X-Position jetzt immer am rechten Plot-Rand (`chartArea.right + 6`) statt am eigenen letzten Datenpunkt der Reihe.
-- «Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard entfernt, im Notenbericht noch nicht ergänzt.
+- ~~«Gesamtschnitt nach Lehrjahr» vom Admin-Dashboard entfernt, im Notenbericht noch nicht ergänzt.~~ erledigt (12.09.), siehe Paket 5 oben.
 
 ## Nachbesserungen Sichtprüfung Paket 5 (11.09.2026, Reste-Session)
 
@@ -154,7 +154,7 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 ## Sprache DE/EN (12.09.2026, Gerüst fertig, Sprachwahl aus)
 
 - Vor dem Einschalten von `sprachwahl_aktiv`: englische Texte von einem Menschen gegenlesen lassen (`lang/en.json`, `lang/areas/*/en.json`).
-- Mails mit vorgebautem `MailContent` gehen in der Sprache des Auslösers statt des Empfängers: `KommentarController`, `Lernender/NotenController`, `NotenImportController`, `FeedbackController`, `Verwaltung/{NotenGesehen,Betreuung,LernendeNoten}Controller`, `Admin/{Feedback,MailSettings}Controller`, `Auth/{NewPassword,PasswortWechsel,Password}Controller`, `CheckNotifications`, `SicherungErstellen`, `GradeWatcher`, `AccountMails` → Inhalt erst im `Notifier` pro Empfänger bauen.
+- ~~Mails mit vorgebautem `MailContent` gehen in der Sprache des Auslösers statt des Empfängers: `KommentarController`, `Lernender/NotenController`, `NotenImportController`, `FeedbackController`, `Verwaltung/{NotenGesehen,Betreuung,LernendeNoten}Controller`, `Admin/{Feedback,MailSettings}Controller`, `Auth/{NewPassword,PasswortWechsel,Password}Controller`, `CheckNotifications`, `SicherungErstellen`, `GradeWatcher`, `AccountMails` → Inhalt erst im `Notifier` pro Empfänger bauen.~~ erledigt (12.09.): alle Aufrufe geben den Inhalt als Closure an `Notifier::send`/`dispatch`, `CheckNotifications::melden()` nimmt jetzt `MailContent|Closure`. `AccountMails` und `Auth/{NewPassword,PasswortWechsel,Password}Controller` bauen ihren Text weiterhin ohne `__()` (fest Deutsch) – Closure-Form vorbereitet, aber noch nicht wirklich mehrsprachig; `Admin/MailSettingsController::test()` unverändert, da der Test-Empfänger kein `User` mit eigener Locale ist.
 - Übersetzungen sind portalweit flach (ein Wert pro deutschem Schlüssel, 26 Kollisionen beim Zusammenführen nach Glossar vereinheitlicht). Mehrdeutige Wörter («Semester», «Berufsbildner», «Fehler») bei Bedarf mit Kontext-Schlüsseln lösen.
 - `Dokument::ARTEN`-Labels und die Info-Texte der Einrichtungsschritte (`Einrichtung`-Stand) sind noch unübersetzt.
 - Pint-Altlasten ausserhalb der i18n-Änderungen: `KommentarController` (Imports, FQCN), `routes/web.php` (`Route::fallback`).

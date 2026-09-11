@@ -10,6 +10,7 @@
             $lehrzeit['tage'] > 0 ? __('noch :tage Tage', ['tage' => $lehrzeit['tage']]) : __('Lehrzeit abgeschlossen'),
         ])) : null;
         $anzahlBalken = max(count($balken['semester']['labels']), count($balken['lehrzeit']['labels']));
+        $balkenModus = count($balken['semester']['labels']) ? 'semester' : 'lehrzeit';
         $desktop = "window.matchMedia('(min-width: 1024px)').matches";
     @endphp
     <x-slot name="header">
@@ -126,6 +127,31 @@
                          x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
                         <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
                     </div>
+                    <details class="group np-details mt-3 border-t border-border pt-2">
+                        <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                            <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
+                            {{ __('Als Tabelle') }}
+                        </summary>
+                        <div class="overflow-x-auto pb-2 pt-1">
+                            <table class="w-full text-sm tabular-nums">
+                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
+                                <thead class="text-2xs text-muted">
+                                    <tr>
+                                        <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="py-1.5 text-right font-medium">{{ __('Note') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
+                                        <tr class="border-t border-border">
+                                            <td class="py-1.5 pr-3 text-text">{{ $label }}</td>
+                                            <td class="py-1.5 text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
                 </x-karte>
             @endif
 
@@ -195,6 +221,35 @@
                                 : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
                             <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
                         </div>
+                        <details class="group np-details mt-3 border-t border-border pt-2">
+                            <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                                <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
+                                {{ __('Als Tabelle') }}
+                            </summary>
+                            <div class="overflow-x-auto pb-2 pt-1">
+                                <table class="w-full text-sm tabular-nums">
+                                    <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
+                                    <thead class="text-2xs text-muted">
+                                        <tr>
+                                            <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Semester') }}</th>
+                                            @foreach($verlauf['serien'] as $s)
+                                                <th scope="col" class="py-1.5 pl-3 text-right font-medium">{{ $s['name'] }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($verlauf['labels'] as $i => $label)
+                                            <tr class="border-t border-border">
+                                                <th scope="row" class="py-1.5 pr-3 text-left font-normal text-text">{{ $label }}</th>
+                                                @foreach($verlauf['serien'] as $s)
+                                                    <td class="py-1.5 pl-3 text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
                     </div>
                 </details>
             @endif

@@ -8,8 +8,10 @@ use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Models\Semester;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -28,7 +30,8 @@ use Illuminate\Validation\ValidationException;
  *   - findet offene Belegung (end_datum IS NULL) oder erstellt sie automatisch
  * - semester_id wird immer automatisch via pruefungsdatum ermittelt
  * - gewichtung_prozent: wenn leer -> Default 100.00
- * - Fächer-Auswahl (faecher) ist abhängig von lernender_tracks (aktive Tracks)
+ * - Fächer-Auswahl (faecher): Fächer aller bisherigen Tracks (lernender_tracks); gespeichert wird ein
+ *   Track-Fach nur, wenn der Track am Prüfungsdatum gültig war (kategorieFuer mit Stichtag)
  */
 class NoteService
 {
@@ -67,13 +70,14 @@ class NoteService
      * - Modul-Auswahl ist eine Modul-Liste (module), NICHT modul_belegungen.
      * - Gruppen lassen wir für Lernende vorerst raus (gruppe_id bleibt null),
      *   weil Gruppen an Belegungen hängen und Belegungen "unsichtbar" sein sollen.
-     * - Fächer werden anhand der aktiven Tracks (lernender_tracks) gefiltert.
+     * - Fächer: alle bisherigen Tracks (auch beendete, z.B. alte BM-Noten); die Gültigkeit am
+     *   Prüfungsdatum prüft erst das Speichern (normalizeForSave → kategorieFuer).
      */
     public function formOptionsForLernender(int $lernenderId): array
     {
         $kategorien = Kategorie::query()->where('aktiv', 1)->orderBy('sortierung')->get();
 
-        $faecher = $this->erlaubteFaecher($lernenderId)->with('kategorie')->orderBy('name')->get();
+        $faecher = $this->auswahlFaecher($lernenderId)->with('kategorie')->orderBy('name')->get();
 
         // Modul-Liste nach Lehrberuf (mit "has_open_belegung" Flag & Sortierung)
         $module = $this->modulesForLernender($lernenderId);
@@ -85,12 +89,58 @@ class NoteService
     }
 
     /**
-     * Fächer, die ein Lernender erfassen darf: Track-Fächer (BMS/ABU) bei aktivem Track,
-     * Fächer ohne Track über die Freigabe im Lehrberuf (lehrberuf_faecher).
+     * Fächer, die ein Lernender am Stichtag erfassen darf: Track-Fächer (BMS/ABU) bei am Stichtag gültigem Track,
+     * Fächer ohne Track über die Freigabe im Lehrberuf (lehrberuf_faecher, unabhängig vom Datum).
+     * Ohne Stichtag: heute (Rechner, Listen).
      */
-    public function erlaubteFaecher(int $lernenderId): Builder
+    public function erlaubteFaecher(int $lernenderId, ?CarbonInterface $stichtag = null): Builder
     {
-        $tracks = $this->activeTrackTypesForLernender($lernenderId)->all();
+        return $this->faecherFuerTracks($lernenderId, $this->activeTrackTypesForLernender($lernenderId, $stichtag)->all());
+    }
+
+    /**
+     * Fächer für Auswahllisten (Formular, Drawer, Import, Agenda): wie erlaubteFaecher, aber mit allen Tracks,
+     * die bis heute begonnen haben – auch beendeten. Ob der Track am Prüfungsdatum galt, prüft kategorieFuer.
+     */
+    public function auswahlFaecher(int $lernenderId): Builder
+    {
+        $tracks = DB::table('lernender_tracks')
+            ->where('lernender_id', $lernenderId)
+            ->where('start_datum', '<=', now()->toDateString())
+            ->distinct()
+            ->pluck('track_typ')
+            ->all();
+
+        return $this->faecherFuerTracks($lernenderId, $tracks);
+    }
+
+    /**
+     * Prüfer «Fach am Datum erlaubt?» für viele Daten (Import-Vorschau): Tracks und Fächer werden einmal geladen,
+     * gleiche Regel wie erlaubteFaecher($id, $datum).
+     *
+     * @return \Closure(string, int): bool
+     */
+    public function fachErlaubtAm(int $lernenderId): \Closure
+    {
+        $tracks = DB::table('lernender_tracks')->where('lernender_id', $lernenderId)->get(['track_typ', 'start_datum', 'end_datum']);
+        $faecher = $this->faecherFuerTracks($lernenderId, $tracks->pluck('track_typ')->unique()->values()->all())
+            ->pluck('track_typ', 'fach_id');
+
+        return function (string $datum, int $fachId) use ($tracks, $faecher): bool {
+            if (! $faecher->has($fachId)) {
+                return false;
+            }
+            $typ = $faecher[$fachId];
+            $tag = Carbon::parse($datum)->toDateString();
+
+            return $typ === null || $tracks->contains(fn ($t) => $t->track_typ === $typ
+                && (string) $t->start_datum <= $tag && ($t->end_datum === null || (string) $t->end_datum >= $tag));
+        };
+    }
+
+    /** @param  list<string>  $tracks */
+    private function faecherFuerTracks(int $lernenderId, array $tracks): Builder
+    {
         $lehrberufId = (int) Lernender::query()->whereKey($lernenderId)->value('lehrberuf_id');
 
         return Fach::query()
@@ -103,14 +153,14 @@ class NoteService
     }
 
     /**
-     * Aktive Track-Typen des Lernenden am heutigen Datum.
+     * Aktive Track-Typen des Lernenden am Stichtag (Standard: heute).
      * Es können theoretisch mehrere aktiv sein (z.B. ABU + BMS parallel).
      *
-     * Aktiv = start_datum <= today AND (end_datum IS NULL OR end_datum >= today)
+     * Aktiv = start_datum <= Stichtag AND (end_datum IS NULL OR end_datum >= Stichtag)
      */
-    public function activeTrackTypesForLernender(int $lernenderId): Collection
+    public function activeTrackTypesForLernender(int $lernenderId, ?CarbonInterface $stichtag = null): Collection
     {
-        $today = now()->toDateString();
+        $today = ($stichtag ?? now())->toDateString();
 
         return DB::table('lernender_tracks')
             ->where('lernender_id', $lernenderId)
@@ -203,7 +253,7 @@ class NoteService
     /**
      * Prüft/normalisiert validierte Input-Daten für Save/Update:
      * - Typ-Logik (fach vs modul)
-     * - Fach: fach_id muss im aktuellen Track(s) des Lernenden liegen
+     * - Fach: fach_id muss zu einem am Prüfungsdatum gültigen Track (oder zum Lehrberuf) gehören
      * - Modul: modul_id muss zum Lehrberuf gehören (lehrberuf_module)
      * - Modul: offene Belegung finden/erstellen -> modul_belegung_id setzen
      * - semester_id wird aus pruefungsdatum ermittelt
@@ -258,7 +308,7 @@ class NoteService
             }
 
             $fachId = (int) $data['fach_id'];
-            $kategorieId = $this->kategorieFuer($lernenderId, 'fach', $fachId);
+            $kategorieId = $this->kategorieFuer($lernenderId, 'fach', $fachId, Carbon::parse($date));
 
             return [
                 'kategorie_id' => (int) $kategorieId,
@@ -305,15 +355,18 @@ class NoteService
      * Einzige Zuordnungsregel für Noten und geplante Prüfungen: Fach muss für Beruf/Track freigegeben sein
      * (Kategorie folgt aus dem Fach), Modul muss zum Lehrberuf gehören (Kategorie = Lernort im Beruf).
      *
+     * Track-Fächer gelten nur, wenn der Track am Stichtag (Prüfungsdatum; ohne Angabe heute) gültig war.
+     *
      * @param  'fach'|'modul'  $typ
      */
-    public function kategorieFuer(int $lernenderId, string $typ, int $id): int
+    public function kategorieFuer(int $lernenderId, string $typ, int $id, ?CarbonInterface $stichtag = null): int
     {
         if ($typ === 'fach') {
-            $kategorieId = $this->erlaubteFaecher($lernenderId)->whereKey($id)->value('kategorie_id');
+            $kategorieId = $this->erlaubteFaecher($lernenderId, $stichtag)->whereKey($id)->value('kategorie_id');
 
             if (! $kategorieId) {
-                throw ValidationException::withMessages(['fach_id' => __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')]);
+                throw ValidationException::withMessages(['fach_id' => $this->trackNichtAktivMeldung($lernenderId, $id, $stichtag ?? now())
+                    ?? __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')]);
             }
 
             return (int) $kategorieId;
@@ -330,6 +383,29 @@ class NoteService
         }
 
         return (int) $kategorieId;
+    }
+
+    /**
+     * Meldung, wenn das Fach zu einem Track des Lernenden gehört, dieser am Stichtag aber nicht galt; sonst null.
+     */
+    private function trackNichtAktivMeldung(int $lernenderId, int $fachId, CarbonInterface $stichtag): ?string
+    {
+        $track = Fach::query()->whereKey($fachId)->value('track_typ');
+        if (! $track || ! $this->faecherFuerTracks($lernenderId, [$track])->whereKey($fachId)->exists()) {
+            return null;
+        }
+
+        $zeiten = DB::table('lernender_tracks')->where('lernender_id', $lernenderId)->where('track_typ', $track)
+            ->orderBy('start_datum')->get(['start_datum', 'end_datum']);
+        if ($zeiten->isEmpty()) {
+            return null;
+        }
+        $zeitraum = $zeiten->map(fn ($t) => Carbon::parse($t->start_datum)->format('d.m.Y').' – '
+            .($t->end_datum ? Carbon::parse($t->end_datum)->format('d.m.Y') : __('heute')))->implode(', ');
+
+        return __('Der Track :track war am :datum nicht aktiv (Track-Zeit: :zeitraum). Fächer dieses Tracks brauchen ein Prüfungsdatum innerhalb der Track-Zeit.', [
+            'track' => $track, 'datum' => $stichtag->format('d.m.Y'), 'zeitraum' => $zeitraum,
+        ]);
     }
 
     /**

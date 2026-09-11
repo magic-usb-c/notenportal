@@ -274,5 +274,7 @@
     "Öffnen": "Open",
     "Übereinstimmend": "Matching",
     "Übernehmen": "Apply",
-    "übernehmen": "apply"
+    "übernehmen": "apply",
+    "Der Track :track war am :datum nicht aktiv (Track-Zeit: :zeitraum). Fächer dieses Tracks brauchen ein Prüfungsdatum innerhalb der Track-Zeit.": "The :track track was not active on :datum (track period: :zeitraum). Subjects of this track need an exam date within the track period.",
+    "Track am Datum nicht aktiv": "Track not active on this date"
 }

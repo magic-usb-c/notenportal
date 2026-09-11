@@ -72,8 +72,9 @@ class FeedbackController extends Controller
             ]);
         }
 
+        $melder = $request->user();
         foreach (Empfaenger::aktiveAdmins() as $admin) {
-            Notifier::send($admin, NotificationCatalog::FEEDBACK_RECEIVED, FeedbackReceived::content($feedback, $request->user()));
+            Notifier::send($admin, NotificationCatalog::FEEDBACK_RECEIVED, fn () => FeedbackReceived::content($feedback, $melder));
         }
 
         if ($request->wantsJson()) {

@@ -61,6 +61,7 @@ final class NotenImport
         $katalog = $format ? $this->bevorzugt($this->katalog($lernenderId), false) : $this->katalog($lernenderId);
         [$kopf, $spalten] = $this->spalten($tabelle, $katalog);
         $vorhanden = $this->vorhandene($lernenderId);
+        $fachErlaubt = $this->noten->fachErlaubtAm($lernenderId); // Track am Prüfungsdatum gültig
 
         $zeilen = [];
         foreach ($tabelle as $i => $zelle) {
@@ -72,6 +73,8 @@ final class NotenImport
             $note = $this->note($roh('note'));
             $gewicht = $this->gewicht($roh('gewicht'));
             [$bezug, $sicher] = $this->bezug($roh('bezug') !== '' ? $roh('bezug') : $roh('titel'), $katalog);
+            $trackFehlt = $datum !== null && $bezug !== null && str_starts_with($bezug, 'fach:')
+                && ! $fachErlaubt($datum, (int) substr($bezug, 5));
 
             // Notenzeile = Note vorhanden oder Datum mit erkanntem Fach/Modul; Titel-, Kopf- und Fusszeilen fallen weg
             if ($note === null && ($datum === null || $bezug === null)) {
@@ -84,6 +87,7 @@ final class NotenImport
                 $gewicht === false => 'Gewicht ungültig',
                 $bezug === null => 'Fach/Modul nicht erkannt',
                 isset($vorhanden[$bezug.'|'.$datum.'|'.number_format($note, 2)]) => 'bereits erfasst',
+                $trackFehlt => __('Track am Datum nicht aktiv'),
                 ! $sicher => 'Zuordnung prüfen',
                 default => null,
             };

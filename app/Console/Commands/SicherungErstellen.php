@@ -48,7 +48,7 @@ class SicherungErstellen extends Command
     private function melden(string $fehler): void
     {
         foreach (Empfaenger::aktiveAdmins() as $admin) {
-            Notifier::send($admin, NotificationCatalog::BACKUP_FAILED, BackupFailed::content($fehler));
+            Notifier::send($admin, NotificationCatalog::BACKUP_FAILED, fn () => BackupFailed::content($fehler));
         }
     }
 }

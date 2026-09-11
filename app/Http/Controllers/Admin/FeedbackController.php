@@ -69,7 +69,7 @@ class FeedbackController extends Controller
         $feedback->save();
 
         if ($geaendert && $feedback->benutzer) {
-            Notifier::send($feedback->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, FeedbackAnswered::content($feedback));
+            Notifier::send($feedback->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, fn () => FeedbackAnswered::content($feedback));
         }
 
         if ($request->wantsJson()) {

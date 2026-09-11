@@ -50,10 +50,10 @@ final class GradeWatcher
             return;
         }
 
-        Notifier::send($lernender->benutzer, NotificationCatalog::BELOW_THRESHOLD, BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: false));
+        Notifier::send($lernender->benutzer, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: false));
 
         foreach (Empfaenger::aktiveBetreuer($lernenderId) as $betreuerUser) {
-            Notifier::send($betreuerUser, NotificationCatalog::BELOW_THRESHOLD, BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: true));
+            Notifier::send($betreuerUser, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: true));
         }
     }
 

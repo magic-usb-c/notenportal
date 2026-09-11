@@ -50,7 +50,8 @@ class BetreuungController extends VerwaltungController
 
         $neuerBerufsbildner = Berufsbildner::with('benutzer')->find($daten['berufsbildner_id']);
         if ($neuerBerufsbildner?->benutzer) {
-            Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, LearnerAssigned::content($lernender->loadMissing('benutzer', 'lehrberuf')));
+            $lernender->loadMissing('benutzer', 'lehrberuf');
+            Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, fn () => LearnerAssigned::content($lernender));
         }
 
         return $this->zurueckZumLernenden($request, $lernender_id, __('Betreuung eingetragen.'));

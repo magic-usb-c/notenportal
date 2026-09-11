@@ -70,6 +70,31 @@
                 @endif
             </div>
 
+            @if(count($nachLehrjahr) > 1)
+                <x-karte :titel="__('Gesamtschnitt nach Lehrjahr')" :polster="false" class="max-w-md">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-text">
+                            <thead class="text-muted text-xs">
+                                <tr class="border-b border-border">
+                                    <th scope="col" class="text-left px-5 py-2 font-medium">{{ __('Lehrjahr') }}</th>
+                                    <th scope="col" class="text-right px-3 py-2 font-medium">Ø</th>
+                                    <th scope="col" class="text-right px-5 py-2 font-medium">{{ __('Lernende') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @foreach($nachLehrjahr as $j)
+                                    <tr>
+                                        <td class="px-5 py-2.5 whitespace-nowrap">{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}</td>
+                                        <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($j['schnitt']) }}">{{ \App\Support\NotenSkala::format($j['schnitt'], 1) }}</td>
+                                        <td class="px-5 py-2.5 text-right tabular-nums text-muted">{{ $j['anzahl'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </x-karte>
+            @endif
+
             @if($k['zeugnisnoten'] > 0)
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     <x-diagramm :titel="__('Verteilung der Zeugnisnoten')" :frage="__('Wie verteilen sich die Zeugnisnoten auf die Notenskala?')"

@@ -9,6 +9,7 @@ use App\Services\Notifications\MailContent;
 use App\Services\Notifications\Messages\GradeSeen;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class NotenGesehenController extends VerwaltungController
         // Auch bei bestehender Markierung neu setzen, damit der «Neu»-Badge nach neuen Kommentaren verschwindet
         $this->markieren([$note->note_id], (int) $request->user()->benutzer_id);
 
-        $this->benachrichtigen($lernender, GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
+        $this->benachrichtigen($lernender, fn () => GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
 
         return back()
             ->with('success', __('Note als gesehen markiert.'))
@@ -41,13 +42,14 @@ class NotenGesehenController extends VerwaltungController
 
         $anzahl = count($noteIds);
         if ($anzahl > 0) {
-            $this->benachrichtigen($lernender, GradeSeen::sammel($anzahl, route('learner.grades.index')));
+            $this->benachrichtigen($lernender, fn () => GradeSeen::sammel($anzahl, route('learner.grades.index')));
         }
 
         return back()->with('success', $anzahl === 1 ? __('1 Note als gesehen markiert.') : __(':anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl]));
     }
 
-    private function benachrichtigen(Lernender $lernender, MailContent $inhalt): void
+    /** @param  MailContent|Closure(): MailContent  $inhalt */
+    private function benachrichtigen(Lernender $lernender, MailContent|Closure $inhalt): void
     {
         $lernender->loadMissing('benutzer');
         if ($lernender->benutzer) {

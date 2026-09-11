@@ -6,7 +6,11 @@ namespace Tests\Feature\I18n;
 
 use App\Http\Middleware\SetLocale;
 use App\Models\DigestItem;
+use App\Models\Fach;
 use App\Models\MailLog;
+use App\Models\Note;
+use App\Models\Pruefung;
+use App\Models\Semester;
 use App\Models\User;
 use App\Notifications\PortalMail;
 use App\Services\Notifications\MailContent;
@@ -17,11 +21,14 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
 use Tests\TestCase;
 
 /** Mails entstehen in der Sprache des Empfängers, nicht in der des auslösenden Requests. */
 class MailLocaleTest extends TestCase
 {
+    use VerwaltungTestHilfen;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -93,5 +100,105 @@ class MailLocaleTest extends TestCase
 
         $this->assertSame('2 updates in Notenportal', MailLog::where('user_id', $englisch->benutzer_id)->sole()->subject);
         $this->assertSame('2 Neuigkeiten im Notenportal', MailLog::where('user_id', $deutsch->benutzer_id)->sole()->subject);
+    }
+
+    /** Kommentar-Mail wird für den Empfänger (Berufsbildner, locale=en) gebaut, nicht in der Sprache des auslösenden Lernenden. */
+    #[Test]
+    public function kommentar_mail_in_der_sprache_des_empfaengers(): void
+    {
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch', 'locale' => 'de']);
+        $lernender = $lernenderUser->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id]);
+
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch', 'locale' => 'en']);
+        $this->betreue($bb, $lernender);
+
+        $this->actingAs($lernenderUser)
+            ->post(route('comments.store', $note->note_id), ['kommentar_text' => 'Bitte anschauen, danke.'])
+            ->assertSessionHas('success');
+
+        $subject = MailLog::where('user_id', $bb->benutzer_id)->where('type', NotificationCatalog::COMMENT_ADDED)->sole()->subject;
+        $this->assertStringStartsWith('New comment on ', $subject);
+    }
+
+    /** Neue-Note-Meldung an den Berufsbildner (locale=en) wird englisch gebaut, auch als Tageszusammenfassung. */
+    #[Test]
+    public function note_erfasst_mail_in_der_sprache_des_empfaengers(): void
+    {
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch', 'locale' => 'de']);
+        $lernender = $lernenderUser->lernender;
+        $semester = Semester::factory()->create();
+        $this->bmsTrack($lernender, $semester->semester_id);
+        $fach = Fach::factory()->create(['track_typ' => 'BMS']);
+
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch', 'locale' => 'en']);
+        $this->betreue($bb, $lernender);
+
+        $this->actingAs($lernenderUser)
+            ->post(route('learner.grades.store'), [
+                'typ' => 'fach',
+                'fach_id' => $fach->fach_id,
+                'titel' => 'Test',
+                'pruefungsdatum' => now()->toDateString(),
+                'note_wert' => 5.0,
+                'gewichtung_prozent' => 100,
+            ])
+            ->assertSessionHasNoErrors();
+
+        // GRADE_ADDED ist standardmässig eine Tageszusammenfassung, kein Sofortversand.
+        $titel = DigestItem::where('user_id', $bb->benutzer_id)->where('type', NotificationCatalog::GRADE_ADDED)->sole()->title;
+        $this->assertStringStartsWith('New grade from ', $titel);
+    }
+
+    /** notifications:check (Prüfungserinnerung) baut die Mail in der Sprache des Lernenden (Empfänger). */
+    #[Test]
+    public function check_notifications_mail_in_der_sprache_des_empfaengers(): void
+    {
+        App::setLocale('de');
+        Carbon::setLocale('de');
+
+        $lernenderUser = $this->empfaenger('en', 'lernender');
+        $fach = Fach::factory()->create();
+        Pruefung::create([
+            'lernender_id' => $lernenderUser->lernender->lernender_id,
+            'fach_id' => $fach->fach_id,
+            'titel' => 'Testat',
+            'datum' => today()->addDays(3)->toDateString(),
+            'gewichtung_prozent' => 50,
+        ]);
+
+        $this->artisan('notifications:check')->assertSuccessful();
+
+        $subject = MailLog::where('user_id', $lernenderUser->benutzer_id)->where('type', NotificationCatalog::EXAM_REMINDER)->sole()->subject;
+        $this->assertStringStartsWith('Exam in ', $subject);
+    }
+
+    /** GradeWatcher (Schnitt unter Grenzwert) meldet dem Berufsbildner (locale=en) englisch, unabhängig von der Sprache des Lernenden. */
+    #[Test]
+    public function grade_watcher_mail_in_der_sprache_des_empfaengers(): void
+    {
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch', 'locale' => 'de']);
+        $lernender = $lernenderUser->lernender;
+        $semester = Semester::factory()->create();
+        $this->bmsTrack($lernender, $semester->semester_id);
+        $fach = Fach::factory()->create(['track_typ' => 'BMS']);
+
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch', 'locale' => 'en']);
+        $this->betreue($bb, $lernender);
+
+        $this->actingAs($lernenderUser)
+            ->post(route('learner.grades.store'), [
+                'typ' => 'fach',
+                'fach_id' => $fach->fach_id,
+                'titel' => 'Test',
+                'pruefungsdatum' => now()->toDateString(),
+                'note_wert' => 3.5,
+                'gewichtung_prozent' => 100,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $subject = MailLog::where('user_id', $bb->benutzer_id)->where('type', NotificationCatalog::BELOW_THRESHOLD)->sole()->subject;
+        $this->assertStringContainsString('failing', $subject);
+        $this->assertStringNotContainsString('ungenügend', $subject);
     }
 }

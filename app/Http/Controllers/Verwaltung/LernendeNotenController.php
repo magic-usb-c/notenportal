@@ -153,7 +153,7 @@ class LernendeNotenController extends VerwaltungController
 
         $lernender->loadMissing('benutzer');
         if ($lernender->benutzer && $alterWert !== (string) $note->note_wert) {
-            Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_CORRECTED, GradeCorrected::content(
+            Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_CORRECTED, fn () => GradeCorrected::content(
                 $note, $alterWert, route('learner.grades.index', ['_open' => $note->note_id])
             ));
         }
