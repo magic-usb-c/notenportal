@@ -72,6 +72,7 @@ sudo systemctl reload apache2
 9. Alte deutsche Lesezeichen (`/noten`, `/pruefungen` …) leiten automatisch weiter – nichts zu tun.
 10. Code-Freeze ab 25.09.: danach nur noch Fehlerbehebungen. Sprachumschalter bleibt ausgeblendet (`sprachwahl_aktiv` aus), Englisch-Umbenennungen von Klassen und DB erst nach dem Go-Live (`docs/i18n-plan.md`).
 11. Empfehlung (Entscheid David): Prod aus einer eigenen Arbeitskopie betreiben wie i2 (`git pull --ff-only` + `php artisan optimize`), Entwicklung und Agents nur noch in `/var/www/notenportal` bzw. einem Worktree. Grund: am 11.09. (20:46, 20:55) legten halbfertige Agent-Änderungen in der Live-Kopie kurz alle Seiten lahm. Umzug betrifft Apache-DocumentRoot, `.env`, `storage/` (Dokumente, Sicherungen), Cron/Queue-Worker-Pfade; Probe auf i2 vorhanden (`install.sh`).
+12. Vor der Freigabe: `php artisan notenportal:bereitschaft` (rein lesend, App\Support\Bereitschaft) – prüft APP_ENV/APP_DEBUG/APP_URL/session.secure, Mail-Umleitung, Kopie ausser Haus, letzte Sicherung, fehlgeschlagene Jobs/Mails, Kalenderabgleich-Fehler und offene Migrationen; Exit-Code 1, sobald mindestens ein Punkt «fehler» meldet (`--json` für eine maschinenlesbare Ausgabe).
 
 ## Änderungsprotokoll ausserhalb des Repos
 

@@ -538,5 +538,11 @@
     "Systemhinweis geändert": "System notice changed",
     "Sitzungsdauer geändert": "Session duration changed",
     "Art": "Type",
-    "Warnung": "Warning"
+    "Warnung": "Warning",
+    "1 fehlgeschlagener Job": "1 failed job",
+    ":anzahl fehlgeschlagene Jobs": ":anzahl failed jobs",
+    "1 fehlgeschlagene Mail (7 Tage)": "1 failed email (7 days)",
+    ":anzahl fehlgeschlagene Mails (7 Tage)": ":anzahl failed emails (7 days)",
+    "1 Kalenderabgleich mit Fehler": "1 calendar sync with an error",
+    ":anzahl Kalenderabgleiche mit Fehlern": ":anzahl calendar syncs with errors"
 }

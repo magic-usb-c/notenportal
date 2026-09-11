@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\CalendarFeed;
 use App\Models\Lernender;
+use App\Models\MailLog;
 use App\Models\Pruefung;
 use App\Models\User;
 use App\Models\Ziel;
@@ -243,7 +245,9 @@ final class Uebersicht
 
     /**
      * Admin-Dashboard: eine Liste für allen Handlungsbedarf (Einrichtungslücken, Sicherung
-     * älter als 2 Tage, offene Feedback-Meldungen, kritische Lernende), statt vier Karten.
+     * älter als 2 Tage, offene Feedback-Meldungen, fehlgeschlagene Jobs/Mails, Kalenderabgleich-
+     * Fehler, kritische Lernende), statt vier Karten. Dieselben Prüfpunkte, feiner, liefert
+     * `php artisan notenportal:bereitschaft` (App\Support\Bereitschaft).
      *
      * @return list<array{text: string, meta: ?string, badge: ?int, note: ?float, ton: string, link: string}>
      */
@@ -276,6 +280,48 @@ final class Uebersicht
                 'note' => null,
                 'ton' => 'accent',
                 'link' => route('admin.feedback.index'),
+            ];
+        }
+
+        $failedJobs = DB::table('failed_jobs')->count();
+        if ($failedJobs > 0) {
+            $eintraege[] = [
+                'text' => $failedJobs === 1 ? __('1 fehlgeschlagener Job') : __(':anzahl fehlgeschlagene Jobs', ['anzahl' => $failedJobs]),
+                'meta' => null,
+                'badge' => $failedJobs,
+                'note' => null,
+                'ton' => 'rot',
+                'link' => route('admin.mail-log.index'),
+            ];
+        }
+
+        $fehlgeschlageneMails = MailLog::where('status', MailLog::FAILED)->where('created_at', '>=', now()->subDays(7))->count();
+        if ($fehlgeschlageneMails > 0) {
+            $eintraege[] = [
+                'text' => $fehlgeschlageneMails === 1
+                    ? __('1 fehlgeschlagene Mail (7 Tage)')
+                    : __(':anzahl fehlgeschlagene Mails (7 Tage)', ['anzahl' => $fehlgeschlageneMails]),
+                'meta' => null,
+                'badge' => $fehlgeschlageneMails,
+                'note' => null,
+                'ton' => 'gelb',
+                'link' => route('admin.mail-log.index'),
+            ];
+        }
+
+        $kalenderFehler = CalendarFeed::query()->where('last_status', CalendarFeed::ERROR)
+            ->whereHas('lernender', fn ($q) => $q->whereNull('geloescht_am'))
+            ->with('lernender.benutzer')->get();
+        if ($kalenderFehler->isNotEmpty()) {
+            $anzahl = $kalenderFehler->count();
+            $ersterLernender = $kalenderFehler->first()->lernender;
+            $eintraege[] = [
+                'text' => $anzahl === 1 ? __('1 Kalenderabgleich mit Fehler') : __(':anzahl Kalenderabgleiche mit Fehlern', ['anzahl' => $anzahl]),
+                'meta' => $anzahl === 1 ? $ersterLernender->benutzer->vorname.' '.$ersterLernender->benutzer->nachname : null,
+                'badge' => $anzahl,
+                'note' => null,
+                'ton' => 'gelb',
+                'link' => route('admin.learners.show', $ersterLernender->lernender_id),
             ];
         }
 
