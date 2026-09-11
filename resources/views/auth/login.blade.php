@@ -1,5 +1,6 @@
 <x-guest-layout>
     <div class="text-center mb-6">
+        <x-application-logo class="h-10 mx-auto mb-2" />
         <h1 class="text-2xl font-bold text-text">Notenportal</h1>
         @if($betriebName)<p class="mt-1 text-sm text-muted">{{ $betriebName }}</p>@endif
     </div>

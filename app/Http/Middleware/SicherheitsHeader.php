@@ -36,7 +36,7 @@ class SicherheitsHeader
     ];
 
     /** Öffentliche Routen ohne Login, die trotz angemeldetem Browser (Session-Cookie) cachebar bleiben sollen. */
-    private const KEIN_NO_STORE = ['manifest', 'offline', 'calendar.export'];
+    private const KEIN_NO_STORE = ['manifest', 'offline', 'calendar.export', 'branding.logo'];
 
     public function handle(Request $request, Closure $next): Response
     {

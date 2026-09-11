@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\NotificationMark;
+use App\Models\User;
 use App\Services\Feedback\Screenshot;
 use App\Services\Notifications\Empfaenger;
 use App\Services\Notifications\Messages\FeedbackReceived;
@@ -15,6 +17,7 @@ use App\Support\Browser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
 
 class FeedbackController extends Controller
@@ -29,12 +32,15 @@ class FeedbackController extends Controller
      */
     public function index(Request $request): View
     {
+        $mitStimmen = FeedbackStimme::tabelleVorhanden();
+
         $meldungen = Feedback::query()
             ->where('benutzer_id', (int) $request->user()->benutzer_id)
+            ->when($mitStimmen, fn ($q) => $q->withCount('stimmen'))
             ->orderByDesc('erstellt_am')
             ->paginate(25);
 
-        return view('feedback.index', compact('meldungen'));
+        return view('feedback.index', compact('meldungen', 'mitStimmen'));
     }
 
     public function store(Request $request, Screenshot $screenshotService): JsonResponse|RedirectResponse
@@ -82,6 +88,121 @@ class FeedbackController extends Controller
         }
 
         return redirect()->back()->with('success', __('Danke, deine Meldung ist eingegangen.'));
+    }
+
+    /**
+     * Ähnliche offene Meldungen zur aktuellen Seite (fürs Widget). Antwortet für fremde/unbekannte
+     * Routen immer gleich (0, kein 403), damit sich Route-Namen nicht erraten lassen.
+     */
+    public function aehnliche(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'route_name' => ['required', 'string', 'max:150'],
+        ]);
+
+        $user = $request->user();
+
+        if (! FeedbackStimme::tabelleVorhanden() || ! $this->seiteErlaubt($user, $validated['route_name'])) {
+            return response()->json(['anzahl' => 0, 'meldungen' => []]);
+        }
+
+        $meldungen = Feedback::query()
+            ->hauptmeldungen()
+            ->where('route_name', $validated['route_name'])
+            ->whereIn('status', [Feedback::STATUS_OFFEN, Feedback::STATUS_IN_ARBEIT])
+            ->where('benutzer_id', '!=', (int) $user->benutzer_id)
+            ->withCount('stimmen')
+            ->withExists(['stimmen as meine_stimme' => fn ($q) => $q->where('benutzer_id', (int) $user->benutzer_id)])
+            ->orderByDesc('stimmen_count')
+            ->limit(3)
+            ->get();
+
+        return response()->json([
+            'anzahl' => $meldungen->count(),
+            'meldungen' => $meldungen->map(fn (Feedback $f) => [
+                'id' => $f->feedback_id,
+                'kategorie_label' => __(Feedback::KATEGORIEN[$f->kategorie] ?? $f->kategorie),
+                'datum' => $f->erstellt_am->format('d.m.Y'),
+                'stimmen' => (int) $f->stimmen_count,
+                'meine' => (bool) $f->meine_stimme,
+            ])->values(),
+        ]);
+    }
+
+    /** Stimme «Betrifft mich auch» für eine fremde, offene Hauptmeldung – idempotent. */
+    public function stimmen(Request $request, int $feedback_id): JsonResponse
+    {
+        abort_unless(FeedbackStimme::tabelleVorhanden(), 404);
+
+        $user = $request->user();
+
+        $feedback = Feedback::query()
+            ->hauptmeldungen()
+            ->whereIn('status', [Feedback::STATUS_OFFEN, Feedback::STATUS_IN_ARBEIT])
+            ->find($feedback_id);
+
+        abort_if($feedback === null, 404);
+        abort_if((int) $feedback->benutzer_id === (int) $user->benutzer_id, 422, __('Eigene Meldung'));
+        abort_if(! $this->seiteErlaubt($user, $feedback->route_name), 404);
+
+        FeedbackStimme::query()->insertOrIgnore([
+            'feedback_id' => $feedback_id,
+            'benutzer_id' => (int) $user->benutzer_id,
+            'erstellt_am' => now(),
+        ]);
+
+        return response()->json([
+            'stimmen' => FeedbackStimme::where('feedback_id', $feedback_id)->count(),
+            'meine' => true,
+        ]);
+    }
+
+    /** Eigene Stimme zurückziehen. */
+    public function stimmeZurueck(Request $request, int $feedback_id): JsonResponse
+    {
+        abort_unless(FeedbackStimme::tabelleVorhanden(), 404);
+
+        FeedbackStimme::query()
+            ->where('feedback_id', $feedback_id)
+            ->where('benutzer_id', (int) $request->user()->benutzer_id)
+            ->delete();
+
+        return response()->json([
+            'stimmen' => FeedbackStimme::where('feedback_id', $feedback_id)->count(),
+            'meine' => false,
+        ]);
+    }
+
+    /**
+     * Hat der Benutzer Zugriff auf die zur Route gehörende Seite? Geprüft über die role:-Middleware
+     * der Route (kein Rollen-Middleware = allen eingeloggten Benutzern zugänglich). Ohne Route-Namen
+     * oder eine unbekannte Route: nein – das verhindert, dass sich über die Reaktion Route-Namen erraten lassen.
+     */
+    private function seiteErlaubt(?User $user, ?string $routeName): bool
+    {
+        if ($user === null || blank($routeName)) {
+            return false;
+        }
+
+        $route = Route::getRoutes()->getByName($routeName);
+        if ($route === null) {
+            return false;
+        }
+
+        $rollenMiddleware = collect($route->gatherMiddleware())
+            ->first(fn ($m) => is_string($m) && str_starts_with($m, 'role:'));
+
+        if ($rollenMiddleware === null) {
+            return true;
+        }
+
+        foreach (array_filter(array_map('trim', explode(',', substr($rollenMiddleware, 5)))) as $rolle) {
+            if ($user->hasRole($rolle)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Login-Hinweis dauerhaft ausblenden (einmal pro Benutzer, serverseitig gemerkt). */

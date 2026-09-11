@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
+use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\CalendarExportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DatenauskunftController;
@@ -32,9 +33,14 @@ use App\Http\Controllers\SprachwahlController;
 use App\Http\Controllers\SucheController;
 use App\Http\Controllers\SystemhinweisController;
 use App\Support\LegacyPaths;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 Route::get('/', fn () => Auth::check()
     ? redirect()->route('dashboard')
@@ -158,6 +164,20 @@ Route::get('/manifest.webmanifest', ManifestController::class)->name('manifest')
 Route::view('/offline', 'offline')->name('offline');
 
 /**
+ * Betriebslogo (Block AH): öffentlich, ohne Login, für Login-Seite und Mail-Kopf.
+ * Ohne Session/Cookie/CSRF-Middleware der web-Gruppe: eine cachebare Antwort darf keinen
+ * Set-Cookie-Header tragen (sonst könnte ein Proxy über http die Session eines Admins mitcachen).
+ */
+Route::get('/branding/logo', [BrandingController::class, 'logo'])->name('branding.logo')
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+    ]);
+
+/**
  * Lernenden-Verwaltung: gleicher Funktionsumfang für Admin und Berufsbildner,
  * Sichtbarkeit über Lernender::sichtbarFuer() (routes/verwaltung.php)
  */
@@ -275,6 +295,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->whereNumber('feedback_id')->name('feedback.update');
         Route::get('/feedback/{feedback_id}/screenshot', [AdminFeedbackController::class, 'screenshot'])
             ->whereNumber('feedback_id')->name('feedback.screenshot');
+        Route::patch('/feedback/{feedback_id}/duplicate', [AdminFeedbackController::class, 'duplikat'])
+            ->whereNumber('feedback_id')->name('feedback.duplicate');
     });
 
 /**
@@ -285,6 +307,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/feedback', [FeedbackController::class, 'store'])
         ->middleware('throttle:10,1')->name('feedback.store');
     Route::post('/feedback/hint', [FeedbackController::class, 'hinweisSchliessen'])->name('feedback.hint.dismiss');
+    Route::get('/feedback/similar', [FeedbackController::class, 'aehnliche'])
+        ->middleware('throttle:60,1,feedback-similar')->name('feedback.similar');
+    Route::post('/feedback/{feedback_id}/vote', [FeedbackController::class, 'stimmen'])
+        ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote');
+    Route::delete('/feedback/{feedback_id}/vote', [FeedbackController::class, 'stimmeZurueck'])
+        ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote.destroy');
 });
 
 /**
@@ -345,6 +373,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/operations/offsite', [BetriebController::class, 'kopieSpeichern'])->name('operations.offsite.update');
     Route::post('/operations/offsite', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('operations.offsite.run');
     Route::put('/operations/notice', [BetriebController::class, 'hinweisSpeichern'])->name('operations.notice.update');
+    Route::put('/operations/logo', [BetriebController::class, 'logoSpeichern'])->name('operations.logo.update');
     Route::put('/operations/session', [BetriebController::class, 'sitzungSpeichern'])->name('operations.session.update');
 });
 

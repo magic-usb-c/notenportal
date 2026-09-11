@@ -10,6 +10,7 @@ use App\Models\CalendarFeed;
 use App\Models\DigestItem;
 use App\Models\Dokument;
 use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\Lernender;
 use App\Models\LernenderTrack;
 use App\Models\MailLog;
@@ -128,6 +129,12 @@ final class Datenauskunft
         $zip->addFromString('feedback.json', $this->json($this->feedback($user)));
         $enthalten[] = 'feedback.json';
 
+        $stimmen = $this->feedbackStimmen($user);
+        if ($stimmen !== []) {
+            $zip->addFromString('feedback_stimmen.json', $this->json($stimmen));
+            $enthalten[] = 'feedback_stimmen.json';
+        }
+
         $this->csv($zip, 'versandprotokoll.csv',
             [__('Betreff'), __('Erstellt am'), __('Verschickt am'), __('Status')],
             $this->versandprotokoll($user));
@@ -196,6 +203,28 @@ final class Datenauskunft
                 'antwort' => $f->admin_notiz,
                 'erledigt_am' => optional($f->erledigt_am)->toIso8601String(),
             ])
+            ->all();
+    }
+
+    /** @return list<array<string, mixed>> Nur eigene Stimmen «Betrifft mich auch», ohne fremden Meldungstext. */
+    private function feedbackStimmen(User $user): array
+    {
+        if (! FeedbackStimme::tabelleVorhanden()) {
+            return [];
+        }
+
+        return FeedbackStimme::query()
+            ->where('benutzer_id', $user->benutzer_id)
+            ->with('feedback')
+            ->orderByDesc('erstellt_am')
+            ->get()
+            ->filter(fn (FeedbackStimme $s) => $s->feedback !== null)
+            ->map(fn (FeedbackStimme $s) => [
+                'erstellt_am' => optional($s->erstellt_am)->toIso8601String(),
+                'meldung_id' => $s->feedback_id,
+                'kategorie' => $s->feedback->kategorie,
+            ])
+            ->values()
             ->all();
     }
 
@@ -598,6 +627,7 @@ final class Datenauskunft
             'betreuungen.csv' => __('Betreute Lernende mit Beginn und Ende der Betreuung.'),
             'kommentare.csv' => __('Eigene Kommentare zu Noten.'),
             'feedback.json' => __('Eigene Feedback-Meldungen und Antworten.'),
+            'feedback_stimmen.json' => __('Eigene Stimmen «Betrifft mich auch» zu fremden Meldungen.'),
             'versandprotokoll.csv' => __('Versandprotokoll der eigenen E-Mails.'),
             'gesehen.csv' => __('Wann welche Note angesehen wurde.'),
             'zusammenfassungen.json' => __('Eigene Tageszusammenfassungen.'),

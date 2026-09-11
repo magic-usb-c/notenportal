@@ -41,6 +41,9 @@ class ZugriffsschutzTest extends TestCase
         'feedback.store',
         'feedback.index',
         'feedback.hint.dismiss',
+        'feedback.similar',
+        'feedback.vote',
+        'feedback.vote.destroy',
         'system-notice.dismiss',
         'session.keep-alive',
         'search',
@@ -55,6 +58,7 @@ class ZugriffsschutzTest extends TestCase
         'password.request', 'password.email', 'password.reset', 'password.store',
         'calendar.export',
         'manifest', 'offline', // PWA: Web-App-Manifest und Offline-Seite, öffentlich, ohne Personendaten
+        'branding.logo', // Betriebslogo: öffentlich, ohne Login, für Login-Seite und Mail-Kopf
         'profile.locale', // Sprachwahl: Gäste nur für die Session, 404 solange sprachwahl_aktiv aus ist
         '{fallbackPlaceholder}', // alte deutsche Pfade → 301 (LegacyPaths), sonst 404
     ];

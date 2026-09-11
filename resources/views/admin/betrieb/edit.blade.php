@@ -23,6 +23,7 @@
 
             @include('admin.betrieb._theme', ['theme' => old('theme', $theme)])
             @include('admin.betrieb._sprache')
+            @include('admin.betrieb._logo', ['logoVorhanden' => $logoVorhanden])
             @include('admin.betrieb._hinweis')
             @include('admin.betrieb._sitzung')
 

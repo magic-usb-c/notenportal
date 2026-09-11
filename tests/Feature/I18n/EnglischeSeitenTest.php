@@ -8,6 +8,7 @@ use App\Http\Middleware\SetLocale;
 use App\Models\Betreuung;
 use App\Models\Dokument;
 use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\Note;
 use App\Models\User;
 use App\Support\Einrichtung;
@@ -159,13 +160,28 @@ class EnglischeSeitenTest extends TestCase
             'Report card 2026.pdf',
         );
 
-        Feedback::factory()->create([
+        $feedback = Feedback::factory()->create([
             'benutzer_id' => $bb->benutzer_id,
             'rolle' => 'Berufsbildner',
             'text' => 'The overview page loads much faster now, thanks!',
             'route_name' => 'trainer.learners.grades.index',
             'url' => '/trainer/learners/'.$lernenderId.'/grades',
         ]);
+        if (FeedbackStimme::tabelleVorhanden()) {
+            FeedbackStimme::query()->insert([
+                'feedback_id' => $feedback->feedback_id,
+                'benutzer_id' => $bb->benutzer_id,
+                'erstellt_am' => now(),
+            ]);
+        }
+        if (Feedback::hatDuplikatSpalte()) {
+            Feedback::factory()->duplikatVon($feedback->feedback_id)->create([
+                'benutzer_id' => $bb->benutzer_id,
+                'rolle' => 'Berufsbildner',
+                'text' => 'Same issue here as well.',
+                'route_name' => 'trainer.learners.grades.index',
+            ]);
+        }
 
         $seiten = [
             'admin.dashboard' => route('admin.dashboard'),
@@ -188,6 +204,7 @@ class EnglischeSeitenTest extends TestCase
             'admin.users.edit' => route('admin.users.edit', $bb->benutzer_id),
             'admin.trainers.index' => route('admin.trainers.index'),
             'admin.feedback.index' => route('admin.feedback.index'),
+            'admin.feedback.index:sort-stimmen' => route('admin.feedback.index', ['sort' => 'stimmen']),
             'admin.mail-log.index' => route('admin.mail-log.index'),
             'admin.activity.index' => route('admin.activity.index'),
             'admin.notifications.index' => route('admin.notifications.index'),

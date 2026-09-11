@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Notifications\MailContent;
 use App\Services\Notifications\MailSettings;
 use App\Services\Notifications\NotificationCatalog;
+use App\Support\Betriebslogo;
 use App\Support\Einstellungen;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -66,6 +67,7 @@ class PortalMail extends Notification implements ShouldQueue
                 'abmeldenUrl' => $abmelden,
                 'einstellungenUrl' => $user ? route('notifications.settings') : null,
                 'betrieb' => (string) Einstellungen::get(Einstellungen::BETRIEB_NAME, ''),
+                'logoUrl' => Betriebslogo::url(),
                 'portalUrl' => url('/'),
             ])
             ->withSymfonyMessage(function (Email $message) use ($abmelden) {

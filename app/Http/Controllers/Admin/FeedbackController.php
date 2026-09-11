@@ -6,16 +6,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Services\Feedback\Screenshot;
 use App\Services\Notifications\Messages\FeedbackAnswered;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Support\Csv;
+use App\Support\Protokoll;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -26,6 +29,11 @@ class FeedbackController extends Controller
         $status = (string) $request->input('status', '');
         $kategorie = (string) $request->input('kategorie', '');
         $rolle = (string) $request->input('rolle', '');
+        $sort = in_array($request->input('sort'), ['datum', 'stimmen'], true) ? $request->input('sort') : 'datum';
+        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+        $duplikate = $request->boolean('duplikate');
+        $hatDuplikatSpalte = Feedback::hatDuplikatSpalte();
+        $hatStimmenTabelle = FeedbackStimme::tabelleVorhanden();
 
         $q = Feedback::query()
             ->join('benutzer as b', 'b.benutzer_id', '=', 'feedback.benutzer_id')
@@ -34,6 +42,13 @@ class FeedbackController extends Controller
                 '(SELECT GROUP_CONCAT(r.name SEPARATOR ", ") FROM benutzer_rollen br '.
                 'JOIN rollen r ON r.rolle_id = br.rolle_id WHERE br.benutzer_id = feedback.benutzer_id) as rollen'
             )
+            ->selectRaw($hatStimmenTabelle
+                ? '(SELECT COUNT(*) FROM feedback_stimmen fs WHERE fs.feedback_id = feedback.feedback_id) as stimmen_anzahl'
+                : '0 as stimmen_anzahl')
+            ->when($hatDuplikatSpalte, fn ($qq) => $qq->selectRaw(
+                '(SELECT COUNT(*) FROM feedback d WHERE d.duplikat_von = feedback.feedback_id) as duplikate_anzahl'
+            ))
+            ->when($hatDuplikatSpalte && ! $duplikate, fn ($qq) => $qq->whereNull('feedback.duplikat_von'))
             ->when($status !== '', fn ($qq) => $qq->where('feedback.status', $status))
             ->when($kategorie !== '', fn ($qq) => $qq->where('feedback.kategorie', $kategorie))
             ->when($rolle !== '', function ($qq) use ($rolle) {
@@ -44,17 +59,26 @@ class FeedbackController extends Controller
                         ->whereColumn('br.benutzer_id', 'feedback.benutzer_id')
                         ->whereRaw('LOWER(r.name) = LOWER(?)', [$rolle]);
                 });
-            })
-            ->orderByDesc('feedback.erstellt_am');
+            });
+
+        if ($sort === 'stimmen' && $hatStimmenTabelle) {
+            $q->orderByDesc('stimmen_anzahl')->orderByDesc('feedback.erstellt_am');
+        } else {
+            $q->orderBy('feedback.erstellt_am', $dir);
+        }
 
         $meldungen = $q->paginate(25)->withQueryString();
+        $gibtEs = $meldungen->total() > 0 || Feedback::exists();
 
-        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle'));
+        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'sort', 'dir', 'duplikate', 'gibtEs', 'hatDuplikatSpalte'));
     }
 
     public function update(Request $request, int $feedback_id): JsonResponse|RedirectResponse
     {
-        $feedback = Feedback::query()->with('benutzer')->findOrFail($feedback_id);
+        $mitDuplikaten = Feedback::hatDuplikatSpalte();
+        $feedback = Feedback::query()
+            ->with($mitDuplikaten ? ['benutzer', 'duplikate.benutzer'] : ['benutzer'])
+            ->findOrFail($feedback_id);
 
         $validated = $request->validate([
             'status' => ['required', 'in:'.implode(',', array_keys(Feedback::STATUS))],
@@ -68,8 +92,35 @@ class FeedbackController extends Controller
         $feedback->erledigt_am = $validated['status'] === Feedback::STATUS_ERLEDIGT ? now() : null;
         $feedback->save();
 
+        // Hat die Hauptmeldung Duplikate, übernehmen sie Status, erledigt_am und admin_notiz.
+        $duplikate = $mitDuplikaten ? $feedback->duplikate : collect();
+        if ($geaendert && $duplikate->isNotEmpty()) {
+            Feedback::query()->where('duplikat_von', $feedback->feedback_id)->update([
+                'status' => $feedback->status,
+                'admin_notiz' => $feedback->admin_notiz,
+                'erledigt_am' => $feedback->erledigt_am,
+            ]);
+        }
+
         if ($geaendert && $feedback->benutzer) {
             Notifier::send($feedback->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, fn () => FeedbackAnswered::content($feedback));
+        }
+
+        // Jeder Absender eines Duplikats bekommt ebenfalls Bescheid – ausser er hat auch das Original gemeldet.
+        if ($geaendert) {
+            foreach ($duplikate as $duplikat) {
+                if (! $duplikat->benutzer) {
+                    continue;
+                }
+                if ($feedback->benutzer && (int) $duplikat->benutzer_id === (int) $feedback->benutzer_id) {
+                    continue;
+                }
+
+                $duplikat->status = $feedback->status;
+                $duplikat->admin_notiz = $feedback->admin_notiz;
+                $duplikat->erledigt_am = $feedback->erledigt_am;
+                Notifier::send($duplikat->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, fn () => FeedbackAnswered::content($duplikat));
+            }
         }
 
         if ($request->wantsJson()) {
@@ -82,6 +133,81 @@ class FeedbackController extends Controller
         }
 
         return redirect()->back()->with('success', __('Status aktualisiert.'));
+    }
+
+    /**
+     * Meldung als Duplikat einer anderen markieren (duplikat_von), Stimmen und Absender aufs Original
+     * übernehmen. Zeigt das gewählte Ziel selbst schon auf ein Original, wird dieses verwendet, damit
+     * keine Ketten entstehen. `duplikat_von: null` hebt die Markierung wieder auf.
+     */
+    public function duplikat(Request $request, int $feedback_id): JsonResponse|RedirectResponse
+    {
+        abort_unless(Feedback::hatDuplikatSpalte(), 404);
+
+        $feedback = Feedback::query()->findOrFail($feedback_id);
+
+        $validated = $request->validate([
+            'duplikat_von' => ['nullable', 'integer', 'exists:feedback,feedback_id'],
+        ]);
+        $zielId = $validated['duplikat_von'] ?? null;
+
+        if ($zielId !== null && (int) $zielId === $feedback_id) {
+            throw ValidationException::withMessages(['duplikat_von' => __('Duplikat kann nicht auf sich selbst zeigen.')]);
+        }
+
+        DB::transaction(function () use (&$feedback, $zielId, $feedback_id) {
+            // Auch die Quelle sperren: zwei gleichzeitige Markierungen (C → A, A → B) ergäben sonst eine Kette.
+            $feedback = Feedback::query()->lockForUpdate()->findOrFail($feedback_id);
+
+            if ($zielId === null) {
+                $feedback->duplikat_von = null;
+                $feedback->save();
+                Protokoll::schreiben(Protokoll::ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN, $feedback);
+
+                return;
+            }
+
+            $ziel = Feedback::query()->lockForUpdate()->findOrFail($zielId);
+            if ($ziel->istDuplikat()) {
+                $ziel = Feedback::query()->lockForUpdate()->findOrFail($ziel->duplikat_von);
+            }
+
+            if ($ziel->feedback_id === $feedback_id) {
+                throw ValidationException::withMessages(['duplikat_von' => __('Duplikat kann nicht auf sich selbst zeigen.')]);
+            }
+
+            // Bestehende Duplikate dieser Meldung auf das neue Original umhängen (Ketten auflösen).
+            Feedback::query()->where('duplikat_von', $feedback_id)->update(['duplikat_von' => $ziel->feedback_id]);
+
+            $feedback->duplikat_von = $ziel->feedback_id;
+            $feedback->save();
+
+            DB::statement(
+                'INSERT IGNORE INTO feedback_stimmen (feedback_id, benutzer_id, erstellt_am) '.
+                'SELECT ?, benutzer_id, NOW() FROM feedback_stimmen WHERE feedback_id = ?',
+                [$ziel->feedback_id, $feedback_id]
+            );
+
+            if ((int) $feedback->benutzer_id !== (int) $ziel->benutzer_id) {
+                FeedbackStimme::query()->insertOrIgnore([
+                    'feedback_id' => $ziel->feedback_id,
+                    'benutzer_id' => $feedback->benutzer_id,
+                    'erstellt_am' => now(),
+                ]);
+            }
+
+            $feedback->status = $ziel->status;
+            $feedback->erledigt_am = $ziel->erledigt_am;
+            $feedback->save();
+
+            Protokoll::schreiben(Protokoll::ADMIN_FEEDBACK_DUPLIKAT, $feedback, ['original' => $ziel->feedback_id]);
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'duplikat_von' => $feedback->fresh()->duplikat_von]);
+        }
+
+        return redirect()->back()->with('success', __('Gespeichert.'));
     }
 
     /** Screenshot einer Meldung – nur für Admins, nie öffentlich oder für die meldende Person. */

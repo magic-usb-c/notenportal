@@ -1,6 +1,7 @@
 {
     "Angemeldet als :name": "Signed in as :name",
     "Mit anderem Konto anmelden": "Sign in with a different account",
+    "Eigene Stimmen «Betrifft mich auch» zu fremden Meldungen.": "Own «Affects me too» votes on other people's reports.",
     ":anzahl Einträge": ":anzahl entries",
     ":anzahl Minuten": ":anzahl minutes",
     ":anzahl Neuigkeiten im Notenportal": ":anzahl updates in Notenportal",
@@ -55,6 +56,8 @@
     "Darstellung auf Standard zurückgesetzt.": "Appearance reset to default.",
     "Darstellung wirklich auf Standard zurücksetzen?": "Reset appearance to default?",
     "Darstellung: Dunkel": "Appearance: Dark",
+    "Die Datei ist kein gültiges Bild (PNG, JPG oder WebP).": "The file is not a valid image (PNG, JPG or WebP).",
+    "Das Bild darf höchstens :px × :px Pixel gross sein.": "The image may be at most :px × :px pixels.",
     "Darstellung: Hell": "Appearance: Light",
     "Darstellung: Wie Gerät": "Appearance: Match device",
     "Das neue Passwort muss sich vom bisherigen unterscheiden.": "The new password must differ from the current one.",
@@ -349,5 +352,13 @@
     "Du wurdest wegen Inaktivität abgemeldet.": "You were logged out due to inactivity.",
     "Die Sitzung ist abgelaufen. Bitte melde dich erneut an.": "Your session has expired. Please sign in again.",
     "Ungültige Version.": "Invalid version.",
-    "Name oder E-Mail": "Name or email"
+    "Name oder E-Mail": "Name or email",
+    ":anzahl offene Meldungen zu dieser Seite": ":anzahl open reports on this page",
+    "1 offene Meldung zu dieser Seite": "1 open report on this page",
+    "Betrifft mich auch": "Affects me too",
+    "Unterstützt": "Supported",
+    "seit :datum": "since :datum",
+    ":n Personen betrifft das auch": ":n people are affected too",
+    "Mit einer gleichen Meldung zusammengeführt": "Merged with an identical report",
+    "Eigene Meldung": "Own report"
 }

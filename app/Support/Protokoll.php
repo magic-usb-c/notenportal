@@ -67,6 +67,14 @@ final class Protokoll
 
     public const string ADMIN_SITZUNGSDAUER_GEAENDERT = 'admin.sitzungsdauer_geaendert';
 
+    public const string ADMIN_LOGO_GESPEICHERT = 'admin.logo_gespeichert';
+
+    public const string ADMIN_LOGO_ENTFERNT = 'admin.logo_entfernt';
+
+    public const string ADMIN_FEEDBACK_DUPLIKAT = 'admin.feedback_duplikat';
+
+    public const string ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN = 'admin.feedback_duplikat_aufgehoben';
+
     /** Aktionsschlüssel => Anzeige-Label (deutsch, über __() übersetzt). */
     public const array LABELS = [
         self::AUTH_ANMELDUNG_ERFOLGREICH => 'Anmeldung erfolgreich',
@@ -90,6 +98,10 @@ final class Protokoll
         self::ADMIN_BETREUUNG_BEENDET => 'Betreuung beendet',
         self::ADMIN_SYSTEMHINWEIS_GEAENDERT => 'Systemhinweis geändert',
         self::ADMIN_SITZUNGSDAUER_GEAENDERT => 'Sitzungsdauer geändert',
+        self::ADMIN_LOGO_GESPEICHERT => 'Logo gespeichert',
+        self::ADMIN_LOGO_ENTFERNT => 'Logo entfernt',
+        self::ADMIN_FEEDBACK_DUPLIKAT => 'Meldung als Duplikat markiert',
+        self::ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN => 'Duplikat-Markierung aufgehoben',
     ];
 
     /** Schlüssel, die nie ins Protokoll dürfen (Passwörter, Token, Geheimnisse), unabhängig von Gross-/Kleinschreibung. */

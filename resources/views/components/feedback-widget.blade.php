@@ -57,6 +57,73 @@
                 @endforeach
             </div>
 
+            @if(Route::has('feedback.similar'))
+                <div x-data="{
+                        anzahl: 0,
+                        meldungen: [],
+                        routeName: @js(request()->route()?->getName()),
+                        async laden() {
+                            if (! this.routeName) return;
+                            try {
+                                const res = await fetch(@js(route('feedback.similar')) + '?route_name=' + encodeURIComponent(this.routeName), {
+                                    headers: { Accept: 'application/json' },
+                                });
+                                const daten = res.ok ? await res.json() : { anzahl: 0, meldungen: [] };
+                                this.anzahl = daten.anzahl ?? 0;
+                                this.meldungen = daten.meldungen ?? [];
+                            } catch {
+                                this.anzahl = 0;
+                                this.meldungen = [];
+                            }
+                        },
+                        async stimmen(m) {
+                            const werStimmt = ! m.meine;
+                            m.meine = werStimmt;
+                            m.stimmen += werStimmt ? 1 : -1;
+                            try {
+                                const res = await fetch(@js(url('/feedback')) + '/' + m.id + '/vote', {
+                                    method: werStimmt ? 'POST' : 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
+                                        Accept: 'application/json',
+                                    },
+                                });
+                                if (res.ok) {
+                                    const daten = await res.json();
+                                    m.stimmen = daten.stimmen;
+                                    m.meine = daten.meine;
+                                }
+                            } catch {}
+                        },
+                     }"
+                     @open-modal.window="if ($event.detail === 'feedback') laden()">
+                    <template x-if="anzahl > 0">
+                        <div class="mb-4 rounded-lg border border-border bg-surface-2/60 p-3 text-sm">
+                            <p class="mb-2 font-medium text-text"
+                               x-text="anzahl === 1 ? @js(__('1 offene Meldung zu dieser Seite')) : @js(__(':anzahl offene Meldungen zu dieser Seite')).replace(':anzahl', anzahl)"></p>
+                            <ul class="space-y-2">
+                                <template x-for="m in meldungen" :key="m.id">
+                                    <li class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <span class="text-muted">
+                                            <span x-text="m.kategorie_label"></span>
+                                            <span aria-hidden="true"> · </span>
+                                            <span x-text="@js(__('seit :datum')).replace(':datum', m.datum)"></span>
+                                            <span aria-hidden="true"> · </span>
+                                            <span x-text="m.stimmen"></span>
+                                        </span>
+                                        <button type="button" @click="stimmen(m)" :aria-pressed="m.meine"
+                                                class="inline-flex h-11 w-full items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors duration-100 sm:h-9 sm:w-auto"
+                                                :class="m.meine ? 'bg-accent/10 text-accent-text' : 'text-muted hover:bg-surface-2 hover:text-text'">
+                                            <span x-text="m.meine ? @js(__('Unterstützt')) : @js(__('Betrifft mich auch'))"></span>
+                                        </button>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </template>
+                </div>
+            @endif
+
             <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }} <span class="text-note-ungenuegend">*</span></label>
             <textarea id="feedback-text" x-model="text" rows="5" maxlength="5000" required
                       placeholder="{{ __('Was ist passiert, was fehlt dir, was gefällt dir?') }}"

@@ -75,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.navigation', function ($view) {
             $user = Auth::user();
             $anzahlOffen = ($user && $user->hasRole('Admin'))
-                ? Feedback::where('status', Feedback::STATUS_OFFEN)->count()
+                ? Feedback::hauptmeldungen()->where('status', Feedback::STATUS_OFFEN)->count()
                 : 0;
 
             $view->with('feedbackOffenCount', $anzahlOffen);

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\CalendarFeed;
+use App\Models\Feedback;
 use App\Models\Lernender;
 use App\Models\MailLog;
 use App\Models\Pruefung;
@@ -217,7 +218,7 @@ final class Uebersicht
             ];
         });
 
-        $feedbackOffen = DB::table('feedback')->where('status', 'offen')->count();
+        $feedbackOffen = Feedback::hauptmeldungen()->where('status', 'offen')->count();
         $einrichtung = $this->einrichtungsluecken(
             $lernende->filter(fn (Lernender $l) => ! $l->lehrende || ! $l->lehrende->isPast())->pluck('lernender_id')->map(fn ($v) => (int) $v)->all(),
             $betreuung

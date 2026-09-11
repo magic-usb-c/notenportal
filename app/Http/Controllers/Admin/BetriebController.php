@@ -9,6 +9,7 @@ use App\Services\Betrieb\Sicherung;
 use App\Services\Betrieb\SicherungKopie;
 use App\Services\Notifications\MailSettings;
 use App\Support\Betrieb;
+use App\Support\Betriebslogo;
 use App\Support\Einstellungen;
 use App\Support\Protokoll;
 use App\Support\Sitzung;
@@ -52,6 +53,7 @@ class BetriebController extends Controller
             ],
             'sitzungStandard' => Sitzung::standard(),
             'sitzungMinuten' => Einstellungen::get(Einstellungen::SITZUNG_MINUTEN),
+            'logoVorhanden' => Betriebslogo::vorhanden(),
         ]);
     }
 
@@ -191,6 +193,22 @@ class BetriebController extends Controller
         ]);
 
         return redirect()->route('admin.operations.edit')->with('success', __('Systemhinweis gespeichert.'));
+    }
+
+    public function logoSpeichern(Request $request): RedirectResponse
+    {
+        if ($request->boolean('logo_entfernen')) {
+            Betriebslogo::entfernen();
+            Protokoll::schreiben(Protokoll::ADMIN_LOGO_ENTFERNT);
+
+            return redirect()->route('admin.operations.edit')->with('success', __('Logo entfernt.'));
+        }
+
+        $validiert = $request->validate(Betriebslogo::regeln());
+        Betriebslogo::speichern($validiert['logo']);
+        Protokoll::schreiben(Protokoll::ADMIN_LOGO_GESPEICHERT);
+
+        return redirect()->route('admin.operations.edit')->with('success', __('Logo gespeichert.'));
     }
 
     public function sitzungSpeichern(Request $request): RedirectResponse

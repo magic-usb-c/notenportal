@@ -43,6 +43,11 @@
                                         @else
                                             <span class="whitespace-pre-wrap">{{ $m->text }}</span>
                                         @endif
+                                        @if($m->istDuplikat())
+                                            <p class="mt-1 text-xs text-muted">{{ __('Mit einer gleichen Meldung zusammengeführt') }}</p>
+                                        @elseif($mitStimmen && ($m->stimmen_count ?? 0) > 0)
+                                            <p class="mt-1 text-xs text-muted">{{ __(':n Personen betrifft das auch', ['n' => $m->stimmen_count]) }}</p>
+                                        @endif
                                     </td>
                                     <td class="p-3 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $statusClasses }}">

@@ -7,6 +7,8 @@ namespace Tests\Feature\Performance;
 use App\Models\Berufsbildner;
 use App\Models\Betreuung;
 use App\Models\Fach;
+use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\Kategorie;
 use App\Models\Lehrberuf;
 use App\Models\Lernender;
@@ -511,5 +513,31 @@ class AbfragenAnzahlTest extends TestCase
         $gross = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.activity.index'))->assertOk());
 
         $this->assertWaechstNicht($klein, $gross, 40, 'Admin-Aktivitätsprotokoll');
+    }
+
+    #[Test]
+    public function admin_feedback_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $macheMeldungen = function (int $anzahl) {
+            for ($i = 0; $i < $anzahl; $i++) {
+                $original = Feedback::factory()->create();
+                $duplikat = Feedback::factory()->duplikatVon($original->feedback_id)->create();
+                FeedbackStimme::query()->insert([
+                    'feedback_id' => $original->feedback_id,
+                    'benutzer_id' => User::factory()->lernender()->create()->benutzer_id,
+                    'erstellt_am' => now(),
+                ]);
+            }
+        };
+
+        $macheMeldungen(5);
+        $klein = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.feedback.index'))->assertOk());
+
+        $macheMeldungen(20);
+        $gross = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.feedback.index'))->assertOk());
+
+        $this->assertWaechstNicht($klein, $gross, 25, 'Admin-Feedback-Liste');
     }
 }

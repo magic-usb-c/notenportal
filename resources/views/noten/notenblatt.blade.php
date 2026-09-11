@@ -1,4 +1,5 @@
 @php
+    use App\Support\Betriebslogo;
     use App\Support\NotenSkala;
     use App\Support\Zahl;
     use Illuminate\Support\Carbon;
@@ -6,6 +7,7 @@
     $g = NotenSkala::grenzen();
     $stufe = fn ($n) => $n === null ? '' : ($n >= $g['gut'] ? 'n-gut' : ($n >= $g['genuegend'] ? 'n-ok' : ($n >= $g['kritisch'] ? 'n-knapp' : 'n-tief')));
     $datum = fn ($d, $format = 'd.m.Y') => $d ? Carbon::parse($d)->format($format) : '–';
+    $logoUrl = Betriebslogo::url();
 @endphp
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
@@ -20,6 +22,8 @@
         .leiste a, .leiste button { font: inherit; font-size: 13px; padding: 8px 16px; border-radius: 10px; border: 1px solid #d1d5db; background: #f3f4f6; color: #374151; text-decoration: none; cursor: pointer; }
         .leiste button { background: #2563eb; border-color: #2563eb; color: #fff; font-weight: 600; }
         header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; margin-bottom: 14px; }
+        header .titel { display: flex; align-items: center; gap: 10px; }
+        header img.logo { height: 34px; width: auto; }
         h1 { font-size: 20pt; letter-spacing: -0.02em; }
         .sub { font-size: 12pt; margin-top: 2px; }
         .rechts { text-align: right; font-size: 9pt; color: #555; line-height: 1.5; }
@@ -79,9 +83,12 @@
     </div>
 
     <header>
-        <div>
-            <h1>{{ __('Notenblatt') }}</h1>
-            <div class="sub">{{ $blatt['name'] }}</div>
+        <div class="titel">
+            @if($logoUrl)<img src="{{ $logoUrl }}" alt="" class="logo">@endif
+            <div>
+                <h1>{{ __('Notenblatt') }}</h1>
+                <div class="sub">{{ $blatt['name'] }}</div>
+            </div>
         </div>
         <div class="rechts">
             @if($blatt['betrieb']){{ $blatt['betrieb'] }}<br>@endif

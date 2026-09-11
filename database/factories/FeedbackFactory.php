@@ -31,4 +31,10 @@ class FeedbackFactory extends Factory
             'erledigt_am' => null,
         ];
     }
+
+    /** Markiert die Meldung als Duplikat der angegebenen Original-Meldung. */
+    public function duplikatVon(int $feedbackId): static
+    {
+        return $this->state(fn () => ['duplikat_von' => $feedbackId]);
+    }
 }

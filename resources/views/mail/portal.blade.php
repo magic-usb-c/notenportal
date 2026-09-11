@@ -51,7 +51,11 @@
     <tr><td align="center" style="padding:28px 12px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
             <tr><td class="np-pad" style="padding:0 8px 14px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};" >
-                <span style="display:inline-block;width:8px;height:8px;border-radius:4px;background:{{ $f['accent'] }};margin-right:8px;vertical-align:middle;"></span>
+                @if($logoUrl ?? null)
+                    <img src="{{ $logoUrl }}" alt="" height="20" style="vertical-align:middle;margin-right:8px;border-radius:4px;">
+                @else
+                    <span style="display:inline-block;width:8px;height:8px;border-radius:4px;background:{{ $f['accent'] }};margin-right:8px;vertical-align:middle;"></span>
+                @endif
                 <span class="np-muted" style="vertical-align:middle;font-weight:600;letter-spacing:.02em;">Notenportal{{ $betrieb !== '' ? ' · '.$betrieb : '' }}</span>
             </td></tr>
             <tr><td class="np-card" style="background:{{ $f['card'] }};border:1px solid {{ $f['border'] }};border-radius:16px;">

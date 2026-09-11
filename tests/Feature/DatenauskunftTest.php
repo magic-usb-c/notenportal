@@ -8,6 +8,8 @@ use App\Http\Middleware\SetLocale;
 use App\Models\Betreuung;
 use App\Models\Dokument;
 use App\Models\Fach;
+use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\MailLog;
 use App\Models\Note;
 use App\Models\NotenKommentar;
@@ -133,6 +135,45 @@ class DatenauskunftTest extends TestCase
         $this->assertStringNotContainsString('Geheime Fremdnote', $alles);
         $this->assertStringNotContainsString($dokumentB->originalname, $alles);
         $this->assertStringNotContainsString('fremdes-dokument', strtolower($alles));
+
+        $zip->close();
+    }
+
+    #[Test]
+    public function feedback_stimmen_json_erscheint_nur_bei_vorhandenen_stimmen_ohne_fremden_text(): void
+    {
+        $a = User::factory()->lernender()->create();
+
+        // Ohne Stimmen fehlt die Datei.
+        $zipOhne = $this->oeffnen($a);
+        $this->assertFalse($zipOhne->locateName('feedback_stimmen.json'));
+        $zipOhne->close();
+
+        if (! FeedbackStimme::tabelleVorhanden()) {
+            $this->markTestSkipped('feedback_stimmen-Tabelle fehlt (Migration noch nicht gelaufen).');
+        }
+
+        $fremdeMeldung = Feedback::factory()->create([
+            'text' => 'Geheimer Text der fremden Meldung, darf nicht in der Auskunft stehen',
+            'kategorie' => Feedback::KATEGORIE_IDEE,
+        ]);
+        FeedbackStimme::query()->insert([
+            'feedback_id' => $fremdeMeldung->feedback_id,
+            'benutzer_id' => $a->benutzer_id,
+            'erstellt_am' => now(),
+        ]);
+
+        $zip = $this->oeffnen($a);
+        $this->assertNotFalse($zip->locateName('feedback_stimmen.json'));
+
+        $stimmen = json_decode($zip->getFromName('feedback_stimmen.json'), true);
+        $this->assertCount(1, $stimmen);
+        $this->assertSame($fremdeMeldung->feedback_id, $stimmen[0]['meldung_id']);
+        $this->assertSame(Feedback::KATEGORIE_IDEE, $stimmen[0]['kategorie']);
+        $this->assertSame(['erstellt_am', 'meldung_id', 'kategorie'], array_keys($stimmen[0]));
+
+        $alles = $this->alleEintraege($zip);
+        $this->assertStringNotContainsString('Geheimer Text der fremden Meldung', $alles);
 
         $zip->close();
     }

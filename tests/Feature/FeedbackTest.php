@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\FeedbackController;
 use App\Models\Feedback;
+use App\Models\FeedbackStimme;
 use App\Models\NotificationMark;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -121,6 +122,75 @@ class FeedbackTest extends TestCase
     }
 
     #[Test]
+    public function admin_index_sortiert_nach_stimmen_absteigend_und_faellt_bei_ungueltigem_sort_auf_datum_zurueck(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $wenig = Feedback::factory()->create(['text' => 'Wenig Stimmen Meldung']);
+        $viel = Feedback::factory()->create(['text' => 'Viele Stimmen Meldung']);
+
+        FeedbackStimme::query()->insert([
+            ['feedback_id' => $viel->feedback_id, 'benutzer_id' => User::factory()->lernender()->create()->benutzer_id, 'erstellt_am' => now()],
+            ['feedback_id' => $viel->feedback_id, 'benutzer_id' => User::factory()->lernender()->create()->benutzer_id, 'erstellt_am' => now()],
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.feedback.index', ['sort' => 'stimmen']));
+        $response->assertOk();
+        $inhalt = $response->getContent();
+        $this->assertLessThan(strpos($inhalt, 'Wenig Stimmen Meldung'), strpos($inhalt, 'Viele Stimmen Meldung'));
+
+        // Ungültiger sort-Wert fällt auf «datum» zurück, keine 500er.
+        $this->actingAs($admin)->get(route('admin.feedback.index', ['sort' => 'unsinn']))->assertOk();
+    }
+
+    #[Test]
+    public function admin_index_blendet_duplikate_standardmaessig_aus(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $original = Feedback::factory()->create(['text' => 'Original-Meldung-Text']);
+        Feedback::factory()->duplikatVon($original->feedback_id)->create(['text' => 'Duplikat-Meldung-Text']);
+
+        $ohneDuplikate = $this->actingAs($admin)->get(route('admin.feedback.index'));
+        $ohneDuplikate->assertOk();
+        $ohneDuplikate->assertSee('Original-Meldung-Text');
+        $ohneDuplikate->assertDontSee('Duplikat-Meldung-Text');
+
+        $mitDuplikaten = $this->actingAs($admin)->get(route('admin.feedback.index', ['duplikate' => 1]));
+        $mitDuplikaten->assertOk();
+        $mitDuplikaten->assertSee('Original-Meldung-Text');
+        $mitDuplikaten->assertSee('Duplikat-Meldung-Text');
+    }
+
+    #[Test]
+    public function admin_index_badge_zaehlt_duplikate_nicht_mit_als_offene_meldung(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $original = Feedback::factory()->create(['status' => Feedback::STATUS_OFFEN]);
+        Feedback::factory()->duplikatVon($original->feedback_id)->create(['status' => Feedback::STATUS_OFFEN]);
+
+        $this->assertSame(1, Feedback::hauptmeldungen()->where('status', Feedback::STATUS_OFFEN)->count());
+    }
+
+    #[Test]
+    public function admin_index_leerzustand_ohne_meldungen_und_ohne_treffer_fuer_filter(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $leer = $this->actingAs($admin)->get(route('admin.feedback.index'));
+        $leer->assertOk();
+        $leer->assertSee(__('Noch keine Meldungen'));
+
+        Feedback::factory()->create(['status' => Feedback::STATUS_OFFEN]);
+
+        $ohneTreffer = $this->actingAs($admin)->get(route('admin.feedback.index', ['status' => Feedback::STATUS_ERLEDIGT]));
+        $ohneTreffer->assertOk();
+        $ohneTreffer->assertSee(__('Keine Meldungen für diese Filter.'));
+        $ohneTreffer->assertSee(__('Filter zurücksetzen'));
+    }
+
+    #[Test]
     public function statuswechsel_setzt_und_leert_erledigt_am(): void
     {
         $admin = User::factory()->admin()->create();
@@ -160,6 +230,9 @@ class FeedbackTest extends TestCase
             $this->actingAs($user)->get(route('admin.feedback.export'))->assertForbidden();
             $this->actingAs($user)
                 ->patchJson(route('admin.feedback.update', $feedback->feedback_id), ['status' => Feedback::STATUS_ERLEDIGT])
+                ->assertForbidden();
+            $this->actingAs($user)
+                ->patchJson(route('admin.feedback.duplicate', $feedback->feedback_id), ['duplikat_von' => null])
                 ->assertForbidden();
         }
     }

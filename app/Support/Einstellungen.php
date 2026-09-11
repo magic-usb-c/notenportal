@@ -43,6 +43,8 @@ class Einstellungen
 
     public const SITZUNG_MINUTEN = 'sitzung_minuten';
 
+    public const LOGO_DATEI = 'logo_datei';
+
     private const string CACHE_KEY = 'einstellungen';
 
     public static function get(string $schluessel, ?string $standard = null): ?string

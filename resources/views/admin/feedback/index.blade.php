@@ -14,9 +14,16 @@
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
-            @php($aktiveFilter = collect([$status, $kategorie, $rolle])->filter()->count())
+            @php
+                $aktiveFilter = collect([$status, $kategorie, $rolle])->filter()->count() + ($duplikate ? 1 : 0);
+            @endphp
             <x-filterleiste :action="route('admin.feedback.index')" :zaehler="$meldungen->total()" zaehler-label="{{ __('Meldungen') }}"
                              :zurueck="route('admin.feedback.index')" :aktive-filter="$aktiveFilter">
+                <x-slot:hidden>
+                    <input type="hidden" name="sort" value="{{ $sort }}">
+                    <input type="hidden" name="dir" value="{{ $dir }}">
+                </x-slot:hidden>
+
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
                         class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
@@ -43,18 +50,49 @@
                     <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>{{ __('Berufsbildner') }}</option>
                     <option value="Lernender" @selected($rolle === 'Lernender')>{{ __('Lernender') }}</option>
                 </select>
+
+                @if($hatDuplikatSpalte)
+                    <x-slot:weitere>
+                        <label class="flex h-9 items-center gap-2 px-1 text-sm text-text">
+                            <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()"
+                                   class="rounded border-border-strong/70 text-accent focus:ring-ring">
+                            {{ __('Duplikate anzeigen') }}
+                        </label>
+                    </x-slot:weitere>
+                @endif
             </x-filterleiste>
 
+            @php
+                $sortLink = function (string $spalte, string $label) use ($sort, $dir) {
+                    if ($spalte === 'stimmen') {
+                        $aktiv = $sort === 'stimmen';
+                        $url = e(request()->fullUrlWithQuery(['sort' => 'stimmen', 'dir' => 'desc']));
+                        $pfeilAuf = false;
+                    } else {
+                        $aktiv = $sort === 'datum';
+                        $naechsteDir = $aktiv && $dir === 'asc' ? 'desc' : 'asc';
+                        $url = e(request()->fullUrlWithQuery(['sort' => 'datum', 'dir' => $naechsteDir]));
+                        $pfeilAuf = $aktiv && $dir === 'asc';
+                    }
+                    $pfeil = ! $aktiv
+                        ? '<span class="text-muted/50" aria-hidden="true">⇅</span>'
+                        : '<span aria-hidden="true">'.($pfeilAuf ? '↑' : '↓').'</span>';
+
+                    return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
+                };
+                $ariaSort = fn (string $spalte) => $sort === $spalte ? ($spalte === 'stimmen' || $dir === 'desc' ? 'descending' : 'ascending') : 'none';
+            @endphp
             <div class="rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Datum') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">{!! $sortLink('datum', __('Datum')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Absender') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Kategorie') }}</th>
+                                <th scope="col" class="hidden h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Text') }}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Aktionen') }}</th>
                             </tr>
                         </thead>
@@ -65,6 +103,40 @@
                                     notiz: @js($m->admin_notiz ?? ''),
                                     saving: false,
                                     savedOk: false,
+                                    duplikatVon: @js($m->duplikat_von ?? null),
+                                    duplikatEingabe: @js($m->duplikat_von ?? null),
+                                    duplikatFehler: '',
+                                    duplikatSaving: false,
+                                    async duplikatUmschalten() {
+                                        this.duplikatFehler = '';
+                                        this.duplikatSaving = true;
+                                        const ziel = this.duplikatVon ? null : (this.duplikatEingabe ? Number(this.duplikatEingabe) : null);
+                                        try {
+                                            const res = await fetch('{{ route('admin.feedback.duplicate', $m->feedback_id) }}', {
+                                                method: 'PATCH',
+                                                headers: {
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
+                                                    'Content-Type': 'application/json',
+                                                    'Accept': 'application/json',
+                                                },
+                                                body: JSON.stringify({ duplikat_von: ziel }),
+                                            });
+                                            if (res.ok) {
+                                                window.location.reload();
+                                                return;
+                                            }
+                                            if (res.status === 422) {
+                                                const daten = await res.json();
+                                                this.duplikatFehler = Object.values(daten.errors ?? {}).flat().join(' ') || @js(__('Bitte Eingaben prüfen.'));
+                                            } else {
+                                                this.duplikatFehler = @js(__('Bitte Eingaben prüfen.'));
+                                            }
+                                        } catch {
+                                            this.duplikatFehler = @js(__('Bitte Eingaben prüfen.'));
+                                        } finally {
+                                            this.duplikatSaving = false;
+                                        }
+                                    },
                                     async speichern() {
                                         this.saving = true;
                                         this.savedOk = false;
@@ -88,13 +160,24 @@
                                     },
                                 }"
                                 class="divide-y divide-border">
-                                <tr class="hover:bg-surface-2/60">
+                                <tr id="meldung-{{ $m->feedback_id }}" class="hover:bg-surface-2/60">
                                     <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
                                     <td class="px-3 py-2.5 whitespace-nowrap align-top">
                                         <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
                                         <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
+                                        @if($hatDuplikatSpalte && $m->duplikat_von)
+                                            <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
+                                               class="mt-1 inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted hover:text-text">
+                                                {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
+                                            </a>
+                                        @endif
+                                        @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
+                                            <span class="mt-1 inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted">
+                                                {{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}
+                                            </span>
+                                        @endif
                                     </td>
-                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
                                     <td class="px-3 py-2.5 max-w-sm align-top">
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
@@ -106,6 +189,7 @@
                                             }"
                                             :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
                                     </td>
+                                    <td class="px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
                                     <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open"
                                                 class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2">
@@ -114,7 +198,7 @@
                                     </td>
                                 </tr>
                                 <tr x-show="open" x-cloak>
-                                    <td colspan="6" class="p-4 bg-surface-2/60">
+                                    <td colspan="7" class="p-4 bg-surface-2/60">
                                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                             <div class="space-y-2 text-sm">
                                                 <p class="whitespace-pre-wrap">{{ $m->text }}</p>
@@ -169,6 +253,21 @@
                                                     </button>
                                                     <span x-show="savedOk" x-cloak class="text-xs text-note-gut">{{ __('Gespeichert.') }}</span>
                                                 </div>
+                                                @if($hatDuplikatSpalte)
+                                                    <div class="border-t border-border pt-3 mt-1">
+                                                        <label for="duplikat-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Duplikat von #') }}</label>
+                                                        <div class="mt-1 flex items-center gap-2">
+                                                            <input type="number" inputmode="numeric" id="duplikat-{{ $m->feedback_id }}"
+                                                                   x-model="duplikatEingabe" :disabled="!!duplikatVon"
+                                                                   class="w-28 rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm disabled:opacity-50">
+                                                            <button type="button" @click="duplikatUmschalten()" :disabled="duplikatSaving"
+                                                                    class="px-3 py-2 h-10 rounded-xl border border-border text-sm hover:bg-surface-2 disabled:opacity-50">
+                                                                <span x-text="duplikatVon ? @js(__('Markierung aufheben')) : @js(__('Als Duplikat markieren'))"></span>
+                                                            </button>
+                                                        </div>
+                                                        <p x-show="duplikatFehler" x-cloak class="mt-1 text-xs text-note-ungenuegend" x-text="duplikatFehler"></p>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
@@ -177,7 +276,19 @@
                         @empty
                             <tbody>
                                 <tr>
-                                    <td colspan="6" class="p-6 text-center text-muted">{{ __('Keine Meldungen gefunden.') }}</td>
+                                    <td colspan="7" class="p-10 text-center text-muted">
+                                        @if(! $gibtEs)
+                                            <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                                                <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z"/></svg>
+                                            </span>
+                                            <p class="text-text font-medium">{{ __('Noch keine Meldungen') }}</p>
+                                        @else
+                                            <p class="flex items-center justify-center gap-3 text-sm text-muted">
+                                                {{ __('Keine Meldungen für diese Filter.') }}
+                                                <a href="{{ route('admin.feedback.index') }}" class="text-accent-text hover:underline">{{ __('Filter zurücksetzen') }}</a>
+                                            </p>
+                                        @endif
+                                    </td>
                                 </tr>
                             </tbody>
                         @endforelse
