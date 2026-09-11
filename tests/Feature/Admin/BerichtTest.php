@@ -51,7 +51,20 @@ class BerichtTest extends TestCase
             ->assertSee('Verteilung der Zeugnisnoten')
             ->assertSee('Als Tabelle');
 
-        $response->assertSeeInOrder(['Note', 'Zeugnisnoten', '4.5', '1']);
+        $response->assertSeeInOrder(['Note', 'Zeugnisnoten', 'Stufe', '4.5', '1', 'genügend']);
+    }
+
+    #[Test]
+    public function verteilung_der_zeugnisnoten_zeigt_stufenlegende(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = User::factory()->lernender()->create();
+        Note::factory()->create(['lernender_id' => $lernender->lernender->lernender_id, 'note_wert' => 4.5]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.grades', ['semester' => 'alle']))
+            ->assertOk()
+            ->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
     }
 
     #[Test]

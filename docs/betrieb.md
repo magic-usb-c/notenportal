@@ -31,7 +31,7 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 
 - HTTPS: läuft seit 11.09. parallel zu HTTP mit eigener Lab-CA (siehe «HTTPS»). Offen: HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`, sobald die Geräte der Lernenden der CA vertrauen oder ein Zertifikat der Hamilton-CA vorliegt
 - `.env`: `APP_DEBUG=false`, `LOG_CHANNEL=daily`, `APP_URL` erledigt (11.09.); `APP_ENV=production` beim Go-Live
-- opcache explizit aktivieren, `config:cache`/`route:cache`/`view:cache` im Deploy
+- opcache: aktiv (11.09. geprüft, `10-opcache.ini` in mod_php geladen, Distro-Standard `opcache.enable=1`); `validate_timestamps` bleibt an, weil Prod aus dem Working Copy läuft. `config:cache`/`route:cache`/`view:cache` über `php artisan optimize` (Go-Live Punkt 6)
 - Kopie ausser Haus: Funktion vorhanden (11.09., Seite Betrieb → «Kopie ausser Haus», rsync in Ordner oder per SSH); Ziel muss beim Go-Live eingetragen werden. Offen: Wochenstände, wöchentlicher Restore-Test
 - Least Privilege: erledigt (11.09.) – `np_web` nur DML, `np_migrate` mit DDL; Installer legt für neue Instanzen `<db>_web` (DML) und `<db>_migrate` an
 - ufw auf die berechtigten Netze einschränken

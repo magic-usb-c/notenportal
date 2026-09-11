@@ -11,12 +11,6 @@
         ])) : null;
         $anzahlBalken = max(count($balken['semester']['labels']), count($balken['lehrzeit']['labels']));
         $balkenModus = count($balken['semester']['labels']) ? 'semester' : 'lehrzeit';
-        $stufenNamen = [
-            $skala::UNGENUEGEND => __('ungenügend'),
-            $skala::KNAPP => __('knapp'),
-            $skala::GENUEGEND => __('genügend'),
-            $skala::GUT => __('gut'),
-        ];
         $desktop = "window.matchMedia('(min-width: 1024px)').matches";
     @endphp
     <x-slot name="header">
@@ -133,13 +127,7 @@
                          x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
                         <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
                     </div>
-                    <ul class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs text-muted">
-                        @foreach($stufenNamen as $stufe => $name)
-                            <li class="inline-flex items-center gap-1.5">
-                                <span class="size-1.5 shrink-0 rounded-full bg-note-{{ $stufe }}" aria-hidden="true"></span>{{ $name }}
-                            </li>
-                        @endforeach
-                    </ul>
+                    <x-noten-legende class="mt-2" />
                     <details class="group np-details mt-3 border-t border-border pt-2">
                         <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
                             <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
@@ -160,7 +148,7 @@
                                         <tr class="border-t border-border">
                                             <td class="py-1.5 pr-3 text-text">{{ $label }}</td>
                                             <td class="py-1.5 pr-3 text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
-                                            <td class="py-1.5 text-right text-muted">{{ $stufenNamen[$skala::stufe($balken[$balkenModus]['werte'][$i])] ?? '–' }}</td>
+                                            <td class="py-1.5 text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

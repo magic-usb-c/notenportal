@@ -102,19 +102,21 @@
                         <x-slot:tabelle>
                             <table class="w-full text-sm tabular-nums">
                                 <thead class="text-2xs text-muted">
-                                    <tr><th class="text-left px-3 py-2 font-medium">{{ __('Note') }}</th><th class="text-right px-3 py-2 font-medium">{{ __('Zeugnisnoten') }}</th></tr>
+                                    <tr><th class="text-left px-3 py-2 font-medium">{{ __('Note') }}</th><th class="text-right px-3 py-2 font-medium">{{ __('Zeugnisnoten') }}</th><th class="text-right px-3 py-2 font-medium">{{ __('Stufe') }}</th></tr>
                                 </thead>
                                 <tbody>
                                     @foreach($verteilung['labels'] as $i => $label)
                                         <tr class="border-t border-border">
                                             <td class="px-3 py-2">{{ $label }}</td>
                                             <td class="px-3 py-2 text-right">{{ $verteilung['werte'][$i] }}</td>
+                                            <td class="px-3 py-2 text-right text-muted">{{ \App\Support\NotenSkala::stufeName((float) $label) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </x-slot:tabelle>
                         <div class="h-56" x-data="npChart('histogramm', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="{{ __('Verteilung der Zeugnisnoten') }}" role="img"></canvas></div>
+                        <x-noten-legende class="mt-2" />
                     </x-diagramm>
 
                     <x-karte :titel="__('Kategorien')" :polster="false">
@@ -148,6 +150,7 @@
                 </div>
 
                 <x-karte :titel="__('Tiefste Fächer und Module')">
+                    <x-noten-legende class="mb-3" />
                     <ul class="grid md:grid-cols-2 gap-x-8 gap-y-3">
                         @foreach($schwachstellen as $s)
                             @php $breite = max(2, min(100, ($s['schnitt'] - 1) / 5 * 100)); @endphp

@@ -77,6 +77,30 @@ final class NotenSkala
         return self::grenzen()['genuegend'];
     }
 
+    /**
+     * Übersetzte Namen der vier Notenstufen, ärmste zuerst – einzige Quelle für Legenden und
+     * «Stufe»-Spalten, damit Diagramme und Tabellen dieselben Bezeichnungen verwenden.
+     *
+     * @return array<string, string>
+     */
+    public static function stufenNamen(): array
+    {
+        return [
+            self::UNGENUEGEND => __('ungenügend'),
+            self::KNAPP => __('knapp'),
+            self::GENUEGEND => __('genügend'),
+            self::GUT => __('gut'),
+        ];
+    }
+
+    /** Übersetzter Stufenname zu einem Notenwert, «–» wenn kein Wert vorliegt. */
+    public static function stufeName(float|string|null $wert): string
+    {
+        $stufe = self::stufe($wert);
+
+        return $stufe !== null ? (self::stufenNamen()[$stufe] ?? '–') : '–';
+    }
+
     public static function stufe(float|string|null $wert): ?string
     {
         if ($wert === null || $wert === '') {
