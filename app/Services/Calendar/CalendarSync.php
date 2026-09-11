@@ -11,10 +11,13 @@ use App\Models\Lernender;
 use App\Models\Pruefung;
 use Carbon\CarbonImmutable;
 use DateTimeZone;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Sabre\VObject\Component\VEvent;
+use Sabre\VObject\DateTimeParser;
 use Sabre\VObject\Reader;
 
 /**
@@ -77,7 +80,7 @@ final class CalendarSync
                 $ganztags = ! $event->DTSTART->hasTime();
                 $start = CarbonImmutable::instance($event->DTSTART->getDateTime())->setTimezone($zone);
                 $ende = isset($event->DTEND) ? CarbonImmutable::instance($event->DTEND->getDateTime())->setTimezone($zone)
-                    : (isset($event->DURATION) ? $start->add(\Sabre\VObject\DateTimeParser::parseDuration((string) $event->DURATION)) : null);
+                    : (isset($event->DURATION) ? $start->add(DateTimeParser::parseDuration((string) $event->DURATION)) : null);
                 $summary = trim((string) ($event->SUMMARY ?? ''));
                 $beschreibung = trim((string) ($event->DESCRIPTION ?? ''));
                 $ort = trim((string) ($event->LOCATION ?? '')) ?: null;
@@ -177,7 +180,8 @@ final class CalendarSync
                 throw $zuGross ? new RuntimeException('Kalenderdatei ist grösser als 5 MB.') : $e;
             }
             if ($antwort->redirect() && $antwort->header('Location')) {
-                $url = (string) \GuzzleHttp\Psr7\UriResolver::resolve(new \GuzzleHttp\Psr7\Uri($url), new \GuzzleHttp\Psr7\Uri($antwort->header('Location')));
+                $url = (string) UriResolver::resolve(new Uri($url), new Uri($antwort->header('Location')));
+
                 continue;
             }
             if (! $antwort->successful()) {

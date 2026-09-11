@@ -10,6 +10,7 @@ use App\Models\Note;
 use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Models\User;
+use App\Services\Auswertung\Rechner;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -108,7 +109,7 @@ class PruefungenTest extends TestCase
 
         $this->actingAs($this->user)->get(route('learner.grades.calculator'))->assertOk()->assertSee('LB2');
 
-        $vorschlaege = app(\App\Services\Auswertung\Rechner::class)->seite($this->user->lernender, false)['vorschlaege'];
+        $vorschlaege = app(Rechner::class)->seite($this->user->lernender, false)['vorschlaege'];
         $this->assertSame(['geplant'], array_column($vorschlaege, 'quelle'));
     }
 }

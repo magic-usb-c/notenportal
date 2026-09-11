@@ -255,7 +255,7 @@ class DemoSeeder extends Seeder
                 continue;
             }
             $sem = $semester[$m['semester'] - 1];
-            $imLaufenden = $laufend && $m['semester'] - 1 === $aktuellesIndex;
+            $imLaufenden = $laufend && $aktuellesIndex === $m['semester'] - 1;
             $gewichte = $m['kategorie'] === 'UEK' ? [100] : [[100], [50, 50], [30, 30, 40]][$mi % 3];
             if ($imLaufenden) {
                 $gewichte = [40];

@@ -75,17 +75,20 @@ final class SchoolNetDescriptionParser
             if (isset(self::HEADINGS[$key])) {
                 $section = self::HEADINGS[$key];
                 $result['is_exam'] = $result['is_exam'] || $section === 'exam';
+
                 continue;
             }
-            if (trim($line) === '' ) {
+            if (trim($line) === '') {
                 if ($section === 'material' && $material !== []) {
                     $material[] = '';
                 }
+
                 continue;
             }
 
             if (preg_match('/^\s*([\p{L} ]{2,30}):\s*(.+)$/u', $line, $m) && isset(self::KEYS[mb_strtolower(trim($m[1]))])) {
                 $this->assign($result, self::KEYS[mb_strtolower(trim($m[1]))], trim($m[2]));
+
                 continue;
             }
 

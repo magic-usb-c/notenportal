@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Fach;
 use App\Models\Note;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
 use Tests\TestCase;
@@ -66,8 +68,8 @@ class SucheTest extends TestCase
     public function lernender_findet_eigenes_fach_zum_erfassen(): void
     {
         $lernender = $this->neuerLernender();
-        $fach = \App\Models\Fach::factory()->create(['name' => 'Mathematik Vertiefung', 'track_typ' => null]);
-        \Illuminate\Support\Facades\DB::table('lehrberuf_faecher')->insert([
+        $fach = Fach::factory()->create(['name' => 'Mathematik Vertiefung', 'track_typ' => null]);
+        DB::table('lehrberuf_faecher')->insert([
             'lehrberuf_id' => $lernender->lehrberuf_id,
             'fach_id' => $fach->fach_id,
             'aktiv' => 1,

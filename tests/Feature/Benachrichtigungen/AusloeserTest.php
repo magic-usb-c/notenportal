@@ -7,6 +7,7 @@ namespace Tests\Feature\Benachrichtigungen;
 use App\Models\Betreuung;
 use App\Models\Fach;
 use App\Models\Feedback;
+use App\Models\Lernender;
 use App\Models\Note;
 use App\Models\Semester;
 use App\Models\User;
@@ -162,7 +163,7 @@ class AusloeserTest extends TestCase
         Notification::assertNotSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::GRADE_CORRECTED);
     }
 
-    /** @return array{0: User, 1: \App\Models\Lernender, 2: User, 3: Note} */
+    /** @return array{0: User, 1: Lernender, 2: User, 3: Note} */
     private function korrekturSetup(float $noteWert): array
     {
         $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
@@ -248,7 +249,7 @@ class AusloeserTest extends TestCase
         Notification::assertNotSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::BELOW_THRESHOLD);
     }
 
-    /** @return array{0: User, 1: \App\Models\Lernender, 2: Fach, 3: User, 4: User} Lernender, Fach, aktive und ehemalige Betreuung */
+    /** @return array{0: User, 1: Lernender, 2: Fach, 3: User, 4: User} Lernender, Fach, aktive und ehemalige Betreuung */
     private function eigeneNoteSetup(): array
     {
         $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);

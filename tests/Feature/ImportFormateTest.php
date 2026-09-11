@@ -205,7 +205,7 @@ class ImportFormateTest extends TestCase
     /** Minimales PDF mit Textlayer, eine Zeile pro Eintrag. */
     private function pdf(array $zeilen): string
     {
-        $inhalt = "BT /F1 11 Tf 14 TL 60 780 Td\n".implode('', array_map(fn ($z) => '('.addcslashes($z, '()\\').") Tj T*\n", $zeilen))."ET";
+        $inhalt = "BT /F1 11 Tf 14 TL 60 780 Td\n".implode('', array_map(fn ($z) => '('.addcslashes($z, '()\\').") Tj T*\n", $zeilen)).'ET';
         $objekte = [
             '<< /Type /Catalog /Pages 2 0 R >>',
             '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',

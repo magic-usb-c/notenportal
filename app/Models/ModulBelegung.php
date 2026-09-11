@@ -35,7 +35,6 @@ class ModulBelegung extends Model
         return $this->hasMany(Note::class, 'modul_belegung_id', 'modul_belegung_id');
     }
 
-
     protected function casts(): array
     {
         return [
