@@ -63,17 +63,17 @@
                         history.replaceState(null, '', u);
                     },
                  }">
-                <nav role="tablist" aria-label="Bereiche" class="flex gap-6 overflow-x-auto border-b border-border text-sm">
-                    <button type="button" role="tab" :aria-selected="(tab === 'overview').toString()" @click="wechsleTab('overview')"
+                <nav aria-label="Bereiche" class="flex gap-6 overflow-x-auto border-b border-border text-sm">
+                    <button type="button" :aria-current="tab === 'overview' ? 'page' : null" @click="wechsleTab('overview')"
                             class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 font-medium"
                             :class="tab === 'overview' ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text'">Übersicht</button>
-                    <a role="tab" aria-selected="false" href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
                        class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">Noten</a>
-                    <a role="tab" aria-selected="false" href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}"
                        class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">Dokumente</a>
-                    <a role="tab" aria-selected="false" href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}"
+                    <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}"
                        class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">Rechner</a>
-                    <button type="button" role="tab" :aria-selected="(tab === 'profil').toString()" @click="wechsleTab('profil')"
+                    <button type="button" :aria-current="tab === 'profil' ? 'page' : null" @click="wechsleTab('profil')"
                             class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 font-medium whitespace-nowrap"
                             :class="tab === 'profil' ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text'">Profil &amp; Betreuung</button>
                 </nav>

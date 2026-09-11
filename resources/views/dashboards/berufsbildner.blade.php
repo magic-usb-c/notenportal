@@ -93,7 +93,7 @@
                                         <td class="h-11 px-3 text-right whitespace-nowrap">
                                             <x-note :wert="$s->semesterNote" :stellen="1" />
                                             @if($d !== null && $d != 0)
-                                                <span class="block text-2xs {{ $d > 0 ? 'text-text' : 'text-note-knapp' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format($d, 1) }}</span>
+                                                <span class="block text-2xs {{ $d > 0 ? 'text-text' : 'text-note-knapp' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format(abs($d), 1) }}</span>
                                             @endif
                                         </td>
                                         <td class="hidden h-11 px-3 text-right sm:table-cell"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
