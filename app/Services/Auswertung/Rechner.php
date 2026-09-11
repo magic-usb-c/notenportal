@@ -104,6 +104,17 @@ final class Rechner
 
         $von = $lernender->lehrbeginn?->toDateString() ?? now()->toDateString();
         $bis = $lernender->lehrende?->toDateString() ?? Carbon::parse($von)->addYears(4)->toDateString();
+
+        // Noten können ausserhalb des offiziellen Lehrzeit-Fensters liegen (nachträgliche Korrektur,
+        // Lehrzeitverlängerung o.ä.); die Semesterliste muss deren Datum abdecken, sonst lehnt der Rechner
+        // eine bestehende Note beim Bearbeiten als "nicht im Katalog" ab (gleiches Muster wie bei $faecher oben).
+        $notenSpanne = DB::table('noten')->where('lernender_id', $id)->whereNull('geloescht_am')
+            ->selectRaw('MIN(pruefungsdatum) as von, MAX(pruefungsdatum) as bis')->first();
+        if ($notenSpanne?->von !== null) {
+            $von = min($von, (string) $notenSpanne->von);
+            $bis = max($bis, (string) $notenSpanne->bis);
+        }
+
         $semester = [];
         foreach ($k->semester as $sid => $s) {
             if ($s['ende'] >= $von && $s['start'] <= $bis) {

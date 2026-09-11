@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\Ziel;
 use App\Services\Auswertung\Konfiguration;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
 use Tests\TestCase;
@@ -145,6 +146,69 @@ class RechnerTest extends TestCase
         ])->assertOk();
 
         $this->assertEquals(6.0, $antwort->json('loesung.resultat'));
+    }
+
+    #[Test]
+    public function editformular_vorschau_fuer_note_ausserhalb_der_lehrzeit_schlaegt_nicht_fehl(): void
+    {
+        // Bug: eine Note datiert nach «lehrende» (nachträgliche Korrektur, Lehrzeitverlängerung o.ä.) referenziert
+        // ein Semester, das der Rechner-Katalog (bis dahin begrenzt auf lehrbeginn..lehrende) nicht kannte – die
+        // Live-Vorschau im Bearbeiten-Formular (resources/js/rechner.js, npNotenFormular.laden()) bekam dafür 422.
+        $this->lernender->update(['lehrende' => now()->subYear()->toDateString()]);
+        $note = Note::factory()->create([
+            'lernender_id' => $this->lernender->lernender_id,
+            'kategorie_id' => Kategorie::where('code', 'BMS')->value('kategorie_id'),
+            'semester_id' => $this->semester->semester_id,
+            'fach_id' => $this->fach->fach_id,
+            'modul_belegung_id' => null,
+            'pruefungsdatum' => now()->toDateString(),
+            'note_wert' => 5.0,
+            'gewichtung_prozent' => 100,
+            'erfasst_von_benutzer_id' => $this->user->benutzer_id,
+        ]);
+
+        $element = "fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}";
+
+        // Exakte Nutzlast, die npNotenFormular.laden() beim Öffnen des Bearbeiten-Formulars schickt.
+        $antwort = $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
+            'ziel' => $element,
+            'zielwert' => 4,
+            'ersetzt' => $note->note_id,
+            'zeilen' => [['element' => $element, 'gewicht' => 100, 'wert' => 5.0, 'datum' => $note->pruefungsdatum->toDateString()]],
+        ])->assertOk();
+
+        $this->assertEquals(5.0, $antwort->json('loesung.resultat'));
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function editformular_vorschau_im_verwaltungsbereich_fuer_note_ausserhalb_der_lehrzeit(string $bereich): void
+    {
+        $this->lernender->update(['lehrende' => now()->subYear()->toDateString()]);
+        $verwalter = $this->verwalter($bereich, $this->lernender);
+
+        $note = Note::factory()->create([
+            'lernender_id' => $this->lernender->lernender_id,
+            'kategorie_id' => Kategorie::where('code', 'BMS')->value('kategorie_id'),
+            'semester_id' => $this->semester->semester_id,
+            'fach_id' => $this->fach->fach_id,
+            'modul_belegung_id' => null,
+            'pruefungsdatum' => now()->toDateString(),
+            'note_wert' => 5.0,
+            'gewichtung_prozent' => 100,
+            'erfasst_von_benutzer_id' => $this->user->benutzer_id,
+        ]);
+
+        $element = "fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}";
+
+        $antwort = $this->actingAs($verwalter)->postJson(route("{$bereich}.learners.calculator.calculate", $this->lernender->lernender_id), [
+            'ziel' => $element,
+            'zielwert' => 4,
+            'ersetzt' => $note->note_id,
+            'zeilen' => [['element' => $element, 'gewicht' => 100, 'wert' => 5.0, 'datum' => $note->pruefungsdatum->toDateString()]],
+        ])->assertOk();
+
+        $this->assertEquals(5.0, $antwort->json('loesung.resultat'));
     }
 
     #[Test]
