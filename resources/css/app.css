@@ -350,3 +350,14 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* Gesetzte Checkboxen/Radios: `bg-input` (Feldgrund) überdeckte die Checked-Farbe des Forms-Plugins –
+   im hellen Modus weisses Häkchen auf Weiss, also unsichtbar. Selektor ist spezifischer als die Utility. */
+@layer utilities {
+  input[type='checkbox']:checked,
+  input[type='radio']:checked,
+  input[type='checkbox']:indeterminate {
+    background-color: currentColor;
+    border-color: transparent;
+  }
+}
