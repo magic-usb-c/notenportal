@@ -105,6 +105,7 @@ sudo systemctl reload apache2
 | 11.09.2026 | Dump `notenportal-20260911-0347-vor-feed-import.sql` + Tag `vor-feed-import`, Migration `2026_09_11_000005_calendar_feed_import_exams` (calendar_feeds.import_exams) per `--path` erst auf `notenportal_probe` inkl. Rollback, dann `notenportal`. |
 | 11.09.2026 | Dump `notenportal-20260911-0719-vor-locale.sql` + Tag `vor-locale`, Migration `2026_09_11_000008_benutzer_locale` (`benutzer.locale` varchar(5) nullable, persönliche Sprache; Einstellungen `sprache_standard`/`sprachwahl_aktiv` ohne Schema) erst auf `notenportal_probe` (inkl. Rollback), dann `notenportal`. Sprachwahl bleibt aus. |
 | 11.09.2026 | Generalprobe Go-Live-Checkliste Punkte 1–7 auf der zweiten Instanz (i2): Dump `~/db-backups/notenportal_i2-20260911-0930-vor-generalprobe.sql` (59 KB), `npm ci` + Build, `notenportal:migrate` (nichts offen), `notenportal:pilot-vorbereiten --ausfuehren` (3 Konten → Passwortwechsel), `optimize`, Dateirechte, `/login` 200, keine Fehler im Log. Prod unverändert. |
+| 11.09.2026 | Restore-Test: Nachtsicherungs-Fehler 02:30 lag vor Fix 52781f5; Probelauf `notenportal:sicherung` als www-data (wie Cron) ok (`notenportal-20260911-113535.zip`). `datenbank.sql` daraus in `notenportal_probe` eingespielt: 38 Tabellen, Zeilenzahlen identisch mit Prod (ausser `cache_locks`); Dokumente im ZIP 2 = 2 auf Disk. |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.

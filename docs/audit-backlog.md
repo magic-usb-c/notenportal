@@ -100,7 +100,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - Feedback: keine Screenshot-Vorschau vor dem Senden (Aufnahme erst beim Senden, robuster); keine Duplikaterkennung.
 - Agenda-Query-Parameter (`ansicht`, `monat`) noch deutsch; bei der späteren Code-Umbenennung mitziehen (LegacyPaths betrifft nur Pfade).
 - Mobile Filterformulare (Lernende, Benutzer) sehr lang: Filterleiste in GUI-Paket 5.
-- `Uebersicht::berufsbildner()` liefert `vergleich` noch, das BB-Dashboard nutzt seit Paket 6 Small Multiples – entfernen, sobald Paket 4 das Dashboard umbaut.
+- ~~`Uebersicht::berufsbildner()` liefert `vergleich` noch~~ erledigt mit Paket 4 (11.09. geprüft: kein `vergleich` mehr in `Uebersicht.php`).
 - ~~Senkrechte Genügend-Linie für `balken()` (Lernenden-Dashboard) mit Paket 3.~~ erledigt.
 
 ## Paket 3 – Lernende (11.09.2026) – bewusst weggelassen
@@ -110,7 +110,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - ~~Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.~~ erledigt (11.09., Reste-Session): `x-radiogroup`-Direktive in `np.js` (Roving Tabindex + Pfeiltasten), angewendet auf alle `role="radiogroup"`-Container in `resources/views` (native `<input type="radio">` in `notifications/settings.blade.php` bewusst unverändert, dort bereits nativ bedienbar).
 - ~~`np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).~~ erledigt (11.09., Reste-Session): `TEXT`-Map auf `text-note-*`-Tokens umgestellt.
 - ~~Bullet Graph ohne Bandnamen~~ erledigt (11.09.): Legende ungenügend/knapp/genügend/gut unter «Wo stehe ich», Spalte «Stufe» in «Als Tabelle». Offen: dieselben Stufennamen in den Admin-/Berichtsdiagrammen. Lange Fach-/Modulnamen mobil weiterhin auf 16 Zeichen gekürzt (voll im Tooltip).
-- `x-sparkline` zeigt jetzt standardmässig den letzten Wert als Zahl – auch in der BB-Tabelle; dort ggf. `:zahl="false"` setzen (Paket 4).
+- ~~`x-sparkline` zeigt standardmässig den letzten Wert als Zahl, auch in der BB-Tabelle~~ erledigt mit Paket 4 (`:zahl="false"`, siehe unten).
 - Einzelnoten-Tabelle mobil: Spalte «Schnitt vor Rundung» ab `sm` ausgeblendet.
 
 ## Paket 4 – Berufsbildner (11.09.2026) – bewusst weggelassen
@@ -156,7 +156,7 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 - ~~Mails mit vorgebautem `MailContent` gehen in der Sprache des Auslösers statt des Empfängers: `KommentarController`, `Lernender/NotenController`, `NotenImportController`, `FeedbackController`, `Verwaltung/{NotenGesehen,Betreuung,LernendeNoten}Controller`, `Admin/{Feedback,MailSettings}Controller`, `Auth/{NewPassword,PasswortWechsel,Password}Controller`, `CheckNotifications`, `SicherungErstellen`, `GradeWatcher`, `AccountMails` → Inhalt erst im `Notifier` pro Empfänger bauen.~~ erledigt (11.09.): alle Aufrufe geben den Inhalt als Closure an `Notifier::send`/`dispatch`, `CheckNotifications::melden()` nimmt jetzt `MailContent|Closure`. `AccountMails` und `Auth/{NewPassword,PasswortWechsel,Password}Controller` bauen ihren Text weiterhin ohne `__()` (fest Deutsch) – Closure-Form vorbereitet, aber noch nicht wirklich mehrsprachig; `Admin/MailSettingsController::test()` unverändert, da der Test-Empfänger kein `User` mit eigener Locale ist.
 - Übersetzungen sind portalweit flach (ein Wert pro deutschem Schlüssel, 26 Kollisionen beim Zusammenführen nach Glossar vereinheitlicht). Mehrdeutige Wörter («Semester», «Berufsbildner», «Fehler») bei Bedarf mit Kontext-Schlüsseln lösen.
 - ~~`Dokument::ARTEN`-Labels, Einrichtungs-Info-Texte, Import-Meldungen, Konto-/Passwort-Mails unübersetzt~~ erledigt (11.09.): `Dokument::label()`, `Einrichtung::stand()`, `NotenImport` (Status über internen Code), `AccountMails`/Auth-Controller mit `__()`; `i18n-scan` 26 → 21 Textknoten.
-- Rest laut `notenportal:i18n-scan` (bewusst offen): `vendor/pagination/*` (eigene deutsche Laravel-Views), CSV-Vorlage `NotenImport::vorlage()` (Kopfzeilen bleiben deutsch, der Import erkennt beide), Beispielwerte in Platzhaltern, Kürzel BMS/ABU.
+- Rest laut `notenportal:i18n-scan` (bewusst offen): CSV-Vorlage `NotenImport::vorlage()` (Kopfzeilen bleiben deutsch, der Import erkennt beide), Beispielwerte in Platzhaltern, Kürzel BMS/ABU.
 - ~~Pint-Altlasten: `KommentarController`, `routes/web.php`~~ erledigt (11.09.).
 - Nach dem Go-Live: Umbenennungen Code/Model/DB gemäss `docs/i18n-plan.md`.
 
@@ -165,4 +165,9 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 Skript `~/tools/visual/rundgang.mjs` (Playwright + axe-core, alle GET-Seiten je Rolle, 1280/390 px): keine JS-Fehler, kein seitliches Überlaufen.
 - ~~Rechner-Anfrage im Noten-Formular mit 422 bei Noten nach Lehrende~~ erledigt: `Rechner::katalog()` deckt die Prüfungsdaten bestehender Noten ab.
 - ~~axe serious/critical: Footer-Kontrast, Logo-Link ohne Namen (mobil), verschachteltes Element in `<summary>` (Lernenden-Dashboard), scrollbare Tabellen nicht fokussierbar, Link nur per Hover erkennbar (Module), Kontrast Notenblatt-Druck und Semester~~ erledigt; Scrollbereiche zentral über `registriereScrollbereiche()` in `np.js`.
-- Dokument-Detailseite nicht geprüft: keine Dokumente in den Testdaten.
+- Dokument-Detailseite im Browser (axe) nicht geprüft: keine Dokumente in den Prod-Testdaten. Gerendert und auf Englisch geprüft wird sie in `EnglischeSeitenTest` (lädt ein Dokument hoch).
+
+## Englische Oberfläche & Abfragen (11.09.2026)
+
+- ~~Deutsche Reste in der englischen Oberfläche~~ erledigt (9ab78eb): `EnglischeSeitenTest` rendert 72 GET-Seiten je Rolle mit `locale=en` (inkl. Detail-/Bearbeiten-Seiten, Einrichtung) und prüft sichtbaren Text samt aria-label/title/placeholder/alt; 11 Reste übersetzt, Pagination-Views übersetzt, 7 unbenutzte Pagination-Views entfernt. Bewusst ausgenommen: Seed-Daten und der feste Katalog `Einrichtung::LEHRBERUFE/FAECHER`.
+- ~~N+1 im Admin-Dashboard (ungesehene Noten je Berufsbildner)~~ erledigt (39e232d): eine Abfrage für alle Berufsbildner. `AbfragenAnzahlTest` sichert 11 Seiten ab (Abfragezahl unabhängig von der Datenmenge). Obergrenzen 40/60 sind Startwerte – nach dem Go-Live mit echten Datenmengen nachjustieren.
