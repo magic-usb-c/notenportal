@@ -29,6 +29,7 @@
         <env name="DB_CONNECTION" value="mariadb" force="true"/>
         <!-- Überschreibbar für parallele Läufe (DB_DATABASE=notenportal_b_test), der Guard in TestCase verlangt *_test -->
         <env name="DB_DATABASE" value="notenportal_test"/>
+        <env name="LOG_CHANNEL" value="null" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
