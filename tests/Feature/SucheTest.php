@@ -85,7 +85,7 @@ class SucheTest extends TestCase
     public function navigation_zeigt_rollengerechte_eintraege(): void
     {
         $this->actingAs(User::factory()->lernender()->create())->get(route('learner.dashboard'))
-            ->assertSee('Prüfungen')->assertSee('Rechner')->assertDontSee('Stammdaten');
+            ->assertSee('>Agenda<', false)->assertSee('Rechner')->assertDontSee('Stammdaten');
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.dashboard'))
             ->assertSee('Stammdaten')->assertSee('Benutzerkonten');
     }

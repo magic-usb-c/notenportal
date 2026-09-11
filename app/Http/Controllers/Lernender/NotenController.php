@@ -143,7 +143,41 @@ class NotenController extends Controller
             'nextSemesterId' => $nextSemesterId,
             'anzahl' => $notes->count(),
             'belegungen' => $belegungen,
+            'drawerFehler' => $this->drawerNachFehler($request, $lernender),
         ]);
+    }
+
+    /**
+     * Validierungsfehler aus dem Drawer: Formular mit alter Eingabe wieder im Drawer anzeigen.
+     *
+     * @return array{titel: string, daten: array<string, mixed>}|null
+     */
+    private function drawerNachFehler(Request $request, Lernender $lernender): ?array
+    {
+        $kontext = (string) $request->old('_drawer', '');
+        if ($kontext === '') {
+            return null;
+        }
+
+        $daten = [
+            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
+            'semesterListe' => $this->noteService->semesterListe(),
+            'drawer' => $kontext,
+        ];
+        if ($kontext === 'neu') {
+            return ['titel' => 'Neue Note', 'daten' => $daten];
+        }
+        if (preg_match('/^bearbeiten:(\d+)$/', $kontext, $m)) {
+            $note = Note::query()
+                ->with(['fach', 'modulBelegung.modul'])
+                ->where('note_id', (int) $m[1])
+                ->where('lernender_id', (int) $lernender->lernender_id)
+                ->first();
+
+            return $note ? ['titel' => 'Note bearbeiten', 'daten' => $daten + ['note' => $note]] : null;
+        }
+
+        return null;
     }
 
     public function create(Request $request)
@@ -153,12 +187,17 @@ class NotenController extends Controller
             ? $lernender->pruefungen()->with(['fach', 'modul'])->find($request->integer('pruefung'))
             : null;
 
-        return view('lernender.noten.create', [
+        $daten = [
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
             'semesterListe' => $this->noteService->semesterListe(),
             'pruefung' => $pruefung,
             'vorauswahl' => preg_match('/^(fach|modul):\d+$/', (string) $request->query('bezug')) ? $request->query('bezug') : null,
-        ]);
+        ];
+
+        // ?drawer=1: nur das Formular für den Drawer der Notenliste
+        return $request->boolean('drawer')
+            ? view('lernender.noten.partials.formular', $daten + ['drawer' => 'neu'])
+            : view('lernender.noten.create', $daten);
     }
 
     public function store(Request $request)
@@ -235,11 +274,15 @@ class NotenController extends Controller
             ->where('lernender_id', (int) $lernender->lernender_id)
             ->firstOrFail();
 
-        return view('lernender.noten.edit', [
+        $daten = [
             'note' => $note,
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
             'semesterListe' => $this->noteService->semesterListe(),
-        ]);
+        ];
+
+        return $request->boolean('drawer')
+            ? view('lernender.noten.partials.formular', $daten + ['drawer' => 'bearbeiten:'.$note->note_id])
+            : view('lernender.noten.edit', $daten);
     }
 
     public function update(Request $request, int $note_id)

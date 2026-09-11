@@ -1,15 +1,20 @@
-{{-- Note erfassen/bearbeiten, für alle Rollen. Erwartet: $action, $bezugOptionen, $semesterListe, $zurueck, $vorschauUrl; optional $note, $pruefung, $submitLabel --}}
+{{--
+    Note erfassen/bearbeiten, für alle Rollen. Erwartet: $action, $bezugOptionen, $semesterListe, $zurueck, $vorschauUrl;
+    optional $note, $pruefung, $submitLabel, $drawer (Name des Drawer-Kontexts: «Abbrechen» schliesst den Drawer,
+    ein Fehler öffnet ihn nach dem Absenden wieder)
+--}}
 @php
     $note ??= null;
     $pruefung ??= null;
+    $drawer ??= null;
     $bezug = old('bezug', $note
         ? ($note->fach_id ? 'fach:'.$note->fach_id : 'modul:'.$note->modulBelegung?->modul_id)
         : ($pruefung?->bezug() ?? $vorauswahl ?? null));
     $datum = old('pruefungsdatum', $note?->pruefungsdatum?->toDateString() ?? $pruefung?->datum?->toDateString() ?? now()->toDateString());
     $gewicht = (string) old('gewichtung_prozent', $note?->gewichtung_prozent ?? $pruefung?->gewichtung_prozent ?? 100);
-    $label = 'text-xs uppercase tracking-widest text-muted font-medium';
-    $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2.5 focus:ring-2 focus:ring-ring focus:border-ring';
-    $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
+    $label = 'text-sm font-medium text-text';
+    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $fehler = 'mt-1 text-xs text-note-ungenuegend';
 @endphp
 
 <form method="POST" action="{{ $action }}" class="flex flex-col gap-6" novalidate
@@ -31,20 +36,23 @@
     @if($pruefung)
         <input type="hidden" name="pruefung_id" value="{{ $pruefung->pruefung_id }}">
     @endif
+    @if($drawer)
+        <input type="hidden" name="_drawer" value="{{ $drawer }}">
+    @endif
     <input type="hidden" name="typ" :value="typ">
     <input type="hidden" name="fach_id" :value="typ === 'fach' ? id : ''">
     <input type="hidden" name="modul_id" :value="typ === 'modul' ? id : ''">
 
     <div class="flex flex-col items-center gap-2">
-        <label for="note_wert" class="{{ $label }}">Note <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="note_wert" class="{{ $label }}">Note <span class="text-note-ungenuegend">*</span></label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
-               x-model="wert" :class="klasse(wert)"
-               class="w-36 h-20 text-4xl font-extrabold text-center tabular-nums rounded-2xl border-2 border-border bg-input focus:border-accent focus:outline-hidden focus:ring-0">
-        @error('note_wert')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+               x-model="wert" :class="klasse(wert)" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
+               class="h-20 w-36 rounded-xl border-2 border-border-strong/70 bg-input text-center text-4xl font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0">
+        @error('note_wert')<p id="note_wert-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
-        <label for="bezug" class="{{ $label }}">Fach / Modul <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="bezug" class="{{ $label }}">Fach / Modul <span class="text-note-ungenuegend">*</span></label>
         <select id="bezug" name="bezug" x-model="bezug" required class="{{ $feld }}">
             <option value="">Bitte wählen</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -60,11 +68,11 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <label for="pruefungsdatum" class="{{ $label }}">Prüfungsdatum <span class="text-red-600 dark:text-red-400">*</span></label>
+            <label for="pruefungsdatum" class="{{ $label }}">Prüfungsdatum <span class="text-note-ungenuegend">*</span></label>
             <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="{{ $feld }}">
-            <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-orange-700 dark:text-orange-400'"
+            <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
                x-text="semester ? 'Semester ' + semester.name : (datum ? 'Kein Semester für dieses Datum' : '')"></p>
             @error('pruefungsdatum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
@@ -74,8 +82,8 @@
             <div class="mt-1.5 flex gap-1.5">
                 @foreach([25, 50, 100] as $g)
                     <button type="button" @click="gewicht = '{{ $g }}'"
-                            class="min-h-9 min-w-12 px-3 rounded-lg border text-xs transition-colors"
-                            :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'">{{ $g }}%</button>
+                            class="h-9 min-w-12 rounded-lg border px-3 text-xs transition-colors duration-100"
+                            :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border-strong/60 text-muted hover:text-text'">{{ $g }}%</button>
                 @endforeach
             </div>
             @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
@@ -88,25 +96,29 @@
         @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
-    <div x-show="vorschau.length" x-cloak class="rounded-2xl border border-border bg-bg/60 px-4 py-3" aria-live="polite">
-        <div class="{{ $label }} mb-1.5">Auswirkung</div>
+    <div x-show="vorschau.length" x-cloak class="rounded-xl border border-border bg-surface-2/60 px-4 py-3" aria-live="polite">
+        <div class="mb-1.5 text-xs font-medium text-muted">Auswirkung</div>
         <template x-for="z in vorschau" :key="z.text">
-            <div class="flex items-center justify-between gap-3 text-sm py-1">
+            <div class="flex items-center justify-between gap-3 py-1 text-sm">
                 <span class="truncate" :class="z.ist_ziel ? 'text-text font-medium' : 'text-muted'" x-text="z.label"></span>
                 <span class="shrink-0 tabular-nums">
                     <span class="text-muted" x-text="fmt(z.vorher)"></span>
                     <span class="text-muted" aria-hidden="true">→</span>
-                    <span class="font-bold" :class="klasse(z.nachher)" x-text="fmt(z.nachher)"></span>
+                    <span class="font-semibold" :class="klasse(z.nachher)" x-text="fmt(z.nachher)"></span>
                 </span>
             </div>
         </template>
     </div>
 
-    <div class="flex flex-col-reverse sm:flex-row gap-3 pt-1">
-        <a href="{{ $zurueck }}" class="inline-flex items-center justify-center px-5 h-12 rounded-xl glass-btn text-text">Abbrechen</a>
+    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+        @if($drawer)
+            <button type="button" @click="$dispatch('close-drawer', 'note')" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">Abbrechen</button>
+        @else
+            <a href="{{ $zurueck }}" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">Abbrechen</a>
+        @endif
         <button type="submit" :disabled="loading"
-                class="flex-1 h-12 rounded-xl bg-accent text-white font-semibold np-btn-primary inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-            <svg x-show="loading" x-cloak class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+            <svg x-show="loading" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>

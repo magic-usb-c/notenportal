@@ -3,7 +3,7 @@ import {
     BarController, BarElement, CategoryScale, Chart, Filler, Legend, LinearScale,
     LineController, LineElement, PointElement, Tooltip,
 } from 'chart.js';
-import { format, notenFarbe, tokenFarbe } from './np';
+import { format, notenFarbe, stufe, tokenFarbe } from './np';
 
 Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
@@ -50,26 +50,102 @@ const grenzLinie = (anzahl, wert, beschriftung = null, label = '_grenze') => ({
     npSchwelleLabel: beschriftung,
 });
 
-// Direktlabels am Linienende (Datawrapper-Prinzip) statt Legende
+// Direktlabels am Linienende (Datawrapper-Prinzip) statt Legende; Labels, die sich waagrecht
+// überdecken, werden senkrecht auseinandergeschoben und bleiben im Diagrammbereich.
 const direktlabelPlugin = {
     id: 'npDirektlabel',
     afterDatasetsDraw(chart) {
         if (!chart.options.plugins?.npDirektlabel?.aktiv) return;
         const { ctx, chartArea } = chart;
+        const zeile = 13;
         ctx.save();
         ctx.font = `600 11px ${Chart.defaults.font.family}`;
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'left';
+
+        const labels = [];
         chart.data.datasets.forEach((ds, i) => {
-            if (!ds.label || ds.label.startsWith('_')) return;
+            if (!ds.label || ds.label.startsWith('_') || !chart.isDatasetVisible(i)) return;
             const meta = chart.getDatasetMeta(i);
-            if (meta.hidden) return;
-            const punkte = meta.data.filter((p) => p && Number.isFinite(p.y));
+            // Lücken (null) liegen bei Chart.js auf der x-Achse: nur echte Werte berücksichtigen
+            const punkte = meta.data.filter((p, j) => p && !p.skip && ds.data[j] !== null && ds.data[j] !== undefined && Number.isFinite(p.y));
             const letzter = punkte[punkte.length - 1];
             if (!letzter) return;
-            ctx.fillStyle = ds.borderColor;
-            ctx.fillText(ds.label, Math.min(letzter.x + 6, chartArea.right - 4), letzter.y);
+            const breite = ctx.measureText(ds.label).width;
+            const x = Math.max(chartArea.left, Math.min(letzter.x + 6, chart.width - breite - 2));
+            labels.push({ text: ds.label, farbe: ds.borderColor, x, breite, y: letzter.y });
         });
+
+        const ueberdeckt = (a, b) => a.x < b.x + b.breite && b.x < a.x + a.breite;
+        labels.sort((a, b) => a.y - b.y);
+        // Nach unten schieben, bis kein Label ein vorheriges überdeckt …
+        labels.forEach((l, i) => {
+            labels.slice(0, i).forEach((v) => {
+                if (ueberdeckt(l, v) && l.y < v.y + zeile) l.y = v.y + zeile;
+            });
+        });
+        // … und von unten her zurück in den Diagrammbereich
+        for (let i = labels.length - 1; i >= 0; i--) {
+            const l = labels[i];
+            l.y = Math.min(l.y, chartArea.bottom - zeile / 2);
+            labels.slice(i + 1).forEach((n) => {
+                if (ueberdeckt(l, n) && l.y > n.y - zeile) l.y = n.y - zeile;
+            });
+            l.y = Math.max(l.y, chartArea.top + zeile / 2);
+        }
+
+        labels.forEach((l) => {
+            ctx.fillStyle = l.farbe;
+            ctx.fillText(l.text, l.x, l.y);
+        });
+        ctx.restore();
+    },
+};
+
+// Wert am Balkenende (horizontale Balken)
+const balkenwertPlugin = {
+    id: 'npBalkenwert',
+    afterDatasetsDraw(chart) {
+        if (!chart.options.plugins?.npBalkenwert?.aktiv) return;
+        const { ctx } = chart;
+        ctx.save();
+        ctx.font = `600 11px ${Chart.defaults.font.family}`;
+        ctx.fillStyle = tokenFarbe('--text');
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'left';
+        chart.data.datasets.forEach((ds, i) => {
+            chart.getDatasetMeta(i).data.forEach((balken, j) => {
+                const wert = ds.data[j]?.[1];
+                if (wert === null || wert === undefined) return;
+                ctx.fillText(format(wert), balken.x + 6, balken.y);
+            });
+        });
+        ctx.restore();
+    },
+};
+
+// Senkrechte Schwelle (z. B. genügend) als Haarlinie über die ganze Höhe, Beschriftung unter dem Diagrammbereich
+const senkrechtPlugin = {
+    id: 'npSenkrecht',
+    afterDatasetsDraw(chart) {
+        const o = chart.options.plugins?.npSenkrecht;
+        if (!o || o.wert === null || o.wert === undefined) return;
+        const { ctx, chartArea, scales } = chart;
+        const x = Math.round(scales.x.getPixelForValue(o.wert)) + 0.5;
+        ctx.save();
+        ctx.strokeStyle = tokenFarbe('--text', 0.6);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        if (o.text) {
+            ctx.font = `11px ${Chart.defaults.font.family}`;
+            ctx.fillStyle = tokenFarbe('--muted');
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'center';
+            ctx.fillText(o.text, x, chartArea.bottom + 4);
+        }
         ctx.restore();
     },
 };
@@ -94,7 +170,7 @@ const schwellenLabelPlugin = {
     },
 };
 
-Chart.register(direktlabelPlugin, schwellenLabelPlugin);
+Chart.register(direktlabelPlugin, schwellenLabelPlugin, balkenwertPlugin, senkrechtPlugin);
 
 const BAUER = {
     // { labels: [..], serien: [{ name, werte: [..], dick? }], grenze } – eine Serie mit dick:true wird hervorgehoben, Rest gedämpft
@@ -151,17 +227,26 @@ const BAUER = {
         };
     },
 
-    // { labels, werte, grenze, grenzen } – horizontale Balken ab Note 1
+    // { labels, werte, grenzen } – horizontale Balken ab Note 1, schwächste zuerst; Balken neutral,
+    // nur knapp/ungenügend in Notenfarbe, senkrechte Genügend-Linie, Wert am Balkenende
     balken(d) {
+        const g = d.grenzen ?? {};
+        const zeilen = d.labels.map((label, i) => ({ label, wert: d.werte[i] ?? null }))
+            .sort((a, b) => (a.wert ?? Infinity) - (b.wert ?? Infinity));
+        const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.85) : tokenFarbe('--chart-6', 0.55));
         return {
             type: 'bar',
-            data: { labels: d.labels, datasets: [{ label: 'Note', data: d.werte.map((v) => (v === null ? null : [1, v])),
-                backgroundColor: d.werte.map((v) => notenFarbe(v, d.grenzen, 0.75)), borderRadius: 6, borderSkipped: false, barThickness: 14 }] },
+            data: { labels: zeilen.map((z) => z.label), datasets: [{ label: 'Note', data: zeilen.map((z) => (z.wert === null ? null : [1, z.wert])),
+                backgroundColor: zeilen.map((z) => farbe(z.wert)), borderRadius: 4, borderSkipped: false, barThickness: 14 }] },
             options: {
-                ...basis(), indexAxis: 'y',
+                ...basis(), indexAxis: 'y', layout: { padding: { right: 36, bottom: g.genuegend ? 18 : 0 } },
                 plugins: { ...basis().plugins, legend: { display: false },
-                    tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${format(c.raw?.[1], 2)}` } } },
-                scales: { x: notenAchse({ position: 'top' }), y: { grid: { display: false }, border: { display: false } } },
+                    tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${format(c.raw?.[1], 2)}` } },
+                    npBalkenwert: { aktiv: true },
+                    npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? `genügend ${format(g.genuegend, 1)}` : null } },
+                scales: { x: notenAchse({ position: 'top' }), y: { grid: { display: false }, border: { display: false },
+                    // lange Fach-/Modulnamen kürzen (voller Name im Tooltip), sonst schneidet die Achse mobil ab
+                    ticks: { callback(v) { const l = String(this.getLabelForValue(v)); const max = this.chart.width < 520 ? 16 : 32; return l.length > max ? `${l.slice(0, max - 1)}…` : l; } } } },
             },
         };
     },
