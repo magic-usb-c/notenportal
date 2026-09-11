@@ -44,7 +44,7 @@
     <input type="hidden" name="modul_id" :value="typ === 'modul' ? id : ''">
 
     <div class="flex flex-col items-center gap-2">
-        <label for="note_wert" class="{{ $label }}">Note <span class="text-note-ungenuegend">*</span></label>
+        <label for="note_wert" class="{{ $label }}">{{ __('Note') }} <span class="text-note-ungenuegend">*</span></label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
                x-model="wert" :class="klasse(wert)" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
                class="h-20 w-36 rounded-xl border-2 border-border-strong/70 bg-input text-center text-4xl font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0">
@@ -52,9 +52,9 @@
     </div>
 
     <div>
-        <label for="bezug" class="{{ $label }}">Fach / Modul <span class="text-note-ungenuegend">*</span></label>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
         <select id="bezug" name="bezug" x-model="bezug" required class="{{ $feld }}">
-            <option value="">Bitte wählen</option>
+            <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
                 <optgroup label="{{ $gruppe }}">
                     @foreach($optionen as $o)
@@ -70,14 +70,14 @@
 
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>
-            <label for="pruefungsdatum" class="{{ $label }}">Prüfungsdatum <span class="text-note-ungenuegend">*</span></label>
+            <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }} <span class="text-note-ungenuegend">*</span></label>
             <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="{{ $feld }}">
             <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
-               x-text="semester ? 'Semester ' + semester.name : (datum ? 'Kein Semester für dieses Datum' : '')"></p>
+               x-text="semester ? @js(__('Semester ')) + semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
             @error('pruefungsdatum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="gewichtung_prozent" class="{{ $label }}">Gewichtung %</label>
+            <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung %') }}</label>
             <input type="number" id="gewichtung_prozent" name="gewichtung_prozent" step="0.01" min="0" max="100" x-model="gewicht" class="{{ $feld }}">
             <div class="mt-1.5 flex gap-1.5">
                 @foreach([25, 50, 100] as $g)
@@ -91,13 +91,13 @@
     </div>
 
     <div>
-        <label for="titel" class="{{ $label }}">Titel</label>
+        <label for="titel" class="{{ $label }}">{{ __('Titel') }}</label>
         <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $note?->titel ?? $pruefung?->titel) }}" class="{{ $feld }}">
         @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div x-show="vorschau.length" x-cloak class="rounded-xl border border-border bg-surface-2/60 px-4 py-3" aria-live="polite">
-        <div class="mb-1.5 text-xs font-medium text-muted">Auswirkung</div>
+        <div class="mb-1.5 text-xs font-medium text-muted">{{ __('Auswirkung') }}</div>
         <template x-for="z in vorschau" :key="z.text">
             <div class="flex items-center justify-between gap-3 py-1 text-sm">
                 <span class="truncate" :class="z.ist_ziel ? 'text-text font-medium' : 'text-muted'" x-text="z.label"></span>
@@ -112,9 +112,9 @@
 
     <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
         @if($drawer)
-            <button type="button" @click="$dispatch('close-drawer', 'note')" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">Abbrechen</button>
+            <button type="button" @click="$dispatch('close-drawer', 'note')" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">{{ __('Abbrechen') }}</button>
         @else
-            <a href="{{ $zurueck }}" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">Abbrechen</a>
+            <a href="{{ $zurueck }}" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">{{ __('Abbrechen') }}</a>
         @endif
         <button type="submit" :disabled="loading"
                 class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
@@ -122,7 +122,7 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
             </svg>
-            {{ $submitLabel ?? ($note ? 'Speichern' : 'Note erfassen') }}
+            {{ $submitLabel ?? ($note ? __('Speichern') : __('Note erfassen')) }}
         </button>
     </div>
 </form>

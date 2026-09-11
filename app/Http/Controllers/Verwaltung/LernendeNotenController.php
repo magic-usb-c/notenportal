@@ -117,7 +117,7 @@ class LernendeNotenController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
-            ->with('success', 'Note erfasst.');
+            ->with('success', __('Note erfasst.'));
     }
 
     public function edit(Request $request, int $lernender_id, int $note_id): View
@@ -160,7 +160,7 @@ class LernendeNotenController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
-            ->with('success', 'Note korrigiert.');
+            ->with('success', __('Note korrigiert.'));
     }
 
     public function destroy(Request $request, int $lernender_id, int $note_id): RedirectResponse
@@ -172,7 +172,7 @@ class LernendeNotenController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.grades.index', $lernender_id))
-            ->with('success', 'Note gelöscht.');
+            ->with('success', __('Note gelöscht.'));
     }
 
     private function validiere(Request $request): array

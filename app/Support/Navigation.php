@@ -37,36 +37,36 @@ final class Navigation
 
         $eintraege = match (true) {
             $user->hasRole('Admin') => [
-                self::link('Übersicht', 'admin.dashboard', ['admin.dashboard'], 'start'),
-                self::link('Lernende', 'admin.learners.index', ['admin.learners.*', 'admin.grades.*'], 'personen'),
-                self::gruppe('Personen', 'personen', [
-                    self::link('Berufsbildner', 'admin.trainers.index', ['admin.trainers.*']),
-                    self::link('Benutzerkonten', 'admin.users.index', ['admin.users.*']),
+                self::link(__('Übersicht'), 'admin.dashboard', ['admin.dashboard'], 'start'),
+                self::link(__('Lernende'), 'admin.learners.index', ['admin.learners.*', 'admin.grades.*'], 'personen'),
+                self::gruppe(__('Personen'), 'personen', [
+                    self::link(__('Berufsbildner'), 'admin.trainers.index', ['admin.trainers.*']),
+                    self::link(__('Benutzerkonten'), 'admin.users.index', ['admin.users.*']),
                 ]),
-                self::gruppe('Stammdaten', 'daten', [
-                    self::link('Betrieb', 'admin.operations.edit', ['admin.operations.*']),
-                    self::link('Benachrichtigungen', 'admin.notifications.index', ['admin.notifications.*']),
-                    self::link('Versandprotokoll', 'admin.mail-log.index', ['admin.mail-log.*']),
-                    self::link('Einrichtung', 'admin.setup', ['admin.setup*']),
-                    self::link('Lehrberufe', 'admin.master-data.professions.index', ['admin.master-data.professions.*']),
-                    self::link('Module', 'admin.master-data.modules.index', ['admin.master-data.modules.*']),
-                    self::link('Fächer', 'admin.master-data.subjects.index', ['admin.master-data.subjects.*']),
-                    self::link('Kategorien', 'admin.master-data.categories.index', ['admin.master-data.categories.*']),
-                    self::link('Semester', 'admin.master-data.semesters.index', ['admin.master-data.semesters.*']),
+                self::gruppe(__('Stammdaten'), 'daten', [
+                    self::link(__('Betrieb'), 'admin.operations.edit', ['admin.operations.*']),
+                    self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*']),
+                    self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*']),
+                    self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*']),
+                    self::link(__('Lehrberufe'), 'admin.master-data.professions.index', ['admin.master-data.professions.*']),
+                    self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*']),
+                    self::link(__('Fächer'), 'admin.master-data.subjects.index', ['admin.master-data.subjects.*']),
+                    self::link(__('Kategorien'), 'admin.master-data.categories.index', ['admin.master-data.categories.*']),
+                    self::link(__('Semester'), 'admin.master-data.semesters.index', ['admin.master-data.semesters.*']),
                 ]),
-                self::link('Berichte', 'admin.reports.grades', ['admin.reports.*'], 'bericht'),
-                self::link('Feedback', 'admin.feedback.index', ['admin.feedback.*'], 'feedback') + ['badge' => $feedbackOffen],
+                self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht'),
+                self::link(__('Feedback'), 'admin.feedback.index', ['admin.feedback.*'], 'feedback') + ['badge' => $feedbackOffen],
             ],
             $user->hasRole('Berufsbildner') => [
-                self::link('Übersicht', 'trainer.dashboard', ['trainer.dashboard'], 'start'),
-                self::link('Lernende', 'trainer.learners.index', ['trainer.learners.*', 'trainer.grades.*'], 'personen'),
+                self::link(__('Übersicht'), 'trainer.dashboard', ['trainer.dashboard'], 'start'),
+                self::link(__('Lernende'), 'trainer.learners.index', ['trainer.learners.*', 'trainer.grades.*'], 'personen'),
             ],
             $user->hasRole('Lernender') => [
-                self::link('Übersicht', 'learner.dashboard', ['learner.dashboard'], 'start'),
-                self::link('Noten', 'learner.grades.index', ['learner.grades.index', 'learner.grades.create', 'learner.grades.edit', 'learner.grades.print', 'learner.grades.import.*'], 'noten'),
-                self::link('Agenda', 'learner.exams.index', ['learner.exams.*'], 'kalender'),
-                self::link('Rechner', 'learner.grades.calculator', ['learner.grades.calculator'], 'rechner'),
-                self::link('Dokumente', 'learner.documents.index', ['learner.documents.*'], 'dokument'),
+                self::link(__('Übersicht'), 'learner.dashboard', ['learner.dashboard'], 'start'),
+                self::link(__('Noten'), 'learner.grades.index', ['learner.grades.index', 'learner.grades.create', 'learner.grades.edit', 'learner.grades.print', 'learner.grades.import.*'], 'noten'),
+                self::link(__('Agenda'), 'learner.exams.index', ['learner.exams.*'], 'kalender'),
+                self::link(__('Rechner'), 'learner.grades.calculator', ['learner.grades.calculator'], 'rechner'),
+                self::link(__('Dokumente'), 'learner.documents.index', ['learner.documents.*'], 'dokument'),
             ],
             default => [],
         };
@@ -83,23 +83,23 @@ final class Navigation
     {
         $befehle = [];
         if ($user->hasRole('Lernender')) {
-            $befehle[] = ['label' => 'Note erfassen', 'url' => route('learner.grades.create'), 'gruppe' => 'Aktion'];
-            $befehle[] = ['label' => 'Prüfung planen', 'url' => route('learner.exams.index').'?planen=1', 'gruppe' => 'Aktion'];
-            $befehle[] = ['label' => 'Notenblatt drucken', 'url' => route('learner.grades.print'), 'gruppe' => 'Aktion'];
+            $befehle[] = ['label' => __('Note erfassen'), 'url' => route('learner.grades.create'), 'gruppe' => __('Aktion')];
+            $befehle[] = ['label' => __('Prüfung planen'), 'url' => route('learner.exams.index').'?planen=1', 'gruppe' => __('Aktion')];
+            $befehle[] = ['label' => __('Notenblatt drucken'), 'url' => route('learner.grades.print'), 'gruppe' => __('Aktion')];
         }
         if ($user->hasRole('Admin') || $user->hasRole('Berufsbildner')) {
             $bereich = $user->hasRole('Admin') ? 'admin' : 'trainer';
-            $befehle[] = ['label' => 'Lernende erfassen', 'url' => route($bereich.'.learners.create'), 'gruppe' => 'Aktion'];
-            $befehle[] = ['label' => 'Alle Noten exportieren', 'url' => route($bereich.'.grades.export_all'), 'gruppe' => 'Aktion'];
+            $befehle[] = ['label' => __('Lernende erfassen'), 'url' => route($bereich.'.learners.create'), 'gruppe' => __('Aktion')];
+            $befehle[] = ['label' => __('Alle Noten exportieren'), 'url' => route($bereich.'.grades.export_all'), 'gruppe' => __('Aktion')];
         }
         if ($user->hasRole('Admin')) {
-            $befehle[] = ['label' => 'Benutzerkonto anlegen', 'url' => route('admin.users.create'), 'gruppe' => 'Aktion'];
-            $befehle[] = ['label' => 'Semester anlegen', 'url' => route('admin.master-data.semesters.create'), 'gruppe' => 'Aktion'];
+            $befehle[] = ['label' => __('Benutzerkonto anlegen'), 'url' => route('admin.users.create'), 'gruppe' => __('Aktion')];
+            $befehle[] = ['label' => __('Semester anlegen'), 'url' => route('admin.master-data.semesters.create'), 'gruppe' => __('Aktion')];
         }
-        $befehle[] = ['label' => 'Profil', 'url' => route('profile.edit'), 'gruppe' => 'Konto'];
-        $befehle[] = ['label' => 'Benachrichtigungen', 'url' => route('notifications.settings'), 'gruppe' => 'Konto'];
-        $befehle[] = ['label' => 'Feedback melden', 'url' => '#feedback-modal', 'gruppe' => 'Konto'];
-        $befehle[] = ['label' => 'Meine Meldungen', 'url' => route('feedback.index'), 'gruppe' => 'Konto'];
+        $befehle[] = ['label' => __('Profil'), 'url' => route('profile.edit'), 'gruppe' => __('Konto')];
+        $befehle[] = ['label' => __('Benachrichtigungen'), 'url' => route('notifications.settings'), 'gruppe' => __('Konto')];
+        $befehle[] = ['label' => __('Feedback melden'), 'url' => '#feedback-modal', 'gruppe' => __('Konto')];
+        $befehle[] = ['label' => __('Meine Meldungen'), 'url' => route('feedback.index'), 'gruppe' => __('Konto')];
 
         return $befehle;
     }

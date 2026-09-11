@@ -2,6 +2,8 @@
 // optional einen verkleinerten Screenshot des Seiteninhalts (modern-screenshot, über Vite gebündelt,
 // kein CDN). Rolle und Browser/Betriebssystem ermittelt der Server selbst aus Session und User-Agent.
 
+import { t } from './np';
+
 const MAX_FEHLER = 3;
 const MAX_BREITE = 1600;
 const MAX_BYTES = 1024 * 1024; // < 1 MB, Server erlaubt etwas Spielraum darüber
@@ -61,7 +63,7 @@ export function registriereFeedback(Alpine) {
         text: '',
         mitScreenshot: true,
         loading: false,
-        ladeText: 'Senden',
+        ladeText: t('Senden'),
         error: '',
 
         reset() {
@@ -69,7 +71,7 @@ export function registriereFeedback(Alpine) {
             this.text = '';
             this.mitScreenshot = true;
             this.loading = false;
-            this.ladeText = 'Senden';
+            this.ladeText = t('Senden');
             this.error = '';
         },
 
@@ -77,7 +79,7 @@ export function registriereFeedback(Alpine) {
             if (this.loading || this.text.trim().length < 3) return;
             this.error = '';
             this.loading = true;
-            this.ladeText = 'Senden…';
+            this.ladeText = t('Senden…');
 
             try {
                 const formular = new FormData();
@@ -89,10 +91,10 @@ export function registriereFeedback(Alpine) {
                 formular.append('js_fehler', JSON.stringify(window.__npFeedbackFehler ?? []));
 
                 if (this.mitScreenshot) {
-                    this.ladeText = 'Screenshot wird erstellt…';
+                    this.ladeText = t('Screenshot wird erstellt…');
                     const blob = await erstelleScreenshot();
                     if (blob) formular.append('screenshot', blob, 'screenshot.jpg');
-                    this.ladeText = 'Senden…';
+                    this.ladeText = t('Senden…');
                 }
 
                 const res = await fetch(cfg.url, {
@@ -106,21 +108,21 @@ export function registriereFeedback(Alpine) {
 
                 if (res.status === 201) {
                     window.dispatchEvent(new CustomEvent('close-modal', { detail: 'feedback' }));
-                    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: 'Danke, deine Meldung ist eingegangen.' } }));
+                    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: t('Danke, deine Meldung ist eingegangen.') } }));
                     this.reset();
                 } else if (res.status === 422) {
                     const daten = await res.json();
-                    this.error = Object.values(daten.errors ?? {}).flat().join(' ') || 'Bitte Eingaben prüfen.';
+                    this.error = Object.values(daten.errors ?? {}).flat().join(' ') || t('Bitte Eingaben prüfen.');
                 } else if (res.status === 429) {
-                    this.error = 'Gerade viele Meldungen unterwegs – bitte kurz warten.';
+                    this.error = t('Gerade viele Meldungen unterwegs – bitte kurz warten.');
                 } else {
-                    this.error = 'Meldung konnte nicht gesendet werden.';
+                    this.error = t('Meldung konnte nicht gesendet werden.');
                 }
             } catch {
-                this.error = 'Meldung konnte nicht gesendet werden.';
+                this.error = t('Meldung konnte nicht gesendet werden.');
             } finally {
                 this.loading = false;
-                this.ladeText = 'Senden';
+                this.ladeText = t('Senden');
             }
         },
     }));

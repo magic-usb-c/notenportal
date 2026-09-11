@@ -218,7 +218,7 @@ class NoteService
 
         if (! $lernender) {
             throw ValidationException::withMessages([
-                'pruefungsdatum' => 'Lernender nicht gefunden.',
+                'pruefungsdatum' => __('Lernender nicht gefunden.'),
             ]);
         }
 
@@ -226,20 +226,20 @@ class NoteService
 
         if ($date < (string) $lernender->lehrbeginn) {
             throw ValidationException::withMessages([
-                'pruefungsdatum' => 'Das Prüfungsdatum liegt vor dem Lehrbeginn.',
+                'pruefungsdatum' => __('Das Prüfungsdatum liegt vor dem Lehrbeginn.'),
             ]);
         }
 
         if ($lernender->lehrende && $date > (string) $lernender->lehrende) {
             throw ValidationException::withMessages([
-                'pruefungsdatum' => 'Das Prüfungsdatum liegt nach dem Lehrende.',
+                'pruefungsdatum' => __('Das Prüfungsdatum liegt nach dem Lehrende.'),
             ]);
         }
 
         $semester = $this->semesterForDate($date);
         if (! $semester) {
             throw ValidationException::withMessages([
-                'pruefungsdatum' => 'Kein Semester gefunden, das dieses Datum abdeckt.',
+                'pruefungsdatum' => __('Kein Semester gefunden, das dieses Datum abdeckt.'),
             ]);
         }
 
@@ -253,7 +253,7 @@ class NoteService
         if ($typ === 'fach') {
             if (empty($data['fach_id'])) {
                 throw ValidationException::withMessages([
-                    'fach_id' => 'Bitte ein Fach wählen.',
+                    'fach_id' => __('Bitte ein Fach wählen.'),
                 ]);
             }
 
@@ -275,7 +275,7 @@ class NoteService
         if ($typ === 'modul') {
             if (empty($data['modul_id'])) {
                 throw ValidationException::withMessages([
-                    'modul_id' => 'Bitte ein Modul wählen.',
+                    'modul_id' => __('Bitte ein Modul wählen.'),
                 ]);
             }
 
@@ -297,7 +297,7 @@ class NoteService
         }
 
         throw ValidationException::withMessages([
-            'typ' => 'Ungültiger Typ.',
+            'typ' => __('Ungültiger Typ.'),
         ]);
     }
 
@@ -313,7 +313,7 @@ class NoteService
             $kategorieId = $this->erlaubteFaecher($lernenderId)->whereKey($id)->value('kategorie_id');
 
             if (! $kategorieId) {
-                throw ValidationException::withMessages(['fach_id' => 'Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.']);
+                throw ValidationException::withMessages(['fach_id' => __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')]);
             }
 
             return (int) $kategorieId;
@@ -326,7 +326,7 @@ class NoteService
             ->value('kategorie_id');
 
         if (! $kategorieId) {
-            throw ValidationException::withMessages(['modul_id' => 'Dieses Modul gehört nicht zum Lehrberuf.']);
+            throw ValidationException::withMessages(['modul_id' => __('Dieses Modul gehört nicht zum Lehrberuf.')]);
         }
 
         return (int) $kategorieId;
@@ -388,7 +388,7 @@ class NoteService
             'drawer' => $kontext,
         ];
         if ($kontext === 'neu') {
-            return ['titel' => 'Neue Note', 'daten' => $daten];
+            return ['titel' => __('Neue Note'), 'daten' => $daten];
         }
         if (preg_match('/^bearbeiten:(\d+)$/', $kontext, $m)) {
             $note = Note::query()
@@ -397,7 +397,7 @@ class NoteService
                 ->where('lernender_id', (int) $lernender->lernender_id)
                 ->first();
 
-            return $note ? ['titel' => 'Note bearbeiten', 'daten' => $daten + ['note' => $note]] : null;
+            return $note ? ['titel' => __('Note bearbeiten'), 'daten' => $daten + ['note' => $note]] : null;
         }
 
         return null;

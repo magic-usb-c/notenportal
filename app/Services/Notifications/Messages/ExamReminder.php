@@ -29,25 +29,25 @@ final class ExamReminder
             : ($a->elemente['m'.$p->modul_id]->note ?? null);
 
         return new MailContent(
-            subject: 'Prüfung in '.$bezug.' am '.$p->datum->format('d.m.Y'),
-            lines: ['Am '.$p->datum->format('d.m.Y').' steht deine nächste Prüfung an.'],
+            subject: __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]),
+            lines: [__('Am :datum steht deine nächste Prüfung an.', ['datum' => $p->datum->format('d.m.Y')])],
             facts: array_filter([
-                'Datum' => $datum,
-                'Fach / Modul' => $bezug,
-                'Titel' => $p->titel,
-                'Gewichtung' => $gewicht,
-                'Prüfungsart' => $p->pruefungsart,
-                'Dauer' => $p->dauer_minuten ? $p->dauer_minuten.' Minuten' : null,
-                'Erlaubte Hilfsmittel' => $p->hilfsmittel,
-                'Bisheriger Schnitt' => $schnitt !== null ? NotenSkala::format($schnitt) : null,
+                __('Datum') => $datum,
+                __('Fach / Modul') => $bezug,
+                __('Titel') => $p->titel,
+                __('Gewichtung') => $gewicht,
+                __('Prüfungsart') => $p->pruefungsart,
+                __('Dauer') => $p->dauer_minuten ? __(':minuten Minuten', ['minuten' => $p->dauer_minuten]) : null,
+                __('Erlaubte Hilfsmittel') => $p->hilfsmittel,
+                __('Bisheriger Schnitt') => $schnitt !== null ? NotenSkala::format($schnitt) : null,
             ]),
             sections: array_filter([
-                $p->stoff ? ['title' => 'Prüfungsstoff', 'text' => $p->stoff] : null,
-                $p->notizen ? ['title' => 'Eigene Notizen', 'text' => $p->notizen] : null,
+                $p->stoff ? ['title' => __('Prüfungsstoff'), 'text' => $p->stoff] : null,
+                $p->notizen ? ['title' => __('Eigene Notizen'), 'text' => $p->notizen] : null,
             ]),
-            actionLabel: 'Zur Agenda',
+            actionLabel: __('Zur Agenda'),
             actionUrl: route('learner.exams.index'),
-            digestTitle: 'Prüfung in '.$bezug.' am '.$p->datum->format('d.m.Y'),
+            digestTitle: __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]),
         );
     }
 }

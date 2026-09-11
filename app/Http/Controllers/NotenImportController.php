@@ -55,18 +55,18 @@ class NotenImportController extends Controller
         [$lernender, $bereich] = $this->kontext($request);
         $request->validate([
             'datei' => ['required', 'file', 'max:'.Ablage::MAX_KB, 'extensions:xlsx,xls,ods,csv,txt,pdf'],
-        ], [], ['datei' => 'Datei']);
+        ], [], ['datei' => __('Datei')]);
 
         $datei = $request->file('datei');
         try {
             $tabelle = $this->leser->lesen($datei->getRealPath(), $datei->getClientOriginalExtension());
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['datei' => 'Die Datei lässt sich nicht lesen.']);
+            throw ValidationException::withMessages(['datei' => __('Die Datei lässt sich nicht lesen.')]);
         }
 
         $vorschau = $this->import->vorschau($tabelle, (int) $lernender->lernender_id);
         if ($vorschau['zeilen'] === []) {
-            throw ValidationException::withMessages(['datei' => 'Keine Noten gefunden.']);
+            throw ValidationException::withMessages(['datei' => __('Keine Noten gefunden.')]);
         }
 
         $request->session()->put($this->schluessel($lernender), [...$vorschau, 'datei' => mb_substr($datei->getClientOriginalName(), 0, 120)]);
@@ -84,7 +84,7 @@ class NotenImportController extends Controller
         $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
         if ($ergebnis['neu'] === 0) {
-            return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : 'Keine Zeile ausgewählt.');
+            return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
         $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
 
@@ -100,10 +100,10 @@ class NotenImportController extends Controller
 
         $request->session()->forget($this->schluessel($lernender));
         $ziel = $bereich ? route($bereich.'.learners.grades.index', $lernender->lernender_id) : route('learner.grades.index');
-        $antwort = redirect($ziel)->with('success', ($ergebnis['neu'] === 1 ? '1 Note' : $ergebnis['neu'].' Noten').' importiert.');
+        $antwort = redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
 
         return $ergebnis['fehler'] !== []
-            ? $antwort->with('error', count($ergebnis['fehler']).' nicht übernommen: '.implode(' · ', array_slice($ergebnis['fehler'], 0, 3)))
+            ? $antwort->with('error', __(':anzahl nicht übernommen: :fehler', ['anzahl' => count($ergebnis['fehler']), 'fehler' => implode(' · ', array_slice($ergebnis['fehler'], 0, 3))]))
             : $antwort;
     }
 

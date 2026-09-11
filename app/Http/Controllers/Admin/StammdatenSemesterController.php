@@ -44,7 +44,7 @@ class StammdatenSemesterController extends Controller
             ->first();
         if ($overlap) {
             throw ValidationException::withMessages([
-                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «'.$overlap->bezeichnung.'».',
+                'start_datum' => __('Zeitraum ueberschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
             ]);
         }
 
@@ -63,7 +63,7 @@ class StammdatenSemesterController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.semesters.index')
-            ->with('success', 'Semester angelegt.');
+            ->with('success', __('Semester angelegt.'));
     }
 
     public function edit(int $semester_id)
@@ -92,14 +92,14 @@ class StammdatenSemesterController extends Controller
             ->first();
         if ($overlap) {
             throw ValidationException::withMessages([
-                'start_datum' => 'Zeitraum ueberschneidet sich mit Semester «'.$overlap->bezeichnung.'».',
+                'start_datum' => __('Zeitraum ueberschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
             ]);
         }
 
         DB::table('semester')->where('semester_id', $semester_id)->update($validated);
 
         return redirect()->route('admin.master-data.semesters.index')
-            ->with('success', 'Semester aktualisiert.');
+            ->with('success', __('Semester aktualisiert.'));
     }
 
     /** Nur leere Semester: Noten und Tracks verweisen per Fremdschlüssel darauf. */
@@ -112,11 +112,11 @@ class StammdatenSemesterController extends Controller
             || DB::table('lernender_tracks')->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id)->exists()
             || DB::table('dokumente')->where('semester_id', $semester_id)->exists();
         if ($belegt) {
-            return back()->with('error', 'Semester «'.$semester->bezeichnung.'» enthält Noten, Tracks oder Dokumente und bleibt bestehen.');
+            return back()->with('error', __('Semester «:bezeichnung» enthält Noten, Tracks oder Dokumente und bleibt bestehen.', ['bezeichnung' => $semester->bezeichnung]));
         }
 
         DB::table('semester')->where('semester_id', $semester_id)->delete();
 
-        return redirect()->route('admin.master-data.semesters.index')->with('success', 'Semester «'.$semester->bezeichnung.'» gelöscht.');
+        return redirect()->route('admin.master-data.semesters.index')->with('success', __('Semester «:bezeichnung» gelöscht.', ['bezeichnung' => $semester->bezeichnung]));
     }
 }

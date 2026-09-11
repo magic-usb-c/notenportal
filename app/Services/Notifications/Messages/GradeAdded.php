@@ -19,24 +19,24 @@ final class GradeAdded
         $bezug = self::bezeichnung($note);
 
         return new MailContent(
-            subject: 'Neue Note von '.$name.': '.$bezug,
-            lines: [$name.' hat eine neue Note erfasst.'],
-            facts: ['Fach / Modul' => $bezug, 'Note' => (string) $note->note_wert, 'Datum' => self::datum($note)],
-            actionLabel: 'Noten ansehen',
+            subject: __('Neue Note von :name: :bezug', ['name' => $name, 'bezug' => $bezug]),
+            lines: [__(':name hat eine neue Note erfasst.', ['name' => $name])],
+            facts: [__('Fach / Modul') => $bezug, __('Note') => (string) $note->note_wert, __('Datum') => self::datum($note)],
+            actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: 'Neue Note von '.$name.': '.$bezug.' – '.$note->note_wert,
+            digestTitle: __('Neue Note von :name: :bezug – :note', ['name' => $name, 'bezug' => $bezug, 'note' => $note->note_wert]),
         );
     }
 
     public static function sammel(Lernender $lernender, int $anzahl, string $zielUrl): MailContent
     {
         $name = trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname);
-        $betreff = $name.': '.$anzahl.' Noten importiert';
+        $betreff = __(':name: :anzahl Noten importiert', ['name' => $name, 'anzahl' => $anzahl]);
 
         return new MailContent(
             subject: $betreff,
-            lines: [$name.' hat '.$anzahl.' Noten importiert.'],
-            actionLabel: 'Noten ansehen',
+            lines: [__(':name hat :anzahl Noten importiert.', ['name' => $name, 'anzahl' => $anzahl])],
+            actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
             digestTitle: $betreff,
         );

@@ -1,7 +1,7 @@
 @props([
     'titel' => null,
     'link' => null,
-    'linkText' => 'Alle',
+    'linkText' => __('Alle'),
     'polster' => true,
 ])
 {{-- Inhaltskarte E0: feste Fläche, kein Glas, kein Schatten --}}

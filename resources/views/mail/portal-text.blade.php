@@ -1,7 +1,7 @@
 {{ $c->title ?? $c->subject }}
 
 @if($vorname)
-Hallo {{ $vorname }}
+{{ __('Hallo :vorname', ['vorname' => $vorname]) }}
 
 @endif
 @foreach($c->lines as $zeile)
@@ -35,7 +35,7 @@ Hallo {{ $vorname }}
 @endforeach
 @if($c->actionUrl)
 
-{{ $c->actionLabel ?? 'Im Notenportal öffnen' }}: {{ $c->actionUrl }}
+{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}: {{ $c->actionUrl }}
 @endif
 @foreach($c->outro as $zeile)
 
@@ -43,10 +43,10 @@ Hallo {{ $vorname }}
 @endforeach
 
 --
-@if($anlass)Du erhältst diese Mail wegen «{{ $anlass }}».
+@if($anlass){{ __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) }}
 @endif
-@if($einstellungenUrl)Benachrichtigungen einstellen: {{ $einstellungenUrl }}
+@if($einstellungenUrl){{ __('Benachrichtigungen einstellen') }}: {{ $einstellungenUrl }}
 @endif
-@if($abmeldenUrl)Abbestellen: {{ $abmeldenUrl }}
+@if($abmeldenUrl){{ __('Abbestellen') }}: {{ $abmeldenUrl }}
 @endif
 Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }} – {{ $portalUrl }}

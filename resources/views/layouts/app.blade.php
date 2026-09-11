@@ -37,7 +37,7 @@
             };
         </script>
 
-        <title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>
+        @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif<title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
         {{-- Schrift (Inter Variable) ist über app.css selbst gehostet, kein externer Aufruf --}}

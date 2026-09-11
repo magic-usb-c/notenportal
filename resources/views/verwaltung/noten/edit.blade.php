@@ -1,10 +1,10 @@
 <x-app-layout>
-    <x-slot name="title">Note korrigieren</x-slot>
+    <x-slot name="title">{{ __('Note korrigieren') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Note korrigieren" :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal>
+        <x-seitenkopf :titel="__('Note korrigieren')" :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal>
             <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>

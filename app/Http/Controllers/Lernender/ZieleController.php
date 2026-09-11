@@ -29,7 +29,7 @@ class ZieleController extends Controller
         try {
             $z = Zielgroesse::parse($daten['ziel']);
         } catch (InvalidArgumentException) {
-            throw ValidationException::withMessages(['ziel' => 'Ungültige Auswahl.']);
+            throw ValidationException::withMessages(['ziel' => __('Ungültige Auswahl.')]);
         }
 
         $katalog = $this->rechner->katalog($lernender);
@@ -40,7 +40,7 @@ class ZieleController extends Controller
             default => true,
         };
         if (! $gueltig) {
-            throw ValidationException::withMessages(['ziel' => 'Als Ziel lassen sich Gesamtschnitt, Kategorie, Fach oder Modul speichern.']);
+            throw ValidationException::withMessages(['ziel' => __('Als Ziel lassen sich Gesamtschnitt, Kategorie, Fach oder Modul speichern.')]);
         }
 
         Ziel::updateOrCreate(
@@ -48,7 +48,7 @@ class ZieleController extends Controller
             ['zielwert' => round((float) $daten['zielwert'], 2)]
         );
 
-        return back()->with('success', 'Ziel gespeichert.');
+        return back()->with('success', __('Ziel gespeichert.'));
     }
 
     public function destroy(Request $request, int $ziel_id): RedirectResponse
@@ -56,6 +56,6 @@ class ZieleController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->ziele()->whereKey($ziel_id)->firstOrFail()->delete();
 
-        return back()->with('success', 'Ziel entfernt.');
+        return back()->with('success', __('Ziel entfernt.'));
     }
 }

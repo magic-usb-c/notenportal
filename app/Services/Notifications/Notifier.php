@@ -10,11 +10,17 @@ use App\Models\NotificationMark;
 use App\Models\NotificationPreference;
 use App\Models\User;
 use App\Notifications\PortalMail;
+use Closure;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Notification;
 
 /**
  * Einziger Weg, eine Benachrichtigung auszulösen:
- *   Notifier::send($user, NotificationCatalog::COMMENT_ADDED, new MailContent(...));
+ *   Notifier::send($user, NotificationCatalog::COMMENT_ADDED, fn () => CommentAdded::content(...));
+ * Den Inhalt als Closure übergeben: er wird in der Sprache des Empfängers gebaut (User::preferredLocale()),
+ * weil Betreff, Mailtext und Eintrag der Tageszusammenfassung als fertige Strings gespeichert werden.
+ * Ein fertiges MailContent geht weiterhin, bleibt dann aber in der Sprache, in der es gebaut wurde.
  * Prüft Admin-Regel und persönliche Wahl, legt sofortige Mails in die Queue (mit Protokoll)
  * oder sammelt sie für die Tageszusammenfassung. Wirft nie – ein Mailproblem darf keine Aktion abbrechen.
  */
@@ -24,7 +30,8 @@ final class Notifier
     private const array UNZUSTELLBAR = ['.local', '.example', '.test', '.invalid', '.localhost', '@example.com', '@example.org', '@example.net'];
 
     /** @return string|null gewählte Frequenz (immediate/daily) oder null, wenn nichts verschickt wird */
-    public static function send(User $user, string $type, MailContent $content): ?string
+    /** @param  MailContent|Closure(): MailContent  $content */
+    public static function send(User $user, string $type, MailContent|Closure $content): ?string
     {
         try {
             if (! $user->aktiv || $user->trashed() || blank($user->email)) {
@@ -35,6 +42,10 @@ final class Notifier
             }
 
             $frequency = self::frequencyFor($user, $type);
+            if ($frequency === NotificationCatalog::NEVER) {
+                return null;
+            }
+            $content = self::inhalt($user, $content);
             if ($frequency === NotificationCatalog::DAILY) {
                 DigestItem::create([
                     'user_id' => $user->benutzer_id,
@@ -55,6 +66,23 @@ final class Notifier
         }
     }
 
+    /** Baut den Inhalt in der Sprache des Empfängers (Closure) oder nimmt ihn, wie er ist. */
+    public static function inhalt(User $user, MailContent|Closure $content): MailContent
+    {
+        if (! $content instanceof Closure) {
+            return $content;
+        }
+        $vorher = App::getLocale();
+        App::setLocale($user->preferredLocale());
+        Carbon::setLocale(App::getLocale());
+        try {
+            return $content();
+        } finally {
+            App::setLocale($vorher);
+            Carbon::setLocale($vorher);
+        }
+    }
+
     /** Verpflichtend → Admin-Frequenz; sonst persönliche Wahl (falls erlaubt), sonst Admin-Standard. */
     public static function frequencyFor(User $user, string $type): string
     {
@@ -70,9 +98,12 @@ final class Notifier
 
     /**
      * Mail sofort in die Queue (oder mit $now synchron, z. B. Testmail). Legt immer einen Protokolleintrag an.
+     *
+     * @param  MailContent|Closure(): MailContent  $content
      */
-    public static function dispatch(User|string $to, string $type, MailContent $content, bool $now = false): MailLog
+    public static function dispatch(User|string $to, string $type, MailContent|Closure $content, bool $now = false): MailLog
     {
+        $content = $to instanceof User ? self::inhalt($to, $content) : ($content instanceof Closure ? $content() : $content);
         $email = $to instanceof User ? (string) $to->email : $to;
         $log = MailLog::create([
             'user_id' => $to instanceof User ? $to->benutzer_id : null,

@@ -56,16 +56,16 @@ class MailLogController extends Controller
 
         if (! in_array($log->status, [MailLog::FAILED, MailLog::SKIPPED], true)) {
             return redirect()->route('admin.mail-log.index')
-                ->with('error', 'Nur fehlgeschlagene oder nicht zustellbare Mails können erneut gesendet werden.');
+                ->with('error', __('Nur fehlgeschlagene oder nicht zustellbare Mails können erneut gesendet werden.'));
         }
 
         try {
             Notifier::retry($log);
         } catch (\RuntimeException $e) {
-            return redirect()->route('admin.mail-log.index')->with('error', $e->getMessage());
+            return redirect()->route('admin.mail-log.index')->with('error', __($e->getMessage()));
         }
 
-        return redirect()->route('admin.mail-log.index')->with('success', 'Erneut in die Warteschlange gestellt.');
+        return redirect()->route('admin.mail-log.index')->with('success', __('Erneut in die Warteschlange gestellt.'));
     }
 
     /** @return array<string, string> */
@@ -75,8 +75,8 @@ class MailLogController extends Controller
         foreach (NotificationCatalog::all() as $type => $def) {
             $liste[$type] = $def['label'];
         }
-        $liste[NotificationCatalog::TEST] = 'Testmail';
-        $liste[NotificationCatalog::DAILY_DIGEST] = 'Tageszusammenfassung';
+        $liste[NotificationCatalog::TEST] = __('Testmail');
+        $liste[NotificationCatalog::DAILY_DIGEST] = __('Tageszusammenfassung');
 
         return $liste;
     }

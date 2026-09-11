@@ -14,9 +14,9 @@
     @endif
 
     <div>
-        <label for="bezug" class="{{ $label }}">Fach / Modul <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-red-600 dark:text-red-400">*</span></label>
         <select id="bezug" name="bezug" required class="{{ $feld }}">
-            <option value="">Bitte wählen</option>
+            <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
                 <optgroup label="{{ $gruppe }}">
                     @foreach($optionen as $o)
@@ -29,26 +29,26 @@
     </div>
 
     <div>
-        <label for="titel" class="{{ $label }}">Titel</label>
+        <label for="titel" class="{{ $label }}">{{ __('Titel') }}</label>
         <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $b?->titel) }}" class="{{ $feld }}">
         @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="datum" class="{{ $label }}">Datum <span class="text-red-600 dark:text-red-400">*</span></label>
+            <label for="datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-red-600 dark:text-red-400">*</span></label>
             <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="uhrzeit" class="{{ $label }}">Uhrzeit</label>
+            <label for="uhrzeit" class="{{ $label }}">{{ __('Uhrzeit') }}</label>
             <input type="time" id="uhrzeit" name="uhrzeit" value="{{ old('uhrzeit', $b?->uhrzeit ? substr((string) $b->uhrzeit, 0, 5) : null) }}" class="{{ $feld }}">
             @error('uhrzeit')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>
 
     <div>
-        <label for="gewichtung_prozent" class="{{ $label }}">Gewichtung %</label>
+        <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung %') }}</label>
         <input type="number" id="gewichtung_prozent" name="gewichtung_prozent" min="0" max="100" step="0.01" required x-model="gewicht" class="{{ $feld }}">
         <div class="flex gap-1.5 mt-2">
             @foreach([25, 50, 100] as $g)
@@ -61,76 +61,76 @@
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="pruefungsart" class="{{ $label }}">Prüfungsart</label>
+            <label for="pruefungsart" class="{{ $label }}">{{ __('Prüfungsart') }}</label>
             <input id="pruefungsart" name="pruefungsart" list="pruefungsart-optionen" maxlength="150" value="{{ old('pruefungsart', $b?->pruefungsart) }}" class="{{ $feld }}">
             <datalist id="pruefungsart-optionen">
-                <option value="Schriftlich"><option value="Mündlich"><option value="Praktisch"><option value="Online">
+                <option value="{{ __('Schriftlich') }}"><option value="{{ __('Mündlich') }}"><option value="{{ __('Praktisch') }}"><option value="{{ __('Online') }}">
             </datalist>
             @error('pruefungsart')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="dauer_minuten" class="{{ $label }}">Dauer (Min.)</label>
+            <label for="dauer_minuten" class="{{ $label }}">{{ __('Dauer (Min.)') }}</label>
             <input type="number" id="dauer_minuten" name="dauer_minuten" min="1" max="600" value="{{ old('dauer_minuten', $b?->dauer_minuten) }}" class="{{ $feld }}">
             @error('dauer_minuten')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>
 
     <div>
-        <label for="hilfsmittel" class="{{ $label }}">Erlaubte Hilfsmittel</label>
+        <label for="hilfsmittel" class="{{ $label }}">{{ __('Erlaubte Hilfsmittel') }}</label>
         <input id="hilfsmittel" name="hilfsmittel" maxlength="255" value="{{ old('hilfsmittel', $b?->hilfsmittel) }}" class="{{ $feld }}">
         @error('hilfsmittel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
-        <label for="stoff" class="{{ $label }}">Prüfungsstoff</label>
+        <label for="stoff" class="{{ $label }}">{{ __('Prüfungsstoff') }}</label>
         <textarea id="stoff" name="stoff" rows="4" maxlength="5000" class="{{ $textarea }}">{{ old('stoff', $b?->stoff) }}</textarea>
         @error('stoff')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
-        <label for="notizen" class="{{ $label }}">Eigene Notizen</label>
+        <label for="notizen" class="{{ $label }}">{{ __('Eigene Notizen') }}</label>
         <textarea id="notizen" name="notizen" rows="3" maxlength="5000" class="{{ $textarea }}">{{ old('notizen', $b?->notizen) }}</textarea>
         @error('notizen')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     @if($b?->note)
         <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 flex items-center justify-between gap-3">
-            <span class="text-sm text-text">Note</span>
+            <span class="text-sm text-text">{{ __('Note') }}</span>
             <x-note :wert="$b->note->note_wert" variante="badge" />
         </div>
     @elseif($b)
-        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="inline-flex items-center justify-center h-10 rounded-lg glass-btn text-text text-sm">Note eintragen</a>
+        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="inline-flex items-center justify-center h-10 rounded-lg glass-btn text-text text-sm">{{ __('Note eintragen') }}</a>
     @endif
 
     @if($b)
         <div class="flex flex-col gap-2">
-            <span class="{{ $label }}">Angehängte Dateien</span>
+            <span class="{{ $label }}">{{ __('Angehängte Dateien') }}</span>
             @forelse($b->dokumente as $d)
                 <div class="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                     <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="text-sm text-accent-text hover:underline truncate">{{ $d->titel }}</a>
-                    <form method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" onsubmit="return confirm('Anhang entfernen?');">
+                    <form method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" onsubmit="return confirm('{{ __('Anhang entfernen?') }}');">
                         @csrf @method('DELETE')
-                        <button class="text-muted hover:text-red-600 dark:hover:text-red-400 text-sm px-1" aria-label="Entfernen">×</button>
+                        <button class="text-muted hover:text-red-600 dark:hover:text-red-400 text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
                     </form>
                 </div>
             @empty
-                <p class="text-sm text-muted">Keine Anhänge.</p>
+                <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
             @endforelse
             <form method="POST" action="{{ route('learner.documents.store') }}" enctype="multipart/form-data" class="flex items-center gap-2">
                 @csrf
                 <input type="hidden" name="art" value="pruefung">
                 <input type="hidden" name="pruefung_id" value="{{ $b->pruefung_id }}">
-                <input type="file" name="datei" required class="text-sm text-muted flex-1 min-w-0" aria-label="Datei anhängen">
-                <button class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">Anhängen</button>
+                <input type="file" name="datei" required class="text-sm text-muted flex-1 min-w-0" aria-label="{{ __('Datei anhängen') }}">
+                <button class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">{{ __('Anhängen') }}</button>
             </form>
             @error('datei')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     @else
-        <p class="text-xs text-muted">Anhänge können nach dem Speichern hinzugefügt werden.</p>
+        <p class="text-xs text-muted">{{ __('Anhänge können nach dem Speichern hinzugefügt werden.') }}</p>
     @endif
 
     <div class="flex gap-2 mt-2">
-        <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">Abbrechen</a>
-        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60">{{ $b ? 'Speichern' : 'Planen' }}</button>
+        <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">{{ __('Abbrechen') }}</a>
+        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Planen') }}</button>
     </div>
 </form>

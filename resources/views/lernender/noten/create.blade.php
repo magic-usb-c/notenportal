@@ -1,14 +1,14 @@
 <x-app-layout>
-    <x-slot name="title">Neue Note</x-slot>
+    <x-slot name="title">{{ __('Neue Note') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Neue Note" schmal />
+        <x-seitenkopf titel="{{ __('Neue Note') }}" schmal />
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl rounded-xl border border-border bg-card p-6 sm:p-8">
                 @if(empty($bezugOptionen))
-                    <p class="mb-5 text-sm text-note-knapp">Für dich sind noch keine Fächer oder Module freigegeben.</p>
+                    <p class="mb-5 text-sm text-note-knapp">{{ __('Für dich sind noch keine Fächer oder Module freigegeben.') }}</p>
                 @endif
 
                 @include('noten._formular', [

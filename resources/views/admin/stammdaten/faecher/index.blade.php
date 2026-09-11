@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Fächer</x-slot>
+    <x-slot name="title">{{ __('Fächer') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Fächer">
+        <x-seitenkopf :titel="__('Fächer')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.subjects.create') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none">+</span> Neues Fach
+                    <span class="text-lg leading-none">+</span> {{ __('Neues Fach') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -19,13 +19,13 @@
                 <table class="w-full text-sm tabular-nums">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Kürzel</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Name</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Kategorie</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Track</th>
-                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                            <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Kürzel') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Kategorie') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Track') }}</th>
+                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Lehrberufe') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                            <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
@@ -46,20 +46,20 @@
                                 <td class="px-4 text-right text-muted">{{ $f->lehrberuf_count }}</td>
                                 <td class="px-4">
                                     @if($f->aktiv)
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">aktiv</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">inaktiv</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-4 text-right">
                                     <a href="{{ route('admin.master-data.subjects.edit', $f->fach_id) }}"
-                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">Bearbeiten</a>
+                                       class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">{{ __('Bearbeiten') }}</a>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="7" class="px-4 py-8 text-center text-muted">
-                                    Noch keine Fächer erfasst.
+                                    {{ __('Noch keine Fächer erfasst.') }}
                                 </td>
                             </tr>
                         @endforelse

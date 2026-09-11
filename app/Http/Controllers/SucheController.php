@@ -52,9 +52,9 @@ class SucheController extends Controller
             ->limit(8)->get()
             ->map(fn (Lernender $l) => [
                 'label' => $l->benutzer->vorname.' '.$l->benutzer->nachname,
-                'sub' => trim(($l->lehrberuf?->kuerzel ?? '').($l->lehrjahr() ? ' · '.$l->lehrjahr().'. Lehrjahr' : '')),
+                'sub' => trim(($l->lehrberuf?->kuerzel ?? '').($l->lehrjahr() ? ' · '.__(':jahr. Lehrjahr', ['jahr' => $l->lehrjahr()]) : '')),
                 'url' => route($bereich.'.learners.show', $l->lernender_id),
-                'gruppe' => 'Lernende',
+                'gruppe' => __('Lernende'),
             ]);
 
         if ($bereich === 'admin') {
@@ -66,7 +66,7 @@ class SucheController extends Controller
                     'label' => $u->vorname.' '.$u->nachname,
                     'sub' => $u->email,
                     'url' => route('admin.users.edit', $u->benutzer_id),
-                    'gruppe' => 'Konten',
+                    'gruppe' => __('Konten'),
                 ]);
             $treffer = $treffer->concat($konten);
         }
@@ -96,9 +96,9 @@ class SucheController extends Controller
             ->take(6)
             ->map(fn ($o) => [
                 'label' => $o['label'],
-                'sub' => str_starts_with($o['wert'], 'modul:') ? 'Modul' : 'Fach',
+                'sub' => str_starts_with($o['wert'], 'modul:') ? __('Modul') : __('Fach'),
                 'url' => route('learner.grades.create', ['bezug' => $o['wert']]),
-                'gruppe' => 'Fächer & Module',
+                'gruppe' => __('Fächer & Module'),
             ])->values();
 
         $noten = Note::query()
@@ -112,9 +112,9 @@ class SucheController extends Controller
             ->limit(6)->get()
             ->map(fn (Note $n) => [
                 'label' => $n->titel ?: ($n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? ''))),
-                'sub' => 'Note '.NotenSkala::format($n->note_wert).' · '.$n->pruefungsdatum?->format('d.m.Y'),
+                'sub' => __('Note :wert · :datum', ['wert' => NotenSkala::format($n->note_wert), 'datum' => $n->pruefungsdatum?->format('d.m.Y')]),
                 'url' => route('learner.grades.index', ['_open' => $n->note_id]),
-                'gruppe' => 'Eigene Noten',
+                'gruppe' => __('Eigene Noten'),
             ])->values();
 
         return $bezuege->concat($noten)->values()->all();

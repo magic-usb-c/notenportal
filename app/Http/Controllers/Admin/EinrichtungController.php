@@ -41,6 +41,12 @@ class EinrichtungController extends Controller
         'lernende.*.berufsbildner_id' => 'Berufsbildner', 'lernende.*.track' => 'Track',
     ];
 
+    /** @return array<string, string> übersetzte Attribut-Labels für Validierungsmeldungen. */
+    private static function attribute(): array
+    {
+        return array_map('__', self::ATTRIBUTE);
+    }
+
     /** Startpasswörter bleiben bis zum Abschluss sichtbar (Session), damit keine Liste verloren geht. */
     private const string ZUGAENGE = 'einrichtung_zugaenge';
 
@@ -70,7 +76,7 @@ class EinrichtungController extends Controller
         Betrieb::speichern($daten);
         $user->update(['vorname' => $daten['vorname'], 'nachname' => $daten['nachname'], 'email' => $daten['email']]);
 
-        return $this->weiter('operations', 'Betrieb gespeichert.');
+        return $this->weiter('operations', __('Betrieb gespeichert.'));
     }
 
     public function kategorien(Request $request): RedirectResponse
@@ -80,7 +86,7 @@ class EinrichtungController extends Controller
             'kategorien.*.name' => ['required', 'string', 'max:50', 'distinct'],
             'kategorien.*.aktiv' => ['boolean'],
             ...KategorieRegeln::regeln('kategorien.*.'),
-        ], [], self::ATTRIBUTE);
+        ], [], self::attribute());
 
         $ids = DB::table('kategorien')->pluck('kategorie_id')->map(fn ($id) => (int) $id)->all();
         DB::transaction(function () use ($daten, $ids) {
@@ -97,7 +103,7 @@ class EinrichtungController extends Controller
         Einstellungen::set(Einrichtung::KATEGORIEN_GEPRUEFT, '1');
         Konfiguration::vergessen();
 
-        return $this->weiter('categories', 'Kategorien gespeichert.');
+        return $this->weiter('categories', __('Kategorien gespeichert.'));
     }
 
     public function semester(Request $request): RedirectResponse
@@ -110,7 +116,7 @@ class EinrichtungController extends Controller
         $herbst = Carbon::parse($daten['herbst']);
         $fruehling = Carbon::parse($daten['fruehling']);
         if ($fruehling->year !== $herbst->year + 1) {
-            throw ValidationException::withMessages(['fruehling' => 'Das Frühlingssemester beginnt im Jahr nach dem Herbstsemester.']);
+            throw ValidationException::withMessages(['fruehling' => __('Das Frühlingssemester beginnt im Jahr nach dem Herbstsemester.')]);
         }
 
         $bis = max($herbst->year, min((int) $daten['bis_jahr'], $herbst->year + 15));
@@ -139,7 +145,11 @@ class EinrichtungController extends Controller
         });
         Konfiguration::vergessen();
 
-        $text = ($neu === 1 ? '1 Semester' : $neu.' Semester').' angelegt'.($vorhanden ? ', '.$vorhanden.' bereits vorhanden' : '').'.';
+        $text = $vorhanden
+            ? ($neu === 1
+                ? __('1 Semester angelegt, :vorhanden bereits vorhanden.', ['vorhanden' => $vorhanden])
+                : __(':neu Semester angelegt, :vorhanden bereits vorhanden.', ['neu' => $neu, 'vorhanden' => $vorhanden]))
+            : ($neu === 1 ? __('1 Semester angelegt.') : __(':neu Semester angelegt.', ['neu' => $neu]));
 
         return $this->weiter('semesters', $text);
     }
@@ -154,7 +164,7 @@ class EinrichtungController extends Controller
             'eigene.*.name' => ['nullable', 'string', 'max:200', 'distinct', 'required_with:eigene.*.kuerzel'],
             'faecher' => ['array'],
             'faecher.*' => ['string', 'regex:/^(BMS|ABU):[A-Z]+$/'],
-        ], [], self::ATTRIBUTE);
+        ], [], self::attribute());
 
         $berufe = collect($daten['berufe'] ?? [])->mapWithKeys(fn ($k) => [$k => Einrichtung::LEHRBERUFE[$k]]);
         foreach ($daten['eigene'] ?? [] as $e) {
@@ -187,7 +197,10 @@ class EinrichtungController extends Controller
         });
         Konfiguration::vergessen();
 
-        return $this->weiter('professions', ($neuBerufe === 1 ? '1 Lehrberuf' : $neuBerufe.' Lehrberufe').' und '.($neuFaecher === 1 ? '1 Fach' : $neuFaecher.' Fächer').' angelegt.');
+        $berufeText = $neuBerufe === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neuBerufe]);
+        $faecherText = $neuFaecher === 1 ? __('1 Fach') : __(':anzahl Fächer', ['anzahl' => $neuFaecher]);
+
+        return $this->weiter('professions', __(':berufe und :faecher angelegt.', ['berufe' => $berufeText, 'faecher' => $faecherText]));
     }
 
     public function module(Request $request): RedirectResponse
@@ -205,7 +218,7 @@ class EinrichtungController extends Controller
         foreach (['schule' => 'FACH', 'uek' => 'UEK'] as $feld => $code) {
             $ergebnis = Einrichtung::moduleAusText($daten[$feld] ?? '');
             if ($ergebnis['fehler'] !== []) {
-                $fehler[$feld] = 'Nicht erkannt: '.implode(' · ', array_slice($ergebnis['fehler'], 0, 3));
+                $fehler[$feld] = __('Nicht erkannt: :liste', ['liste' => implode(' · ', array_slice($ergebnis['fehler'], 0, 3))]);
             }
             foreach ($ergebnis['module'] as $m) {
                 $zeilen[] = [...$m, 'kategorie_id' => $kategorien[$code] ?? null];
@@ -215,7 +228,7 @@ class EinrichtungController extends Controller
             throw ValidationException::withMessages($fehler);
         }
         if ($zeilen === []) {
-            throw ValidationException::withMessages(['schule' => 'Keine Module erfasst.']);
+            throw ValidationException::withMessages(['schule' => __('Keine Module erfasst.')]);
         }
 
         $lehrberufId = (int) $daten['lehrberuf_id'];
@@ -237,7 +250,7 @@ class EinrichtungController extends Controller
 
         return redirect()
             ->route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lehrberufId])
-            ->with('success', ($neu === 1 ? '1 Modul' : $neu.' Module').' zugeordnet.');
+            ->with('success', $neu === 1 ? __('1 Modul zugeordnet.') : __(':anzahl Module zugeordnet.', ['anzahl' => $neu]));
     }
 
     public function personen(Request $request): RedirectResponse
@@ -248,7 +261,7 @@ class EinrichtungController extends Controller
             'personen.*.nachname' => ['required', 'string', 'max:100'],
             'personen.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:benutzer,email'],
             'personen.*.rolle' => ['required', 'in:Berufsbildner,Admin'],
-        ], [], self::ATTRIBUTE);
+        ], [], self::attribute());
 
         $rollen = DB::table('rollen')->pluck('rolle_id', 'name');
         $neueBenutzer = [];
@@ -283,7 +296,7 @@ class EinrichtungController extends Controller
         $this->merken($request, $zugaenge);
 
         return redirect()->route('admin.setup', 'people')
-            ->with('success', (count($zugaenge) === 1 ? '1 Konto' : count($zugaenge).' Konten').' angelegt.');
+            ->with('success', count($zugaenge) === 1 ? __('1 Konto angelegt.') : __(':anzahl Konten angelegt.', ['anzahl' => count($zugaenge)]));
     }
 
     public function lernende(Request $request): RedirectResponse
@@ -298,14 +311,14 @@ class EinrichtungController extends Controller
             'lernende.*.lehrende' => ['nullable', 'date', 'after:lernende.*.lehrbeginn'],
             'lernende.*.berufsbildner_id' => ['nullable', 'integer', 'exists:berufsbildner,berufsbildner_id'],
             'lernende.*.track' => ['nullable', 'in:BMS,ABU'],
-        ], [], self::ATTRIBUTE);
+        ], [], self::attribute());
 
         $konfig = Konfiguration::ausDb();
         $fehler = [];
         foreach ($daten['lernende'] as $i => $l) {
             $beginn = Carbon::parse($l['lehrbeginn'])->toDateString();
             if (! empty($l['track']) && $konfig->semesterFuerDatum($beginn) === null) {
-                $fehler["lernende.$i.lehrbeginn"] = 'Kein Semester am '.Carbon::parse($beginn)->format('d.m.Y').' – zuerst Semester anlegen.';
+                $fehler["lernende.$i.lehrbeginn"] = __('Kein Semester am :datum – zuerst Semester anlegen.', ['datum' => Carbon::parse($beginn)->format('d.m.Y')]);
             }
         }
         if ($fehler !== []) {
@@ -329,7 +342,7 @@ class EinrichtungController extends Controller
                     'track_typ' => $l['track'] ?? null,
                     'track_semester_id' => ! empty($l['track']) ? $konfig->semesterFuerDatum($beginn) : null,
                 ], ! empty($l['berufsbildner_id']) ? (int) $l['berufsbildner_id'] : null);
-                $zugaenge[] = ['name' => $l['vorname'].' '.$l['nachname'], 'rolle' => 'Lernende/r', 'email' => $l['email'], 'passwort' => $passwort];
+                $zugaenge[] = ['name' => $l['vorname'].' '.$l['nachname'], 'rolle' => __('Lernende/r'), 'email' => $l['email'], 'passwort' => $passwort];
             }
 
             return $zugaenge;
@@ -338,7 +351,7 @@ class EinrichtungController extends Controller
         $this->merken($request, $zugaenge);
 
         return redirect()->route('admin.setup', 'people')
-            ->with('success', (count($zugaenge) === 1 ? '1 Lernende/r' : count($zugaenge).' Lernende').' angelegt.');
+            ->with('success', count($zugaenge) === 1 ? __('1 Lernende/r angelegt.') : __(':anzahl Lernende angelegt.', ['anzahl' => count($zugaenge)]));
     }
 
     public function mail(Request $request): RedirectResponse
@@ -346,7 +359,7 @@ class EinrichtungController extends Controller
         $daten = $request->validate(MailSettings::rules());
         MailSettings::save($daten);
 
-        return $this->weiter('mail', 'E-Mail gespeichert.');
+        return $this->weiter('mail', __('E-Mail gespeichert.'));
     }
 
     public function abschliessen(Request $request): RedirectResponse
@@ -354,7 +367,7 @@ class EinrichtungController extends Controller
         Einrichtung::abschliessen();
         $request->session()->forget(self::ZUGAENGE);
 
-        return redirect()->route('admin.dashboard')->with('success', 'Einrichtung abgeschlossen.');
+        return redirect()->route('admin.dashboard')->with('success', __('Einrichtung abgeschlossen.'));
     }
 
     /** @param  list<array{name: string, rolle: string, email: string, passwort: string}>  $neu */

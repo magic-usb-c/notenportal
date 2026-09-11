@@ -212,7 +212,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('learner.grades.index', $params)->with('success', 'Note gespeichert.');
+        return redirect()->route('learner.grades.index', $params)->with('success', __('Note gespeichert.'));
     }
 
     /** Neue Note eines Lernenden → aktive Betreuer (GRADE_ADDED). */
@@ -294,7 +294,7 @@ class NotenController extends Controller
 
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
-        return redirect()->route('learner.grades.index', $params)->with('success', 'Note aktualisiert.');
+        return redirect()->route('learner.grades.index', $params)->with('success', __('Note aktualisiert.'));
     }
 
     /**
@@ -414,7 +414,7 @@ class NotenController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'], ';');
+            fputcsv($out, [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')], ';');
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name
                     ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
@@ -451,7 +451,7 @@ class NotenController extends Controller
         $letzte = Note::query()->where('modul_belegung_id', $belegung->modul_belegung_id)->max('pruefungsdatum');
         $belegung->update(['end_datum' => Carbon::parse($letzte ?? now())->max($belegung->start_datum)->toDateString()]);
 
-        return back()->with('success', 'Wiederholung gestartet.');
+        return back()->with('success', __('Wiederholung gestartet.'));
     }
 
     /** Solange der neue Versuch keine Note hat, lässt sich die Wiederholung zurücknehmen. */
@@ -470,7 +470,7 @@ class NotenController extends Controller
 
         $letzte->update(['end_datum' => null]);
 
-        return back()->with('success', 'Wiederholung zurückgenommen.');
+        return back()->with('success', __('Wiederholung zurückgenommen.'));
     }
 
     public function destroy(Request $request, int $note_id)
@@ -491,6 +491,6 @@ class NotenController extends Controller
 
         return redirect()
             ->route('learner.grades.index', ['semester_id' => $note->semester_id])
-            ->with('success', 'Note gelöscht.');
+            ->with('success', __('Note gelöscht.'));
     }
 }

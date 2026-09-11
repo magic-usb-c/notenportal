@@ -1,13 +1,13 @@
 <x-app-layout>
-    <x-slot name="title">Notenimport</x-slot>
+    <x-slot name="title">{{ __('Notenimport') }}</x-slot>
     @php
         $feld = 'h-9 w-full rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
     @endphp
 
     <x-slot name="header">
-        <x-seitenkopf titel="Notenimport" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null" :schmal="! $vorschau">
+        <x-seitenkopf titel="{{ __('Notenimport') }}" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null" :schmal="! $vorschau">
             <x-slot:aktionen>
-                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -23,22 +23,22 @@
                            @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
                            @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
                         <svg class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M9 4v16M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
-                        <span class="text-sm font-medium text-text" x-text="name || 'Notenliste wählen oder hierher ziehen'"></span>
-                        <span class="text-xs text-muted">Excel, CSV oder PDF mit Datum, Fach/Modul und Note</span>
+                        <span class="text-sm font-medium text-text" x-text="name || @js(__('Notenliste wählen oder hierher ziehen'))"></span>
+                        <span class="text-xs text-muted">{{ __('Excel, CSV oder PDF mit Datum, Fach/Modul und Note') }}</span>
                         <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only" accept=".xlsx,.xls,.ods,.csv,.pdf"
                                @change="name = $event.target.files[0]?.name ?? ''">
                     </label>
                     @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
-                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">Vorlage (CSV)</a>
-                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Datei lesen</button>
+                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ __('Vorlage (CSV)') }}</a>
+                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Datei lesen') }}</button>
                     </div>
                 </form>
             @else
                 @php
                     $zeilen = $vorschau['zeilen'];
                     $anzahl = collect($zeilen)->countBy('status');
-                    $namen = ['datum' => 'Datum', 'bezug' => 'Fach/Modul', 'titel' => 'Titel', 'note' => 'Note', 'gewicht' => 'Gewicht'];
+                    $namen = ['datum' => __('Datum'), 'bezug' => __('Fach/Modul'), 'titel' => __('Titel'), 'note' => __('Note'), 'gewicht' => __('Gewicht')];
                     $spalte = fn (int $i) => $i < 26 ? chr(65 + $i) : (string) ($i + 1);
                 @endphp
                 <script>
@@ -79,7 +79,7 @@
                             </div>
                         </div>
                         <dl class="ml-auto flex flex-wrap gap-5 text-center">
-                            @foreach(['ok' => 'bereit', 'pruefen' => 'prüfen', 'doppelt' => 'bereits erfasst', 'fehler' => 'Fehler'] as $status => $text)
+                            @foreach(['ok' => __('bereit'), 'pruefen' => __('prüfen'), 'doppelt' => __('bereits erfasst'), 'fehler' => __('Fehler')] as $status => $text)
                                 <div>
                                     <dt class="text-[11px] uppercase tracking-widest text-muted">{{ $text }}</dt>
                                     <dd @class(['text-xl font-bold tabular-nums',
@@ -99,17 +99,17 @@
                                     <tr class="border-b border-border">
                                         <th class="px-3 py-2 w-12">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9">
-                                                <input type="checkbox" aria-label="Alle auswählen" :checked="gewaehlt === zeilen.length" @change="alle($event.target.checked)"
+                                                <input type="checkbox" aria-label="{{ __('Alle auswählen') }}" :checked="gewaehlt === zeilen.length" @change="alle($event.target.checked)"
                                                        class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                                             </label>
                                         </th>
-                                        <th class="text-left px-2 py-2 font-medium">Zeile</th>
-                                        <th class="text-left px-2 py-2 font-medium">Datum</th>
-                                        <th class="text-left px-2 py-2 font-medium">Fach/Modul</th>
-                                        <th class="text-left px-2 py-2 font-medium">Titel</th>
-                                        <th class="text-left px-2 py-2 font-medium">Note</th>
-                                        <th class="text-left px-2 py-2 font-medium">Gewicht %</th>
-                                        <th class="text-left px-3 py-2 font-medium">Status</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Zeile') }}</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Datum') }}</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Fach/Modul') }}</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Titel') }}</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Note') }}</th>
+                                        <th class="text-left px-2 py-2 font-medium">{{ __('Gewicht %') }}</th>
+                                        <th class="text-left px-3 py-2 font-medium">{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border">
@@ -117,13 +117,13 @@
                                         <tr :class="z.uebernehmen ? '' : 'opacity-60'">
                                             <td class="px-3 py-1.5">
                                                 <label class="inline-flex items-center justify-center min-w-9 min-h-9">
-                                                    <input type="checkbox" x-model="z.uebernehmen" :aria-label="`Zeile ${z.nr} übernehmen`" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                                    <input type="checkbox" x-model="z.uebernehmen" :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>
-                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="`Datum Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-note-ungenuegend!'"></td>
+                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="@js(__('Datum Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-note-ungenuegend!'"></td>
                                             <td class="px-2 py-1.5 min-w-56">
-                                                <select x-model="z.bezug" :aria-label="`Fach oder Modul Zeile ${z.nr}`" class="{{ $feld }}" :class="! z.bezug && 'border-note-ungenuegend!'">
+                                                <select x-model="z.bezug" :aria-label="@js(__('Fach oder Modul Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}" :class="! z.bezug && 'border-note-ungenuegend!'">
                                                     <option value="">–</option>
                                                     @foreach($optionen as $gruppe => $liste)
                                                         <optgroup label="{{ $gruppe }}">
@@ -135,11 +135,11 @@
                                                 </select>
                                                 <div class="mt-0.5 text-[11px] text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
-                                            <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="`Titel Zeile ${z.nr}`" class="{{ $feld }}"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="`Note Zeile ${z.nr}`" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="`Gewicht Zeile ${z.nr}`" class="{{ $feld }} tabular-nums"></td>
+                                            <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="@js(__('Titel Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}"></td>
+                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
+                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums"></td>
                                             <td class="px-3 py-1.5 whitespace-nowrap">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="farbe(z.status)" x-text="z.meldung || 'bereit'"></span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
                                             </td>
                                         </tr>
                                     </template>
@@ -149,10 +149,10 @@
                     </section>
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Verwerfen</button>
+                        <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verwerfen') }}</button>
                         <button type="submit" :disabled="loading || gewaehlt === 0"
                                 class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60"
-                                x-text="gewaehlt === 1 ? '1 Note importieren' : `${gewaehlt} Noten importieren`"></button>
+                                x-text="gewaehlt === 1 ? @js(__('1 Note importieren')) : @js(__(':anzahl Noten importieren')).replace(':anzahl', gewaehlt)"></button>
                     </div>
                 </form>
                 <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden">@csrf</form>

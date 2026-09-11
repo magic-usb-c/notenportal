@@ -3,7 +3,7 @@
     'breite' => 96,
     'hoehe' => 28,
     'zahl' => true,   // letzter Wert als Zahl daneben
-    'label' => 'Verlauf',
+    'label' => __('Verlauf'),
 ])
 {{-- Sparkline (Tufte): graues Band von genügend bis 6, Linie neutral, letzter Punkt in Stufenfarbe --}}
 @php
@@ -24,7 +24,7 @@
 @endphp
 <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1.5']) }}>
     <svg class="shrink-0 overflow-visible" width="{{ $breite }}" height="{{ $hoehe }}" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img"
-         aria-label="{{ $label }}{{ $text !== '' ? ': '.$text : ': keine Noten' }}">
+         aria-label="{{ $label }}{{ $text !== '' ? ': '.$text : ': '.__('keine Noten') }}">
         <rect x="0" y="{{ $y(6) }}" width="{{ $breite }}" height="{{ round($y($grenze) - $y(6), 2) }}" class="fill-muted/12"/>
         @if(count($punkte) > 1)
             <polyline fill="none" class="stroke-muted" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"

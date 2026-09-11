@@ -4,14 +4,14 @@
     $nummer = array_search($schritt, array_keys($schritte), true) + 1;
 @endphp
 <x-app-layout>
-    <x-slot name="title">Einrichtung · {{ $titel }}</x-slot>
+    <x-slot name="title">{{ __('Einrichtung') }} · {{ $titel }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="'Einrichtung · '.$titel" :zaehler="$nummer.' / '.count($schritte)" />
+        <x-seitenkopf :titel="__('Einrichtung').' · '.$titel" :zaehler="$nummer.' / '.count($schritte)" />
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[15rem_minmax(0,1fr)] gap-6">
-            <nav aria-label="Schritte der Einrichtung" class="lg:sticky lg:top-24 self-start min-w-0">
+            <nav aria-label="{{ __('Schritte der Einrichtung') }}" class="lg:sticky lg:top-24 self-start min-w-0">
                 <ol class="relative flex lg:flex-col gap-1.5 overflow-x-auto pb-1 lg:pb-0">
                     @foreach($schritte as $key => $name)
                         @php
@@ -29,13 +29,13 @@
                                     'border border-border' => ! $aktiv && ! $ok])>
                                     @if($ok && ! $aktiv)
                                         <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.7 5.3a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0L3.3 9.7a1 1 0 1 1 1.4-1.4l3.8 3.8 6.8-6.8a1 1 0 0 1 1.4 0z" clip-rule="evenodd"/></svg>
-                                        <span class="sr-only">erledigt</span>
+                                        <span class="sr-only">{{ __('erledigt') }}</span>
                                     @else
                                         {{ $loop->iteration }}
                                     @endif
                                 </span>
                                 <span class="min-w-0">
-                                    <span class="block text-sm font-medium whitespace-nowrap">{{ $name }}</span>
+                                    <span class="block text-sm font-medium whitespace-nowrap">{{ __($name) }}</span>
                                     @if($stand[$key]['info'] !== '')
                                         <span class="hidden lg:block text-xs text-muted truncate max-w-40">{{ $stand[$key]['info'] }}</span>
                                     @endif

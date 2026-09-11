@@ -73,7 +73,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->create([...$this->validiere($request, $lernender), 'quelle' => Pruefung::MANUELL]);
 
-        return redirect()->route('learner.exams.index')->with('success', 'Prüfung geplant.');
+        return redirect()->route('learner.exams.index')->with('success', __('Prüfung geplant.'));
     }
 
     public function update(Request $request, int $pruefung_id): RedirectResponse
@@ -81,7 +81,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->update($this->validiere($request, $lernender));
 
-        return redirect()->route('learner.exams.index')->with('success', 'Prüfung aktualisiert.');
+        return redirect()->route('learner.exams.index')->with('success', __('Prüfung aktualisiert.'));
     }
 
     public function destroy(Request $request, int $pruefung_id): RedirectResponse
@@ -89,7 +89,7 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->delete();
 
-        return redirect()->route('learner.exams.index')->with('success', 'Prüfung entfernt.');
+        return redirect()->route('learner.exams.index')->with('success', __('Prüfung entfernt.'));
     }
 
     /** Vom Schulnetz erkannte, aber nicht automatisch zugeordnete Prüfung manuell übernehmen. */
@@ -101,12 +101,12 @@ class PruefungenController extends Controller
 
         $daten = $request->validate([
             'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
-        ], ['bezug.required' => 'Bitte Fach oder Modul wählen.']);
+        ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
         [$typ, $id] = explode(':', $daten['bezug']);
         try {
             $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id);
         } catch (ValidationException) {
-            throw ValidationException::withMessages(['bezug' => 'Dieses Fach oder Modul ist nicht verfügbar.']);
+            throw ValidationException::withMessages(['bezug' => __('Dieses Fach oder Modul ist nicht verfügbar.')]);
         }
 
         $info = $this->parser->parse($event->summary, $event->description);
@@ -127,7 +127,7 @@ class PruefungenController extends Controller
         ]);
         $event->update(['pruefung_id' => $pruefung->pruefung_id]);
 
-        return redirect()->route('learner.exams.index')->with('success', 'Prüfung übernommen.');
+        return redirect()->route('learner.exams.index')->with('success', __('Prüfung übernommen.'));
     }
 
     /** @return array<string, mixed> */
@@ -144,13 +144,13 @@ class PruefungenController extends Controller
             'hilfsmittel' => ['nullable', 'string', 'max:255'],
             'stoff' => ['nullable', 'string', 'max:5000'],
             'notizen' => ['nullable', 'string', 'max:5000'],
-        ], ['bezug.required' => 'Bitte Fach oder Modul wählen.']);
+        ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
 
         [$typ, $id] = explode(':', $daten['bezug']);
         try {
             $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id);
         } catch (ValidationException) {
-            throw ValidationException::withMessages(['bezug' => 'Dieses Fach oder Modul ist nicht verfügbar.']);
+            throw ValidationException::withMessages(['bezug' => __('Dieses Fach oder Modul ist nicht verfügbar.')]);
         }
 
         return [
@@ -199,8 +199,8 @@ class PruefungenController extends Controller
                 'datum' => CarbonImmutable::parse($e->starts_at->toDateString()),
                 'zeit' => $e->all_day ? null : $e->starts_at->format('H:i'),
                 'art' => 'termin',
-                'titel' => 'Schulnetz: '.$e->summary,
-                'nebentext' => 'Termin'.($e->location ? ' · '.$e->location : ''),
+                'titel' => __('Schulnetz: :titel', ['titel' => $e->summary]),
+                'nebentext' => __('Termin').($e->location ? ' · '.$e->location : ''),
                 'ueberfaellig' => false,
                 'abgesagt' => false,
                 'pruefung' => null,
@@ -214,8 +214,8 @@ class PruefungenController extends Controller
                 'datum' => CarbonImmutable::parse($e->starts_at->toDateString()),
                 'zeit' => $e->all_day ? null : $e->starts_at->format('H:i'),
                 'art' => 'erkannt',
-                'titel' => 'Schulnetz: '.$e->summary,
-                'nebentext' => 'erkannt, nicht zugeordnet',
+                'titel' => __('Schulnetz: :titel', ['titel' => $e->summary]),
+                'nebentext' => __('erkannt, nicht zugeordnet'),
                 'ueberfaellig' => false,
                 'abgesagt' => false,
                 'pruefung' => null,
@@ -229,8 +229,8 @@ class PruefungenController extends Controller
                 'datum' => CarbonImmutable::parse($e->starts_at->toDateString()),
                 'zeit' => $e->all_day ? null : $e->starts_at->format('H:i'),
                 'art' => 'lektion',
-                'titel' => 'Lektion: '.$e->summary,
-                'nebentext' => 'Stundenplan'.($e->location ? ' · '.$e->location : ''),
+                'titel' => __('Lektion: :titel', ['titel' => $e->summary]),
+                'nebentext' => __('Stundenplan').($e->location ? ' · '.$e->location : ''),
                 'ueberfaellig' => false,
                 'abgesagt' => false,
                 'pruefung' => null,
@@ -254,7 +254,7 @@ class PruefungenController extends Controller
             'ueberfaellig' => $ueberfaellig,
             'diese_woche' => $kuenftig->filter(fn ($e) => $e['datum']->lte($endeDieseWoche))->values(),
             'naechste_woche' => [
-                'label' => 'Nächste Woche · KW '.$heute->addWeek()->isoWeek(),
+                'label' => __('Nächste Woche · KW :kw', ['kw' => $heute->addWeek()->isoWeek()]),
                 'eintraege' => $kuenftig->filter(fn ($e) => $e['datum']->gt($endeDieseWoche) && $e['datum']->lte($endeNaechsteWoche))->values(),
             ],
             'spaeter' => $kuenftig->filter(fn ($e) => $e['datum']->gt($endeNaechsteWoche))->values(),

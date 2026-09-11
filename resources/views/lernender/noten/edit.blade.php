@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Note bearbeiten</x-slot>
+    <x-slot name="title">{{ __('Note bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Note bearbeiten" schmal />
+        <x-seitenkopf titel="{{ __('Note bearbeiten') }}" schmal />
     </x-slot>
 
     <div class="py-6">

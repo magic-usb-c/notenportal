@@ -42,7 +42,7 @@ class KommentarController extends Controller
         $this->benachrichtigen($note, $validated['kommentar_text'], $user);
 
         return back()
-            ->with('success', 'Kommentar gespeichert.')
+            ->with('success', __('Kommentar gespeichert.'))
             ->with('opened_note', $note_id);
     }
 
@@ -76,6 +76,6 @@ class KommentarController extends Controller
 
         DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->delete();
 
-        return back()->with('success', 'Kommentar gelöscht.');
+        return back()->with('success', __('Kommentar gelöscht.'));
     }
 }

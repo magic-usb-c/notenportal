@@ -9,11 +9,11 @@
         <table class="w-full text-sm border-separate border-spacing-y-0.5">
             <thead>
                 <tr class="text-[11px] uppercase tracking-widest text-muted">
-                    <th class="sticky left-0 bg-card text-left font-medium px-5 py-2 min-w-48">Fach / Modul</th>
+                    <th class="sticky left-0 bg-card text-left font-medium px-5 py-2 min-w-48">{{ __('Fach / Modul') }}</th>
                     @foreach($daten['semester'] as $s)
                         <th class="font-medium px-1 py-2 text-center whitespace-nowrap">{{ $s['name'] }}</th>
                     @endforeach
-                    <th class="font-medium px-5 py-2 text-center">Lehrzeit</th>
+                    <th class="font-medium px-5 py-2 text-center">{{ __('Lehrzeit') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,7 +29,7 @@
                         <tr class="hover:bg-accent/5">
                             <td class="sticky left-0 bg-card px-5 py-0.5 text-text truncate max-w-64" title="{{ $z['label'] }}">
                                 {{ $z['label'] }}
-                                @if($z['offen'])<span class="ml-1 text-[10px] text-accent font-semibold">offen</span>@endif
+                                @if($z['offen'])<span class="ml-1 text-[10px] text-accent font-semibold">{{ __('offen') }}</span>@endif
                             </td>
                             @foreach($daten['semester'] as $s)
                                 <td class="px-1 py-0.5 text-center">
@@ -45,7 +45,7 @@
             </tbody>
             <tfoot>
                 <tr class="text-xs">
-                    <th class="sticky left-0 bg-card text-left px-5 pt-3 pb-2 font-semibold text-muted uppercase tracking-widest text-[11px]">Semesterschnitt</th>
+                    <th class="sticky left-0 bg-card text-left px-5 pt-3 pb-2 font-semibold text-muted uppercase tracking-widest text-[11px]">{{ __('Semesterschnitt') }}</th>
                     @foreach($daten['semester'] as $s)
                         <td class="px-1 pt-3 pb-2 text-center"><span aria-hidden="true">{{ $marke($daten['semesterschnitt'][$s['id']] ?? null) }}</span><x-note :wert="$daten['semesterschnitt'][$s['id']] ?? null" :stellen="1" /></td>
                     @endforeach
@@ -55,5 +55,5 @@
         </table>
     </div>
 @else
-    <div class="px-5 py-10 text-center text-sm text-muted">Noch keine Noten</div>
+    <div class="px-5 py-10 text-center text-sm text-muted">{{ __('Noch keine Noten') }}</div>
 @endif

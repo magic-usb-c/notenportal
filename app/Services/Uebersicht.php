@@ -254,7 +254,7 @@ final class Uebersicht
         if (! $letzteSicherung || $letzteSicherung->lt(now()->subDays(2))) {
             $tage = $letzteSicherung ? (int) $letzteSicherung->diffInDays(now()) : null;
             $eintraege[] = [
-                'text' => $tage !== null ? 'Letzte Sicherung vor '.$tage.' Tagen' : 'Noch keine Sicherung erstellt',
+                'text' => $tage !== null ? __('Letzte Sicherung vor :tage Tagen', ['tage' => $tage]) : __('Noch keine Sicherung erstellt'),
                 'meta' => null,
                 'badge' => $tage,
                 'note' => null,
@@ -265,7 +265,7 @@ final class Uebersicht
 
         if ($feedbackOffen > 0) {
             $eintraege[] = [
-                'text' => $feedbackOffen === 1 ? '1 offene Meldung' : $feedbackOffen.' offene Meldungen',
+                'text' => $feedbackOffen === 1 ? __('1 offene Meldung') : __(':anzahl offene Meldungen', ['anzahl' => $feedbackOffen]),
                 'meta' => null,
                 'badge' => $feedbackOffen,
                 'note' => null,
@@ -492,7 +492,7 @@ final class Uebersicht
     {
         $gruende = $z->stand->gruende;
         if ($z->neu > 0) {
-            $gruende[] = $z->neu === 1 ? '1 neue Note' : $z->neu.' neue Noten';
+            $gruende[] = $z->neu === 1 ? __('1 neue Note') : __(':anzahl neue Noten', ['anzahl' => $z->neu]);
         }
 
         return $gruende;
@@ -523,15 +523,15 @@ final class Uebersicht
         $semesterReichtBis = $letztesSemesterEnde ? Carbon::parse($letztesSemesterEnde) : null;
 
         $luecken = [
-            ['text' => 'Lernende ohne aktive Betreuung', 'anzahl' => $ohneBetreuung, 'link' => route('admin.learners.index', ['warnung' => 'ohne_betreuung'])],
-            ['text' => 'Lernende ohne aktiven Track', 'anzahl' => $ohneTrack, 'link' => route('admin.learners.index', ['warnung' => 'ohne_track'])],
-            ['text' => 'Module ohne Lernort', 'anzahl' => DB::table('lehrberuf_module')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.professions.index')],
-            ['text' => 'Fächer ohne Kategorie', 'anzahl' => DB::table('faecher')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.subjects.index')],
-            ['text' => 'Lehrberufe ohne Module', 'anzahl' => DB::table('lehrberufe as lb')->where('lb.aktiv', 1)
+            ['text' => __('Lernende ohne aktive Betreuung'), 'anzahl' => $ohneBetreuung, 'link' => route('admin.learners.index', ['warnung' => 'ohne_betreuung'])],
+            ['text' => __('Lernende ohne aktiven Track'), 'anzahl' => $ohneTrack, 'link' => route('admin.learners.index', ['warnung' => 'ohne_track'])],
+            ['text' => __('Module ohne Lernort'), 'anzahl' => DB::table('lehrberuf_module')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.professions.index')],
+            ['text' => __('Fächer ohne Kategorie'), 'anzahl' => DB::table('faecher')->where('aktiv', 1)->whereNull('kategorie_id')->count(), 'link' => route('admin.master-data.subjects.index')],
+            ['text' => __('Lehrberufe ohne Module'), 'anzahl' => DB::table('lehrberufe as lb')->where('lb.aktiv', 1)
                 ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('lehrberuf_module as m')->whereColumn('m.lehrberuf_id', 'lb.lehrberuf_id'))
                 ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('lehrberuf_faecher as f')->whereColumn('f.lehrberuf_id', 'lb.lehrberuf_id'))->count(),
                 'link' => route('admin.master-data.professions.index')],
-            ['text' => $semesterReichtBis ? 'Semester erfasst bis '.$semesterReichtBis->format('d.m.Y') : 'Keine Semester erfasst',
+            ['text' => $semesterReichtBis ? __('Semester erfasst bis :datum', ['datum' => $semesterReichtBis->format('d.m.Y')]) : __('Keine Semester erfasst'),
                 'anzahl' => ! $semesterReichtBis || $semesterReichtBis->lt(now()->addMonths(6)) ? 1 : 0, 'link' => route('admin.master-data.semesters.index')],
         ];
 

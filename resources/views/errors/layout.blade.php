@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,12 +23,12 @@
             @auth
                 <a href="{{ url('/') }}"
                    class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white np-btn-primary">
-                    Zum Dashboard
+                    {{ __('Zum Dashboard') }}
                 </a>
             @else
                 <a href="{{ route('login') }}"
                    class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-white np-btn-primary">
-                    Zur Anmeldung
+                    {{ __('Zur Anmeldung') }}
                 </a>
             @endauth
         </div>

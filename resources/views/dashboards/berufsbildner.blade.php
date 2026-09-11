@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Übersicht</x-slot>
+    <x-slot name="title">{{ __('Übersicht') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="'Hallo '.auth()->user()->vorname" :untertitel="now()->locale('de_CH')->isoFormat('dddd, D. MMMM YYYY')">
+        <x-seitenkopf :titel="__('Hallo :name', ['name' => auth()->user()->vorname])" :untertitel="\App\Support\Format::date(now())">
             <x-slot:aktionen>
                 <a href="{{ route('trainer.grades.export_all') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">CSV</a>
                 <a href="{{ route('trainer.learners.create') }}" class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none">+</span> Lernende
+                    <span class="text-lg leading-none">+</span> {{ __('Lernende') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -16,7 +16,7 @@
 
             {{-- Braucht Aufmerksamkeit --}}
             @if(count($aufmerksamkeit))
-                <x-karte titel="Braucht Aufmerksamkeit" :polster="false">
+                <x-karte :titel="__('Braucht Aufmerksamkeit')" :polster="false">
                     <div class="divide-y divide-border/70">
                         @foreach($aufmerksamkeit as $eintrag)
                             @php $z = $eintrag['zeile']; @endphp
@@ -32,11 +32,11 @@
                     </div>
                 </x-karte>
             @else
-                <p class="px-1 text-sm text-muted">Alle {{ $zeilen->count() }} Lernenden im Plan</p>
+                <p class="px-1 text-sm text-muted">{{ __('Alle :anzahl Lernenden im Plan', ['anzahl' => $zeilen->count()]) }}</p>
             @endif
 
             {{-- Meine Lernenden --}}
-            <x-karte titel="Meine Lernenden" :polster="false"
+            <x-karte :titel="__('Meine Lernenden')" :polster="false"
                      x-data="{
                         filter: 'alle',
                         suche: '',
@@ -47,31 +47,31 @@
                         get zaehlNeu() { return this.zeilen.filter(z => z.neu > 0).length },
                      }">
                 <x-slot:aktionen>
-                    <input type="search" x-model="suche" placeholder="Suchen" aria-label="Lernende suchen"
+                    <input type="search" x-model="suche" placeholder="{{ __('Suchen') }}" aria-label="{{ __('Lernende suchen') }}"
                            class="h-8 w-28 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
-                    <div role="radiogroup" x-radiogroup aria-label="Filter" class="hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex">
-                        <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Alle ' + zaehlAlle"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Kritisch ' + zaehlKritisch"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Beobachten ' + zaehlBeobachten"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="'Neue Noten ' + zaehlNeu"></button>
+                    <div role="radiogroup" x-radiogroup aria-label="{{ __('Filter') }}" class="hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex">
+                        <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Alle').' ') + zaehlAlle"></button>
+                        <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Kritisch').' ') + zaehlKritisch"></button>
+                        <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Beobachten').' ') + zaehlBeobachten"></button>
+                        <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Neue Noten').' ') + zaehlNeu"></button>
                     </div>
                 </x-slot:aktionen>
 
                 @if($zeilen->isEmpty())
-                    <p class="px-5 pb-5 text-sm text-muted">Keine aktiv betreuten Lernenden</p>
+                    <p class="px-5 pb-5 text-sm text-muted">{{ __('Keine aktiv betreuten Lernenden') }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead>
                                 <tr class="border-y border-border">
-                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted"><span class="sr-only">Status</span></th>
-                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">Lernende</th>
-                                    <th class="h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted">Lj</th>
-                                    <th class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell">Verlauf</th>
-                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">Semester</th>
-                                    <th class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">Gesamt</th>
-                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">Neue Noten</th>
-                                    <th class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted lg:table-cell">Nächste Prüfung</th>
+                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted"><span class="sr-only">{{ __('Status') }}</span></th>
+                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
+                                    <th class="h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted">{{ __('Lj') }}</th>
+                                    <th class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell">{{ __('Verlauf') }}</th>
+                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Semester') }}</th>
+                                    <th class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Gesamt') }}</th>
+                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Neue Noten') }}</th>
+                                    <th class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted lg:table-cell">{{ __('Nächste Prüfung') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -118,15 +118,15 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {{-- Nächste 14 Tage --}}
-                <x-karte titel="Nächste 14 Tage" class="lg:col-span-8" :polster="false">
+                <x-karte :titel="__('Nächste 14 Tage')" class="lg:col-span-8" :polster="false">
                     @if($agenda->isEmpty())
-                        <p class="px-5 py-8 text-center text-sm text-muted">Keine geplant</p>
+                        <p class="px-5 py-8 text-center text-sm text-muted">{{ __('Keine geplant') }}</p>
                     @else
                         <div class="divide-y divide-border/70">
                             @foreach($agenda as $tag => $pruefungenAmTag)
                                 @php $datum = \Carbon\Carbon::parse($tag); @endphp
                                 <div class="px-5 py-3">
-                                    <div class="mb-2 text-xs font-medium text-muted">{{ $datum->locale('de_CH')->isoFormat('dddd, D. MMMM') }}</div>
+                                    <div class="mb-2 text-xs font-medium text-muted">{{ \App\Support\Format::date($datum, 'wochentag_tag') }}</div>
                                     <div class="flex flex-col gap-2">
                                         @foreach($pruefungenAmTag as $p)
                                             <div class="flex items-center gap-3">
@@ -145,12 +145,12 @@
 
                 {{-- Lehrende bald --}}
                 @if($lehrende->isNotEmpty())
-                    <x-karte titel="Lehrende bald" class="lg:col-span-4" :polster="false">
+                    <x-karte :titel="__('Lehrende bald')" class="lg:col-span-4" :polster="false">
                         <div class="divide-y divide-border/70">
                             @foreach($lehrende as $l)
                                 <a href="{{ route('trainer.learners.show', $l->lernender_id) }}" class="flex items-center justify-between gap-3 px-5 py-2.5 transition-colors duration-100 hover:bg-surface-2/60">
                                     <span class="text-sm text-text">{{ $l->benutzer->vorname }} {{ $l->benutzer->nachname }}</span>
-                                    <span class="text-xs tabular-nums text-muted">{{ $l->lehrende->format('d.m.Y') }} · in {{ (int) now()->startOfDay()->diffInDays($l->lehrende) }} Tagen</span>
+                                    <span class="text-xs tabular-nums text-muted">{{ $l->lehrende->format('d.m.Y') }} · {{ __('in :tage Tagen', ['tage' => (int) now()->startOfDay()->diffInDays($l->lehrende)]) }}</span>
                                 </a>
                             @endforeach
                         </div>

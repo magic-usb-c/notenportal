@@ -44,7 +44,7 @@ class BetriebController extends Controller
     {
         Betrieb::speichern($request->validate(Betrieb::regeln()));
 
-        return redirect()->route('admin.operations.edit')->with('success', 'Betrieb gespeichert.');
+        return redirect()->route('admin.operations.edit')->with('success', __('Betrieb gespeichert.'));
     }
 
     public function themeSpeichern(Request $request): RedirectResponse
@@ -52,7 +52,7 @@ class BetriebController extends Controller
         $wert = $request->validate(['theme' => ['required', Rule::in(array_keys(Theme::THEMES))]])['theme'];
         Einstellungen::set(Einstellungen::THEME, $wert);
 
-        return redirect()->route('admin.operations.edit')->with('success', 'Farbthema '.Theme::THEMES[$wert].' gespeichert.');
+        return redirect()->route('admin.operations.edit')->with('success', __('Farbthema :name gespeichert.', ['name' => Theme::THEMES[$wert]]));
     }
 
     public function sicherungErstellen(): RedirectResponse
@@ -62,10 +62,10 @@ class BetriebController extends Controller
         } catch (\Throwable $e) {
             report($e);
 
-            return redirect()->route('admin.operations.edit')->with('error', 'Sicherung fehlgeschlagen: '.mb_substr($e->getMessage(), 0, 200));
+            return redirect()->route('admin.operations.edit')->with('error', __('Sicherung fehlgeschlagen: :grund', ['grund' => mb_substr($e->getMessage(), 0, 200)]));
         }
 
-        return redirect()->route('admin.operations.edit')->with('success', 'Sicherung '.$name.' erstellt.');
+        return redirect()->route('admin.operations.edit')->with('success', __('Sicherung :name erstellt.', ['name' => $name]));
     }
 
     public function sicherungHerunterladen(string $name): BinaryFileResponse
@@ -78,7 +78,7 @@ class BetriebController extends Controller
     {
         $this->sicherung->loeschen($name);
 
-        return redirect()->route('admin.operations.edit')->with('success', 'Sicherung gelöscht.');
+        return redirect()->route('admin.operations.edit')->with('success', __('Sicherung gelöscht.'));
     }
 
     public function kopieSpeichern(Request $request, SicherungKopie $kopie): RedirectResponse
@@ -89,14 +89,14 @@ class BetriebController extends Controller
             return back()->withInput()->withErrors([SicherungKopie::PFAD => $e->getMessage()]);
         }
 
-        return redirect()->route('admin.operations.edit')->with('success', $kopie->aktiv() ? 'Kopie ausser Haus gespeichert.' : 'Kopie ausser Haus ausgeschaltet.');
+        return redirect()->route('admin.operations.edit')->with('success', $kopie->aktiv() ? __('Kopie ausser Haus gespeichert.') : __('Kopie ausser Haus ausgeschaltet.'));
     }
 
     /** «testen» prüft nur Verbindung und Schreibrecht, «kopieren» spiegelt sofort. */
     public function kopieAusfuehren(Request $request, SicherungKopie $kopie): RedirectResponse
     {
         if (! $kopie->aktiv()) {
-            return redirect()->route('admin.operations.edit')->with('error', 'Keine Kopie ausser Haus eingerichtet.');
+            return redirect()->route('admin.operations.edit')->with('error', __('Keine Kopie ausser Haus eingerichtet.'));
         }
         $nurTesten = $request->input('aktion') === 'testen';
         try {
@@ -105,6 +105,6 @@ class BetriebController extends Controller
             return redirect()->route('admin.operations.edit')->with('error', mb_substr($e->getMessage(), 0, 300));
         }
 
-        return redirect()->route('admin.operations.edit')->with('success', $nurTesten ? 'Verbindung zum Ziel funktioniert.' : 'Sicherungen kopiert.');
+        return redirect()->route('admin.operations.edit')->with('success', $nurTesten ? __('Verbindung zum Ziel funktioniert.') : __('Sicherungen kopiert.'));
     }
 }

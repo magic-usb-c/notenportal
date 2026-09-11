@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Fach bearbeiten</x-slot>
+    <x-slot name="title">{{ __('Fach bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Fach bearbeiten" schmal>
+        <x-seitenkopf :titel="__('Fach bearbeiten')" schmal>
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.subjects.index') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    Zurück
+                    {{ __('Zurück') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -19,7 +19,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="name" class="text-sm font-medium text-text">Name *</label>
+                        <label for="name" class="text-sm font-medium text-text">{{ __('Name *') }}</label>
                         <input type="text" id="name" name="name" value="{{ old('name', $fach->name) }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-note-ungenuegend @enderror">
                         @error('name')
@@ -28,7 +28,7 @@
                     </div>
 
                     <div>
-                        <label for="kurzname" class="text-sm font-medium text-text">Kürzel *</label>
+                        <label for="kurzname" class="text-sm font-medium text-text">{{ __('Kürzel *') }}</label>
                         <input type="text" id="kurzname" name="kurzname" value="{{ old('kurzname', $fach->kurzname) }}" required maxlength="50"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kurzname') border-note-ungenuegend @enderror">
                         @error('kurzname')
@@ -38,10 +38,10 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="track_typ" class="text-sm font-medium text-text">Track</label>
+                            <label for="track_typ" class="text-sm font-medium text-text">{{ __('Track') }}</label>
                             <select id="track_typ" name="track_typ"
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('track_typ') border-note-ungenuegend @enderror">
-                                <option value="" @selected(old('track_typ', $fach->track_typ) === null || old('track_typ', $fach->track_typ) === '')>Kein Track</option>
+                                <option value="" @selected(old('track_typ', $fach->track_typ) === null || old('track_typ', $fach->track_typ) === '')>{{ __('Kein Track') }}</option>
                                 <option value="BMS" @selected(old('track_typ', $fach->track_typ) === 'BMS')>BMS</option>
                                 <option value="ABU" @selected(old('track_typ', $fach->track_typ) === 'ABU')>ABU</option>
                             </select>
@@ -51,7 +51,7 @@
                         </div>
 
                         <div>
-                            <label for="kategorie_id" class="text-sm font-medium text-text">Kategorie *</label>
+                            <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Kategorie *') }}</label>
                             <select id="kategorie_id" name="kategorie_id" required
                                     class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kategorie_id') border-note-ungenuegend @enderror">
                                 @foreach($kategorien as $k)
@@ -68,13 +68,13 @@
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $fach->aktiv))
                                class="rounded-sm border-border text-accent focus:ring-ring">
-                        <label for="aktiv" class="text-sm text-text">Fach aktiv</label>
+                        <label for="aktiv" class="text-sm text-text">{{ __('Fach aktiv') }}</label>
                     </div>
 
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
                                 class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
-                            Änderungen speichern
+                            {{ __('Änderungen speichern') }}
                         </button>
                     </div>
                 </form>

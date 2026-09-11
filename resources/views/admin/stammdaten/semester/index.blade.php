@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Semester</x-slot>
+    <x-slot name="title">{{ __('Semester') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Semester">
+        <x-seitenkopf :titel="__('Semester')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.semesters.create') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none">+</span> Neues Semester
+                    <span class="text-lg leading-none">+</span> {{ __('Neues Semester') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -19,11 +19,11 @@
                 <table class="w-full text-sm tabular-nums">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Bezeichnung</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Von</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Bis</th>
-                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Sortierung</th>
-                            <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Bezeichnung') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Von') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Bis') }}</th>
+                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Sortierung') }}</th>
+                            <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
@@ -36,7 +36,7 @@
                                 <td class="px-4 font-semibold text-text">
                                     {{ $s->bezeichnung }}
                                     @if($isAktiv)
-                                        <span class="ml-2 px-2 py-0.5 rounded-md text-xs bg-note-gut/15 text-note-gut">aktuell</span>
+                                        <span class="ml-2 px-2 py-0.5 rounded-md text-xs bg-note-gut/15 text-note-gut">{{ __('aktuell') }}</span>
                                     @endif
                                 </td>
                                 <td class="px-4 text-muted">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
@@ -45,12 +45,12 @@
                                 <td class="px-4 text-right">
                                     <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                         <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
-                                           class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">Bearbeiten</a>
+                                           class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Bearbeiten') }}</a>
                                         <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
-                                              onsubmit="return confirm('Semester {{ $s->bezeichnung }} löschen?')"
+                                              onsubmit="return confirm(@js(__('Semester :bezeichnung löschen?', ['bezeichnung' => $s->bezeichnung])))"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                             @csrf @method('DELETE')
-                                            <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">Löschen</button>
+                                            <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Löschen') }}</button>
                                         </form>
                                     </div>
                                 </td>
@@ -58,7 +58,7 @@
                         @empty
                             <tr>
                                 <td colspan="5" class="px-4 py-8 text-center text-muted">
-                                    Noch keine Semester erfasst.
+                                    {{ __('Noch keine Semester erfasst.') }}
                                 </td>
                             </tr>
                         @endforelse

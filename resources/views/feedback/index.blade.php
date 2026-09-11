@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Meine Meldungen</x-slot>
+    <x-slot name="title">{{ __('Meine Meldungen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Meine Meldungen" schmal />
+        <x-seitenkopf :titel="__('Meine Meldungen')" schmal />
     </x-slot>
 
     <div class="py-6">
@@ -11,11 +11,11 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
                             <tr>
-                                <th class="text-left p-3 whitespace-nowrap">Datum</th>
-                                <th class="text-left p-3 whitespace-nowrap">Kategorie</th>
-                                <th class="text-left p-3">Text</th>
-                                <th class="text-left p-3 whitespace-nowrap">Status</th>
-                                <th class="text-left p-3">Antwort</th>
+                                <th class="text-left p-3 whitespace-nowrap">{{ __('Datum') }}</th>
+                                <th class="text-left p-3 whitespace-nowrap">{{ __('Kategorie') }}</th>
+                                <th class="text-left p-3">{{ __('Text') }}</th>
+                                <th class="text-left p-3 whitespace-nowrap">{{ __('Status') }}</th>
+                                <th class="text-left p-3">{{ __('Antwort') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -30,13 +30,13 @@
                                 @endphp
                                 <tr class="even:bg-bg/30">
                                     <td class="p-3 text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
-                                    <td class="p-3 whitespace-nowrap">{{ \App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie }}</td>
+                                    <td class="p-3 whitespace-nowrap">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
                                     <td class="p-3 max-w-md">
                                         @if($gekuerzt)
                                             <details class="np-details">
                                                 <summary class="cursor-pointer select-none list-none">
                                                     {{ Str::limit($m->text, 140) }}
-                                                    <span class="text-accent text-xs">mehr</span>
+                                                    <span class="text-accent text-xs">{{ __('mehr') }}</span>
                                                 </summary>
                                                 <p class="mt-1 whitespace-pre-wrap">{{ $m->text }}</p>
                                             </details>
@@ -46,7 +46,7 @@
                                     </td>
                                     <td class="p-3 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $statusClasses }}">
-                                            {{ \App\Models\Feedback::STATUS[$m->status] ?? $m->status }}
+                                            {{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}
                                         </span>
                                     </td>
                                     <td class="p-3 max-w-xs">
@@ -60,11 +60,11 @@
                             @empty
                                 <tr>
                                     <td colspan="5" class="p-10 text-center text-muted">
-                                        <p class="text-text font-medium mb-1">Noch keine Meldungen</p>
+                                        <p class="text-text font-medium mb-1">{{ __('Noch keine Meldungen') }}</p>
                                         <p class="text-sm max-w-sm mx-auto">
-                                            Fehler, Ideen, Fragen oder Lob – über das Benutzermenü oder mit
-                                            <kbd class="px-1 py-0.5 rounded-md border border-border text-xs">Strg/Cmd K</kbd>
-                                            unter «Feedback melden» erreichst du uns jederzeit.
+                                            {{ __('Fehler, Ideen, Fragen oder Lob – über das Benutzermenü oder mit') }}
+                                            <kbd class="px-1 py-0.5 rounded-md border border-border text-xs">{{ __('Strg/Cmd K') }}</kbd>
+                                            {{ __('unter «Feedback melden» erreichst du uns jederzeit.') }}
                                         </p>
                                     </td>
                                 </tr>

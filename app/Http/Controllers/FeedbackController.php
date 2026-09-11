@@ -80,7 +80,7 @@ class FeedbackController extends Controller
             return response()->json(['ok' => true], 201);
         }
 
-        return redirect()->back()->with('success', 'Danke, deine Meldung ist eingegangen.');
+        return redirect()->back()->with('success', __('Danke, deine Meldung ist eingegangen.'));
     }
 
     /** Login-Hinweis dauerhaft ausblenden (einmal pro Benutzer, serverseitig gemerkt). */

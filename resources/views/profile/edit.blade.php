@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Mein Profil</x-slot>
+    <x-slot name="title">{{ __('Mein Profil') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Mein Profil" schmal />
+        <x-seitenkopf :titel="__('Mein Profil')" schmal />
     </x-slot>
 
     <div class="py-6">
@@ -10,10 +10,10 @@
 
             @if($lernender)
                 <div class="rounded-xl border border-border bg-card p-5">
-                    <h3 class="font-semibold text-text text-sm">Lehrausbildung</h3>
+                    <h3 class="font-semibold text-text text-sm">{{ __('Lehrausbildung') }}</h3>
                     <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         <div>
-                            <dt class="text-xs text-muted">Lehrberuf</dt>
+                            <dt class="text-xs text-muted">{{ __('Lehrberuf') }}</dt>
                             <dd class="text-text font-medium">
                                 {{ $lehrberuf->name ?? '–' }}
                                 @if($lehrberuf?->kuerzel)
@@ -22,12 +22,12 @@
                             </dd>
                         </div>
                         <div>
-                            <dt class="text-xs text-muted">Lehrbeginn</dt>
+                            <dt class="text-xs text-muted">{{ __('Lehrbeginn') }}</dt>
                             <dd class="text-text">{{ $lernender->lehrbeginn?->format('d.m.Y') ?? '–' }}</dd>
                         </div>
                         @if($lernender->lehrende)
                             <div>
-                                <dt class="text-xs text-muted">Lehrende</dt>
+                                <dt class="text-xs text-muted">{{ __('Lehrende') }}</dt>
                                 <dd class="text-text">{{ $lernender->lehrende->format('d.m.Y') }}</dd>
                             </div>
                         @endif
@@ -44,19 +44,19 @@
             <div class="rounded-xl border border-border bg-card p-6">
                 <div class="flex items-center justify-between gap-4">
                     <div>
-                        <h3 class="font-semibold text-text text-sm">Benachrichtigungen</h3>
-                        <p class="mt-1 text-sm text-muted">Wähle, welche Mails du erhältst und wie oft.</p>
+                        <h3 class="font-semibold text-text text-sm">{{ __('Benachrichtigungen') }}</h3>
+                        <p class="mt-1 text-sm text-muted">{{ __('Wähle, welche Mails du erhältst und wie oft.') }}</p>
                     </div>
                     <a href="{{ route('notifications.settings') }}"
                        class="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl glass-btn text-text text-sm font-medium">
-                        Einstellen
+                        {{ __('Einstellen') }}
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
             </div>
 
-            {{-- Passwort ändern --}}
-            <div class="rounded-xl border border-border bg-card p-6">
+            {{-- Sprache (nur mit eingeschalteter Sprachwahl), Passwort ändern --}}
+            @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('profile.partials.sprache')@endif<div class="rounded-xl border border-border bg-card p-6">
                 @include('profile.partials.update-password-form')
             </div>
 

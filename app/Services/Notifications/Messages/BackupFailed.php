@@ -12,11 +12,11 @@ final class BackupFailed
     public static function content(string $fehler): MailContent
     {
         return new MailContent(
-            subject: 'Sicherung fehlgeschlagen',
-            lines: ['Die tägliche Datensicherung ist heute fehlgeschlagen.'],
-            facts: ['Fehler' => mb_substr($fehler, 0, 300)],
-            outro: ['Bitte auf dem Server prüfen, sobald möglich.'],
-            digestTitle: 'Sicherung fehlgeschlagen',
+            subject: __('Sicherung fehlgeschlagen'),
+            lines: [__('Die tägliche Datensicherung ist heute fehlgeschlagen.')],
+            facts: [__('Fehler') => mb_substr($fehler, 0, 300)],
+            outro: [__('Bitte auf dem Server prüfen, sobald möglich.')],
+            digestTitle: __('Sicherung fehlgeschlagen'),
         );
     }
 }

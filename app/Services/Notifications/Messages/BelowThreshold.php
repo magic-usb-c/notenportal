@@ -23,16 +23,18 @@ final class BelowThreshold
 
         $anzahl = count($unterschritten);
         $betreff = $fuerBetreuer
-            ? ($anzahl === 1 ? $unterschritten[0]['label'].' von '.$name.' ist ungenügend' : $name.': '.$anzahl.' Schnitte neu ungenügend')
-            : ($anzahl === 1 ? $unterschritten[0]['label'].' ist neu ungenügend' : $anzahl.' Schnitte sind neu ungenügend');
+            ? ($anzahl === 1 ? __(':label von :name ist ungenügend', ['label' => $unterschritten[0]['label'], 'name' => $name]) : __(':name: :anzahl Schnitte neu ungenügend', ['name' => $name, 'anzahl' => $anzahl]))
+            : ($anzahl === 1 ? __(':label ist neu ungenügend', ['label' => $unterschritten[0]['label']]) : __(':anzahl Schnitte sind neu ungenügend', ['anzahl' => $anzahl]));
 
         return new MailContent(
             subject: $betreff,
             lines: $fuerBetreuer
-                ? ["Bei {$name} ist ".($anzahl === 1 ? 'ein Schnitt' : 'ein Schnitt bzw. mehrere Schnitte')." unter die Grenze «genügend» gefallen."]
-                : ['Nach der letzten Note liegt folgender Schnitt unter der Grenze «genügend»:'],
-            table: ['head' => ['Bereich', 'Vorher', 'Neu'], 'rows' => $rows],
-            actionLabel: 'Noten ansehen',
+                ? [$anzahl === 1
+                    ? __('Bei :name ist ein Schnitt unter die Grenze «genügend» gefallen.', ['name' => $name])
+                    : __('Bei :name ist ein Schnitt bzw. mehrere Schnitte unter die Grenze «genügend» gefallen.', ['name' => $name])]
+                : [__('Nach der letzten Note liegt folgender Schnitt unter der Grenze «genügend»:')],
+            table: ['head' => [__('Bereich'), __('Vorher'), __('Neu')], 'rows' => $rows],
+            actionLabel: __('Noten ansehen'),
             actionUrl: $fuerBetreuer
                 ? route('trainer.learners.show', $lernender->lernender_id)
                 : route('learner.grades.index'),

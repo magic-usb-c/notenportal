@@ -23,6 +23,7 @@ use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerControll
 use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SprachwahlController;
 use App\Http\Controllers\SucheController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -320,3 +321,9 @@ Route::fallback(function (Illuminate\Http\Request $request) {
 
     return redirect($target, 301);
 });
+
+/*
+ * Sprache (Benutzermenü, Profil; Gäste nur Session) und Sprachwahl des Betriebs (Seite Betrieb)
+ */
+Route::put('/profile/locale', [ProfileController::class, 'locale'])->middleware('throttle:20,1,locale')->name('profile.locale');
+Route::put('/admin/operations/language', SprachwahlController::class)->middleware(['auth', 'role:Admin'])->name('admin.operations.language.update');

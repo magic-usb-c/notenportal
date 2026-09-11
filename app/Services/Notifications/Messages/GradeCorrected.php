@@ -17,12 +17,12 @@ final class GradeCorrected
         $bezug = self::bezeichnung($note);
 
         return new MailContent(
-            subject: 'Note in '.$bezug.' korrigiert',
-            lines: ['Deine Note vom '.self::datum($note).' in '.$bezug.' wurde korrigiert.'],
-            facts: ['Fach / Modul' => $bezug, 'Bisherige Note' => $alterWert, 'Neue Note' => (string) $note->note_wert, 'Datum' => self::datum($note)],
-            actionLabel: 'Note ansehen',
+            subject: __('Note in :bezug korrigiert', ['bezug' => $bezug]),
+            lines: [__('Deine Note vom :datum in :bezug wurde korrigiert.', ['datum' => self::datum($note), 'bezug' => $bezug])],
+            facts: [__('Fach / Modul') => $bezug, __('Bisherige Note') => $alterWert, __('Neue Note') => (string) $note->note_wert, __('Datum') => self::datum($note)],
+            actionLabel: __('Note ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: 'Note in '.$bezug.' korrigiert: '.$alterWert.' → '.$note->note_wert,
+            digestTitle: __('Note in :bezug korrigiert: :alt → :neu', ['bezug' => $bezug, 'alt' => $alterWert, 'neu' => $note->note_wert]),
         );
     }
 }

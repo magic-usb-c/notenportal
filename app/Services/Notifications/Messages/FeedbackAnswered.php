@@ -15,13 +15,13 @@ final class FeedbackAnswered
         $statusLabel = Feedback::STATUS[$feedback->status] ?? $feedback->status;
 
         return new MailContent(
-            subject: 'Deine Meldung wurde beantwortet',
-            lines: ['Deine Meldung hat den Status «'.$statusLabel.'».'],
-            facts: ['Status' => $statusLabel],
-            sections: $feedback->admin_notiz ? [['title' => 'Antwort', 'text' => $feedback->admin_notiz]] : [],
-            actionLabel: 'Meine Meldungen',
+            subject: __('Deine Meldung wurde beantwortet'),
+            lines: [__('Deine Meldung hat den Status «:status».', ['status' => $statusLabel])],
+            facts: [__('Status') => $statusLabel],
+            sections: $feedback->admin_notiz ? [['title' => __('Antwort'), 'text' => $feedback->admin_notiz]] : [],
+            actionLabel: __('Meine Meldungen'),
             actionUrl: route('feedback.index'),
-            digestTitle: 'Deine Meldung ist jetzt «'.$statusLabel.'»',
+            digestTitle: __('Deine Meldung ist jetzt «:status»', ['status' => $statusLabel]),
         );
     }
 }

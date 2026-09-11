@@ -49,7 +49,7 @@ class UnsubscribeController extends Controller
 
         // RFC 8058: Mailprogramme senden den Body "List-Unsubscribe=One-Click" statt die Seite zu öffnen.
         if (str_contains((string) $request->getContent(), 'List-Unsubscribe=One-Click')) {
-            return response('Abbestellt.', 200)->header('Content-Type', 'text/plain; charset=UTF-8');
+            return response(__('Abbestellt.'), 200)->header('Content-Type', 'text/plain; charset=UTF-8');
         }
 
         return view('notifications.abbestellt', ['label' => $def['label']]);

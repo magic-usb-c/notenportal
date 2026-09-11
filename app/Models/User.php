@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Http\Middleware\SetLocale;
 use App\Services\Notifications\MailContent;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -25,12 +27,13 @@ use Illuminate\Notifications\Notifiable;
     'passwort_wechsel_noetig',
     'darstellung',
     'kontrast',
+    'locale',
 ])]
 #[Hidden([
     'passwort_hash',
 ])]
 #[Table(name: 'benutzer', key: 'benutzer_id')]
-class User extends Authenticatable
+class User extends Authenticatable implements HasLocalePreference
 {
     use HasFactory;
     use Notifiable;
@@ -61,15 +64,23 @@ class User extends Authenticatable
 
         $minuten = (int) config('auth.passwords.users.expire');
 
-        Notifier::dispatch($this, NotificationCatalog::PASSWORD_RESET, new MailContent(
-            subject: 'Passwort zurücksetzen',
-            title: 'Passwort zurücksetzen',
-            lines: ['Du hast angefordert, dein Passwort zurückzusetzen.'],
-            facts: ['Gültig für' => $minuten.' Minuten'],
-            actionLabel: 'Neues Passwort festlegen',
+        Notifier::dispatch($this, NotificationCatalog::PASSWORD_RESET, fn () => new MailContent(
+            subject: __('Passwort zurücksetzen'),
+            title: __('Passwort zurücksetzen'),
+            lines: [__('Du hast angefordert, dein Passwort zurückzusetzen.')],
+            facts: [__('Gültig für') => __(':anzahl Minuten', ['anzahl' => $minuten])],
+            actionLabel: __('Neues Passwort festlegen'),
             actionUrl: route('password.reset', ['token' => $token, 'email' => $this->email]),
-            outro: ['Nicht angefordert? Dann ignorieren – dein Passwort bleibt.'],
+            outro: [__('Nicht angefordert? Dann ignorieren – dein Passwort bleibt.')],
         ));
+    }
+
+    /** Sprache für Mails (Laravel-Notifications und Notifier): eigene Wahl, sonst Standard des Betriebs. */
+    public function preferredLocale(): string
+    {
+        return SetLocale::wahlAktiv()
+            ? (SetLocale::gueltig($this->getAttribute('locale')) ?? SetLocale::standard())
+            : SetLocale::standard();
     }
 
     public function rollen(): BelongsToMany

@@ -38,6 +38,6 @@ class ProfileUpdateRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['current_password' => 'aktuelles Passwort'];
+        return ['current_password' => __('aktuelles Passwort')];
     }
 }

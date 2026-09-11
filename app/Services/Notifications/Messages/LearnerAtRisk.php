@@ -16,12 +16,12 @@ final class LearnerAtRisk
         $name = trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname);
 
         return new MailContent(
-            subject: 'Lernstand kritisch: '.$name,
-            lines: ['Der Lernstand von '.$name.' steht auf Rot:'],
-            sections: [['title' => 'Gründe', 'text' => implode("\n", array_map(fn ($g) => '- '.$g, $gruende))]],
-            actionLabel: 'Zum Cockpit',
+            subject: __('Lernstand kritisch: :name', ['name' => $name]),
+            lines: [__('Der Lernstand von :name steht auf Rot:', ['name' => $name])],
+            sections: [['title' => __('Gründe'), 'text' => implode("\n", array_map(fn ($g) => '- '.$g, $gruende))]],
+            actionLabel: __('Zum Cockpit'),
             actionUrl: route('trainer.learners.show', $lernender->lernender_id),
-            digestTitle: 'Lernstand kritisch: '.$name,
+            digestTitle: __('Lernstand kritisch: :name', ['name' => $name]),
         );
     }
 }

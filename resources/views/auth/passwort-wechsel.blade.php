@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text">Eigenes Passwort festlegen</h1>
+        <h1 class="text-2xl font-bold text-text">{{ __('Eigenes Passwort festlegen') }}</h1>
     </div>
 
     <form method="POST" action="{{ route('password.initial.update') }}" class="space-y-4"
@@ -9,7 +9,7 @@
         @method('PUT')
 
         <div>
-            <label for="password" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">Neues Passwort *</label>
+            <label for="password" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">{{ __('Neues Passwort') }} *</label>
             <input id="password" type="password" name="password" required autofocus autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
@@ -20,7 +20,7 @@
         </div>
 
         <div>
-            <label for="password_confirmation" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">Passwort wiederholen *</label>
+            <label for="password_confirmation" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">{{ __('Passwort wiederholen') }} *</label>
             <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent">
@@ -30,7 +30,7 @@
             <button type="submit" :disabled="loading"
                     class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
                            focus:outline-hidden focus:ring-2 focus:ring-accent/50 disabled:opacity-60">
-                Speichern
+                {{ __('Speichern') }}
             </button>
         </div>
     </form>
@@ -38,7 +38,7 @@
     <form method="POST" action="{{ route('logout') }}" class="mt-4 text-center">
         @csrf
         <button type="submit" class="text-sm text-muted hover:text-text rounded-md focus:outline-hidden focus:ring-2 focus:ring-accent/50">
-            Abmelden
+            {{ __('Abmelden') }}
         </button>
     </form>
 </x-guest-layout>

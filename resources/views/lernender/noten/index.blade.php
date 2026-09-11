@@ -1,15 +1,15 @@
 <x-app-layout>
-    <x-slot name="title">Noten</x-slot>
+    <x-slot name="title">{{ __('Noten') }}</x-slot>
     @php
         $a = $auswertung;
-        $semLabel = $semester->firstWhere('semester_id', (int) $selectedSemesterId)?->bezeichnung ?? 'Semester';
+        $semLabel = $semester->firstWhere('semester_id', (int) $selectedSemesterId)?->bezeichnung ?? __('Semester');
         $mit = fn (array $extra) => array_merge(request()->except(['page', '_open']), $extra);
         $semSchnitt = $selectedSemesterId ? $a->semester((int) $selectedSemesterId)['note'] : null;
         $ich = (int) auth()->user()->benutzer_id;
         $offeneNote = (int) (session('opened_note') ?: request()->input('_open', 0));
 
         // Statuszeile: Semester und Gesamt immer (leer = «–»), Kategorien nur mit Note im Semester
-        $status = [['Semester', $semSchnitt], ['Gesamt', $a->gesamtNote]];
+        $status = [[__('Semester'), $semSchnitt], [__('Gesamt'), $a->gesamtNote]];
         foreach ($a->kategorien as $kid => $kat) {
             $kNote = $selectedSemesterId ? $a->semester((int) $selectedSemesterId, $kid)['note'] : null;
             if ($kNote !== null) {
@@ -22,30 +22,30 @@
     @endphp
 
     <x-slot name="header">
-        <x-seitenkopf titel="Noten">
-            <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border-strong/60 bg-card p-0.5" role="group" aria-label="Semester">
+        <x-seitenkopf titel="{{ __('Noten') }}">
+            <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border-strong/60 bg-card p-0.5" role="group" aria-label="{{ __('Semester') }}">
                 <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $prevSemesterId])
-                   href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="Vorheriges Semester">‹</a>
+                   href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}">‹</a>
                 <span class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text">{{ $semLabel }}</span>
                 <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $nextSemesterId])
-                   href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="Nächstes Semester">›</a>
+                   href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}">›</a>
             </div>
             <x-slot:aktionen>
-                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Import</a>
+                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Import') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button type="button" aria-label="Weitere Aktionen" class="inline-flex size-9 items-center justify-center rounded-lg glass-btn text-text">
+                        <button type="button" aria-label="{{ __('Weitere Aktionen') }}" class="inline-flex size-9 items-center justify-center rounded-lg glass-btn text-text">
                             <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M3 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM15.5 8.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/></svg>
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <a href="{{ route('learner.grades.print') }}" target="_blank" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">Drucken</a>
-                        <a href="{{ route('learner.grades.export') }}" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">CSV exportieren</a>
+                        <a href="{{ route('learner.grades.print') }}" target="_blank" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">{{ __('Drucken') }}</a>
+                        <a href="{{ route('learner.grades.export') }}" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">{{ __('CSV exportieren') }}</a>
                     </x-slot>
                 </x-dropdown>
-                <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: 'Neue Note' })"
+                <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none" aria-hidden="true">+</span> Note
+                    <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Note') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -67,13 +67,13 @@
 
             {{-- Werkzeugzeile: Ansicht links, Kategorien rechts --}}
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="Ansicht">
-                    <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'" class="{{ $segment }}">Semester</button>
-                    <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'" class="{{ $segment }}">Zeugnisübersicht</button>
+                <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="{{ __('Ansicht') }}">
+                    <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'" class="{{ $segment }}">{{ __('Semester') }}</button>
+                    <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'" class="{{ $segment }}">{{ __('Zeugnisübersicht') }}</button>
                 </div>
-                <nav class="flex flex-wrap gap-1.5" x-show="ansicht === 'semester'" aria-label="Kategorie">
+                <nav class="flex flex-wrap gap-1.5" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}">
                     <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" @if(! $kategorieId) aria-current="page" @endif
-                       @class([$chip, 'border-accent/40 bg-accent/10 text-accent-text' => ! $kategorieId, 'border-border text-muted hover:bg-surface-2/60 hover:text-text' => $kategorieId])>Alle</a>
+                       @class([$chip, 'border-accent/40 bg-accent/10 text-accent-text' => ! $kategorieId, 'border-border text-muted hover:bg-surface-2/60 hover:text-text' => $kategorieId])>{{ __('Alle') }}</a>
                     @foreach($kategorien as $k)
                         <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" @if($kategorieId === $k->kategorie_id) aria-current="page" @endif
                            @class([$chip, 'border-accent/40 bg-accent/10 text-accent-text' => $kategorieId === $k->kategorie_id, 'border-border text-muted hover:bg-surface-2/60 hover:text-text' => $kategorieId !== $k->kategorie_id])>{{ $k->name }}</a>
@@ -82,7 +82,7 @@
             </div>
 
             {{-- Zeugnisübersicht --}}
-            <x-karte titel="Zeugnisnoten über die Lehrzeit" :polster="false" x-show="ansicht === 'alle'" x-cloak>
+            <x-karte titel="{{ __('Zeugnisnoten über die Lehrzeit') }}" :polster="false" x-show="ansicht === 'alle'" x-cloak>
                 <x-heatmap :daten="$heatmap" />
             </x-karte>
 
@@ -94,9 +94,9 @@
                             <h2 id="kategorie-{{ $g->id }}" class="text-sm font-semibold text-text">{{ $g->name }}</h2>
                             <div class="flex items-center gap-3 text-sm">
                                 @if($g->promotion)
-                                    <x-status :status="$g->promotion['erfuellt'] ? 'gruen' : 'rot'" :text="$g->promotion['erfuellt'] ? 'Promotion ok' : 'Promotion gefährdet'" />
+                                    <x-status :status="$g->promotion['erfuellt'] ? 'gruen' : 'rot'" :text="$g->promotion['erfuellt'] ? __('Promotion ok') : __('Promotion gefährdet')" />
                                 @endif
-                                <span class="flex items-baseline gap-1.5"><span class="text-xs text-muted">Schnitt</span><x-note :wert="$g->semester" :stellen="1" /></span>
+                                <span class="flex items-baseline gap-1.5"><span class="text-xs text-muted">{{ __('Schnitt') }}</span><x-note :wert="$g->semester" :stellen="1" /></span>
                             </div>
                         </div>
 
@@ -104,11 +104,11 @@
                             <table class="w-full text-sm tabular-nums">
                                 <thead>
                                     <tr class="border-b border-border">
-                                        <th scope="col" class="h-9 w-full max-w-0 bg-surface-2 px-4 text-left text-2xs font-medium text-muted">Fach / Modul</th>
-                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">Prüfungen</th>
-                                        <th scope="col" class="hidden h-9 whitespace-nowrap bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">Schnitt</th>
-                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">Zeugnis</th>
-                                        <th scope="col" class="h-9 w-10 bg-surface-2"><span class="sr-only">Einzelnoten</span></th>
+                                        <th scope="col" class="h-9 w-full max-w-0 bg-surface-2 px-4 text-left text-2xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Prüfungen') }}</th>
+                                        <th scope="col" class="hidden h-9 whitespace-nowrap bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Schnitt') }}</th>
+                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Zeugnis') }}</th>
+                                        <th scope="col" class="h-9 w-10 bg-surface-2"><span class="sr-only">{{ __('Einzelnoten') }}</span></th>
                                     </tr>
                                 </thead>
                                 @foreach($g->elemente as $el)
@@ -127,23 +127,23 @@
                                                         class="flex w-full min-w-0 items-baseline gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
                                                     <span class="truncate font-medium text-text">{{ $el->label }}</span>
                                                     @if($beleg && $beleg['versuche'] > 1)
-                                                        <span class="shrink-0 text-xs text-muted">{{ $beleg['versuche'] }}. Versuch</span>
+                                                        <span class="shrink-0 text-xs text-muted">{{ __(':n. Versuch', ['n' => $beleg['versuche']]) }}</span>
                                                     @endif
                                                 </button>
                                             </th>
                                             <td class="whitespace-nowrap px-3 text-muted">
-                                                <span class="inline-flex items-center gap-2" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? 'abgeschlossen' : \App\Support\Zahl::prozent($offenGewicht).' offen' }}" @endif>
-                                                    <span class="sr-only">{{ $anzahl === 1 ? '1 Prüfung' : $anzahl.' Prüfungen' }}</span>
+                                                <span class="inline-flex items-center gap-2" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
+                                                    <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
                                                     <span aria-hidden="true">{{ $anzahl }}</span>
                                                     @if($fortschritt !== null)
                                                         <span class="hidden h-1 w-16 overflow-hidden rounded-full bg-surface-2 sm:block" aria-hidden="true">
                                                             <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>
                                                         </span>
-                                                        <span class="hidden text-xs md:inline">{{ $fortschritt >= 100 ? 'abgeschlossen' : \App\Support\Zahl::prozent($offenGewicht).' offen' }}</span>
+                                                        <span class="hidden text-xs md:inline">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
                                                     @endif
                                                 </span>
                                             </td>
-                                            <td class="hidden px-3 text-right text-muted sm:table-cell" title="Schnitt vor Rundung">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
+                                            <td class="hidden px-3 text-right text-muted sm:table-cell" title="{{ __('Schnitt vor Rundung') }}">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
                                             <td class="px-3 text-right"><x-note :wert="$e?->note" variante="badge" /></td>
                                             <td class="w-10 pr-3 text-right text-muted">
                                                 <svg class="ml-auto size-4 transition-transform duration-200" :class="offen && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
@@ -158,11 +158,11 @@
                                                     @if($beleg)
                                                         <div class="flex justify-end px-3 py-1.5">
                                                             <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
-                                                                  @if($beleg['offen']) onsubmit="return confirm('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')" @endif
+                                                                  @if($beleg['offen']) onsubmit="return confirm(@js(__('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')))" @endif
                                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                                 @csrf
                                                                 <button :disabled="loading" class="inline-flex h-8 items-center rounded-lg px-2.5 text-sm text-muted hover:bg-surface-2 hover:text-text disabled:opacity-50">
-                                                                    {{ $beleg['offen'] ? 'Modul wiederholen' : 'Wiederholung zurücknehmen' }}
+                                                                    {{ $beleg['offen'] ? __('Modul wiederholen') : __('Wiederholung zurücknehmen') }}
                                                                 </button>
                                                             </form>
                                                         </div>
@@ -177,9 +177,9 @@
                     </section>
                 @empty
                     <p class="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted">
-                        Keine Noten in {{ $semLabel }}
-                        <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: 'Neue Note' })"
-                           class="text-accent-text underline-offset-2 hover:underline">Note erfassen</a>
+                        {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
+                        <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
+                           class="text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
                     </p>
                 @endforelse
             </div>

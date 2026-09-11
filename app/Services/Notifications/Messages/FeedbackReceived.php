@@ -18,13 +18,13 @@ final class FeedbackReceived
         $kategorie = Feedback::KATEGORIEN[$feedback->kategorie] ?? $feedback->kategorie;
 
         return new MailContent(
-            subject: 'Neue Meldung («'.$kategorie.'») von '.$name,
-            lines: [$name.' ('.$rolle.') hat eine Meldung erfasst.'],
-            facts: array_filter(['Kategorie' => $kategorie, 'Seite' => $feedback->route_name ?? $feedback->url]),
-            sections: [['title' => 'Text', 'text' => $feedback->text]],
-            actionLabel: 'Meldung ansehen',
+            subject: __('Neue Meldung («:kategorie») von :name', ['kategorie' => $kategorie, 'name' => $name]),
+            lines: [__(':name (:rolle) hat eine Meldung erfasst.', ['name' => $name, 'rolle' => $rolle])],
+            facts: array_filter([__('Kategorie') => $kategorie, __('Seite') => $feedback->route_name ?? $feedback->url]),
+            sections: [['title' => __('Text'), 'text' => $feedback->text]],
+            actionLabel: __('Meldung ansehen'),
             actionUrl: route('admin.feedback.index'),
-            digestTitle: 'Neue Meldung («'.$kategorie.'») von '.$name,
+            digestTitle: __('Neue Meldung («:kategorie») von :name', ['kategorie' => $kategorie, 'name' => $name]),
         );
     }
 }

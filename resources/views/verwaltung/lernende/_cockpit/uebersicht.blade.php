@@ -8,7 +8,7 @@
         {{-- Stand --}}
         <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-6">
             <div>
-                <div class="text-xs font-medium text-muted">Gesamtschnitt</div>
+                <div class="text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
                 <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="block text-4xl mt-0.5" />
             </div>
             <x-sparkline :werte="$stand->verlauf" :breite="140" :hoehe="40" :zahl="false" />
@@ -22,20 +22,20 @@
                 </div>
             </div>
             <div class="text-right text-xs text-muted">
-                <div>Letzte Prüfung</div>
+                <div>{{ __('Letzte Prüfung') }}</div>
                 <div class="text-sm text-text">{{ $stand->letztePruefung?->format('d.m.Y') ?? '–' }}</div>
             </div>
         </section>
 
         {{-- Zeugnisnoten --}}
-        <x-karte titel="Zeugnisnoten" :polster="false" class="flex-1">
+        <x-karte :titel="__('Zeugnisnoten')" :polster="false" class="flex-1">
             <x-heatmap :daten="$heatmap" />
         </x-karte>
     </div>
 
     <div class="lg:col-span-4 flex flex-col gap-5">
         @if($stand->gruende)
-            <x-karte titel="Hinweise">
+            <x-karte :titel="__('Hinweise')">
                 <div class="flex flex-col gap-2">
                     @foreach($stand->gruende as $g)
                         <div class="flex items-center gap-2 text-sm">
@@ -48,7 +48,7 @@
         @endif
 
         @if($ziele)
-            <x-karte titel="Ziele">
+            <x-karte :titel="__('Ziele')">
                 <div class="flex flex-col gap-2">
                     @foreach($ziele as $z)
                         <a href="{{ $z['link'] }}" class="flex items-center justify-between gap-3 rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors duration-100 hover:bg-surface-2/60">
@@ -61,13 +61,13 @@
         @endif
 
         @if($pruefungen->isNotEmpty())
-            <x-karte titel="Geplante Prüfungen" :polster="false">
+            <x-karte :titel="__('Geplante Prüfungen')" :polster="false">
                 <div class="divide-y divide-border/70">
                     @foreach($pruefungen as $p)
                         @php $vorbei = $p->datum->lt($heute); @endphp
                         <div class="px-5 py-2.5">
                             <div class="truncate text-sm text-text">{{ $p->bezeichnung() }}</div>
-                            <div class="text-xs {{ $vorbei ? 'font-medium text-note-knapp' : 'text-muted' }}">{{ $p->datum->format('d.m.Y') }}{{ $vorbei ? ' · Note fehlt' : '' }} · {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</div>
+                            <div class="text-xs {{ $vorbei ? 'font-medium text-note-knapp' : 'text-muted' }}">{{ $p->datum->format('d.m.Y') }}{{ $vorbei ? ' · '.__('Note fehlt') : '' }} · {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</div>
                         </div>
                     @endforeach
                 </div>
@@ -75,7 +75,7 @@
         @endif
 
         @if($letzteNoten->isNotEmpty())
-            <x-karte titel="Letzte Aktivität" :polster="false">
+            <x-karte :titel="__('Letzte Aktivität')" :polster="false">
                 <div class="divide-y divide-border/70">
                     @foreach($letzteNoten as $n)
                         <div class="flex items-center justify-between gap-3 px-5 py-2.5">

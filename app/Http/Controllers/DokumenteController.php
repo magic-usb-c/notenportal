@@ -50,15 +50,15 @@ class DokumenteController extends Controller
 
         $regeln = Ablage::regeln();
         $regeln['pruefung_id'] = ['nullable', 'integer', Rule::exists('pruefungen', 'pruefung_id')->where('lernender_id', $lernender->lernender_id)];
-        $daten = $request->validate($regeln, [], ['datei' => 'Datei', 'art' => 'Art', 'semester_id' => 'Semester', 'titel' => 'Titel']);
+        $daten = $request->validate($regeln, [], ['datei' => __('Datei'), 'art' => __('Art'), 'semester_id' => __('Semester'), 'titel' => __('Titel')]);
         $pruefungId = $daten['pruefung_id'] ?? null;
         $dokument = $this->ablage->speichern($lernender, $request->file('datei'), $daten, (int) $request->user()->benutzer_id, $pruefungId ? (int) $pruefungId : null);
 
         if ($pruefungId) {
-            return back()->with('success', '«'.$dokument->titel.'» angehängt.');
+            return back()->with('success', __('«:titel» angehängt.', ['titel' => $dokument->titel]));
         }
 
-        return redirect($this->route($bereich, $lernender, 'index'))->with('success', '«'.$dokument->titel.'» gespeichert.');
+        return redirect($this->route($bereich, $lernender, 'index'))->with('success', __('«:titel» gespeichert.', ['titel' => $dokument->titel]));
     }
 
     public function show(Request $request): StreamedResponse
@@ -77,7 +77,7 @@ class DokumenteController extends Controller
 
         $this->ablage->loeschen($dokument);
 
-        return redirect($this->route($bereich, $lernender, 'index'))->with('success', '«'.$dokument->titel.'» gelöscht.');
+        return redirect($this->route($bereich, $lernender, 'index'))->with('success', __('«:titel» gelöscht.', ['titel' => $dokument->titel]));
     }
 
     public function abgleich(Request $request, ZeugnisAbgleich $abgleich): View
@@ -117,10 +117,10 @@ class DokumenteController extends Controller
 
         $zurueck = redirect($this->route($bereich, $lernender, 'reconcile', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $daten['semester_id']]));
         if ($ergebnis['neu'] === 0) {
-            return $zurueck->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : 'Keine Zeile ausgewählt.');
+            return $zurueck->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
 
-        return $zurueck->with('success', ($ergebnis['neu'] === 1 ? '1 Zeugnisnote' : $ergebnis['neu'].' Zeugnisnoten').' übernommen.');
+        return $zurueck->with('success', $ergebnis['neu'] === 1 ? __('1 Zeugnisnote übernommen.') : __(':anzahl Zeugnisnoten übernommen.', ['anzahl' => $ergebnis['neu']]));
     }
 
     private function darfNotenAnlegen(Request $request, Lernender $lernender, ?string $bereich): bool

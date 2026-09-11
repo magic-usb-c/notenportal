@@ -88,8 +88,8 @@ class NotenExportController extends VerwaltungController
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
 
-            $kopf = ['Datum', 'Semester', 'Kategorie', 'Fach / Modul', 'Titel', 'Note', 'Gewichtung %'];
-            fputcsv($out, $mitName ? ['Nachname', 'Vorname', ...$kopf] : $kopf, ';');
+            $kopf = [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')];
+            fputcsv($out, $mitName ? [__('Nachname'), __('Vorname'), ...$kopf] : $kopf, ';');
 
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');

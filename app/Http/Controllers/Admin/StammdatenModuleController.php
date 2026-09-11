@@ -56,7 +56,7 @@ class StammdatenModuleController extends Controller
             foreach ($module as $m) {
                 $namen = $zuordnungen->get($m->modul_id, collect())->pluck('gruppe')->filter()->unique();
                 if ($namen->isEmpty()) {
-                    $namen = collect(['Ohne Zuordnung']);
+                    $namen = collect([__('Ohne Zuordnung')]);
                 }
                 foreach ($namen as $name) {
                     $gruppen->put($name, ($gruppen->get($name) ?? collect())->push($m));
@@ -102,7 +102,7 @@ class StammdatenModuleController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.modules.index')
-            ->with('success', 'Modul angelegt.');
+            ->with('success', __('Modul angelegt.'));
     }
 
     public function edit(int $modul_id)
@@ -135,6 +135,6 @@ class StammdatenModuleController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.modules.index')
-            ->with('success', 'Modul aktualisiert.');
+            ->with('success', __('Modul aktualisiert.'));
     }
 }

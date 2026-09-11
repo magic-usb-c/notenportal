@@ -28,7 +28,7 @@ class NotenGesehenController extends VerwaltungController
         $this->benachrichtigen($lernender, GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
 
         return back()
-            ->with('success', 'Note als gesehen markiert.')
+            ->with('success', __('Note als gesehen markiert.'))
             ->with('opened_note', $note->note_id);
     }
 
@@ -44,7 +44,7 @@ class NotenGesehenController extends VerwaltungController
             $this->benachrichtigen($lernender, GradeSeen::sammel($anzahl, route('learner.grades.index')));
         }
 
-        return back()->with('success', $anzahl === 1 ? '1 Note als gesehen markiert.' : $anzahl.' Noten als gesehen markiert.');
+        return back()->with('success', $anzahl === 1 ? __('1 Note als gesehen markiert.') : __(':anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl]));
     }
 
     private function benachrichtigen(Lernender $lernender, MailContent $inhalt): void

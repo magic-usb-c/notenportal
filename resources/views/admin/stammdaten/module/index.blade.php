@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Module</x-slot>
+    <x-slot name="title">{{ __('Module') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Module">
+        <x-seitenkopf :titel="__('Module')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.modules.create') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none">+</span> Neues Modul
+                    <span class="text-lg leading-none">+</span> {{ __('Neues Modul') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -22,10 +22,10 @@
                 <td class="px-4 text-text">'.e($m->titel).'</td>
                 <td class="px-4 text-right text-muted">'.e((string) $m->lehrberuf_count).'</td>
                 <td class="px-4">'.($m->aktiv
-                    ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">aktiv</span>'
-                    : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">inaktiv</span>').'</td>
+                    ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'
+                    : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">'.e(__('inaktiv')).'</span>').'</td>
                 <td class="px-4 text-right">
-                    <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">Bearbeiten</a>
+                    <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">'.e(__('Bearbeiten')).'</a>
                 </td>
             </tr>';
         };
@@ -35,30 +35,30 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
 
             <x-filterleiste :action="route('admin.master-data.modules.index')" suche-name="suche" :suche-wert="$suche"
-                             suche-platzhalter="Nummer oder Titel" :aktive-filter="$aktiveFilter + $aktiveWeitere" :aktive-weitere="$aktiveWeitere"
+                             :suche-platzhalter="__('Nummer oder Titel')" :aktive-filter="$aktiveFilter + $aktiveWeitere" :aktive-weitere="$aktiveWeitere"
                              :zurueck="route('admin.master-data.modules.index')">
-                <label for="lehrberuf_id" class="sr-only">Lehrberuf</label>
+                <label for="lehrberuf_id" class="sr-only">{{ __('Lehrberuf') }}</label>
                 <select name="lehrberuf_id" id="lehrberuf_id" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
-                    <option value="">Alle Lehrberufe</option>
+                    <option value="">{{ __('Alle Lehrberufe') }}</option>
                     @foreach($lehrberufe as $lb)
                         <option value="{{ $lb->lehrberuf_id }}" @selected($lehrberufId === (int) $lb->lehrberuf_id)>{{ $lb->name }}</option>
                     @endforeach
                 </select>
 
-                <label for="kategorie_id" class="sr-only">Lernort</label>
+                <label for="kategorie_id" class="sr-only">{{ __('Lernort') }}</label>
                 <select name="kategorie_id" id="kategorie_id" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
-                    <option value="">Alle Lernorte</option>
+                    <option value="">{{ __('Alle Lernorte') }}</option>
                     @foreach($kategorien as $k)
                         <option value="{{ $k->kategorie_id }}" @selected($kategorieId === (int) $k->kategorie_id)>{{ $k->name }}</option>
                     @endforeach
                 </select>
 
                 <x-slot:weitere>
-                    <label for="gruppieren" class="sr-only">Gruppieren nach</label>
+                    <label for="gruppieren" class="sr-only">{{ __('Gruppieren nach') }}</label>
                     <select name="gruppieren" id="gruppieren" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
-                        <option value="" @selected($gruppieren === '')>Keine Gruppierung</option>
-                        <option value="lehrberuf" @selected($gruppieren === 'lehrberuf')>Nach Lehrberuf gruppieren</option>
-                        <option value="lernort" @selected($gruppieren === 'lernort')>Nach Lernort gruppieren</option>
+                        <option value="" @selected($gruppieren === '')>{{ __('Keine Gruppierung') }}</option>
+                        <option value="lehrberuf" @selected($gruppieren === 'lehrberuf')>{{ __('Nach Lehrberuf gruppieren') }}</option>
+                        <option value="lernort" @selected($gruppieren === 'lernort')>{{ __('Nach Lernort gruppieren') }}</option>
                     </select>
                 </x-slot:weitere>
             </x-filterleiste>
@@ -73,11 +73,11 @@
                             <table class="w-full text-sm tabular-nums">
                                 <thead class="sticky top-0 bg-surface-2">
                                     <tr>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Nummer</th>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Titel</th>
-                                        <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">Lehrberufe</th>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">Status</th>
-                                        <th scope="col" class="h-9 px-4"><span class="sr-only">Aktionen</span></th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
+                                        <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Lehrberufe') }}</th>
+                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                        <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border">
@@ -89,7 +89,7 @@
                         </div>
                     </div>
                 @empty
-                    <div class="rounded-xl border border-border bg-card p-6 text-center text-muted">Keine Module gefunden.</div>
+                    <div class="rounded-xl border border-border bg-card p-6 text-center text-muted">{{ __('Keine Module gefunden.') }}</div>
                 @endforelse
             @else
                 <div class="rounded-xl border border-border bg-card overflow-hidden">
@@ -111,9 +111,9 @@
                                 <tr>
                                     <td colspan="5" class="px-4 py-8 text-center text-muted">
                                         @if($aktiveFilter > 0)
-                                            Keine Module für diese Filtereinstellungen gefunden.
+                                            {{ __('Keine Module für diese Filtereinstellungen gefunden.') }}
                                         @else
-                                            Noch keine Module erfasst.
+                                            {{ __('Noch keine Module erfasst.') }}
                                         @endif
                                     </td>
                                 </tr>
@@ -125,9 +125,9 @@
             @endif
 
             <p class="text-xs text-muted px-1">
-                Module werden über die
-                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent hover:underline">Lehrberuf-Detailseite</a>
-                einem Lehrberuf zugewiesen.
+                {{ __('Module werden über die') }}
+                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent hover:underline">{{ __('Lehrberuf-Detailseite') }}</a>
+                {{ __('einem Lehrberuf zugewiesen.') }}
             </p>
 
         </div>

@@ -1,15 +1,15 @@
 <x-app-layout>
-    <x-slot name="title">Lernender erfassen</x-slot>
+    <x-slot name="title">{{ __('Lernender erfassen') }}</x-slot>
     <x-slot name="header">
-        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="Brotkrumen">
-            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">Lernende</a>
+        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="{{ __('Brotkrumen') }}">
+            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">{{ __('Lernende') }}</a>
             <span class="text-muted/40">›</span>
-            <span class="text-text">Erfassen</span>
+            <span class="text-text">{{ __('Erfassen') }}</span>
         </nav>
-        <x-seitenkopf titel="Lernender erfassen" schmal>
+        <x-seitenkopf :titel="__('Lernender erfassen')" schmal>
             <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.learners.index") }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">Zurück</a>
+                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -30,12 +30,12 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="vorname" class="{{ $label }}">Vorname *</label>
+                        <label for="vorname" class="{{ $label }}">{{ __('Vorname *') }}</label>
                         <input id="vorname" type="text" name="vorname" value="{{ old('vorname') }}" required maxlength="100" class="{{ $feld }}">
                         @error('vorname')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="nachname" class="{{ $label }}">Nachname *</label>
+                        <label for="nachname" class="{{ $label }}">{{ __('Nachname *') }}</label>
                         <input id="nachname" type="text" name="nachname" value="{{ old('nachname') }}" required maxlength="100" class="{{ $feld }}">
                         @error('nachname')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
@@ -43,12 +43,12 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label for="email" class="{{ $label }}">E-Mail *</label>
+                        <label for="email" class="{{ $label }}">{{ __('E-Mail *') }}</label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required maxlength="255" class="{{ $feld }}">
                         @error('email')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="benutzername" class="{{ $label }}">Benutzername * <span class="font-normal">(Buchstaben, Ziffern, . _ -)</span></label>
+                        <label for="benutzername" class="{{ $label }}">{{ __('Benutzername *') }} <span class="font-normal">{{ __('(Buchstaben, Ziffern, . _ -)') }}</span></label>
                         <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername') }}" required maxlength="50" class="{{ $feld }} font-mono">
                         @error('benutzername')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
@@ -56,9 +56,9 @@
 
                 <div class="border-t border-border pt-5 space-y-4">
                     <div>
-                        <label for="lehrberuf_id" class="{{ $label }}">Lehrberuf *</label>
+                        <label for="lehrberuf_id" class="{{ $label }}">{{ __('Lehrberuf *') }}</label>
                         <select id="lehrberuf_id" name="lehrberuf_id" required class="{{ $feld }}">
-                            <option value="">Bitte wählen</option>
+                            <option value="">{{ __('Bitte wählen') }}</option>
                             @foreach($lehrberufe as $lb)
                                 <option value="{{ $lb->lehrberuf_id }}" @selected(old('lehrberuf_id') == $lb->lehrberuf_id)>{{ $lb->name }}</option>
                             @endforeach
@@ -68,12 +68,12 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="lehrbeginn" class="{{ $label }}">Lehrbeginn *</label>
+                            <label for="lehrbeginn" class="{{ $label }}">{{ __('Lehrbeginn *') }}</label>
                             <input id="lehrbeginn" type="date" name="lehrbeginn" value="{{ old('lehrbeginn') }}" required class="{{ $feld }}">
                             @error('lehrbeginn')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
-                            <label for="lehrende" class="{{ $label }}">Lehrende</label>
+                            <label for="lehrende" class="{{ $label }}">{{ __('Lehrende') }}</label>
                             <input id="lehrende" type="date" name="lehrende" value="{{ old('lehrende') }}" class="{{ $feld }}">
                             @error('lehrende')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
@@ -81,18 +81,18 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="track_typ" class="{{ $label }}">Schul-Track</label>
+                            <label for="track_typ" class="{{ $label }}">{{ __('Schul-Track') }}</label>
                             <select id="track_typ" name="track_typ" x-model="track" class="{{ $feld }}">
-                                <option value="">Kein Track</option>
+                                <option value="">{{ __('Kein Track') }}</option>
                                 <option value="BMS">BMS</option>
                                 <option value="ABU">ABU</option>
                             </select>
                             @error('track_typ')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div x-show="track" x-cloak>
-                            <label for="track_semester_id" class="{{ $label }}">Startsemester *</label>
+                            <label for="track_semester_id" class="{{ $label }}">{{ __('Startsemester *') }}</label>
                             <select id="track_semester_id" name="track_semester_id" :required="track !== ''" class="{{ $feld }}">
-                                <option value="">Bitte wählen</option>
+                                <option value="">{{ __('Bitte wählen') }}</option>
                                 @foreach($semester as $s)
                                     <option value="{{ $s->semester_id }}" @selected(old('track_semester_id') == $s->semester_id)>{{ $s->bezeichnung }}</option>
                                 @endforeach
@@ -103,9 +103,9 @@
 
                     @isset($berufsbildnerListe)
                         <div>
-                            <label for="berufsbildner_id" class="{{ $label }}">Berufsbildner</label>
+                            <label for="berufsbildner_id" class="{{ $label }}">{{ __('Berufsbildner') }}</label>
                             <select id="berufsbildner_id" name="berufsbildner_id" class="{{ $feld }}">
-                                <option value="">Keiner</option>
+                                <option value="">{{ __('Keiner') }}</option>
                                 @foreach($berufsbildnerListe as $bb)
                                     <option value="{{ $bb->berufsbildner_id }}" @selected(old('berufsbildner_id') == $bb->berufsbildner_id)>
                                         {{ $bb->benutzer->nachname }} {{ $bb->benutzer->vorname }}
@@ -117,7 +117,7 @@
                     @endisset
 
                     <div>
-                        <label for="bemerkung" class="{{ $label }}">Bemerkung (intern)</label>
+                        <label for="bemerkung" class="{{ $label }}">{{ __('Bemerkung (intern)') }}</label>
                         <textarea id="bemerkung" name="bemerkung" rows="3" maxlength="5000" class="{{ $feld }}">{{ old('bemerkung') }}</textarea>
                         @error('bemerkung')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
@@ -125,7 +125,7 @@
 
                 <button type="submit" :disabled="loading"
                         class="w-full h-12 rounded-xl bg-accent text-accent-contrast font-semibold hover:opacity-90 transition-colors duration-150 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                    Lernender anlegen
+                    {{ __('Lernender anlegen') }}
                 </button>
             </form>
             </div>

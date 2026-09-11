@@ -53,7 +53,7 @@ class BetreuungController extends VerwaltungController
             Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, LearnerAssigned::content($lernender->loadMissing('benutzer', 'lehrberuf')));
         }
 
-        return $this->zurueckZumLernenden($request, $lernender_id, 'Betreuung eingetragen.');
+        return $this->zurueckZumLernenden($request, $lernender_id, __('Betreuung eingetragen.'));
     }
 
     public function beenden(Request $request, int $lernender_id, int $betreuung_id): RedirectResponse
@@ -65,7 +65,7 @@ class BetreuungController extends VerwaltungController
         $heute = today();
 
         if ($betreuung->gueltig_bis && $betreuung->gueltig_bis->lt($heute)) {
-            return back()->with('error', 'Betreuung ist bereits beendet.');
+            return back()->with('error', __('Betreuung ist bereits beendet.'));
         }
 
         // Sofort wirksam: endet gestern; eine noch nicht begonnene Betreuung entfällt.
@@ -73,6 +73,6 @@ class BetreuungController extends VerwaltungController
             ? $betreuung->update(['gueltig_bis' => $heute->copy()->subDay()->toDateString()])
             : $betreuung->delete();
 
-        return $this->zurueckZumLernenden($request, $lernender_id, 'Betreuung beendet.');
+        return $this->zurueckZumLernenden($request, $lernender_id, __('Betreuung beendet.'));
     }
 }

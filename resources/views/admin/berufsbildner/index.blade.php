@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Berufsbildner</x-slot>
+    <x-slot name="title">{{ __('Berufsbildner') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Berufsbildner" :zaehler="$berufsbildner->count()">
+        <x-seitenkopf :titel="__('Berufsbildner')" :zaehler="$berufsbildner->count()">
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.create') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
-                    Neuer Benutzer
+                    {{ __('Neuer Benutzer') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -16,7 +16,7 @@
 
             @if($berufsbildner->isEmpty())
                 <div class="rounded-xl border border-border bg-card px-5 py-10 text-center text-muted text-sm">
-                    Keine aktiven Berufsbildner gefunden.
+                    {{ __('Keine aktiven Berufsbildner gefunden.') }}
                 </div>
             @else
                 {{-- Übersicht-Tabelle --}}
@@ -25,11 +25,11 @@
                         <table class="w-full text-sm tabular-nums">
                             <thead class="sticky top-0 z-10 bg-surface-2">
                                 <tr>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Berufsbildner</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Lernende</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Ohne Noteneintrag</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Ø &lt; 4.0</th>
-                                    <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">Aktionen</span></th>
+                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Berufsbildner') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < 4.0') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
@@ -88,11 +88,11 @@
                                             <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2 whitespace-nowrap">
-                                                    Lernende
+                                                    {{ __('Lernende') }}
                                                 </a>
                                                 <a href="{{ route('admin.users.edit', $bb->benutzer_id) }}"
                                                    class="px-3 py-1.5 rounded-lg bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">
-                                                    Bearbeiten
+                                                    {{ __('Bearbeiten') }}
                                                 </a>
                                             </div>
                                         </td>
@@ -107,13 +107,13 @@
                 <div class="flex flex-wrap gap-4 text-xs text-muted px-1">
                     <span class="flex items-center gap-1.5">
                         <span class="inline-block w-3 h-3 rounded-sm bg-note-knapp"></span>
-                        Kein Noteneintrag in den letzten 30 Tagen
+                        {{ __('Kein Noteneintrag in den letzten 30 Tagen') }}
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="inline-block w-3 h-3 rounded-sm bg-note-ungenuegend"></span>
-                        Ø aktuelles Semester unter 4.0
+                        {{ __('Ø aktuelles Semester unter 4.0') }}
                     </span>
-                    <span class="text-muted">Klick auf Zahl → gefilterte Lernenden-Liste</span>
+                    <span class="text-muted">{{ __('Klick auf Zahl → gefilterte Lernenden-Liste') }}</span>
                 </div>
             @endif
 

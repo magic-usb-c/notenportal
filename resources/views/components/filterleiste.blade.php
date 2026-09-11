@@ -3,13 +3,13 @@
     'method' => 'GET',
     'sucheName' => null,          // null = kein Suchfeld
     'sucheWert' => null,
-    'suchePlatzhalter' => 'Suchen…',
+    'suchePlatzhalter' => __('Suchen…'),
     'zaehler' => null,            // Trefferzahl rechts
-    'zaehlerLabel' => 'Treffer',
+    'zaehlerLabel' => __('Treffer'),
     'zurueck' => null,            // Reset-URL, erscheint nur mit aktiveFilter > 0
     'aktiveFilter' => 0,          // Anzahl aktiver Filter gesamt, für mobilen Button und Zurücksetzen
     'aktiveWeitere' => null,      // Anzahl aktiver Filter nur in «Weitere Filter»; null = aktiveFilter
-    'weitereLabel' => 'Weitere Filter',
+    'weitereLabel' => __('Weitere Filter'),
 ])
 @php($aktiveWeitere ??= $aktiveFilter)
 {{--
@@ -53,7 +53,7 @@
 
             <button type="button" @click="offen = ! offen" :aria-expanded="offen"
                     class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text md:hidden">
-                Filter
+                {{ __('Filter') }}
                 @if($aktiveFilter > 0)
                     <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-contrast">{{ $aktiveFilter }}</span>
                 @endif
@@ -61,14 +61,14 @@
 
             <div class="flex shrink-0 items-center gap-3 md:ml-auto">
                 @if($zurueck && $aktiveFilter > 0)
-                    <a href="{{ $zurueck }}" class="whitespace-nowrap text-sm text-accent-text hover:underline underline-offset-2">Zurücksetzen</a>
+                    <a href="{{ $zurueck }}" class="whitespace-nowrap text-sm text-accent-text hover:underline underline-offset-2">{{ __('Zurücksetzen') }}</a>
                 @endif
                 @if($zaehler !== null)
                     <span class="whitespace-nowrap text-sm tabular-nums text-muted">{{ $zaehler }} {{ $zaehlerLabel }}</span>
                 @endif
                 {{ $export ?? '' }}
                 <noscript>
-                    <button type="submit" class="inline-flex h-9 items-center rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text">Filtern</button>
+                    <button type="submit" class="inline-flex h-9 items-center rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text">{{ __('Filtern') }}</button>
                 </noscript>
             </div>
         </div>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\SetLocale;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Lernender;
 use App\Support\Theme;
@@ -12,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -56,7 +58,7 @@ class ProfileController extends Controller
             $lernender->save();
         }
 
-        return redirect()->route('profile.edit')->with('success', 'Profil gespeichert.');
+        return redirect()->route('profile.edit')->with('success', __('Profil gespeichert.'));
     }
 
     /** Darstellung aus dem Umschalter in der Navigation (ohne Neuladen). */
@@ -66,6 +68,18 @@ class ProfileController extends Controller
         $request->user()->update($validated);
 
         return response()->json(['darstellung' => $validated['darstellung']]);
+    }
+
+    /** Sprache aus Benutzermenü oder Profil; Gäste nur für die Session. Nur bei eingeschalteter Sprachwahl. */
+    public function locale(Request $request): RedirectResponse
+    {
+        abort_unless(SetLocale::wahlAktiv(), 404);
+
+        $locale = $request->validate(['locale' => ['required', Rule::in(SetLocale::SPRACHEN)]])['locale'];
+        $request->user()?->update(['locale' => $locale]);
+        $request->session()->put(SetLocale::SESSION, $locale);
+
+        return back()->with('success', __('Sprache gespeichert.', [], $locale));
     }
 
     private function hatAktivenBmsTrack(Lernender $lernender): bool

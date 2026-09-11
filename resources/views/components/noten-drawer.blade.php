@@ -7,10 +7,10 @@
     Eingabe, ohne erneut zu laden – dafür wird $fehler (App\Services\Noten\NoteService::drawerNachFehler)
     auf der jeweiligen Seite mitgegeben.
 --}}
-<div x-data="npNoteDrawer(@js(['titel' => $fehler['titel'] ?? 'Neue Note', 'server' => (bool) $fehler]))"
+<div x-data="npNoteDrawer(@js(['titel' => $fehler['titel'] ?? __('Neue Note'), 'server' => (bool) $fehler]))"
      x-on:np-note.window="oeffnen($event.detail.url, $event.detail.titel)">
-    <x-drawer name="note" titel="Note">
-        <x-slot:kopf><span x-text="titel">{{ $fehler['titel'] ?? 'Neue Note' }}</span></x-slot:kopf>
+    <x-drawer name="note" :titel="__('Note')">
+        <x-slot:kopf><span x-text="titel">{{ $fehler['titel'] ?? __('Neue Note') }}</span></x-slot:kopf>
         @if($fehler)
             <template x-if="server">
                 <div>@include('lernender.noten.partials.formular', $fehler['daten'])</div>

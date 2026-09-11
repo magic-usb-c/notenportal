@@ -117,7 +117,7 @@ class BenutzerController extends Controller
 
         AccountMails::accountCreated($user);
 
-        return redirect()->route('admin.users.index')->with('success', 'Benutzer angelegt.');
+        return redirect()->route('admin.users.index')->with('success', __('Benutzer angelegt.'));
     }
 
     public function edit(int $benutzer_id)
@@ -147,14 +147,14 @@ class BenutzerController extends Controller
 
         $rollen = collect($validated['rollen'])->unique()->values();
         if ((int) $user->benutzer_id === (int) $request->user()->benutzer_id && ! $rollen->contains('Admin')) {
-            throw ValidationException::withMessages(['rollen' => 'Die eigene Admin-Rolle bleibt bestehen.']);
+            throw ValidationException::withMessages(['rollen' => __('Die eigene Admin-Rolle bleibt bestehen.')]);
         }
         $berufsbildner = $user->berufsbildner;
         if ($berufsbildner && ! $rollen->contains('Berufsbildner') && DB::table('betreuungen')
             ->where('berufsbildner_id', $berufsbildner->berufsbildner_id)
             ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
             ->exists()) {
-            throw ValidationException::withMessages(['rollen' => 'Aktive Betreuungen zuerst übergeben.']);
+            throw ValidationException::withMessages(['rollen' => __('Aktive Betreuungen zuerst übergeben.')]);
         }
 
         $passwortZurueckgesetzt = ! empty($validated['passwort']);
@@ -186,7 +186,7 @@ class BenutzerController extends Controller
             AccountMails::passwordResetByAdmin($user);
         }
 
-        return redirect()->route('admin.users.edit', $benutzer_id)->with('success', 'Benutzer gespeichert.');
+        return redirect()->route('admin.users.edit', $benutzer_id)->with('success', __('Benutzer gespeichert.'));
     }
 
     public function toggleAktiv(Request $request, int $benutzer_id): RedirectResponse
@@ -194,7 +194,7 @@ class BenutzerController extends Controller
         $user = $this->kontoOhneLernende($benutzer_id);
 
         if ($user->benutzer_id === (int) $request->user()->benutzer_id) {
-            return back()->with('error', 'Eigener Account kann nicht deaktiviert werden.');
+            return back()->with('error', __('Eigener Account kann nicht deaktiviert werden.'));
         }
 
         $neuAktiv = ! $user->aktiv;
@@ -211,7 +211,7 @@ class BenutzerController extends Controller
             }
         });
 
-        return back()->with('success', $neuAktiv ? 'Benutzer aktiviert.' : 'Benutzer deaktiviert.');
+        return back()->with('success', $neuAktiv ? __('Benutzer aktiviert.') : __('Benutzer deaktiviert.'));
     }
 
     /** Lernenden-Konten werden ausschliesslich über die Lernenden-Verwaltung geändert. */

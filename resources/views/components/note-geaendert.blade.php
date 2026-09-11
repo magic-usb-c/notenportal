@@ -8,6 +8,6 @@
 
 @if($autor)
     <div {{ $attributes->merge(['class' => 'text-xs text-muted']) }}>
-        geändert von {{ $autor->vorname }} {{ $autor->nachname }}, {{ $note->aktualisiert_am?->format('d.m.Y') }}
+        {{ __('geändert von :name, :datum', ['name' => $autor->vorname.' '.$autor->nachname, 'datum' => (string) $note->aktualisiert_am?->format('d.m.Y')]) }}
     </div>
 @endif

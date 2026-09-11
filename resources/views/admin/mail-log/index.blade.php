@@ -1,16 +1,16 @@
 <x-app-layout>
-    <x-slot name="title">Versandprotokoll</x-slot>
+    <x-slot name="title">{{ __('Versandprotokoll') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Versandprotokoll" />
+        <x-seitenkopf :titel="__('Versandprotokoll')" />
     </x-slot>
 
     @php
         $statusMap = ['sent' => 'gruen', 'failed' => 'rot', 'skipped' => 'neutral', 'queued' => 'gelb'];
         $kacheln = [
-            ['label' => 'Verschickt (7 Tage)', 'wert' => $kennzahlen['verschickt']],
-            ['label' => 'Fehlgeschlagen (7 Tage)', 'wert' => $kennzahlen['fehlgeschlagen']],
-            ['label' => 'Nicht zustellbar (7 Tage)', 'wert' => $kennzahlen['nicht_zustellbar']],
-            ['label' => 'In Warteschlange', 'wert' => $kennzahlen['warteschlange']],
+            ['label' => __('Verschickt (7 Tage)'), 'wert' => $kennzahlen['verschickt']],
+            ['label' => __('Fehlgeschlagen (7 Tage)'), 'wert' => $kennzahlen['fehlgeschlagen']],
+            ['label' => __('Nicht zustellbar (7 Tage)'), 'wert' => $kennzahlen['nicht_zustellbar']],
+            ['label' => __('In Warteschlange'), 'wert' => $kennzahlen['warteschlange']],
         ];
     @endphp
 
@@ -25,21 +25,21 @@
 
             @php($aktiveFilter = collect([$status, $type, $q])->filter()->count())
             <x-filterleiste :action="route('admin.mail-log.index')" suche-name="q" :suche-wert="$q"
-                             suche-platzhalter="Empfänger (E-Mail)" :zaehler="$eintraege->total()" zaehler-label="Einträge"
+                             suche-platzhalter="{{ __('Empfänger (E-Mail)') }}" :zaehler="$eintraege->total()" zaehler-label="{{ __('Einträge') }}"
                              :zurueck="route('admin.mail-log.index')" :aktive-filter="$aktiveFilter">
-                <label for="status" class="sr-only">Status</label>
+                <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
                         class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
-                    <option value="" @selected($status === '')>Status: alle</option>
+                    <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\MailLog::STATUS as $value => $label)
-                        <option value="{{ $value }}" @selected($status === $value)>{{ $label }}</option>
+                        <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
                     @endforeach
                 </select>
 
-                <label for="type" class="sr-only">Anlass</label>
+                <label for="type" class="sr-only">{{ __('Anlass') }}</label>
                 <select name="type" id="type" x-on:change="$el.form.requestSubmit()"
                         class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
-                    <option value="" @selected($type === '')>Anlass: alle</option>
+                    <option value="" @selected($type === '')>{{ __('Anlass: alle') }}</option>
                     @foreach($anlaesse as $value => $label)
                         <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
                     @endforeach
@@ -51,14 +51,14 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Zeit</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Empfänger</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Anlass</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Betreff</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">Status</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">Versuche</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">Fehler</th>
-                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">Aktion</span></th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Zeit') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Empfänger') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Anlass') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Betreff') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Versuche') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Fehler') }}</th>
+                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktion') }}</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -68,13 +68,13 @@
                                     <td class="px-3 py-2.5 align-top text-left">
                                         <div>{{ $e->recipient }}</div>
                                         @if($e->redirected_to)
-                                            <div class="text-xs text-muted">→ umgeleitet an {{ $e->redirected_to }}</div>
+                                            <div class="text-xs text-muted">{{ __('→ umgeleitet an :ziel', ['ziel' => $e->redirected_to]) }}</div>
                                         @endif
                                     </td>
                                     <td class="px-3 py-2.5 whitespace-nowrap align-top">{{ $anlaesse[$e->type] ?? $e->type }}</td>
                                     <td class="px-3 py-2.5 align-top max-w-sm truncate">{{ $e->subject }}</td>
                                     <td class="px-3 py-2.5 whitespace-nowrap align-top">
-                                        <x-status :status="$statusMap[$e->status] ?? 'neutral'" :text="\App\Models\MailLog::STATUS[$e->status] ?? $e->status" />
+                                        <x-status :status="$statusMap[$e->status] ?? 'neutral'" :text="__(\App\Models\MailLog::STATUS[$e->status] ?? $e->status)" />
                                     </td>
                                     <td class="px-3 py-2.5 text-right align-top">{{ $e->attempts }}</td>
                                     <td class="px-3 py-2.5 align-top max-w-xs truncate" @if($e->error) title="{{ $e->error }}" @endif>{{ $e->error }}</td>
@@ -85,14 +85,14 @@
                                                   class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 @csrf
                                                 <button type="submit" :disabled="loading"
-                                                        class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs disabled:opacity-60">Erneut senden</button>
+                                                        class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs disabled:opacity-60">{{ __('Erneut senden') }}</button>
                                             </form>
                                         @endif
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="p-6 text-center text-muted">Keine Einträge gefunden.</td>
+                                    <td colspan="8" class="p-6 text-center text-muted">{{ __('Keine Einträge gefunden.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

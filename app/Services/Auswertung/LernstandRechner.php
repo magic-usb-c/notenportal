@@ -93,13 +93,13 @@ final class LernstandRechner
         $rot = [];
         $gelb = [];
         foreach ($promotion as $p) {
-            $rot[] = 'Promotion '.$p['kategorie'].' gefährdet';
+            $rot[] = __('Promotion :kategorie gefährdet', ['kategorie' => $p['kategorie']]);
         }
         if ($semesterNote !== null && $semesterNote < $grenze - 1e-9) {
-            $rot[] = 'Semesterschnitt '.NotenSkala::format($semesterNote);
+            $rot[] = __('Semesterschnitt :note', ['note' => NotenSkala::format($semesterNote)]);
         }
         if (count($ungenuegend) >= 2) {
-            $rot[] = count($ungenuegend).' ungenügende Noten';
+            $rot[] = __(':anzahl ungenügende Noten', ['anzahl' => count($ungenuegend)]);
         } elseif (count($ungenuegend) === 1) {
             $gelb[] = $ungenuegend[0]->label.' '.NotenSkala::format($ungenuegend[0]->note);
         }
@@ -107,16 +107,16 @@ final class LernstandRechner
             $gelb[] = $e['label'].' '.NotenSkala::format($e['vorher']).' → '.NotenSkala::format($e['nachher']);
         }
         if ($delta !== null && $delta <= -0.3) {
-            $gelb[] = NotenSkala::format($delta, 1).' zum Vorsemester';
+            $gelb[] = __(':delta zum Vorsemester', ['delta' => NotenSkala::format($delta, 1)]);
         }
         if ($ueberfaellig > 0) {
-            $gelb[] = $ueberfaellig === 1 ? '1 Note fehlt' : $ueberfaellig.' Noten fehlen';
+            $gelb[] = $ueberfaellig === 1 ? __('1 Note fehlt') : __(':anzahl Noten fehlen', ['anzahl' => $ueberfaellig]);
         }
         if ($tage !== null && $tage > $frist) {
-            $gelb[] = 'seit '.$tage.' Tagen keine Note';
+            $gelb[] = __('seit :tage Tagen keine Note', ['tage' => $tage]);
         }
         if ($letzte === null && $lehrbeginn !== null && $lehrbeginn->diffInDays(now(), false) > $frist) {
-            $gelb[] = 'noch keine Noten';
+            $gelb[] = __('noch keine Noten');
         }
 
         $status = $rot !== [] ? Lernstand::ROT : ($gelb !== [] ? Lernstand::GELB : Lernstand::GRUEN);

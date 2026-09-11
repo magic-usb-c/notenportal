@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Benutzer bearbeiten</x-slot>
+    <x-slot name="title">{{ __('Benutzer bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Benutzer bearbeiten" :untertitel="$user->nachname.' '.$user->vorname" schmal>
+        <x-seitenkopf :titel="__('Benutzer bearbeiten')" :untertitel="$user->nachname.' '.$user->vorname" schmal>
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.index') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    Zurück
+                    {{ __('Zurück') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -23,7 +23,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="vorname" class="text-sm font-medium text-text">Vorname *</label>
+                            <label for="vorname" class="text-sm font-medium text-text">{{ __('Vorname') }} *</label>
                             <input type="text" name="vorname" id="vorname" value="{{ old('vorname', $user->vorname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-note-ungenuegend @enderror">
                             @error('vorname')
@@ -31,7 +31,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="nachname" class="text-sm font-medium text-text">Nachname *</label>
+                            <label for="nachname" class="text-sm font-medium text-text">{{ __('Nachname') }} *</label>
                             <input type="text" name="nachname" id="nachname" value="{{ old('nachname', $user->nachname) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-note-ungenuegend @enderror">
                             @error('nachname')
@@ -41,7 +41,7 @@
                     </div>
 
                     <div>
-                        <label for="email" class="text-sm font-medium text-text">E-Mail *</label>
+                        <label for="email" class="text-sm font-medium text-text">{{ __('E-Mail') }} *</label>
                         <input type="email" name="email" id="email" value="{{ old('email', $user->email) }}" required
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-note-ungenuegend @enderror">
                         @error('email')
@@ -50,7 +50,7 @@
                     </div>
 
                     <div>
-                        <label for="benutzername" class="text-sm font-medium text-text">Benutzername *</label>
+                        <label for="benutzername" class="text-sm font-medium text-text">{{ __('Benutzername') }} *</label>
                         <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername', $user->benutzername) }}" required maxlength="50" pattern="[A-Za-z0-9._\-]+"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('benutzername') border-note-ungenuegend @enderror">
                         @error('benutzername')
@@ -59,13 +59,13 @@
                     </div>
 
                     <fieldset>
-                        <legend class="text-sm font-medium text-text">Rollen *</legend>
+                        <legend class="text-sm font-medium text-text">{{ __('Rollen') }} *</legend>
                         <div class="mt-2 flex flex-wrap gap-2">
                             @foreach(['Admin', 'Berufsbildner'] as $rolle)
                                 <label class="inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10">
                                     <input type="checkbox" name="rollen[]" value="{{ $rolle }}" @checked(in_array($rolle, old('rollen', $rollen->all()), true))
                                            class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
-                                    {{ $rolle }}
+                                    {{ __($rolle) }}
                                 </label>
                             @endforeach
                         </div>
@@ -94,17 +94,17 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <label for="passwort" class="text-sm font-medium text-text">
-                                    Neues Passwort
+                                    {{ __('Neues Passwort') }}
                                 </label>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="generieren()"
                                             class="text-xs text-accent hover:underline">
-                                        Generieren
+                                        {{ __('Generieren') }}
                                     </button>
                                     <button type="button" @click="show = !show"
                                             class="text-xs text-muted hover:text-text">
-                                        <span x-show="!show">Anzeigen</span>
-                                        <span x-show="show" x-cloak>Verbergen</span>
+                                        <span x-show="!show">{{ __('Anzeigen') }}</span>
+                                        <span x-show="show" x-cloak>{{ __('Verbergen') }}</span>
                                     </button>
                                 </div>
                             </div>
@@ -116,7 +116,7 @@
                         </div>
 
                         <div>
-                            <label for="passwort_confirmation" class="text-sm font-medium text-text">Passwort bestätigen</label>
+                            <label for="passwort_confirmation" class="text-sm font-medium text-text">{{ __('Passwort bestätigen') }}</label>
                             <input x-ref="pw2" :type="show ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation"
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         </div>
@@ -125,7 +125,7 @@
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
                                 class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
-                            Änderungen speichern
+                            {{ __('Änderungen speichern') }}
                         </button>
                     </div>
                 </form>

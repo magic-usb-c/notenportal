@@ -7,6 +7,7 @@ use App\Services\Notifications\MailSettings;
 use App\Support\Einstellungen;
 use App\Support\Theme;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -18,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Password::defaults(fn () => Password::min(10)->letters()->numbers());
+
+        // Übersetzungen pro Bereich (lang/areas/{bereich}/en.json), zusätzlich zu lang/en.json
+        foreach (['learner', 'trainer', 'admin'] as $bereich) {
+            Lang::addJsonPath(lang_path("areas/{$bereich}"));
+        }
 
         // Mail-Einstellungen aus «Betrieb» überschreiben .env (vor Migrationen gibt es die Tabelle noch nicht)
         try {

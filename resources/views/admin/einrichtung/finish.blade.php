@@ -1,4 +1,4 @@
-<x-einrichtung schritt="finish" :stand="$stand" titel="Abschluss">
+<x-einrichtung schritt="finish" :stand="$stand" :titel="__('Abschluss')">
     @php
         $offen = collect($stand)->except('finish')->reject(fn ($s) => $s['erledigt']);
     @endphp
@@ -12,10 +12,10 @@
                         'bg-note-gut/15 text-note-gut' => $ok,
                         'bg-note-knapp/15 text-note-knapp' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
                     <span class="flex-1 min-w-0">
-                        <span class="block text-sm font-medium text-text">{{ $name }}</span>
-                        <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : 'offen' }}</span>
+                        <span class="block text-sm font-medium text-text">{{ __($name) }}</span>
+                        <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : __('offen') }}</span>
                     </span>
-                    <a href="{{ route('admin.setup', $key) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ $ok ? 'Bearbeiten' : 'Erledigen' }}</a>
+                    <a href="{{ route('admin.setup', $key) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ $ok ? __('Bearbeiten') : __('Erledigen') }}</a>
                 </li>
             @endforeach
         </ul>
@@ -24,17 +24,17 @@
     @include('admin.einrichtung._zugaenge')
 
     <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <a href="{{ route('admin.setup', 'people') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">← Zurück</a>
+        <a href="{{ route('admin.setup', 'people') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('← Zurück') }}</a>
         @if(\App\Support\Einrichtung::offen())
             <form method="POST" action="{{ route('admin.setup.finish') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <button type="submit" :disabled="loading" @class(['inline-flex items-center px-5 h-10 rounded-xl text-sm font-semibold disabled:opacity-60',
                     'bg-accent text-white np-btn-primary' => $offen->isEmpty(), 'glass-btn text-text' => $offen->isNotEmpty()])>
-                    {{ $offen->isEmpty() ? 'Einrichtung abschliessen' : 'Trotzdem abschliessen' }}
+                    {{ $offen->isEmpty() ? __('Einrichtung abschliessen') : __('Trotzdem abschliessen') }}
                 </button>
             </form>
         @else
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Zur Übersicht</a>
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">{{ __('Zur Übersicht') }}</a>
         @endif
     </div>
 </x-einrichtung>

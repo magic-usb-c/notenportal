@@ -10,7 +10,7 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-xs uppercase tracking-wide text-muted mb-1">E-Mail</label>
+            <label for="email" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('E-Mail') }}</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted pointer-events-none">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -18,7 +18,7 @@
                     </svg>
                 </span>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                       autocomplete="username" placeholder="name@firma.ch"
+                       autocomplete="username" placeholder="{{ __('name@firma.ch') }}"
                        class="block w-full h-11 rounded-xl border border-border bg-input text-text pl-10 pr-3
                               focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
                               @error('email') border-red-400 @enderror">
@@ -29,7 +29,7 @@
         </div>
 
         <div>
-            <label for="password" class="block text-xs uppercase tracking-wide text-muted mb-1">Passwort</label>
+            <label for="password" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('Passwort') }}</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted pointer-events-none">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -51,13 +51,13 @@
             <button type="submit"
                     class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
                            focus:outline-hidden focus:ring-2 focus:ring-accent/50">
-                Anmelden
+                {{ __('Anmelden') }}
             </button>
         </div>
     </form>
 
     <p class="mt-4 text-center text-sm">
-        <a href="{{ route('password.request') }}" class="text-muted hover:text-text">Passwort vergessen?</a>
+        <a href="{{ route('password.request') }}" class="text-muted hover:text-text">{{ __('Passwort vergessen?') }}</a>
     </p>
 
 </x-guest-layout>

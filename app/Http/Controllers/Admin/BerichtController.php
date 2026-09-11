@@ -20,6 +20,12 @@ class BerichtController extends Controller
 {
     private const array STATUS = [Lernstand::ROT => 'kritisch', Lernstand::GELB => 'beobachten', Lernstand::GRUEN => 'im Plan'];
 
+    /** Übersetzte Anzeige der Status-Konstante für den CSV-Export. */
+    private function statusText(string $status): string
+    {
+        return __(self::STATUS[$status]);
+    }
+
     public function __construct(private readonly Bericht $bericht) {}
 
     public function noten(Request $request): View
@@ -56,13 +62,13 @@ class BerichtController extends Controller
         return response()->streamDownload(function () use ($zeilen, $mitSemester, $zahl) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Nachname', 'Vorname', 'Lehrberuf', 'Status', 'Gesamtnote', ...($mitSemester ? ['Semesternote'] : []),
-                'Ungenügende Zeugnisnoten', 'Prüfungen', 'Letzte Note', 'Gründe'], ';');
+            fputcsv($out, [__('Nachname'), __('Vorname'), __('Lehrberuf'), __('Status'), __('Gesamtnote'), ...($mitSemester ? [__('Semesternote')] : []),
+                __('Ungenügende Zeugnisnoten'), __('Prüfungen'), __('Letzte Note'), __('Gründe')], ';');
 
             foreach ($zeilen as $z) {
                 fputcsv($out, [
                     Csv::safe($z->nachname), Csv::safe($z->vorname), Csv::safe((string) $z->lehrberuf),
-                    self::STATUS[$z->stand->status], $zahl($z->gesamt), ...($mitSemester ? [$zahl($z->semester)] : []),
+                    $this->statusText($z->stand->status), $zahl($z->gesamt), ...($mitSemester ? [$zahl($z->semester)] : []),
                     $z->ungenuegend, $z->pruefungen, $z->letzte ? Carbon::parse($z->letzte)->format('d.m.Y') : '',
                     Csv::safe(implode(', ', $z->stand->gruende)),
                 ], ';');

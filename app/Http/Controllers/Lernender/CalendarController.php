@@ -28,7 +28,7 @@ class CalendarController extends Controller
         $daten = $request->validate([
             'label' => ['nullable', 'string', 'max:80'],
             'url' => ['required', 'string', 'max:2000'],
-        ], [], ['url' => 'iCal-Adresse']);
+        ], [], ['url' => __('iCal-Adresse')]);
 
         $url = CalendarSync::normalizeUrl($daten['url']);
         try {
@@ -46,7 +46,7 @@ class CalendarController extends Controller
             'import_exams' => $request->boolean('import_exams'),
         ])->save();
 
-        return redirect()->route('learner.exams.index')->with('success', 'Kalender gespeichert.');
+        return redirect()->route('learner.exams.index')->with('success', __('Kalender gespeichert.'));
     }
 
     public function sync(Request $request): RedirectResponse
@@ -54,16 +54,16 @@ class CalendarController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $feed = $lernender->calendarFeeds()->first();
         if (! $feed) {
-            return redirect()->route('learner.exams.index')->with('error', 'Kein Kalender hinterlegt.');
+            return redirect()->route('learner.exams.index')->with('error', __('Kein Kalender hinterlegt.'));
         }
 
         try {
             $stats = $this->sync->sync($feed);
 
             return redirect()->route('learner.exams.index')
-                ->with('success', $stats['events'].' Termine abgeglichen, '.$stats['exams'].' Prüfungen erkannt.');
+                ->with('success', __(':events Termine abgeglichen, :exams Prüfungen erkannt.', ['events' => $stats['events'], 'exams' => $stats['exams']]));
         } catch (Throwable $e) {
-            return redirect()->route('learner.exams.index')->with('error', 'Abgleich fehlgeschlagen: '.$e->getMessage());
+            return redirect()->route('learner.exams.index')->with('error', __('Abgleich fehlgeschlagen: :fehler', ['fehler' => $e->getMessage()]));
         }
     }
 
@@ -71,6 +71,6 @@ class CalendarController extends Controller
     {
         CalendarExport::resetToken($request->user());
 
-        return redirect()->route('learner.exams.index')->with('success', 'Neuer Abo-Link erzeugt.');
+        return redirect()->route('learner.exams.index')->with('success', __('Neuer Abo-Link erzeugt.'));
     }
 }

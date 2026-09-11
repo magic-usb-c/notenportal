@@ -1,4 +1,4 @@
-<x-einrichtung schritt="modules" :stand="$stand" titel="Module">
+<x-einrichtung schritt="modules" :stand="$stand" :titel="__('Module')">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'text-sm font-medium text-text';
@@ -10,12 +10,12 @@
 
     @if($lehrberufe->isEmpty())
         <section class="rounded-2xl border border-border bg-card p-8 flex flex-col items-center gap-3 text-center">
-            <p class="text-sm text-muted">Noch keine Lehrberufe</p>
-            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">Lehrberufe anlegen</a>
+            <p class="text-sm text-muted">{{ __('Noch keine Lehrberufe') }}</p>
+            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">{{ __('Lehrberufe anlegen') }}</a>
         </section>
         @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
     @else
-        <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="Lehrberuf">
+        <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="{{ __('Lehrberuf') }}">
             @foreach($lehrberufe as $lb)
                 @php $ist = $aktiv && (int) $aktiv->lehrberuf_id === (int) $lb->lehrberuf_id; @endphp
                 <a href="{{ route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" role="tab" aria-selected="{{ $ist ? 'true' : 'false' }}" title="{{ $lb->name }}"
@@ -34,7 +34,7 @@
             <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
                 <h3 class="text-sm font-semibold text-text">{{ $aktiv->name }}</h3>
                 <div class="grid md:grid-cols-2 gap-4">
-                    @foreach(['schule' => 'Module Schule', 'uek' => 'Module ÜK'] as $name => $text)
+                    @foreach(['schule' => __('Module Schule'), 'uek' => __('Module ÜK')] as $name => $text)
                         <div>
                             <label for="{{ $name }}" class="{{ $label }}">{{ $text }}</label>
                             <textarea id="{{ $name }}" name="{{ $name }}" rows="8" placeholder="{{ $beispiele[$name] }}" class="{{ $feld }} font-mono text-sm">{{ old($name) }}</textarea>
@@ -43,7 +43,7 @@
                     @endforeach
                 </div>
                 <div class="w-56">
-                    <label for="ziel" class="{{ $label }}">Gewichtssumme je Modul *</label>
+                    <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }} *</label>
                     <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} tabular-nums">
                     @error('ziel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
@@ -52,8 +52,8 @@
             @if($zugeordnet->isNotEmpty())
                 <section class="rounded-2xl border border-border bg-card p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
-                        <h3 class="text-sm font-semibold text-text">Zugeordnet · {{ $zugeordnet->count() }}</h3>
-                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">Pflicht, Semester und Lernort bearbeiten</a>
+                        <h3 class="text-sm font-semibold text-text">{{ __('Zugeordnet') }} · {{ $zugeordnet->count() }}</h3>
+                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
                     </div>
                     <div class="grid md:grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)
@@ -70,7 +70,7 @@
                 </section>
             @endif
 
-            @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => 'Module zuordnen', 'weiterText' => 'Weiter'])
+            @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => __('Module zuordnen'), 'weiterText' => __('Weiter')])
         </form>
     @endif
 </x-einrichtung>

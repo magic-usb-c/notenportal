@@ -4,7 +4,7 @@
     $palette = collect($eintraege)
         ->flatMap(fn ($e) => isset($e['kinder'])
             ? collect($e['kinder'])->map(fn ($k) => ['label' => $k['label'], 'url' => $k['url'], 'gruppe' => $e['label']])
-            : [['label' => $e['label'], 'url' => $e['url'], 'gruppe' => 'Seite']])
+            : [['label' => $e['label'], 'url' => $e['url'], 'gruppe' => __('Seite')]])
         ->concat($u ? \App\Support\Navigation::befehle($u) : [])
         ->values();
     $suchUrl = $u ? route('search') : null;
@@ -20,7 +20,7 @@
     $mobil = 'flex min-h-11 items-center gap-3 rounded-lg px-3 text-base transition-colors duration-100';
 @endphp
 
-<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-bar sticky top-0 z-50 print:hidden" aria-label="Hauptnavigation">
+<nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-bar sticky top-0 z-50 print:hidden" aria-label="{{ __('Hauptnavigation') }}">
     <div class="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
             <x-application-logo class="size-8" />
@@ -68,22 +68,22 @@
             {{-- Befehlspalette --}}
             <div x-data="npSuche({{ \Illuminate\Support\Js::from(['eintraege' => $palette, 'url' => $suchUrl]) }})">
                 <button type="button" @click="oeffnen()"
-                        class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-2.5 text-sm text-muted hover:text-text md:px-3" aria-label="Suchen">
+                        class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-2.5 text-sm text-muted hover:text-text md:px-3" aria-label="{{ __('Suchen') }}">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <span class="hidden md:inline">Suchen</span>
+                    <span class="hidden md:inline">{{ __('Suchen') }}</span>
                     <kbd class="hidden rounded-md border border-border px-1.5 py-0.5 font-sans text-2xs text-muted md:inline">Ctrl K</kbd>
                 </button>
 
                 <template x-teleport="body">
                     <div x-show="offen" x-cloak class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]" @keydown.escape.window="offen = false">
                         <div class="absolute inset-0 glass-scrim" @click="offen = false" x-show="offen" x-transition.opacity.duration.200ms aria-hidden="true"></div>
-                        <div class="relative w-full max-w-xl overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="Suchen"
+                        <div class="relative w-full max-w-xl overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
                              x-show="offen" x-transition.opacity.duration.200ms>
                             <div class="flex items-center gap-3 border-b border-border px-4">
                                 <svg class="size-5 shrink-0 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 <input x-ref="eingabe" x-model="q" @keydown="taste($event)" type="text"
-                                       placeholder="{{ $u?->hasRole('Lernender') ? 'Seite, Fach oder Note' : 'Seite, Aktion oder Name' }}"
-                                       class="h-14 flex-1 border-0 bg-transparent text-base text-text placeholder:text-muted focus:ring-0" aria-label="Suchbegriff">
+                                       placeholder="{{ $u?->hasRole('Lernender') ? __('Seite, Fach oder Note') : __('Seite, Aktion oder Name') }}"
+                                       class="h-14 flex-1 border-0 bg-transparent text-base text-text placeholder:text-muted focus:ring-0" aria-label="{{ __('Suchbegriff') }}">
                                 <kbd class="rounded-md border border-border px-1.5 py-0.5 text-2xs text-muted">Esc</kbd>
                             </div>
                             <div class="max-h-[50vh] overflow-y-auto p-1.5">
@@ -99,7 +99,7 @@
                                         <span class="shrink-0 text-2xs text-muted" x-text="t.gruppe"></span>
                                     </a>
                                 </template>
-                                <div x-show="!liste.length" class="px-3 py-8 text-center text-sm text-muted">Keine Treffer</div>
+                                <div x-show="!liste.length" class="px-3 py-8 text-center text-sm text-muted">{{ __('Keine Treffer') }}</div>
                             </div>
                         </div>
                     </div>
@@ -107,11 +107,11 @@
             </div>
 
             <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
-                    class="{{ $werkzeug }} hidden lg:inline-flex" aria-label="Feedback melden" title="Feedback melden">
+                    class="{{ $werkzeug }} hidden lg:inline-flex" aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
                 <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
             </button>
 
-            <button type="button" onclick="window.npToggleTheme()" class="{{ $werkzeug }}" aria-label="Hell oder dunkel">
+            <button type="button" onclick="window.npToggleTheme()" class="{{ $werkzeug }}" aria-label="{{ __('Hell oder dunkel') }}">
                 <svg class="block size-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m12.728 0-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 1 1 0 10A5 5 0 0 1 12 7z"/></svg>
                 <svg class="hidden size-5 dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
@@ -131,20 +131,20 @@
                             <div class="truncate text-xs text-muted">{{ $u->email ?? '' }}</div>
                         </div>
                         <div class="my-1 border-t border-border"></div>
-                        <x-dropdown-link :href="route('profile.edit')">Profil</x-dropdown-link>
-                        <x-dropdown-link :href="route('notifications.settings')">Benachrichtigungen</x-dropdown-link>
-                        <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">Feedback melden</x-dropdown-link>
-                        <x-dropdown-link :href="route('feedback.index')">Meine Meldungen</x-dropdown-link>
-                        <div class="my-1 border-t border-border"></div>
+                        <x-dropdown-link :href="route('profile.edit')">{{ __('Profil') }}</x-dropdown-link>
+                        <x-dropdown-link :href="route('notifications.settings')">{{ __('Benachrichtigungen') }}</x-dropdown-link>
+                        <x-dropdown-link href="#" onclick="event.preventDefault(); window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))">{{ __('Feedback melden') }}</x-dropdown-link>
+                        <x-dropdown-link :href="route('feedback.index')">{{ __('Meine Meldungen') }}</x-dropdown-link>
+                        @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('layouts._sprache', ['klasse' => 'flex w-full items-center rounded-lg px-3 min-h-9 text-start text-sm text-text transition-colors duration-100 hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring'])@endif<div class="my-1 border-t border-border"></div>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">Abmelden</x-dropdown-link>
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">{{ __('Abmelden') }}</x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
             </div>
 
-            <button @click="open = !open" :aria-expanded="open" aria-label="Menü" aria-controls="np-menue-mobil"
+            <button @click="open = !open" :aria-expanded="open" aria-label="{{ __('Menü') }}" aria-controls="np-menue-mobil"
                     class="{{ $werkzeug }} size-10 lg:hidden">
                 <svg class="size-6" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
@@ -182,14 +182,14 @@
                 <div class="font-medium text-text">{{ $name }}</div>
                 <div class="text-xs text-muted">{{ $u->email ?? '' }}</div>
             </div>
-            <a href="{{ route('profile.edit') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">Profil</a>
-            <a href="{{ route('notifications.settings') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">Benachrichtigungen</a>
+            <a href="{{ route('profile.edit') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">{{ __('Profil') }}</a>
+            <a href="{{ route('notifications.settings') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">{{ __('Benachrichtigungen') }}</a>
             <button type="button" @click="open = false; window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
-                    class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">Feedback melden</button>
-            <a href="{{ route('feedback.index') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">Meine Meldungen</a>
-            <form method="POST" action="{{ route('logout') }}">
+                    class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">{{ __('Feedback melden') }}</button>
+            <a href="{{ route('feedback.index') }}" class="{{ $mobil }} text-muted hover:bg-surface-2 hover:text-text">{{ __('Meine Meldungen') }}</a>
+            @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('layouts._sprache', ['klasse' => $mobil.' w-full text-left text-muted hover:bg-surface-2 hover:text-text'])@endif<form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">Abmelden</button>
+                <button class="{{ $mobil }} w-full text-left text-muted hover:bg-surface-2 hover:text-text">{{ __('Abmelden') }}</button>
             </form>
         </div>
     </div>

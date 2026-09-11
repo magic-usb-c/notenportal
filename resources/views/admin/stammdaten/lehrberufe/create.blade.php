@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Neuer Lehrberuf</x-slot>
+    <x-slot name="title">{{ __('Neuer Lehrberuf') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Neuer Lehrberuf" schmal>
+        <x-seitenkopf :titel="__('Neuer Lehrberuf')" schmal>
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.professions.index') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    Zurück
+                    {{ __('Zurück') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -18,7 +18,7 @@
                     @csrf
 
                     <div>
-                        <label for="kuerzel" class="text-sm font-medium text-text">Kürzel *</label>
+                        <label for="kuerzel" class="text-sm font-medium text-text">{{ __('Kürzel *') }}</label>
                         <input type="text" id="kuerzel" name="kuerzel" value="{{ old('kuerzel') }}" required maxlength="10"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('kuerzel') border-note-ungenuegend @enderror">
                         @error('kuerzel')
@@ -27,7 +27,7 @@
                     </div>
 
                     <div>
-                        <label for="name" class="text-sm font-medium text-text">Name *</label>
+                        <label for="name" class="text-sm font-medium text-text">{{ __('Name *') }}</label>
                         <input type="text" id="name" name="name" value="{{ old('name') }}" required maxlength="200"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('name') border-note-ungenuegend @enderror">
                         @error('name')
@@ -38,7 +38,7 @@
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
                                 class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
-                            Lehrberuf anlegen
+                            {{ __('Lehrberuf anlegen') }}
                         </button>
                     </div>
                 </form>

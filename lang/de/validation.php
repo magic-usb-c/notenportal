@@ -166,5 +166,7 @@ return [
         'pruefungsdatum' => 'Prüfungsdatum',
         'gewichtung_prozent' => 'Gewichtung',
         'typ' => 'Typ',
+        'locale' => 'Sprache',
+        'sprache_standard' => 'Standardsprache',
     ],
 ];

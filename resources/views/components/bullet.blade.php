@@ -2,7 +2,7 @@
     'wert' => null,
     'ziel' => null,
     'grenzen' => null,     // ['gut', 'genuegend', 'kritisch'] aus den Einstellungen
-    'label' => 'Gesamtschnitt',
+    'label' => __('Gesamtschnitt'),
     'skala' => true,       // Grenzwerte unter dem Balken
 ])
 {{--
@@ -20,8 +20,8 @@
         default => 'bg-text',
     };
     $satz = $label.' '.$f($wert)
-        .($ziel !== null ? ', Ziel '.$f($ziel) : '')
-        .', genügend ab '.$f($g['genuegend']).', gut ab '.$f($g['gut']);
+        .($ziel !== null ? ', '.__('Ziel :wert', ['wert' => $f($ziel)]) : '')
+        .', '.__('genügend ab :wert', ['wert' => $f($g['genuegend'])]).', '.__('gut ab :wert', ['wert' => $f($g['gut'])]);
     $baender = [
         [1, $g['kritisch'], 'bg-muted/40'],
         [$g['kritisch'], $g['genuegend'], 'bg-muted/28'],

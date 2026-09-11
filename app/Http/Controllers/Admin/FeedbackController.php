@@ -76,12 +76,12 @@ class FeedbackController extends Controller
             return response()->json([
                 'ok' => true,
                 'status' => $feedback->status,
-                'status_label' => Feedback::STATUS[$feedback->status] ?? $feedback->status,
+                'status_label' => __(Feedback::STATUS[$feedback->status] ?? $feedback->status),
                 'erledigt_am' => $feedback->erledigt_am?->format('d.m.Y H:i'),
             ]);
         }
 
-        return redirect()->back()->with('success', 'Status aktualisiert.');
+        return redirect()->back()->with('success', __('Status aktualisiert.'));
     }
 
     /** Screenshot einer Meldung – nur für Admins, nie öffentlich oder für die meldende Person. */
@@ -112,7 +112,7 @@ class FeedbackController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Datum', 'Nachname', 'Vorname', 'E-Mail', 'Rolle', 'Kategorie', 'Status', 'Text', 'Route', 'URL', 'Viewport', 'Browser'], ';');
+            fputcsv($out, [__('Datum'), __('Nachname'), __('Vorname'), __('E-Mail'), __('Rolle'), __('Kategorie'), __('Status'), __('Text'), __('Route'), __('URL'), __('Viewport'), __('Browser')], ';');
 
             foreach ($rows as $r) {
                 fputcsv($out, [
@@ -121,8 +121,8 @@ class FeedbackController extends Controller
                     Csv::safe($r->vorname),
                     Csv::safe($r->email),
                     Csv::safe($r->rolle ?? ''),
-                    Feedback::KATEGORIEN[$r->kategorie] ?? $r->kategorie,
-                    Feedback::STATUS[$r->status] ?? $r->status,
+                    __(Feedback::KATEGORIEN[$r->kategorie] ?? $r->kategorie),
+                    __(Feedback::STATUS[$r->status] ?? $r->status),
                     Csv::safe($r->text),
                     Csv::safe($r->route_name ?? ''),
                     Csv::safe($r->url ?? ''),

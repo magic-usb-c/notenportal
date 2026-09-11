@@ -150,3 +150,12 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 - Filterformular in `verwaltung/noten/index.blade.php` liess sich ohne JS nicht absenden (nur `onchange` auf den `<select>`n) → `<noscript>`-Button «Filtern» ergänzt; Test `NotenKorrekturTest::notenliste_filter_hat_ohne_js_einen_absende_button`.
 - `filterleiste.blade.php`: «Weitere Filter»-Panel nutzte `x-cloak` und blieb ohne JS dauerhaft unsichtbar (z. B. «Inaktive anzeigen» in `verwaltung/lernende/index`) → `x-cloak` entfernt, Alpine-State startet offen (`offen: true`), wenn in «Weitere» aktive Filter stehen.
 - `scope="col"` auf allen `<th>` ergänzt in: `verwaltung/lernende/index`, `admin/benutzer/index`, `admin/feedback/index`, `admin/berufsbildner/index`, `admin/stammdaten/{module,kategorien,lehrberufe,faecher,semester}/index`, `admin/mail-log/index`, `dashboards/admin` (Berufsbildner-Last-Tabelle). `admin/notifications/index` und `verwaltung/noten/index` enthalten keine `<th>` (keine Tabelle) — nichts zu ändern.
+
+## Sprache DE/EN (12.09.2026, Gerüst fertig, Sprachwahl aus)
+
+- Vor dem Einschalten von `sprachwahl_aktiv`: englische Texte von einem Menschen gegenlesen lassen (`lang/en.json`, `lang/areas/*/en.json`).
+- Mails mit vorgebautem `MailContent` gehen in der Sprache des Auslösers statt des Empfängers: `KommentarController`, `Lernender/NotenController`, `NotenImportController`, `FeedbackController`, `Verwaltung/{NotenGesehen,Betreuung,LernendeNoten}Controller`, `Admin/{Feedback,MailSettings}Controller`, `Auth/{NewPassword,PasswortWechsel,Password}Controller`, `CheckNotifications`, `SicherungErstellen`, `GradeWatcher`, `AccountMails` → Inhalt erst im `Notifier` pro Empfänger bauen.
+- Übersetzungen sind portalweit flach (ein Wert pro deutschem Schlüssel, 26 Kollisionen beim Zusammenführen nach Glossar vereinheitlicht). Mehrdeutige Wörter («Semester», «Berufsbildner», «Fehler») bei Bedarf mit Kontext-Schlüsseln lösen.
+- `Dokument::ARTEN`-Labels und die Info-Texte der Einrichtungsschritte (`Einrichtung`-Stand) sind noch unübersetzt.
+- Pint-Altlasten ausserhalb der i18n-Änderungen: `KommentarController` (Imports, FQCN), `routes/web.php` (`Route::fallback`).
+- Nach dem Go-Live: Umbenennungen Code/Model/DB gemäss `docs/i18n-plan.md`.

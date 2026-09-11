@@ -19,13 +19,13 @@ final class SemesterClosed
         $rows = array_map(fn ($e) => [$e->label, $e->note !== null ? NotenSkala::format($e->note) : '–'], $r['elemente']);
 
         return new MailContent(
-            subject: 'Semesterabschluss: '.$semester->bezeichnung,
-            lines: ['Das Semester «'.$semester->bezeichnung.'» ist abgeschlossen. Hier sind deine Zeugnisnoten. Lade dein Zeugnis hoch, sobald du es hast.'],
-            facts: ['Semesterschnitt' => $r['note'] !== null ? NotenSkala::format($r['note']) : '–'],
-            table: $rows !== [] ? ['head' => ['Fach / Modul', 'Note'], 'rows' => $rows] : null,
-            actionLabel: 'Zeugnis hochladen',
+            subject: __('Semesterabschluss: :semester', ['semester' => $semester->bezeichnung]),
+            lines: [__('Das Semester «:semester» ist abgeschlossen. Hier sind deine Zeugnisnoten. Lade dein Zeugnis hoch, sobald du es hast.', ['semester' => $semester->bezeichnung])],
+            facts: [__('Semesterschnitt') => $r['note'] !== null ? NotenSkala::format($r['note']) : '–'],
+            table: $rows !== [] ? ['head' => [__('Fach / Modul'), __('Note')], 'rows' => $rows] : null,
+            actionLabel: __('Zeugnis hochladen'),
             actionUrl: route('learner.documents.index'),
-            digestTitle: 'Semesterabschluss: '.$semester->bezeichnung,
+            digestTitle: __('Semesterabschluss: :semester', ['semester' => $semester->bezeichnung]),
         );
     }
 
@@ -39,12 +39,12 @@ final class SemesterClosed
         ], $zeilen);
 
         return new MailContent(
-            subject: 'Semesterabschluss «'.$semester->bezeichnung.'» – deine Lernenden',
-            lines: ['Das Semester «'.$semester->bezeichnung.'» ist abgeschlossen. Hier der Überblick über deine Lernenden.'],
-            table: ['head' => ['Lernender', 'Semesterschnitt', 'Ungenügende Elemente'], 'rows' => $rows],
-            actionLabel: 'Zu den Lernenden',
+            subject: __('Semesterabschluss «:semester» – deine Lernenden', ['semester' => $semester->bezeichnung]),
+            lines: [__('Das Semester «:semester» ist abgeschlossen. Hier der Überblick über deine Lernenden.', ['semester' => $semester->bezeichnung])],
+            table: ['head' => [__('Lernender'), __('Semesterschnitt'), __('Ungenügende Elemente')], 'rows' => $rows],
+            actionLabel: __('Zu den Lernenden'),
             actionUrl: route('trainer.learners.index'),
-            digestTitle: 'Semesterabschluss «'.$semester->bezeichnung.'» – '.count($zeilen).' Lernende',
+            digestTitle: __('Semesterabschluss «:semester» – :anzahl Lernende', ['semester' => $semester->bezeichnung, 'anzahl' => count($zeilen)]),
         );
     }
 }

@@ -1,11 +1,11 @@
 <x-app-layout>
-    <x-slot name="title">Semester bearbeiten</x-slot>
+    <x-slot name="title">{{ __('Semester bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Semester bearbeiten" schmal>
+        <x-seitenkopf :titel="__('Semester bearbeiten')" schmal>
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.semesters.index') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    Zurück
+                    {{ __('Zurück') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -19,7 +19,7 @@
                     @method('PUT')
 
                     <div>
-                        <label for="bezeichnung" class="text-sm font-medium text-text">Bezeichnung *</label>
+                        <label for="bezeichnung" class="text-sm font-medium text-text">{{ __('Bezeichnung') }} *</label>
                         <input type="text" id="bezeichnung" name="bezeichnung" value="{{ old('bezeichnung', $semester->bezeichnung) }}" required maxlength="20"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('bezeichnung') border-note-ungenuegend @enderror">
                         @error('bezeichnung')
@@ -29,7 +29,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="start_datum" class="text-sm font-medium text-text">Von *</label>
+                            <label for="start_datum" class="text-sm font-medium text-text">{{ __('Von') }} *</label>
                             <input type="date" id="start_datum" name="start_datum" value="{{ old('start_datum', $semester->start_datum) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('start_datum') border-note-ungenuegend @enderror">
                             @error('start_datum')
@@ -37,7 +37,7 @@
                             @enderror
                         </div>
                         <div>
-                            <label for="end_datum" class="text-sm font-medium text-text">Bis *</label>
+                            <label for="end_datum" class="text-sm font-medium text-text">{{ __('Bis') }} *</label>
                             <input type="date" id="end_datum" name="end_datum" value="{{ old('end_datum', $semester->end_datum) }}" required
                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('end_datum') border-note-ungenuegend @enderror">
                             @error('end_datum')
@@ -47,7 +47,7 @@
                     </div>
 
                     <div>
-                        <label for="sortierung" class="text-sm font-medium text-text">Sortierung *</label>
+                        <label for="sortierung" class="text-sm font-medium text-text">{{ __('Sortierung') }} *</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung', $semester->sortierung) }}" required min="0"
                                class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('sortierung') border-note-ungenuegend @enderror">
                         @error('sortierung')
@@ -58,7 +58,7 @@
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
                                 class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
-                            Änderungen speichern
+                            {{ __('Änderungen speichern') }}
                         </button>
                     </div>
                 </form>

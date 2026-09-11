@@ -19,13 +19,13 @@ final class CommentAdded
         $bezug = self::bezeichnung($note);
 
         return new MailContent(
-            subject: 'Neuer Kommentar zu '.$bezug,
-            lines: [$name.' hat die Note vom '.self::datum($note).' in '.$bezug.' kommentiert:'],
-            facts: ['Fach / Modul' => $bezug, 'Note' => (string) $note->note_wert, 'Datum' => self::datum($note)],
-            sections: [['title' => 'Kommentar', 'text' => $kommentarText]],
-            actionLabel: 'Kommentar ansehen',
+            subject: __('Neuer Kommentar zu :bezug', ['bezug' => $bezug]),
+            lines: [__(':name hat die Note vom :datum in :bezug kommentiert:', ['name' => $name, 'datum' => self::datum($note), 'bezug' => $bezug])],
+            facts: [__('Fach / Modul') => $bezug, __('Note') => (string) $note->note_wert, __('Datum') => self::datum($note)],
+            sections: [['title' => __('Kommentar'), 'text' => $kommentarText]],
+            actionLabel: __('Kommentar ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: 'Neuer Kommentar von '.$name.' zu '.$bezug,
+            digestTitle: __('Neuer Kommentar von :name zu :bezug', ['name' => $name, 'bezug' => $bezug]),
         );
     }
 }

@@ -1,5 +1,5 @@
 @include('errors.layout', [
     'code'    => 404,
-    'title'   => 'Seite nicht gefunden',
-    'message' => 'Die angeforderte Seite existiert nicht.',
+    'title'   => __('Seite nicht gefunden'),
+    'message' => __('Die angeforderte Seite existiert nicht.'),
 ])

@@ -42,7 +42,7 @@ class StammdatenLehrberufeController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.professions.index')
-            ->with('success', 'Lehrberuf angelegt.');
+            ->with('success', __('Lehrberuf angelegt.'));
     }
 
     public function show(int $lehrberuf_id)
@@ -116,7 +116,7 @@ class StammdatenLehrberufeController extends Controller
             'aktiv' => 1,
         ]);
 
-        return back()->with('success', 'Modul zugewiesen.');
+        return back()->with('success', __('Modul zugewiesen.'));
     }
 
     public function removeModul(int $lehrberuf_id, int $modul_id): RedirectResponse
@@ -126,7 +126,7 @@ class StammdatenLehrberufeController extends Controller
             ->where('modul_id', $modul_id)
             ->delete();
 
-        return back()->with('success', 'Modul entfernt.');
+        return back()->with('success', __('Modul entfernt.'));
     }
 
     public function updateModulKategorie(Request $request, int $lehrberuf_id, int $modul_id): RedirectResponse
@@ -149,7 +149,7 @@ class StammdatenLehrberufeController extends Controller
                 ...array_intersect_key($validated, array_flip(['empfohlenes_lehrsemester_nr'])),
             ]);
 
-        return back()->with('success', 'Modul aktualisiert.');
+        return back()->with('success', __('Modul aktualisiert.'));
     }
 
     public function assignFach(Request $request, int $lehrberuf_id): RedirectResponse
@@ -164,7 +164,7 @@ class StammdatenLehrberufeController extends Controller
             'aktiv' => 1,
         ]);
 
-        return back()->with('success', 'Fach zugewiesen.');
+        return back()->with('success', __('Fach zugewiesen.'));
     }
 
     public function removeFach(int $lehrberuf_id, int $fach_id): RedirectResponse
@@ -174,7 +174,7 @@ class StammdatenLehrberufeController extends Controller
             ->where('fach_id', $fach_id)
             ->delete();
 
-        return back()->with('success', 'Fach entfernt.');
+        return back()->with('success', __('Fach entfernt.'));
     }
 
     public function edit(int $lehrberuf_id)
@@ -204,6 +204,6 @@ class StammdatenLehrberufeController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.professions.index')
-            ->with('success', 'Lehrberuf aktualisiert.');
+            ->with('success', __('Lehrberuf aktualisiert.'));
     }
 }

@@ -16,12 +16,14 @@ final class LearnerAssigned
         $beruf = $lernender->lehrberuf?->name;
 
         return new MailContent(
-            subject: 'Neue Betreuung: '.$name,
-            lines: ['Du betreust ab sofort '.$name.($beruf ? ' («'.$beruf.'»)' : '').'.'],
-            facts: array_filter(['Lehrberuf' => $beruf, 'Lehrbeginn' => $lernender->lehrbeginn?->format('d.m.Y')]),
-            actionLabel: 'Zum Cockpit',
+            subject: __('Neue Betreuung: :name', ['name' => $name]),
+            lines: [$beruf
+                ? __('Du betreust ab sofort :name («:beruf»).', ['name' => $name, 'beruf' => $beruf])
+                : __('Du betreust ab sofort :name.', ['name' => $name])],
+            facts: array_filter([__('Lehrberuf') => $beruf, __('Lehrbeginn') => $lernender->lehrbeginn?->format('d.m.Y')]),
+            actionLabel: __('Zum Cockpit'),
             actionUrl: route('trainer.learners.show', $lernender->lernender_id),
-            digestTitle: 'Neue Betreuung: '.$name,
+            digestTitle: __('Neue Betreuung: :name', ['name' => $name]),
         );
     }
 }

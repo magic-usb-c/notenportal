@@ -12,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notenblatt – {{ $blatt['name'] }}</title>
+    <title>{{ __('Notenblatt') }} – {{ $blatt['name'] }}</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10pt; color: #1a1a1a; background: #fff; padding: 16mm 18mm; max-width: 210mm; margin: 0 auto; }
@@ -74,13 +74,13 @@
 </head>
 <body>
     <div class="leiste">
-        <a href="{{ $zurueck }}">← Zurück</a>
-        <button type="button" onclick="window.print()">Drucken / PDF</button>
+        <a href="{{ $zurueck }}">← {{ __('Zurück') }}</a>
+        <button type="button" onclick="window.print()">{{ __('Drucken / PDF') }}</button>
     </div>
 
     <header>
         <div>
-            <h1>Notenblatt</h1>
+            <h1>{{ __('Notenblatt') }}</h1>
             <div class="sub">{{ $blatt['name'] }}</div>
         </div>
         <div class="rechts">
@@ -90,10 +90,10 @@
     </header>
 
     <section class="eckdaten">
-        <div><label>Lehrberuf</label><span>{{ $blatt['lehrberuf'] ?? '–' }}</span></div>
-        <div><label>Lehrbeginn</label><span>{{ $datum($blatt['lehrbeginn']) }}</span></div>
-        <div><label>Lehrende</label><span>{{ $datum($blatt['lehrende']) }}</span></div>
-        <div class="gesamt"><label>Gesamtnote</label><strong class="{{ $stufe($blatt['gesamt']) }}">{{ NotenSkala::format($blatt['gesamt'], 1) }}</strong></div>
+        <div><label>{{ __('Lehrberuf') }}</label><span>{{ $blatt['lehrberuf'] ?? '–' }}</span></div>
+        <div><label>{{ __('Lehrbeginn') }}</label><span>{{ $datum($blatt['lehrbeginn']) }}</span></div>
+        <div><label>{{ __('Lehrende') }}</label><span>{{ $datum($blatt['lehrende']) }}</span></div>
+        <div class="gesamt"><label>{{ __('Gesamtnote') }}</label><strong class="{{ $stufe($blatt['gesamt']) }}">{{ NotenSkala::format($blatt['gesamt'], 1) }}</strong></div>
     </section>
 
     @if($blatt['kategorien'])
@@ -106,7 +106,7 @@
 
     @forelse($blatt['semester'] as $sem)
         <section class="semester">
-            <h2><span>{{ $sem['bezeichnung'] }}</span><small>Semesterschnitt<strong>{{ NotenSkala::format($sem['note'], 1) }}</strong></small></h2>
+            <h2><span>{{ $sem['bezeichnung'] }}</span><small>{{ __('Semesterschnitt') }}<strong>{{ NotenSkala::format($sem['note'], 1) }}</strong></small></h2>
             @foreach($sem['kategorien'] as $kat)
                 <table>
                     <thead>
@@ -114,7 +114,7 @@
                             <th colspan="2">
                                 {{ $kat['name'] }}
                                 @if($kat['promotion'])
-                                    <span @class(['prom', 'nein' => ! $kat['promotion']['erfuellt']])>{{ $kat['promotion']['erfuellt'] ? 'Promotion erfüllt' : 'Promotion gefährdet' }}</span>
+                                    <span @class(['prom', 'nein' => ! $kat['promotion']['erfuellt']])>{{ $kat['promotion']['erfuellt'] ? __('Promotion erfüllt') : __('Promotion gefährdet') }}</span>
                                 @endif
                             </th>
                             <th class="r {{ $stufe($kat['note']) }}">{{ NotenSkala::format($kat['note'], 1) }}</th>
@@ -129,7 +129,7 @@
                                         <span>{{ $datum($p['datum'], 'd.m.') }}@if($p['titel']) {{ $p['titel'] }}@endif <b>{{ NotenSkala::format($p['note']) }}</b>@if(abs($p['gewicht'] - 100) > 0.001) · {{ Zahl::prozent($p['gewicht']) }}@endif</span>
                                     @endforeach
                                     @if($el['offen'])
-                                        <span class="offen">{{ Zahl::prozent($el['offen']) }} offen</span>
+                                        <span class="offen">{{ Zahl::prozent($el['offen']) }} {{ __('offen') }}</span>
                                     @endif
                                 </td>
                                 <td class="r note {{ $stufe($el['note']) }}">{{ NotenSkala::format($el['note'], 1) }}</td>
@@ -140,14 +140,14 @@
             @endforeach
         </section>
     @empty
-        <p class="leer">Keine Noten erfasst.</p>
+        <p class="leer">{{ __('Keine Noten erfasst.') }}</p>
     @endforelse
 
     <div class="unterschriften">
-        <section><div></div><p>Datum / Unterschrift Lernende/r</p></section>
-        <section><div></div><p>Datum / Unterschrift Berufsbildner/in</p></section>
+        <section><div></div><p>{{ __('Datum / Unterschrift Lernende/r') }}</p></section>
+        <section><div></div><p>{{ __('Datum / Unterschrift Berufsbildner/in') }}</p></section>
     </div>
 
-    <footer>Gedruckt am {{ now()->format('d.m.Y H:i') }} · {{ config('app.name') }}</footer>
+    <footer>{{ __('Gedruckt am') }} {{ now()->format('d.m.Y H:i') }} · {{ config('app.name') }}</footer>
 </body>
 </html>

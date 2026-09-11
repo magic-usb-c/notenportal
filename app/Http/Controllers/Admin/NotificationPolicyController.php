@@ -77,6 +77,6 @@ class NotificationPolicyController extends Controller
         }
         NotificationCatalog::forget();
 
-        return redirect()->route('admin.notifications.index')->with('success', 'Benachrichtigungen gespeichert.');
+        return redirect()->route('admin.notifications.index')->with('success', __('Benachrichtigungen gespeichert.'));
     }
 }

@@ -6,73 +6,73 @@
 @endphp
 <div class="flex flex-col gap-6">
     <section class="flex flex-col gap-4">
-        <h3 class="font-semibold text-text text-sm">Kalender-Abo</h3>
+        <h3 class="font-semibold text-text text-sm">{{ __('Kalender-Abo') }}</h3>
         <form method="POST" action="{{ route('learner.calendar.feed.store') }}" class="flex flex-col gap-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <div>
-                <label for="feed_label" class="{{ $label }}">Bezeichnung</label>
-                <input id="feed_label" name="label" maxlength="80" value="{{ old('label', $feed?->label) }}" placeholder="z. B. Schulnetz" class="{{ $feld }}">
+                <label for="feed_label" class="{{ $label }}">{{ __('Bezeichnung') }}</label>
+                <input id="feed_label" name="label" maxlength="80" value="{{ old('label', $feed?->label) }}" placeholder="{{ __('z. B. Schulnetz') }}" class="{{ $feld }}">
                 @error('label')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label for="feed_url" class="{{ $label }}">iCal-Adresse <span class="text-red-600 dark:text-red-400">*</span></label>
+                <label for="feed_url" class="{{ $label }}">{{ __('iCal-Adresse') }} <span class="text-red-600 dark:text-red-400">*</span></label>
                 <input id="feed_url" name="url" type="text" required maxlength="2000"
                        value="{{ old('url', $feed?->url) }}" placeholder="https://…/kalender.ics" class="{{ $feld }}">
                 @error('url')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
             </div>
             <fieldset class="flex flex-col gap-2">
-                <legend class="{{ $label }}">Übernehmen</legend>
+                <legend class="{{ $label }}">{{ __('Übernehmen') }}</legend>
                 <label class="inline-flex items-center gap-2 text-sm text-text">
                     <input type="checkbox" name="import_exams" value="1" @checked(old('import_exams', $feed?->import_exams ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
-                    Prüfungen
+                    {{ __('Prüfungen') }}
                 </label>
                 <label class="inline-flex items-center gap-2 text-sm text-text">
                     <input type="checkbox" name="import_appointments" value="1" @checked(old('import_appointments', $feed?->import_appointments ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
-                    Termine
+                    {{ __('Termine') }}
                 </label>
                 <label class="inline-flex items-center gap-2 text-sm text-text">
                     <input type="checkbox" name="import_lessons" value="1" @checked(old('import_lessons', $feed?->import_lessons ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
-                    Lektionen (Stundenplan)
+                    {{ __('Lektionen (Stundenplan)') }}
                 </label>
             </fieldset>
-            <button :disabled="loading" class="h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+            <button :disabled="loading" class="h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
         </form>
 
         @if($feed)
             <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 text-xs text-muted flex flex-col gap-1">
                 @if($feed->last_synced_at)
-                    <span>Letzter Abgleich: {{ $feed->last_synced_at->format('d.m.Y H:i') }}
-                        · {{ $feed->last_status === \App\Models\CalendarFeed::OK ? 'erfolgreich' : 'fehlgeschlagen' }}</span>
+                    <span>{{ __('Letzter Abgleich: :datum', ['datum' => $feed->last_synced_at->format('d.m.Y H:i')]) }}
+                        · {{ $feed->last_status === \App\Models\CalendarFeed::OK ? __('erfolgreich') : __('fehlgeschlagen') }}</span>
                     @if($feed->last_status === \App\Models\CalendarFeed::ERROR && $feed->last_error)
                         <span class="text-red-600 dark:text-red-400">{{ $feed->last_error }}</span>
                     @endif
                 @else
-                    <span>Noch nicht abgeglichen.</span>
+                    <span>{{ __('Noch nicht abgeglichen.') }}</span>
                 @endif
             </div>
             <form method="POST" action="{{ route('learner.calendar.sync') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
-                <button :disabled="loading" class="w-full h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">Jetzt abgleichen</button>
+                <button :disabled="loading" class="w-full h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Jetzt abgleichen') }}</button>
             </form>
         @endif
     </section>
 
     <section class="flex flex-col gap-3 pt-4 border-t border-border">
-        <h3 class="font-semibold text-text text-sm">Eigene Agenda abonnieren</h3>
-        <p class="text-xs text-muted">Diese Adresse in Kalender-Apps (Google, Outlook, Apple) als Kalenderabo hinzufügen.</p>
+        <h3 class="font-semibold text-text text-sm">{{ __('Eigene Agenda abonnieren') }}</h3>
+        <p class="text-xs text-muted">{{ __('Diese Adresse in Kalender-Apps (Google, Outlook, Apple) als Kalenderabo hinzufügen.') }}</p>
         <div class="flex items-center gap-2" x-data="{ kopiert: false }">
             <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()"
                    class="flex-1 min-w-0 rounded-lg border border-border bg-input text-text text-xs px-3 h-10 font-mono">
             <button type="button" class="px-3 h-10 rounded-lg glass-btn text-text text-sm shrink-0"
                     @click="navigator.clipboard.writeText($refs.link.value); kopiert = true; setTimeout(() => kopiert = false, 2000)">
-                <span x-show="!kopiert">Kopieren</span>
-                <span x-show="kopiert" x-cloak>Kopiert</span>
+                <span x-show="!kopiert">{{ __('Kopieren') }}</span>
+                <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
             </button>
         </div>
         <form method="POST" action="{{ route('learner.calendar.token.reset') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-              onsubmit="return confirm('Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.');">
+              onsubmit="return confirm('{{ __('Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.') }}');">
             @csrf
-            <button :disabled="loading" class="text-sm text-accent-text hover:underline disabled:opacity-60">Neuen Link erzeugen</button>
+            <button :disabled="loading" class="text-sm text-accent-text hover:underline disabled:opacity-60">{{ __('Neuen Link erzeugen') }}</button>
         </form>
     </section>
 </div>

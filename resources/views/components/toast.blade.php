@@ -36,7 +36,7 @@
         </svg>
     @endif
     <span class="min-w-0 flex-1" x-text="message">{{ $meldung }}</span>
-    <button type="button" @click="show = false" aria-label="Schliessen"
+    <button type="button" @click="show = false" aria-label="{{ __('Schliessen') }}"
             class="-my-1 -mr-1.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-text">
         <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>

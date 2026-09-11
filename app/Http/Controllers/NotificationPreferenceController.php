@@ -64,6 +64,6 @@ class NotificationPreferenceController extends Controller
             );
         }
 
-        return redirect()->route('notifications.settings')->with('success', 'Benachrichtigungen gespeichert.');
+        return redirect()->route('notifications.settings')->with('success', __('Benachrichtigungen gespeichert.'));
     }
 }

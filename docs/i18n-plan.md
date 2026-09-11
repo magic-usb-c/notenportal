@@ -83,3 +83,25 @@ Stand 11.09.2026. Ergänzt Abschnitt 4 des Auftrags (Routen/URLs englisch sind e
 - **Queue:** `PortalMail`, `MailContent` und `User` nicht umbenennen, sonst vorher die Queue leeren (`down`, `queue:work --stop-when-empty`) und `failed_jobs` prüfen.
 - **Deploy:** danach `optimize:clear` und `view:clear`; nach Klassen-Umbenennungen `dump-autoload` und ein Apache-Reload.
 - **Rollback:** C/D/E ändern nur Code, ein `git revert` reicht. B enthält eine additive Spalte mit getestetem `down()`.
+
+## Glossar DE → EN
+
+Britisches Englisch, in allen Bereichen gleich:
+
+| Deutsch | Englisch |
+|---|---|
+| Lernende/r | apprentice |
+| Berufsbildner/in | trainer |
+| Note | grade |
+| Prüfung | exam |
+| Semester | semester |
+| Zeugnisnote | report grade |
+| genügend | pass |
+| Lehrberuf | occupation |
+| Lehrbeginn / Lehrende | start / end of apprenticeship |
+| ÜK (überbetrieblicher Kurs) | inter-company course (ICC) |
+| Berufsfachschule | vocational school |
+| Fach / Modul | subject / module |
+| Schnitt / Durchschnitt | average |
+| Betrieb (Einstellungsseite) | Organisation |
+| Benachrichtigungen | notifications |

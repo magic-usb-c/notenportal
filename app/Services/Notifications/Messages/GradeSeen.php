@@ -17,23 +17,23 @@ final class GradeSeen
         $bezug = self::bezeichnung($note);
 
         return new MailContent(
-            subject: 'Note in '.$bezug.' angesehen',
-            lines: ['Dein Berufsbildner hat die Note vom '.self::datum($note).' in '.$bezug.' angesehen.'],
-            facts: ['Fach / Modul' => $bezug, 'Note' => (string) $note->note_wert, 'Datum' => self::datum($note)],
-            actionLabel: 'Note ansehen',
+            subject: __('Note in :bezug angesehen', ['bezug' => $bezug]),
+            lines: [__('Dein Berufsbildner hat die Note vom :datum in :bezug angesehen.', ['datum' => self::datum($note), 'bezug' => $bezug])],
+            facts: [__('Fach / Modul') => $bezug, __('Note') => (string) $note->note_wert, __('Datum') => self::datum($note)],
+            actionLabel: __('Note ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: 'Note in '.$bezug.' angesehen',
+            digestTitle: __('Note in :bezug angesehen', ['bezug' => $bezug]),
         );
     }
 
     public static function sammel(int $anzahl, string $zielUrl): MailContent
     {
-        $betreff = $anzahl.' Noten angesehen';
+        $betreff = __(':anzahl Noten angesehen', ['anzahl' => $anzahl]);
 
         return new MailContent(
             subject: $betreff,
-            lines: ['Dein Berufsbildner hat '.$anzahl.' Noten als gesehen markiert.'],
-            actionLabel: 'Noten ansehen',
+            lines: [__('Dein Berufsbildner hat :anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl])],
+            actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
             digestTitle: $betreff,
         );

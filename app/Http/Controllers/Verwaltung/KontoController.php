@@ -29,7 +29,7 @@ class KontoController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))
-            ->with('success', 'Passwort zurückgesetzt.')
+            ->with('success', __('Passwort zurückgesetzt.'))
             ->with('startpasswort', $passwort);
     }
 
@@ -44,6 +44,6 @@ class KontoController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))
-            ->with('success', $benutzer->aktiv ? 'Konto aktiviert.' : 'Konto deaktiviert.');
+            ->with('success', $benutzer->aktiv ? __('Konto aktiviert.') : __('Konto deaktiviert.'));
     }
 }

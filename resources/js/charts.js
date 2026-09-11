@@ -3,7 +3,7 @@ import {
     BarController, BarElement, CategoryScale, Chart, Filler, Legend, LinearScale,
     LineController, LineElement, PointElement, Tooltip,
 } from 'chart.js';
-import { format, notenFarbe, stufe, tokenFarbe } from './np';
+import { format, notenFarbe, stufe, t, tokenFarbe } from './np';
 
 Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
@@ -189,7 +189,7 @@ const BAUER = {
                 fill: d.serien.length === 1 ? 'origin' : false, order: s.dick ? 1 : 2,
             };
         });
-        if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, `genügend ${format(d.grenze, 1)}`));
+        if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, t('genügend :wert', { wert: format(d.grenze, 1) })));
         const direkt = o.direktlabels !== false && d.serien.length > 1;
         const namen = d.serien.filter((s) => !s.name?.startsWith('_')).map((s) => s.name ?? '');
         const padRechts = direkt ? Math.min(140, Math.max(40, Math.max(0, ...namen.map((n) => n.length)) * 6 + 14)) : 8;
@@ -208,21 +208,21 @@ const BAUER = {
     kurve(d) {
         const labels = d.punkte.map((p) => format(p.x, 2));
         const datasets = [{
-            label: 'Ergebnis', data: d.punkte.map((p) => p.wert), stepped: true,
+            label: t('Ergebnis'), data: d.punkte.map((p) => p.wert), stepped: true,
             borderColor: tokenFarbe('--accent'), backgroundColor: tokenFarbe('--accent', 0.1), fill: 'origin',
             borderWidth: 2.5, pointRadius: d.punkte.map((p) => (d.note !== null && Math.abs(p.x - d.note) < 0.13 ? 6 : 0)),
             pointBackgroundColor: tokenFarbe('--accent'),
         }, {
             type: 'line', label: '_ziel', data: Array(labels.length).fill(d.zielwert),
             borderColor: tokenFarbe('--text', 0.5), borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false,
-            npSchwelleLabel: `Ziel ${format(d.zielwert, 1)}`,
+            npSchwelleLabel: t('Ziel :wert', { wert: format(d.zielwert, 1) }),
         }];
         return {
             type: 'line', data: { labels, datasets },
             options: {
                 ...basis(),
                 plugins: { ...basis().plugins, legend: { display: false },
-                    tooltip: { ...basis().plugins.tooltip, callbacks: { title: (i) => `Note in offenen Prüfungen: ${i[0].label}`, label: (c) => ` Ergebnis: ${format(c.parsed.y, 2)}` } } },
+                    tooltip: { ...basis().plugins.tooltip, callbacks: { title: (i) => t('Note in offenen Prüfungen: :wert', { wert: i[0].label }), label: (c) => ` ${t('Ergebnis: :wert', { wert: format(c.parsed.y, 2) })}` } } },
                 scales: { y: notenAchse(), x: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 11 } } },
             },
         };
@@ -237,14 +237,14 @@ const BAUER = {
         const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.85) : tokenFarbe('--chart-6', 0.55));
         return {
             type: 'bar',
-            data: { labels: zeilen.map((z) => z.label), datasets: [{ label: 'Note', data: zeilen.map((z) => (z.wert === null ? null : [1, z.wert])),
+            data: { labels: zeilen.map((z) => z.label), datasets: [{ label: t('Note'), data: zeilen.map((z) => (z.wert === null ? null : [1, z.wert])),
                 backgroundColor: zeilen.map((z) => farbe(z.wert)), borderRadius: 4, borderSkipped: false, barThickness: 14 }] },
             options: {
                 ...basis(), indexAxis: 'y', layout: { padding: { right: 36, bottom: g.genuegend ? 18 : 0 } },
                 plugins: { ...basis().plugins, legend: { display: false },
                     tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${format(c.raw?.[1], 2)}` } },
                     npBalkenwert: { aktiv: true },
-                    npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? `genügend ${format(g.genuegend, 1)}` : null } },
+                    npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? t('genügend :wert', { wert: format(g.genuegend, 1) }) : null } },
                 scales: { x: notenAchse({ position: 'top' }), y: { grid: { display: false }, border: { display: false },
                     // lange Fach-/Modulnamen kürzen (voller Name im Tooltip), sonst schneidet die Achse mobil ab
                     ticks: { callback(v) { const l = String(this.getLabelForValue(v)); const max = this.chart.width < 520 ? 16 : 32; return l.length > max ? `${l.slice(0, max - 1)}…` : l; } } } },
@@ -273,7 +273,7 @@ const BAUER = {
     saeulen(d) {
         return {
             type: 'bar',
-            data: { labels: d.labels, datasets: [{ label: d.name ?? 'Anzahl', data: d.werte,
+            data: { labels: d.labels, datasets: [{ label: d.name ?? t('Anzahl'), data: d.werte,
                 backgroundColor: d.farben ? d.farben.map((v) => notenFarbe(v, d.grenzen, 0.75)) : serie(0, 0.7), borderRadius: 6 }] },
             options: {
                 ...basis(),
@@ -294,7 +294,7 @@ const BAUER = {
         const grenze = d.grenzen?.genuegend ?? 4;
         return {
             type: 'bar',
-            data: { labels: d.labels, datasets: [{ label: d.name ?? 'Anzahl', data: d.werte,
+            data: { labels: d.labels, datasets: [{ label: d.name ?? t('Anzahl'), data: d.werte,
                 backgroundColor: d.labels.map((l) => (parseFloat(l) < grenze - 1e-9 ? tokenFarbe('--note-ungenuegend', 0.75) : tokenFarbe('--chart-6', 0.6))),
                 borderRadius: 6 }] },
             options: {

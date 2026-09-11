@@ -4,7 +4,7 @@
     $serien = ['bg-chart-1', 'bg-chart-2', 'bg-chart-3', 'bg-chart-4', 'bg-chart-5'];
 @endphp
 <section class="rounded-xl border border-border bg-card p-6 mt-5">
-    <h3 class="text-sm font-semibold text-text">Farbthema</h3>
+    <h3 class="text-sm font-semibold text-text">{{ __('Farbthema') }}</h3>
     <form method="POST" action="{{ route('admin.operations.theme.update') }}" class="mt-4 flex flex-col gap-5"
           x-data="{ loading: false, theme: @js($theme), dunkel: document.documentElement.classList.contains('dark') }"
           x-init="new MutationObserver(() => dunkel = document.documentElement.classList.contains('dark'))
@@ -13,7 +13,7 @@
         @csrf
         @method('PUT')
         <fieldset>
-            <legend class="sr-only">Farbthema</legend>
+            <legend class="sr-only">{{ __('Farbthema') }}</legend>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 @foreach(\App\Support\Theme::THEMES as $wert => $name)
                     <label class="cursor-pointer rounded-xl border border-border p-2 transition-colors duration-100 hover:border-border-strong/60
@@ -42,7 +42,7 @@
             @error('theme')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </fieldset>
         <div class="flex justify-end">
-            <button type="submit" :disabled="loading" class="inline-flex h-10 items-center rounded-lg bg-accent px-5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">Speichern</button>
+            <button type="submit" :disabled="loading" class="inline-flex h-10 items-center rounded-lg bg-accent px-5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">{{ __('Speichern') }}</button>
         </div>
     </form>
 </section>

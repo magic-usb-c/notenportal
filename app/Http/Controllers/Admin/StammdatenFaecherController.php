@@ -57,7 +57,7 @@ class StammdatenFaecherController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.subjects.index')
-            ->with('success', 'Fach angelegt.');
+            ->with('success', __('Fach angelegt.'));
     }
 
     public function edit(int $fach_id)
@@ -90,7 +90,7 @@ class StammdatenFaecherController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.subjects.index')
-            ->with('success', 'Fach aktualisiert.');
+            ->with('success', __('Fach aktualisiert.'));
     }
 
     private function aktiveKategorien()

@@ -1,14 +1,15 @@
-<x-einrichtung schritt="semesters" :stand="$stand" titel="Semester">
+<x-einrichtung schritt="semesters" :stand="$stand" :titel="__('Semester')">
     @php
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
         $label = 'text-sm font-medium text-text';
         $start = ['herbst' => old('herbst', $vorschlag['herbst']), 'fruehling' => old('fruehling', $vorschlag['fruehling']), 'bis' => (int) old('bis_jahr', $vorschlag['bis'])];
     @endphp
     <script>
-        function npSemesterPlan(start, vorhanden) {
+        function npSemesterPlan(start, vorhanden, labels) {
             const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             return {
                 ...start,
+                labels,
                 loading: false,
                 get plan() {
                     if (!this.herbst || !this.fruehling) return [];
@@ -33,22 +34,22 @@
     </script>
 
     <form method="POST" action="{{ route('admin.setup.semesters') }}" class="flex flex-col gap-5"
-          x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')))" @submit="if (!$event.defaultPrevented) loading = true">
+          x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')), @js(['neu' => __('neu'), 'vorhanden' => __('vorhanden')]))" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-5">
             <div class="grid sm:grid-cols-3 gap-4">
                 <div>
-                    <label for="herbst" class="{{ $label }}">Erstes Herbstsemester ab *</label>
+                    <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }} *</label>
                     <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
                     @error('herbst')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="fruehling" class="{{ $label }}">Erstes Frühlingssemester ab *</label>
+                    <label for="fruehling" class="{{ $label }}">{{ __('Erstes Frühlingssemester ab') }} *</label>
                     <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}">
                     @error('fruehling')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="bis_jahr" class="{{ $label }}">Bis Schuljahr *</label>
+                    <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }} *</label>
                     <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}">
                     @error('bis_jahr')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
@@ -56,8 +57,8 @@
 
             <div>
                 <div class="flex items-baseline justify-between gap-3 mb-2">
-                    <h3 class="text-sm font-semibold text-text">Vorschau</h3>
-                    <span class="text-xs text-muted" x-text="`${neu} neu · ${plan.length - neu} vorhanden`"></span>
+                    <h3 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h3>
+                    <span class="text-xs text-muted" x-text="`${neu} ${labels.neu} · ${plan.length - neu} ${labels.vorhanden}`"></span>
                 </div>
                 <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                     <template x-for="s in plan" :key="s.b">
@@ -72,7 +73,7 @@
 
         @if($semester->isNotEmpty())
             <section class="rounded-2xl border border-border bg-card p-5">
-                <h3 class="text-sm font-semibold text-text mb-3">Vorhanden</h3>
+                <h3 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h3>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)
                         <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }}</span>
@@ -81,6 +82,6 @@
             </section>
         @endif
 
-        @include('admin.einrichtung._fuss', ['schritt' => 'semesters', 'knopf' => 'Semester anlegen'])
+        @include('admin.einrichtung._fuss', ['schritt' => 'semesters', 'knopf' => __('Semester anlegen')])
     </form>
 </x-einrichtung>

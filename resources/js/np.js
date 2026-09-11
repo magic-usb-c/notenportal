@@ -1,5 +1,12 @@
 // Gemeinsame Helfer: JSON-POST mit CSRF, Notenfarben nach den Grenzen aus den Einstellungen, Formatierung.
 
+// Übersetzung: Schlüssel ist der deutsche Text, window.npI18n (Layout, nur ausserhalb von Deutsch) liefert die Übersetzung.
+// Platzhalter wie in Laravel: t('Ziel :wert', { wert: '4.5' }). Neue Schlüssel in App\Support\JsTexte und lang/en.json.
+export function t(schluessel, ersetzungen = {}) {
+    const text = window.npI18n?.[schluessel] ?? schluessel;
+    return Object.entries(ersetzungen).reduce((s, [name, wert]) => s.replaceAll(`:${name}`, String(wert)), text);
+}
+
 export async function postJson(url, body) {
     const res = await fetch(url, {
         method: 'POST',
@@ -13,7 +20,7 @@ export async function postJson(url, body) {
     const daten = await res.json().catch(() => null);
     if (!res.ok) {
         const meldung = daten?.errors ? Object.values(daten.errors).flat()[0] : null;
-        throw new Error(meldung || 'Berechnung fehlgeschlagen.');
+        throw new Error(meldung || t('Berechnung fehlgeschlagen.'));
     }
     return daten;
 }

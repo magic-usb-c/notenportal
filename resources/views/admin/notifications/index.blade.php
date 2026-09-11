@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">Benachrichtigungen</x-slot>
+    <x-slot name="title">{{ __('Benachrichtigungen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="Benachrichtigungen" />
+        <x-seitenkopf :titel="__('Benachrichtigungen')" />
     </x-slot>
 
     @php
@@ -21,7 +21,7 @@
                     @php $anlaesseInGruppe = array_filter($anlaesse, fn ($a) => $a['group'] === $gruppenKey); @endphp
                     @continue(empty($anlaesseInGruppe))
                     <section class="rounded-xl border border-border bg-card overflow-hidden">
-                        <h3 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ $gruppenLabel }}</h3>
+                        <h3 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ __($gruppenLabel) }}</h3>
                         <div class="divide-y divide-border">
                             @foreach($anlaesseInGruppe as $type => $a)
                                 <div class="p-5 flex flex-col gap-3">
@@ -31,11 +31,11 @@
                                                 {{ $a['label'] }}
                                                 @if($a['locked'] ?? false)
                                                     <svg class="w-3.5 h-3.5 text-muted" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v2H5a1 1 0 00-1 1v8a1 1 0 001 1h10a1 1 0 001-1V9a1 1 0 00-1-1h-1V6a4 4 0 00-4-4zm2 6V6a2 2 0 10-4 0v2h4z" clip-rule="evenodd"/></svg>
-                                                    <span class="sr-only">verpflichtend, nicht änderbar</span>
+                                                    <span class="sr-only">{{ __('verpflichtend, nicht änderbar') }}</span>
                                                 @endif
                                             </div>
                                             <p class="text-xs text-muted mt-0.5">{{ $a['description'] }}</p>
-                                            <p class="text-[11px] text-muted mt-1">{{ implode(', ', $a['roles']) }}</p>
+                                            <p class="text-[11px] text-muted mt-1">{{ implode(', ', array_map('__', $a['roles'])) }}</p>
                                         </div>
 
                                         <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -43,13 +43,13 @@
                                             <label class="{{ $toggle }}">
                                                 <input type="checkbox" name="policies[{{ $type }}][enabled]" value="1" class="sr-only"
                                                        @checked($a['enabled']) @disabled($a['locked'] ?? false)>
-                                                Aktiv
+                                                {{ __('Aktiv') }}
                                             </label>
                                             <input type="hidden" name="policies[{{ $type }}][mandatory]" value="0">
                                             <label class="{{ $toggle }}">
                                                 <input type="checkbox" name="policies[{{ $type }}][mandatory]" value="1" class="sr-only"
                                                        @checked($a['mandatory']) @disabled($a['locked'] ?? false)>
-                                                Verpflichtend
+                                                {{ __('Verpflichtend') }}
                                             </label>
                                         </div>
                                     </div>
@@ -57,10 +57,10 @@
                                     <div class="flex flex-wrap items-end gap-3">
                                         @if(count($a['frequencies']) > 1)
                                             <div>
-                                                <label for="frequency-{{ $type }}" class="text-sm font-medium text-text">Standard-Frequenz</label>
+                                                <label for="frequency-{{ $type }}" class="text-sm font-medium text-text">{{ __('Standard-Frequenz') }}</label>
                                                 <select id="frequency-{{ $type }}" name="policies[{{ $type }}][frequency]" @disabled($a['locked'] ?? false) class="{{ $feld }}">
                                                     @foreach($a['frequencies'] as $f)
-                                                        <option value="{{ $f }}" @selected($a['frequency'] === $f)>{{ \App\Services\Notifications\NotificationCatalog::FREQUENCIES[$f] }}</option>
+                                                        <option value="{{ $f }}" @selected($a['frequency'] === $f)>{{ __(\App\Services\Notifications\NotificationCatalog::FREQUENCIES[$f]) }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
@@ -83,7 +83,7 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">Speichern</button>
+                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
                 </div>
             </form>
         </div>

@@ -150,7 +150,7 @@ class LernendeController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernenderId))
-            ->with('success', 'Lernender angelegt.')
+            ->with('success', __('Lernender angelegt.'))
             ->with('startpasswort', $passwort);
     }
 
@@ -221,7 +221,7 @@ class LernendeController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))
-            ->with('success', 'Lernender gespeichert.');
+            ->with('success', __('Lernender gespeichert.'));
     }
 
     /**

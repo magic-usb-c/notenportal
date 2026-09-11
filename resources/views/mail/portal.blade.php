@@ -27,7 +27,7 @@
     $gruppen = collect($c->items)->groupBy(fn ($i) => $i['group'] ?? '');
 @endphp
 <!DOCTYPE html>
-<html lang="de">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -58,7 +58,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr><td class="np-pad np-text" style="padding:32px 36px 8px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:15px;line-height:1.55;">
                         <h1 class="np-text" style="margin:0 0 18px;font-size:21px;line-height:1.3;font-weight:700;color:{{ $f['text'] }};">{{ $c->title ?? $c->subject }}</h1>
-                        @if($vorname)<p style="margin:0 0 12px;">Hallo {{ $vorname }}</p>@endif
+                        @if($vorname)<p style="margin:0 0 12px;">{{ __('Hallo :vorname', ['vorname' => $vorname]) }}</p>@endif
                         @foreach($c->lines as $zeile)
                             <p style="margin:0 0 12px;">{{ $zeile }}</p>
                         @endforeach
@@ -121,7 +121,7 @@
 
                     @if($c->actionUrl)
                         <tr><td class="np-pad" style="padding:22px 36px 6px;">
-                            <a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;background:{{ $f['accent'] }};color:#ffffff;font-family:{{ $schrift }};font-size:15px;font-weight:600;text-decoration:none;padding:13px 24px;border-radius:12px;">{{ $c->actionLabel ?? 'Im Notenportal öffnen' }}</a>
+                            <a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;background:{{ $f['accent'] }};color:#ffffff;font-family:{{ $schrift }};font-size:15px;font-weight:600;text-decoration:none;padding:13px 24px;border-radius:12px;">{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}</a>
                         </td></tr>
                     @endif
 
@@ -130,15 +130,15 @@
                             <p style="margin:0 0 10px;">{{ $zeile }}</p>
                         @endforeach
                         @if($c->actionUrl)
-                            <p class="np-muted" style="margin:10px 0 0;font-size:12px;color:{{ $f['muted'] }};word-break:break-all;">Knopf funktioniert nicht? {{ $c->actionUrl }}</p>
+                            <p class="np-muted" style="margin:10px 0 0;font-size:12px;color:{{ $f['muted'] }};word-break:break-all;">{{ __('Knopf funktioniert nicht?') }} {{ $c->actionUrl }}</p>
                         @endif
                     </td></tr>
                 </table>
             </td></tr>
             <tr><td class="np-pad np-muted" style="padding:18px 8px 0;font-family:{{ $schrift }};font-size:12px;line-height:1.6;color:{{ $f['muted'] }};">
-                @if($anlass)Du erhältst diese Mail wegen «{{ $anlass }}».@endif
-                @if($einstellungenUrl) <a href="{{ $einstellungenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">Benachrichtigungen einstellen</a>@endif
-                @if($abmeldenUrl) · <a href="{{ $abmeldenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">Diese Mails abbestellen</a>@endif
+                @if($anlass){{ __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) }}@endif
+                @if($einstellungenUrl) <a href="{{ $einstellungenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Benachrichtigungen einstellen') }}</a>@endif
+                @if($abmeldenUrl) · <a href="{{ $abmeldenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Diese Mails abbestellen') }}</a>@endif
                 <br><a href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
             </td></tr>
         </table>

@@ -28,7 +28,7 @@ class TrackController extends VerwaltungController
             ->exists();
 
         if ($konflikt) {
-            return back()->with('error', 'Es läuft bereits ein '.$daten['track_typ'].'-Track.');
+            return back()->with('error', __('Es läuft bereits ein :typ-Track.', ['typ' => $daten['track_typ']]));
         }
 
         $lernender->tracks()->create([
@@ -39,7 +39,7 @@ class TrackController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))
-            ->with('success', 'Track gestartet.');
+            ->with('success', __('Track gestartet.'));
     }
 
     public function beenden(Request $request, int $lernender_id, int $track_id): RedirectResponse
@@ -61,6 +61,6 @@ class TrackController extends VerwaltungController
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))
-            ->with('success', 'Track beendet.');
+            ->with('success', __('Track beendet.'));
     }
 }
