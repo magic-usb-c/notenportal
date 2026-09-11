@@ -43,4 +43,35 @@ class UngeseheneNotenProBbTest extends TestCase
         $this->assertNotNull($zeile);
         $this->assertSame(2, $zeile->neu);
     }
+
+    #[Test]
+    public function zaehler_mehrerer_berufsbildner_bleiben_getrennt(): void
+    {
+        $bbA = User::factory()->berufsbildner()->create(['vorname' => 'Anna', 'nachname' => 'Erste']);
+        $bbB = User::factory()->berufsbildner()->create(['vorname' => 'Bruno', 'nachname' => 'Zweiter']);
+        $nurA = User::factory()->lernender()->create();
+        $beide = User::factory()->lernender()->create();
+
+        foreach ([[$bbA, $nurA], [$bbA, $beide], [$bbB, $beide]] as [$bb, $u]) {
+            Betreuung::factory()->create([
+                'berufsbildner_id' => $bb->berufsbildner->berufsbildner_id,
+                'lernender_id' => $u->lernender->lernender_id,
+            ]);
+        }
+
+        Note::factory()->count(3)->create(['lernender_id' => $nurA->lernender->lernender_id]);
+        $geteilt = Note::factory()->create(['lernender_id' => $beide->lernender->lernender_id]);
+
+        // Nur Bruno hat die gemeinsame Note gesehen – Annas Zähler bleibt davon unberührt.
+        DB::table('noten_gesehen')->insert([
+            'note_id' => $geteilt->note_id,
+            'viewer_benutzer_id' => $bbB->benutzer_id,
+            'gesehen_am' => now()->addMinute(),
+        ]);
+
+        $proBb = collect(app(Uebersicht::class)->admin()['proBb']);
+
+        $this->assertSame(4, $proBb->firstWhere('name', 'Anna Erste')->neu);
+        $this->assertSame(0, $proBb->firstWhere('name', 'Bruno Zweiter')->neu);
+    }
 }
