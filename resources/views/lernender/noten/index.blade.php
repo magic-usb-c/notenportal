@@ -220,16 +220,22 @@
                         <input type="date" x-model="z.datum" class="h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30" aria-label="{{ __('Prüfungsdatum') }}">
                         <p class="text-xs" :class="semesterVon(z.datum) ? 'text-muted' : 'text-note-knapp'"
                            x-text="semesterVon(z.datum) ? @js(__('Semester ')) + semesterVon(z.datum).name : (z.datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
-                        <div class="flex items-center gap-2">
-                            <div class="relative w-24 shrink-0">
-                                <input type="number" min="0" max="100" step="1" x-model="z.gewicht"
-                                       class="h-10 w-full rounded-lg border border-border-strong/70 bg-input py-2 pl-2 pr-6 text-right text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30"
-                                       aria-label="{{ __('Gewichtung in Prozent') }}">
-                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
-                            </div>
-                            <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="4.5"
-                                   class="h-10 flex-1 rounded-lg border-2 border-border-strong/70 bg-input text-center text-sm font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0"
-                                   :class="klasse(z.wert)" aria-label="{{ __('Note') }}">
+                        <div class="flex items-end gap-2">
+                            <label class="flex w-24 shrink-0 flex-col gap-1">
+                                <span class="text-xs text-muted">{{ __('Gewichtung') }}</span>
+                                <span class="relative">
+                                    <input type="number" min="0" max="100" step="1" x-model="z.gewicht"
+                                           class="h-10 w-full rounded-lg border border-border-strong/70 bg-input py-2 pl-2 pr-6 text-right text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30"
+                                           aria-label="{{ __('Gewichtung in Prozent') }}">
+                                    <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
+                                </span>
+                            </label>
+                            <label class="flex flex-1 flex-col gap-1">
+                                <span class="text-xs text-muted">{{ __('Note') }}</span>
+                                <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="4.5"
+                                       class="h-10 w-full rounded-lg border-2 border-border-strong/70 bg-input text-center text-sm font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0"
+                                       :class="klasse(z.wert)" aria-label="{{ __('Note') }}">
+                            </label>
                         </div>
                     </div>
                 </template>
