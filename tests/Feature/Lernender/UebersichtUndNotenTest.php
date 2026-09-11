@@ -81,6 +81,17 @@ class UebersichtUndNotenTest extends TestCase
     }
 
     #[Test]
+    public function wo_stehe_ich_zeigt_stufennamen_als_legende_und_tabellenspalte(): void
+    {
+        $this->note('5.0');
+
+        $response = $this->get(route('learner.dashboard'))->assertOk();
+
+        $response->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
+        $response->assertSeeInOrder(['Wo stehe ich', 'Als Tabelle', 'Fach / Modul', 'Stufe', 'Aufträge durchführen', '5.0', 'gut'], false);
+    }
+
+    #[Test]
     public function ungenuegende_zeugnisnote_steht_unter_als_naechstes(): void
     {
         $this->note('3.0');

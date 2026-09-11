@@ -151,8 +151,11 @@ final class Uebersicht
         return $ziel ? (float) $ziel->zielwert : null;
     }
 
+    /** Sortierschlüssel der Klassentabelle «Meine Lernenden», Reihenfolge = Spaltenreihenfolge in der Tabelle. */
+    public const array BB_SORTIERUNGEN = ['name', 'status', 'semester', 'gesamt', 'trend'];
+
     /** Berufsbildner: wen muss ich heute anschauen? */
-    public function berufsbildner(User $user): array
+    public function berufsbildner(User $user, ?string $sort = null, string $dir = 'asc'): array
     {
         $lernende = Lernender::sichtbarFuer($user)
             ->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))
@@ -171,7 +174,8 @@ final class Uebersicht
             'neu' => (int) ($neu[$l->lernender_id] ?? 0),
             'lehrjahr' => $l->lehrjahr(),
             'naechstePruefung' => $naechstePruefung->get($l->lernender_id),
-        ])->sortBy([fn ($a, $b) => $a->stand->rang() <=> $b->stand->rang(), fn ($a, $b) => strcoll($a->lernender->benutzer->nachname, $b->lernender->benutzer->nachname)])->values();
+        ]);
+        $zeilen = $this->bbSortiert($zeilen, $sort, $dir);
 
         return [
             'zeilen' => $zeilen,
@@ -473,6 +477,41 @@ final class Uebersicht
             ->selectRaw('n.lernender_id, COUNT(DISTINCT n.note_id) as anzahl')
             ->pluck('anzahl', 'lernender_id')
             ->map(fn ($v) => (int) $v)->all();
+    }
+
+    /**
+     * Sortierung der Klassentabelle: ohne (gültigen) Sortierschlüssel Status dann Nachname,
+     * sonst nach gewählter Spalte und Richtung; Zeilen ohne Wert immer am Schluss.
+     */
+    private function bbSortiert(Collection $zeilen, ?string $sort, string $dir): Collection
+    {
+        $spalten = [
+            'name' => fn (object $z) => mb_strtolower($z->lernender->benutzer->nachname.' '.$z->lernender->benutzer->vorname),
+            'status' => fn (object $z) => $z->stand->rang(),
+            'semester' => fn (object $z) => $z->stand->semesterNote,
+            'gesamt' => fn (object $z) => $z->stand->auswertung->gesamtNote,
+            'trend' => fn (object $z) => $z->stand->delta(),
+        ];
+
+        if ($sort === null || ! isset($spalten[$sort])) {
+            return $zeilen->sortBy([
+                fn ($a, $b) => $a->stand->rang() <=> $b->stand->rang(),
+                fn ($a, $b) => strcoll($a->lernender->benutzer->nachname, $b->lernender->benutzer->nachname),
+            ])->values();
+        }
+
+        $wert = $spalten[$sort];
+        $richtung = $dir === 'desc' ? -1 : 1;
+
+        return $zeilen->sort(function (object $a, object $b) use ($wert, $richtung) {
+            $va = $wert($a);
+            $vb = $wert($b);
+            if ($va === null || $vb === null) {
+                return $va === $vb ? 0 : ($va === null ? 1 : -1);
+            }
+
+            return (is_string($va) ? strcoll($va, $vb) : $va <=> $vb) * $richtung;
+        })->values();
     }
 
     /**

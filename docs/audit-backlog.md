@@ -109,15 +109,15 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - ~~Kein «Als Tabelle»-Umschalter für die Diagramme «Wo stehe ich» und «Verlauf» (Screenreader bekommen nur `aria-label`/Tooltip).~~ erledigt (12.09.): `<details>`-Tabellenalternative (gleiches Muster wie `<x-diagramm>`) unter beiden Diagrammen ergänzt, serverseitig aus denselben Daten gerendert (`resources/views/dashboards/lernender.blade.php`); Test `UebersichtUndNotenTest::dashboard_bietet_tabellenalternative_fuer_wo_stehe_ich_und_verlauf`.
 - ~~Segment-Umschalter (`role="radiogroup"`) ohne Pfeiltasten-Navigation; Tab + Enter funktioniert.~~ erledigt (11.09., Reste-Session): `x-radiogroup`-Direktive in `np.js` (Roving Tabindex + Pfeiltasten), angewendet auf alle `role="radiogroup"`-Container in `resources/views` (native `<input type="radio">` in `notifications/settings.blade.php` bewusst unverändert, dort bereits nativ bedienbar).
 - ~~`np.js` `notenKlasse` nutzt noch Palettenfarben statt Noten-Tokens (nicht im Paket).~~ erledigt (11.09., Reste-Session): `TEXT`-Map auf `text-note-*`-Tokens umgestellt.
-- Bullet Graph beschriftet nur Grenzwerte (3.5/4.0/5.0), keine Bandnamen; lange Fach-/Modulnamen in «Wo stehe ich» mobil auf 16 Zeichen gekürzt (voll im Tooltip).
+- ~~Bullet Graph ohne Bandnamen~~ erledigt (12.09.): Legende ungenügend/knapp/genügend/gut unter «Wo stehe ich», Spalte «Stufe» in «Als Tabelle». Offen: dieselben Stufennamen in den Admin-/Berichtsdiagrammen. Lange Fach-/Modulnamen mobil weiterhin auf 16 Zeichen gekürzt (voll im Tooltip).
 - `x-sparkline` zeigt jetzt standardmässig den letzten Wert als Zahl – auch in der BB-Tabelle; dort ggf. `:zahl="false"` setzen (Paket 4).
 - Einzelnoten-Tabelle mobil: Spalte «Schnitt vor Rundung» ab `sm` ausgeblendet.
 
 ## Paket 4 – Berufsbildner (11.09.2026) – bewusst weggelassen
 
 - `Uebersicht::berufsbildner()` liefert `vergleich`/`vergleichDiagramm()` nicht mehr – die Small-Multiples-Karte «Verlauf im Vergleich» (Paket 6) entfällt, «Im Vergleich» ist jetzt die sortierbare Verlauf-Spalte in der Tabelle (siehe Zeile 104 oben, damit erledigt).
-- Spalten der Tabelle «Meine Lernenden» sind nicht klicksortierbar (Blueprint erwähnt Sortierbarkeit); Sortierung aktuell fix nach Status/Nachname.
-- Segment-Filter (`role="radiogroup"`) in «Meine Lernenden» ist ab `sm` sichtbar, auf 390px-Mobil ausgeblendet (Platzgründe, wie schon im alten Dashboard) – Suche bleibt dort die einzige Einschränkung.
+- ~~Spalten der Tabelle «Meine Lernenden» sind nicht klicksortierbar~~ erledigt (12.09.): Sortierlinks mit `aria-sort` (`?sort=name|status|semester|gesamt|trend&dir=`), Allowlist in `Uebersicht::BB_SORTIERUNGEN`, Standard weiter Status → Nachname; Test `DashboardSortierungTest`.
+- ~~Segment-Filter in «Meine Lernenden» auf 390px ausgeblendet~~ erledigt (12.09.): auch mobil sichtbar, horizontal scrollbar unter der Suche.
 - `x-sparkline` in Tabelle und Cockpit-Stand mit `:zahl="false"` verwendet, um die Redundanz mit der danebenstehenden Semester-/Gesamt-Note zu vermeiden (löst den Hinweis aus Paket 3 oben).
 - Keine «Vorher»-Screenshots erstellt, bevor die Änderungen begannen (Vorgabe verpasst); nur «Nachher»-Screenshots (hell/dunkel/mobil) unter `~/tools/out/paket4/` liegen vor.
 - Cockpit-Reiter «Noten», «Dokumente», «Rechner» verlinken auf die bestehenden Einzelseiten statt Inline-Panels zu zeigen (kein eigener Seiteninhalt für diese Tabs im Blueprint verlangt).

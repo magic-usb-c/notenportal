@@ -32,7 +32,15 @@ class DashboardController extends Controller
     {
         abort_unless($request->user()->berufsbildner, 403);
 
-        return view('dashboards.berufsbildner', $this->uebersicht->berufsbildner($request->user()));
+        $filter = [
+            'sort' => in_array($request->input('sort'), Uebersicht::BB_SORTIERUNGEN, true) ? $request->input('sort') : null,
+            'dir' => $request->input('dir') === 'desc' ? 'desc' : 'asc',
+        ];
+
+        return view('dashboards.berufsbildner', [
+            ...$this->uebersicht->berufsbildner($request->user(), $filter['sort'], $filter['dir']),
+            'filter' => $filter,
+        ]);
     }
 
     public function admin(): View|RedirectResponse

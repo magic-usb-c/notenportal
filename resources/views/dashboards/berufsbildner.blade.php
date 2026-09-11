@@ -47,31 +47,48 @@
                         get zaehlNeu() { return this.zeilen.filter(z => z.neu > 0).length },
                      }">
                 <x-slot:aktionen>
-                    <input type="search" x-model="suche" placeholder="{{ __('Suchen') }}" aria-label="{{ __('Lernende suchen') }}"
-                           class="h-8 w-28 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
-                    <div role="radiogroup" x-radiogroup aria-label="{{ __('Filter') }}" class="hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex">
-                        <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Alle').' ') + zaehlAlle"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Kritisch').' ') + zaehlKritisch"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Beobachten').' ') + zaehlBeobachten"></button>
-                        <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 whitespace-nowrap rounded-md px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Neue Noten').' ') + zaehlNeu"></button>
+                    <div class="flex flex-wrap items-center justify-end gap-2">
+                        <input type="search" x-model="suche" placeholder="{{ __('Suchen') }}" aria-label="{{ __('Lernende suchen') }}"
+                               class="h-8 w-28 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
+                        <div role="radiogroup" x-radiogroup aria-label="{{ __('Filter') }}" class="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-surface-2 p-0.5 text-xs">
+                            <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Alle').' ') + zaehlAlle"></button>
+                            <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Kritisch').' ') + zaehlKritisch"></button>
+                            <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Beobachten').' ') + zaehlBeobachten"></button>
+                            <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Neue Noten').' ') + zaehlNeu"></button>
+                        </div>
                     </div>
                 </x-slot:aktionen>
 
                 @if($zeilen->isEmpty())
                     <p class="px-5 pb-5 text-sm text-muted">{{ __('Keine aktiv betreuten Lernenden') }}</p>
                 @else
+                    @php
+                        $trendSortierbar = $zeilen->contains(fn ($z) => $z->stand->delta() !== null);
+                        $sortLink = function (string $spalte, string $label, bool $srOnlyLabel = false) use ($filter) {
+                            $aktiv = $filter['sort'] === $spalte;
+                            $naechsteDir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
+                            $pfeil = ! $aktiv
+                                ? '<span class="text-muted/50" aria-hidden="true">⇅</span>'
+                                : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
+                            $url = e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $naechsteDir]));
+                            $labelHtml = $srOnlyLabel ? '<span class="sr-only">'.e($label).'</span>' : e($label);
+
+                            return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.$labelHtml.' '.$pfeil.'</a>';
+                        };
+                        $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
+                    @endphp
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead>
                                 <tr class="border-y border-border">
-                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted"><span class="sr-only">{{ __('Status') }}</span></th>
-                                    <th class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
-                                    <th class="h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted">{{ __('Lj') }}</th>
-                                    <th class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell">{{ __('Verlauf') }}</th>
-                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Semester') }}</th>
-                                    <th class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Gesamt') }}</th>
-                                    <th class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Neue Noten') }}</th>
-                                    <th class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted lg:table-cell">{{ __('Nächste Prüfung') }}</th>
+                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status'), true) !!}</th>
+                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
+                                    <th scope="col" class="h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted">{{ __('Lj') }}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>
+                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('semester') }}">{!! $sortLink('semester', __('Semester')) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('gesamt') }}">{!! $sortLink('gesamt', __('Gesamt')) !!}</th>
+                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Neue Noten') }}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted lg:table-cell">{{ __('Nächste Prüfung') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
