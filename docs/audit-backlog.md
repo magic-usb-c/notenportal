@@ -94,3 +94,11 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 - **Klassen, Methoden, Variablen, Views, DB-Tabellen auf Englisch**: Pflichtteil (Routennamen und URL-Pfade) ist umgesetzt, mit 301 von den alten Pfaden (`App\Support\LegacyPaths`). Der Rest berührt ~400 Dateien und das DB-Schema (Tabellen `benutzer`, `lernende`, `noten` … mit Fremdschlüsseln); für den Go-Live am 30.09. zu riskant. Vorgehen danach: pro Bereich ein Workflow mit Haiku-Agents (Umbenennen) und Tests als Netz, DB zuletzt mit Dump/Tag und Views/Aliassen.
 - **Sprachdateien und Umschaltung Deutsch/Englisch pro Benutzer**: alle Texte stehen direkt in den Views; Auslagern nach `lang/` lohnt sich erst, wenn eine zweite Sprache wirklich gebraucht wird. Die Oberfläche bleibt Deutsch.
+
+## Agenda, Feedback, Themes (11.09.2026)
+
+- iCal-Export-Oberfläche für Berufsbildner/Admins: Server kann es (`CalendarExport::forUser`), Anzeige nur für Lernende gebaut – Bedarf im Pilot abwarten.
+- Feedback: keine Screenshot-Vorschau vor dem Senden (Aufnahme erst beim Senden, robuster); keine Duplikaterkennung.
+- Agenda-Query-Parameter (`ansicht`, `monat`) noch deutsch; bei der späteren Code-Umbenennung mitziehen (LegacyPaths betrifft nur Pfade).
+- Mobile Filterformulare (Lernende, Benutzer) sehr lang: Filterleiste in GUI-Paket 5.
+
