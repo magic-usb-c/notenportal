@@ -101,4 +101,5 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - Feedback: keine Screenshot-Vorschau vor dem Senden (Aufnahme erst beim Senden, robuster); keine Duplikaterkennung.
 - Agenda-Query-Parameter (`ansicht`, `monat`) noch deutsch; bei der späteren Code-Umbenennung mitziehen (LegacyPaths betrifft nur Pfade).
 - Mobile Filterformulare (Lernende, Benutzer) sehr lang: Filterleiste in GUI-Paket 5.
-
+- `Uebersicht::berufsbildner()` liefert `vergleich` noch, das BB-Dashboard nutzt seit Paket 6 Small Multiples – entfernen, sobald Paket 4 das Dashboard umbaut.
+- Senkrechte Genügend-Linie für `balken()` (Lernenden-Dashboard) mit Paket 3.
