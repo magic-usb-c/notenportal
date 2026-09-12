@@ -37,6 +37,24 @@
                     </div>
 
                     <div>
+                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}
+                            <span class="text-xs font-normal">({{ __('optional, nur für Module aus dem Modulbaukasten') }})</span></label>
+                        <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2"
+                               class="mt-1 w-full rounded-xl border border-border bg-input text-text font-mono px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('version') border-note-ungenuegend @enderror">
+                        @error('version')
+                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
+                        @enderror
+                        @php($mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $modul->version))
+                        <p class="mt-1 text-xs text-muted">
+                            @if($mbk)
+                                <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2">{{ __('Im Modulbaukasten öffnen') }}</a>
+                            @else
+                                {{ __('Ohne Version gibt es keinen Verweis auf den Modulbaukasten.') }}
+                            @endif
+                        </p>
+                    </div>
+
+                    <div>
                         <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }} <span class="text-xs font-normal">({{ __('optional') }})</span></label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('beschreibung') border-note-ungenuegend @enderror">{{ old('beschreibung', $modul->beschreibung) }}</textarea>

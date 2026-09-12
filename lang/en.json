@@ -423,5 +423,21 @@
     "Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über den Knopf unten rechts oder mit": "Found a bug, have an idea, a question or something else? Use the button at the bottom right or",
     "Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Mit": "Found a bug, have an idea, a question or something else? With",
     "Die Anhänge sind zusammen zu gross. Bitte weniger oder kleinere Dateien wählen.": "The attachments are too large together. Please choose fewer or smaller files.",
-    "Sitzung abgelaufen. Seite bitte neu laden.": "Session expired. Please reload the page."
+    "Sitzung abgelaufen. Seite bitte neu laden.": "Session expired. Please reload the page.",
+    "Die Datei ist kein gültiges JSON.": "The file is not valid JSON.",
+    "Die Datei enthält kein Objekt.": "The file does not contain an object.",
+    "Unbekanntes Format der Ernte (erwartet :n).": "Unknown harvest format (:n expected).",
+    "Ein Abschluss ohne Namen wurde übersprungen.": "A qualification without a name was skipped.",
+    "Abschluss «:name» enthält keine verwertbaren Module.": "Qualification «:name» contains no usable modules.",
+    "Die Ernte enthält keine Module.": "The harvest contains no modules.",
+    "Modul :i hat keine verwertbare Nummer.": "Module :i has no usable number.",
+    "Modul :nummer hat keinen Titel.": "Module :nummer has no title.",
+    "Modulbeschreibung": "Module description",
+    "neues Fenster": "new window",
+    "Katalogversion": "Catalogue version",
+    "optional, nur für Module aus dem Modulbaukasten": "optional, only for modules from the Modulbaukasten",
+    "Im Modulbaukasten öffnen": "Open in the Modulbaukasten",
+    "Ohne Version gibt es keinen Verweis auf den Modulbaukasten.": "Without a version there is no link to the Modulbaukasten.",
+    "Modulbaukasten": "Modulbaukasten",
+    "optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten": "optional, e.g. 1 – creates the link to the Modulbaukasten"
 }

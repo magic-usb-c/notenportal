@@ -93,13 +93,17 @@ lernende          lernender_id, benutzer_id, lehrberuf_id, lehrbeginn, lehrende,
 berufsbildner     berufsbildner_id, benutzer_id, geloescht_am
 betreuungen       betreuung_id, berufsbildner_id, lernender_id, gueltig_von, gueltig_bis
 lernender_tracks  lernender_id, track_typ (BMS/ABU), start_datum, end_datum, start/end_semester_id
-lehrberufe        lehrberuf_id, kuerzel, name, aktiv
+lehrberufe        lehrberuf_id, kuerzel, name, aktiv, berufsnummer (SBFI), bildungsstufe, bivo_jahr, quelle_kennung
 lehrberuf_faecher Beruf ↔ Fach (Fächer ohne Track)
-lehrberuf_module  Beruf ↔ Modul: kategorie_id (Lernort FACH/UEK), pflicht, empfohlenes_lehrsemester_nr
+lehrberuf_module  Beruf ↔ Modul: kategorie_id (Lernort FACH/UEK), pflicht, pflichtgrad (pfl/wpfl/wm), empfohlenes_lehrsemester_nr
 kategorien        kategorie_id, code, name, sortierung, aktiv, rundung_element, rundung_schnitt, gewicht_gesamt,
                   promotion_min_schnitt, promotion_max_ungenuegend, promotion_max_minuspunkte
 faecher           fach_id, kategorie_id, track_typ (nullable = ohne Track), name, kurzname
-module            modul_id, modul_nummer, titel, ziel_gewicht_summe_default
+module            modul_id, modul_nummer, titel, ziel_gewicht_summe_default,
+                  Katalog (optional): version, kompetenzfeld, kompetenz, objekt, publiziert_am, auslaufend, quelle, quelle_stand
+modul_handlungsziele  modul_id, nummer, text, sortierung (offizielle Handlungsziele des Moduls)
+modul_lbv_elemente    modul_id, bezeichnung, gewichtung_prozent, richtzeit, pruefungsform, sozialform, beschreibung
+                      (Leistungsbeurteilungsvorgabe – Referenz, kein Rechenweg)
 modul_belegungen  modul_belegung_id, lernender_id, modul_id, start/end_datum (Wiederholung = neue Belegung, nur jüngste zählt)
 noten             note_id, lernender_id, kategorie_id (abgeleitet), semester_id, fach_id XOR modul_belegung_id,
                   titel, pruefungsdatum, note_wert (1–6), gewichtung_prozent,

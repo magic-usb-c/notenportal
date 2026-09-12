@@ -20,6 +20,7 @@ use App\Services\Notifications\Notifier;
 use App\Services\Uebersicht;
 use App\Support\Csv;
 use App\Support\Lehrsemester;
+use App\Support\Modulbaukasten;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -127,13 +128,19 @@ class NotenController extends Controller
                     ->sortBy('label')->values(),
             ])->values();
 
-        $belegungen = DB::table('modul_belegungen')
-            ->where('lernender_id', (int) $request->user()->lernender->lernender_id)
-            ->orderBy('start_datum')
-            ->orderBy('modul_belegung_id')
-            ->get(['modul_id', 'end_datum'])
+        $belegungen = DB::table('modul_belegungen as mb')
+            ->join('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->where('mb.lernender_id', (int) $request->user()->lernender->lernender_id)
+            ->orderBy('mb.start_datum')
+            ->orderBy('mb.modul_belegung_id')
+            ->get(['mb.modul_id', 'mb.end_datum', 'm.modul_nummer', 'm.version'])
             ->groupBy('modul_id')
-            ->map(fn ($liste) => ['offen' => $liste->last()->end_datum === null, 'versuche' => $liste->count()]);
+            ->map(fn ($liste) => [
+                'offen' => $liste->last()->end_datum === null,
+                'versuche' => $liste->count(),
+                // Offizielle Modulbeschreibung im Modulbaukasten – nur mit bekannter Katalogversion.
+                'mbk' => Modulbaukasten::modulLink($liste->first()->modul_nummer, $liste->first()->version),
+            ]);
 
         // Modulstatus (Rückmeldung #14): Dauer seit Beginn, nächster/letzter Termin, bewerteter Anteil je Modul/Fach –
         // eine gebündelte Ladung für die ganze Seite, per Element-Schlüssel nachgeschlagen (kein N+1).

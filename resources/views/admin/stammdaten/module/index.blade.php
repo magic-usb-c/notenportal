@@ -17,9 +17,16 @@
         $aktiveWeitere = $gruppieren !== '' ? 1 : 0;
 
         $zeile = function ($m) {
+            // Verweis in den Modulbaukasten nur mit bekannter Version – siehe App\Support\Modulbaukasten.
+            $mbk = \App\Support\Modulbaukasten::modulLink($m->modul_nummer, $m->version ?? null);
+
             return '<tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                <td class="px-4 font-mono font-semibold text-text">'.e($m->modul_nummer).'</td>
-                <td class="px-4 text-text">'.e($m->titel).'</td>
+                <td class="px-4 font-mono font-semibold text-text whitespace-nowrap">'.e($m->modul_nummer)
+                    .(($m->version ?? null) ? '<span class="ml-1.5 font-sans text-2xs font-normal text-muted">V'.e($m->version).'</span>' : '').'</td>
+                <td class="px-4 text-text">'.e($m->titel).($mbk === null ? '' :
+                    ' <a href="'.e($mbk).'" target="_blank" rel="noopener noreferrer"
+                         class="ml-1 text-xs text-accent-text underline underline-offset-2 hover:opacity-80">'
+                        .e(__('Modulbaukasten')).'<span class="sr-only"> ('.e(__('neues Fenster')).')</span></a>').'</td>
                 <td class="px-4 text-right text-muted">'.e((string) $m->lehrberuf_count).'</td>
                 <td class="px-4">'.($m->aktiv
                     ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'

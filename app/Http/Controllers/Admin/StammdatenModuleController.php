@@ -23,7 +23,7 @@ class StammdatenModuleController extends Controller
 
         $module = DB::table('module as m')
             ->select([
-                'm.modul_id', 'm.modul_nummer', 'm.titel', 'm.aktiv',
+                'm.modul_id', 'm.modul_nummer', 'm.titel', 'm.version', 'm.aktiv',
                 DB::raw('COUNT(DISTINCT lbm.lehrberuf_id) as lehrberuf_count'),
             ])
             ->leftJoin('lehrberuf_module as lbm', 'lbm.modul_id', '=', 'm.modul_id')
@@ -35,7 +35,7 @@ class StammdatenModuleController extends Controller
                 ->from('lehrberuf_module as x')->whereColumn('x.modul_id', 'm.modul_id')->where('x.lehrberuf_id', $id)))
             ->when($kategorieId, fn ($q, $id) => $q->whereExists(fn ($e) => $e->select(DB::raw(1))
                 ->from('lehrberuf_module as x')->whereColumn('x.modul_id', 'm.modul_id')->where('x.kategorie_id', $id)))
-            ->groupBy('m.modul_id', 'm.modul_nummer', 'm.titel', 'm.aktiv')
+            ->groupBy('m.modul_id', 'm.modul_nummer', 'm.titel', 'm.version', 'm.aktiv')
             ->orderBy('m.modul_nummer')
             ->get();
 
@@ -87,6 +87,8 @@ class StammdatenModuleController extends Controller
         $validated = $request->validate([
             'modul_nummer' => ['required', 'string', 'max:50', 'unique:module,modul_nummer'],
             'titel' => ['required', 'string', 'max:255'],
+            // Katalogversion des Modulbaukastens: nur sie macht den Verweis dorthin möglich.
+            'version' => ['nullable', 'string', 'regex:/^\d{1,2}$/'],
             'beschreibung' => ['nullable', 'string', 'max:2000'],
             'ziel_gewicht_summe_default' => ['nullable', 'numeric', 'min:0', 'max:9999'],
         ]);
@@ -94,6 +96,7 @@ class StammdatenModuleController extends Controller
         DB::table('module')->insert([
             'modul_nummer' => strtoupper($validated['modul_nummer']),
             'titel' => $validated['titel'],
+            'version' => $validated['version'] ?? null,
             'beschreibung' => $validated['beschreibung'] ?? null,
             'ziel_gewicht_summe_default' => $validated['ziel_gewicht_summe_default'] ?? 100.00,
             'aktiv' => 1,
@@ -120,6 +123,7 @@ class StammdatenModuleController extends Controller
             'modul_nummer' => ['required', 'string', 'max:50',
                 Rule::unique('module', 'modul_nummer')->ignore($modul_id, 'modul_id')],
             'titel' => ['required', 'string', 'max:255'],
+            'version' => ['nullable', 'string', 'regex:/^\d{1,2}$/'],
             'beschreibung' => ['nullable', 'string', 'max:2000'],
             'ziel_gewicht_summe_default' => ['nullable', 'numeric', 'min:0', 'max:9999'],
             'aktiv' => ['sometimes', 'boolean'],
@@ -128,6 +132,7 @@ class StammdatenModuleController extends Controller
         DB::table('module')->where('modul_id', $modul_id)->update([
             'modul_nummer' => strtoupper($validated['modul_nummer']),
             'titel' => $validated['titel'],
+            'version' => $validated['version'] ?? null,
             'beschreibung' => $validated['beschreibung'] ?? null,
             'ziel_gewicht_summe_default' => $validated['ziel_gewicht_summe_default'] ?? 100.00,
             'aktiv' => (int) ($validated['aktiv'] ?? 1),
