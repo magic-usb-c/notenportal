@@ -48,12 +48,15 @@ class SettingsController extends Controller
     {
         $user = $request->user();
         $lernender = $user->lernender;
+        $feeds = $lernender?->calendarFeeds()->get() ?? collect();
 
         return view('settings.calendar', [
             'user' => $user,
             'lernender' => $lernender,
             'exportToken' => CalendarExport::token($user),
-            'feed' => $lernender?->calendarFeeds()->first(),
+            'feeds' => $feeds,
+            // Bestehende Oberfläche kennt nur einen Kalender; bleibt erhalten, bis sie umgestellt ist.
+            'feed' => $feeds->first(),
         ]);
     }
 

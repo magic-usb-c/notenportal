@@ -9,6 +9,7 @@ use App\Models\Lernender;
 use App\Models\Pruefung;
 use App\Models\User;
 use App\Support\Einstellungen;
+use Carbon\CarbonInterface;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Facades\App;
@@ -22,6 +23,12 @@ use Sabre\VObject\Component\VCalendar;
 final class CalendarExport
 {
     private const int DAYS_BACK = 60;
+
+    /**
+     * Epoche für SEQUENCE (01.01.2026 00:00 UTC): monoton steigend bei jeder Änderung, aber klein
+     * genug, dass kein Kalenderprogramm (32-Bit-Int) darüber hinausläuft.
+     */
+    private const int SEQUENCE_EPOCH = 1767225600;
 
     public static function token(User $user): string
     {
@@ -90,6 +97,12 @@ final class CalendarExport
             : route($cockpitRoute, ['lernender_id' => $p->lernender_id]);
     }
 
+    /** In UTC, wie von iCal-Clients erwartet (siehe DTSTAMP oben). */
+    private function utc(CarbonInterface $zeit): DateTimeImmutable
+    {
+        return (clone $zeit)->utc()->toDateTimeImmutable();
+    }
+
     private function pruefung(VCalendar $kalender, Pruefung $p, bool $mitName, ?string $cockpitRoute): void
     {
         $name = $mitName ? ($p->lernender?->benutzer?->vorname.' '.$p->lernender?->benutzer?->nachname).': ' : '';
@@ -110,6 +123,8 @@ final class CalendarExport
             'DESCRIPTION' => implode("\n", $zeilen),
             'CATEGORIES' => __('Prüfung'),
             'URL' => $this->pruefungUrl($p, $cockpitRoute),
+            'LAST-MODIFIED' => $this->utc($p->aktualisiert_am),
+            'SEQUENCE' => max(0, $p->aktualisiert_am->getTimestamp() - self::SEQUENCE_EPOCH),
         ]);
         if ($p->raum) {
             $event->add('LOCATION', $p->raum);
@@ -126,6 +141,9 @@ final class CalendarExport
             'UID' => 'termin-'.$e->id.'@'.parse_url((string) config('app.url'), PHP_URL_HOST),
             'SUMMARY' => $e->summary,
             'DTSTAMP' => new DateTimeImmutable('now', new DateTimeZone('UTC')),
+            'URL' => route('learner.exams.index'),
+            'LAST-MODIFIED' => $this->utc($e->updated_at),
+            'SEQUENCE' => max(0, $e->updated_at->getTimestamp() - self::SEQUENCE_EPOCH),
         ]);
         if ($e->description) {
             $event->add('DESCRIPTION', $e->description);

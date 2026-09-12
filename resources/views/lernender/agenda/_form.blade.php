@@ -13,6 +13,42 @@
         @method('PUT')
     @endif
 
+    @if($b && $b->quelle === \App\Models\Pruefung::ICAL && filled($b->lokal_gesperrt))
+        @php
+            // Anzeige der vom Kalender gemeldeten Werte für gesperrte Felder (siehe PruefungenController::quellwertFuerSperre()).
+            $feldLabels = [
+                'fach_id' => __('Zuordnung'), 'modul_id' => __('Zuordnung'), 'titel' => __('Titel'),
+                'datum' => __('Datum'), 'uhrzeit' => __('Uhrzeit'), 'dauer_minuten' => __('Dauer (Min.)'),
+                'pruefungsart' => __('Prüfungsart'), 'hilfsmittel' => __('Erlaubte Hilfsmittel'),
+                'stoff' => __('Prüfungsstoff'), 'raum' => __('Raum'), 'gewichtung_prozent' => __('Gewichtung %'),
+            ];
+            $lokalListe = [];
+            foreach ($b->lokal_gesperrt as $feld => $quellwert) {
+                $wert = match ($feld) {
+                    'fach_id' => $quellwert !== null ? (\App\Models\Fach::find($quellwert)?->name ?? __('unbekannt')) : '–',
+                    'modul_id' => $quellwert !== null ? (($m = \App\Models\Modul::find($quellwert)) ? trim($m->modul_nummer.' '.$m->titel) : __('unbekannt')) : '–',
+                    'datum' => $quellwert ? \Carbon\CarbonImmutable::parse($quellwert)->format('d.m.Y') : '–',
+                    'gewichtung_prozent' => \App\Support\Zahl::prozent($quellwert),
+                    default => $quellwert !== null && $quellwert !== '' ? (string) $quellwert : '–',
+                };
+                $lokalListe[] = ['label' => $feldLabels[$feld] ?? $feld, 'wert' => $wert];
+            }
+        @endphp
+        <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 flex flex-col gap-2 text-xs">
+            <p class="text-text font-medium">{{ __('Lokal angepasst') }}</p>
+            <p class="text-muted">{{ __('Diese Felder wurden von Hand geändert und werden beim nächsten Abgleich nicht mehr vom Kalender überschrieben.') }}</p>
+            <ul class="flex flex-col gap-0.5 text-muted">
+                @foreach($lokalListe as $eintrag)
+                    <li>{{ $eintrag['label'] }}: {{ __('Kalender meldet: :wert', ['wert' => $eintrag['wert']]) }}</li>
+                @endforeach
+            </ul>
+            <form method="POST" action="{{ route('learner.exams.unlock', $b->pruefung_id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                @csrf
+                <button :disabled="loading" class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs disabled:opacity-60">{{ __('Wieder vom Kalender übernehmen') }}</button>
+            </form>
+        </div>
+    @endif
+
     <div>
         <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-red-600 dark:text-red-400">*</span></label>
         <select id="bezug" name="bezug" required class="{{ $feld }}">

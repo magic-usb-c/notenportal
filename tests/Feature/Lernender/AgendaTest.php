@@ -231,6 +231,252 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function bis_zu_fuenf_kalender_sind_erlaubt_der_sechste_wird_abgelehnt(): void
+    {
+        config(['notenportal.calendar_allow_private' => true]);
+        for ($i = 1; $i <= 5; $i++) {
+            $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+                'url' => "https://schulnetz.example/geheim{$i}",
+            ])->assertSessionHasNoErrors();
+        }
+        $this->assertSame(5, CalendarFeed::count());
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+            'url' => 'https://schulnetz.example/geheim6',
+        ])->assertSessionHasErrors('url');
+        $this->assertSame(5, CalendarFeed::count());
+    }
+
+    #[Test]
+    public function feed_id_aktualisiert_bestehenden_feed_statt_einen_neuen_anzulegen(): void
+    {
+        config(['notenportal.calendar_allow_private' => true]);
+        $feed = $this->feed();
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+            'feed_id' => $feed->id, 'label' => 'Neu benannt', 'url' => 'https://schulnetz.example/geheim',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(1, CalendarFeed::count());
+        $this->assertSame('Neu benannt', $feed->fresh()->label);
+    }
+
+    #[Test]
+    public function etag_wird_bei_url_wechsel_des_feeds_geleert(): void
+    {
+        config(['notenportal.calendar_allow_private' => true]);
+        $feed = $this->feed();
+        $feed->forceFill(['etag' => '"abc"', 'last_modified' => 'Wed, 01 Sep 2026 12:00:00 GMT'])->save();
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+            'feed_id' => $feed->id, 'url' => 'https://schulnetz.example/andere-adresse',
+        ])->assertSessionHasNoErrors();
+
+        $feed->refresh();
+        $this->assertNull($feed->etag);
+        $this->assertNull($feed->last_modified);
+    }
+
+    #[Test]
+    public function fremder_feed_kann_nicht_ueber_feed_id_uebernommen_werden(): void
+    {
+        config(['notenportal.calendar_allow_private' => true]);
+        $andere = User::factory()->lernender()->create();
+        $fremderFeed = CalendarFeed::create(['lernender_id' => $andere->lernender->lernender_id, 'url' => 'https://schulnetz.example/fremd']);
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+            'feed_id' => $fremderFeed->id, 'url' => 'https://schulnetz.example/uebernahme',
+        ])->assertNotFound();
+    }
+
+    #[Test]
+    public function feed_loeschen_entfernt_events_importierte_pruefung_bleibt_mit_leerem_feed(): void
+    {
+        $feed = $this->feed();
+        CalendarEvent::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'calendar_feed_id' => $feed->id, 'kind' => CalendarEvent::APPOINTMENT,
+            'uid' => 'termin-1', 'summary' => 'Termin', 'starts_at' => now()->addDay(),
+        ]);
+        $p = Pruefung::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'modul_id' => $this->modul->modul_id,
+            'titel' => 'LB1', 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 40,
+            'quelle' => Pruefung::ICAL, 'extern_uid' => 'exam-1', 'calendar_feed_id' => $feed->id,
+        ]);
+
+        $this->actingAs($this->user)->delete(route('learner.calendar.feed.destroy', $feed->id))
+            ->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
+
+        $this->assertDatabaseMissing('calendar_feeds', ['id' => $feed->id]);
+        $this->assertDatabaseMissing('calendar_events', ['uid' => 'termin-1']);
+        $this->assertNotNull($p->fresh(), 'importierte Prüfung bleibt bestehen (kann Note/Notizen tragen)');
+        $this->assertNull($p->fresh()->calendar_feed_id);
+    }
+
+    #[Test]
+    public function einzelner_feed_kann_gezielt_abgeglichen_werden(): void
+    {
+        config(['notenportal.calendar_allow_private' => true]);
+        Http::fake(['schulnetz.example/*' => Http::response(
+            "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n", 200, ['Content-Type' => 'text/calendar']
+        )]);
+        $feed = $this->feed();
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.sync', $feed->id))
+            ->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
+
+        $this->assertSame(CalendarFeed::OK, $feed->fresh()->last_status);
+    }
+
+    #[Test]
+    public function einstellungen_zeigen_mehrere_kalender_in_der_liste(): void
+    {
+        CalendarFeed::create(['lernender_id' => $this->user->lernender->lernender_id, 'label' => 'Schulnetz', 'url' => 'https://schulnetz.example/a']);
+        CalendarFeed::create(['lernender_id' => $this->user->lernender->lernender_id, 'label' => 'Ausbildner-Nextcloud', 'url' => 'https://cloud.example/b']);
+
+        $this->actingAs($this->user)->get(route('settings.calendar'))
+            ->assertOk()
+            ->assertSee('Schulnetz')
+            ->assertSee('Ausbildner-Nextcloud');
+    }
+
+    #[Test]
+    public function bearbeiten_mit_leerem_url_feld_behaelt_die_bestehende_adresse(): void
+    {
+        $feed = $this->feed();
+        $ursprung = $feed->url;
+
+        $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
+            'feed_id' => $feed->id, 'label' => 'Neu benannt', 'url' => '',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(1, CalendarFeed::count());
+        $feed->refresh();
+        $this->assertSame('Neu benannt', $feed->label);
+        $this->assertSame($ursprung, $feed->url, 'leeres URL-Feld lässt die hinterlegte Adresse unverändert');
+    }
+
+    #[Test]
+    public function kalender_entfernen_verschwindet_aus_der_liste(): void
+    {
+        $bleibt = CalendarFeed::create(['lernender_id' => $this->user->lernender->lernender_id, 'label' => 'Bleibt', 'url' => 'https://schulnetz.example/bleibt']);
+        $weg = CalendarFeed::create(['lernender_id' => $this->user->lernender->lernender_id, 'label' => 'Weg', 'url' => 'https://schulnetz.example/weg']);
+
+        $this->actingAs($this->user)->delete(route('learner.calendar.feed.destroy', $weg->id))
+            ->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
+
+        $this->actingAs($this->user)->get(route('settings.calendar'))
+            ->assertOk()->assertSee('Bleibt')->assertDontSee('Weg');
+    }
+
+    #[Test]
+    public function die_iCal_adresse_erscheint_nie_im_html_der_einstellungsseite(): void
+    {
+        $feed = CalendarFeed::create([
+            'lernender_id' => $this->user->lernender->lernender_id,
+            'url' => 'https://schulnetz.example/sehr-geheimes-token-xyz',
+        ]);
+
+        $this->actingAs($this->user)->get(route('settings.calendar'))
+            ->assertOk()
+            ->assertDontSee($feed->url, false)
+            ->assertDontSee('sehr-geheimes-token-xyz', false);
+    }
+
+    #[Test]
+    public function bearbeiten_einer_kalender_pruefung_sperrt_nur_tatsaechlich_geaenderte_felder(): void
+    {
+        $feed = $this->feed();
+        $p = Pruefung::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'modul_id' => $this->modul->modul_id,
+            'titel' => 'LB1', 'datum' => now()->addWeek()->toDateString(), 'uhrzeit' => '09:00:00',
+            'gewichtung_prozent' => 40, 'quelle' => Pruefung::ICAL, 'extern_uid' => 'exam-1', 'calendar_feed_id' => $feed->id,
+        ]);
+        $altesDatum = $p->datum->toDateString();
+
+        $this->actingAs($this->user)->put(route('learner.exams.update', $p->pruefung_id), [
+            'bezug' => 'modul:'.$this->modul->modul_id,
+            'titel' => 'LB1',
+            'datum' => now()->addWeeks(2)->toDateString(),
+            'gewichtung_prozent' => 40,
+            'uhrzeit' => '09:00',
+        ])->assertSessionHasNoErrors();
+
+        $p->refresh();
+        $this->assertSame(now()->addWeeks(2)->toDateString(), $p->datum->toDateString());
+        $this->assertSame($altesDatum, $p->lokal_gesperrt['datum'] ?? null, 'geändertes Feld wird mit dem alten Wert gesperrt');
+        $this->assertArrayNotHasKey('uhrzeit', $p->lokal_gesperrt ?? [], 'unveränderte Felder werden nicht gesperrt');
+    }
+
+    #[Test]
+    public function bearbeiten_einer_manuellen_pruefung_sperrt_nichts(): void
+    {
+        $p = $this->planen();
+
+        $this->actingAs($this->user)->put(route('learner.exams.update', $p->pruefung_id), [
+            'bezug' => 'modul:'.$this->modul->modul_id,
+            'datum' => now()->addWeeks(3)->toDateString(),
+            'gewichtung_prozent' => 40,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertNull($p->fresh()->lokal_gesperrt);
+    }
+
+    #[Test]
+    public function unlock_leert_die_sperre_einer_kalender_pruefung(): void
+    {
+        $feed = $this->feed();
+        $p = Pruefung::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'modul_id' => $this->modul->modul_id,
+            'titel' => 'LB1', 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 40,
+            'quelle' => Pruefung::ICAL, 'extern_uid' => 'exam-1', 'calendar_feed_id' => $feed->id,
+            'lokal_gesperrt' => ['raum' => 'A5'],
+        ]);
+
+        $this->actingAs($this->user)->post(route('learner.exams.unlock', $p->pruefung_id))
+            ->assertSessionHasNoErrors()->assertRedirect(route('learner.exams.index'));
+
+        $this->assertNull($p->fresh()->lokal_gesperrt);
+    }
+
+    #[Test]
+    public function unlock_auf_manueller_pruefung_schlaegt_fehl(): void
+    {
+        $p = $this->planen();
+
+        $this->actingAs($this->user)->post(route('learner.exams.unlock', $p->pruefung_id))->assertNotFound();
+    }
+
+    #[Test]
+    public function lokal_angepasste_pruefung_zeigt_hinweis_kalenderwert_und_uebernehmen_knopf(): void
+    {
+        $feed = $this->feed();
+        $p = Pruefung::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'modul_id' => $this->modul->modul_id,
+            'titel' => 'Neuer Titel', 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 40,
+            'quelle' => Pruefung::ICAL, 'extern_uid' => 'exam-1', 'calendar_feed_id' => $feed->id,
+            'lokal_gesperrt' => ['titel' => 'Alter Titel', 'datum' => '2026-01-15'],
+        ]);
+
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]))
+            ->assertOk()
+            ->assertSee(__('Lokal angepasst'))
+            ->assertSee(__('Kalender meldet: :wert', ['wert' => 'Alter Titel']))
+            ->assertSee(__('Kalender meldet: :wert', ['wert' => '15.01.2026']))
+            ->assertSee(__('Wieder vom Kalender übernehmen'))
+            ->assertSee(route('learner.exams.unlock', $p->pruefung_id), false);
+    }
+
+    #[Test]
+    public function unveraenderte_kalender_pruefung_zeigt_keinen_hinweis(): void
+    {
+        $p = $this->planen();
+
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]))
+            ->assertOk()
+            ->assertDontSee(__('Lokal angepasst'));
+    }
+
+    #[Test]
     public function erkannte_pruefung_kann_uebernommen_werden(): void
     {
         $event = CalendarEvent::create([

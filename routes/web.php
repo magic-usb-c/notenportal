@@ -140,9 +140,15 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('exams.destroy');
         Route::post('/exams/detected/{calendar_event_id}/adopt', [PruefungenController::class, 'adopt'])
             ->whereNumber('calendar_event_id')->name('exams.adopt');
+        Route::post('/exams/{pruefung_id}/unlock', [PruefungenController::class, 'unlock'])
+            ->whereNumber('pruefung_id')->name('exams.unlock');
 
         Route::post('/calendar/feed', [LernenderCalendarController::class, 'feedStore'])
             ->middleware('throttle:10,1,calendar-feed')->name('calendar.feed.store');
+        Route::delete('/calendar/feed/{id}', [LernenderCalendarController::class, 'feedDestroy'])
+            ->whereNumber('id')->middleware('throttle:10,1,calendar-feed-destroy')->name('calendar.feed.destroy');
+        Route::post('/calendar/feed/{id}/sync', [LernenderCalendarController::class, 'feedSync'])
+            ->whereNumber('id')->middleware('throttle:6,1,calendar-feed-sync')->name('calendar.feed.sync');
         Route::post('/calendar/sync', [LernenderCalendarController::class, 'sync'])
             ->middleware('throttle:6,1,calendar-sync')->name('calendar.sync');
 

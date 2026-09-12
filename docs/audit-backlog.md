@@ -442,3 +442,33 @@ nach 54 geaenderten Views veraltet, waehrend parallel neu kompiliert wurde. `vie
 `optimize:clear` sind als `www-data` gelaufen. Falls die Suite erneut sporadisch kippt: zuerst
 `sudo -u www-data php artisan view:clear`, dann den Lauf mit voller Ausgabe in eine Datei
 wiederholen und den Testnamen hier eintragen.
+
+## Zwei Feeds mit derselben `extern_uid` (Rückmeldung #15 Phase 1, 12.09.2026)
+
+Seit `pruefungen.calendar_feed_id` (Migration `2026_09_12_000014`) ist jede importierte Prüfung
+einem Feed zugeordnet, damit der Abgleich eines Kalenders nicht die Prüfungen eines anderen
+Feeds desselben Lernenden aufräumt (`CalendarSync::apply()` schränkt das Löschen/Absagen jetzt
+zusätzlich mit `where('calendar_feed_id', $feed->id)` ein).
+
+Liefern zwei verschiedene Feeds desselben Lernenden zufällig dieselbe `extern_uid` (z. B. weil
+beide vom selben Schulserver stammen), gilt weiterhin die eindeutige Zeile
+`uq_pruef_extern (lernender_id, extern_uid)` – die Prüfung gehört dann dem Feed, der zuletzt
+abgeglichen hat, `calendar_feed_id` wandert entsprechend mit. Bewusst hingenommen (Entscheidung F
+der Spezifikation): eine zusammengesetzte Eindeutigkeit `(lernender_id, calendar_feed_id,
+extern_uid)` würde das Problem nur verschieben (dieselbe Prüfung erschiene doppelt) und eine
+UID-Kollision zwischen zwei unabhängigen Kalendern ist im Pilotbetrieb nicht beobachtet. Falls es
+doch auftritt: `extern_uid` müsste dann feed-lokal statt lernender-lokal eindeutig sein.
+
+## `raum` steht in `SPERRBARE_FELDER`, lässt sich aber nie sperren
+
+`Pruefung::SPERRBARE_FELDER` führt `raum` auf, und die Beschriftungstabelle in
+`lernender/agenda/_form.blade.php` hält bereits einen Eintrag dafür bereit. Entstehen kann die
+Sperre trotzdem nie: Das Bearbeitungsformular hat kein Raum-Feld, und
+`PruefungenController::validiere()` liefert nie einen `raum`-Schlüssel – `array_key_exists('raum',
+$neu)` ist damit immer `false`. Kein Fehler und kein Datenverlust, aber irreführend.
+
+Bewusst so belassen, weil ein zusätzliches Eingabefeld kurz vor dem Go-Live eine Funktions- und
+keine Abschlussänderung wäre. Aufzulösen später auf einem von zwei Wegen: entweder ein Raum-Feld
+im Formular ergänzen – dann greift die Sperre ohne weiteren Eingriff –, oder `raum` aus der
+Konstante streichen. Der erste Weg ist der wahrscheinlichere, weil der Raum aus dem Kalender kommt
+und genau die Art Wert ist, die eine Schule kurzfristig ändert.

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Abonnierte iCal-Adresse eines Lernenden (z. B. Schulnetz-Stundenplan oder -Prüfungen).
  * Die URL enthält meist ein persönliches Geheimnis → verschlüsselt gespeichert, nie ausgegeben.
  */
-#[Fillable(['lernender_id', 'label', 'url', 'import_lessons', 'import_appointments', 'import_exams', 'last_synced_at', 'last_status', 'last_error', 'events_count'])]
+#[Fillable(['lernender_id', 'label', 'url', 'import_lessons', 'import_appointments', 'import_exams', 'last_synced_at', 'last_status', 'last_error', 'events_count', 'etag', 'last_modified'])]
 #[Hidden(['url'])]
 #[Table(name: 'calendar_feeds')]
 class CalendarFeed extends Model
@@ -23,6 +23,9 @@ class CalendarFeed extends Model
     public const string OK = 'ok';
 
     public const string ERROR = 'error';
+
+    /** Obergrenze je Lernendem – an einer Stelle, damit Controller und Oberfläche nicht auseinanderlaufen. */
+    public const int MAX_PRO_LERNENDEM = 5;
 
     protected $attributes = ['import_lessons' => true, 'import_appointments' => true, 'import_exams' => true, 'events_count' => 0];
 

@@ -80,7 +80,16 @@ class PruefungenController extends Controller
     public function update(Request $request, int $pruefung_id): RedirectResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
-        $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->update($this->validiere($request, $lernender));
+        $pruefung = $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail();
+        $daten = $this->validiere($request, $lernender);
+
+        // Nur bei importierten Prüfungen sperren – der Abgleich fasst manuelle ohnehin nicht an.
+        if ($pruefung->quelle === Pruefung::ICAL) {
+            $sperre = $this->sperreErgaenzen($pruefung, $daten);
+            $daten['lokal_gesperrt'] = $sperre !== [] ? $sperre : null;
+        }
+
+        $pruefung->update($daten);
 
         return redirect()->route('learner.exams.index')->with('success', __('Prüfung aktualisiert.'));
     }
@@ -91,6 +100,16 @@ class PruefungenController extends Controller
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->delete();
 
         return redirect()->route('learner.exams.index')->with('success', __('Prüfung entfernt.'));
+    }
+
+    /** Hebt die Sperre auf; der nächste Abgleich übernimmt die Quellwerte wieder (Entscheidung C). */
+    public function unlock(Request $request, int $pruefung_id): RedirectResponse
+    {
+        $lernender = $request->user()->lernender ?? abort(403);
+        $lernender->pruefungen()->whereKey($pruefung_id)->where('quelle', Pruefung::ICAL)->firstOrFail()
+            ->update(['lokal_gesperrt' => null]);
+
+        return redirect()->route('learner.exams.index')->with('success', __('Wird beim nächsten Abgleich wieder vom Kalender übernommen.'));
     }
 
     /** Vom Schulnetz erkannte, aber nicht automatisch zugeordnete Prüfung manuell übernehmen. */
@@ -138,6 +157,59 @@ class PruefungenController extends Controller
 
         return $typ === 'fach' && $m !== __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')
             ? $m : __('Dieses Fach oder Modul ist nicht verfügbar.');
+    }
+
+    /**
+     * Ergänzt die Sperre (Rückmeldung #15 Phase 1, Entscheidung B) um jedes Feld aus
+     * `SPERRBARE_FELDER`, das sich mit den neu eingegebenen Werten tatsächlich ändert. Bereits
+     * gesperrte Felder behalten ihren gemerkten Quellwert – sonst ginge er nach der zweiten
+     * eigenen Änderung verloren.
+     *
+     * @param  array<string, mixed>  $neu
+     * @return array<string, mixed>
+     */
+    private function sperreErgaenzen(Pruefung $pruefung, array $neu): array
+    {
+        $sperre = $pruefung->lokal_gesperrt ?? [];
+        foreach (Pruefung::SPERRBARE_FELDER as $feld) {
+            if (! array_key_exists($feld, $neu) || array_key_exists($feld, $sperre)) {
+                continue;
+            }
+            if ($this->werteUnterscheidenSich($feld, $pruefung->getAttribute($feld), $neu[$feld])) {
+                $sperre[$feld] = $this->quellwertFuerSperre($pruefung, $feld);
+            }
+        }
+
+        return $sperre;
+    }
+
+    /** Datumssicherer Vergleich: `datum` als Y-m-d, `uhrzeit` als H:i, Zahlen als float/int. */
+    private function werteUnterscheidenSich(string $feld, mixed $alt, mixed $neu): bool
+    {
+        return match ($feld) {
+            'datum' => ($alt ? CarbonImmutable::parse($alt)->toDateString() : null) !== ($neu !== null ? CarbonImmutable::parse((string) $neu)->toDateString() : null),
+            'uhrzeit' => ($alt ? substr((string) $alt, 0, 5) : null) !== ($neu !== null ? substr((string) $neu, 0, 5) : null),
+            'dauer_minuten', 'fach_id', 'modul_id' => ($alt !== null ? (int) $alt : null) !== ($neu !== null ? (int) $neu : null),
+            'gewichtung_prozent' => ($alt !== null ? (float) $alt : null) !== ($neu !== null ? (float) $neu : null),
+            default => ($alt !== null ? (string) $alt : null) !== ($neu !== null ? (string) $neu : null),
+        };
+    }
+
+    /** Aktueller DB-Wert eines Felds als JSON-sicherer Primitivwert für `lokal_gesperrt`. */
+    private function quellwertFuerSperre(Pruefung $pruefung, string $feld): mixed
+    {
+        $wert = $pruefung->getAttribute($feld);
+        if ($wert === null) {
+            return null;
+        }
+
+        return match ($feld) {
+            'datum' => CarbonImmutable::parse($wert)->toDateString(),
+            'uhrzeit' => substr((string) $wert, 0, 5),
+            'dauer_minuten', 'fach_id', 'modul_id' => (int) $wert,
+            'gewichtung_prozent' => (float) $wert,
+            default => (string) $wert,
+        };
     }
 
     /** @return array<string, mixed> */

@@ -35,20 +35,55 @@ final class CalendarSync
 
     public function __construct(private readonly SchoolNetDescriptionParser $parser) {}
 
-    /** @return array{events: int, exams: int, unmatched: int, removed: int} */
+    /** @return array{events: int, exams: int, unmatched: int, removed: int, unchanged: bool} */
     public function sync(CalendarFeed $feed): array
     {
         try {
-            $stats = $this->apply($feed, $this->fetch((string) $feed->url));
+            $antwort = $this->fetch((string) $feed->url, $feed->etag, $feed->last_modified);
+            if ($antwort['body'] === null) {
+                // 304 Not Modified: nichts zu parsen, nur den Zeitpunkt fortschreiben. `last_error` muss
+                // dabei weg – sonst steht der Text des letzten Fehlversuchs neben einem grünen Status.
+                $feed->forceFill(['last_synced_at' => now(), 'last_status' => CalendarFeed::OK, 'last_error' => null])->save();
+
+                return ['events' => (int) $feed->events_count, 'exams' => 0, 'unmatched' => 0, 'removed' => 0, 'unchanged' => true];
+            }
+
+            $stats = $this->apply($feed, $antwort['body']);
             $feed->forceFill([
                 'last_synced_at' => now(), 'last_status' => CalendarFeed::OK, 'last_error' => null, 'events_count' => $stats['events'],
+                'etag' => $antwort['etag'], 'last_modified' => $antwort['last_modified'],
             ])->save();
 
-            return $stats;
+            return [...$stats, 'unchanged' => false];
         } catch (\Throwable $e) {
-            $feed->forceFill(['last_synced_at' => now(), 'last_status' => CalendarFeed::ERROR, 'last_error' => mb_substr($e->getMessage(), 0, 480)])->save();
+            $feed->forceFill(['last_synced_at' => now(), 'last_status' => CalendarFeed::ERROR, 'last_error' => self::fehlertext($e)])->save();
             throw $e;
         }
+    }
+
+    /**
+     * Fehlertext ohne Geheimnis. Die iCal-Adresse ist ein Schlüssel: Wer sie kennt, liest den Kalender.
+     * Guzzle hängt sie an jede Verbindungsmeldung an («… for https://host/token/export»), und die landete
+     * damit in `last_error`, im HTML der Einstellungen und in der Cron-Ausgabe – obwohl das Formular die
+     * Adresse bewusst nie anzeigt. Eigene Meldungen sind nachweislich adressfrei und bleiben stehen;
+     * alles Fremde wird ersetzt. Die Klasse wird exakt verglichen, denn Guzzles ConnectException ist
+     * selbst eine RuntimeException und käme durch ein `instanceof` ungefiltert durch.
+     */
+    public static function fehlertext(\Throwable $e): string
+    {
+        $text = $e::class === RuntimeException::class
+            ? $e->getMessage()
+            : 'Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).';
+
+        // Rückfallebene, falls je eine Adresse in einen eigenen Text gerät: nur der Host bleibt übrig,
+        // und den zeigen die Einstellungen ohnehin neben jedem Kalender an.
+        $text = preg_replace_callback(
+            '#\b(?:https?|webcal)://[^\s<>"\']+#i',
+            fn (array $treffer): string => (string) (parse_url($treffer[0], PHP_URL_HOST) ?: 'Adresse'),
+            $text
+        ) ?? '';
+
+        return mb_substr(trim($text) !== '' ? $text : 'Kalender nicht erreichbar.', 0, 480);
     }
 
     /** @return array{events: int, exams: int, unmatched: int, removed: int} */
@@ -97,7 +132,7 @@ final class CalendarSync
                 if ($kind === CalendarEvent::EXAM) {
                     $bezug = $this->bezug($info, $module, $faecher);
                     if ($bezug) {
-                        $pruefungId = $this->pruefungSpeichern($lernender, $uid, $bezug, $info, $start, $ende, $ganztags, $ort);
+                        $pruefungId = $this->pruefungSpeichern($feed, $lernender, $uid, $bezug, $info, $start, $ende, $ganztags, $ort);
                         $pruefungenGesehen[] = $pruefungId;
                         $stats['exams']++;
                     } else {
@@ -131,11 +166,16 @@ final class CalendarSync
                     $stats['removed']++;
                 });
 
-            // Importierte, künftige Prüfungen, die verschwunden sind: unberührte löschen, sonst als abgesagt markieren
-            Pruefung::query()->where('lernender_id', $lernender->lernender_id)->where('quelle', 'ical')
+            // Importierte, künftige Prüfungen, die verschwunden sind: unberührte löschen, sonst als abgesagt markieren.
+            // Auf DIESEN Feed eingeschränkt – sonst würde der Abgleich von Feed B die Prüfungen von Feed A aufräumen.
+            Pruefung::query()->where('lernender_id', $lernender->lernender_id)->where('quelle', 'ical')->where('calendar_feed_id', $feed->id)
                 ->whereNotIn('pruefung_id', $pruefungenGesehen ?: [0])->whereDate('datum', '>=', now()->toDateString())->whereNull('abgesagt_am')
                 ->get()->each(function (Pruefung $p) {
-                    $angefasst = $p->note_id || filled($p->notizen) || Dokument::where('pruefung_id', $p->pruefung_id)->exists();
+                    // Eine gesperrte Prüfung ist angefasst: Der Lernende hat einen Wert bewusst korrigiert.
+                    // Vergibt die Quelle beim Verschieben eine neue UID, verschwindet die alte – ohne diese
+                    // Bedingung würde genau die korrigierte Prüfung still hart gelöscht statt abgesagt.
+                    $angefasst = $p->note_id || filled($p->notizen) || filled($p->lokal_gesperrt)
+                        || Dokument::where('pruefung_id', $p->pruefung_id)->exists();
                     $angefasst ? $p->update(['abgesagt_am' => now()]) : $p->delete();
                 });
         });
@@ -143,14 +183,27 @@ final class CalendarSync
         return $stats;
     }
 
-    /** Lädt die Kalenderdatei; nur öffentliche http(s)-Ziele, höchstens 3 Weiterleitungen, 5 MB. */
-    public function fetch(string $url): string
+    /**
+     * Lädt die Kalenderdatei; nur öffentliche http(s)-Ziele, höchstens 3 Weiterleitungen, 5 MB.
+     * `body === null` heisst: Server meldet 304 Not Modified, der bisherige Stand gilt weiter.
+     *
+     * @return array{body: ?string, etag: ?string, last_modified: ?string}
+     */
+    public function fetch(string $url, ?string $etag = null, ?string $lastModified = null): array
     {
         $url = self::normalizeUrl($url);
         for ($i = 0; $i < 4; $i++) {
             $ips = self::assertPublicUrl($url);
-            $anfrage = Http::timeout(20)->connectTimeout(8)->withoutRedirecting()
-                ->withHeaders(['User-Agent' => 'Notenportal-Kalenderabgleich', 'Accept' => 'text/calendar, */*']);
+            $headers = ['User-Agent' => 'Notenportal-Kalenderabgleich', 'Accept' => 'text/calendar, */*'];
+            // Bedingte Header INNERHALB der Schleife setzen: bei einer Weiterleitung baut Http::withHeaders()
+            // die Anfrage neu auf, ausserhalb der Schleife gesetzte Header gingen dabei verloren.
+            if ($etag !== null) {
+                $headers['If-None-Match'] = $etag;
+            }
+            if ($lastModified !== null) {
+                $headers['If-Modified-Since'] = $lastModified;
+            }
+            $anfrage = Http::timeout(20)->connectTimeout(8)->withoutRedirecting()->withHeaders($headers);
             // Geprüfte IP für die eigentliche Verbindung festnageln (kein zweiter DNS-Lookup → kein DNS-Rebinding)
             $host = trim((string) parse_url($url, PHP_URL_HOST), '[]');
             if ($ips !== [] && ! filter_var($host, FILTER_VALIDATE_IP)) {
@@ -184,6 +237,10 @@ final class CalendarSync
 
                 continue;
             }
+            if ($antwort->status() === 304) {
+                // Server bestätigt: unverändert seit ETag/Last-Modified. Nur ein 304 zählt als solches.
+                return ['body' => null, 'etag' => $etag, 'last_modified' => $lastModified];
+            }
             if (! $antwort->successful()) {
                 throw new RuntimeException('Kalender nicht erreichbar (HTTP '.$antwort->status().').');
             }
@@ -195,7 +252,7 @@ final class CalendarSync
                 throw new RuntimeException('Die Adresse liefert keinen iCal-Kalender.');
             }
 
-            return $body;
+            return ['body' => $body, 'etag' => $antwort->header('ETag') ?: null, 'last_modified' => $antwort->header('Last-Modified') ?: null];
         }
         throw new RuntimeException('Zu viele Weiterleitungen.');
     }
@@ -203,8 +260,16 @@ final class CalendarSync
     public static function normalizeUrl(string $url): string
     {
         $url = trim($url);
+        $url = preg_replace('#^webcals?://#i', 'https://', $url) ?? $url;
 
-        return preg_replace('#^webcals?://#i', 'https://', $url) ?? $url;
+        // Nextcloud-Freigabelink (Weboberfläche, liefert HTML): dahinter liegt die öffentliche
+        // CalDAV-Exportadresse, die das iCal direkt liefert – erst nach der webcal-Ersetzung prüfen,
+        // damit auch ein als webcal:// geteilter Link erkannt wird.
+        if (preg_match('#^(https://[^/]+(?:/index\.php)?)/apps/calendar/p/([A-Za-z0-9]{8,})(?:/[^/?]*)?/?$#i', $url, $treffer)) {
+            return $treffer[1].'/remote.php/dav/public-calendars/'.$treffer[2].'?export';
+        }
+
+        return $url;
     }
 
     /**
@@ -275,7 +340,7 @@ final class CalendarSync
         return $code !== '' && isset($faecher[$code]) ? ['fach', $faecher[$code]] : null;
     }
 
-    private function pruefungSpeichern(Lernender $lernender, string $uid, array $bezug, array $info, CarbonImmutable $start, ?CarbonImmutable $ende, bool $ganztags, ?string $ort): int
+    private function pruefungSpeichern(CalendarFeed $feed, Lernender $lernender, string $uid, array $bezug, array $info, CarbonImmutable $start, ?CarbonImmutable $ende, bool $ganztags, ?string $ort): int
     {
         $titel = trim(implode(': ', array_filter([$info['label'], $info['title']])));
         $dauer = $info['duration_minutes'] ?? ($ende && ! $ganztags ? max(0, (int) $start->diffInMinutes($ende)) : null);
@@ -292,6 +357,7 @@ final class CalendarSync
             'raum' => ($info['room'] ?? $ort) ? mb_substr((string) ($info['room'] ?? $ort), 0, 60) : null,
             'lehrperson' => $info['teacher'] ? mb_substr($info['teacher'], 0, 60) : null,
             'quelle' => 'ical',
+            'calendar_feed_id' => $feed->id,
             'abgesagt_am' => null,
         ];
         if ($info['weight_percent'] !== null) {
@@ -299,11 +365,30 @@ final class CalendarSync
         }
 
         $pruefung = Pruefung::firstOrNew(['lernender_id' => $lernender->lernender_id, 'extern_uid' => $uid]);
+        $this->sperreBeachten($pruefung, $werte);
         $pruefung->fill($werte);
         $pruefung->gewichtung_prozent ??= 100;
         $pruefung->save();
 
         return (int) $pruefung->pruefung_id;
+    }
+
+    /**
+     * Vom Lernenden gesperrte Felder (Pruefung::lokal_gesperrt) nicht überschreiben, aber den
+     * angezeigten Quellwert aktuell halten: neuen Wert in die Sperre schreiben, aus $werte entfernen.
+     * `abgesagt_am` steht nie in der Sperre und bleibt dadurch immer schreibbar.
+     */
+    private function sperreBeachten(Pruefung $pruefung, array &$werte): void
+    {
+        $sperre = $pruefung->lokal_gesperrt ?? [];
+        if ($sperre === []) {
+            return;
+        }
+        foreach (array_intersect(array_keys($sperre), array_keys($werte)) as $feld) {
+            $sperre[$feld] = $werte[$feld];
+            unset($werte[$feld]);
+        }
+        $pruefung->lokal_gesperrt = $sperre;
     }
 
     /** @return array<string, int> Modulnummer => modul_id (Module des Lehrberufs) */

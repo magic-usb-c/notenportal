@@ -21,7 +21,7 @@ use Throwable;
  * eigene Tabelle, da Datum/Titel/Gewichtung/Fach-Modul-Bezug hier schon vorhanden sind (docs/audit-backlog.md).
  */
 #[Fillable(['lernender_id', 'fach_id', 'modul_id', 'titel', 'art', 'datum', 'uhrzeit', 'dauer_minuten', 'pruefungsart', 'hilfsmittel', 'stoff',
-    'notizen', 'raum', 'lehrperson', 'gewichtung_prozent', 'note_id', 'quelle', 'extern_uid', 'abgesagt_am'])]
+    'notizen', 'raum', 'lehrperson', 'gewichtung_prozent', 'note_id', 'quelle', 'extern_uid', 'abgesagt_am', 'lokal_gesperrt', 'calendar_feed_id'])]
 #[Table(name: 'pruefungen', key: 'pruefung_id')]
 class Pruefung extends Model
 {
@@ -36,6 +36,18 @@ class Pruefung extends Model
     public const string ART_PRUEFUNG = 'pruefung';
 
     public const string ART_ABGABE = 'abgabe';
+
+    /**
+     * Felder, die der Lernende einzeln gegen den Kalenderabgleich sperren kann (Rückmeldung #15
+     * Phase 1): nie `abgesagt_am` (eine Absage der Quelle muss immer durchkommen) und nie
+     * `quelle`/`extern_uid`/`note_id`/`notizen` (Notizen sind ohnehin schon unberührt vom Abgleich).
+     *
+     * @var list<string>
+     */
+    public const array SPERRBARE_FELDER = [
+        'fach_id', 'modul_id', 'titel', 'datum', 'uhrzeit', 'dauer_minuten',
+        'pruefungsart', 'hilfsmittel', 'stoff', 'raum', 'gewichtung_prozent',
+    ];
 
     private static ?bool $hatArtSpalte = null;
 
@@ -128,6 +140,7 @@ class Pruefung extends Model
             'abgesagt_am' => 'datetime',
             'erstellt_am' => 'datetime',
             'aktualisiert_am' => 'datetime',
+            'lokal_gesperrt' => 'array',
         ];
     }
 }

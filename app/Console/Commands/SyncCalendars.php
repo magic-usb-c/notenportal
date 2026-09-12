@@ -24,10 +24,14 @@ class SyncCalendars extends Command
         foreach ($feeds as $feed) {
             try {
                 $s = $sync->sync($feed);
-                $this->line("#{$feed->id} {$feed->host()}: {$s['events']} Termine, {$s['exams']} Prüfungen, {$s['unmatched']} ohne Zuordnung, {$s['removed']} entfernt");
+                // Bei 304 stammen die Zahlen aus dem letzten echten Lauf; sie als frisch abgeglichen
+                // auszugeben, läse sich wie «0 Prüfungen», also wie ein Verlust.
+                $this->line($s['unchanged']
+                    ? "#{$feed->id} {$feed->host()}: unverändert (304), Stand {$s['events']} Termine"
+                    : "#{$feed->id} {$feed->host()}: {$s['events']} Termine, {$s['exams']} Prüfungen, {$s['unmatched']} ohne Zuordnung, {$s['removed']} entfernt");
             } catch (\Throwable $e) {
                 $fehler++;
-                $this->warn("#{$feed->id} {$feed->host()}: ".$e->getMessage());
+                $this->warn("#{$feed->id} {$feed->host()}: ".CalendarSync::fehlertext($e));
             }
         }
 

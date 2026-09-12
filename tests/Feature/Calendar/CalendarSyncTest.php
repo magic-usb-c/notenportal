@@ -13,6 +13,7 @@ use App\Models\Pruefung;
 use App\Models\User;
 use App\Services\Calendar\CalendarSync;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\Test;
@@ -57,11 +58,17 @@ class CalendarSyncTest extends TestCase
 
     private function pruefungsEvent(string $uid = 'exam-1', ?CarbonImmutable $start = null): string
     {
+        return $this->pruefungsEventVariante($uid, $start ?? CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15), 'A5', 'Verzeichnisdienste erklären.');
+    }
+
+    /** Wie pruefungsEvent(), aber mit wählbarem Raum/Stoff – zum Simulieren eines geänderten Quellzustands. */
+    private function pruefungsEventVariante(string $uid, CarbonImmutable $start, string $ort, string $stoffZeile): string
+    {
         $text = "Prüfung\n159-INPE 24 B-diemar LB1: Verzeichnisdienste und DNS\nPrüfungsstoff\nPrüfungsart: Onlineprüfung in Microsoft Teams\n"
-            ."Dauer: 45 Minuten\nHilfsmittel: Keine Unterlagen erlaubt\nSie können:\n- Verzeichnisdienste erklären.\nGewichtung\n0.33333333\n"
+            ."Dauer: 45 Minuten\nHilfsmittel: Keine Unterlagen erlaubt\nSie können:\n- {$stoffZeile}\nGewichtung\n0.33333333\n"
             ."Prüfungsdatum festgelegt am\n01.09.2026 13:54";
 
-        return $this->event($uid, $start ?? CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15), '159-INPE 24 B-diemar', $text, 'A5');
+        return $this->event($uid, $start, '159-INPE 24 B-diemar', $text, $ort);
     }
 
     #[Test]
@@ -238,5 +245,188 @@ class CalendarSyncTest extends TestCase
         }
 
         $this->assertSame(['2001:4860:4860::8888'], CalendarSync::assertPublicUrl('https://[2001:4860:4860::8888]/x.ics'));
+    }
+
+    #[Test]
+    public function gesperrte_felder_ueberleben_den_abgleich_und_der_gemerkte_quellwert_wird_aktualisiert(): void
+    {
+        $sync = app(CalendarSync::class);
+        $altesDatum = CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEventVariante('exam-1', $altesDatum, 'A5', 'Verzeichnisdienste erklären.')]));
+
+        $p = Pruefung::where('extern_uid', 'exam-1')->sole();
+        $eigenesDatum = $p->datum->toDateString();
+        // Lernender ändert Raum und Datum von Hand – wie es PruefungenController::update() täte.
+        $p->update(['raum' => 'B12', 'datum' => $altesDatum->addDay()->toDateString(), 'lokal_gesperrt' => ['raum' => 'A5', 'datum' => $eigenesDatum]]);
+
+        // Quelle liefert neuen Raum, neues Datum, neuen Stoff.
+        $neuesDatum = $altesDatum->addDays(2);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEventVariante('exam-1', $neuesDatum, 'A9', 'Neues Kapitel gelernt.')]));
+
+        $p->refresh();
+        $this->assertSame('B12', $p->raum, 'gesperrtes Feld bleibt beim eigenen Wert');
+        $this->assertSame($altesDatum->addDay()->toDateString(), $p->datum->toDateString(), 'gesperrtes Datum bleibt beim eigenen Wert');
+        $this->assertSame('A9', $p->lokal_gesperrt['raum'], 'gemerkter Quellwert wird trotz Sperre aktualisiert');
+        $this->assertSame($neuesDatum->toDateString(), $p->lokal_gesperrt['datum']);
+        $this->assertStringContainsString('Neues Kapitel gelernt.', $p->stoff, 'ungesperrtes Feld wird ganz normal übernommen');
+    }
+
+    #[Test]
+    public function absage_der_quelle_kommt_trotz_sperre_durch(): void
+    {
+        $sync = app(CalendarSync::class);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEvent('exam-1')]));
+        $p = Pruefung::where('extern_uid', 'exam-1')->sole();
+        // notizen macht die Prüfung «angefasst» → wird bei Absage statt gelöscht.
+        $p->update(['raum' => 'B12', 'notizen' => 'Wichtig', 'lokal_gesperrt' => ['raum' => 'A5']]);
+
+        $sync->apply($this->feed, $this->ics([]));
+
+        $p->refresh();
+        $this->assertNotNull($p->abgesagt_am, 'Absage der Quelle muss trotz Sperre durchkommen');
+        $this->assertSame('B12', $p->raum, 'gesperrtes Feld bleibt trotz Absage erhalten');
+    }
+
+    #[Test]
+    public function entsperren_stellt_beim_naechsten_abgleich_den_quellwert_wieder_her(): void
+    {
+        $sync = app(CalendarSync::class);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEvent('exam-1')]));
+        $p = Pruefung::where('extern_uid', 'exam-1')->sole();
+        $p->update(['raum' => 'B12', 'lokal_gesperrt' => ['raum' => 'A5']]);
+
+        // Entspricht PruefungenController::unlock(): Sperre leeren, kein Sofort-Abgleich.
+        $p->update(['lokal_gesperrt' => null]);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEvent('exam-1')]));
+
+        $this->assertSame('A5', $p->fresh()->raum);
+        $this->assertNull($p->fresh()->lokal_gesperrt);
+    }
+
+    #[Test]
+    public function zwei_feeds_beeinflussen_sich_beim_aufraeumen_nicht(): void
+    {
+        $sync = app(CalendarSync::class);
+        $feedB = CalendarFeed::create(['lernender_id' => $this->user->lernender->lernender_id, 'url' => 'https://schulnetz.example/zweiter']);
+
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEvent('exam-a')]));
+        $sync->apply($feedB, $this->ics([$this->pruefungsEvent('exam-b', CarbonImmutable::now('Europe/Zurich')->addDays(20)->setTime(9, 0))]));
+
+        // Feed B gleicht erneut ab, ohne seine Prüfung erneut zu liefern: darf nur exam-b betreffen.
+        $sync->apply($feedB, $this->ics([]));
+
+        $this->assertNull(Pruefung::where('extern_uid', 'exam-a')->sole()->abgesagt_am, 'Feed A bleibt von Feed Bs Abgleich unberührt');
+        $this->assertNull(Pruefung::where('extern_uid', 'exam-b')->first(), 'unberührte Prüfung des abgleichenden Feeds wird trotzdem aufgeräumt');
+    }
+
+    #[Test]
+    public function unveraenderter_kalender_liefert_304_und_schreibt_keine_pruefungen(): void
+    {
+        // Beide Antworten müssen in EINEM Http::fake()-Aufruf registriert werden: ein zweiter
+        // Http::fake()-Aufruf für dasselbe URL-Muster würde den ersten Stub nicht ersetzen,
+        // sondern nur ergänzen – Laravel liefert dann weiterhin die zuerst registrierte Antwort.
+        Http::fake(['https://93.184.216.34/*' => Http::sequence()
+            ->push($this->ics([$this->pruefungsEvent()]), 200, [
+                'Content-Type' => 'text/calendar', 'ETag' => '"abc"', 'Last-Modified' => 'Wed, 01 Sep 2026 12:00:00 GMT',
+            ])
+            ->push('', 304),
+        ]);
+        $this->feed->update(['url' => 'https://93.184.216.34/cal.ics']);
+
+        $stats1 = app(CalendarSync::class)->sync($this->feed->fresh());
+        $this->assertFalse($stats1['unchanged']);
+        $this->assertSame('"abc"', $this->feed->fresh()->etag);
+        $this->assertSame('Wed, 01 Sep 2026 12:00:00 GMT', $this->feed->fresh()->last_modified);
+
+        $vorher = Pruefung::count();
+        $stats2 = app(CalendarSync::class)->sync($this->feed->fresh());
+
+        $this->assertTrue($stats2['unchanged']);
+        $this->assertSame(CalendarFeed::OK, $this->feed->fresh()->last_status);
+        $this->assertSame($vorher, Pruefung::count(), 'ein 304 darf keine Prüfungen schreiben');
+        Http::assertSent(fn ($anfrage) => $anfrage->hasHeader('If-None-Match', '"abc"')
+            && $anfrage->hasHeader('If-Modified-Since', 'Wed, 01 Sep 2026 12:00:00 GMT'));
+    }
+
+    #[Test]
+    public function nextcloud_freigabelink_wird_zur_exportadresse_umgeschrieben(): void
+    {
+        $faelle = [
+            'https://cloud.example.org/apps/calendar/p/AbCd1234' => 'https://cloud.example.org/remote.php/dav/public-calendars/AbCd1234?export',
+            'https://cloud.example.org/index.php/apps/calendar/p/AbCd1234' => 'https://cloud.example.org/index.php/remote.php/dav/public-calendars/AbCd1234?export',
+            'https://cloud.example.org/apps/calendar/p/AbCd1234/Ferienplan' => 'https://cloud.example.org/remote.php/dav/public-calendars/AbCd1234?export',
+            'webcal://cloud.example.org/apps/calendar/p/AbCd1234' => 'https://cloud.example.org/remote.php/dav/public-calendars/AbCd1234?export',
+        ];
+        foreach ($faelle as $eingabe => $erwartet) {
+            $this->assertSame($erwartet, CalendarSync::normalizeUrl($eingabe), $eingabe);
+        }
+    }
+
+    /**
+     * Die iCal-Adresse ist ein Schlüssel – wer sie kennt, liest den Kalender mit. Guzzle hängt sie an
+     * jede Verbindungsmeldung an; sie darf danach weder in der Datenbank noch in der Rückmeldung noch
+     * im ausgelieferten HTML stehen. Der Host allein ist in Ordnung, den zeigt die Seite ohnehin.
+     */
+    #[Test]
+    public function fehlermeldung_verraet_die_kalenderadresse_nicht(): void
+    {
+        $feed = CalendarFeed::create([
+            'lernender_id' => $this->user->lernender->lernender_id,
+            'url' => 'https://schulnetz.example/ical/GEHEIM-ABC123XYZ',
+        ]);
+        Http::fake(fn () => throw new ConnectionException(
+            'cURL error 6: Could not resolve host: schulnetz.example (see https://curl.se/libcurl/c/libcurl-errors.html)'
+            .' for https://schulnetz.example/ical/GEHEIM-ABC123XYZ'
+        ));
+
+        try {
+            app(CalendarSync::class)->sync($feed);
+            $this->fail('Der Abgleich hätte scheitern müssen.');
+        } catch (\Throwable) {
+            // erwartet – geprüft wird, was dabei gespeichert und angezeigt wird
+        }
+
+        $gespeichert = (string) $feed->fresh()->last_error;
+        $this->assertSame(CalendarFeed::ERROR, $feed->fresh()->last_status);
+        $this->assertStringNotContainsString('GEHEIM-ABC123XYZ', $gespeichert);
+        $this->assertStringNotContainsString('/ical/', $gespeichert);
+
+        $antwort = $this->actingAs($this->user)->post(route('learner.calendar.feed.sync', $feed->id));
+        $this->assertStringNotContainsString('GEHEIM-ABC123XYZ', (string) $antwort->getSession()->get('error'));
+
+        $this->actingAs($this->user)->get(route('settings.calendar'))
+            ->assertOk()
+            ->assertDontSee('GEHEIM-ABC123XYZ');
+    }
+
+    /**
+     * Verschiebt die Schule eine Prüfung unter neuer UID, verschwindet die alte aus dem Feed. Eine Prüfung,
+     * an der der Lernende ein Feld korrigiert (und damit gesperrt) hat, darf dabei nicht still verschwinden –
+     * auch dann nicht, wenn sie weder Notiz noch Note noch Anhang hat.
+     */
+    #[Test]
+    public function gesperrte_pruefung_wird_abgesagt_statt_geloescht(): void
+    {
+        $sync = app(CalendarSync::class);
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEvent('exam-1')]));
+
+        $p = Pruefung::where('extern_uid', 'exam-1')->sole();
+        $this->assertNull($p->notizen, 'Vorbedingung: sonst greift der bestehende Schutz');
+        $p->lokal_gesperrt = ['datum' => $p->datum->toDateString()];
+        $p->save();
+
+        $sync->apply($this->feed, $this->ics([]));
+
+        $danach = Pruefung::where('extern_uid', 'exam-1')->first();
+        $this->assertNotNull($danach, 'gesperrte Prüfung darf nicht gelöscht werden');
+        $this->assertNotNull($danach->abgesagt_am, 'sie gehört als abgesagt markiert');
+    }
+
+    /** Eigene, nachweislich adressfreie Meldungen bleiben erhalten – sonst wäre jeder Fehler gleich nichtssagend. */
+    #[Test]
+    public function eigene_fehlertexte_bleiben_verstaendlich(): void
+    {
+        $this->assertSame('Kalenderdatei ist grösser als 5 MB.', CalendarSync::fehlertext(new RuntimeException('Kalenderdatei ist grösser als 5 MB.')));
+        $this->assertSame('schulnetz.example', CalendarSync::fehlertext(new RuntimeException('https://schulnetz.example/ical/GEHEIM-ABC123XYZ')));
     }
 }

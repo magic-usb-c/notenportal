@@ -187,4 +187,27 @@ class CalendarExportTest extends TestCase
         Betreuung::create(['berufsbildner_id' => $bb->berufsbildner->berufsbildner_id, 'lernender_id' => $lernenderId, 'gueltig_von' => now()->subYear()->toDateString()]);
         $this->assertStringNotContainsString('Elternabend', app(CalendarExport::class)->forUser($bb));
     }
+
+    #[Test]
+    public function export_enthaelt_last_modified_sequenz_und_termin_url(): void
+    {
+        $this->pruefung->forceFill(['aktualisiert_am' => now()])->save();
+        $lernenderId = $this->lernender->lernender->lernender_id;
+        $feed = CalendarFeed::create(['lernender_id' => $lernenderId, 'url' => 'https://schulnetz.example/geheim2']);
+        CalendarEvent::create([
+            'lernender_id' => $lernenderId, 'calendar_feed_id' => $feed->id, 'uid' => uniqid('t', true),
+            'kind' => CalendarEvent::APPOINTMENT, 'starts_at' => now()->addDays(3)->setTime(8, 0), 'summary' => 'Elternabend',
+        ]);
+
+        $events = collect(Reader::read(app(CalendarExport::class)->forUser($this->lernender))->select('VEVENT'))
+            ->keyBy(fn ($e) => (string) $e->SUMMARY);
+        $pruefungEvent = $events->first(fn ($e, $k) => str_contains($k, 'Prüfung'));
+        $terminEvent = $events['Elternabend'];
+
+        foreach ([$pruefungEvent, $terminEvent] as $event) {
+            $this->assertNotSame('', (string) $event->{'LAST-MODIFIED'}, 'LAST-MODIFIED fehlt');
+            $this->assertGreaterThanOrEqual(0, (int) (string) $event->SEQUENCE);
+        }
+        $this->assertSame(route('learner.exams.index'), (string) $terminEvent->URL);
+    }
 }

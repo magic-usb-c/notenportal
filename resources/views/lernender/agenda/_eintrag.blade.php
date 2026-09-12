@@ -21,6 +21,9 @@
         <div class="font-medium text-text truncate flex items-center gap-1.5">
             <span aria-hidden="true" class="{{ $symbolFarbe }}">{{ $symbol }}</span>
             <span class="truncate">{{ $e['titel'] }}</span>
+            @if($p && $p->quelle === \App\Models\Pruefung::ICAL && filled($p->lokal_gesperrt))
+                <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full border border-border text-muted" title="{{ __('Lokal angepasst') }}">{{ __('lokal angepasst') }}</span>
+            @endif
         </div>
         <div class="text-xs text-muted truncate">
             @if($e['zeit']) {{ __(':zeit Uhr · ', ['zeit' => $e['zeit']]) }}@endif
