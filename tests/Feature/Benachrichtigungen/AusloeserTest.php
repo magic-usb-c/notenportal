@@ -295,7 +295,7 @@ class AusloeserTest extends TestCase
         $vorschau = session('notenimport.'.$lernender->lernender_id);
 
         $this->actingAs($lernenderUser)
-            ->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen'])])
+            ->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('notification_digest_items', [

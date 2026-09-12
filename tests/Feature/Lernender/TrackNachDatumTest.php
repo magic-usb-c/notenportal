@@ -109,10 +109,17 @@ class TrackNachDatumTest extends TestCase
         $this->assertNotSame('fehler', $vorschau['zeilen'][0]['status']);
         $this->assertSame(['fehler', 'Track am Datum nicht aktiv'], [$vorschau['zeilen'][1]['status'], $vorschau['zeilen'][1]['meldung']]);
 
+        // Alles oder nichts: eine ungültige ausgewählte Zeile verhindert den ganzen Import
         $zeilen = array_map(fn ($z) => ['uebernehmen' => true] + $z, $vorschau['zeilen']);
         $ergebnis = $import->importieren($zeilen, $id, (int) $this->user->getKey());
-        $this->assertSame(1, $ergebnis['neu']);
+        $this->assertSame(0, $ergebnis['neu']);
         $this->assertStringContainsString('war am 10.09.2025 nicht aktiv', $ergebnis['fehler'][0]);
+        $this->assertSame(0, Note::count());
+
+        // Nur die gültige Zeile ausgewählt wird übernommen
+        $zeilen[1]['uebernehmen'] = false;
+        $ergebnis = $import->importieren($zeilen, $id, (int) $this->user->getKey());
+        $this->assertSame(1, $ergebnis['neu']);
         $this->assertSame('2025-03-10', Note::sole()->pruefungsdatum->toDateString());
     }
 }

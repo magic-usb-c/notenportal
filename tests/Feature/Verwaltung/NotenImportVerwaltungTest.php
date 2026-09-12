@@ -48,7 +48,7 @@ class NotenImportVerwaltungTest extends TestCase
         $this->assertSame('modul:'.$this->modul, $vorschau['zeilen'][0]['bezug']);
 
         $this->actingAs($admin)
-            ->post(route('admin.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode($vorschau['zeilen'])])
+            ->post(route('admin.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
             ->assertRedirect(route('admin.learners.grades.index', $lernenderId))
             ->assertSessionHas('success');
 

@@ -42,29 +42,56 @@
                     $spalte = fn (int $i) => $i < 26 ? chr(65 + $i) : (string) ($i + 1);
                 @endphp
                 <script>
-                    function npImport(zeilen) {
+                    function npImport(zeilen, pruefenUrl) {
                         return {
                             zeilen,
                             loading: false,
+                            pruefeLaedt: false,
                             get gewaehlt() { return this.zeilen.filter((z) => z.uebernehmen).length; },
                             get json() { return JSON.stringify(this.zeilen.filter((z) => z.uebernehmen)); },
-                            alle(an) { this.zeilen.forEach((z) => { z.uebernehmen = an; }); },
+                            alle(an) { this.zeilen.forEach((z) => { z.uebernehmen = an && z.status !== 'fehler'; }); },
                             farbe(s) {
                                 return {
                                     ok: 'bg-note-gut/14 text-note-gut',
+                                    warnung: 'bg-note-knapp/14 text-note-knapp',
                                     pruefen: 'bg-note-knapp/14 text-note-knapp',
                                     doppelt: 'bg-bg text-muted border border-border',
                                     fehler: 'bg-note-ungenuegend/14 text-note-ungenuegend',
                                 }[s] ?? '';
+                            },
+                            // «Erneut prüfen»: Korrekturen (Datum, Fach/Modul, Note, Gewicht) serverseitig gegen dieselben
+                            // Regeln wie die erste Vorschau prüfen – ohne zu speichern.
+                            async erneutPruefen() {
+                                this.pruefeLaedt = true;
+                                try {
+                                    const antwort = await fetch(pruefenUrl, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                            Accept: 'application/json',
+                                        },
+                                        body: JSON.stringify({ zeilen: JSON.stringify(this.zeilen) }),
+                                    });
+                                    if (!antwort.ok) {
+                                        throw new Error(String(antwort.status));
+                                    }
+                                    this.zeilen = (await antwort.json()).zeilen;
+                                } catch (e) {
+                                    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Erneute Prüfung fehlgeschlagen.')) } }));
+                                } finally {
+                                    this.pruefeLaedt = false;
+                                }
                             },
                         };
                     }
                 </script>
 
                 <form method="POST" action="{{ $r('apply') }}" class="flex flex-col gap-4"
-                      x-data="npImport({{ \Illuminate\Support\Js::from($zeilen) }})" @submit="if (!$event.defaultPrevented) loading = true">
+                      x-data="npImport({{ \Illuminate\Support\Js::from($zeilen) }}, {{ \Illuminate\Support\Js::from($r('validate')) }})" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="zeilen" :value="json">
+                    <input type="hidden" name="token" value="{{ $vorschau['token'] ?? '' }}">
 
                     <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-x-8 gap-y-3">
                         <div class="min-w-0">
@@ -79,12 +106,12 @@
                             </div>
                         </div>
                         <dl class="ml-auto flex flex-wrap gap-5 text-center">
-                            @foreach(['ok' => __('bereit'), 'pruefen' => __('prüfen'), 'doppelt' => __('bereits erfasst'), 'fehler' => __('Fehler')] as $status => $text)
+                            @foreach(['ok' => __('bereit'), 'warnung' => __('Warnung'), 'pruefen' => __('prüfen'), 'doppelt' => __('bereits erfasst'), 'fehler' => __('Fehler')] as $status => $text)
                                 <div>
                                     <dt class="text-[11px] uppercase tracking-widest text-muted">{{ $text }}</dt>
                                     <dd @class(['text-xl font-bold tabular-nums',
                                         'text-note-gut' => $status === 'ok',
-                                        'text-note-knapp' => $status === 'pruefen',
+                                        'text-note-knapp' => in_array($status, ['warnung', 'pruefen'], true),
                                         'text-muted' => $status === 'doppelt',
                                         'text-note-ungenuegend' => $status === 'fehler'])>{{ $anzahl[$status] ?? 0 }}</dd>
                                 </div>
@@ -117,7 +144,8 @@
                                         <tr :class="z.uebernehmen ? '' : 'opacity-60'">
                                             <td class="px-3 py-1.5">
                                                 <label class="inline-flex items-center justify-center min-w-9 min-h-9">
-                                                    <input type="checkbox" x-model="z.uebernehmen" :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                                    <input type="checkbox" x-model="z.uebernehmen" :disabled="z.status === 'fehler'"
+                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring disabled:opacity-60">
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>
@@ -149,8 +177,13 @@
                     </section>
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
-                        <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verwerfen') }}</button>
-                        <button type="submit" :disabled="loading || gewaehlt === 0"
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verwerfen') }}</button>
+                            <button type="button" :disabled="loading || pruefeLaedt" @click="erneutPruefen()"
+                                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60"
+                                    x-text="pruefeLaedt ? @js(__('Prüfe …')) : @js(__('Erneut prüfen'))"></button>
+                        </div>
+                        <button type="submit" :disabled="loading || pruefeLaedt || gewaehlt === 0"
                                 class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60"
                                 x-text="gewaehlt === 1 ? @js(__('1 Note importieren')) : @js(__(':anzahl Noten importieren')).replace(':anzahl', gewaehlt)"></button>
                     </div>

@@ -9,7 +9,6 @@ use App\Services\Noten\NoteService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 /**
  * Notenliste → Vorschau (Spalten erkennen, Fach/Modul zuordnen, Dubletten markieren) → Import über NoteService,
@@ -57,130 +56,309 @@ final class NotenImport
      */
     public function vorschau(array $tabelle, int $lernenderId): array
     {
-        $format = count($tabelle[0] ?? []) === 1 && in_array($tabelle[0][0], [Schulnetz::AKTUELLE_NOTEN, Schulnetz::ZEUGNISNOTEN], true) ? $tabelle[0][0] : null;
-        $katalog = $format ? $this->bevorzugt($this->katalog($lernenderId), false) : $this->katalog($lernenderId);
-        [$kopf, $spalten] = $this->spalten($tabelle, $katalog);
-        $vorhanden = $this->vorhandene($lernenderId);
-        $fachErlaubt = $this->noten->fachErlaubtAm($lernenderId); // Track am Prüfungsdatum gültig
+        $this->noten->beginBatch();
+        try {
+            $format = count($tabelle[0] ?? []) === 1 && in_array($tabelle[0][0], [Schulnetz::AKTUELLE_NOTEN, Schulnetz::ZEUGNISNOTEN], true) ? $tabelle[0][0] : null;
+            $katalog = $format ? $this->bevorzugt($this->katalog($lernenderId), false) : $this->katalog($lernenderId);
+            [$kopf, $spalten] = $this->spalten($tabelle, $katalog);
+            $vorhanden = $this->vorhandene($lernenderId);
+            $fachErlaubt = $this->noten->fachErlaubtAm($lernenderId); // Track am Prüfungsdatum gültig
+            $imFile = [];
 
-        $zeilen = [];
-        foreach ($tabelle as $i => $zelle) {
-            if ($i <= $kopf || count($zeilen) >= TabellenLeser::MAX_ZEILEN) {
-                continue;
+            $zeilen = [];
+            foreach ($tabelle as $i => $zelle) {
+                if ($i <= $kopf || count($zeilen) >= TabellenLeser::MAX_ZEILEN) {
+                    continue;
+                }
+                $roh = fn (string $s) => isset($spalten[$s]) ? trim((string) ($zelle[$spalten[$s]] ?? '')) : '';
+                $datum = WertParser::datum($roh('datum'));
+                $note = WertParser::note($roh('note'));
+                $gewicht = WertParser::gewicht($roh('gewicht'));
+                [$bezug, $sicher] = $this->bezug($roh('bezug') !== '' ? $roh('bezug') : $roh('titel'), $katalog);
+
+                // Notenzeile = Note vorhanden oder Datum mit erkanntem Fach/Modul; Titel-, Kopf- und Fusszeilen fallen weg
+                if ($note === null && ($datum === null || $bezug === null)) {
+                    continue;
+                }
+
+                $bewertet = $this->bewerten(
+                    $datum, $bezug, $note, $gewicht, $roh('datum'), $roh('note'), $sicher, $lernenderId,
+                    $fachErlaubt, $vorhanden, $imFile, WertParser::datumMehrdeutig($roh('datum')), WertParser::gewichtMehrdeutig($roh('gewicht')),
+                );
+
+                $zeilen[] = [
+                    'nr' => $i + 1,
+                    'datum' => $datum,
+                    'bezug' => $bezug,
+                    'bezug_roh' => mb_substr($roh('bezug'), 0, 150),
+                    'titel' => mb_substr($roh('titel'), 0, 150),
+                    'note' => $note,
+                    'gewicht' => $gewicht === false || $gewicht === null ? 100 : $gewicht,
+                    ...$bewertet,
+                    'sicher' => $sicher,
+                    'uebernehmen' => in_array($bewertet['status'], ['ok', 'warnung'], true),
+                ];
             }
-            $roh = fn (string $s) => isset($spalten[$s]) ? trim((string) ($zelle[$spalten[$s]] ?? '')) : '';
-            $datum = $this->datum($roh('datum'));
-            $note = $this->note($roh('note'));
-            $gewicht = $this->gewicht($roh('gewicht'));
-            [$bezug, $sicher] = $this->bezug($roh('bezug') !== '' ? $roh('bezug') : $roh('titel'), $katalog);
-            $trackFehlt = $datum !== null && $bezug !== null && str_starts_with($bezug, 'fach:')
-                && ! $fachErlaubt($datum, (int) substr($bezug, 5));
 
-            // Notenzeile = Note vorhanden oder Datum mit erkanntem Fach/Modul; Titel-, Kopf- und Fusszeilen fallen weg
-            if ($note === null && ($datum === null || $bezug === null)) {
-                continue;
-            }
-
-            // Interner Code statt der (übersetzten) Meldung, damit $status davon unabhängig bleibt.
-            $code = match (true) {
-                $datum === null => $roh('datum') === '' ? 'datum_fehlt' : 'datum_unbekannt',
-                $note === null => $roh('note') === '' ? 'note_fehlt' : 'note_ungueltig',
-                $gewicht === false => 'gewicht_ungueltig',
-                $bezug === null => 'bezug_unbekannt',
-                isset($vorhanden[$bezug.'|'.$datum.'|'.number_format($note, 2)]) => 'vorhanden',
-                $trackFehlt => 'track_fehlt',
-                ! $sicher => 'pruefen',
-                default => null,
-            };
-            $meldung = match ($code) {
-                null => null,
-                'datum_fehlt' => __('Datum fehlt'),
-                'datum_unbekannt' => __('Datum nicht erkannt'),
-                'note_fehlt' => __('Note fehlt'),
-                'note_ungueltig' => __('Note ungültig'),
-                'gewicht_ungueltig' => __('Gewicht ungültig'),
-                'bezug_unbekannt' => __('Fach/Modul nicht erkannt'),
-                'vorhanden' => __('bereits erfasst'),
-                'track_fehlt' => __('Track am Datum nicht aktiv'),
-                'pruefen' => __('Zuordnung prüfen'),
-            };
-            $status = match ($code) {
-                null => 'ok',
-                'vorhanden' => 'doppelt',
-                'pruefen' => 'pruefen',
-                default => 'fehler',
-            };
-
-            $zeilen[] = [
-                'nr' => $i + 1,
-                'datum' => $datum,
-                'bezug' => $bezug,
-                'bezug_roh' => $roh('bezug'),
-                'titel' => mb_substr($roh('titel'), 0, 150),
-                'note' => $note,
-                'gewicht' => $gewicht === false || $gewicht === null ? 100 : $gewicht,
-                'status' => $status,
-                'meldung' => $meldung,
-                'uebernehmen' => in_array($status, ['ok', 'pruefen'], true),
-            ];
+            return ['zeilen' => $zeilen, 'erkannt' => $format ? [] : $spalten, 'format' => $format];
+        } finally {
+            $this->noten->endBatch();
         }
-
-        return ['zeilen' => $zeilen, 'erkannt' => $format ? [] : $spalten, 'format' => $format];
     }
 
     /**
+     * Bearbeitete Vorschau-Zeilen nach Korrekturen in der Vorschau serverseitig neu prüfen («Erneut prüfen»):
+     * gleiche Regeln wie vorschau(), aber der Bezug ist bereits eine feste Auswahl. Die Sicherheit der Zuordnung
+     * (Feld «sicher») wird aus der vorherigen Vorschau übernommen und nur dann auf sicher gesetzt, wenn die Person
+     * den Bezug tatsächlich geändert hat – ein Klick auf «Erneut prüfen» ohne Korrektur darf ein nur geratenes
+     * Fach/Modul nicht stillschweigend als «bereit» einstufen.
+     *
+     * @param  list<array<string, mixed>>  $zeilen
+     * @param  list<array<string, mixed>>  $vorherigeZeilen  letzter bekannter Stand (Session) mit Feldern nr/bezug/sicher
+     * @return list<array<string, mixed>>
+     */
+    public function pruefeZeilen(array $zeilen, int $lernenderId, array $vorherigeZeilen = []): array
+    {
+        $this->noten->beginBatch();
+        try {
+            $vorhanden = $this->vorhandene($lernenderId);
+            $fachErlaubt = $this->noten->fachErlaubtAm($lernenderId);
+            $imFile = [];
+            $vorherIndex = [];
+            foreach ($vorherigeZeilen as $vz) {
+                $vorherIndex[(int) ($vz['nr'] ?? 0)] = $vz;
+            }
+
+            $out = [];
+            foreach ($zeilen as $i => $z) {
+                $datumRoh = trim((string) ($z['datum'] ?? ''));
+                $datum = $datumRoh !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $datumRoh) === 1 ? $datumRoh : null;
+                $bezugRoh = (string) ($z['bezug'] ?? '');
+                $bezug = $bezugRoh !== '' && preg_match('/^(fach|modul):\d+$/', $bezugRoh) === 1 ? $bezugRoh : null;
+                $noteRoh = trim((string) ($z['note'] ?? ''));
+                $note = WertParser::note($noteRoh);
+                $gewichtRoh = trim((string) ($z['gewicht'] ?? ''));
+                $gewicht = WertParser::gewicht($gewichtRoh);
+
+                $nr = (int) ($z['nr'] ?? ($i + 1));
+                $vorher = $vorherIndex[$nr] ?? null;
+                $vorherBezug = $vorher['bezug'] ?? null;
+                $vorherSicher = (bool) ($vorher['sicher'] ?? false);
+                $sicher = $vorherBezug !== null && $vorherBezug !== $bezug ? true : $vorherSicher;
+
+                $bewertet = $this->bewerten(
+                    $datum, $bezug, $note, $gewicht, $datumRoh, $noteRoh, $sicher, $lernenderId,
+                    $fachErlaubt, $vorhanden, $imFile, false, WertParser::gewichtMehrdeutig($gewichtRoh),
+                );
+
+                $out[] = [
+                    'nr' => $nr,
+                    'datum' => $datum,
+                    'bezug' => $bezug,
+                    'bezug_roh' => mb_substr((string) ($z['bezug_roh'] ?? ''), 0, 150),
+                    'titel' => mb_substr(trim((string) ($z['titel'] ?? '')), 0, 150),
+                    'note' => $note,
+                    'gewicht' => $gewicht === false || $gewicht === null ? 100 : $gewicht,
+                    ...$bewertet,
+                    'sicher' => $sicher,
+                    'uebernehmen' => ! empty($z['uebernehmen']) && $bewertet['status'] !== 'fehler',
+                ];
+            }
+
+            return $out;
+        } finally {
+            $this->noten->endBatch();
+        }
+    }
+
+    /**
+     * Status und Meldung einer Zeile – einzige Stelle, die vorschau() und pruefeZeilen() («Erneut prüfen») teilen.
+     * Prüft zusätzlich zu Datum/Note/Gewicht/Bezug die DB-Regeln über NoteService::pruefeZeile()
+     * (Lehrbeginn/-ende, Semester am Datum vorhanden, Kategorie) und Dubletten innerhalb der Datei.
+     *
+     * @param  array<string, true>  $vorhanden  Schlüssel bereits gespeicherter Noten (vorhandene())
+     * @param  array<string, true>  $imFile  Schlüssel bereits gesehener Zeilen dieser Datei (wird befüllt)
+     * @return array{status: string, meldung: ?string}
+     */
+    private function bewerten(
+        ?string $datum, ?string $bezug, ?float $note, float|false|null $gewicht, string $datumRoh, string $noteRoh,
+        bool $sicher, int $lernenderId, \Closure $fachErlaubt, array $vorhanden, array &$imFile,
+        bool $datumMehrdeutig, bool $gewichtMehrdeutig,
+    ): array {
+        $trackFehlt = $datum !== null && $bezug !== null && str_starts_with($bezug, 'fach:')
+            && ! $fachErlaubt($datum, (int) substr($bezug, 5));
+
+        $dbFehler = null;
+        if (! $trackFehlt && $datum !== null && $bezug !== null && $note !== null && $gewicht !== false) {
+            [$typ, $id] = explode(':', $bezug);
+            try {
+                $this->noten->pruefeZeile([
+                    'typ' => $typ,
+                    'fach_id' => $typ === 'fach' ? (int) $id : null,
+                    'modul_id' => $typ === 'modul' ? (int) $id : null,
+                    'pruefungsdatum' => $datum,
+                    'note_wert' => $note,
+                    'gewichtung_prozent' => $gewicht ?? 100,
+                ], $lernenderId);
+            } catch (ValidationException $e) {
+                $dbFehler = collect($e->errors())->flatten()->first();
+            }
+        }
+
+        $schluessel = $bezug !== null && $datum !== null && $note !== null ? $bezug.'|'.$datum.'|'.number_format($note, 2) : null;
+        $dublette = $schluessel !== null && isset($vorhanden[$schluessel]);
+        $dateiDublette = ! $dublette && $schluessel !== null && isset($imFile[$schluessel]);
+        if ($schluessel !== null) {
+            $imFile[$schluessel] = true;
+        }
+
+        // Interner Code statt der (übersetzten) Meldung, damit $status davon unabhängig bleibt.
+        $code = match (true) {
+            $datum === null => $datumRoh === '' ? 'datum_fehlt' : 'datum_unbekannt',
+            $note === null => $noteRoh === '' ? 'note_fehlt' : 'note_ungueltig',
+            $gewicht === false => 'gewicht_ungueltig',
+            $bezug === null => 'bezug_unbekannt',
+            $dublette => 'vorhanden',
+            $dateiDublette => 'datei_doppelt',
+            $trackFehlt => 'track_fehlt',
+            $dbFehler !== null => 'db_regel',
+            ! $sicher => 'pruefen',
+            $datumMehrdeutig => 'datum_mehrdeutig',
+            $gewichtMehrdeutig => 'gewicht_mehrdeutig',
+            default => null,
+        };
+        $meldung = match ($code) {
+            null => null,
+            'datum_fehlt' => __('Datum fehlt'),
+            'datum_unbekannt' => __('Datum nicht erkannt'),
+            'note_fehlt' => __('Note fehlt'),
+            'note_ungueltig' => __('Note ungültig'),
+            'gewicht_ungueltig' => __('Gewicht ungültig'),
+            'bezug_unbekannt' => __('Fach/Modul nicht erkannt'),
+            'vorhanden' => __('bereits erfasst'),
+            'datei_doppelt' => __('mehrfach in dieser Datei'),
+            'track_fehlt' => __('Track am Datum nicht aktiv'),
+            'db_regel' => $dbFehler,
+            'pruefen' => __('Zuordnung prüfen'),
+            'datum_mehrdeutig' => __('Datum mehrdeutig (Tag/Monat vertauschbar) – bitte prüfen'),
+            'gewicht_mehrdeutig' => __('Gewicht als Anteil gedeutet (z. B. 0.5 → 50 %) – bitte prüfen'),
+        };
+        $status = match ($code) {
+            null => 'ok',
+            'vorhanden', 'datei_doppelt' => 'doppelt',
+            'pruefen' => 'pruefen',
+            'datum_mehrdeutig', 'gewicht_mehrdeutig' => 'warnung',
+            default => 'fehler',
+        };
+
+        return ['status' => $status, 'meldung' => $meldung];
+    }
+
+    /**
+     * Speichert nur, wenn alle ausgewählten Zeilen gültig sind (alles oder nichts) – sonst nichts und je
+     * Zeilenfehler zurück, damit «prüfen → korrigieren → speichern» ohne Teilübernahme funktioniert.
+     *
      * @param  list<array<string, mixed>>  $zeilen  bearbeitete Vorschau (nur markierte werden übernommen)
      * @return array{neu: int, fehler: list<string>}
      */
     public function importieren(array $zeilen, int $lernenderId, int $benutzerId): array
     {
-        $neu = 0;
+        $this->noten->beginBatch();
+        try {
+            return $this->importierenInBatch($zeilen, $lernenderId, $benutzerId);
+        } finally {
+            $this->noten->endBatch();
+        }
+    }
+
+    /** @return array{neu: int, fehler: list<string>} */
+    private function importierenInBatch(array $zeilen, int $lernenderId, int $benutzerId): array
+    {
+        $bereit = [];
         $fehler = [];
-        DB::transaction(function () use ($zeilen, $lernenderId, $benutzerId, &$neu, &$fehler) {
-            foreach ($zeilen as $z) {
-                if (empty($z['uebernehmen'])) {
-                    continue;
-                }
-                $nr = (int) ($z['nr'] ?? 0);
-                $pruefung = Validator::make($z, [
-                    'datum' => ['required', 'date'],
-                    'bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
-                    'titel' => ['nullable', 'string', 'max:150'],
-                    'note' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
-                    'gewicht' => ['nullable', 'numeric', 'min:0', 'max:100'],
-                ], [], ['datum' => __('Datum'), 'bezug' => __('Fach/Modul'), 'note' => __('Note'), 'gewicht' => __('Gewicht')]);
-                if ($pruefung->fails()) {
-                    $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => $pruefung->errors()->first()]);
+        // Dubletten (bereits gespeichert oder mehrfach in der ausgewählten Auswahl) müssen hier – direkt vor dem
+        // Schreiben – erneut geprüft werden: die Vorschau markiert sie nur, verhindert das Ankreuzen aber nicht.
+        $vorhanden = $this->vorhandene($lernenderId);
+        $imFile = [];
 
-                    continue;
-                }
-                [$typ, $id] = explode(':', (string) $z['bezug']);
-                try {
-                    $daten = $this->noten->normalizeForSave([
-                        'typ' => $typ,
-                        'fach_id' => $typ === 'fach' ? (int) $id : null,
-                        'modul_id' => $typ === 'modul' ? (int) $id : null,
-                        'titel' => filled($z['titel'] ?? null) ? (string) $z['titel'] : null,
-                        'pruefungsdatum' => (string) $z['datum'],
-                        'note_wert' => (float) $z['note'],
-                        'gewichtung_prozent' => $z['gewicht'] ?? 100,
-                    ], $lernenderId);
-                } catch (ValidationException $e) {
-                    $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => collect($e->errors())->flatten()->first()]);
-
-                    continue;
-                }
-
-                Note::create([
-                    'lernender_id' => $lernenderId,
-                    ...array_intersect_key($daten, array_flip(['kategorie_id', 'semester_id', 'fach_id', 'modul_belegung_id', 'titel', 'pruefungsdatum', 'note_wert', 'gewichtung_prozent'])),
-                    'erfasst_von_benutzer_id' => $benutzerId,
-                ]);
-                $neu++;
+        foreach ($zeilen as $z) {
+            if (empty($z['uebernehmen'])) {
+                continue;
             }
-        });
+            $nr = (int) ($z['nr'] ?? 0);
+            $pruefung = Validator::make($z, [
+                'datum' => ['required', 'date'],
+                'bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
+                'titel' => ['nullable', 'string', 'max:150'],
+                'note' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
+                'gewicht' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            ], [], ['datum' => __('Datum'), 'bezug' => __('Fach/Modul'), 'note' => __('Note'), 'gewicht' => __('Gewicht')]);
+            if ($pruefung->fails()) {
+                $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => $pruefung->errors()->first()]);
 
-        return ['neu' => $neu, 'fehler' => $fehler];
+                continue;
+            }
+
+            $datum = (string) $z['datum'];
+            $note = (float) $z['note'];
+            $bezug = (string) $z['bezug'];
+            $schluessel = $bezug.'|'.$datum.'|'.number_format($note, 2);
+            if (isset($vorhanden[$schluessel])) {
+                $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => __('bereits erfasst')]);
+
+                continue;
+            }
+            if (isset($imFile[$schluessel])) {
+                $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => __('mehrfach in dieser Datei')]);
+
+                continue;
+            }
+            $imFile[$schluessel] = true;
+
+            [$typ, $id] = explode(':', $bezug);
+            $eingabe = [
+                'typ' => $typ,
+                'fach_id' => $typ === 'fach' ? (int) $id : null,
+                'modul_id' => $typ === 'modul' ? (int) $id : null,
+                'titel' => filled($z['titel'] ?? null) ? (string) $z['titel'] : null,
+                'pruefungsdatum' => $datum,
+                'note_wert' => $note,
+                'gewichtung_prozent' => $z['gewicht'] ?? 100,
+            ];
+            try {
+                $this->noten->pruefeZeile($eingabe, $lernenderId);
+            } catch (ValidationException $e) {
+                $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => collect($e->errors())->flatten()->first()]);
+
+                continue;
+            }
+            $bereit[] = $eingabe;
+        }
+
+        if ($bereit === [] || $fehler !== []) {
+            return ['neu' => 0, 'fehler' => $fehler];
+        }
+
+        $neu = 0;
+        try {
+            DB::transaction(function () use ($bereit, $lernenderId, $benutzerId, &$neu) {
+                foreach ($bereit as $eingabe) {
+                    $daten = $this->noten->normalizeForSave($eingabe, $lernenderId);
+                    Note::create([
+                        'lernender_id' => $lernenderId,
+                        ...array_intersect_key($daten, array_flip(['kategorie_id', 'semester_id', 'fach_id', 'modul_belegung_id', 'titel', 'pruefungsdatum', 'note_wert', 'gewichtung_prozent'])),
+                        'erfasst_von_benutzer_id' => $benutzerId,
+                    ]);
+                    $neu++;
+                }
+            });
+        } catch (ValidationException $e) {
+            // normalizeForSave() prüft (pruefeZeile) innerhalb der Transaktion erneut; eine dort geworfene
+            // Ausnahme hat die Transaktion bereits zurückgerollt – als Importfehler statt als Systemfehler melden.
+            return ['neu' => 0, 'fehler' => [collect($e->errors())->flatten()->first()]];
+        }
+
+        return ['neu' => $neu, 'fehler' => []];
     }
 
     /** CSV-Vorlage mit Kopfzeile und je einem Beispiel pro Fach/Modul-Art. */
@@ -195,50 +373,22 @@ final class NotenImport
         return "\xEF\xBB\xBF".implode("\r\n", array_map(fn ($z) => implode(';', $z), $zeilen))."\r\n";
     }
 
+    /** @see WertParser::datum() */
     public function datum(string $s): ?string
     {
-        $s = trim(preg_replace('/\s+\d{1,2}:\d{2}(:\d{2})?$/', '', $s) ?? '');
-        if ($s === '') {
-            return null;
-        }
-        if (is_numeric($s) && (float) $s > 20000 && (float) $s < 80000) {
-            return Date::excelToDateTimeObject((float) $s)->format('Y-m-d');
-        }
-        foreach (['d.m.Y', 'j.n.Y', 'd.m.y', 'j.n.y', 'Y-m-d', 'd/m/Y', 'j/n/Y'] as $format) {
-            $d = \DateTime::createFromFormat('!'.$format, $s);
-            if ($d && $d->format($format) === $s) {
-                return $d->format('Y-m-d');
-            }
-        }
-
-        return null;
+        return WertParser::datum($s);
     }
 
+    /** @see WertParser::note() */
     public function note(string $s): ?float
     {
-        $s = str_replace(',', '.', trim($s));
-        if (! is_numeric($s)) {
-            return null;
-        }
-        $wert = round((float) $s, 2);
-
-        return $wert >= 1 && $wert <= 6 && abs($wert * 20 - round($wert * 20)) < 1e-6 ? $wert : null;
+        return WertParser::note($s);
     }
 
-    /** null = leer (Standard 100), false = ungültig; Werte ≤ 1 gelten als Anteil (0.5 → 50 %). */
+    /** @see WertParser::gewicht() */
     public function gewicht(string $s): float|false|null
     {
-        $s = str_replace([',', '%'], ['.', ''], trim($s));
-        if ($s === '') {
-            return null;
-        }
-        if (! is_numeric($s)) {
-            return false;
-        }
-        $wert = (float) $s;
-        $wert = $wert > 0 && $wert <= 1 ? $wert * 100 : $wert;
-
-        return $wert >= 0 && $wert <= 100 ? round($wert, 2) : false;
+        return WertParser::gewicht($s);
     }
 
     /**

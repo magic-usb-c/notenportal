@@ -425,7 +425,7 @@ class AktivitaetsprotokollTest extends TestCase
         $vorschau = session('notenimport.'.$lernenderId);
 
         $this->actingAs($admin)
-            ->post(route('admin.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode($vorschau['zeilen'])])
+            ->post(route('admin.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
             ->assertSessionHas('success');
 
         $eintrag = $this->letzterEintrag();

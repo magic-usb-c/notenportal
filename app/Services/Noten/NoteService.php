@@ -36,6 +36,49 @@ use Illuminate\Validation\ValidationException;
 class NoteService
 {
     /**
+    /**
+     * Caches innerhalb einer Service-Instanz: pruefeZeile() läuft beim Notenimport pro Zeile, bei mehreren
+     * hundert Zeilen sonst mehrere tausend Mal dieselben Abfragen (Lernender, Semester, erlaubte
+     * Fächer/Kategorien) – analog zu fachErlaubtAm() einmal laden statt pro Zeile. Aktiv nur zwischen
+     * beginBatch()/endBatch() (siehe NotenImport::vorschau/pruefeZeilen/importieren): eine einzelne
+     * Handerfassung (NotenController::store/update) resetet den Cache bei jedem Aufruf, damit eine
+     * ausserhalb eines Imports wiederverwendete Service-Instanz (z. B. injizierte Controller-Instanz)
+     * nie veraltete Daten liefert.
+     */
+    private array $lernenderCache = [];
+
+    private array $semesterCache = [];
+
+    /** @var array<string, Collection> kategorie_id je fach_id, Schlüssel "lernenderId|stichtag" */
+    private array $erlaubteFaecherKategorienCache = [];
+
+    /** @var array<int, Collection> kategorie_id je modul_id, Schlüssel lehrberuf_id */
+    private array $modulKategorienCache = [];
+
+    private bool $batch = false;
+
+    /** Beginn eines Bulk-Vorgangs (Notenimport): Cache wird bis endBatch() über mehrere Zeilen hinweg wiederverwendet. */
+    public function beginBatch(): void
+    {
+        $this->resetCache();
+        $this->batch = true;
+    }
+
+    /** Ende eines Bulk-Vorgangs: Cache wird verworfen, damit spätere Einzelaufrufe wieder frische Daten lesen. */
+    public function endBatch(): void
+    {
+        $this->batch = false;
+        $this->resetCache();
+    }
+
+    private function resetCache(): void
+    {
+        $this->lernenderCache = [];
+        $this->semesterCache = [];
+        $this->erlaubteFaecherKategorienCache = [];
+        $this->modulKategorienCache = [];
+    }
+
      * Basis-Query für Noten eines Lernenden (inkl. Relations).
      */
     public function learnerNotesQuery(int $lernenderId): Builder
@@ -141,7 +184,7 @@ class NoteService
     /** @param  list<string>  $tracks */
     private function faecherFuerTracks(int $lernenderId, array $tracks): Builder
     {
-        $lehrberufId = (int) Lernender::query()->whereKey($lernenderId)->value('lehrberuf_id');
+        $lehrberufId = $this->lehrberufIdFuer($lernenderId);
 
         return Fach::query()
             ->where('aktiv', 1)
@@ -251,20 +294,25 @@ class NoteService
     }
 
     /**
-     * Prüft/normalisiert validierte Input-Daten für Save/Update:
+     * Prüft/normalisiert Input-Daten ohne zu schreiben – einzige Regelquelle für Handerfassung und Import
+     * (NotenImport::vorschau/importieren rufen dieselbe Methode für die Vorschau bzw. vor dem Speichern auf):
+     * - Lernender vorhanden, Prüfungsdatum innerhalb Lehrbeginn/-ende
+     * - Semester am Prüfungsdatum vorhanden -> semester_id
      * - Typ-Logik (fach vs modul)
-     * - Fach: fach_id muss zu einem am Prüfungsdatum gültigen Track (oder zum Lehrberuf) gehören
-     * - Modul: modul_id muss zum Lehrberuf gehören (lehrberuf_module)
-     * - Modul: offene Belegung finden/erstellen -> modul_belegung_id setzen
-     * - semester_id wird aus pruefungsdatum ermittelt
+     * - Fach: fach_id muss zu einem am Prüfungsdatum gültigen Track (oder zum Lehrberuf) gehören -> kategorie_id
+     * - Modul: modul_id muss zum Lehrberuf gehören (lehrberuf_module) -> kategorie_id
      * - gewichtung_prozent Default = 100.00
      */
-    public function normalizeForSave(array $data, int $lernenderId): array
+     *
+     * modul_belegung_id ist hier immer null: die offene Belegung zu finden/anzulegen schreibt (siehe
+     * normalizeForSave), eine reine Prüfung darf das nicht.
+    public function pruefeZeile(array $data, int $lernenderId): array
     {
-        $lernender = Lernender::query()
-            ->select(['lernender_id', 'lehrbeginn', 'lehrende', 'lehrberuf_id'])
-            ->where('lernender_id', $lernenderId)
-            ->first();
+        if (! $this->batch) {
+            $this->resetCache();
+        }
+
+        $lernender = $this->lernenderFuer($lernenderId);
 
         if (! $lernender) {
             throw ValidationException::withMessages([
@@ -315,6 +363,7 @@ class NoteService
                 'semester_id' => (int) $semester->semester_id,
                 'fach_id' => $fachId,
                 'modul_belegung_id' => null,
+                'modul_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
                 'note_wert' => $data['note_wert'],
@@ -332,13 +381,12 @@ class NoteService
             $modulId = (int) $data['modul_id'];
             $kategorieId = $this->kategorieFuer($lernenderId, 'modul', $modulId);
 
-            $modulBelegungId = $this->resolveOrCreateOpenModulBelegung($lernenderId, $modulId, $date);
-
             return [
                 'kategorie_id' => (int) $kategorieId,
                 'semester_id' => (int) $semester->semester_id,
                 'fach_id' => null,
-                'modul_belegung_id' => $modulBelegungId,
+                'modul_id' => $modulId,
+                'modul_belegung_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
                 'note_wert' => $data['note_wert'],
@@ -352,6 +400,22 @@ class NoteService
     }
 
     /**
+    /**
+     * Prüft wie pruefeZeile() und legt bei einem Modul zusätzlich die offene Modulbelegung an/findet sie
+     * (einziger schreibende Schritt) -> modul_belegung_id setzen.
+     */
+    public function normalizeForSave(array $data, int $lernenderId): array
+    {
+        $ergebnis = $this->pruefeZeile($data, $lernenderId);
+
+        if (($data['typ'] ?? null) === 'modul') {
+            $ergebnis['modul_belegung_id'] = $this->resolveOrCreateOpenModulBelegung($lernenderId, (int) $ergebnis['modul_id'], $ergebnis['pruefungsdatum']);
+        }
+        unset($ergebnis['modul_id']);
+
+        return $ergebnis;
+    }
+
      * Einzige Zuordnungsregel für Noten und geplante Prüfungen: Fach muss für Beruf/Track freigegeben sein
      * (Kategorie folgt aus dem Fach), Modul muss zum Lehrberuf gehören (Kategorie = Lernort im Beruf).
      *
@@ -362,7 +426,7 @@ class NoteService
     public function kategorieFuer(int $lernenderId, string $typ, int $id, ?CarbonInterface $stichtag = null): int
     {
         if ($typ === 'fach') {
-            $kategorieId = $this->erlaubteFaecher($lernenderId, $stichtag)->whereKey($id)->value('kategorie_id');
+            $kategorieId = $this->erlaubteFaecherKategorien($lernenderId, $stichtag)->get($id);
 
             if (! $kategorieId) {
                 throw ValidationException::withMessages(['fach_id' => $this->trackNichtAktivMeldung($lernenderId, $id, $stichtag ?? now())
@@ -372,11 +436,7 @@ class NoteService
             return (int) $kategorieId;
         }
 
-        $kategorieId = DB::table('lehrberuf_module')
-            ->where('lehrberuf_id', (int) Lernender::query()->whereKey($lernenderId)->value('lehrberuf_id'))
-            ->where('modul_id', $id)
-            ->where('aktiv', 1)
-            ->value('kategorie_id');
+        $kategorieId = $this->modulKategorien($this->lehrberufIdFuer($lernenderId))->get($id);
 
         if (! $kategorieId) {
             throw ValidationException::withMessages(['modul_id' => __('Dieses Modul gehört nicht zum Lehrberuf.')]);
@@ -386,6 +446,42 @@ class NoteService
     }
 
     /**
+    /** kategorie_id je fach_id (erlaubteFaecher), pro Lernender+Stichtag einmal geladen statt pro Zeile. */
+    private function erlaubteFaecherKategorien(int $lernenderId, ?CarbonInterface $stichtag): Collection
+    {
+        $key = $lernenderId.'|'.($stichtag?->toDateString() ?? '');
+
+        return $this->erlaubteFaecherKategorienCache[$key] ??= $this->erlaubteFaecher($lernenderId, $stichtag)->pluck('kategorie_id', 'fach_id');
+    }
+
+    /** kategorie_id je modul_id (aktive lehrberuf_module), pro Lehrberuf einmal geladen statt pro Zeile. */
+    private function modulKategorien(int $lehrberufId): Collection
+    {
+        return $this->modulKategorienCache[$lehrberufId] ??= DB::table('lehrberuf_module')
+            ->where('lehrberuf_id', $lehrberufId)
+            ->where('aktiv', 1)
+            ->pluck('kategorie_id', 'modul_id');
+    }
+
+    /** Lehrberuf-ID eines Lernenden, aus dem gecachten Lernenden-Datensatz (pruefeZeile lädt ihn ohnehin). */
+    private function lehrberufIdFuer(int $lernenderId): int
+    {
+        return (int) ($this->lernenderFuer($lernenderId)->lehrberuf_id ?? 0);
+    }
+
+    /** Lernender-Basisdaten (lehrbeginn, lehrende, lehrberuf_id), pro ID einmal geladen statt pro Zeile. */
+    private function lernenderFuer(int $lernenderId): ?Lernender
+    {
+        if (! array_key_exists($lernenderId, $this->lernenderCache)) {
+            $this->lernenderCache[$lernenderId] = Lernender::query()
+                ->select(['lernender_id', 'lehrbeginn', 'lehrende', 'lehrberuf_id'])
+                ->where('lernender_id', $lernenderId)
+                ->first();
+        }
+
+        return $this->lernenderCache[$lernenderId];
+    }
+
      * Meldung, wenn das Fach zu einem Track des Lernenden gehört, dieser am Stichtag aber nicht galt; sonst null.
      */
     private function trackNichtAktivMeldung(int $lernenderId, int $fachId, CarbonInterface $stichtag): ?string
@@ -520,9 +616,13 @@ class NoteService
      */
     public function semesterForDate(string $date): ?Semester
     {
-        return Semester::query()
-            ->where('start_datum', '<=', $date)
-            ->where('end_datum', '>=', $date)
-            ->first();
+        if (! array_key_exists($date, $this->semesterCache)) {
+            $this->semesterCache[$date] = Semester::query()
+                ->where('start_datum', '<=', $date)
+                ->where('end_datum', '>=', $date)
+                ->first();
+        }
+
+        return $this->semesterCache[$date];
     }
 }

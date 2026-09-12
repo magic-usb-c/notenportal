@@ -15,6 +15,7 @@ use App\Services\Notifications\Messages\GradeAdded;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Support\Protokoll;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -29,6 +30,9 @@ use Illuminate\View\View;
  */
 class NotenImportController extends Controller
 {
+    /** Grosszügige Grenze für die rohe JSON-Zeichenkette der Zeilen, geprüft bevor json_decode überhaupt läuft. */
+    private const int MAX_ZEILEN_JSON = 2 * 1024 * 1024;
+
     public function __construct(
         private readonly NotenImport $import,
         private readonly TabellenLeser $leser,
@@ -70,21 +74,65 @@ class NotenImportController extends Controller
             throw ValidationException::withMessages(['datei' => __('Keine Noten gefunden.')]);
         }
 
-        $request->session()->put($this->schluessel($lernender), [...$vorschau, 'datei' => mb_substr($datei->getClientOriginalName(), 0, 120)]);
+        $request->session()->put($this->schluessel($lernender), [
+            ...$vorschau,
+            'datei' => mb_substr($datei->getClientOriginalName(), 0, 120),
+            'token' => Str::random(40),
+        ]);
 
         return redirect($this->route($bereich, $lernender, 'index'));
+    }
+
+    /**
+     * «Erneut prüfen»: bearbeitete Vorschau-Zeilen (nach Korrekturen im Formular) serverseitig neu gegen die
+     * DB-Regeln prüfen und Status/Meldung zurückgeben, ohne zu speichern.
+     */
+    public function pruefen(Request $request): JsonResponse
+    {
+        [$lernender] = $this->kontext($request);
+        abort_unless(strlen((string) $request->input('zeilen')) <= self::MAX_ZEILEN_JSON, 422);
+        $request->validate(['zeilen' => ['required', 'json']]);
+        $zeilen = json_decode((string) $request->input('zeilen'), true);
+        abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
+
+        // Sicherheitsstatus je Zeile (Feld «sicher») kommt aus der zuletzt bekannten Vorschau, nicht vom Client.
+        $vorschau = $request->session()->get($this->schluessel($lernender));
+        $vorherigeZeilen = is_array($vorschau['zeilen'] ?? null) ? $vorschau['zeilen'] : [];
+
+        $geprueft = $this->import->pruefeZeilen($zeilen, (int) $lernender->lernender_id, $vorherigeZeilen);
+
+        if ($vorschau) {
+            $request->session()->put($this->schluessel($lernender), [...$vorschau, 'zeilen' => $geprueft]);
+        }
+
+        return response()->json(['zeilen' => $geprueft]);
     }
 
     public function uebernehmen(Request $request): RedirectResponse
     {
         [$lernender, $bereich] = $this->kontext($request);
-        $request->validate(['zeilen' => ['required', 'json']]);
+        abort_unless(strlen((string) $request->input('zeilen')) <= self::MAX_ZEILEN_JSON, 422);
+        $request->validate(['zeilen' => ['required', 'json'], 'token' => ['required', 'string']]);
+
+        // Vorschau atomar aus der Session ziehen und an das mitgesendete Einmal-Token binden: ein zweiter Post
+        // derselben Daten (Back-Knopf, Doppelklick, zweiter Tab) findet keine (oder eine bereits andere) Vorschau
+        // mehr vor und legt nichts ein zweites Mal an.
+        $schluessel = $this->schluessel($lernender);
+        $vorschau = $request->session()->pull($schluessel);
+        $token = is_string($vorschau['token'] ?? null) ? $vorschau['token'] : null;
+        if ($vorschau === null || $token === null || ! hash_equals($token, (string) $request->input('token'))) {
+            return back()->with('error', __('Diese Vorschau wurde bereits übernommen.'));
+        }
+
         $zeilen = json_decode((string) $request->input('zeilen'), true);
         abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
 
         $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
         if ($ergebnis['neu'] === 0) {
+            // Vorschau mit frischem Token zurücklegen, damit die Person korrigieren und erneut übernehmen kann.
+            $request->session()->put($schluessel, [...$vorschau, 'token' => Str::random(40)]);
+
             return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
         $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
@@ -105,13 +153,9 @@ class NotenImportController extends Controller
             }
         }
 
-        $request->session()->forget($this->schluessel($lernender));
         $ziel = $bereich ? route($bereich.'.learners.grades.index', $lernender->lernender_id) : route('learner.grades.index');
-        $antwort = redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
 
-        return $ergebnis['fehler'] !== []
-            ? $antwort->with('error', __(':anzahl nicht übernommen: :fehler', ['anzahl' => count($ergebnis['fehler']), 'fehler' => implode(' · ', array_slice($ergebnis['fehler'], 0, 3))]))
-            : $antwort;
+        return redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
     }
 
     public function verwerfen(Request $request): RedirectResponse
