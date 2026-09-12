@@ -8,6 +8,7 @@ use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Models\Semester;
+use App\Services\Auswertung\Konfiguration;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -505,14 +506,18 @@ class NoteService
     }
 
     /**
-     * Alle Semester mit Zeitraum (Zuordnung Datum → Semester im Formular).
+     * Alle Semester mit Zeitraum (Zuordnung Datum → Semester im Formular). Immer für genau
+     * einen Lernenden (dieses Formular gehört zu dessen Notenliste) -> relative Semesternummer
+     * statt Rohcode, sofern $lernenderId bekannt ist.
      *
      * @return list<array{id: int, name: string, start: string, ende: string}>
      */
-    public function semesterListe(): array
+    public function semesterListe(?int $lernenderId = null): array
     {
+        $k = Konfiguration::ausDb();
+
         return Semester::query()->orderBy('sortierung')->get()
-            ->map(fn (Semester $s) => ['id' => (int) $s->semester_id, 'name' => $s->bezeichnung,
+            ->map(fn (Semester $s) => ['id' => (int) $s->semester_id, 'name' => $k->semesterName((int) $s->semester_id, $lernenderId),
                 'start' => $s->start_datum->toDateString(), 'ende' => $s->end_datum->toDateString()])
             ->all();
     }
@@ -556,7 +561,7 @@ class NoteService
 
         $daten = [
             'bezugOptionen' => $this->bezugOptionen((int) $lernender->lernender_id),
-            'semesterListe' => $this->semesterListe(),
+            'semesterListe' => $this->semesterListe((int) $lernender->lernender_id),
             'drawer' => $kontext,
         ];
         if ($kontext === 'neu') {

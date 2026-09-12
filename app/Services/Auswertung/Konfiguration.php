@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Models\Semester;
 use App\Support\Einstellungen;
+use App\Support\Lehrsemester;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -86,9 +88,34 @@ final class Konfiguration
         return $id !== null ? ($this->semester[$id]['sortierung'] ?? 0) : 0;
     }
 
-    public function semesterName(?int $id): string
+    /**
+     * Anzeigename eines Semesters. Mit $lernenderId (Ansicht für genau einen Lernenden):
+     * relative Semesternummer «5. Semester». Ohne (Listen über mehrere Lernende, Stammdaten):
+     * neutraler Name «HS 2026/27». Fällt auf den Code zurück, wenn beides fehlt.
+     */
+    public function semesterName(?int $id, ?int $lernenderId = null): string
     {
-        return $id !== null ? ($this->semester[$id]['bezeichnung'] ?? '–') : '–';
+        if ($id === null || ! isset($this->semester[$id])) {
+            return '–';
+        }
+
+        $sem = $this->semester[$id];
+
+        // Rechenkern bleibt frei von __(): reine Unit-Tests (ohne Laravel-App, z. B.
+        // RechenkernTest) rufen toArray()/verlauf() ohne gebundenen Translator auf.
+        // Dort bleibt der Rohcode stehen; die echte Anzeige läuft stets über die App.
+        if (! app()->bound('translator')) {
+            return $sem['bezeichnung'];
+        }
+
+        if ($lernenderId !== null) {
+            $n = Lehrsemester::nummer($lernenderId, $id);
+            if ($n !== null) {
+                return Lehrsemester::name($n);
+            }
+        }
+
+        return Semester::neutralerName($sem['start']) ?? $sem['bezeichnung'];
     }
 
     public function kategorieName(int $id): string

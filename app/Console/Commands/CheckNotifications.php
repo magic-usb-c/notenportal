@@ -178,7 +178,7 @@ class CheckNotifications extends Command
 
                 $this->melden(
                     $l->benutzer, NotificationCatalog::SEMESTER_ENDING, 'semester_ending:'.$semesterEintrag->semester_id.':'.$l->lernender_id,
-                    fn () => SemesterEnding::content($semesterEintrag, $offenePruefungen, $offeneModule),
+                    fn () => SemesterEnding::content($semesterEintrag, $offenePruefungen, $offeneModule, (int) $l->lernender_id),
                     'Semesterende '.$semesterEintrag->bezeichnung.' ('.$l->benutzer->email.')'
                 );
             }

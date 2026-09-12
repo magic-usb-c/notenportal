@@ -13,7 +13,7 @@
             </div>
             <x-sparkline :werte="$stand->verlauf" :breite="140" :hoehe="40" :zahl="false" />
             <div class="ml-auto text-right">
-                <div class="text-xs font-medium text-muted">{{ $stand->auswertung->konfiguration->semesterName($stand->semesterId) }}</div>
+                <div class="text-xs font-medium text-muted"><x-semester :id="$stand->semesterId" :lernender="$stand->auswertung->lernenderId" /></div>
                 <div class="flex items-baseline justify-end gap-2">
                     <x-note :wert="$stand->semesterNote" :stellen="1" class="text-xl" />
                     @if($delta !== null && $delta != 0)

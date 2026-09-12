@@ -76,7 +76,7 @@
                 <h3 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h3>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)
-                        <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }}</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }} <span class="text-muted">({{ \App\Models\Semester::neutralerName($s->start_datum) }})</span></span>
                     @endforeach
                 </div>
             </section>

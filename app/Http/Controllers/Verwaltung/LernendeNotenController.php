@@ -97,7 +97,7 @@ class LernendeNotenController extends VerwaltungController
         return view('verwaltung.noten.create', [
             'lernender' => $lernender,
             'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id),
-            'semesterListe' => $this->noteService->semesterListe(),
+            'semesterListe' => $this->noteService->semesterListe($lernender_id),
         ]);
     }
 
@@ -132,7 +132,7 @@ class LernendeNotenController extends VerwaltungController
             'lernender' => $lernender,
             'note' => $note,
             'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id),
-            'semesterListe' => $this->noteService->semesterListe(),
+            'semesterListe' => $this->noteService->semesterListe($lernender_id),
         ]);
     }
 

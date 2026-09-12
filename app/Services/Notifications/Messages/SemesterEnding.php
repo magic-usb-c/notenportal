@@ -7,6 +7,7 @@ namespace App\Services\Notifications\Messages;
 use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Services\Auswertung\Element;
+use App\Services\Auswertung\Konfiguration;
 use App\Services\Notifications\MailContent;
 
 /** Semesterende naht: offene geplante Prüfungen, unvollständige Module, Erinnerung Zeugnis hochladen. */
@@ -16,8 +17,9 @@ final class SemesterEnding
      * @param  list<Pruefung>  $offenePruefungen
      * @param  list<Element>  $offeneModule
      */
-    public static function content(Semester $semester, array $offenePruefungen, array $offeneModule): MailContent
+    public static function content(Semester $semester, array $offenePruefungen, array $offeneModule, ?int $lernenderId = null): MailContent
     {
+        $name = Konfiguration::ausDb()->semesterName((int) $semester->semester_id, $lernenderId);
         $sections = [];
         if ($offenePruefungen !== []) {
             $zeilen = array_map(fn (Pruefung $p) => '- '.$p->bezeichnung().' ('.$p->datum->format('d.m.Y').')', $offenePruefungen);
@@ -29,13 +31,13 @@ final class SemesterEnding
         }
 
         return new MailContent(
-            subject: __('Semesterende naht: :semester', ['semester' => $semester->bezeichnung]),
-            lines: [__('Das Semester «:semester» endet am :ende. Denk daran, offene Prüfungen einzutragen und dein Zeugnis hochzuladen, sobald es da ist.', ['semester' => $semester->bezeichnung, 'ende' => $semester->end_datum->format('d.m.Y')])],
-            facts: [__('Semester') => $semester->bezeichnung, __('Ende') => $semester->end_datum->format('d.m.Y')],
+            subject: __('Semesterende naht: :semester', ['semester' => $name]),
+            lines: [__('Das Semester «:semester» endet am :ende. Denk daran, offene Prüfungen einzutragen und dein Zeugnis hochzuladen, sobald es da ist.', ['semester' => $name, 'ende' => $semester->end_datum->format('d.m.Y')])],
+            facts: [__('Semester') => $name, __('Ende') => $semester->end_datum->format('d.m.Y')],
             sections: $sections,
             actionLabel: __('Zur Prüfungsliste'),
             actionUrl: route('learner.exams.index'),
-            digestTitle: __('Semesterende naht: :semester', ['semester' => $semester->bezeichnung]),
+            digestTitle: __('Semesterende naht: :semester', ['semester' => $name]),
         );
     }
 }

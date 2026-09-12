@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Auswertung;
 
 use App\Support\Einstellungen;
+use App\Support\Lehrsemester;
 use App\Support\NotenSkala;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,9 @@ final class LernstandRechner
         $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->where('datum', '<', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, COUNT(*) as anzahl')->pluck('anzahl', 'lernender_id');
         $lehrbeginn = DB::table('lernende')->whereIn('lernender_id', $lernenderIds)->pluck('lehrbeginn', 'lernender_id');
+        // In einem Rutsch vorladen statt pro Person: verhindert N+1 bei Lehrsemester::nummer()
+        // (personalisierte Semesternamen), das verlauf()/toArray() weiter unten je Person nutzt.
+        Lehrsemester::vorladen($lehrbeginn->all());
 
         $out = [];
         foreach ($lernenderIds as $id) {
@@ -49,6 +53,7 @@ final class LernstandRechner
 
     public function berechne(int $id, Auswertung $a, ?Carbon $letzte, int $ueberfaellig, ?Carbon $lehrbeginn): Lernstand
     {
+        $a->lernenderId ??= $id;
         $k = $a->konfiguration;
         $grenze = $k->genuegend;
         $semesterIds = $a->semesterIds();

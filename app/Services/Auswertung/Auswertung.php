@@ -20,6 +20,9 @@ final class Auswertung
 
     public ?float $gesamtNote = null;
 
+    /** Gesetzt, wenn die Auswertung genau einen Lernenden betrifft (relative Semesternummern). */
+    public ?int $lernenderId = null;
+
     public function __construct(public readonly Konfiguration $konfiguration) {}
 
     /** Offizieller (gerundeter) Wert einer Zielgrösse. */
@@ -151,7 +154,7 @@ final class Auswertung
             } else {
                 $r = $this->semester($sid, $kategorieId);
             }
-            $out[] = ['semester_id' => $sid, 'semester' => $this->konfiguration->semesterName($sid), 'note' => $r['note'], 'schnitt' => $r['schnitt']];
+            $out[] = ['semester_id' => $sid, 'semester' => $this->konfiguration->semesterName($sid, $this->lernenderId), 'note' => $r['note'], 'schnitt' => $r['schnitt']];
         }
 
         return $out;
@@ -192,7 +195,7 @@ final class Auswertung
                     $proKategorie[] = ['kategorie_id' => $kid, 'note' => $rk['note'], 'promotion' => $this->promotion($kid, $sid)];
                 }
             }
-            $semester[] = ['semester_id' => $sid, 'bezeichnung' => $k->semesterName($sid), 'note' => $r['note'],
+            $semester[] = ['semester_id' => $sid, 'bezeichnung' => $k->semesterName($sid, $this->lernenderId), 'note' => $r['note'],
                 'schnitt' => $r['schnitt'] !== null ? round($r['schnitt'], 3) : null, 'kategorien' => $proKategorie];
         }
 
@@ -200,7 +203,7 @@ final class Auswertung
             'gesamt' => ['schnitt' => $this->gesamtSchnitt !== null ? round($this->gesamtSchnitt, 3) : null, 'note' => $this->gesamtNote],
             'kategorien' => $kategorien,
             'semester' => $semester,
-            'elemente' => array_map(fn (Element $e) => $e->toArray($k), array_values($this->elemente)),
+            'elemente' => array_map(fn (Element $e) => $e->toArray($k, $this->lernenderId), array_values($this->elemente)),
         ];
     }
 }

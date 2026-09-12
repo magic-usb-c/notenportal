@@ -55,7 +55,7 @@
                             <select id="semester_id" name="semester_id" class="{{ $feld }}">
                                 <option value="">–</option>
                                 @foreach($semester as $s)
-                                    <option value="{{ $s->semester_id }}" @selected((int) old('semester_id') === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
+                                    <option value="{{ $s->semester_id }}" @selected((int) old('semester_id') === (int) $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>
                                 @endforeach
                             </select>
                             @error('semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
@@ -92,7 +92,7 @@
                                     <div class="min-w-0 flex-1">
                                         <div class="text-sm font-medium text-text truncate">{{ $d->titel }}</div>
                                         <div class="text-xs text-muted truncate">
-                                            {{ collect([$d->semester?->bezeichnung, $d->erstellt_am->format('d.m.Y'), $groesse($d->groesse), $d->hochgeladenVon ? $d->hochgeladenVon->vorname.' '.$d->hochgeladenVon->nachname : null])->filter()->implode(' · ') }}
+                                            {{ collect([$d->semester_id ? \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $d->semester_id, (int) $lernender->lernender_id) : null, $d->erstellt_am->format('d.m.Y'), $groesse($d->groesse), $d->hochgeladenVon ? $d->hochgeladenVon->vorname.' '.$d->hochgeladenVon->nachname : null])->filter()->implode(' · ') }}
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-end gap-1 shrink-0 w-full sm:w-auto">

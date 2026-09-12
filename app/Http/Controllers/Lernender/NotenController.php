@@ -7,6 +7,7 @@ use App\Models\Kategorie;
 use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
+use App\Models\Semester;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
 use App\Services\Notenblatt;
@@ -17,6 +18,7 @@ use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Services\Uebersicht;
 use App\Support\Csv;
+use App\Support\Lehrsemester;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -145,7 +147,7 @@ class NotenController extends Controller
             'belegungen' => $belegungen,
             'drawerFehler' => $this->noteService->drawerNachFehler($request, $lernender),
             'bezugOptionen' => $this->noteService->bezugOptionen($lernenderId),
-            'semesterListe' => $this->noteService->semesterListe(),
+            'semesterListe' => $this->noteService->semesterListe($lernenderId),
         ]);
     }
 
@@ -158,7 +160,7 @@ class NotenController extends Controller
 
         $daten = [
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
-            'semesterListe' => $this->noteService->semesterListe(),
+            'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
             'pruefung' => $pruefung,
             'vorauswahl' => preg_match('/^(fach|modul):\d+$/', (string) $request->query('bezug')) ? $request->query('bezug') : null,
         ];
@@ -247,7 +249,7 @@ class NotenController extends Controller
         $daten = [
             'note' => $note,
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
-            'semesterListe' => $this->noteService->semesterListe(),
+            'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
         ];
 
         return $request->boolean('drawer')
@@ -402,7 +404,9 @@ class NotenController extends Controller
             ->orderBy('n.pruefungsdatum')
             ->select([
                 'n.pruefungsdatum',
+                'n.semester_id',
                 's.bezeichnung as semester',
+                's.start_datum as semester_start',
                 'k.name as kategorie',
                 'f.name as fach_name',
                 'm.modul_nummer', 'm.titel as modul_titel',
@@ -414,16 +418,19 @@ class NotenController extends Controller
 
         $filename = 'meine_noten_'.now()->format('Ymd').'.csv';
 
-        return response()->streamDownload(function () use ($rows) {
+        return response()->streamDownload(function () use ($rows, $lernenderId) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')], ';');
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name
                     ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
+                $nummer = Lehrsemester::nummer($lernenderId, (int) $r->semester_id);
+                $neutral = Semester::neutralerName($r->semester_start) ?? $r->semester;
+                $semesterLabel = $nummer !== null ? Lehrsemester::name($nummer).' ('.$neutral.')' : $neutral;
                 fputcsv($out, [
                     $r->pruefungsdatum ? \Carbon\Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
-                    $r->semester,
+                    $semesterLabel,
                     $r->kategorie ?? '',
                     Csv::safe($fachModul),
                     Csv::safe($r->titel ?? ''),

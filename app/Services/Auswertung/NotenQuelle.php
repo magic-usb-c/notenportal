@@ -16,7 +16,10 @@ final class NotenQuelle
 
     public function auswertung(int $lernenderId, bool $mitGeplanten = false): Auswertung
     {
-        return $this->kern->auswerten($this->fuerLernenden($lernenderId, $mitGeplanten), Konfiguration::ausDb());
+        $a = $this->kern->auswerten($this->fuerLernenden($lernenderId, $mitGeplanten), Konfiguration::ausDb());
+        $a->lernenderId = $lernenderId;
+
+        return $a;
     }
 
     /**

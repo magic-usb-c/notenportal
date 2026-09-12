@@ -134,7 +134,7 @@ final class Rechner
             ->map(fn (Ziel $z) => [
                 'id' => (int) $z->ziel_id,
                 'ziel' => (string) $z->zielgroesse(),
-                'label' => $z->zielgroesse()->label($k),
+                'label' => $z->zielgroesse()->label($k, (int) $lernender->lernender_id),
                 'zielwert' => (float) $z->zielwert,
             ])->all();
     }
@@ -188,7 +188,7 @@ final class Rechner
         $semester = [];
         foreach ($k->semester as $sid => $s) {
             if ($s['ende'] >= $von && $s['start'] <= $bis) {
-                $semester[] = ['id' => $sid, 'name' => $s['bezeichnung'], 'start' => $s['start'], 'ende' => $s['ende']];
+                $semester[] = ['id' => $sid, 'name' => $k->semesterName($sid, $id), 'start' => $s['start'], 'ende' => $s['ende']];
             }
         }
 
@@ -283,11 +283,14 @@ final class Rechner
         $loesung = $this->zielrechner->loese($alle, $ziel, $zielwert, $k);
 
         $x = $loesung['status'] === Zielrechner::BENOETIGT ? $loesung['note'] : null;
+        $lernenderId = (int) $lernender->lernender_id;
         $vorher = $this->kern->auswerten($basis, $k);
+        $vorher->lernenderId = $lernenderId;
         $nachher = $this->kern->auswerten($x !== null ? array_map(fn (Leistung $l) => $l->istUnbekannt() ? $l->mitWert($x) : $l, $alle) : $alle, $k);
+        $nachher->lernenderId = $lernenderId;
 
         return [
-            'ziel' => ['text' => (string) $ziel, 'label' => $ziel->label($k), 'zielwert' => $zielwert],
+            'ziel' => ['text' => (string) $ziel, 'label' => $ziel->label($k, $lernenderId), 'zielwert' => $zielwert],
             'loesung' => $loesung,
             'kurve' => $loesung['unbekannte'] > 0 ? $this->zielrechner->kurve($alle, $ziel, $k) : [],
             'vergleich' => $this->vergleich($vorher, $nachher, $ziel, $zeilen),
@@ -365,7 +368,7 @@ final class Rechner
             if ($g != $ziel && $v === $n) {
                 continue;
             }
-            $out[] = ['text' => $text, 'label' => $g->label($nachher->konfiguration), 'vorher' => $v, 'nachher' => $n, 'ist_ziel' => $g == $ziel];
+            $out[] = ['text' => $text, 'label' => $g->label($nachher->konfiguration, $nachher->lernenderId), 'vorher' => $v, 'nachher' => $n, 'ist_ziel' => $g == $ziel];
         }
 
         return $out;
@@ -385,7 +388,7 @@ final class Rechner
             foreach (array_keys($nachher->kategorien) as $kid) {
                 $p = $nachher->promotion($kid, $sid);
                 if ($p !== null) {
-                    $out[] = ['kategorie' => $nachher->konfiguration->kategorieName($kid), 'semester' => $nachher->konfiguration->semesterName($sid),
+                    $out[] = ['kategorie' => $nachher->konfiguration->kategorieName($kid), 'semester' => $nachher->konfiguration->semesterName($sid, $nachher->lernenderId),
                         'vorher' => $vorher->promotion($kid, $sid), 'nachher' => $p];
                 }
             }

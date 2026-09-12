@@ -2,7 +2,7 @@
     <x-slot name="title">{{ __('Berichte') }}</x-slot>
     @php
         $sid = $filter['semester_id'];
-        $semesterName = $sid ? ($semester->firstWhere('semester_id', $sid)?->bezeichnung ?? __('Semester')) : __('Ganze Lehrzeit');
+        $semesterName = $sid ? (\App\Models\Semester::neutralerName($semester->firstWhere('semester_id', $sid)?->start_datum) ?? __('Semester')) : __('Ganze Lehrzeit');
         $sortUrl = fn (string $spalte, string $start = 'asc') => request()->fullUrlWithQuery([
             'sort' => $spalte,
             'dir' => $sort === $spalte ? ($dir === 'asc' ? 'desc' : 'asc') : $start,
@@ -33,7 +33,7 @@
                     <select name="semester" id="semester" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
                         <option value="alle" @selected($sid === null)>{{ __('Ganze Lehrzeit') }}</option>
                         @foreach($semester as $s)
-                            <option value="{{ $s->semester_id }}" @selected($sid === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
+                            <option value="{{ $s->semester_id }}" @selected($sid === (int) $s->semester_id)>{{ \App\Models\Semester::neutralerName($s->start_datum) ?? $s->bezeichnung }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -122,9 +122,11 @@ class UebersichtUndNotenTest extends TestCase
     {
         $this->note('5.0', now()->subMonths(5)->toDateString());
 
+        // Lehrbeginn (01.08.2024, siehe LernenderFactory) liegt vor beiden Test-Semestern,
+        // daher ist T-1 das 1. und T-2 das 2. Lehrsemester (relative Anzeige statt Rohcode).
         $this->get(route('learner.grades.index', ['semester_id' => $this->semesterNeu]))->assertOk()
             ->assertSeeInOrder(['<dt class="text-xs text-muted">Semester</dt>', '–', 'Gesamt', '5.0'], false)
-            ->assertSee('Keine Noten in T-2');
+            ->assertSee('Keine Noten in 2. Semester');
 
         $this->get(route('learner.grades.index', ['semester_id' => $this->semesterAlt]))->assertOk()
             ->assertSee('Fach / Modul')

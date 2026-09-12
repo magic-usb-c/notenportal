@@ -21,6 +21,7 @@ use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Zielrechner;
 use App\Services\Betrieb\Sicherung;
 use App\Support\Einstellungen;
+use App\Support\Format;
 use App\Support\NotenSkala;
 use App\Support\Zahl;
 use Illuminate\Support\Carbon;
@@ -389,7 +390,7 @@ final class Uebersicht
         }
 
         return [
-            'semester' => array_map(fn ($s) => ['id' => $s, 'name' => $k->semesterName($s)], $semesterIds),
+            'semester' => array_map(fn ($s) => ['id' => $s, 'name' => $k->semesterName($s, $a->lernenderId)], $semesterIds),
             'gruppen' => $gruppen,
             'semesterschnitt' => array_combine($semesterIds, array_map(fn ($s) => $a->semester($s)['note'], $semesterIds)) ?: [],
             'gesamt' => $a->gesamtNote,
@@ -413,7 +414,7 @@ final class Uebersicht
             $loesung = $this->zielrechner->loese($leistungen, $g, (float) $z->zielwert, $k);
 
             return [
-                'label' => $g->label($k),
+                'label' => $g->label($k, $a->lernenderId),
                 'zielwert' => (float) $z->zielwert,
                 'aktuell' => $a->wert($g),
                 'loesung' => $loesung,
@@ -433,7 +434,7 @@ final class Uebersicht
         }
         foreach ($stand->promotion as $p) {
             $kid = $p['kategorie_id'];
-            $liste[] = ['text' => __('Promotion :kategorie gefährdet', ['kategorie' => $p['kategorie']]), 'detail' => $a->konfiguration->semesterName($stand->semesterId),
+            $liste[] = ['text' => __('Promotion :kategorie gefährdet', ['kategorie' => $p['kategorie']]), 'detail' => $a->konfiguration->semesterName($stand->semesterId, $a->lernenderId),
                 'link' => route('learner.grades.calculator', ['ziel' => 'kategorie:'.$kid.'@semester:'.$stand->semesterId, 'zielwert' => $a->konfiguration->kategorien[$kid]['promotion_min_schnitt'] ?? $a->konfiguration->genuegend]),
                 'ton' => 'rot'];
         }
@@ -464,7 +465,7 @@ final class Uebersicht
         }
         uasort($faecher, fn ($x, $y) => strcoll($x['name'], $y['name']));
 
-        return ['labels' => array_map(fn ($s) => $k->semesterName($s), $semesterIds), 'serien' => $serien, 'faecher' => array_values($faecher), 'grenze' => $k->genuegend];
+        return ['labels' => array_map(fn ($s) => $k->semesterName($s, $a->lernenderId), $semesterIds), 'serien' => $serien, 'faecher' => array_values($faecher), 'grenze' => $k->genuegend];
     }
 
     /** Stärken und Schwächen: Zeugnisnoten im Bezugssemester und über die Lehrzeit. */
@@ -484,7 +485,7 @@ final class Uebersicht
         asort($lehrzeit);
 
         return [
-            'semester' => ['name' => $a->konfiguration->semesterName($semesterId), 'labels' => array_map(fn (Element $e) => $e->label, $semester), 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
+            'semester' => ['name' => $a->konfiguration->semesterName($semesterId, $a->lernenderId), 'labels' => array_map(fn (Element $e) => $e->label, $semester), 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
             'lehrzeit' => ['labels' => array_keys($lehrzeit), 'werte' => array_values($lehrzeit)],
         ];
     }
@@ -497,6 +498,10 @@ final class Uebersicht
         $gesamt = max(1, $l->lehrbeginn->diffInDays($l->lehrende));
         $vergangen = $l->lehrbeginn->diffInDays(now(), false);
 
+        $k = Konfiguration::ausDb();
+        $aktuellesSemesterId = $k->semesterFuerDatum(now()->toDateString());
+        $aktuellesSemesterEnde = $aktuellesSemesterId !== null ? Carbon::parse($k->semester[$aktuellesSemesterId]['ende']) : null;
+
         return [
             'beginn' => $l->lehrbeginn,
             'ende' => $l->lehrende,
@@ -504,6 +509,9 @@ final class Uebersicht
             'lehrjahr' => $l->lehrjahr(),
             'tage' => (int) now()->startOfDay()->diffInDays($l->lehrende, false),
             'beruf' => $l->lehrberuf?->name,
+            'semester_id' => $aktuellesSemesterId,
+            'semester' => $aktuellesSemesterId !== null ? $k->semesterName($aktuellesSemesterId, (int) $l->lernender_id) : null,
+            'semester_rest' => $aktuellesSemesterEnde ? Format::restdauer($aktuellesSemesterEnde) : null,
         ];
     }
 

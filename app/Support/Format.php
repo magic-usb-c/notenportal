@@ -46,4 +46,32 @@ final class Format
     {
         return $datum->copy()->locale(self::locale())->translatedFormat($format);
     }
+
+    /**
+     * Restdauer bis zu einem Zeitpunkt mit automatischer Einheit: Tage bis 6 Tage, ab 7 Tagen
+     * Wochen, ab 30 Tagen Monate. «endet heute», wenn der Zeitpunkt schon erreicht ist. Die
+     * Grenzen liegen bewusst auf der vollen Einheit (7 bzw. 30 Tage), nicht erst deutlich
+     * danach – sonst wäre die Einzahl («1 Woche», «1 Monat») nie erreichbar (round(15/7) bzw.
+     * round(61/30) ergäben immer mindestens 2).
+     */
+    public static function restdauer(CarbonInterface $ende): string
+    {
+        $tage = (int) now()->startOfDay()->diffInDays($ende->copy()->startOfDay(), false);
+
+        if ($tage <= 0) {
+            return __('endet heute');
+        }
+        if ($tage >= 30) {
+            $n = (int) round($tage / 30);
+
+            return $n === 1 ? __('noch 1 Monat') : __('noch :n Monate', ['n' => $n]);
+        }
+        if ($tage >= 7) {
+            $n = (int) round($tage / 7);
+
+            return $n === 1 ? __('noch 1 Woche') : __('noch :n Wochen', ['n' => $n]);
+        }
+
+        return $tage === 1 ? __('noch 1 Tag') : __('noch :n Tage', ['n' => $tage]);
+    }
 }

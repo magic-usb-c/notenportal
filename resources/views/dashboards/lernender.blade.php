@@ -46,10 +46,13 @@
 
                     @if($stand->semesterId)
                         <p class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm">
-                            <span class="text-muted">{{ __('Semester :name', ['name' => $a->konfiguration->semesterName($stand->semesterId)]) }}</span>
+                            <span class="text-muted">{{ __('Semester') }} <x-semester :id="$stand->semesterId" :lernender="$a->lernenderId" /></span>
                             <x-note :wert="$stand->semesterNote" :stellen="1" />
                             @if($delta !== null && $delta != 0)
                                 <span class="text-xs tabular-nums text-muted">{{ $delta > 0 ? '▲' : '▼' }} {{ $skala::format(abs($delta), 1) }}</span>
+                            @endif
+                            @if(($lehrzeit['semester_rest'] ?? null) && ($lehrzeit['semester_id'] ?? null) === $stand->semesterId)
+                                <span class="text-xs text-muted">· {{ $lehrzeit['semester_rest'] }}</span>
                             @endif
                         </p>
                     @endif

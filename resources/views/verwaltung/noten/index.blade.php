@@ -52,7 +52,7 @@
             @endphp
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <x-kachel :label="__('Gesamtschnitt')" :note="$a->gesamtNote" :href="$detailUrl" />
-                <x-kachel :label="__('Semester :name', ['name' => $a->konfiguration->semesterName($semNr)])" :note="$semNote" />
+                <x-kachel :label="__('Semester :name', ['name' => $a->konfiguration->semesterName($semNr, $a->lernenderId)])" :note="$semNote" />
                 <x-kachel :label="__('Prüfungen')" :wert="$notes->total()" :sub="$gefiltert ? __('im Filter') : null" />
                 <x-kachel :label="__('Neu')" :wert="$neuCount" :ton="$neuCount ? 'accent' : 'neutral'" />
             </div>
@@ -93,7 +93,7 @@
                         <select id="semester_id" name="semester_id" onchange="this.form.submit()" class="{{ $feld }}">
                             <option value="">{{ __('Alle') }}</option>
                             @foreach($semester as $s)
-                                <option value="{{ $s->semester_id }}" @selected(request('semester_id') == $s->semester_id)>{{ $s->bezeichnung }}</option>
+                                <option value="{{ $s->semester_id }}" @selected(request('semester_id') == $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -163,7 +163,7 @@
 
                         <div class="border-t border-border">
                             <dl class="px-5 py-4 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
-                                <div><dt class="text-xs text-muted">{{ __('Semester') }}</dt><dd class="text-text">{{ $n->semester?->bezeichnung ?? '–' }}</dd></div>
+                                <div><dt class="text-xs text-muted">{{ __('Semester') }}</dt><dd class="text-text">@if($n->semester_id)<x-semester :id="$n->semester_id" :lernender="$lernender" />@else–@endif</dd></div>
                                 <div><dt class="text-xs text-muted">{{ __('Fach / Modul') }}</dt><dd class="text-text">{{ $thema }}</dd></div>
                                 <div><dt class="text-xs text-muted">{{ __('Erfasst von') }}</dt><dd class="text-text">{{ $n->erfasstVonBenutzer?->vorname }} {{ $n->erfasstVonBenutzer?->nachname }}</dd></div>
                             </dl>

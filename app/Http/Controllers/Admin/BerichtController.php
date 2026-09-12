@@ -39,7 +39,7 @@ class BerichtController extends Controller
             'filter' => $filter,
             'sort' => $sort,
             'dir' => $dir,
-            'semester' => DB::table('semester')->where('start_datum', '<=', now()->toDateString())->orderByDesc('sortierung')->get(['semester_id', 'bezeichnung']),
+            'semester' => DB::table('semester')->where('start_datum', '<=', now()->toDateString())->orderByDesc('sortierung')->get(['semester_id', 'bezeichnung', 'start_datum']),
             'lehrberufe' => DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get(['lehrberuf_id', 'name']),
             'berufsbildner' => DB::table('berufsbildner as bb')
                 ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')

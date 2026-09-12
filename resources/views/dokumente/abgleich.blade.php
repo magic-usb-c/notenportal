@@ -25,7 +25,7 @@
                             class="mt-1 w-48 rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
                         <option value="">–</option>
                         @foreach($semester as $s)
-                            <option value="{{ $s->semester_id }}" @selected($semesterId === (int) $s->semester_id)>{{ $s->bezeichnung }}</option>
+                            <option value="{{ $s->semester_id }}" @selected($semesterId === (int) $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>
                         @endforeach
                     </select>
                 </div>

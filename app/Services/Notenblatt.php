@@ -51,7 +51,8 @@ final class Notenblatt
                     ], $elemente),
                 ];
             }
-            $semester[] = ['bezeichnung' => $k->semesterName($sid), 'note' => $a->semester($sid)['note'], 'kategorien' => $kategorien];
+            // Persönliches Notenblatt genau eines Lernenden -> relative Semesternummer statt neutralem Namen.
+            $semester[] = ['bezeichnung' => $k->semesterName($sid, $a->lernenderId), 'note' => $a->semester($sid)['note'], 'kategorien' => $kategorien];
         }
 
         $kategorien = [];

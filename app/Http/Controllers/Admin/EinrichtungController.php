@@ -17,6 +17,7 @@ use App\Support\Betrieb;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
 use App\Support\KategorieRegeln;
+use App\Support\Lehrsemester;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -104,6 +105,7 @@ class EinrichtungController extends Controller
         });
         Einstellungen::set(Einrichtung::KATEGORIEN_GEPRUEFT, '1');
         Konfiguration::vergessen();
+        Lehrsemester::vergessen();
 
         return $this->weiter('categories', __('Kategorien gespeichert.'));
     }
@@ -146,6 +148,7 @@ class EinrichtungController extends Controller
             return [$neu, $vorhanden];
         });
         Konfiguration::vergessen();
+        Lehrsemester::vergessen();
 
         $text = $vorhanden
             ? ($neu === 1
@@ -198,6 +201,7 @@ class EinrichtungController extends Controller
             return [$neuBerufe, $neuFaecher];
         });
         Konfiguration::vergessen();
+        Lehrsemester::vergessen();
 
         $berufeText = $neuBerufe === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neuBerufe]);
         $faecherText = $neuFaecher === 1 ? __('1 Fach') : __(':anzahl Fächer', ['anzahl' => $neuFaecher]);
@@ -249,6 +253,7 @@ class EinrichtungController extends Controller
             return $neu;
         });
         Konfiguration::vergessen();
+        Lehrsemester::vergessen();
 
         return redirect()
             ->route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lehrberufId])

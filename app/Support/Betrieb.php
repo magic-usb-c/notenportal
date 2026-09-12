@@ -55,5 +55,6 @@ final class Betrieb
             Einstellungen::set($schluessel, trim((string) $validiert[$schluessel]));
         }
         Konfiguration::vergessen();
+        Lehrsemester::vergessen();
     }
 }

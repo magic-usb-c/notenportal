@@ -64,7 +64,7 @@ final class Element
     }
 
     /** @return array<string, mixed> */
-    public function toArray(Konfiguration $k): array
+    public function toArray(Konfiguration $k, ?int $lernenderId = null): array
     {
         return [
             'schluessel' => $this->schluessel,
@@ -74,7 +74,7 @@ final class Element
             'fach_id' => $this->fachId,
             'modul_id' => $this->modulId,
             'semester_id' => $this->semesterId,
-            'semester' => $k->semesterName($this->semesterId),
+            'semester' => $k->semesterName($this->semesterId, $lernenderId),
             'schnitt' => $this->schnitt !== null ? round($this->schnitt, 3) : null,
             'note' => $this->note,
             'gewicht_summe' => $this->gewichtSumme,

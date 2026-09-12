@@ -20,6 +20,7 @@
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
                             <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Bezeichnung') }}</th>
+                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Neutraler Name') }}</th>
                             <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Von') }}</th>
                             <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Bis') }}</th>
                             <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Sortierung') }}</th>
@@ -39,6 +40,7 @@
                                         <span class="ml-2 px-2 py-0.5 rounded-md text-xs bg-note-gut/8 text-note-gut">{{ __('aktuell') }}</span>
                                     @endif
                                 </td>
+                                <td class="px-4 text-muted">{{ \App\Models\Semester::neutralerName($s->start_datum) }}</td>
                                 <td class="px-4 text-muted">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
                                 <td class="px-4 text-muted">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
                                 <td class="px-4 text-right text-muted">{{ $s->sortierung }}</td>
@@ -57,7 +59,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-muted">
+                                <td colspan="6" class="px-4 py-8 text-center text-muted">
                                     {{ __('Noch keine Semester erfasst.') }}
                                 </td>
                             </tr>

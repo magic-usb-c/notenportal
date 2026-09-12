@@ -51,14 +51,15 @@ final readonly class Zielgroesse
         return $this->ebene.':'.$this->id.($this->semesterId !== null ? '@semester:'.$this->semesterId : '');
     }
 
-    public function label(Konfiguration $k): string
+    /** $lernenderId: Kontext mit genau einem Lernenden – relative Semesternummer statt neutralem Namen. */
+    public function label(Konfiguration $k, ?int $lernenderId = null): string
     {
-        $sem = $this->semesterId !== null ? ' · '.$k->semesterName($this->semesterId) : '';
+        $sem = $this->semesterId !== null ? ' · '.$k->semesterName($this->semesterId, $lernenderId) : '';
 
         return match ($this->ebene) {
             'gesamt' => 'Gesamtschnitt',
             'kategorie' => $k->kategorieName($this->id).$sem,
-            'semester' => 'Semesterschnitt · '.$k->semesterName($this->id),
+            'semester' => 'Semesterschnitt · '.$k->semesterName($this->id, $lernenderId),
             'fach' => $k->fachName($this->id).($sem !== '' ? $sem : ' · Lehrzeit'),
             'modul' => $k->modulName($this->id),
         };

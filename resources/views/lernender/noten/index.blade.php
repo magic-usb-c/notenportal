@@ -2,7 +2,15 @@
     <x-slot name="title">{{ __('Noten') }}</x-slot>
     @php
         $a = $auswertung;
-        $semLabel = $semester->firstWhere('semester_id', (int) $selectedSemesterId)?->bezeichnung ?? __('Semester');
+        $semLabel = $selectedSemesterId ? $a->konfiguration->semesterName((int) $selectedSemesterId, $a->lernenderId) : __('Semester');
+        $ausgewaehltesSemester = $semester->firstWhere('semester_id', (int) $selectedSemesterId);
+        $semesterRest = null;
+        if ($ausgewaehltesSemester) {
+            $heute = \Illuminate\Support\Carbon::today()->toDateString();
+            if ((string) $ausgewaehltesSemester->start_datum <= $heute && (string) $ausgewaehltesSemester->end_datum >= $heute) {
+                $semesterRest = \App\Support\Format::restdauer(\Illuminate\Support\Carbon::parse($ausgewaehltesSemester->end_datum));
+            }
+        }
         $mit = fn (array $extra) => array_merge(request()->except(['page', '_open']), $extra);
         $semSchnitt = $selectedSemesterId ? $a->semester((int) $selectedSemesterId)['note'] : null;
         $ich = (int) auth()->user()->benutzer_id;
@@ -23,12 +31,17 @@
 
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Noten') }}">
-            <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border-strong/60 bg-card p-0.5" role="group" aria-label="{{ __('Semester') }}">
-                <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $prevSemesterId])
-                   href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}">‹</a>
-                <span class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text">{{ $semLabel }}</span>
-                <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $nextSemesterId])
-                   href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}">›</a>
+            <div class="flex flex-col items-center gap-0.5">
+                <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border-strong/60 bg-card p-0.5" role="group" aria-label="{{ __('Semester') }}">
+                    <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $prevSemesterId])
+                       href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}">‹</a>
+                    <x-semester :id="$selectedSemesterId ?: null" :lernender="$a->lernenderId" class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text" />
+                    <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $nextSemesterId])
+                       href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}">›</a>
+                </div>
+                @if($semesterRest)
+                    <span class="text-2xs text-muted">{{ $semesterRest }}</span>
+                @endif
             </div>
             <x-slot:aktionen>
                 <a href="{{ route('learner.grades.index') }}?rechner=1" x-data @click.prevent="$dispatch('open-drawer', 'rechner')"

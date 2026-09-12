@@ -66,7 +66,7 @@ final class GradeWatcher
                 continue;
             }
             $label = $e->typ === Element::FACH
-                ? $e->label.' ('.$a->konfiguration->semesterName($e->semesterId).')'
+                ? $e->label.' ('.$a->konfiguration->semesterName($e->semesterId, $a->lernenderId).')'
                 : $e->label;
             $out[$schluessel] = ['label' => $label, 'wert' => $e->note];
         }
@@ -74,7 +74,7 @@ final class GradeWatcher
         foreach ($a->semesterIds() as $sid) {
             $note = $a->semester($sid)['note'];
             if ($note !== null) {
-                $out['semester:'.$sid] = ['label' => 'Semesterschnitt '.$a->konfiguration->semesterName($sid), 'wert' => $note];
+                $out['semester:'.$sid] = ['label' => 'Semesterschnitt '.$a->konfiguration->semesterName($sid, $a->lernenderId), 'wert' => $note];
             }
         }
 
