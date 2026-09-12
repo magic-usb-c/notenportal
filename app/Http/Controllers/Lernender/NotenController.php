@@ -8,6 +8,7 @@ use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Models\Semester;
+use App\Services\Auswertung\Modulstatus;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
 use App\Services\Notenblatt;
@@ -34,6 +35,7 @@ class NotenController extends Controller
         private readonly NotenQuelle $quelle,
         private readonly Uebersicht $uebersicht,
         private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
+        private readonly Modulstatus $modulstatus = new Modulstatus,
     ) {}
 
     public function index(Request $request)
@@ -133,9 +135,14 @@ class NotenController extends Controller
             ->groupBy('modul_id')
             ->map(fn ($liste) => ['offen' => $liste->last()->end_datum === null, 'versuche' => $liste->count()]);
 
+        // Modulstatus (Rückmeldung #14): Dauer seit Beginn, nächster/letzter Termin, bewerteter Anteil je Modul/Fach –
+        // eine gebündelte Ladung für die ganze Seite, per Element-Schlüssel nachgeschlagen (kein N+1).
+        $modulstatus = collect($this->modulstatus->fuerLernenden($lernenderId))->keyBy('schluessel');
+
         return view('lernender.noten.index', [
             'gruppen' => $gruppen,
             'auswertung' => $a,
+            'modulstatus' => $modulstatus,
             'heatmap' => $this->uebersicht->heatmap($a),
             'kategorien' => $kategorien->values(),
             'kategorieId' => $kategorieId,

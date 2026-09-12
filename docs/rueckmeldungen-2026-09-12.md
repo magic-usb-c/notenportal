@@ -31,6 +31,6 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 |---|---|---|
 | 12 | Feedback: technische Details standardmässig mitsenden (abwählbar), schwebender Feedback-Knopf während der Testphase (abschaltbar), Hover-Beschriftung, kleines schwebendes Panel, eigene Screenshots/Anhänge | in Arbeit (Block G) |
 | 13 | Layout nutzt das Browserfenster zu wenig: breitere Container, mehrspaltig auf grossen Bildschirmen, Skalierung prüfen | offen |
-| 14 | Modulstatus: Dauer seit Beginn, Abgabetermine je Modul/Fach (verknüpft mit Prüfungen), Fortschritt bis zum nächsten und letzten Termin, bewerteter Anteil nach Gewichtung | offen (Migration) |
+| 14 | Modulstatus: Dauer seit Beginn, Abgabetermine je Modul/Fach (verknüpft mit Prüfungen), Fortschritt bis zum nächsten und letzten Termin, bewerteter Anteil nach Gewichtung | erledigt (Block F) |
 | 15 | Kalender bearbeitbar synchronisieren (Outlook, Nextcloud CalDAV u. a.), nicht nur iCal lesend; Termine auch aus externem Kalender ins Portal | offen (Design läuft) |
 | 16 | Datenimporte intelligenter: exakt so, wie die Datenbank es erwartet (Zuordnung, Vorschau, Validierung) | in Arbeit (H1–H3: Vorschau prüft die DB-Regeln, alles-oder-nichts) |

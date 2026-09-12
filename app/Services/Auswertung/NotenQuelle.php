@@ -98,7 +98,10 @@ final class NotenQuelle
 
         if ($mitGeplanten) {
             foreach ($this->geplante($lernenderIds) as $lernenderId => $liste) {
-                array_push($out[$lernenderId] ??= [], ...$liste);
+                // ??= gefolgt von array_push in einem Ausdruck ist kein gültiges Referenz-Argument (PHP-Fehler);
+                // daher hier in zwei Schritte aufgeteilt.
+                $out[$lernenderId] ??= [];
+                array_push($out[$lernenderId], ...$liste);
             }
         }
 

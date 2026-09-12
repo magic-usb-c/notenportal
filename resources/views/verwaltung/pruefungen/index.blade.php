@@ -3,6 +3,13 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Prüfungstermine')" :zaehler="$anzahl">
             <x-slot:aktionen>
+                @if($abgabeMoeglich)
+                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" x-data
+                       @click.prevent="$dispatch('open-drawer', 'abgabetermin')"
+                       class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
+                        <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Abgabetermin') }}
+                    </a>
+                @endif
                 <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
                     {{ __('Kalender-Abo') }}
                 </a>
@@ -36,6 +43,10 @@
                 </select>
             </x-filterleiste>
 
+            @if(! $abgabeMoeglich && \App\Models\Pruefung::hatArtSpalte())
+                <p class="text-xs text-muted">{{ __('Lernende/n auswählen, um Abgabetermine zu erfassen.') }}</p>
+            @endif
+
             @forelse($gruppen as $g)
                 <section class="rounded-xl border border-border bg-card overflow-hidden">
                     <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">
@@ -49,7 +60,12 @@
                             <div class="p-4">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <div class="truncate font-medium text-text">{{ trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : '')) }}</div>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="truncate font-medium text-text">{{ trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : '')) }}</span>
+                                            @if($p->istAbgabe())
+                                                <span class="{{ $pillBasis }} bg-accent/10 text-accent-text shrink-0">{{ __('Abgabetermin') }}</span>
+                                            @endif
+                                        </div>
                                         <a href="{{ route($bereich.'.learners.show', $p->lernender_id) }}" class="text-xs text-accent-text hover:underline underline-offset-2">
                                             {{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}
                                         </a>
@@ -61,6 +77,19 @@
                                     @if($p->pruefungsart)<span>{{ $p->pruefungsart }}</span>@endif
                                     @if($p->raum)<span>{{ $p->raum }}</span>@endif
                                 </div>
+                                @if($abgabeMoeglich && $p->istAbgabe())
+                                    <div class="mt-2 flex items-center gap-3 text-xs">
+                                        <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}" x-data
+                                           @click.prevent="$dispatch('open-drawer', 'abgabetermin'); $nextTick(() => window.history.replaceState(null, '', $el.href))"
+                                           class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
+                                        <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}"
+                                              onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                            @csrf @method('DELETE')
+                                            <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
+                                            <button :disabled="loading" class="text-muted hover:text-note-ungenuegend disabled:opacity-50">{{ __('Löschen') }}</button>
+                                        </form>
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -76,6 +105,9 @@
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Art') }}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Raum') }}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                    @if($abgabeMoeglich)
+                                        <th scope="col" class="h-9 w-24 bg-surface-2"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,7 +124,12 @@
                                             </a>
                                         </td>
                                         <td class="h-11 px-3">
-                                            <div class="truncate text-text">{{ $p->bezeichnung() }}</div>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="truncate text-text">{{ $p->bezeichnung() }}</span>
+                                                @if($p->istAbgabe())
+                                                    <span class="{{ $pillBasis }} bg-accent/10 text-accent-text shrink-0">{{ __('Abgabetermin') }}</span>
+                                                @endif
+                                            </div>
                                             @if($p->titel)<div class="truncate text-xs text-muted">{{ $p->titel }}</div>@endif
                                         </td>
                                         <td class="h-11 px-3">{{ $p->pruefungsart ?: '–' }}</td>
@@ -100,6 +137,21 @@
                                         <td class="h-11 px-3">
                                             <span class="{{ $pillBasis }} {{ $status['klasse'] }}">{{ $status['label'] }}</span>
                                         </td>
+                                        @if($abgabeMoeglich)
+                                            <td class="h-11 px-3 text-right text-xs whitespace-nowrap">
+                                                @if($p->istAbgabe())
+                                                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}" x-data
+                                                       @click.prevent="$dispatch('open-drawer', 'abgabetermin'); $nextTick(() => window.history.replaceState(null, '', $el.href))"
+                                                       class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
+                                                    <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}" class="inline"
+                                                          onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                        @csrf @method('DELETE')
+                                                        <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
+                                                        <button :disabled="loading" class="ml-2 text-muted hover:text-note-ungenuegend disabled:opacity-50">{{ __('Löschen') }}</button>
+                                                    </form>
+                                                @endif
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -113,6 +165,11 @@
             @endforelse
 
         </div>
-
     </div>
+
+    @if($abgabeMoeglich)
+        <x-drawer name="abgabetermin" :offen="$bearbeiten || request()->has('planen')" :titel="$bearbeiten ? __('Abgabetermin bearbeiten') : __('Abgabetermin erfassen')">
+            @include('verwaltung.pruefungen._abgabe_form')
+        </x-drawer>
+    @endif
 </x-app-layout>

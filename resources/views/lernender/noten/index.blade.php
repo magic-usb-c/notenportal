@@ -166,6 +166,29 @@
                                         </tr>
                                         <tr id="{{ $zeileId }}" x-show="offen" x-cloak>
                                             <td colspan="5" class="border-t border-border p-0">
+                                                @php $ms = $e ? ($modulstatus[$e->schluessel] ?? null) : null; @endphp
+                                                @if($ms && ($ms['dauer_seit_beginn'] || $ms['naechster_termin'] || $ms['bewerteter_anteil_prozent'] !== null))
+                                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-border/70 bg-surface-2/40 px-3 py-2 text-xs text-muted">
+                                                        @if($ms['dauer_seit_beginn'])
+                                                            <span>{{ $ms['dauer_seit_beginn'] }}</span>
+                                                        @endif
+                                                        @if($ms['naechster_termin'])
+                                                            <span class="inline-flex min-w-0 items-center gap-1">
+                                                                <span class="truncate text-text">{{ $ms['naechster_termin']['titel'] }}</span>
+                                                                <span class="shrink-0">· {{ $ms['naechster_termin']['restdauer'] }}</span>
+                                                            </span>
+                                                        @endif
+                                                        @if($ms['bewerteter_anteil_prozent'] !== null)
+                                                            <span class="inline-flex shrink-0 items-center gap-1.5">
+                                                                {{ __('Bewertet') }}
+                                                                <span class="h-1 w-14 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                                                                    <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
+                                                                </span>
+                                                                {{ \App\Support\Zahl::prozent($ms['bewerteter_anteil_prozent']) }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endif
                                                 <div class="divide-y divide-border">
                                                     @foreach($el->noten as $n)
                                                         @include('lernender.noten.partials.note', ['n' => $n, 'ich' => $ich])

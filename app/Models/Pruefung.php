@@ -11,12 +11,16 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
+use Throwable;
 
 /**
  * Prüfung in der Agenda eines Lernenden (geplant oder aus dem Schulnetz-Kalender).
  * Sobald die Note eingetragen ist, hängt sie über note_id an der Prüfung; «offen» = ohne Note, nicht abgesagt.
+ * `art` unterscheidet Prüfung von Abgabetermin/Meilenstein (Rückmeldung #14, Modulstatus): bewusst keine
+ * eigene Tabelle, da Datum/Titel/Gewichtung/Fach-Modul-Bezug hier schon vorhanden sind (docs/audit-backlog.md).
  */
-#[Fillable(['lernender_id', 'fach_id', 'modul_id', 'titel', 'datum', 'uhrzeit', 'dauer_minuten', 'pruefungsart', 'hilfsmittel', 'stoff',
+#[Fillable(['lernender_id', 'fach_id', 'modul_id', 'titel', 'art', 'datum', 'uhrzeit', 'dauer_minuten', 'pruefungsart', 'hilfsmittel', 'stoff',
     'notizen', 'raum', 'lehrperson', 'gewichtung_prozent', 'note_id', 'quelle', 'extern_uid', 'abgesagt_am'])]
 #[Table(name: 'pruefungen', key: 'pruefung_id')]
 class Pruefung extends Model
@@ -28,6 +32,37 @@ class Pruefung extends Model
     public const string MANUELL = 'manuell';
 
     public const string ICAL = 'ical';
+
+    public const string ART_PRUEFUNG = 'pruefung';
+
+    public const string ART_ABGABE = 'abgabe';
+
+    private static ?bool $hatArtSpalte = null;
+
+    /** Cachiert statisch, ob die Migration 2026_09_12_000013 (Spalte art) schon gelaufen ist. */
+    public static function hatArtSpalte(): bool
+    {
+        if (self::$hatArtSpalte === null) {
+            try {
+                self::$hatArtSpalte = Schema::hasColumn('pruefungen', 'art');
+            } catch (Throwable) {
+                return false;
+            }
+        }
+
+        return self::$hatArtSpalte;
+    }
+
+    /** «pruefung», solange die Spalte fehlt oder kein Wert gesetzt ist – Bestandsdaten sind alle Prüfungen. */
+    public function art(): string
+    {
+        return $this->getAttribute('art') ?? self::ART_PRUEFUNG;
+    }
+
+    public function istAbgabe(): bool
+    {
+        return $this->art() === self::ART_ABGABE;
+    }
 
     public function lernender(): BelongsTo
     {

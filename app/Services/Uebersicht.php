@@ -16,6 +16,7 @@ use App\Services\Auswertung\Element;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
+use App\Services\Auswertung\Modulstatus;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Zielrechner;
@@ -38,6 +39,7 @@ final class Uebersicht
         private readonly LernstandRechner $lernstaende,
         private readonly Rechner $rechner,
         private readonly Zielrechner $zielrechner = new Zielrechner,
+        private readonly Modulstatus $modulstatus = new Modulstatus,
     ) {}
 
     /** Lernender: wo stehe ich, wohin geht es, was muss ich tun. */
@@ -354,6 +356,8 @@ final class Uebersicht
             'heatmap' => $this->heatmap($a),
             'ziele' => $this->zieleMitBedarf($l, $a, fn (string $ziel, float $wert) => route($bereich.'.learners.calculator', ['lernender_id' => $id, 'ziel' => $ziel, 'zielwert' => $wert])),
             'pruefungen' => $pruefungen,
+            // Modulstatus (Rückmeldung #14): Dauer seit Beginn, nächster/letzter Termin, bewerteter Anteil.
+            'modulstatus' => collect($this->modulstatus->fuerLernenden($id))->keyBy('schluessel'),
             'letzteNoten' => $l->noten()->with(['fach', 'modulBelegung.modul'])->latest('pruefungsdatum')->latest('note_id')->limit(6)->get(),
             'neu' => $this->ungeseheneNoten([$id], (int) $betrachter->benutzer_id)[$id] ?? 0,
         ];

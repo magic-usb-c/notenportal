@@ -6,17 +6,24 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Lernender;
 use App\Models\Pruefung;
+use App\Services\Noten\NoteService;
 use App\Support\Format;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 /**
  * Prüfungstermine aller für den Benutzer sichtbaren Lernenden (Lernender::sichtbarFuer): kommende
  * Termine (heute bis +90 Tage) und kürzlich vergangene ohne Note (letzte 30 Tage), gruppiert nach
  * Woche bzw. Monat. Dazu der persönliche iCal-Abo-Link (CalendarExport).
+ *
+ * Abgabetermine (Rückmeldung #14, art=abgabe) kann die Verwaltung hier zusätzlich je Modul/Fach
+ * eines sichtbaren Lernenden erfassen/bearbeiten/löschen – dieselbe Sichtbarkeitsprüfung wie beim
+ * Lesen (Lernender::sichtbarFuer), keine eigene Policy. Reguläre Prüfungen bleiben Sache des
+ * Lernenden (learner.exams.*) und werden hier nicht bearbeitet.
  */
 class PruefungenController extends VerwaltungController
 {
@@ -25,6 +32,8 @@ class PruefungenController extends VerwaltungController
     private const int TAGE_ZURUECK = 30;
 
     private const array ZEITRAEUME = ['7', '30', 'alle'];
+
+    public function __construct(private readonly NoteService $noteService) {}
 
     public function index(Request $request): View
     {
@@ -59,12 +68,22 @@ class PruefungenController extends VerwaltungController
             ->orderBy('datum')->orderBy('uhrzeit')
             ->get();
 
+        // Abgabetermine (art=abgabe) pflegen: nur möglich, sobald ein einzelner Lernender gefiltert ist
+        // (Fach/Modul-Auswahl hängt vom Lehrberuf/Track ab) und erst nach der Migration der art-Spalte.
+        $abgabeMoeglich = Pruefung::hatArtSpalte() && $filter['lernender_id'] !== null && in_array($filter['lernender_id'], $ids, true);
+        $bearbeiten = $abgabeMoeglich && $request->filled('bearbeiten')
+            ? Pruefung::query()->where('lernender_id', $filter['lernender_id'])->where('art', Pruefung::ART_ABGABE)->find($request->integer('bearbeiten'))
+            : null;
+
         return view('verwaltung.pruefungen.index', [
             'gruppen' => $this->gruppieren($pruefungen, $heute),
             'anzahl' => $pruefungen->count(),
             'filter' => $filter,
             'lernendeOptionen' => $lernendeOptionen,
             'bereich' => $this->bereich($request),
+            'abgabeMoeglich' => $abgabeMoeglich,
+            'bezugOptionen' => $abgabeMoeglich ? $this->noteService->bezugOptionen($filter['lernender_id']) : [],
+            'bearbeiten' => $bearbeiten,
         ]);
     }
 
@@ -120,5 +139,74 @@ class PruefungenController extends VerwaltungController
         return $datum->lt($heute)
             ? ['label' => __('Note fehlt'), 'klasse' => 'bg-note-knapp/14 text-note-knapp']
             : ['label' => __('Offen'), 'klasse' => 'bg-surface-2 text-muted'];
+    }
+
+    /** Neuer Abgabetermin (art=abgabe) für einen sichtbaren Lernenden. */
+    public function store(Request $request): RedirectResponse
+    {
+        abort_unless(Pruefung::hatArtSpalte(), 404);
+
+        [$lernender, $daten] = $this->validiereAbgabe($request);
+        $lernender->pruefungen()->create([...$daten, 'art' => Pruefung::ART_ABGABE, 'quelle' => Pruefung::MANUELL]);
+
+        return redirect($this->zuRoute($request, 'exams.index', ['lernender_id' => $lernender->lernender_id]))
+            ->with('success', __('Abgabetermin erfasst.'));
+    }
+
+    /** Nur Abgabetermine sind hier editierbar – reguläre Prüfungen bleiben Sache des Lernenden. */
+    public function update(Request $request, int $pruefung_id): RedirectResponse
+    {
+        abort_unless(Pruefung::hatArtSpalte(), 404);
+
+        [$lernender, $daten] = $this->validiereAbgabe($request);
+        $pruefung = $lernender->pruefungen()->where('art', Pruefung::ART_ABGABE)->findOrFail($pruefung_id);
+        $pruefung->update($daten);
+
+        return redirect($this->zuRoute($request, 'exams.index', ['lernender_id' => $lernender->lernender_id]))
+            ->with('success', __('Abgabetermin aktualisiert.'));
+    }
+
+    public function destroy(Request $request, int $pruefung_id): RedirectResponse
+    {
+        abort_unless(Pruefung::hatArtSpalte(), 404);
+
+        $lernender = $this->sichtbarerLernender($request, $request->integer('lernender_id'));
+        $lernender->pruefungen()->where('art', Pruefung::ART_ABGABE)->findOrFail($pruefung_id)->delete();
+
+        return redirect($this->zuRoute($request, 'exams.index', ['lernender_id' => $lernender->lernender_id]))
+            ->with('success', __('Abgabetermin gelöscht.'));
+    }
+
+    /**
+     * Sichtbarkeit wie beim Lesen (Lernender::sichtbarFuer), Fach/Modul-Zugehörigkeit wie beim
+     * Lernenden selbst (NoteService::kategorieFuer) – keine eigene Prüflogik für Abgabetermine.
+     *
+     * @return array{0: Lernender, 1: array<string, mixed>}
+     */
+    private function validiereAbgabe(Request $request): array
+    {
+        $daten = $request->validate([
+            'lernender_id' => ['required', 'integer'],
+            'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
+            'titel' => ['required', 'string', 'max:150'],
+            'datum' => ['required', 'date'],
+            'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+        ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
+
+        $lernender = $this->sichtbarerLernender($request, (int) $daten['lernender_id']);
+        [$typ, $id] = explode(':', $daten['bezug']);
+        try {
+            $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id, CarbonImmutable::parse($daten['datum']));
+        } catch (ValidationException) {
+            throw ValidationException::withMessages(['bezug' => __('Dieses Fach oder Modul ist nicht verfügbar.')]);
+        }
+
+        return [$lernender, [
+            'fach_id' => $typ === 'fach' ? (int) $id : null,
+            'modul_id' => $typ === 'modul' ? (int) $id : null,
+            'titel' => $daten['titel'],
+            'datum' => $daten['datum'],
+            'gewichtung_prozent' => $daten['gewichtung_prozent'] ?? null,
+        ]];
     }
 }
