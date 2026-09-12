@@ -404,3 +404,13 @@ Sechs weitere Waisen bleiben bewusst liegen, weil sie aus fremden Blöcken stamm
 - `lang/areas/learner/en.json`: `:anzahl nicht übernommen: :fehler` (Notenimport), `auch mit 1.0 bleibt es bei `, `die offenen Prüfungen zählen hier nicht`, `höchstens, mit lauter 6.0` (Zielrechner-Texte), `Agenda abonnieren` (Kalender).
 
 Vorschlag: `Schluessel.php` um eine Waisen-Prüfung je Bereichsdatei erweitern und die sechs Einträge im selben Zug entfernen – zusammen ein kleiner, eigener Commit. Die Prüfung per literaler Suche ist eine Heuristik; dynamisch zusammengesetzte Schlüssel würden fälschlich als verwaist gelten, deshalb muss jeder Treffer wie hier einzeln gegengeprüft werden.
+
+## Ungenutzte öffentliche API in `Note` und `Leistung` (12.09.2026)
+
+Beim Schliessen der Testlücken (Block AI) fiel auf, dass die `Note`-Scopes
+`forLernender`, `filterKategorie`, `filterSemester`, `ordered`, `withOverview`
+sowie `Leistung::toArray()` im App-Code nirgends aufgerufen werden. Sie sind
+inzwischen getestet – als öffentliche API ist das richtig –, aber es ist zu
+klären, ob sie noch gebraucht werden oder als toter Code entfallen können.
+Kein Fehler, nur Aufräumbedarf; vor dem Entfernen prüfen, ob Blade-Views oder
+kommende Blöcke (Import H4–H8) sie einplanen.
