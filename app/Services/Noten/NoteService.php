@@ -36,7 +36,6 @@ use Illuminate\Validation\ValidationException;
 class NoteService
 {
     /**
-    /**
      * Caches innerhalb einer Service-Instanz: pruefeZeile() läuft beim Notenimport pro Zeile, bei mehreren
      * hundert Zeilen sonst mehrere tausend Mal dieselben Abfragen (Lernender, Semester, erlaubte
      * Fächer/Kategorien) – analog zu fachErlaubtAm() einmal laden statt pro Zeile. Aktiv nur zwischen
@@ -79,6 +78,7 @@ class NoteService
         $this->modulKategorienCache = [];
     }
 
+    /**
      * Basis-Query für Noten eines Lernenden (inkl. Relations).
      */
     public function learnerNotesQuery(int $lernenderId): Builder
@@ -302,10 +302,10 @@ class NoteService
      * - Fach: fach_id muss zu einem am Prüfungsdatum gültigen Track (oder zum Lehrberuf) gehören -> kategorie_id
      * - Modul: modul_id muss zum Lehrberuf gehören (lehrberuf_module) -> kategorie_id
      * - gewichtung_prozent Default = 100.00
-     */
      *
      * modul_belegung_id ist hier immer null: die offene Belegung zu finden/anzulegen schreibt (siehe
      * normalizeForSave), eine reine Prüfung darf das nicht.
+     */
     public function pruefeZeile(array $data, int $lernenderId): array
     {
         if (! $this->batch) {
@@ -362,8 +362,8 @@ class NoteService
                 'kategorie_id' => (int) $kategorieId,
                 'semester_id' => (int) $semester->semester_id,
                 'fach_id' => $fachId,
-                'modul_belegung_id' => null,
                 'modul_id' => null,
+                'modul_belegung_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
                 'note_wert' => $data['note_wert'],
@@ -400,7 +400,6 @@ class NoteService
     }
 
     /**
-    /**
      * Prüft wie pruefeZeile() und legt bei einem Modul zusätzlich die offene Modulbelegung an/findet sie
      * (einziger schreibende Schritt) -> modul_belegung_id setzen.
      */
@@ -416,6 +415,7 @@ class NoteService
         return $ergebnis;
     }
 
+    /**
      * Einzige Zuordnungsregel für Noten und geplante Prüfungen: Fach muss für Beruf/Track freigegeben sein
      * (Kategorie folgt aus dem Fach), Modul muss zum Lehrberuf gehören (Kategorie = Lernort im Beruf).
      *
@@ -445,7 +445,6 @@ class NoteService
         return (int) $kategorieId;
     }
 
-    /**
     /** kategorie_id je fach_id (erlaubteFaecher), pro Lernender+Stichtag einmal geladen statt pro Zeile. */
     private function erlaubteFaecherKategorien(int $lernenderId, ?CarbonInterface $stichtag): Collection
     {
@@ -482,6 +481,7 @@ class NoteService
         return $this->lernenderCache[$lernenderId];
     }
 
+    /**
      * Meldung, wenn das Fach zu einem Track des Lernenden gehört, dieser am Stichtag aber nicht galt; sonst null.
      */
     private function trackNichtAktivMeldung(int $lernenderId, int $fachId, CarbonInterface $stichtag): ?string
