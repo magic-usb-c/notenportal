@@ -24,7 +24,7 @@ class ProfileTest extends TestCase
     public function profilseite_wird_angezeigt(string $rolle): void
     {
         $this->actingAs(User::factory()->{$rolle}()->create())
-            ->get(route('profile.edit'))
+            ->get(route('settings.profile'))
             ->assertOk();
     }
 
@@ -34,14 +34,14 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->put(route('password.update'), [
                 'current_password' => UserFactory::PASSWORT,
                 'password' => 'NeuesPasswort!2026',
                 'password_confirmation' => 'NeuesPasswort!2026',
             ])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('settings.profile'));
 
         $this->assertTrue(Hash::check('NeuesPasswort!2026', $user->refresh()->passwort_hash));
     }
@@ -52,7 +52,7 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->put(route('password.update'), [
                 'current_password' => 'falsch',
                 'password' => 'NeuesPasswort!2026',
@@ -126,7 +126,7 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->patch(route('profile.update'), [
                 'email' => $user->email,
                 'darstellung' => 'system',
@@ -145,7 +145,7 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->patch(route('profile.update'), [
                 'email' => $user->email,
                 'darstellung' => 'system',
@@ -196,7 +196,7 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->patch(route('profile.update'), [
                 'email' => $user->email,
                 'darstellung' => 'system',

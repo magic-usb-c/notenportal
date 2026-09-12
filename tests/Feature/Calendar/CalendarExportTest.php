@@ -136,7 +136,7 @@ class CalendarExportTest extends TestCase
         $altesToken = CalendarExport::token($this->lernender);
         $this->get(route('calendar.export', ['token' => $altesToken]))->assertOk();
 
-        $this->actingAs($this->lernender)->post(route('learner.calendar.token.reset'))->assertRedirect();
+        $this->actingAs($this->lernender)->post(route('settings.calendar.token.reset'))->assertRedirect();
 
         $this->get(route('calendar.export', ['token' => $altesToken]))->assertNotFound();
         $neuesToken = CalendarExport::token($this->lernender->fresh());

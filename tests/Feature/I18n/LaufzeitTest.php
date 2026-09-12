@@ -71,7 +71,7 @@ class LaufzeitTest extends TestCase
                 ->assertSee('window.npI18n', false)
                 ->assertSee('Log out');
 
-            $this->actingAs($benutzer)->get(route('profile.edit'))->assertOk()->assertSee('Save language');
+            $this->actingAs($benutzer)->get(route('settings.profile'))->assertOk()->assertSee('Save language');
         }
 
         $this->assertNurOffeneSchluesselFehlen();

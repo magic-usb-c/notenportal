@@ -24,13 +24,13 @@ class UmschalterTest extends TestCase
         $this->sprachwahl(true);
         $benutzer = User::factory()->lernender()->create();
 
-        $this->actingAs($benutzer)->from(route('profile.edit'))
+        $this->actingAs($benutzer)->from(route('settings.profile'))
             ->put(route('profile.locale'), ['locale' => 'en'])
-            ->assertRedirect(route('profile.edit'))
+            ->assertRedirect(route('settings.profile'))
             ->assertSessionHas('success', 'Language saved.');
 
         $this->assertSame('en', $benutzer->refresh()->locale);
-        $this->actingAs($benutzer)->get(route('profile.edit'))->assertSee('<html lang="en"', false)->assertSee('My profile');
+        $this->actingAs($benutzer)->get(route('settings.profile'))->assertSee('<html lang="en"', false)->assertSee('My profile');
     }
 
     #[Test]
@@ -50,7 +50,7 @@ class UmschalterTest extends TestCase
         $benutzer = User::factory()->lernender()->create(['locale' => 'en']);
 
         $this->actingAs($benutzer)->put(route('profile.locale'), ['locale' => 'en'])->assertNotFound();
-        $this->actingAs($benutzer)->get(route('profile.edit'))
+        $this->actingAs($benutzer)->get(route('settings.profile'))
             ->assertSee('<html lang="de"', false)
             ->assertDontSee(route('profile.locale'), false);
     }
@@ -60,7 +60,7 @@ class UmschalterTest extends TestCase
     {
         $this->sprachwahl(true);
 
-        $this->actingAs(User::factory()->lernender()->create())->get(route('profile.edit'))
+        $this->actingAs(User::factory()->lernender()->create())->get(route('settings.profile'))
             ->assertSee(route('profile.locale'), false)
             ->assertSee('English');
     }

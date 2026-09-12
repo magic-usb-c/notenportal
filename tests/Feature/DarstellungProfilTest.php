@@ -148,7 +148,7 @@ class DarstellungProfilTest extends TestCase
 
         $this->actingAs($user)
             ->delete(route('profile.preferences.reset'))
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('settings.profile'));
 
         $user->refresh();
         $this->assertFalse($user->kontrast);

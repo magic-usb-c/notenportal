@@ -87,7 +87,7 @@ class DashboardKartenTest extends TestCase
     {
         $user = User::factory()->admin()->create();
 
-        $this->actingAs($user)->get(route('profile.edit'))
+        $this->actingAs($user)->get(route('settings.profile'))
             ->assertOk()
             ->assertDontSee('name="karten[]" value="handlungsbedarf"', false);
     }
@@ -98,7 +98,7 @@ class DashboardKartenTest extends TestCase
         $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->patch(route('profile.update'), [
                 'email' => $user->email,
                 'vorname' => $user->vorname,

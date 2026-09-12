@@ -24,7 +24,7 @@ class BemerkungUndKontenTest extends TestCase
             route('learner.dashboard'),
             route('learner.grades.index', ['semester_id' => $note->semester_id]),
             route('learner.grades.print'),
-            route('profile.edit'),
+            route('settings.profile'),
         ] as $url) {
             $this->actingAs($user)->get($url)->assertOk()->assertDontSee(self::BEMERKUNG);
         }

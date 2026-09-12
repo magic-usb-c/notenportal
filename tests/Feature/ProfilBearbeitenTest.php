@@ -15,7 +15,7 @@ class ProfilBearbeitenTest extends TestCase
 {
     private function profil(User $user, array $daten): TestResponse
     {
-        return $this->actingAs($user)->from(route('profile.edit'))->patch(route('profile.update'), $daten + [
+        return $this->actingAs($user)->from(route('settings.profile'))->patch(route('profile.update'), $daten + [
             'email' => $user->email,
             'darstellung' => 'system',
         ]);
@@ -39,7 +39,7 @@ class ProfilBearbeitenTest extends TestCase
 
         $this->profil($user, ['klasse_schule' => 'INF24b', 'klasse_bms' => 'BM1-24', 'darstellung' => 'dunkel'])
             ->assertSessionHasNoErrors()
-            ->assertRedirect(route('profile.edit'));
+            ->assertRedirect(route('settings.profile'));
 
         $this->assertSame('dunkel', $user->refresh()->darstellung);
         $this->assertSame('INF24b', $user->lernender->klasse_schule);
@@ -54,7 +54,7 @@ class ProfilBearbeitenTest extends TestCase
         $this->profil($user, ['klasse_bms' => 'BM1-24'])->assertSessionHasNoErrors();
 
         $this->assertNull($user->lernender->refresh()->klasse_bms);
-        $this->actingAs($user)->get(route('profile.edit'))->assertDontSee('Klasse BMS');
+        $this->actingAs($user)->get(route('settings.profile'))->assertDontSee('Klasse BMS');
     }
 
     #[Test]

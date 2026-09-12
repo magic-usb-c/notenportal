@@ -179,15 +179,15 @@ class PruefungenControllerTest extends TestCase
         $lernender = $this->neuerLernender();
         $verwalter = $this->verwalter($bereich, $lernender);
 
-        $antwort = $this->actingAs($verwalter)->get(route("{$bereich}.exams.index"));
+        $antwort = $this->actingAs($verwalter)->get(route('settings.calendar'));
         $antwort->assertOk();
 
         $altesToken = CalendarExport::token($verwalter);
         $antwort->assertSee($altesToken);
 
         $this->actingAs($verwalter)
-            ->post(route("{$bereich}.calendar.token.reset"))
-            ->assertRedirect(route("{$bereich}.exams.index"))
+            ->post(route('settings.calendar.token.reset'))
+            ->assertRedirect(route('settings.calendar'))
             ->assertSessionHas('success');
 
         $neuesToken = CalendarExport::token($verwalter->fresh());

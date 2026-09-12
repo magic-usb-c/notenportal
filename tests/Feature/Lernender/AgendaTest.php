@@ -201,7 +201,7 @@ class AgendaTest extends TestCase
         $this->actingAs($this->user)->post(route('learner.calendar.feed.store'), [
             'label' => 'Schulnetz', 'url' => 'https://schulnetz.example/ical/geheim',
             'import_exams' => '1', 'import_appointments' => '1', 'import_lessons' => '0',
-        ])->assertSessionHasNoErrors()->assertRedirect(route('learner.exams.index'));
+        ])->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
 
         $feed = CalendarFeed::sole();
         $this->assertSame('Schulnetz', $feed->label);
@@ -209,7 +209,7 @@ class AgendaTest extends TestCase
         $this->assertFalse($feed->import_lessons);
 
         $this->actingAs($this->user)->post(route('learner.calendar.sync'))
-            ->assertSessionHasNoErrors()->assertRedirect(route('learner.exams.index'));
+            ->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
 
         $this->assertSame(CalendarFeed::OK, $feed->fresh()->last_status);
     }
@@ -218,7 +218,7 @@ class AgendaTest extends TestCase
     public function abgleich_ohne_hinterlegten_kalender_meldet_fehler(): void
     {
         $this->actingAs($this->user)->post(route('learner.calendar.sync'))
-            ->assertRedirect(route('learner.exams.index'))
+            ->assertRedirect(route('settings.calendar'))
             ->assertSessionHas('error');
     }
 
@@ -272,8 +272,8 @@ class AgendaTest extends TestCase
 
         $this->get(route('calendar.export', ['token' => $altesToken]))->assertOk();
 
-        $this->actingAs($this->user)->post(route('learner.calendar.token.reset'))
-            ->assertSessionHasNoErrors()->assertRedirect(route('learner.exams.index'));
+        $this->actingAs($this->user)->post(route('settings.calendar.token.reset'))
+            ->assertSessionHasNoErrors()->assertRedirect(route('settings.calendar'));
 
         $this->get(route('calendar.export', ['token' => $altesToken]))->assertNotFound();
 
@@ -286,28 +286,24 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
-    public function agenda_bietet_abo_link_mit_webcal_knopf_an(): void
+    public function einstellungen_kalender_bietet_abo_link_mit_webcal_knopf_an(): void
     {
         $token = CalendarExport::token($this->user);
         $exportUrl = route('calendar.export', ['token' => $token]);
 
-        $this->actingAs($this->user)->get(route('learner.exams.index'))
+        $this->actingAs($this->user)->get(route('settings.calendar'))
             ->assertOk()
-            ->assertSee(__('Agenda abonnieren'))
+            ->assertSee(__('Kalender-Abo'))
             ->assertSee($exportUrl, false)
             ->assertSee(preg_replace('#^https?://#', 'webcal://', $exportUrl), false)
-            ->assertSee(route('learner.calendar.token.reset'), false);
+            ->assertSee(route('settings.calendar.token.reset'), false);
     }
 
     #[Test]
-    public function drawer_oeffnet_per_parameter_serverseitig(): void
+    public function kalender_parameter_leitet_serverseitig_auf_einstellungen_um(): void
     {
-        // Ein open-drawer aus dem init() der Seite käme vor dem Listener der Drawer an – deshalb Startzustand vom Server.
-        $this->actingAs($this->user)->get(route('learner.exams.index'))
-            ->assertOk()->assertDontSee('offen: true', false);
-
         $this->actingAs($this->user)->get(route('learner.exams.index', ['kalender' => 1]))
-            ->assertOk()->assertSee('offen: true', false);
+            ->assertRedirect(route('settings.calendar'));
     }
 
     #[Test]

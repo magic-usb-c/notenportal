@@ -84,7 +84,7 @@ class ThemeTest extends TestCase
         Einstellungen::set(Einstellungen::THEME, 'sandstein');
         $user = User::factory()->lernender()->create();
 
-        $this->actingAs($user)->get(route('profile.edit'))->assertSee('name="theme"', false);
+        $this->actingAs($user)->get(route('settings.profile'))->assertSee('name="theme"', false);
 
         $this->actingAs($user)
             ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => 'kontrast'])
@@ -285,7 +285,7 @@ class ThemeTest extends TestCase
     {
         $user = User::factory()->lernender()->create(['praeferenzen' => ['theme' => 'wald', 'akzent' => 'rot']]);
 
-        $html = $this->actingAs($user)->from(route('profile.edit'))->followingRedirects()
+        $html = $this->actingAs($user)->from(route('settings.profile'))->followingRedirects()
             ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => 'gibtsnicht', 'akzent' => 'lila'])
             ->assertOk()->getContent();
 

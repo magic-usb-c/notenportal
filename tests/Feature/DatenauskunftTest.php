@@ -315,9 +315,9 @@ class DatenauskunftTest extends TestCase
         Datenauskunft::$maxDokumenteBytes = 500;
 
         $this->confirmed($user)
-            ->from(route('profile.edit'))
+            ->from(route('settings.profile'))
             ->get(route('profile.data-export'))
-            ->assertRedirect(route('profile.edit'))
+            ->assertRedirect(route('settings.profile'))
             ->assertSessionHas('error');
     }
 }
