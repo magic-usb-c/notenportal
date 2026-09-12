@@ -34,12 +34,13 @@ Für jeden geänderten Pfad (Beispiel `/dashboard`):
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/login          # 200
 cd ~/tools/visual
-node breite.mjs http://127.0.0.1 admin@example.local Chur7000 --breite=390 /dashboard /pfad2
-node breite.mjs http://127.0.0.1 david.vonallmen@example.local Chur7000 --breite=390 /grades
+export NP_TEST_PW=…            # nur als Umgebungsvariable, nie als Argument, nie ausgeben
+node breite.mjs --base=http://127.0.0.1 --rolle=admin --breite=390 /dashboard /pfad2
+node breite.mjs --base=http://127.0.0.1 --rolle=learner --breite=390 /grades
 cd /var/www/notenportal
 ```
 Kriterium: jede Zeile beginnt mit `200 ✓`. `✗` = seitliches Überlaufen → beheben.
-Benutzer-E-Mails unsicher? `php artisan tinker --execute="echo App\Models\User::pluck('email')->implode(PHP_EOL);"`
+Benutzer-E-Mails unsicher? `sudo mysql -N -B notenportal -e "SELECT email FROM benutzer LIMIT 20;"` (`tinker` scheitert hier an einem nicht beschreibbaren psysh-Verzeichnis).
 Screenshots bei Bedarf: `node shot.mjs <baseUrl> <email> <pw> <outdir> [--dunkel] [--mobil] <pfade…>` und Bilder mit Read ansehen.
 
 ## 6. Review (parallel, eine Nachricht, zwei Agent-Aufrufe)

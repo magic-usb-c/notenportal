@@ -7,7 +7,7 @@ Weiterführend: `docs/endspurt-plan.md` (Ideensammlung) · `docs/gui-konzept.md`
 ## Umgebung
 - VM srv-lab-dva-001, `/var/www/notenportal`, Apache 2.4 + mod_php 8.3, MariaDB 10.11, Node 22
 - Laravel, Blade, Tailwind, Alpine.js, Vite
-- Testbenutzer Prod (Passwort `Chur7000`, Login per E-Mail `<vorname>.<nachname>@example.local`, Admin `admin@example.local`): admin, peter (Berufsbildner), david/nando/jan/lukas/nils (Lernende)
+- Testbenutzer Prod (Login per E-Mail `<vorname>.<nachname>@example.local`, Admin `admin@example.local`): admin, peter (Berufsbildner), david/nando/jan/lukas/nils (Lernende). Passwort ausschliesslich über die Umgebungsvariable `NP_TEST_PW` – nie in Code, Docs, Logs oder Commits
 - Demo-Server (DB `notenportal_demo`, Passwort `Demo!2026`, `@demo.example`): laura.frei (Admin), michael.baumann (Berufsbildner), nina.huber/elena.fischer (Lernende). Start: `cd public && DB_DATABASE=notenportal_demo CACHE_STORE=array php -S 127.0.0.1:8090 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
 - Zweite Instanz (Installationstest): `/var/www/notenportal-i2`, Port 8082, DB `notenportal_i2`
 - Browser-Werkzeuge: `~/tools/visual` (shot.mjs, breite.mjs, import.mjs, zeugnis.mjs, erstinbetrieb.mjs)

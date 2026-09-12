@@ -47,5 +47,5 @@ Neu = Datei in `git log --since` mit Status `A`, oder in dieser Session angelegt
 ```
 
 ## Regeln
-- Keine Passwörter, Tokens oder SMTP-Zugangsdaten im Paket (Testbenutzer-Passwörter Chur7000 / Demo!2026 sind erlaubt).
+- Keine Passwörter, Tokens oder SMTP-Zugangsdaten im Paket – auch keine Testbenutzer-Passwörter. Prüfwerkzeuge erhalten das Passwort ausschliesslich über `NP_TEST_PW`.
 - Höchstens ~60 Zeilen ohne den Prompt.
