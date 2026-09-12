@@ -115,6 +115,7 @@ sudo systemctl reload apache2
 | 12.09.2026 | Dump `notenportal-20260911-2158-vor-feedback-stimmen.sql` + Tag `vor-feedback-stimmen`, Migration `2026_09_12_000011_feedback_stimmen_und_duplikate` (neue Tabelle `feedback_stimmen`, Spalte `feedback.duplikat_von` mit FK, Index `idx_feedback_route_status`) erst auf `notenportal_probe` (up/rollback/up), dann `notenportal`. `/login` 200. |
 | 11.09.2026 | `storage/framework/views` an `www-data:www-data` (g+w): von ubuntu kompilierte Views liessen Apache mit «touch(): Utime failed» scheitern (500). Tests kompilieren seither nach `storage/framework/views-testing` (phpunit.xml); `view:cache` nur noch `sudo -u www-data`. |
 | 12.09.2026 | Dump `~/db-backups/notenportal-20260912-0236-modulstatus.sql` (98 KB) + Git-Tag `modulstatus`, danach Migration 2026_09_12_000013: `pruefungen.art` enum(`pruefung`,`abgabe`), Default `pruefung`. Auf `notenportal_probe` mit Rollback und erneutem Hochfahren geprüft. |
+| 12.09.2026 | Dump `~/db-backups/notenportal-20260912-0248-feedbackanhang.sql` (98 KB) + Git-Tag `feedbackanhang`, danach Migration 2026_09_12_000012: Tabelle `feedback_anhaenge`, Spalte `feedback.technik_details` (JSON), `feedback.kategorie` enum `lob` → `sonstiges` (dreistufig: weiten, Daten umschreiben, verengen). Auf `notenportal_probe` mit Rollback und erneutem Hochfahren geprüft. |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.

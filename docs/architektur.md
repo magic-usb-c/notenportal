@@ -37,6 +37,8 @@ app/Support/       Csv::safe(), Einstellungen, NotenSkala (Grenzen, Farben), Zah
                    Theme (Betriebs-Theme aus Einstellung «theme», benutzer.kontrast überschreibt → <html data-theme>),
                    Browser (User-Agent → kurzer Text für Feedback)
 app/Services/Feedback/Screenshot  optionaler Screenshot (modern-screenshot im Browser) privat auf Disk «local», nur Admins über den Feedback-Controller
+app/Services/Feedback/Anhang      eigene Anhaenge: Inhalt statt Endung geprueft (Bild ueber getimagesize plus GD-Neukodierung, PDF ueber Signatur, Text ueber UTF-8-Pruefung), privat auf Disk «local», Auslieferung nur an Admin/Meldende mit Content-Disposition attachment, nosniff und sandboxender CSP
+app/Support/AppVersion           liest .git/HEAD bzw. packed-refs direkt, kein Shell-Aufruf, null ohne Git-Verzeichnis
 routes/            Routennamen und URL-Pfade englisch (learner.*, trainer.*, admin.*; z.B. /grades, /trainer/learners, /admin/master-data);
                    Parameter ({lernender_id} …), Controller, Views und DB bleiben vorerst deutsch
 app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten

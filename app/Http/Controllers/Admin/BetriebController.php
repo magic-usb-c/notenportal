@@ -54,6 +54,7 @@ class BetriebController extends Controller
             'sitzungStandard' => Sitzung::standard(),
             'sitzungMinuten' => Einstellungen::get(Einstellungen::SITZUNG_MINUTEN),
             'logoVorhanden' => Betriebslogo::vorhanden(),
+            'feedbackKnopfAktiv' => Einstellungen::get(Einstellungen::FEEDBACK_KNOPF, '1') !== '0',
         ]);
     }
 
@@ -193,6 +194,17 @@ class BetriebController extends Controller
         ]);
 
         return redirect()->route('admin.operations.edit')->with('success', __('Systemhinweis gespeichert.'));
+    }
+
+    /** Schwebender Feedback-Knopf (Block G, Testphase) ein-/ausschalten. */
+    public function feedbackKnopfSpeichern(Request $request): RedirectResponse
+    {
+        $aktiv = $request->boolean(Einstellungen::FEEDBACK_KNOPF);
+        Einstellungen::set(Einstellungen::FEEDBACK_KNOPF, $aktiv ? '1' : '0');
+
+        Protokoll::schreiben(Protokoll::ADMIN_FEEDBACK_KNOPF_GEAENDERT, null, ['aktiv' => $aktiv]);
+
+        return redirect()->route('admin.operations.edit')->with('success', $aktiv ? __('Feedback-Knopf eingeschaltet.') : __('Feedback-Knopf ausgeschaltet.'));
     }
 
     public function logoSpeichern(Request $request): RedirectResponse

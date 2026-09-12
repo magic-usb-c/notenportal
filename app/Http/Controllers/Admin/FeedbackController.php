@@ -34,8 +34,10 @@ class FeedbackController extends Controller
         $duplikate = $request->boolean('duplikate');
         $hatDuplikatSpalte = Feedback::hatDuplikatSpalte();
         $hatStimmenTabelle = FeedbackStimme::tabelleVorhanden();
+        $hatAnhaengeTabelle = Feedback::hatAnhaengeTabelle();
 
         $q = Feedback::query()
+            ->when($hatAnhaengeTabelle, fn ($qq) => $qq->with('anhaenge'))
             ->join('benutzer as b', 'b.benutzer_id', '=', 'feedback.benutzer_id')
             ->select('feedback.*', 'b.vorname', 'b.nachname', 'b.email')
             ->selectRaw(
@@ -50,7 +52,10 @@ class FeedbackController extends Controller
             ))
             ->when($hatDuplikatSpalte && ! $duplikate, fn ($qq) => $qq->whereNull('feedback.duplikat_von'))
             ->when($status !== '', fn ($qq) => $qq->where('feedback.status', $status))
-            ->when($kategorie !== '', fn ($qq) => $qq->where('feedback.kategorie', $kategorie))
+            ->when($kategorie !== '', fn ($qq) => $qq->where(
+                'feedback.kategorie',
+                $kategorie === Feedback::KATEGORIE_SONSTIGES && ! Feedback::hatSonstigesWert() ? Feedback::KATEGORIE_LOB : $kategorie
+            ))
             ->when($rolle !== '', function ($qq) use ($rolle) {
                 $qq->whereExists(function ($sub) use ($rolle) {
                     $sub->select(DB::raw(1))
@@ -70,7 +75,7 @@ class FeedbackController extends Controller
         $meldungen = $q->paginate(25)->withQueryString();
         $gibtEs = $meldungen->total() > 0 || Feedback::exists();
 
-        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'sort', 'dir', 'duplikate', 'gibtEs', 'hatDuplikatSpalte'));
+        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'sort', 'dir', 'duplikate', 'gibtEs', 'hatDuplikatSpalte', 'hatAnhaengeTabelle'));
     }
 
     public function update(Request $request, int $feedback_id): JsonResponse|RedirectResponse
@@ -247,7 +252,7 @@ class FeedbackController extends Controller
                     Csv::safe($r->vorname),
                     Csv::safe($r->email),
                     Csv::safe($r->rolle ?? ''),
-                    __(Feedback::KATEGORIEN[$r->kategorie] ?? $r->kategorie),
+                    __(Feedback::kategorieLabel($r->kategorie)),
                     __(Feedback::STATUS[$r->status] ?? $r->status),
                     Csv::safe($r->text),
                     Csv::safe($r->route_name ?? ''),

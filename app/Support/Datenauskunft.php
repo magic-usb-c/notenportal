@@ -187,8 +187,11 @@ final class Datenauskunft
     /** @return list<array<string, mixed>> */
     private function feedback(User $user): array
     {
+        $mitAnhaengen = Feedback::hatAnhaengeTabelle();
+
         return Feedback::query()
             ->where('benutzer_id', $user->benutzer_id)
+            ->when($mitAnhaengen, fn ($q) => $q->with('anhaenge'))
             ->orderByDesc('erstellt_am')
             ->get()
             ->map(fn (Feedback $f) => [
@@ -202,6 +205,8 @@ final class Datenauskunft
                 'status' => $f->status,
                 'antwort' => $f->admin_notiz,
                 'erledigt_am' => optional($f->erledigt_am)->toIso8601String(),
+                // Nur Dateinamen (keine Inhalte) – die Dateien selbst liegen auf der privaten Disk.
+                'anhaenge' => $mitAnhaengen ? $f->anhaenge->pluck('dateiname')->all() : [],
             ])
             ->all();
     }

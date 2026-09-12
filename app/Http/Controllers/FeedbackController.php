@@ -5,20 +5,24 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
+use App\Models\FeedbackAnhang;
 use App\Models\FeedbackStimme;
 use App\Models\NotificationMark;
 use App\Models\User;
+use App\Services\Feedback\Anhang;
 use App\Services\Feedback\Screenshot;
 use App\Services\Notifications\Empfaenger;
 use App\Services\Notifications\Messages\FeedbackReceived;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\AppVersion;
 use App\Support\Browser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FeedbackController extends Controller
 {
@@ -43,7 +47,7 @@ class FeedbackController extends Controller
         return view('feedback.index', compact('meldungen', 'mitStimmen'));
     }
 
-    public function store(Request $request, Screenshot $screenshotService): JsonResponse|RedirectResponse
+    public function store(Request $request, Screenshot $screenshotService, Anhang $anhangService): JsonResponse|RedirectResponse
     {
         $validated = $request->validate(array_merge([
             'kategorie' => ['required', 'in:'.implode(',', array_keys(Feedback::KATEGORIEN))],
@@ -52,14 +56,22 @@ class FeedbackController extends Controller
             'url' => ['nullable', 'string', 'max:500'],
             'viewport' => ['nullable', 'regex:/^\d{2,5}x\d{2,5}$/'],
             'js_fehler' => ['nullable', 'string', 'max:3000'],
-        ], Screenshot::regeln()));
+            'technik' => ['nullable', 'string', 'max:2000'],
+        ], Screenshot::regeln(), Anhang::regeln()));
 
         $letzteFehler = $this->letzteJsFehler($validated['js_fehler'] ?? null);
+
+        // Solange die Spalte kategorie den Wert «sonstiges» noch nicht kennt (Migration 2026_09_12_000012
+        // auf Prod nicht gelaufen), muss weiterhin der alte Wert «lob» geschrieben werden.
+        $kategorie = $validated['kategorie'];
+        if ($kategorie === Feedback::KATEGORIE_SONSTIGES && ! Feedback::hatSonstigesWert()) {
+            $kategorie = Feedback::KATEGORIE_LOB;
+        }
 
         $feedback = Feedback::create([
             'benutzer_id' => (int) $request->user()->benutzer_id,
             'rolle' => $request->user()->rollen()->pluck('name')->first(),
-            'kategorie' => $validated['kategorie'],
+            'kategorie' => $kategorie,
             'text' => $validated['text'],
             'route_name' => $validated['route_name'] ?? null,
             'url' => $validated['url'] ?? null,
@@ -67,6 +79,7 @@ class FeedbackController extends Controller
             'browser' => Browser::kurz($request->userAgent()),
             'viewport' => $validated['viewport'] ?? null,
             'js_fehler' => $letzteFehler,
+            'technik_details' => Feedback::hatTechnikSpalte() ? $this->technikDetails($validated['technik'] ?? null) : null,
         ]);
 
         if ($request->hasFile('screenshot')) {
@@ -76,6 +89,13 @@ class FeedbackController extends Controller
                 'screenshot_mime' => $gespeichert['mime'],
                 'screenshot_groesse' => $gespeichert['groesse'],
             ]);
+        }
+
+        if (Feedback::hatAnhaengeTabelle()) {
+            foreach ($request->file('anhaenge', []) as $datei) {
+                $gespeichert = $anhangService->speichern($datei);
+                FeedbackAnhang::create(['feedback_id' => $feedback->feedback_id, ...$gespeichert]);
+            }
         }
 
         $melder = $request->user();
@@ -121,7 +141,7 @@ class FeedbackController extends Controller
             'anzahl' => $meldungen->count(),
             'meldungen' => $meldungen->map(fn (Feedback $f) => [
                 'id' => $f->feedback_id,
-                'kategorie_label' => __(Feedback::KATEGORIEN[$f->kategorie] ?? $f->kategorie),
+                'kategorie_label' => __(Feedback::kategorieLabel($f->kategorie)),
                 'datum' => $f->erstellt_am->format('d.m.Y'),
                 'stimmen' => (int) $f->stimmen_count,
                 'meine' => (bool) $f->meine_stimme,
@@ -203,6 +223,68 @@ class FeedbackController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Anhang einer Meldung – nur für Admins und die meldende Person selbst. Content-Disposition
+     * attachment, nosniff und eine sandboxende CSP kommen aus App\Services\Feedback\Anhang::ausliefern().
+     */
+    public function anhang(Request $request, int $feedback_id, int $anhang_id, Anhang $anhangService): StreamedResponse
+    {
+        abort_unless(Feedback::hatAnhaengeTabelle(), 404);
+
+        $feedback = Feedback::query()->findOrFail($feedback_id);
+        $user = $request->user();
+        $eigeneMeldung = (int) $feedback->benutzer_id === (int) $user->benutzer_id;
+        abort_unless($eigeneMeldung || $user->hasRole('Admin'), 403);
+
+        $anhang = FeedbackAnhang::where('feedback_id', $feedback_id)->findOrFail($anhang_id);
+
+        return $anhangService->ausliefern($anhang);
+    }
+
+    /**
+     * Bereinigte technische Angaben (Block G): nur bekannte Felder, harte Längenlimiten, ergänzt um die
+     * App-Version. Browser/Betriebssystem stehen schon in der eigenen Spalte «browser» (aus der
+     * User-Agent-Kennung des Servers), Route/URL/Viewport/js_fehler in ihren eigenen Spalten.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function technikDetails(?string $roh): ?array
+    {
+        if (blank($roh)) {
+            return null;
+        }
+
+        $daten = json_decode($roh, true);
+        if (! is_array($daten)) {
+            return null;
+        }
+
+        $ergebnis = [];
+        foreach (['bildschirm', 'pixelverhaeltnis', 'sprache', 'zeitzone', 'darstellung'] as $schluessel) {
+            if (isset($daten[$schluessel]) && is_scalar($daten[$schluessel])) {
+                $ergebnis[$schluessel] = mb_substr((string) $daten[$schluessel], 0, 60);
+            }
+        }
+        if (array_key_exists('online', $daten)) {
+            $ergebnis['online'] = (bool) $daten['online'];
+        }
+        if (isset($daten['fehlgeschlagene_requests']) && is_array($daten['fehlgeschlagene_requests'])) {
+            $ergebnis['fehlgeschlagene_requests'] = collect($daten['fehlgeschlagene_requests'])
+                ->filter(fn ($r) => is_array($r) && isset($r['pfad'], $r['status']) && is_scalar($r['pfad']) && is_scalar($r['status']))
+                ->map(fn ($r) => ['pfad' => mb_substr((string) $r['pfad'], 0, 200), 'status' => (int) $r['status']])
+                ->take(3)
+                ->values()
+                ->all();
+        }
+
+        $version = AppVersion::commit();
+        if ($version !== null) {
+            $ergebnis['app_version'] = $version;
+        }
+
+        return $ergebnis === [] ? null : $ergebnis;
     }
 
     /** Login-Hinweis dauerhaft ausblenden (einmal pro Benutzer, serverseitig gemerkt). */

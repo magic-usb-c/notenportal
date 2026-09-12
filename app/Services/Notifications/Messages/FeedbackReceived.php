@@ -15,7 +15,7 @@ final class FeedbackReceived
     {
         $name = trim($melder->vorname.' '.$melder->nachname);
         $rolle = $melder->rollen()->pluck('name')->first() ?? '–';
-        $kategorie = Feedback::KATEGORIEN[$feedback->kategorie] ?? $feedback->kategorie;
+        $kategorie = __(Feedback::kategorieLabel($feedback->kategorie));
 
         return new MailContent(
             subject: __('Neue Meldung («:kategorie») von :name', ['kategorie' => $kategorie, 'name' => $name]),

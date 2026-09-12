@@ -62,7 +62,7 @@ final class Sicherung
                 throw new RuntimeException('ZIP-Datei lässt sich nicht anlegen.');
             }
             $zip->addFile($dump, 'datenbank.sql');
-            foreach ([...Storage::disk(self::DISK)->allFiles('lernende'), ...Storage::disk(self::DISK)->allFiles('betrieb')] as $datei) {
+            foreach ([...Storage::disk(self::DISK)->allFiles('lernende'), ...Storage::disk(self::DISK)->allFiles('betrieb'), ...Storage::disk(self::DISK)->allFiles('feedback')] as $datei) {
                 $zip->addFile(Storage::disk(self::DISK)->path($datei), 'dateien/'.$datei);
             }
             $zip->addFromString('LIESMICH.txt', $this->anleitung());
@@ -157,7 +157,8 @@ final class Sicherung
             Notenportal – Sicherung
             =======================
             datenbank.sql   vollständiger Export der Datenbank
-            dateien/        hochgeladene Dokumente (storage/app/private/lernende) und Betriebslogo (storage/app/private/betrieb)
+            dateien/        hochgeladene Dokumente (storage/app/private/lernende), Betriebslogo (storage/app/private/betrieb)
+                            und Feedback-Screenshots/-Anhänge (storage/app/private/feedback)
 
             Wiederherstellen (auf dem Server, im Verzeichnis des Notenportals):
             1. sudo mysql <Datenbankname> < datenbank.sql

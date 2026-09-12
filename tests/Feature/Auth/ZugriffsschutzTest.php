@@ -49,6 +49,7 @@ class ZugriffsschutzTest extends TestCase
         'feedback.similar',
         'feedback.vote',
         'feedback.vote.destroy',
+        'feedback.attachment',
         'system-notice.dismiss',
         'session.keep-alive',
         'search',

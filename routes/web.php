@@ -313,6 +313,8 @@ Route::middleware('auth')->group(function () {
         ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote');
     Route::delete('/feedback/{feedback_id}/vote', [FeedbackController::class, 'stimmeZurueck'])
         ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote.destroy');
+    Route::get('/feedback/{feedback_id}/anhaenge/{anhang_id}', [FeedbackController::class, 'anhang'])
+        ->whereNumber('feedback_id')->whereNumber('anhang_id')->name('feedback.attachment');
 });
 
 /**
@@ -356,9 +358,6 @@ Route::middleware('auth')->group(function () {
     // Selbst-Löschung ist deaktiviert: Accounts werden ausschliesslich vom Admin verwaltet
 });
 
-/*
- * Ersteinrichtung und Betriebseinstellungen (Admin)
- */
 /**
  * Einstellungen (/settings/…, alle Rollen, ein Tab je Route – siehe settings/_tabs.blade.php)
  */
@@ -371,6 +370,9 @@ Route::middleware('auth')->prefix('settings')->name('settings.')->group(function
     Route::get('/data', [SettingsController::class, 'data'])->name('data');
 });
 
+/*
+ * Ersteinrichtung und Betriebseinstellungen (Admin)
+ */
 Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/setup/{schritt?}', [EinrichtungController::class, 'show'])
         ->name('setup');
@@ -387,6 +389,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     Route::put('/operations/offsite', [BetriebController::class, 'kopieSpeichern'])->name('operations.offsite.update');
     Route::post('/operations/offsite', [BetriebController::class, 'kopieAusfuehren'])->middleware('throttle:6,1,sicherung-kopie')->name('operations.offsite.run');
     Route::put('/operations/notice', [BetriebController::class, 'hinweisSpeichern'])->name('operations.notice.update');
+    Route::put('/operations/feedback-button', [BetriebController::class, 'feedbackKnopfSpeichern'])->name('operations.feedback-button.update');
     Route::put('/operations/logo', [BetriebController::class, 'logoSpeichern'])->name('operations.logo.update');
     Route::put('/operations/session', [BetriebController::class, 'sitzungSpeichern'])->name('operations.session.update');
 });

@@ -25,6 +25,7 @@
             @include('admin.betrieb._sprache')
             @include('admin.betrieb._logo', ['logoVorhanden' => $logoVorhanden])
             @include('admin.betrieb._hinweis')
+            @include('admin.betrieb._feedback')
             @include('admin.betrieb._sitzung')
 
             <section class="rounded-xl border border-border bg-card p-6 flex flex-col gap-5 mt-5">

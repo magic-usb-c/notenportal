@@ -1,7 +1,15 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Meine Meldungen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Meine Meldungen')" schmal />
+        <x-seitenkopf :titel="__('Meine Meldungen')" schmal>
+            <x-slot:aktionen>
+                <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
+                        class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                    <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    {{ __('Meldung erfassen') }}
+                </button>
+            </x-slot:aktionen>
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
@@ -30,7 +38,7 @@
                                 @endphp
                                 <tr class="even:bg-bg/30">
                                     <td class="p-3 text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
-                                    <td class="p-3 whitespace-nowrap">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
+                                    <td class="p-3 whitespace-nowrap">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
                                     <td class="p-3 max-w-md">
                                         @if($gekuerzt)
                                             <details class="np-details">
@@ -70,9 +78,9 @@
                                         </span>
                                         <p class="text-text font-medium mb-1">{{ __('Noch keine Meldungen') }}</p>
                                         <p class="text-sm max-w-sm mx-auto">
-                                            {{ __('Fehler, Ideen, Fragen oder Lob – über das Benutzermenü oder mit') }}
+                                            {{ __('Fehler, Ideen, Fragen oder sonst etwas – nutze den Knopf oben oder') }}
                                             <kbd class="px-1 py-0.5 rounded-md border border-border text-xs">{{ __('Strg/Cmd K') }}</kbd>
-                                            {{ __('unter «Feedback melden» erreichst du uns jederzeit.') }}
+                                            {{ __('um deine erste Meldung zu erfassen.') }}
                                         </p>
                                     </td>
                                 </tr>

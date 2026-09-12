@@ -177,7 +177,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::KATEGORIEN[$m->kategorie] ?? $m->kategorie) }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
                                     <td class="px-3 py-2.5 max-w-sm align-top">
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
@@ -227,6 +227,61 @@
                                                             <img src="{{ route('admin.feedback.screenshot', $m->feedback_id) }}" alt="{{ __('Screenshot der Meldung') }}"
                                                                  class="max-w-full max-h-64 rounded-xl border border-border">
                                                         </a>
+                                                    </div>
+                                                @endif
+                                                @if(!empty($m->technik_details))
+                                                    <details class="mt-2">
+                                                        <summary class="cursor-pointer text-xs font-medium text-muted hover:text-text">{{ __('Technische Angaben') }}</summary>
+                                                        <dl class="mt-1 text-xs text-muted space-y-1">
+                                                            @if(!empty($m->technik_details['bildschirm']))
+                                                                <div><dt class="inline font-medium">{{ __('Bildschirm:') }}</dt> <dd class="inline">{{ $m->technik_details['bildschirm'] }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['pixelverhaeltnis']))
+                                                                <div><dt class="inline font-medium">{{ __('Pixelverhältnis:') }}</dt> <dd class="inline">{{ $m->technik_details['pixelverhaeltnis'] }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['sprache']))
+                                                                <div><dt class="inline font-medium">{{ __('Sprache:') }}</dt> <dd class="inline">{{ $m->technik_details['sprache'] }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['zeitzone']))
+                                                                <div><dt class="inline font-medium">{{ __('Zeitzone:') }}</dt> <dd class="inline">{{ $m->technik_details['zeitzone'] }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['darstellung']))
+                                                                <div><dt class="inline font-medium">{{ __('Darstellung:') }}</dt> <dd class="inline">{{ $m->technik_details['darstellung'] }}</dd></div>
+                                                            @endif
+                                                            @if(array_key_exists('online', $m->technik_details))
+                                                                <div><dt class="inline font-medium">{{ __('Verbindung:') }}</dt> <dd class="inline">{{ $m->technik_details['online'] ? __('Online') : __('Offline') }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['app_version']))
+                                                                <div><dt class="inline font-medium">{{ __('App-Version:') }}</dt> <dd class="inline">{{ $m->technik_details['app_version'] }}</dd></div>
+                                                            @endif
+                                                            @if(!empty($m->technik_details['fehlgeschlagene_requests']))
+                                                                <div>
+                                                                    <dt class="font-medium">{{ __('Fehlgeschlagene Anfragen:') }}</dt>
+                                                                    <dd>
+                                                                        <ul class="list-disc list-inside">
+                                                                            @foreach($m->technik_details['fehlgeschlagene_requests'] as $r)
+                                                                                <li class="break-words">{{ $r['status'] }} – {{ $r['pfad'] }}</li>
+                                                                            @endforeach
+                                                                        </ul>
+                                                                    </dd>
+                                                                </div>
+                                                            @endif
+                                                        </dl>
+                                                    </details>
+                                                @endif
+                                                @if($hatAnhaengeTabelle && $m->anhaenge->isNotEmpty())
+                                                    <div>
+                                                        <p class="font-medium text-xs text-muted mt-2 mb-1">{{ __('Anhänge') }}</p>
+                                                        <ul class="text-xs space-y-1">
+                                                            @foreach($m->anhaenge as $anhang)
+                                                                <li>
+                                                                    <a href="{{ route('feedback.attachment', [$m->feedback_id, $anhang->feedback_anhang_id]) }}"
+                                                                       class="text-accent-text hover:underline break-all" target="_blank" rel="noopener">
+                                                                        {{ $anhang->dateiname }}
+                                                                    </a>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
                                                     </div>
                                                 @endif
                                             </div>

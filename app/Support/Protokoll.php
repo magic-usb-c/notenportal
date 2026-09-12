@@ -75,6 +75,8 @@ final class Protokoll
 
     public const string ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN = 'admin.feedback_duplikat_aufgehoben';
 
+    public const string ADMIN_FEEDBACK_KNOPF_GEAENDERT = 'admin.feedback_knopf_geaendert';
+
     /** Aktionsschlüssel => Anzeige-Label (deutsch, über __() übersetzt). */
     public const array LABELS = [
         self::AUTH_ANMELDUNG_ERFOLGREICH => 'Anmeldung erfolgreich',
@@ -102,6 +104,7 @@ final class Protokoll
         self::ADMIN_LOGO_ENTFERNT => 'Logo entfernt',
         self::ADMIN_FEEDBACK_DUPLIKAT => 'Meldung als Duplikat markiert',
         self::ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN => 'Duplikat-Markierung aufgehoben',
+        self::ADMIN_FEEDBACK_KNOPF_GEAENDERT => 'Feedback-Knopf geändert',
     ];
 
     /** Schlüssel, die nie ins Protokoll dürfen (Passwörter, Token, Geheimnisse), unabhängig von Gross-/Kleinschreibung. */
