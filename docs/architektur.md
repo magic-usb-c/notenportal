@@ -80,7 +80,7 @@ Startpasswörter (Anlegen, Zurücksetzen) werden generiert, einmalig angezeigt, 
 Lernender-ID kommt immer aus der Session (`$request->user()->lernender`), nie aus dem Request.
 
 ## Notenlogik
-Alle Durchschnitte kommen aus `App\Services\Auswertung` – keine Schnitte in Controllern, Views oder SQL. Regeln, Begriffe und Beispiele: `docs/notenlogik.md`. Kategorie einer Note wird abgeleitet (Fach → `faecher.kategorie_id`, Modul → `lehrberuf_module.kategorie_id` = Lernort), nie vom Formular übernommen.
+Alle Durchschnitte kommen aus `App\Services\Auswertung` – keine Schnitte in Controllern, Views oder SQL. Regeln, Begriffe und Beispiele: `docs/notenlogik.md`. Semesternamen kommen aus `Konfiguration::semesterName($id, $lernenderId)`: mit Lernenden-ID die persönliche Nummer über `App\Support\Lehrsemester` (gecacht je Lernendem), sonst `Semester::neutralerName()`. Views nutzen die Komponente `x-semester`, Restdauern `App\Support\Format::restdauer()`. Kategorie einer Note wird abgeleitet (Fach → `faecher.kategorie_id`, Modul → `lehrberuf_module.kategorie_id` = Lernort), nie vom Formular übernommen.
 
 ## Datenmodell
 ```

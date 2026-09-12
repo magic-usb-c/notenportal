@@ -44,6 +44,7 @@ Rechenregeln (Zeugnisnoten, Rundung, Gewichtung, Promotion, Rechner): `docs/note
 - Aktivitätsprotokoll: sicherheitsrelevante Aktionen (An-/Abmeldung, Kontoänderungen, Betrieb, Sicherungen, Noten, Betreuung …) mit Zeit, Person, Ziel und IP, 365 Tage aufbewahrt, gefiltert nach Aktion/Person/Zeitraum; Geheimnisse werden nie protokolliert
 
 ## Global
+- Semesterbenennung: wo genau ein Lernender im Kontext steht (Notenübersicht, Formulare, Dashboard, Cockpit, Notenblatt, Mails), erscheint die persönliche Nummer «N. Semester» statt des Rohcodes «24/25-1»; ohne Personenbezug der neutrale Name «FS 2026» / «HS 25/26». Beim laufenden Semester steht die Restdauer mit passender Einheit dabei (Monate → Wochen → Tage)
 - Suche/Befehlspalette (Ctrl+K): Lernende, Konten (Admin), Seiten
 - Tastenkürzel: «?» Übersicht, «g» + Buchstabe Navigation (rollenabhängige Ziele), «/» Suche, «n» neue Note (Lernende); Benutzermenü, ausserhalb von Eingabefeldern
 - «Passwort vergessen» mit Link per Mail (60 Minuten gültig); Mails im gemeinsamen Layout (persönliche Anrede, echte Werte, Knopf ins Portal, Hell/Dunkel), Versand über die Queue mit 3 Versuchen
