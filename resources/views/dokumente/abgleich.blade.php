@@ -17,7 +17,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="rounded-xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
                 <div>
                     <label for="semester_id" class="block text-sm font-medium text-text">{{ __('Semester') }}</label>

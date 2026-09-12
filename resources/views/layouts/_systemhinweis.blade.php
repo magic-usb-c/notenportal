@@ -8,7 +8,7 @@
 <div x-data="{ zeigen: true }" x-show="zeigen" x-cloak
      role="{{ $npHinweisWarnung ? 'alert' : 'status' }}"
      class="w-full px-4 py-3 text-sm print:hidden {{ $npHinweisWarnung ? 'bg-note-ungenuegend/10 text-note-ungenuegend' : 'bg-accent/10 text-accent-text' }}">
-    <div class="mx-auto flex max-w-7xl items-start gap-3">
+    <div class="mx-auto flex np-seite items-start gap-3">
         <p class="flex-1 whitespace-pre-line">{{ $systemhinweis['text'] }}</p>
         <button type="button"
                 @click="zeigen = false; fetch('{{ route('system-notice.dismiss') }}', {

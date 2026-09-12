@@ -67,7 +67,7 @@
     </x-slot>
 
     <div class="py-6" x-data="{ ansicht: @js(request('ansicht') === 'alle' ? 'alle' : 'semester') }">
-        <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto flex np-seite flex-col gap-6 px-4 sm:px-6 lg:px-8">
 
             {{-- Statuszeile --}}
             <dl class="flex flex-wrap items-baseline gap-x-3 gap-y-2">

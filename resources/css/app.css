@@ -223,6 +223,25 @@
   }
 }
 
+/* ==========================================================================
+   Seitencontainer (#13). Ersetzt `max-w-7xl` in allen Views: Navigation,
+   Seitenkopf und Inhalt tragen dieselbe Klasse und bleiben so bündig.
+   Vorher endete jede Seite fix bei 1280 px – auf einem 2560-px-Schirm blieb
+   die Hälfte ungenutzt. Lese- und Formularseiten behalten bewusst `max-w-3xl`
+   links bündig (Befund D6), hier geht es nur um den äusseren Rahmen.
+   Die Seite füllt jetzt das Fenster – so, wie sie es unterhalb von 1280 px
+   immer schon tat – und ist bei 2048 px gedeckelt, damit Tabellenzeilen nicht
+   ins Uferlose laufen. Bewusst ohne Zwischenstufen: eine Stufenleiter wäre
+   beim Ziehen des Fensters ein sichtbarer Sprung, und eine Messung zeigte,
+   dass die erste Stufe ausgerechnet die häufigste Desktopbreite (1440 px)
+   verfehlt. Die max-width skaliert mit der persönlichen Schriftgrösse – genau
+   wie zuvor `max-w-7xl`, also kein Verhaltenswechsel für data-schrift.
+   ========================================================================== */
+
+@utility np-seite {
+  max-width: 128rem;   /* 2048 px Deckel; darunter Fensterbreite, Ränder aus px-4/sm:px-6/lg:px-8 */
+}
+
 /* Weisser Text auf Accent (Bestand text-white) → accent-contrast, damit der
    Dunkelmodus (heller Accent) lesbar bleibt. Specificity 0,2,0 schlägt text-white. */
 @layer utilities {

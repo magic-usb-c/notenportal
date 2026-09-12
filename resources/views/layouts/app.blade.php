@@ -145,7 +145,7 @@
             <!-- Page Heading -->
             {{-- Seitenkopf im selben Container wie der Inhalt: eine bündige Achse --}}
             @isset($header)
-                <header class="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+                <header class="mx-auto w-full np-seite px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8">
                     {{ $header }}
                 </header>
             @endisset

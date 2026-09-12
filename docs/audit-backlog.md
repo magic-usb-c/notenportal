@@ -414,3 +414,31 @@ inzwischen getestet – als öffentliche API ist das richtig –, aber es ist zu
 klären, ob sie noch gebraucht werden oder als toter Code entfallen können.
 Kein Fehler, nur Aufräumbedarf; vor dem Entfernen prüfen, ob Blade-Views oder
 kommende Blöcke (Import H4–H8) sie einplanen.
+
+## Seitenbreite als persoenliche Einstellung (12.09.2026)
+
+Der Seitencontainer `np-seite` (`resources/css/app.css`) fuellt seit #13 das Fenster und ist bei
+2048 px gedeckelt – eine feste Entscheidung fuer alle. Wer sehr breite Schirme hat und trotzdem
+kuerzere Zeilen will, kann das heute nicht einstellen.
+
+Bewusst weggelassen, weil es ohne Rueckmeldung aus dem Pilotbetrieb geraten waere, welche Stufen
+sinnvoll sind. Falls es kommt, ist der Platz vorbereitet: `App\Support\Darstellung` haelt die
+persoenlichen Einstellungen als JSON in `benutzer.praeferenzen` (Schriftgroesse, Dichte, Ecken,
+Bewegung). Eine Konstante `BREITEN` dort, ein `data-breite` am `<html>` und ein
+`[data-breite='schmal'] .np-seite { max-width: 80rem }` in `app.css` genuegen – **keine Migration**.
+
+## Einzelner, nicht reproduzierbarer Testfehlschlag (12.09.2026)
+
+Beim Abschluss von #13 meldete ein Suite-Lauf `1 failed, 871 passed`. Die beiden unmittelbar
+folgenden Laeufe waren `872 passed` (16752 Assertions, keine Warnungen, keine uebersprungenen
+Tests). Welcher Test es war, ist **nicht mehr feststellbar**: die Ausgabe lief durch `tail -4`,
+der Name stand weiter oben und ist verloren.
+
+Fehler meinerseits: bei einem Lauf, der fehlschlagen kann, gehoert die Ausgabe in eine Datei und
+erst die Datei durch `tail`. So wird es hier ab jetzt gemacht.
+
+Wahrscheinlichste Ursache: die 159 kompilierten Blade-Dateien in `storage/framework/views` waren
+nach 54 geaenderten Views veraltet, waehrend parallel neu kompiliert wurde. `view:clear` und
+`optimize:clear` sind als `www-data` gelaufen. Falls die Suite erneut sporadisch kippt: zuerst
+`sudo -u www-data php artisan view:clear`, dann den Lauf mit voller Ausgabe in eine Datei
+wiederholen und den Testnamen hier eintragen.

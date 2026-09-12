@@ -19,7 +19,7 @@
     </x-slot>
 
     <div class="py-6" x-data="{ tagAusgewaehlt: null }">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
                 <span class="inline-flex items-center gap-1.5 text-text"><span class="text-accent" aria-hidden="true">●</span> {{ __('Prüfungen') }}</span>

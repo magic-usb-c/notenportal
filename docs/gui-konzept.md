@@ -54,7 +54,7 @@ Skala an 1.2 (kleine Terz) angelehnt, auf ganze px gerundet, Zeilenhöhen im 4-p
 Regeln: keine Versalien-Labels mit `tracking-widest` mehr. Labels in Satzschreibung, `text-sm font-medium`. 700 nur für die Heldenzahl, sonst 400/500/600. `tabular-nums` nur, wo Zahlen untereinander stehen – nicht auf der Heldenzahl (dataviz-Skill, Anti-Patterns).
 
 ### Abstände, Breiten
-4-px-Basis: 1·2·3·4·5·6·8·10·12·16 (= 4…64 px). Karteninnen 16/20 (`p-4`/`p-5`), zwischen Karten 16 (`gap-4`), zwischen Abschnitten 32–40, Seitenrand 16/24/32. **Ein Container für alle Seiten:** `max-w-7xl px-4 sm:px-6 lg:px-8`, Seitenkopf im selben Container wie der Inhalt. Lese- und Formularseiten links bündig mit `max-w-3xl` statt zentriert (behebt D6).
+4-px-Basis: 1·2·3·4·5·6·8·10·12·16 (= 4…64 px). Karteninnen 16/20 (`p-4`/`p-5`), zwischen Karten 16 (`gap-4`), zwischen Abschnitten 32–40, Seitenrand 16/24/32. **Ein Container für alle Seiten:** `np-seite mx-auto px-4 sm:px-6 lg:px-8` (Utility in `app.css`), Seitenkopf im selben Container wie der Inhalt. Der Container füllt das Fenster und ist bei 2048 px gedeckelt (#13; vorher fix 1280 px, auf einem 2560-px-Schirm blieb die Hälfte ungenutzt). Keine Zwischenstufen – die wären beim Ziehen des Fensters ein sichtbarer Sprung. Lese- und Formularseiten links bündig mit `max-w-3xl` statt zentriert (behebt D6).
 
 ### Radien
 `rounded-md` 6 px (Badges, kleine Controls) · `rounded-lg` 8 px (Buttons, Inputs, Segmente) · `rounded-xl` 12 px (Karten, Tabellencontainer) · `rounded-2xl` 16 px (Drawer, Modal, Palette) · `rounded-full` (Avatar, Statuspunkt). `rounded-3xl` entfällt. Verschachtelt: innen = aussen − Polster.
@@ -267,7 +267,7 @@ Vom Skript korrigiert: hell note-gut: L 0.400 -> 0.395 (Ziel 7:1 auf tint:note-g
 
 ## e) Seiten-Blueprints
 
-Raster: 12 Spalten, `gap-4`, Container `max-w-7xl`. Seitenkopf im Container: Titel links, Metazeile darunter, rechts höchstens eine Primär- und zwei Sekundäraktionen, Rest im «⋯»-Menü.
+Raster: 12 Spalten, `gap-4`, Container `np-seite` (füllt das Fenster, Deckel 2048 px, siehe «Abstände, Breiten»). Seitenkopf im Container: Titel links, Metazeile darunter, rechts höchstens eine Primär- und zwei Sekundäraktionen, Rest im «⋯»-Menü.
 
 ### Lernende – Übersicht (`/learner`)
 ```

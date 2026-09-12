@@ -36,7 +36,7 @@
     @endphp
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
 
             <x-filterleiste :action="route($bereich.'.learners.index')" suche-name="suche" :suche-wert="$filter['suche']"
                              :suche-platzhalter="__('Name, E-Mail, Benutzername')" :zaehler="$zeilen->count()"

@@ -11,7 +11,7 @@
     @endphp
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('admin.notifications.update') }}" class="flex flex-col gap-5"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf

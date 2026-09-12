@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-raster max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div class="np-raster np-seite mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5">
 
             {{-- Statuszeile --}}
             <div class="lg:col-span-12 flex flex-wrap items-baseline gap-x-6 gap-y-2 rounded-xl border border-border bg-card px-5 py-3">

@@ -26,7 +26,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-raster mx-auto grid max-w-7xl grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-flow-row-dense lg:grid-cols-12 lg:px-8">
+        <div class="np-raster mx-auto grid np-seite grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-flow-row-dense lg:grid-cols-12 lg:px-8">
 
             {{-- Stand: Heldenzahl, Bullet Graph, Semester, Kategorien --}}
             @if($sichtbar['stand'] ?? true)

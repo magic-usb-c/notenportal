@@ -24,7 +24,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             @if($darfHochladen)
                 <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" class="rounded-xl border border-border bg-card p-5 flex flex-col gap-4"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">

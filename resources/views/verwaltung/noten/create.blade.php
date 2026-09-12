@@ -10,7 +10,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl">
             <div class="rounded-xl border border-border bg-card p-6 space-y-5">
                 @if(empty($bezugOptionen))

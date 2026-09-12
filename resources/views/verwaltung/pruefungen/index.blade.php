@@ -24,7 +24,7 @@
     @endphp
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             <x-filterleiste :action="route($bereich.'.exams.index')" :zaehler="$anzahl" :zurueck="route($bereich.'.exams.index')" :aktive-filter="$aktiveFilter">
                 <label for="lernender_id" class="sr-only">{{ __('Lernende/r') }}</label>

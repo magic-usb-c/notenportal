@@ -7,7 +7,7 @@
     <?php $aktiveFilter = collect([$aktion, $person, $von, $bis])->filter(fn ($w) => $w !== '')->count(); ?>
 
     <div class="py-6">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
 
             <x-filterleiste :action="route('admin.activity.index')" suche-name="person" :suche-wert="$person"
                              :suche-platzhalter="__('Name oder E-Mail')" :zaehler="$eintraege->total()"
