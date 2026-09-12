@@ -10,7 +10,7 @@ Der Login-419 ist nicht mehr relevant: Im privaten Tab funktionierte der Login, 
 | 2 | Feedback-Screenshot ist komplett einfarbig | erledigt: Alpine-Attribute (`@click`, `:class`) sind keine gültigen XML-Namen, das SVG liess sich nicht dekodieren; sie werden in der Kopie entfernt |
 | 3 | Links in Mails führen zu 403: Weiterleitung nach dem Login auf fremde Rollen-URL; die 403-Seite bietet keinen Kontowechsel | erledigt: Ziel-URL nach dem Login nur, wenn die Rolle sie öffnen darf; 403-Seite zeigt das Konto und bietet «Mit anderem Konto anmelden» |
 | 4 | Knopf für das Kalender-Abo fehlt oder funktioniert nicht in allen Rollen | erledigt: Knopf bei BB/Admin ohne Alpine-Bereich (reagierte nicht); «Kopieren» über http mit Fallback (`np.kopieren`). Fester Platz in den Einstellungen folgt mit #8 |
-| 5 | Englisch: gefühlt die Hälfte noch Deutsch; lange englische Wörter brechen unschön um | offen; Umfang gemessen (Block A, `sprache.mjs`): 665 von 933 `__()`-Texten fehlen in `lang/en.json` |
+| 5 | Englisch: gefühlt die Hälfte noch Deutsch; lange englische Wörter brechen unschön um | Übersetzungen vollständig: **0 von 935** `__()`-Schlüsseln ohne EN-Fassung, geprüft mit der Logik von `tests/Feature/I18n/Schluessel.php` (1348 verwendete Schlüssel, 1408 Übersetzungen). Die frühere Angabe «665 fehlend» war ein **Messfehler** von `sprache.mjs`: es verglich nur gegen `lang/en.json` und übersah `lang/areas/*/en.json`, das `AppServiceProvider` per `Lang::addJsonPath` global registriert – Werkzeug korrigiert, Gast-Stichprobe mit `Accept-Language: en` besteht. Offen bleibt allein der zweite Teil: Umbruch langer englischer Wörter (`umbruch.mjs`) |
 
 ## P2 – Automatische Prüfungen (fangen P1-artige Fehler künftig ab)
 | # | Punkt | Status |
