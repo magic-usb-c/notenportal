@@ -22,7 +22,7 @@ Aktueller Funktionsumfang steht in `docs/funktionsumfang.md`, Betrieb in `docs/b
 - Zeugnis-Abgleich und Dokumentenverwaltung (Block E) — `app/Services/Import/ZeugnisAbgleich.php`, `DokumenteController`, `NotenImportController`
 - Rechenkern und Dashboards mit Ampel/Heatmap/Verlauf (Block B) — `app/Services/Auswertung/Auswertung.php`, `app/Services/Uebersicht.php`
 - Tägliche Datensicherung (Block F) — `notenportal:sicherung`, Admin → Betrieb
-- Lehrberufs-/Modullisten aus externer Quelle: Entscheid gegen automatischen Katalog-Import, Begründung in `docs/audit-backlog.md`
+- Lehrberufs-/Modullisten aus externer Quelle (Block «Modulkatalog», 12.09.): Ernte von modulbaukasten.ch und Import `notenportal:modulkatalog`, Verweise auf die offizielle Modulseite — Vorgehen und Rechtslage in `docs/modulkatalog.md`
 - Kleinere Befunde aus dem Audit: siehe `docs/audit-backlog.md` (nicht hier dupliziert)
 
 ## Offene Ideen
@@ -37,7 +37,9 @@ Aktueller Funktionsumfang steht in `docs/funktionsumfang.md`, Betrieb in `docs/b
 
 ## Offene Produktentscheide
 
-1. Lizenz für ein Open-Source-Release: MIT oder AGPL-3.0; Veröffentlichung mit bereinigter Git-Historie ja/nein.
+1. Lizenz für ein Open-Source-Release: MIT oder AGPL-3.0; Veröffentlichung mit bereinigter Git-Historie ja/nein. Ohne LICENSE-Datei gilt «alle Rechte vorbehalten» – wer das Repo klont, darf es formal nicht betreiben.
+2. Meldeweg für Sicherheitslücken: welche Adresse in `SECURITY.md` steht und wie schnell eine Antwort zugesagt wird. Eine Adresse zu erfinden wäre schlimmer als keine SECURITY.md.
+3. Schriftliche Zustimmung von ICT-Berufsbildung Schweiz für die Nutzung der Modulbaukasten-Feldinhalte (`docs/modulkatalog.md`). Verweise und Modulnummern sind unkritisch, die Übernahme von Handlungszielen und Leistungsbeurteilungen ist es nicht.
 
 ## Risiken
 
