@@ -488,3 +488,25 @@ Nachzuholen, sobald `NP_TEST_PW` für einen Prüflauf gesetzt ist:
 admin/master-data/modules/create` und `… --rolle=learner grades`. Erwartet wird kein seitliches
 Überlaufen. Das Risiko ist klein, weil die neuen Elemente nur ein zusätzliches Eingabefeld im
 bestehenden Formularraster und je einen Textlink in einer bereits umbruchfähigen Zeile sind.
+
+## Die Installationsanleitung ist geprüft, aber nie auf einer leeren Maschine gelaufen
+
+`README.md`, `.env.example` und `CONTRIBUTING.md` wurden Aussage für Aussage gegen `install.sh`,
+`config/notenportal.php`, `app/Support/Einrichtung.php`, `database/seeders/BasisSeeder.php`,
+`phpunit.xml` und `tests/TestCase.php` geprüft: Befehlsfolge, alle fünf Optionen, das Verhalten
+beim zweiten Lauf, die acht Einrichtungsschritte und jeder Schlüssel der Vorlage stimmen mit dem
+Code überein. Was fehlt, ist der Beweis am lebenden Objekt: niemand hat `git clone` und
+`sudo ./install.sh` auf einer frischen, leeren Ubuntu-Maschine durchgespielt. Die zweite Instanz
+`notenportal-i2` läuft auf demselben Server und hat Apache, MariaDB, PHP und Node bereits
+vorgefunden – sie beweist den Update-Weg, nicht die Erstinstallation.
+
+Nicht geprüft sind damit genau die Dinge, die nur ein nackter Server zeigt: ob `apt` alle Pakete
+in der erwarteten Version liefert, ob die Anmeldung am MariaDB-Konto `root` über `unix_socket`
+gelingt, ob Node 22 auch ohne vorhandenes Node installiert wird, und ob die Schlussmeldung mit
+Adresse und Startpasswort wirklich als Letztes erscheint. Ein Fehler an einer dieser Stellen
+träfe den ersten Eindruck eines fremden Benutzers ungebremst.
+
+Nachzuholen, sobald eine leere virtuelle Maschine mit Ubuntu 24.04 bereitsteht: die vier Befehle
+aus dem README wörtlich ausführen, ohne Vorbereitung und ohne Nacharbeit, und danach
+`php artisan notenportal:bereitschaft` sowie einen Aufruf von `/login` prüfen. Erst dieser Lauf
+schliesst «github installations ready» ab; bis dahin gilt der Weg als belegt, aber nicht bewiesen.

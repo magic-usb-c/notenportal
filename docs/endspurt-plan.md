@@ -27,7 +27,8 @@ Aktueller Funktionsumfang steht in `docs/funktionsumfang.md`, Betrieb in `docs/b
 
 ## Offene Ideen
 
-- **Restliches Firmenspezifisches**: Logo-Upload, Tabelle `standorte`, vereinzelte Notenfarb-Hardcodes noch nicht auf `NotenSkala` migriert, Open-Source-Paket (LICENSE, CONTRIBUTING, SECURITY.md fehlen, nur README vorhanden).
+- **Restliches Firmenspezifisches**: Logo-Upload, Tabelle `standorte`, vereinzelte Notenfarb-Hardcodes noch nicht auf `NotenSkala` migriert.
+- **Open-Source-Paket**: README und `CONTRIBUTING.md` stehen (12.09.), LICENSE und `SECURITY.md` hängen an den Produktentscheiden 1 und 2. Ohne CI (`.github/workflows`) prüft niemand Pull Requests automatisch.
 - **E-Mail/Benachrichtigungen**: in Arbeit (Session 11.09.).
 - **Prüfungsagenda mit iCal**: in Arbeit (Session 11.09.).
 - **Sprachkonsistenz Englisch**: in Arbeit (Session 11.09.).

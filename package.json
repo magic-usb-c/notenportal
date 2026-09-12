@@ -1,5 +1,7 @@
 {
     "$schema": "https://www.schemastore.org/package.json",
+    "name": "notenportal",
+    "description": "Oberfläche des Notenportals: Tailwind CSS 4, Alpine.js und Vite.",
     "private": true,
     "type": "module",
     "scripts": {

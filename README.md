@@ -1,226 +1,140 @@
 # Notenportal
 
-Webbasiertes Noten-Verwaltungssystem für Lernende in der Berufslehre (Schweiz).
-Entwickelt mit Laravel 11, MariaDB, Tailwind CSS.
+Notenverwaltung für Lernende in der Schweizer Berufslehre. Lernende erfassen ihre Noten,
+sehen Zeugnisnoten, Promotion und Modulfortschritt; Berufsbildner begleiten ihre Lernenden;
+Admins verwalten Betrieb, Stammdaten und Konten.
 
----
-
-## Überblick
-
-Das Notenportal unterstützt drei Rollen:
-
-| Rolle | Funktion |
-|---|---|
-| **Lernender** | Eigene Noten erfassen, bearbeiten, löschen; Kommentare schreiben; Durchschnitte je Fach/Modul einsehen |
-| **Berufsbildner** | Noten der betreuten Lernenden einsehen; Noten als „gesehen" markieren; Kommentare schreiben |
-| **Admin** | Alle Noten aller Lernenden einsehen; Benutzer verwalten; Betreuungen zuweisen; BMS/ABU-Tracks setzen |
-
----
-
-## Technischer Stack
-
-- **Backend**: Laravel 11, PHP 8.2+
-- **Datenbank**: MariaDB (keine MySQL-Annahmen; CHECK-Constraints via `DB::statement`)
-- **Frontend**: Tailwind CSS mit CSS-Custom-Properties-Theming (`--bg`, `--card`, `--text`, `--accent`, …)
-- **Auth**: Breeze (Form-basiert), angepasste Spalten (`passwort_hash`, `benutzer_id`, …)
+Ein Server, ein Befehl: `sudo ./install.sh` richtet auf einem frischen Ubuntu alles ein.
 
 ---
 
 ## Installation
 
+Voraussetzungen: Ubuntu 24.04 mit `sudo`-Rechten, etwa 2 GB Arbeitsspeicher, ein freier Port
+(Standard 80) und eine Internetverbindung. Sonst nichts – PHP, Apache, MariaDB, Node und
+Composer installiert das Skript selbst.
+
 ```bash
-composer install
-cp .env.example .env
-php artisan key:generate
+sudo apt update && sudo apt install -y git
+git clone https://github.com/magic-usb-c/notenportal.git
+cd notenportal
+sudo ./install.sh
 ```
 
-Datenbank einrichten (als DB-Admin):
-```sql
--- .env auf np_web konfigurieren, dann:
-source database/setup_migrations_table.sql
+Am Ende nennt das Skript die Adresse, die E-Mail des ersten Admin-Kontos und ein
+Startpasswort. Dieses Passwort erscheint genau einmal – notiere es, bevor du das Fenster
+schliesst.
+
+Danach geht es nur noch im Browser weiter:
+
+1. Anmelden mit E-Mail und Startpasswort.
+2. Das Portal verlangt sofort ein eigenes Passwort.
+3. Die Einrichtung öffnet von selbst und führt durch acht Schritte: Betrieb und Notengrenzen,
+   Kategorien, Semester, Lehrberufe und Fächer, Module, Personen, E-Mail, Abschluss.
+   Lehrberufe, BMS- und ABU-Fächer sind vorausgewählt, der Semesterplan wird vorgeschlagen.
+
+Zum Schluss stehen Berufsbildner und Lernende mit Startpasswörtern zum Ausdrucken bereit.
+Ein leeres Portal braucht keinen einzigen SQL-Befehl und keinen Eingriff in die Datenbank.
+
+### Optionen
+
+```
+sudo ./install.sh --help                              zeigt diese Liste
+sudo ./install.sh --port 8082 --db notenportal_i2     zweite Instanz neben einer bestehenden
+sudo ./install.sh --host notenportal.example.ch       Servername statt erkannter IP
+sudo ./install.sh --ohne-firewall                     keine ufw-Freigabe
+sudo ./install.sh --neues-admin-passwort              neues Startpasswort, wenn der Zugang weg ist
 ```
 
-Danach Migrations als bereits ausgeführt markieren (Tabellen existieren bereits):
+### Was das Skript erledigt
+
+Pakete (Apache, MariaDB, PHP 8.3 samt Erweiterungen, Node 22, Composer) · Datenbank mit zwei
+Benutzern – einer nur für Daten, einer für Schemaänderungen · `.env` mit Zufallspasswörtern und
+Produktionswerten · Anwendungsschlüssel · Migrationen · Grundstammdaten (Rollen, Kategorien) ·
+erstes Admin-Konto · Oberfläche bauen · Apache-VirtualHost und Port · Firewall-Freigabe, falls
+ufw läuft · Cron für Sicherung, Mailversand und Benachrichtigungen · Dateirechte · Schlusstest
+gegen `/login`.
+
+Ein erneuter Lauf im selben Verzeichnis ist ein Update: Pakete, Abhängigkeiten, Build und
+Migrationen werden nachgezogen, `.env`, Webserver-Konfiguration und Konten bleiben unverändert.
+
+---
+
+## Was danach von Hand gehört
+
+Das Skript liefert ein lauffähiges Portal über HTTP. Für den echten Betrieb bleibt dies offen:
+
+- **HTTPS**: Zertifikat und `mod_ssl` richtet das Skript nicht ein. Ohne TLS gehen Passwörter
+  im Klartext durchs Netz. Vorgehen inklusive eigener CA: `docs/betrieb.md`.
+- **E-Mail**: Erstinstallation schreibt Mails nur ins Log. SMTP-Server, Absender und Passwort
+  trägst du unter Admin → Betrieb → E-Mail ein, mit Testmail.
+- **Sicherungskopie ausser Haus**: Die tägliche Sicherung läuft lokal. Ziel (Ordner oder
+  SSH-Server) unter Admin → Betrieb hinterlegen und «Verbindung testen» drücken.
+- **Zeitzonen-Tabellen der Datenbank**: `mysql_tzinfo_to_sql /usr/share/zoneinfo | sudo mysql mysql`.
+- **Firewall einschränken**: Das Skript öffnet nur den Portalport, es schliesst nichts.
+
+Ob alles sitzt, sagt eine rein lesende Prüfung:
+
 ```bash
-php artisan migrate:status   # sollte alle grün zeigen
+php artisan notenportal:bereitschaft
 ```
 
-### Erster Admin-Benutzer
-
-Den ersten Admin-Benutzer direkt in der DB anlegen:
-```sql
-INSERT INTO benutzer (benutzername, email, vorname, nachname, passwort_hash, aktiv, erstellt_am, aktualisiert_am)
-VALUES ('admin', 'admin@example.com', 'Admin', 'User', '<bcrypt-hash>', 1, NOW(), NOW());
-
-INSERT INTO benutzer_rollen (benutzer_id, rolle_id)
-SELECT b.benutzer_id, r.rolle_id
-FROM benutzer b, rollen r
-WHERE b.benutzername = 'admin' AND r.name = 'Admin';
-```
-
-Danach können weitere Benutzer über `/admin/benutzer/create` angelegt werden.
+Sie prüft Umgebung, Sicherung, Mail, Kalenderabgleich und offene Migrationen und endet mit
+Exit-Code 1, sobald ein Punkt als Fehler gilt.
 
 ---
 
-## Datenbankschema (Übersicht)
+## Funktionsumfang
 
-### Benutzerverwaltung
+Vollständig und laufend nachgeführt in `docs/funktionsumfang.md`. In Stichworten:
 
-```
-benutzer          – Alle Nutzer (Lernende, BB, Admin)
-benutzer_rollen   – n:m Verknüpfung (ein Nutzer kann mehrere Rollen haben)
-rollen            – Admin | Berufsbildner | Lernender
-lernende          – Lernender-Profil (lehrberuf_id, lehrbeginn)
-berufsbildner     – Berufsbildner-Profil (benutzer_id)
-betreuungen       – Welcher BB betreut welchen Lernenden (gueltig_von/bis)
-lernender_tracks  – BMS/ABU-Track-Zuweisung pro Lernender
-```
-
-### Noten
-
-```
-noten               – Haupttabelle (note_wert, gewichtung_prozent, pruefungsdatum, …)
-kategorien          – Prüfungstyp (z.B. Semesterprüfung, Erfahrungsnote)
-faecher             – Schulfächer (abhängig von Track / Lehrberuf)
-module              – ÜK-Module (mit modul_nummer, titel)
-lehrberuf_module    – Welche Module gehören zu welchem Lehrberuf
-modul_belegungen    – Belegung eines Moduls durch einen Lernenden
-modul_note_gruppen  – Optionale Gruppierung innerhalb eines Moduls
-semester            – Semesterliste (start_datum, end_datum, sortierung)
-```
-
-### Kommunikation
-
-```
-noten_gesehen     – Wer hat eine Note wann gesehen (viewer_benutzer_id, gesehen_am)
-                    UNIQUE(note_id, viewer_benutzer_id); gesehen_am wird bei
-                    erneuter Markierung aktualisiert (Upsert)
-noten_kommentare  – Kommentare zu Noten (autor_benutzer_id, kommentar_text, erstellt_am)
-                    Immutable – keine Bearbeitungsmöglichkeit
-```
+- **Lernende**: Noten erfassen mit Live-Auswirkung, Zeugnisnoten und Promotion je Semester,
+  Modulfortschritt und Modulwiederholung, Ziele, Notenrechner vorwärts und rückwärts,
+  Prüfungen planen, Kalender einlesen (iCal aus Schulnetz, Nextcloud, Outlook, Google),
+  Notenimport aus Excel, ODS, CSV und PDF, Dokumente, Zeugnis-Abgleich, Notenblatt zum Drucken.
+- **Berufsbildner**: Dashboard mit Ampel und Begründung, Lernenden-Cockpit, Noten korrigieren
+  und kommentieren, Prüfungstermine, Lernende anlegen.
+- **Admin**: geführte Einrichtung, Stammdaten (Lehrberufe, Fächer, Kategorien, Semester,
+  Module), Modulkatalog aus modulbaukasten.ch, Benutzer und Betreuungen, Betrieb mit
+  Notengrenzen und Sicherungen, Benachrichtigungen, Notenbericht, Aktivitätsprotokoll.
+- **Überall**: Hell und Dunkel, zwölf Farbthemen (WCAG AA geprüft), persönliche Darstellung,
+  Befehlspalette mit Ctrl+K, Tastenkürzel, Feedback-Meldungen, Deutsch und Englisch.
 
 ---
 
-## Benutzerdefiniertes Auth-Setup
+## Technik
 
-Das Standard-Laravel-Auth wurde für das Schweizer Namensschema angepasst:
+Laravel 13 auf PHP 8.3, MariaDB, Blade mit Tailwind CSS 4, Alpine.js, Vite, Apache mit
+mod_php. Die Oberfläche ist deutsch (Schweizer Hochdeutsch), Routen und neuer Code englisch.
 
-| Standard Laravel | Notenportal |
+Zwei Datenbankbenutzer nach dem Prinzip der geringsten Rechte: der Web-Benutzer darf nur Daten
+lesen und schreiben, Schemaänderungen laufen über einen eigenen Benutzer. Deshalb heisst der
+Migrationsbefehl hier:
+
+```bash
+php artisan notenportal:migrate
+```
+
+Wegweiser durch die Dokumentation:
+
+| Datei | Inhalt |
 |---|---|
-| `users` | `benutzer` |
-| `id` | `benutzer_id` |
-| `created_at` | `erstellt_am` |
-| `updated_at` | `aktualisiert_am` |
-| `deleted_at` | `geloescht_am` |
-| `password` | `passwort_hash` |
-
-Das `User`-Modell überschreibt `getAuthPassword()` und `getAuthPasswordName()` entsprechend.
+| `docs/funktionsumfang.md` | Was das Portal kann, Rolle für Rolle |
+| `docs/notenlogik.md` | Rechenregeln: Zeugnisnote, Rundung, Gewichtung, Promotion |
+| `docs/architektur.md` | Datenbankschema und Aufbau der Anwendung |
+| `docs/betrieb.md` | Betrieb, HTTPS, Sicherung, Wiederherstellung, Änderungsprotokoll |
+| `docs/modulkatalog.md` | Modulkatalog von modulbaukasten.ch ernten und einlesen |
+| `docs/audit-backlog.md` | Bewusst offen gelassene Punkte samt Begründung |
 
 ---
 
-## Routen-Übersicht
+## Mitarbeit
 
-| Methode | URL | Beschreibung |
-|---|---|---|
-| GET | `/noten` | Lernender: eigene Noten (Accordion, je Fach/Modul) |
-| GET | `/noten/create` | Lernender: neue Note erfassen |
-| POST | `/noten/{id}/kommentare` | Lernender + BB: Kommentar schreiben |
-| POST | `/noten/{id}/gesehen` | Lernender: Note als gelesen markieren (AJAX/JSON) |
-| GET | `/berufsbildner/lernende/{id}/noten` | BB: Noten eines betreuten Lernenden |
-| POST | `/berufsbildner/lernende/{lid}/noten/{nid}/gesehen` | BB: Note als gesehen markieren |
-| GET | `/admin/benutzer` | Admin: Benutzerliste |
-| GET | `/admin/benutzer/create` | Admin: Neuen Benutzer anlegen |
-| GET | `/admin/lernende/{id}/betreuung` | Admin: Betreuungen verwalten |
-| GET | `/admin/lernende/{id}/tracks` | Admin: BMS/ABU-Tracks verwalten |
+Entwicklungsumgebung, Tests und Konventionen: `CONTRIBUTING.md`.
 
----
+## Lizenz
 
-## Bekannte Einschränkungen / Offene Punkte
-
-- **Passwort-Reset durch Admin**: Noch nicht implementiert. Passwörter müssen derzeit direkt in der DB zurückgesetzt werden (`bcrypt`-Hash).
-- **Kein E-Mail-Versand**: Badges sind UI-only; keine Benachrichtigung bei neuen Kommentaren oder Gesehen-Markierungen.
-- **Keine Bulk-Aktionen im Admin**: Benutzer müssen einzeln angelegt werden.
-
----
-
-## Geplante Erweiterung: Bewertungsregeln (`bewertungsregeln`)
-
-Die Tabelle `bewertungsregeln` ist im Datenbankschema vorhanden, wird aber von der Applikation noch **nicht ausgewertet**.
-
-### Schema
-
-```sql
-CREATE TABLE bewertungsregeln (
-    regel_id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    scope_typ        ENUM('GLOBAL','KATEGORIE','FACH','MODUL') NOT NULL,
-    kategorie_id     INT UNSIGNED NULL,   -- nur wenn scope_typ = 'KATEGORIE'
-    fach_id          INT UNSIGNED NULL,   -- nur wenn scope_typ = 'FACH'
-    modul_id         INT UNSIGNED NULL,   -- nur wenn scope_typ = 'MODUL'
-    grenzwert_note   DECIMAL(3,1) NOT NULL,  -- z.B. 4.0 = bestanden
-    gueltig_ab       DATE NOT NULL,
-    gueltig_bis      DATE NULL,
-    erstellt_am      DATETIME NOT NULL,
-    aktualisiert_am  DATETIME NOT NULL
-);
-```
-
-### Geplante Semantik
-
-Bewertungsregeln legen fest, ab welcher Note ein Prüfungsergebnis als „bestanden" gilt – auf verschiedenen Granularitätsstufen:
-
-| `scope_typ` | Bedeutung |
-|---|---|
-| `GLOBAL` | Gilt für alle Noten (Default: 4.0 in CH) |
-| `KATEGORIE` | Überschreibt für eine bestimmte Prüfungskategorie |
-| `FACH` | Überschreibt für ein bestimmtes Schulfach |
-| `MODUL` | Überschreibt für ein bestimmtes ÜK-Modul |
-
-**Auflösungsreihenfolge** (spezifischste Regel gewinnt):
-`MODUL` > `FACH` > `KATEGORIE` > `GLOBAL`
-
-### Geplante UX-Integration
-
-- Noten unterhalb des Grenzwerts werden rot hervorgehoben (aktuell fest auf 4.0/3.5 kodiert – durch DB-Abfrage ersetzen)
-- Durchschnittswerte zeigen visuell an, ob der Lernende im grünen Bereich liegt
-- Admin-Seite `/admin/bewertungsregeln` zur Verwaltung der Regeln
-
-### Implementierungshinweise
-
-1. `BewertungsregelService::geltenderGrenzwert(note_id)` – löst die Regel für eine konkrete Note auf (berücksichtigt `gueltig_ab`/`gueltig_bis` und `scope_typ`-Priorität)
-2. `Note::scopeUnterGrenzwert()` – Eloquent-Scope für gefährdete Noten
-3. Bestehende `NoteService::calcAverages()` kann erweitert werden, um einen „bestanden/nicht bestanden"-Status zurückzugeben
-4. Views: Die Farbkodierung (`bg-green-100`, `bg-yellow-100`, `bg-red-100`) ist bereits in allen Notenansichten vorbereitet – die Schwellwerte müssen nur aus der DB kommen statt hardcodiert zu sein
-
----
-
-## Entwicklungsnotizen
-
-### Theming
-
-CSS-Custom-Properties-basiertes Theming über Tailwind-Tokens:
-
-```
---bg       Hintergrundfarbe (body)
---card     Kartenhintergrund
---text     Primärtext
---muted    Sekundärtext / Placeholder
---border   Rahmenfarbe
---input    Eingabefeldhintergrund
---accent   Primärfarbe (Buttons, Links, Badges)
---ring     Focus-Ring-Farbe
-```
-
-Alle Komponenten verwenden ausschliesslich diese Tokens – kein hartes `bg-white dark:bg-gray-800`.
-
-### Migrations
-
-Die Migrations wurden nachträglich erstellt (Tabellen existierten bereits). Sie sind in der `migrations`-Tabelle als ausgeführt markiert. `php artisan migrate:fresh` ist auf produktiven Instanzen **nicht** zu verwenden – die Migrations dienen als Dokumentation und für neue Dev-Umgebungen.
-
-### Noten-Gesehen-Logik
-
-Der „Neu"-Badge für den Berufsbildner erscheint wenn:
-- Noch kein `noten_gesehen`-Eintrag für diese Note existiert, **oder**
-- `note.erstellt_am > gesehen_am` (Note neuer als letzte Markierung), **oder**
-- Ein Kommentar mit `erstellt_am > gesehen_am` existiert (neue Kommentare nach Markierung)
-
-Beim Klick auf „Als gesehen markieren" wird `gesehen_am` via Upsert aktualisiert, sodass neu hinzugekommene Kommentare erneut den Badge auslösen können.
+Noch keine festgelegt – bis dahin gilt «alle Rechte vorbehalten». Der Eintrag `"license": "MIT"`
+in `composer.json` stammt aus dem Laravel-Grundgerüst und ist keine Rechteerteilung.
+Auch der Meldeweg für Sicherheitslücken steht noch nicht fest; beide Punkte stehen in
+`docs/endspurt-plan.md` unter «Offene Produktentscheide».
