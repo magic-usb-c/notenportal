@@ -472,3 +472,19 @@ keine Abschlussänderung wäre. Aufzulösen später auf einem von zwei Wegen: en
 im Formular ergänzen – dann greift die Sperre ohne weiteren Eingriff –, oder `raum` aus der
 Konstante streichen. Der erste Weg ist der wahrscheinlichere, weil der Raum aus dem Kalender kommt
 und genau die Art Wert ist, die eine Schule kurzfristig ändert.
+
+## Die Modulkatalog-Seiten sind nur statisch geprüft
+
+Die vier im Block «Modulkatalog» geänderten Seiten (Stammdaten → Module als Liste, Neu und
+Bearbeiten, Lernender → Noten) wurden auf Quellcode-Ebene geprüft: Schweizer Hochdeutsch, kein
+Entwicklertext, `rel="noopener noreferrer"` an jedem `target="_blank"`, Escaping jedes Werts. Die
+visuelle Prüfung bei 390 Pixeln Breite mit den Werkzeugen in `~/tools/visual` fand nicht statt,
+weil sich ohne Passwort in der Umgebungsvariablen `NP_TEST_PW` keine angemeldete Seite öffnen
+lässt – und das Passwort gehört nach Vorgabe ausschliesslich in die `.env`, nie in Code, Doku oder
+einen Befehl.
+
+Nachzuholen, sobald `NP_TEST_PW` für einen Prüflauf gesetzt ist:
+`node ~/tools/visual/breite.mjs --breite=390 --rolle=admin admin/master-data/modules
+admin/master-data/modules/create` und `… --rolle=learner grades`. Erwartet wird kein seitliches
+Überlaufen. Das Risiko ist klein, weil die neuen Elemente nur ein zusätzliches Eingabefeld im
+bestehenden Formularraster und je einen Textlink in einer bereits umbruchfähigen Zeile sind.
