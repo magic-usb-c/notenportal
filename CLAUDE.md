@@ -8,9 +8,9 @@ Weiterführend: `docs/endspurt-plan.md` (Ideensammlung) · `docs/gui-konzept.md`
 - VM srv-lab-dva-001, `/var/www/notenportal`, Apache 2.4 + mod_php 8.3, MariaDB 10.11, Node 22
 - Laravel, Blade, Tailwind, Alpine.js, Vite
 - Testbenutzer Prod (Login per E-Mail `<vorname>.<nachname>@example.local`, Admin `admin@example.local`): admin, peter (Berufsbildner), david/nando/jan/lukas/nils (Lernende). Passwort ausschliesslich über die Umgebungsvariable `NP_TEST_PW` – nie in Code, Docs, Logs oder Commits
-- Demo-Server (DB `notenportal_demo`, Passwort `Demo!2026`, `@demo.example`): laura.frei (Admin), michael.baumann (Berufsbildner), nina.huber/elena.fischer (Lernende). Start: `cd public && DB_DATABASE=notenportal_demo CACHE_STORE=array php -S 127.0.0.1:8090 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
+- Demo-Server (DB `notenportal_demo`, Konten `@demo.example`): laura.frei (Admin), michael.baumann (Berufsbildner), nina.huber/elena.fischer (Lernende). Passwort steht als Konstante `DEMO_PASSWORT` in `database/seeders/DemoSeeder.php` und gehört auch dort nirgends sonst hin – für Prüfläufe ohne Ausgabe übernehmen: `export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\s*=\s*'\K[^']+" database/seeders/DemoSeeder.php)`. Start: `cd public && DB_DATABASE=notenportal_demo CACHE_STORE=array php -S 127.0.0.1:8090 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
 - Zweite Instanz (Installationstest): `/var/www/notenportal-i2`, Port 8082, DB `notenportal_i2`
-- Browser-Werkzeuge: `~/tools/visual` (shot.mjs, breite.mjs, import.mjs, zeugnis.mjs, erstinbetrieb.mjs)
+- Browser-Werkzeuge: `~/tools/visual` (shot.mjs, breite.mjs = seitliches Überlaufen bei 390 px, nutzung.mjs = ungenutzte Fensterbreite auf grossen Bildschirmen, import.mjs, zeugnis.mjs, erstinbetrieb.mjs). Keines nimmt ein Passwort als Argument – nur `NP_TEST_PW` (bzw. `NP_START_PW`/`NP_NEU_PW`), sonst stünde es in der Prozessliste
 
 ## Harte Regeln
 - UI-Texte Schweizer Hochdeutsch, **ss statt ß**. Keine erklärenden Hinweise oder Entwicklernotizen in der Oberfläche.

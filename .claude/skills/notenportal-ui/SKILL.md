@@ -146,3 +146,4 @@ Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via 
 
 ## 10. Abschluss
 `npm run build` (muss «built in» zeigen) · `php artisan test` · ß-Grep leer · `node ~/tools/visual/breite.mjs … --breite=390` alle «✓» · Screenshots hell/dunkel/mobil mit `~/tools/visual/shot.mjs` ansehen.
+Bei Layout-/Breitenarbeit zusätzlich `node ~/tools/visual/nutzung.mjs --demo`: misst den Seitencontainer gegen die Fensterbreite (1280/1440/1920/2560) und die Spaltenzahl der Raster. Passwort bei allen Werkzeugen nur über `NP_TEST_PW`, nie als Argument.

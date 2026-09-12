@@ -41,7 +41,7 @@ cd /var/www/notenportal
 ```
 Kriterium: jede Zeile beginnt mit `200 ✓`. `✗` = seitliches Überlaufen → beheben.
 Benutzer-E-Mails unsicher? `sudo mysql -N -B notenportal -e "SELECT email FROM benutzer LIMIT 20;"` (`tinker` scheitert hier an einem nicht beschreibbaren psysh-Verzeichnis).
-Screenshots bei Bedarf: `node shot.mjs <baseUrl> <email> <pw> <outdir> [--dunkel] [--mobil] <pfade…>` und Bilder mit Read ansehen.
+Screenshots bei Bedarf: `node shot.mjs <baseUrl> <email|-> <outdir> [--dunkel] [--mobil] <pfade…>` und Bilder mit Read ansehen (Passwort nur über `NP_TEST_PW`, nie als Argument).
 
 ## 6. Review (parallel, eine Nachricht, zwei Agent-Aufrufe)
 - `reviewer` (sonnet): «Prüfe `git diff origin/main...HEAD` plus uncommittete Änderungen (`git diff`). Block: <Name>.»
