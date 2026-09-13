@@ -20,10 +20,18 @@ use Illuminate\Support\Facades\Schema;
  * Grundsätze:
  *  - Ohne `--anwenden` wird nur gezeigt, was passieren würde.
  *  - Alles-oder-nichts: eine Transaktion; ein Fehler lässt die Datenbank unverändert.
- *  - Eigene Module (ABU, BMS, schuleigene Nummern) bleiben unangetastet – der Import berührt nur
- *    Module, deren Nummer im Katalog vorkommt.
  *  - Den Titel eines bestehenden Moduls überschreibt der Import nur, wenn dieses Modul schon aus
  *    dem Katalog stammt: eine eigene Bezeichnung wie «ÜK: Netzwerke» soll er nicht wegwerfen.
+ *  - Ein eigenes Modul übernimmt er nur, wenn der Katalog dieselbe Nummer bei einem Beruf führt,
+ *    dem das Modul schon zugeordnet ist. Wer «431» mit eigener Kurzbezeichnung erfasst hat, meint
+ *    Katalogmodul 431 und soll dessen Angaben bekommen. Wer «801» für ein ABU-Modul erfunden hat,
+ *    meint nicht «Grundgesetze der Farbenlehre» – die Nummer ist im Portal eindeutig, also würde
+ *    diese Zeile beiden Bedeutungen dienen und jeder andere Beruf die fremde Bezeichnung erben.
+ *    Solche Nummern meldet der Import als Konflikt und lässt sie ganz aus; --eigene-uebernehmen
+ *    übergeht das.
+ *  - Abschlüsse, die sich nur im Jahrgang der Bildungsverordnung unterscheiden, bleiben getrennte
+ *    Lehrberufe: ihre Modulpläne sind verschieden. Der jüngste Jahrgang darf einen bestehenden
+ *    Beruf übernehmen, jeder ältere bekommt einen eigenen.
  *  - Lernort (`kategorie_id`) und ein bereits gesetztes Lehrsemester bleiben, wie der Betrieb sie
  *    gesetzt hat; der Katalog kennt den Lernort nicht.
  *
@@ -34,7 +42,8 @@ use Illuminate\Support\Facades\Schema;
     {datei : JSON-Datei aus tools/modulkatalog-ernte.mjs}
     {--anwenden : Änderungen wirklich schreiben}
     {--nur=* : Nur diese Abschlüsse (exakter Name, mehrfach möglich)}
-    {--ohne-berufe : Keine fehlenden Lehrberufe anlegen, nur bestehende zuordnen}')]
+    {--ohne-berufe : Keine fehlenden Lehrberufe anlegen, nur bestehende zuordnen}
+    {--eigene-uebernehmen : Eigene Module auch dann übernehmen, wenn die Nummer anders gemeint scheint}')]
 class ModulkatalogImport extends Command
 {
     /** Wörter, die einen Beruf nicht unterscheiden – für Vergleich und Kürzel. */
@@ -84,21 +93,27 @@ class ModulkatalogImport extends Command
         $module = $this->jeNummer($ernte['module']);
         $lernort = $this->standardLernort();
         $vorhanden = $this->moduleNachNummer();
-        $berufe = $this->berufeNachSchluessel();
+        $geordnet = $this->abschluesseOrdnen($abschluesse);
+        $index = $this->berufeIndizieren();
+        $konflikte = $this->konflikte($module, $geordnet, $index, $vorhanden);
 
         // Vorschau: zählen, was ein Lauf ändern würde.
         $neu = $alt = 0;
         foreach ($module as $nummer => $m) {
+            if (isset($konflikte[$nummer])) {
+                continue;
+            }
             isset($vorhanden[$nummer]) ? $alt++ : $neu++;
         }
         $berufeNeu = [];
         $zuordnungen = 0;
-        foreach ($abschluesse as $a) {
-            if (! isset($berufe[$this->berufSchluessel($a['name'])])) {
+        foreach ($geordnet as $eintrag) {
+            $a = $eintrag['abschluss'];
+            if ($this->berufSuchen($a, $eintrag['eigen'], $index) === null) {
                 $berufeNeu[] = $a['name'];
             }
             foreach ($a['module'] as $z) {
-                if (isset($module[$z['nummer']])) {
+                if (isset($module[$z['nummer']]) && ! isset($konflikte[$z['nummer']])) {
                     $zuordnungen++;
                 }
             }
@@ -113,7 +128,19 @@ class ModulkatalogImport extends Command
             ['Abschlüsse', (string) count($abschluesse)],
             ['Lehrberufe neu', (string) count($berufeNeu)],
             ['Zuordnungen Beruf→Modul', (string) $zuordnungen],
+            ['Eigene Module übersprungen', (string) count($konflikte)],
         ]);
+        if ($konflikte !== []) {
+            $this->warn('Diese Nummern stehen im Portal als eigenes Modul und bleiben unberührt:');
+            foreach (array_slice($konflikte, 0, 10, true) as $nummer => $titel) {
+                $this->line("  {$nummer}: {$titel}");
+            }
+            if (count($konflikte) > 10) {
+                $this->line('  … '.(count($konflikte) - 10).' weitere.');
+            }
+            $this->line('Entweder dem eigenen Modul eine eigene Nummer geben (etwa ABU01 statt 801) '
+                .'oder mit --eigene-uebernehmen einlesen, wenn es dieselben Module sind.');
+        }
         if ($berufeNeu !== []) {
             $this->line($this->option('ohne-berufe')
                 ? 'Übersprungen (--ohne-berufe): '.implode(', ', $berufeNeu)
@@ -130,7 +157,7 @@ class ModulkatalogImport extends Command
         }
 
         $stand = $ernte['stand'] ?? now()->format('Y-m-d H:i:s');
-        $bericht = DB::transaction(fn () => $this->schreiben($module, $abschluesse, $lernort, $stand));
+        $bericht = DB::transaction(fn () => $this->schreiben($module, $geordnet, $lernort, $stand, $konflikte));
 
         $this->info("Geschrieben: {$bericht['module']} Module, {$bericht['ziele']} Handlungsziele, "
             ."{$bericht['lbv']} LBV-Elemente, {$bericht['berufe']} Lehrberufe, {$bericht['zuordnungen']} Zuordnungen.");
@@ -140,16 +167,21 @@ class ModulkatalogImport extends Command
 
     /**
      * @param  array<string, array<string, mixed>>  $module
-     * @param  list<array<string, mixed>>  $abschluesse
+     * @param  list<array{abschluss: array<string, mixed>, eigen: bool}>  $geordnet
+     * @param  array<string, string>  $konflikte
      * @return array{module:int, ziele:int, lbv:int, berufe:int, zuordnungen:int}
      */
-    private function schreiben(array $module, array $abschluesse, ?int $lernort, string $stand): array
+    private function schreiben(array $module, array $geordnet, ?int $lernort, string $stand, array $konflikte): array
     {
         $bericht = ['module' => 0, 'ziele' => 0, 'lbv' => 0, 'berufe' => 0, 'zuordnungen' => 0];
         $vorhanden = $this->moduleNachNummer();
         $ids = [];
 
         foreach ($module as $nummer => $m) {
+            // Ohne Eintrag in $ids überspringt die Zuordnungsschleife diese Nummer von selbst.
+            if (isset($konflikte[$nummer])) {
+                continue;
+            }
             $daten = [
                 'version' => $m['version'],
                 'kompetenzfeld' => $m['kompetenzfeld'],
@@ -213,17 +245,17 @@ class ModulkatalogImport extends Command
             }
         }
 
-        $berufe = $this->berufeNachSchluessel();
-        foreach ($abschluesse as $a) {
-            $schluessel = $this->berufSchluessel($a['name']);
-            $beruf = $berufe[$schluessel] ?? null;
+        $index = $this->berufeIndizieren();
+        foreach ($geordnet as $eintrag) {
+            $a = $eintrag['abschluss'];
+            $beruf = $this->berufSuchen($a, $eintrag['eigen'], $index);
             if ($beruf === null) {
                 if ($this->option('ohne-berufe')) {
                     continue;
                 }
                 // Das Kürzel muss im Merker landen: sonst hält kuerzel() es für frei und der
                 // nächste neue Abschluss bekommt dasselbe – lehrberufe.kuerzel ist eindeutig.
-                $kuerzel = $this->kuerzel($a['name'], $berufe);
+                $kuerzel = $this->kuerzel($a['name'], $index['name']);
                 $id = (int) DB::table('lehrberufe')->insertGetId($this->nurSpalten('lehrberufe', [
                     'kuerzel' => $kuerzel,
                     'name' => $a['name'],
@@ -233,12 +265,21 @@ class ModulkatalogImport extends Command
                     'erstellt_am' => now(),
                     'aktualisiert_am' => now(),
                 ]));
-                $beruf = (object) ['lehrberuf_id' => $id, 'kuerzel' => $kuerzel, 'name' => $a['name']];
-                $berufe[$schluessel] = $beruf;
+                $beruf = (object) [
+                    'lehrberuf_id' => $id, 'kuerzel' => $kuerzel,
+                    'name' => $a['name'], 'quelle_kennung' => $a['kennung'],
+                ];
+                $index['name'][$a['name']] = $beruf;
+                if ($a['kennung'] !== null) {
+                    $index['kennung'][$a['kennung']] = $beruf;
+                }
                 $bericht['berufe']++;
             } elseif ($a['kennung'] !== null && ($beruf->quelle_kennung ?? null) === null) {
                 DB::table('lehrberufe')->where('lehrberuf_id', $beruf->lehrberuf_id)
                     ->update($this->nurSpalten('lehrberufe', ['quelle_kennung' => $a['kennung'], 'bivo_jahr' => $a['bivo_jahr'], 'aktualisiert_am' => now()]));
+                // Merken, sonst sucht ein zweiter Abschluss mit derselben Kennung erneut.
+                $beruf->quelle_kennung = $a['kennung'];
+                $index['kennung'][$a['kennung']] = $beruf;
             }
 
             foreach ($a['module'] as $z) {
@@ -314,15 +355,127 @@ class ModulkatalogImport extends Command
         return $raus;
     }
 
-    /** @return array<string, object> */
-    private function berufeNachSchluessel(): array
+    /**
+     * Nummern, die der Katalog kennt und die im Portal schon als eigenes Modul stehen, ohne dass der
+     * Katalog sie bei einem Beruf dieses Moduls führt: dann ist die Nummer anders gemeint. Weil
+     * `module.modul_nummer` eindeutig ist, müsste eine Zeile sonst beiden Bedeutungen dienen – und
+     * der eigene Titel würde bei jedem anderen Beruf des Katalogmoduls erscheinen.
+     *
+     * @param  array<string, array<string, mixed>>  $module
+     * @param  list<array{abschluss: array<string, mixed>, eigen: bool}>  $geordnet
+     * @param  array{kennung: array<string, object>, name: array<string, object>, schluessel: array<string, object>}  $index
+     * @param  array<string, object>  $vorhanden
+     * @return array<string, string> Nummer => eigener Titel
+     */
+    private function konflikte(array $module, array $geordnet, array $index, array $vorhanden): array
     {
-        $raus = [];
+        if ($this->option('eigene-uebernehmen')) {
+            return [];
+        }
+
+        $eigene = [];
+        foreach ($vorhanden as $nummer => $zeile) {
+            if (isset($module[$nummer]) && ($zeile->quelle ?? null) === null) {
+                $eigene[$nummer] = $zeile;
+            }
+        }
+        if ($eigene === []) {
+            return [];
+        }
+
+        // Welche Nummern führt der Katalog bei welchem bestehenden Beruf?
+        $laut = [];
+        foreach ($geordnet as $eintrag) {
+            $beruf = $this->berufSuchen($eintrag['abschluss'], $eintrag['eigen'], $index);
+            if ($beruf === null) {
+                continue;
+            }
+            foreach ($eintrag['abschluss']['module'] as $z) {
+                $laut[(int) $beruf->lehrberuf_id][$z['nummer']] = true;
+            }
+        }
+
+        $konflikte = [];
+        foreach ($eigene as $nummer => $zeile) {
+            foreach (DB::table('lehrberuf_module')->where('modul_id', $zeile->modul_id)->pluck('lehrberuf_id') as $id) {
+                if (isset($laut[(int) $id][$nummer])) {
+                    continue 2;
+                }
+            }
+            $konflikte[$nummer] = (string) $zeile->titel;
+        }
+
+        return $konflikte;
+    }
+
+    /**
+     * Die Lehrberufe dreifach nachschlagbar: über die Kennung des Katalogs, über den genauen Namen
+     * und über den unscharfen Vergleichsschlüssel.
+     *
+     * @return array{kennung: array<string, object>, name: array<string, object>, schluessel: array<string, object>}
+     */
+    private function berufeIndizieren(): array
+    {
+        $kennung = $name = $schluessel = [];
         foreach (DB::table('lehrberufe')->get() as $zeile) {
-            $raus[$this->berufSchluessel((string) $zeile->name)] = $zeile;
+            $name[(string) $zeile->name] = $zeile;
+            $schluessel[$this->berufSchluessel((string) $zeile->name)] ??= $zeile;
+            if (($zeile->quelle_kennung ?? null) !== null && $zeile->quelle_kennung !== '') {
+                $kennung[(string) $zeile->quelle_kennung] = $zeile;
+            }
+        }
+
+        return ['kennung' => $kennung, 'name' => $name, 'schluessel' => $schluessel];
+    }
+
+    /**
+     * Mehrere Abschlüsse einer Ernte können sich nur im Jahrgang der Bildungsverordnung
+     * unterscheiden – «Informatiker/in EFZ Applikationsentwicklung (2014)» und «(2021)». Ihre
+     * Modulpläne sind verschieden: von den Modulnummern beider steht nur ein Bruchteil in beiden.
+     * Sie dürfen deshalb nicht in denselben Lehrberuf laufen, sonst sieht ein Lernender Module
+     * einer Verordnung, die für ihn nicht gilt. Der jüngste Jahrgang führt: nur er darf einen
+     * bestehenden Beruf übernehmen, jeder ältere bekommt einen eigenen.
+     *
+     * @param  list<array<string, mixed>>  $abschluesse
+     * @return list<array{abschluss: array<string, mixed>, eigen: bool}>
+     */
+    private function abschluesseOrdnen(array $abschluesse): array
+    {
+        $gruppen = [];
+        foreach ($abschluesse as $a) {
+            $gruppen[$this->berufSchluessel((string) $a['name'])][] = $a;
+        }
+
+        $raus = [];
+        foreach ($gruppen as $gruppe) {
+            usort($gruppe, fn ($x, $y) => ((int) ($y['bivo_jahr'] ?? 0)) <=> ((int) ($x['bivo_jahr'] ?? 0)));
+            foreach ($gruppe as $i => $a) {
+                $raus[] = ['abschluss' => $a, 'eigen' => $i > 0];
+            }
         }
 
         return $raus;
+    }
+
+    /**
+     * Der bestehende Lehrberuf zu einem Abschluss, oder null für «neu anlegen». Die Kennung des
+     * Katalogs ist die verlässlichste Identität und hält wiederholte Läufe stabil; danach zählt der
+     * genaue Name. Der unscharfe Schlüssel greift nur für den jüngsten Jahrgang einer Gruppe.
+     *
+     * @param  array<string, mixed>  $a
+     * @param  array{kennung: array<string, object>, name: array<string, object>, schluessel: array<string, object>}  $index
+     */
+    private function berufSuchen(array $a, bool $eigen, array $index): ?object
+    {
+        if ($a['kennung'] !== null && isset($index['kennung'][$a['kennung']])) {
+            return $index['kennung'][$a['kennung']];
+        }
+        if (isset($index['name'][$a['name']])) {
+            return $index['name'][$a['name']];
+        }
+        $schluessel = $this->berufSchluessel((string) $a['name']);
+
+        return $eigen ? null : ($index['schluessel'][$schluessel] ?? null);
     }
 
     /**
@@ -358,6 +511,14 @@ class ModulkatalogImport extends Command
         $basis = mb_strtoupper(mb_substr(implode('', array_map(fn ($w) => mb_substr($w, 0, 1), $worte)), 0, 8));
         if ($basis === '') {
             $basis = 'BERUF';
+        }
+
+        // Unterscheiden sich zwei Abschlüsse nur im Jahrgang, sagt «IA14» mehr als «IA2».
+        if (in_array(mb_strtolower($basis), $vergeben, true) && preg_match('/\(\d{2}(\d{2})/', $name, $j) === 1) {
+            $mitJahr = mb_substr(mb_substr($basis, 0, 8).$j[1], 0, 10);
+            if (! in_array(mb_strtolower($mitJahr), $vergeben, true)) {
+                return $mitJahr;
+            }
         }
 
         // lehrberufe.kuerzel ist varchar(10): der Zähler darf die Spalte nicht überlaufen.

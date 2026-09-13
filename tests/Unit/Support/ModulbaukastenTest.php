@@ -22,12 +22,16 @@ class ModulbaukastenTest extends TestCase
         $this->assertSame('654', Modulbaukasten::nummerNormalisieren('ÜK-654'));
         $this->assertSame('654', Modulbaukasten::nummerNormalisieren('uek 654'));
         $this->assertSame('987A', Modulbaukasten::nummerNormalisieren('m987a'));
+        // Der Buchstabe voran schützt nicht: wer «UEK301» erfasst, meint Katalogmodul 301.
+        $this->assertSame('301', Modulbaukasten::nummerNormalisieren('UEK301'));
     }
 
     #[Test]
     public function was_keine_katalognummer_ist_bleibt_ohne_nummer(): void
     {
-        foreach (['', null, 'ABU-1', 'Projektarbeit', '5', '12345', 'M98-7'] as $roh) {
+        // «UEK01» und «ÜK-01» gehören dazu: der Katalog nummeriert drei- bis vierstellig, eine
+        // zweistellige eigene Nummer bleibt deshalb eine eigene – sonst erbte sie einen Verweis.
+        foreach (['', null, 'ABU-1', 'Projektarbeit', '5', '12345', 'M98-7', 'UEK01', 'ÜK-01', 'UEK02'] as $roh) {
             $this->assertNull(Modulbaukasten::nummerNormalisieren($roh), (string) $roh);
             $this->assertFalse(Modulbaukasten::istKatalogNummer($roh), (string) $roh);
         }

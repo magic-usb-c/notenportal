@@ -6,15 +6,23 @@ und jedes Modul verlinkt auf seine Seite im Modulbaukasten.
 
 ## Rechtslage – zuerst lesen
 
-Die Inhalte von modulbaukasten.ch gehören **ICT-Berufsbildung Schweiz**; die Seite verweist auf die
-«Nutzungsbedingungen Modulbaukasten» (`www.ict-berufsbildung.ch/infos/nutzungsbedingungen-mbk`).
-Nach dem, was dort laut Suchtreffern steht, braucht das Übernehmen von Inhalten eine schriftliche
-Zustimmung. Deshalb gilt im Portal:
+Die Inhalte von modulbaukasten.ch gehören **ICT-Berufsbildung Schweiz**. Die «Nutzungsbedingungen
+Modulbaukasten» (`www.ict-berufsbildung.ch/infos/nutzungsbedingungen-mbk`, im Volltext gelesen am
+13.09.2026) erlauben die Nutzung ausdrücklich zu dem Zweck, «dass Sie sich über die Berufsbildung im
+Bereich der ICT-Berufe für Ihren eigenen Bedarf informieren können». Kopieren, Ändern, Verbreiten und
+Vervielfältigen brauchen dagegen die vorherige schriftliche Zustimmung, eine Wiederverwendung für
+kommerzielle Angebote ist untersagt, und übermässige Last auf der Infrastruktur ist es ebenfalls.
+Daraus folgt im Portal:
 
 - **Im Repo liegt kein Katalog.** Keine Modulliste, keine Handlungsziele, keine LBV – auch nicht in
-  Seeds oder Tests (Testdaten sind erfundene Nummern und Titel).
+  Seeds oder Tests (Testdaten sind erfundene Nummern und Titel). Ein öffentliches Repository wäre
+  Verbreitung, und die braucht die Zustimmung.
+- **Ernten für die eigene Instanz ist der erlaubte Fall**: eine Schule, ein Betrieb oder ein
+  Lernender informiert sich damit über die eigene Berufsbildung. Wer Inhalte weitergeben will, klärt
+  die Zustimmung selbst.
 - **Verlinken ist unbedenklich** und immer möglich: ein Link ist keine Übernahme von Inhalt.
-- **Wer Inhalte importiert, tut das auf der eigenen Instanz** und klärt die Zustimmung selbst.
+- **Die Ernte schont die Quelle.** Zwischen zwei Seiten liegt eine Pause (`--pause`, Standard
+  1500 ms); sie gehört zur Zulässigkeit und wird nicht wegoptimiert.
 
 ## Wege zu den Daten – was geprüft ist
 
@@ -50,20 +58,48 @@ php artisan notenportal:modulkatalog /tmp/katalog.json
 php artisan notenportal:modulkatalog /tmp/katalog.json --anwenden
 ```
 
-Der Import ist alles-oder-nichts, legt fehlende Lehrberufe an, ordnet Module mit Lernort
-(Fachunterricht/ÜK), Pflichtgrad und empfohlenem Lehrsemester zu und lässt eigene Module (ABU, BMS,
-schuleigene Nummern) unangetastet. Wiederholte Läufe aktualisieren, statt zu verdoppeln.
+Der Import ist alles-oder-nichts, legt fehlende Lehrberufe an und ordnet Module mit Lernort
+(Fachunterricht/ÜK), Pflichtgrad und empfohlenem Lehrsemester zu. Wiederholte Läufe aktualisieren,
+statt zu verdoppeln. Abschlüsse, die sich nur im Jahrgang der Bildungsverordnung unterscheiden,
+bleiben getrennte Lehrberufe – ihre Modulpläne sind verschieden.
+
+### Eigene Nummern und Katalognummern
+
+`modul_nummer` ist im Portal eindeutig: eine Zeile kann nicht gleichzeitig «ÜK: Grundlagen» und
+Katalogmodul 301 sein. Daran entscheidet sich, was der Import mit einem bestehenden eigenen Modul
+macht:
+
+- Wer **431** mit eigener Kurzbezeichnung erfasst hat, meint Katalogmodul 431. Der Import ergänzt
+  Version und Katalogangaben und behält den eigenen Titel.
+- Wer **801** für ein ABU-Modul erfunden hat, meint nicht «Grundgesetze der Farbenlehre» – der
+  Katalog führt diese Nummer bei Mediamatik. Er erkennt das daran, dass der Katalog die Nummer bei
+  keinem Beruf dieses Moduls führt, meldet sie und lässt sie ganz aus. Ohne diese Regel erbte jeder
+  andere Beruf die fremde Bezeichnung, und der Verweis zeigte auf ein anderes Modul.
+
+Zwei Auswege: dem eigenen Modul eine Nummer geben, die keine Katalognummer sein kann, oder mit
+`--eigene-uebernehmen` einlesen, wenn es doch dieselben Module sind.
+
+Was keine Katalognummer sein kann, ist genauer als es aussieht. Das Portal streift die führenden
+Bezeichner `MODUL`, `ÜK`, `UEK`, `BK` und `M` ab – **der Buchstabe voran schützt also nicht**, `UEK301`
+meint Katalogmodul 301. Was zählt, ist die Zahl: Katalognummern sind drei- oder vierstellig (alle 334
+geernteten sind es). Sicher sind darum zweistellige Nummern wie `UEK01` und Präfixe ausserhalb jener
+Liste wie `ABU01`.
 
 ## Was im Portal sichtbar wird
 
 - Stammdaten → Module: Version, Kompetenzfeld und ein Verweis «Im Modulbaukasten öffnen».
 - Ein Verweis entsteht **nur mit bekannter Version**. Ohne Version kein Link – eine geratene
   Adresse würde auf eine Seite zeigen, die freundlich HTTP 200 antwortet und trotzdem falsch ist.
+- Eine Nummer, eine Zeile: sind zwei Versionen gleichzeitig gültig (117 V4 für die Verordnung 2021,
+  V5 für 2026), führt die höchste. Der Verweis zeigt dann für den älteren Jahrgang auf die neuere
+  Version. 17 der 334 geernteten Nummern sind betroffen; damit es stimmt, müsste die Zuordnung je
+  Beruf die Version mitführen – notiert in `docs/audit-backlog.md`.
 
 ## Offen
 
 - Schriftliche Zustimmung von ICT-Berufsbildung Schweiz für die Übernahme von Feldinhalten (David).
-- `ict-berufsbildung.ch` war aus diesem Netz nicht erreichbar (Verbindung abgewiesen, DNS löst auf);
-  üK-Ausbildungsprogramme und die Nutzungsbedingungen im Volltext konnten nicht geprüft werden.
+- üK-Ausbildungsprogramme auf `ict-berufsbildung.ch` sind noch nicht geprüft. Die Seite ist aus
+  diesem Netz erreichbar – die früher notierte Sperre gilt nicht mehr –, und die Nutzungsbedingungen
+  sind im Volltext gelesen; die üK-Unterlagen selbst noch nicht.
 - Bewertungskriterien je LBV-Element (Gewichtungsspannen, geprüfte Handlungsziele) sind geerntet,
   aber noch nicht gespeichert: siehe `docs/audit-backlog.md`.

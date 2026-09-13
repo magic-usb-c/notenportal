@@ -172,6 +172,107 @@ class ModulkatalogImportTest extends TestCase
         $this->assertSame(1, (int) $zuordnung->pflicht, 'der Pflichtgrad kommt aus dem Katalog');
     }
 
+    /** Ein eigenes Modul, dessen Nummer der Katalog bei einem ganz anderen Beruf führt. */
+    private function eigenesModulUnterKatalognummer(): int
+    {
+        $fremd = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'ABU', 'name' => 'Allgemeinbildung']);
+        $modul = DB::table('module')->insertGetId(['modul_nummer' => 'M654', 'titel' => 'ABU: Gesellschaft']);
+        DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $fremd, 'modul_id' => $modul, 'pflicht' => 1]);
+
+        return $modul;
+    }
+
+    #[Test]
+    public function eine_fremd_gemeinte_katalognummer_bleibt_unberuehrt(): void
+    {
+        $modul = $this->eigenesModulUnterKatalognummer();
+
+        $this->artisan('notenportal:modulkatalog', ['datei' => $this->ernte(), '--anwenden' => true])
+            ->expectsOutputToContain('654: ABU: Gesellschaft')
+            ->assertSuccessful();
+
+        $nachher = DB::table('module')->where('modul_id', $modul)->first();
+        $this->assertSame('ABU: Gesellschaft', $nachher->titel);
+        $this->assertNull($nachher->quelle, 'das Modul gehört weiterhin dem Betrieb');
+        $this->assertNull($nachher->version, 'ohne Version entsteht kein Link auf ein fremdes Modul');
+
+        // Der Katalogberuf erbt die fremd gemeinte Nummer nicht.
+        $this->assertSame(1, DB::table('lehrberuf_module')->where('modul_id', $modul)->count());
+        $this->assertSame(2, DB::table('module')->count(), 'nur M987 kommt dazu');
+    }
+
+    #[Test]
+    public function eigene_uebernehmen_holt_das_modul_doch_in_den_katalog(): void
+    {
+        $modul = $this->eigenesModulUnterKatalognummer();
+
+        $this->artisan('notenportal:modulkatalog', [
+            'datei' => $this->ernte(), '--anwenden' => true, '--eigene-uebernehmen' => true,
+        ])->assertSuccessful();
+
+        $nachher = DB::table('module')->where('modul_id', $modul)->first();
+        $this->assertSame('ABU: Gesellschaft', $nachher->titel, 'der eigene Titel bleibt auch dann');
+        $this->assertSame('modulbaukasten', $nachher->quelle);
+        $this->assertSame('1', $nachher->version);
+        $this->assertSame(2, DB::table('lehrberuf_module')->where('modul_id', $modul)->count());
+    }
+
+    #[Test]
+    public function ein_eigenes_modul_ohne_jede_zuordnung_gilt_als_konflikt(): void
+    {
+        // Ohne Zuordnung fehlt jeder Hinweis, dass dieselbe Nummer dasselbe Modul meint. Der Import
+        // lässt sie dann aus, statt zu raten – hier festgeschrieben, damit es dabei bleibt.
+        $modul = DB::table('module')->insertGetId(['modul_nummer' => '987', 'titel' => 'Eigenes ohne Beruf']);
+
+        $this->artisan('notenportal:modulkatalog', ['datei' => $this->ernte(), '--anwenden' => true])
+            ->expectsOutputToContain('987: Eigenes ohne Beruf')
+            ->assertSuccessful();
+
+        $nachher = DB::table('module')->where('modul_id', $modul)->first();
+        $this->assertSame('Eigenes ohne Beruf', $nachher->titel);
+        $this->assertNull($nachher->quelle);
+        $this->assertNull($nachher->version);
+        $this->assertSame(0, DB::table('lehrberuf_module')->where('modul_id', $modul)->count());
+    }
+
+    #[Test]
+    public function zwei_jahrgaenge_desselben_berufs_bleiben_getrennt(): void
+    {
+        $bestehend = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'PRF', 'name' => 'Prüfberuf Musterrichtung']);
+        $datei = $this->ernte(['abschluesse' => [
+            [
+                'name' => 'Prüfberuf/in EFZ Musterrichtung (2014)',
+                'kennung' => 'kennung-2014',
+                'module' => [['nummer' => '654', 'version' => '1', 'titel' => 'Alte Verordnung', 'pflichtgrad' => 'pfl', 'lehrjahr' => 1]],
+            ],
+            [
+                'name' => 'Prüfberuf/in EFZ Musterrichtung (2026)',
+                'kennung' => 'kennung-2026',
+                'module' => [['nummer' => '987', 'version' => '2', 'titel' => 'Neue Verordnung', 'pflichtgrad' => 'pfl', 'lehrjahr' => 1]],
+            ],
+        ]]);
+
+        $this->artisan('notenportal:modulkatalog', ['datei' => $datei, '--anwenden' => true])->assertSuccessful();
+
+        $this->assertSame(2, DB::table('lehrberufe')->count(), 'der ältere Jahrgang bekommt einen eigenen Lehrberuf');
+        $alt = DB::table('lehrberufe')->where('quelle_kennung', 'kennung-2014')->first();
+        $neu = DB::table('lehrberufe')->where('quelle_kennung', 'kennung-2026')->first();
+        $this->assertSame($bestehend, (int) $neu->lehrberuf_id, 'der jüngste Jahrgang übernimmt den bestehenden Beruf');
+        $this->assertNotSame($bestehend, (int) $alt->lehrberuf_id);
+        $this->assertSame(2014, (int) $alt->bivo_jahr);
+
+        $nummern = fn (int $id) => DB::table('lehrberuf_module as lbm')
+            ->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
+            ->where('lbm.lehrberuf_id', $id)->orderBy('m.modul_nummer')->pluck('m.modul_nummer')->all();
+        $this->assertSame(['M654'], $nummern((int) $alt->lehrberuf_id));
+        $this->assertSame(['M987'], $nummern((int) $neu->lehrberuf_id), 'die Verordnungen vermischen sich nicht');
+
+        // Zweiter Lauf: die Kennung findet beide wieder, nichts verdoppelt sich.
+        $this->artisan('notenportal:modulkatalog', ['datei' => $datei, '--anwenden' => true])->assertSuccessful();
+        $this->assertSame(2, DB::table('lehrberufe')->count());
+        $this->assertSame(2, DB::table('lehrberuf_module')->count());
+    }
+
     #[Test]
     public function ohne_berufe_bleiben_die_lehrberufe_unberuehrt(): void
     {

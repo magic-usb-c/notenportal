@@ -369,7 +369,7 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
-    public function die_iCal_adresse_erscheint_nie_im_html_der_einstellungsseite(): void
+    public function die_ical_adresse_erscheint_nie_im_html_der_einstellungsseite(): void
     {
         $feed = CalendarFeed::create([
             'lernender_id' => $this->user->lernender->lernender_id,

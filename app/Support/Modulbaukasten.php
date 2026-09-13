@@ -16,8 +16,15 @@ final class Modulbaukasten
 
     public const QUELLE = 'modulbaukasten';
 
-    /** Katalognummern sind 2–4 Ziffern mit optionalem Buchstaben am Ende («319», «226A»). */
-    private const NUMMER = '/^(\d{2,4}[A-Z]?)$/';
+    /**
+     * Katalognummern sind drei- oder vierstellig, mit optionalem Buchstaben am Ende («319», «226A»).
+     * An einer vollständigen Ernte gemessen: von 334 Nummern sind 332 dreistellig und 2 vierstellig,
+     * keine einzige zweistellig. Die Grenze ist Absicht: weil nummerNormalisieren() führende
+     * Bezeichner abstreift, würde eine zweistellige Nummer die eigene Bezeichnung «UEK01» zu «01»
+     * machen und damit zur Katalognummer erklären – der Verweis zeigte dann auf ein fremdes Modul.
+     * Zu eng zu sein ist die harmlose Richtung: dann fehlt ein Verweis, statt falsch zu führen.
+     */
+    private const NUMMER = '/^(\d{3,4}[A-Z]?)$/';
 
     /**
      * Führende Bezeichner entfernen: «M319», «ÜK-106», «Modul 431» ergeben «319», «106», «431».
