@@ -79,6 +79,15 @@ final class Protokoll
 
     public const string ADMIN_MODULKATALOG_IMPORTIERT = 'admin.modulkatalog_importiert';
 
+    // Module sind gemeinsame Stammdaten: diese Aktionen stehen allen Angemeldeten offen.
+    public const string MODUL_ANGELEGT = 'modul.angelegt';
+
+    public const string MODUL_GEAENDERT = 'modul.geaendert';
+
+    public const string MODUL_DOKUMENT_HOCHGELADEN = 'modul.dokument_hochgeladen';
+
+    public const string MODUL_DOKUMENT_GELOESCHT = 'modul.dokument_geloescht';
+
     /** Aktionsschlüssel => Anzeige-Label (deutsch, über __() übersetzt). */
     public const array LABELS = [
         self::AUTH_ANMELDUNG_ERFOLGREICH => 'Anmeldung erfolgreich',
@@ -108,6 +117,10 @@ final class Protokoll
         self::ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN => 'Duplikat-Markierung aufgehoben',
         self::ADMIN_FEEDBACK_KNOPF_GEAENDERT => 'Feedback-Knopf geändert',
         self::ADMIN_MODULKATALOG_IMPORTIERT => 'Modulkatalog importiert',
+        self::MODUL_ANGELEGT => 'Modul angelegt',
+        self::MODUL_GEAENDERT => 'Modul geändert',
+        self::MODUL_DOKUMENT_HOCHGELADEN => 'Moduldokument hochgeladen',
+        self::MODUL_DOKUMENT_GELOESCHT => 'Moduldokument gelöscht',
     ];
 
     /** Schlüssel, die nie ins Protokoll dürfen (Passwörter, Token, Geheimnisse), unabhängig von Gross-/Kleinschreibung. */

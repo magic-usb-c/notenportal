@@ -516,3 +516,17 @@ Nachzuholen, sobald eine leere virtuelle Maschine mit Ubuntu 24.04 bereitsteht: 
 aus dem README wörtlich ausführen, ohne Vorbereitung und ohne Nacharbeit, und danach
 `php artisan notenportal:bereitschaft` sowie einen Aufruf von `/login` prüfen. Erst dieser Lauf
 schliesst «github installations ready» ab; bis dahin gilt der Weg als belegt, aber nicht bewiesen.
+
+## Modulseiten auf 390 Pixel ungeprüft (14.09.2026)
+
+Die drei neuen Seiten unter `/modules` (Liste, Detail mit Unterlagen, Formular) sind auf dem
+Schreibtisch geprüft, nicht aber im schmalen Fenster: dafür braucht `~/tools/visual/breite.mjs`
+eine Anmeldung auf Prod, und das Prüfpasswort `NP_TEST_PW` liegt nicht vor. Die Tabelle der
+Modulliste steckt in `overflow-x-auto`, das Hochladeformular bricht ab `sm:` um – belegt ist
+das damit nicht. Nachzuholen, sobald David ein Konto für Prüfläufe bereitstellt:
+`node breite.mjs --base=http://127.0.0.1 --rolle=learner --breite=390 /modules`.
+
+Ebenfalls offen: die Leistungsbeurteilungs-Elemente (`modul_lbv_elemente`) zeigt die Detailseite
+nur an, erfassen lassen sie sich über die Oberfläche noch nicht – sie kommen bisher allein aus
+dem Katalogimport. Für den Fall «Modul fehlt ganz» genügen Nummer, Titel, Ziele und Unterlagen;
+wer die Beurteilungsvorgabe selbst erfassen will, braucht ein eigenes Formular.

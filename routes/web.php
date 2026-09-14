@@ -27,6 +27,7 @@ use App\Http\Controllers\Lernender\PruefungenController;
 use App\Http\Controllers\Lernender\RechnerController as LernenderRechnerController;
 use App\Http\Controllers\Lernender\ZieleController;
 use App\Http\Controllers\ManifestController;
+use App\Http\Controllers\ModulController;
 use App\Http\Controllers\NotenImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SettingsController;
@@ -112,6 +113,33 @@ Route::middleware(['auth', 'role:Lernender'])
 
         // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
         Route::patch('/{note_id}/title', [LernenderNotenController::class, 'updateTitel'])->name('title.update');
+    });
+
+/**
+ * Module als gemeinsame Stammdaten – offen für alle Angemeldeten, nicht nur für Admins:
+ * ansehen, fehlende anlegen, bestehende ergänzen, Unterlagen beisteuern. Ein Datensatz je Modul.
+ */
+Route::middleware(['auth'])
+    ->prefix('modules')
+    ->name('modules.')
+    ->group(function () {
+        Route::get('/', [ModulController::class, 'index'])->name('index');
+        Route::get('/create', [ModulController::class, 'create'])->name('create');
+        Route::post('/', [ModulController::class, 'store'])->middleware('throttle:30,1')->name('store');
+        Route::get('/{modul_id}', [ModulController::class, 'show'])->whereNumber('modul_id')->name('show');
+        Route::get('/{modul_id}/edit', [ModulController::class, 'edit'])->whereNumber('modul_id')->name('edit');
+        Route::put('/{modul_id}', [ModulController::class, 'update'])->whereNumber('modul_id')->name('update');
+
+        // Ein Modul in die eigene Notenerfassung holen: legt die eigene Belegung an, kopiert nichts.
+        Route::post('/{modul_id}/enroll', [ModulController::class, 'belegen'])
+            ->whereNumber('modul_id')->middleware('role:Lernender')->name('enroll');
+
+        Route::post('/{modul_id}/documents', [ModulController::class, 'dokumentSpeichern'])
+            ->whereNumber('modul_id')->middleware('throttle:30,1')->name('documents.store');
+        Route::get('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentZeigen'])
+            ->whereNumber(['modul_id', 'modul_dokument_id'])->name('documents.show');
+        Route::delete('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentLoeschen'])
+            ->whereNumber(['modul_id', 'modul_dokument_id'])->name('documents.destroy');
     });
 
 /**

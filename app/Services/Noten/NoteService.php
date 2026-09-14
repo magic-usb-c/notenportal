@@ -52,6 +52,9 @@ class NoteService
     /** @var array<string, Collection> kategorie_id je fach_id, Schlüssel "lernenderId|stichtag" */
     private array $erlaubteFaecherKategorienCache = [];
 
+    /** @var array<int, int> Kategorie für Module ausserhalb des Lehrberufs, Schlüssel lehrberuf_id */
+    private array $fallbackKategorieCache = [];
+
     /** @var array<int, Collection> kategorie_id je modul_id, Schlüssel lehrberuf_id */
     private array $modulKategorienCache = [];
 
@@ -271,19 +274,29 @@ class NoteService
             ->whereNull('mb.end_datum')
             ->groupBy('mb.modul_id');
 
-        return DB::table('lehrberuf_module as lbm')
-            ->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
+        // Module des Lehrberufs – und zusätzlich jene, die sich die Person selbst dazugenommen hat
+        // (eigene offene Belegung). Module sind gemeinsame Stammdaten: wer eines führt, das der
+        // Lehrberuf nicht vorsieht, soll dazu trotzdem eigene Noten erfassen können.
+        $fallbackKategorie = $this->fallbackModulKategorie((int) $lernender->lehrberuf_id);
+
+        return DB::table('module as m')
+            ->leftJoin('lehrberuf_module as lbm', function ($join) use ($lernender) {
+                $join->on('lbm.modul_id', '=', 'm.modul_id')
+                    ->where('lbm.lehrberuf_id', '=', (int) $lernender->lehrberuf_id)
+                    ->where('lbm.aktiv', '=', 1);
+            })
             ->leftJoinSub($open, 'openmb', function ($join) {
                 $join->on('openmb.modul_id', '=', 'm.modul_id');
             })
-            ->where('lbm.lehrberuf_id', (int) $lernender->lehrberuf_id)
-            ->where('lbm.aktiv', 1)
             ->where('m.aktiv', 1)
+            ->where(function ($w) {
+                $w->whereNotNull('lbm.modul_id')->orWhereNotNull('openmb.open_modul_belegung_id');
+            })
             ->select([
                 'm.modul_id',
                 'm.modul_nummer',
                 'm.titel',
-                'lbm.kategorie_id',
+                DB::raw('COALESCE(lbm.kategorie_id, '.$fallbackKategorie.') as kategorie_id'),
                 'm.ziel_gewicht_summe_default',
                 DB::raw('CASE WHEN openmb.open_modul_belegung_id IS NULL THEN 0 ELSE 1 END as has_open_belegung'),
                 'openmb.open_modul_belegung_id',
@@ -437,13 +450,46 @@ class NoteService
             return (int) $kategorieId;
         }
 
-        $kategorieId = $this->modulKategorien($this->lehrberufIdFuer($lernenderId))->get($id);
+        $lehrberufId = $this->lehrberufIdFuer($lernenderId);
+        $kategorieId = $this->modulKategorien($lehrberufId)->get($id);
+
+        // Ein selbst dazugenommenes Modul gehört nicht zum Lehrberuf, aber zur Person: die offene
+        // Belegung ist der Nachweis. Die Kategorie kommt dann aus der im Lehrberuf üblichen.
+        if (! $kategorieId && $this->hatOffeneBelegung($lernenderId, $id)) {
+            $kategorieId = $this->fallbackModulKategorie($lehrberufId);
+        }
 
         if (! $kategorieId) {
-            throw ValidationException::withMessages(['modul_id' => __('Dieses Modul gehört nicht zum Lehrberuf.')]);
+            throw ValidationException::withMessages(['modul_id' => __('Dieses Modul gehört nicht zum Lehrberuf. Füg es auf der Modulseite zu deinen Modulen hinzu.')]);
         }
 
         return (int) $kategorieId;
+    }
+
+    private function hatOffeneBelegung(int $lernenderId, int $modulId): bool
+    {
+        return DB::table('modul_belegungen')
+            ->where('lernender_id', $lernenderId)
+            ->where('modul_id', $modulId)
+            ->whereNull('end_datum')
+            ->exists();
+    }
+
+    /**
+     * Kategorie für ein Modul ausserhalb des Lehrberufs: die im Lehrberuf am häufigsten verwendete,
+     * sonst die erste aktive Kategorie. Rückgabe ist immer eine gültige kategorie_id (Fremdschlüssel).
+     */
+    private function fallbackModulKategorie(int $lehrberufId): int
+    {
+        return $this->fallbackKategorieCache[$lehrberufId] ??= (int) (DB::table('lehrberuf_module')
+            ->where('lehrberuf_id', $lehrberufId)
+            ->where('aktiv', 1)
+            ->whereNotNull('kategorie_id')
+            ->groupBy('kategorie_id')
+            ->orderByRaw('COUNT(*) DESC')
+            ->value('kategorie_id')
+            ?? DB::table('kategorien')->where('aktiv', 1)->orderBy('sortierung')->value('kategorie_id')
+            ?? 0);
     }
 
     /** kategorie_id je fach_id (erlaubteFaecher), pro Lernender+Stichtag einmal geladen statt pro Zeile. */

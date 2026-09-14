@@ -63,12 +63,15 @@ final class Navigation
                 self::link(__('Übersicht'), 'trainer.dashboard', ['trainer.dashboard'], 'start'),
                 self::link(__('Lernende'), 'trainer.learners.index', ['trainer.learners.*', 'trainer.grades.*'], 'personen'),
                 self::link(__('Prüfungstermine'), 'trainer.exams.index', ['trainer.exams.*'], 'kalender'),
+                self::link(__('Module'), 'modules.index', ['modules.*'], 'daten'),
             ],
             $user->hasRole('Lernender') => [
                 self::link(__('Übersicht'), 'learner.dashboard', ['learner.dashboard'], 'start'),
                 self::link(__('Noten'), 'learner.grades.index', ['learner.grades.index', 'learner.grades.create', 'learner.grades.edit', 'learner.grades.print', 'learner.grades.import.*'], 'noten'),
                 self::link(__('Agenda'), 'learner.exams.index', ['learner.exams.*'], 'kalender'),
                 self::link(__('Rechner'), 'learner.grades.calculator', ['learner.grades.calculator'], 'rechner'),
+                // Module sind gemeinsame Stammdaten – deshalb steht der Eintrag bei allen Rollen, nicht nur beim Admin.
+                self::link(__('Module'), 'modules.index', ['modules.*'], 'daten'),
                 self::link(__('Dokumente'), 'learner.documents.index', ['learner.documents.*'], 'dokument'),
             ],
             default => [],

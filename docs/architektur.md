@@ -82,7 +82,7 @@ Startpasswörter (Anlegen, Zurücksetzen) werden generiert, einmalig angezeigt, 
 Lernender-ID kommt immer aus der Session (`$request->user()->lernender`), nie aus dem Request.
 
 ## Notenlogik
-Alle Durchschnitte kommen aus `App\Services\Auswertung` – keine Schnitte in Controllern, Views oder SQL. Regeln, Begriffe und Beispiele: `docs/notenlogik.md`. Semesternamen kommen aus `Konfiguration::semesterName($id, $lernenderId)`: mit Lernenden-ID die persönliche Nummer über `App\Support\Lehrsemester` (gecacht je Lernendem), sonst `Semester::neutralerName()`. Views nutzen die Komponente `x-semester`, Restdauern `App\Support\Format::restdauer()`. Kategorie einer Note wird abgeleitet (Fach → `faecher.kategorie_id`, Modul → `lehrberuf_module.kategorie_id` = Lernort), nie vom Formular übernommen.
+Alle Durchschnitte kommen aus `App\Services\Auswertung` – keine Schnitte in Controllern, Views oder SQL. Regeln, Begriffe und Beispiele: `docs/notenlogik.md`. Semesternamen kommen aus `Konfiguration::semesterName($id, $lernenderId)`: mit Lernenden-ID die persönliche Nummer über `App\Support\Lehrsemester` (gecacht je Lernendem), sonst `Semester::neutralerName()`. Views nutzen die Komponente `x-semester`, Restdauern `App\Support\Format::restdauer()`. Kategorie einer Note wird abgeleitet (Fach → `faecher.kategorie_id`, Modul → `lehrberuf_module.kategorie_id` = Lernort), nie vom Formular übernommen. Führt jemand ein Modul, das sein Lehrberuf nicht vorsieht, ist die eigene offene Modulbelegung der Nachweis; die Kategorie kommt dann aus der im Lehrberuf häufigsten (`NoteService::fallbackModulKategorie`).
 
 ## Datenmodell
 ```
@@ -99,11 +99,15 @@ lehrberuf_module  Beruf ↔ Modul: kategorie_id (Lernort FACH/UEK), pflicht, pfl
 kategorien        kategorie_id, code, name, sortierung, aktiv, rundung_element, rundung_schnitt, gewicht_gesamt,
                   promotion_min_schnitt, promotion_max_ungenuegend, promotion_max_minuspunkte
 faecher           fach_id, kategorie_id, track_typ (nullable = ohne Track), name, kurzname
-module            modul_id, modul_nummer, titel, ziel_gewicht_summe_default,
+module            modul_id, modul_nummer, titel, ziel_gewicht_summe_default, link, erstellt_von_benutzer_id
+                  (gemeinsame Stammdaten: ein Datensatz je Modul, den jede angemeldete Person anlegen und ergänzen darf)
                   Katalog (optional): version, kompetenzfeld, kompetenz, objekt, publiziert_am, auslaufend, quelle, quelle_stand
 modul_handlungsziele  modul_id, nummer, text, sortierung (offizielle Handlungsziele des Moduls)
 modul_lbv_elemente    modul_id, bezeichnung, gewichtung_prozent, richtzeit, pruefungsform, sozialform, beschreibung
                       (Leistungsbeurteilungsvorgabe – Referenz, kein Rechenweg)
+modul_dokumente   modul_dokument_id, modul_id, titel, originalname, pfad, mime, groesse, sha256,
+                  hochgeladen_von_benutzer_id (Unterlagen hängen am Modul, nicht an einer Person;
+                  Datei privat unter storage/app/private/module/{modul_id}/, Auslieferung nur über den Controller)
 modul_belegungen  modul_belegung_id, lernender_id, modul_id, start/end_datum (Wiederholung = neue Belegung, nur jüngste zählt)
 noten             note_id, lernender_id, kategorie_id (abgeleitet), semester_id, fach_id XOR modul_belegung_id,
                   titel, pruefungsdatum, note_wert (1–6), gewichtung_prozent,
