@@ -3,6 +3,10 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Module')">
             <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.modules.catalog') }}"
+                   class="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3.5 text-sm font-medium text-text hover:bg-surface-2">
+                    {{ __('Katalog einlesen') }}
+                </a>
                 <a href="{{ route('admin.master-data.modules.create') }}"
                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
                     <span class="text-lg leading-none">+</span> {{ __('Neues Modul') }}

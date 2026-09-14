@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\BetriebController;
 use App\Http\Controllers\Admin\DatenauskunftController as AdminDatenauskunftController;
 use App\Http\Controllers\Admin\EinrichtungController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\Admin\ModulkatalogController;
 use App\Http\Controllers\Admin\StammdatenFaecherController;
 use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
@@ -246,6 +247,16 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('master-data.modules.edit');
         Route::put('/master-data/modules/{modul_id}', [StammdatenModuleController::class, 'update'])
             ->name('master-data.modules.update');
+
+        // Stammdaten: Modulkatalog einlesen – Ernte hochladen, Vorschau prüfen, übernehmen
+        Route::get('/master-data/modules/catalog', [ModulkatalogController::class, 'index'])
+            ->name('master-data.modules.catalog');
+        Route::post('/master-data/modules/catalog', [ModulkatalogController::class, 'lesen'])
+            ->middleware('throttle:30,1')->name('master-data.modules.catalog.read');
+        Route::post('/master-data/modules/catalog/apply', [ModulkatalogController::class, 'anwenden'])
+            ->name('master-data.modules.catalog.apply');
+        Route::post('/master-data/modules/catalog/discard', [ModulkatalogController::class, 'verwerfen'])
+            ->name('master-data.modules.catalog.discard');
 
         // Stammdaten: Fächer
         Route::get('/master-data/subjects', [StammdatenFaecherController::class, 'index'])

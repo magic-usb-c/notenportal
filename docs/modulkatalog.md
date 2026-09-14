@@ -53,10 +53,17 @@ node tools/modulkatalog-ernte.mjs --ziel=/tmp/katalog.json --details            
 node tools/modulkatalog-ernte.mjs --ziel=/tmp/katalog.json --details \
      --abschluss="Entwickler/in digitales Business EFZ"                         # nur ein Beruf
 
-# 2. Einlesen: zeigt zuerst nur, was passieren würde
+# 2. Einlesen auf der Kommandozeile – dasselbe geht im Browser, siehe unten
 php artisan notenportal:modulkatalog /tmp/katalog.json
 php artisan notenportal:modulkatalog /tmp/katalog.json --anwenden
 ```
+
+Schritt 2 braucht keine Kommandozeile: **Stammdaten → Module → «Katalog einlesen»** nimmt dieselbe
+Datei entgegen, zeigt dieselbe Vorschau und schreibt über dieselben Regeln
+(`App\Services\Import\Katalogimport`, von Seite und Befehl gemeinsam genutzt). Die hochgeladene
+Ernte liegt nicht öffentlich, wird nach der Übernahme gelöscht und spätestens nach einem Tag
+weggeräumt; eine Vorschau lässt sich nur einmal übernehmen. Damit braucht eine frische Installation
+für die Modulstammdaten nur noch den Browser – geerntet wird weiterhin auf einem Rechner mit Node.
 
 Der Import ist alles-oder-nichts, legt fehlende Lehrberufe an und ordnet Module mit Lernort
 (Fachunterricht/ÜK), Pflichtgrad und empfohlenem Lehrsemester zu. Wiederholte Läufe aktualisieren,
