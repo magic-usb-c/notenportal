@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Notenportal – Installation auf Ubuntu 24.04. Im geklonten Repo ausführen:
+# Notenportal – Installation auf Ubuntu 24.04 LTS oder neuer (erprobt auf 24.04; PHP kommt aus
+# der Distribution und muss mindestens 8.3 sein). Im geklonten Repo ausführen:
 #   sudo ./install.sh                                   Port 80, Datenbank «notenportal»
 #   sudo ./install.sh --port 8082 --db notenportal_i2   zweite Instanz neben einer bestehenden
 # Optionen: --host <IP|Name>  --ohne-firewall  --neues-admin-passwort
@@ -42,8 +43,15 @@ als() { sudo -u "$BESITZER" -H bash -c "cd '$VERZ' && $*"; }
 schritt "Pakete"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq apache2 mariadb-server libapache2-mod-php8.3 php8.3-cli php8.3-mysql php8.3-mbstring \
-    php8.3-xml php8.3-curl php8.3-zip php8.3-intl php8.3-gd php8.3-bcmath unzip git curl openssl composer >/dev/null
+# Unversionierte Metapakete statt php8.3-*: sie zeigen auf die PHP-Version der jeweiligen
+# Ubuntu-Ausgabe (24.04 → 8.3, 26.04 → 8.5). Eine feste Nummer hier würde das Portal an genau
+# eine Ubuntu-Ausgabe nageln – auf der nächsten gäbe es die Pakete schlicht nicht.
+apt-get install -y -qq apache2 mariadb-server libapache2-mod-php php-cli php-mysql php-mbstring \
+    php-xml php-curl php-zip php-intl php-gd php-bcmath unzip git curl openssl composer >/dev/null
+if ! php -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);' 2>/dev/null; then
+    echo "PHP $(php -r 'echo PHP_VERSION;' 2>/dev/null || echo '?') ist zu alt – das Notenportal braucht mindestens 8.3."
+    exit 1
+fi
 if ! command -v node >/dev/null || (( $(node -p 'process.versions.node.split(".")[0]') < 20 )); then
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
     apt-get install -y -qq nodejs >/dev/null
@@ -119,7 +127,16 @@ als "php artisan optimize --quiet"
 
 schritt "Webserver (Port $PORT)"
 a2enmod -q rewrite >/dev/null
-a2enmod -q php8.3 >/dev/null 2>&1 || true
+# Das Apache-Modul heisst je nach Ubuntu-Ausgabe php8.3, php8.5 …: den vorhandenen Namen nehmen.
+for MODUL in /etc/apache2/mods-available/php*.load; do
+    [[ -e "$MODUL" ]] && a2enmod -q "$(basename "$MODUL" .load)" >/dev/null 2>&1 || true
+done
+# Uploads: 2 MB Standard reichen für eine Modulkatalog-Ernte oder eine lange Notenliste nicht.
+for CONFD in /etc/php/*/apache2/conf.d; do
+    if [[ -d "$CONFD" ]]; then
+        printf 'upload_max_filesize = 16M\npost_max_size = 16M\n' > "$CONFD/99-notenportal.ini"
+    fi
+done
 grep -qE "^\s*Listen\s+$PORT\s*$" /etc/apache2/ports.conf || echo "Listen $PORT" >> /etc/apache2/ports.conf
 VHOST="/etc/apache2/sites-available/$NAME.conf"
 if [[ ! -f "$VHOST" ]]; then

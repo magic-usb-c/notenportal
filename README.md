@@ -48,7 +48,8 @@ sudo ./install.sh --neues-admin-passwort              neues Startpasswort, wenn 
 
 ### Was das Skript erledigt
 
-Pakete (Apache, MariaDB, PHP 8.3 samt Erweiterungen, Node 22, Composer) · Datenbank mit zwei
+Pakete (Apache, MariaDB, PHP der Distribution samt Erweiterungen – mindestens 8.3 –, Node 22,
+Composer) · Datenbank mit zwei
 Benutzern – einer nur für Daten, einer für Schemaänderungen · `.env` mit Zufallspasswörtern und
 Produktionswerten · Anwendungsschlüssel · Migrationen · Grundstammdaten (Rollen, Kategorien) ·
 erstes Admin-Konto · Oberfläche bauen · Apache-VirtualHost und Port · Firewall-Freigabe, falls
