@@ -1,7 +1,7 @@
 {{-- Abgabetermin erfassen/bearbeiten (Rückmeldung #14) – nur möglich, wenn ein einzelner Lernender gefiltert ist. --}}
 @php
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
 @endphp
@@ -10,6 +10,8 @@
     @csrf
     @if($b)
         @method('PUT')
+    @else
+        <input type="hidden" name="_drawer" value="abgabetermin">
     @endif
     <input type="hidden" name="lernender_id" value="{{ $filter['lernender_id'] }}">
 

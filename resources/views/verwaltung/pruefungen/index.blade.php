@@ -4,8 +4,7 @@
         <x-seitenkopf :titel="__('Prüfungstermine')" :zaehler="$anzahl">
             <x-slot:aktionen>
                 @if($abgabeMoeglich)
-                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" x-data
-                       @click.prevent="$dispatch('open-drawer', 'abgabetermin')"
+                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'abgabetermin')" @endunless
                        class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
                         <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Abgabetermin') }}
                     </a>
@@ -79,8 +78,7 @@
                                 </div>
                                 @if($abgabeMoeglich && $p->istAbgabe())
                                     <div class="mt-2 flex items-center gap-3 text-xs">
-                                        <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}" x-data
-                                           @click.prevent="$dispatch('open-drawer', 'abgabetermin'); $nextTick(() => window.history.replaceState(null, '', $el.href))"
+                                        <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
                                            class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
                                         <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}"
                                               onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -140,8 +138,7 @@
                                         @if($abgabeMoeglich)
                                             <td class="h-11 px-3 text-right text-xs whitespace-nowrap">
                                                 @if($p->istAbgabe())
-                                                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}" x-data
-                                                       @click.prevent="$dispatch('open-drawer', 'abgabetermin'); $nextTick(() => window.history.replaceState(null, '', $el.href))"
+                                                    <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
                                                        class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
                                                     <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}" class="inline"
                                                           onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -168,7 +165,7 @@
     </div>
 
     @if($abgabeMoeglich)
-        <x-drawer name="abgabetermin" :offen="$bearbeiten || request()->has('planen')" :titel="$bearbeiten ? __('Abgabetermin bearbeiten') : __('Abgabetermin erfassen')">
+        <x-drawer name="abgabetermin" :offen="$bearbeiten || request()->has('planen') || old('_drawer') === 'abgabetermin'" :titel="$bearbeiten ? __('Abgabetermin bearbeiten') : __('Abgabetermin erfassen')">
             @include('verwaltung.pruefungen._abgabe_form')
         </x-drawer>
     @endif

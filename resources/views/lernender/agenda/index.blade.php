@@ -13,7 +13,7 @@
             <x-slot:aktionen>
                 <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Kalender-Abo') }}</a>
                 <a href="{{ route('learner.grades.calculator') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Was brauche ich?') }}</a>
-                <a href="{{ route('learner.exams.index') }}?planen=1" x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">{{ __('Prüfung planen') }}</a>
+                <a href="{{ route('learner.exams.index') }}?planen=1" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" @endunless class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">{{ __('Prüfung planen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>

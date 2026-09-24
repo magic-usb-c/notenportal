@@ -149,6 +149,27 @@ class AbgabeterminTest extends TestCase
     }
 
     #[Test]
+    public function bearbeiten_laedt_das_ausgefuellte_formular_und_fehler_oeffnen_den_drawer_wieder(): void
+    {
+        $lernender = $this->lernender();
+        $admin = $this->verwalter('admin', $lernender);
+        $termin = Pruefung::create([
+            'lernender_id' => $lernender->lernender_id, 'modul_id' => $this->modul, 'art' => Pruefung::ART_ABGABE,
+            'titel' => 'Entwurf', 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 20, 'quelle' => Pruefung::MANUELL,
+        ]);
+        $liste = route('admin.exams.index', ['lernender_id' => $lernender->lernender_id]);
+        $bearbeiten = route('admin.exams.index', ['lernender_id' => $lernender->lernender_id, 'bearbeiten' => $termin->pruefung_id]);
+
+        // Der Link lädt die Seite mit dem Termin im Formular, statt den leeren Erfassen-Drawer zu öffnen.
+        $this->actingAs($admin)->get($liste)->assertSee('bearbeiten='.$termin->pruefung_id, false)->assertDontSee('replaceState', false);
+        $this->actingAs($admin)->get($bearbeiten)->assertSee('offen: true', false)->assertSee('value="Entwurf"', false);
+
+        $this->followingRedirects()->actingAs($admin)->from($liste)->post(route('admin.exams.store'), [
+            '_drawer' => 'abgabetermin', 'lernender_id' => $lernender->lernender_id, 'titel' => 'Ohne Datum',
+        ])->assertSee('offen: true', false)->assertSee('value="Ohne Datum"', false);
+    }
+
+    #[Test]
     public function admin_sieht_das_formular_erst_wenn_ein_lernender_gefiltert_ist(): void
     {
         $lernender = $this->lernender();
