@@ -147,4 +147,28 @@ class EinrichtungTest extends TestCase
         $this->assertSame('Datenbanken', $ergebnis['module'][1]['titel']);
         $this->assertSame(['keine Nummer'], $ergebnis['fehler']);
     }
+
+    #[Test]
+    public function mehrere_lernende_lassen_sich_auch_nach_abgeschlossener_einrichtung_anlegen(): void
+    {
+        // Die Einrichtung ist der einzige Weg, mehrere Lernende auf einmal anzulegen – einzeln geht
+        // es sonst nur über admin.learners.create. Sie bleibt deshalb bewusst auch nach dem Abschluss
+        // offen: ein Betrieb nimmt jedes Jahr einen neuen Jahrgang auf.
+        Einrichtung::abschliessen();
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->get(route('admin.setup', 'people'))->assertOk();
+
+        $this->post(route('admin.setup.learners'), ['lernende' => [
+            ['vorname' => 'Reto', 'nachname' => 'Amrein', 'email' => 'ra@betrieb.ch',
+                'lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2026-08-01'],
+            ['vorname' => 'Sara', 'nachname' => 'Frei', 'email' => 'sf@betrieb.ch',
+                'lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2026-08-01'],
+        ]])->assertSessionHasNoErrors()->assertRedirect(route('admin.setup', 'people'));
+
+        $this->assertSame(2, Lernender::whereHas('benutzer',
+            fn ($q) => $q->whereIn('email', ['ra@betrieb.ch', 'sf@betrieb.ch']))->count());
+        $this->assertFalse(Einrichtung::offen(), 'Das Anlegen darf die abgeschlossene Einrichtung nicht wieder öffnen.');
+    }
 }
