@@ -42,10 +42,9 @@
                     <li>{{ $eintrag['label'] }}: {{ __('Kalender meldet: :wert', ['wert' => $eintrag['wert']]) }}</li>
                 @endforeach
             </ul>
-            <form method="POST" action="{{ route('learner.exams.unlock', $b->pruefung_id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                @csrf
-                <button :disabled="loading" class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs disabled:opacity-60">{{ __('Wieder vom Kalender übernehmen') }}</button>
-            </form>
+            <div>
+                <button form="pruefung-entsperren" class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs">{{ __('Wieder vom Kalender übernehmen') }}</button>
+            </div>
         </div>
     @endif
 
@@ -144,21 +143,15 @@
             @forelse($b->dokumente as $d)
                 <div class="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                     <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="text-sm text-accent-text hover:underline truncate">{{ $d->titel }}</a>
-                    <form method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" onsubmit="return confirm('{{ __('Anhang entfernen?') }}');">
-                        @csrf @method('DELETE')
-                        <button class="text-muted hover:text-red-600 dark:hover:text-red-400 text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
-                    </form>
+                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="text-muted hover:text-red-600 dark:hover:text-red-400 text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
                 </div>
             @empty
                 <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
             @endforelse
-            <form method="POST" action="{{ route('learner.documents.store') }}" enctype="multipart/form-data" class="flex items-center gap-2">
-                @csrf
-                <input type="hidden" name="art" value="pruefung">
-                <input type="hidden" name="pruefung_id" value="{{ $b->pruefung_id }}">
-                <input type="file" name="datei" required class="text-sm text-muted flex-1 min-w-0" aria-label="{{ __('Datei anhängen') }}">
-                <button class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">{{ __('Anhängen') }}</button>
-            </form>
+            <div class="flex items-center gap-2">
+                <input type="file" name="datei" form="anhang-hochladen" required class="text-sm text-muted flex-1 min-w-0" aria-label="{{ __('Datei anhängen') }}">
+                <button form="anhang-hochladen" class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">{{ __('Anhängen') }}</button>
+            </div>
             @error('datei')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     @else
@@ -170,3 +163,23 @@
         <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Planen') }}</button>
     </div>
 </form>
+
+{{-- Eigenständige Formulare ausserhalb des Hauptformulars: HTML erlaubt keine verschachtelten
+     <form>, die Knöpfe oben hängen sich über das form-Attribut an. --}}
+@if($b)
+    @if($b->quelle === \App\Models\Pruefung::ICAL && filled($b->lokal_gesperrt))
+        <form id="pruefung-entsperren" method="POST" action="{{ route('learner.exams.unlock', $b->pruefung_id) }}" class="hidden">
+            @csrf
+        </form>
+    @endif
+    @foreach($b->dokumente as $d)
+        <form id="anhang-entfernen-{{ $d->dokument_id }}" method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" onsubmit="return confirm('{{ __('Anhang entfernen?') }}');" class="hidden">
+            @csrf @method('DELETE')
+        </form>
+    @endforeach
+    <form id="anhang-hochladen" method="POST" action="{{ route('learner.documents.store') }}" enctype="multipart/form-data" class="hidden">
+        @csrf
+        <input type="hidden" name="art" value="pruefung">
+        <input type="hidden" name="pruefung_id" value="{{ $b->pruefung_id }}">
+    </form>
+@endif

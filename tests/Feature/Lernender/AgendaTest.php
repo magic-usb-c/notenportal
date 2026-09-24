@@ -179,6 +179,47 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function bearbeiten_formular_mit_anhang_und_sperre_verschachtelt_keine_formulare(): void
+    {
+        // Ein <form> in einem <form> verwirft der Browser: das innere </form> schliesst das äussere,
+        // «Speichern» steht danach ausserhalb jedes Formulars und das Entfernen eines Anhangs schickt
+        // DELETE an die Prüfung selbst.
+        $p = $this->planen();
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'art' => 'pruefung', 'pruefung_id' => $p->pruefung_id,
+            'datei' => UploadedFile::fake()->create('unterlagen.pdf', 100, 'application/pdf'),
+        ])->assertSessionHasNoErrors();
+        $p->update(['quelle' => Pruefung::ICAL, 'extern_uid' => 'exam-x', 'calendar_feed_id' => $this->feed()->id, 'lokal_gesperrt' => ['titel' => 'Alt']]);
+
+        $html = $this->actingAs($this->user)->get(route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]))
+            ->assertOk()->getContent();
+
+        $tiefe = 0;
+        preg_match_all('#<form\b|</form>#i', $html, $treffer);
+        foreach ($treffer[0] as $tag) {
+            $tiefe += str_starts_with($tag, '</') ? -1 : 1;
+            $this->assertLessThanOrEqual(1, $tiefe, 'Verschachteltes <form> im Bearbeiten-Drawer');
+        }
+        $this->assertStringContainsString('form="anhang-entfernen-'.Dokument::sole()->dokument_id.'"', $html);
+        $this->assertStringContainsString('form="pruefung-entsperren"', $html);
+    }
+
+    #[Test]
+    public function entfernen_eines_pruefungsanhangs_fuehrt_zurueck_zur_pruefung(): void
+    {
+        $p = $this->planen();
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'art' => 'pruefung', 'pruefung_id' => $p->pruefung_id,
+            'datei' => UploadedFile::fake()->create('unterlagen.pdf', 100, 'application/pdf'),
+        ]);
+        $zurueck = route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]);
+
+        $this->actingAs($this->user)->from($zurueck)->delete(route('learner.documents.destroy', Dokument::sole()->dokument_id))
+            ->assertRedirect($zurueck)->assertSessionHas('success');
+        $this->assertModelExists($p);
+    }
+
+    #[Test]
     public function anhang_an_fremde_pruefung_wird_abgelehnt(): void
     {
         $p = $this->planen();

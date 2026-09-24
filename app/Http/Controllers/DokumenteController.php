@@ -77,6 +77,10 @@ class DokumenteController extends Controller
 
         $this->ablage->loeschen($dokument);
 
+        if ($dokument->pruefung_id) {
+            return back()->with('success', __('«:titel» gelöscht.', ['titel' => $dokument->titel]));
+        }
+
         return redirect($this->route($bereich, $lernender, 'index'))->with('success', __('«:titel» gelöscht.', ['titel' => $dokument->titel]));
     }
 
