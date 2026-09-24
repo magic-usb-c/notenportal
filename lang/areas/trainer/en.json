@@ -250,6 +250,6 @@
     "seit :tage Tagen keine Note": ":tage days without a grade",
     "vor :tage": ":tage ago",
     "Ø gesamt": "Overall avg.",
-    "Ø unter 4.0": "Avg. below 4.0",
-    "Übersicht": "Overview"
+    "Übersicht": "Overview",
+    "Ø unter :grenze": "Avg. below :grenze"
 }

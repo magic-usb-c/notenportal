@@ -85,7 +85,7 @@
                     <label for="warnung" class="sr-only">{{ __('Warnung') }}</label>
                     <select name="warnung" id="warnung" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
                         <option value="">{{ __('Warnung: alle') }}</option>
-                        <option value="tief_avg" @selected($filter['warnung'] === 'tief_avg')>{{ __('Ø unter 4.0') }}</option>
+                        <option value="tief_avg" @selected($filter['warnung'] === 'tief_avg')>{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</option>
                         <option value="keine_noten" @selected($filter['warnung'] === 'keine_noten')>{{ __('Kein Eintrag seit 30 Tagen') }}</option>
                         @if($bereich === 'admin')
                             <option value="ohne_betreuung" @selected($filter['warnung'] === 'ohne_betreuung')>{{ __('Ohne Berufsbildner') }}</option>
@@ -212,8 +212,8 @@
                                                     {{ $tagSeit === null ? __('Keine Noten') : __(':tage kein Eintrag', ['tage' => $tagSeit.'d']) }}
                                                 </span>
                                             @endif
-                                            @if($z->avg !== null && $z->avg < 4.0)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-ungenuegend/10 text-note-ungenuegend">{{ __('Ø unter 4.0') }}</span>
+                                            @if($z->avg !== null && $z->avg < $grenze)
+                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-ungenuegend/10 text-note-ungenuegend">{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</span>
                                             @endif
                                             @if($z->ungelesen > 0)
                                                 <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold bg-accent text-accent-contrast">{{ __(':anzahl neu', ['anzahl' => $z->ungelesen]) }}</span>

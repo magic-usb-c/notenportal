@@ -515,9 +515,7 @@
     "z.B. M100": "e.g. M100",
     "Änderungen speichern": "Save changes",
     "Öffentlicher Schlüssel für authorized_keys am Ziel": "Public key for authorized_keys on the target",
-    "Ø < 4.0": "Ø < 4.0",
     "Ø Gesamtnote": "Ø overall grade",
-    "Ø aktuelles Semester unter 4.0": "Ø current semester below 4.0",
     "Übersicht": "Overview",
     "Überspringen": "Skip",
     "– älter als zwei Tage": "– older than two days",
@@ -566,5 +564,7 @@
     "Keine Meldungen für diese Filter.": "No reports match these filters.",
     "Duplikat kann nicht auf sich selbst zeigen.": "A report cannot duplicate itself.",
     "Meldung als Duplikat markiert": "Report marked as duplicate",
-    "Duplikat-Markierung aufgehoben": "Duplicate mark removed"
+    "Duplikat-Markierung aufgehoben": "Duplicate mark removed",
+    "Ø < :grenze": "Ø < :grenze",
+    "Gesamtschnitt unter :grenze": "Overall average below :grenze"
 }

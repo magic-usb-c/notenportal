@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auswertung\LernstandRechner;
+use App\Support\NotenSkala;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class BerufsbildnerController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, LernstandRechner $lernstaende)
     {
         $today = now()->toDateString();
         $cutoff = now()->subDays(30)->toDateString();
@@ -29,6 +31,7 @@ class BerufsbildnerController extends Controller
             return view('admin.berufsbildner.index', [
                 'berufsbildner' => collect(),
                 'stats' => collect(),
+                'grenze' => NotenSkala::genuegend(),
             ]);
         }
 
@@ -70,22 +73,8 @@ class BerufsbildnerController extends Controller
             ->get()
             ->keyBy('berufsbildner_id');
 
-        // Lernende mit Ø akt. Semester < 4.0 je BB
-        $semAvgs = DB::table('noten as n')
-            ->join('semester as s', 's.semester_id', '=', 'n.semester_id')
-            ->whereNull('n.geloescht_am')
-            ->where('s.start_datum', '<=', $today)
-            ->where('s.end_datum', '>=', $today)
-            ->groupBy('n.lernender_id')
-            ->select([
-                'n.lernender_id',
-                DB::raw('SUM(n.note_wert * COALESCE(n.gewichtung_prozent, 100)) / NULLIF(SUM(COALESCE(n.gewichtung_prozent, 100)), 0) as avg'),
-            ])
-            ->get()
-            ->keyBy('lernender_id');
-
-        // Lernende pro BB mit tiefem Ø
-        $tiefAvgCount = DB::table('betreuungen as bt')
+        // Lernende pro BB mit ungenügendem Gesamtschnitt – dieselbe Kennzahl wie der Filter «tief_avg» der Lernendenliste
+        $betreut = DB::table('betreuungen as bt')
             ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
             ->whereIn('bt.berufsbildner_id', $bbIds)
@@ -95,12 +84,15 @@ class BerufsbildnerController extends Controller
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
             ->select(['bt.berufsbildner_id', 'l.lernender_id'])
-            ->get()
+            ->get();
+        $staende = $lernstaende->fuer($betreut->pluck('lernender_id')->map(fn ($v) => (int) $v)->unique()->values()->all());
+        $grenze = NotenSkala::genuegend();
+        $tiefAvgCount = $betreut
             ->groupBy('berufsbildner_id')
-            ->map(fn ($rows) => $rows->filter(function ($r) use ($semAvgs) {
-                $avg = $semAvgs->get((int) $r->lernender_id)?->avg;
+            ->map(fn ($rows) => $rows->filter(function ($r) use ($staende, $grenze) {
+                $avg = $staende[(int) $r->lernender_id]->auswertung->gesamtNote;
 
-                return $avg !== null && (float) $avg < 4.0;
+                return $avg !== null && $avg < $grenze;
             })->count());
 
         $stats = $berufsbildner->map(function ($bb) use ($lernendeCount, $ohneNotenCount, $tiefAvgCount) {
@@ -114,6 +106,6 @@ class BerufsbildnerController extends Controller
             ];
         })->keyBy('berufsbildner_id');
 
-        return view('admin.berufsbildner.index', compact('berufsbildner', 'stats'));
+        return view('admin.berufsbildner.index', compact('berufsbildner', 'stats', 'grenze'));
     }
 }

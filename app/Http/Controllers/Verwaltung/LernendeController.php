@@ -10,6 +10,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
 use App\Services\Uebersicht;
+use App\Support\NotenSkala;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,9 +80,10 @@ class LernendeController extends VerwaltungController
         $zeilen = $this->mitStatistik($lernende, (int) $user->benutzer_id);
 
         $cutoff = now()->subDays(30)->toDateString();
+        $grenze = NotenSkala::genuegend();
         $zeilen = $zeilen
             ->when($filter['lehrjahr'], fn ($z, $jahr) => $z->filter(fn ($r) => $r->lehrjahr === $jahr))
-            ->when($filter['warnung'] === 'tief_avg', fn ($z) => $z->filter(fn ($r) => $r->avg !== null && $r->avg < 4.0))
+            ->when($filter['warnung'] === 'tief_avg', fn ($z) => $z->filter(fn ($r) => $r->avg !== null && $r->avg < $grenze))
             ->when($filter['warnung'] === 'keine_noten', fn ($z) => $z->filter(fn ($r) => ! $r->lastNote || $r->lastNote < $cutoff))
             ->when($filter['warnung'] === 'ohne_betreuung', fn ($z) => $z->filter(fn ($r) => ! $r->betreuer))
             ->when($filter['warnung'] === 'ohne_track', fn ($z) => $z->filter(fn ($r) => ! $r->trackAktiv));
@@ -97,6 +99,7 @@ class LernendeController extends VerwaltungController
         return view('verwaltung.lernende.index', [
             'zeilen' => $zeilen->values(),
             'filter' => $filter,
+            'grenze' => $grenze,
             'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['lehrberuf_id', 'name']),
             'berufsbildnerListe' => $istAdmin ? $this->berufsbildnerListe() : collect(),
         ]);

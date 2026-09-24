@@ -28,7 +28,7 @@
                                     <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Berufsbildner') }}</th>
                                     <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
                                     <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < 4.0') }}</th>
+                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
                                     <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
@@ -111,7 +111,7 @@
                     </span>
                     <span class="flex items-center gap-1.5">
                         <span class="inline-block w-3 h-3 rounded-sm bg-note-ungenuegend"></span>
-                        {{ __('Ø aktuelles Semester unter 4.0') }}
+                        {{ __('Gesamtschnitt unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}
                     </span>
                     <span class="text-muted">{{ __('Klick auf Zahl → gefilterte Lernenden-Liste') }}</span>
                 </div>
