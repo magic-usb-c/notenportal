@@ -30,7 +30,7 @@ final class LernstandRechner
         $auswertungen = $this->quelle->auswertungen($lernenderIds);
         $letzte = DB::table('noten')->whereIn('lernender_id', $lernenderIds)->whereNull('geloescht_am')
             ->groupBy('lernender_id')->selectRaw('lernender_id, MAX(pruefungsdatum) as letzte')->pluck('letzte', 'lernender_id');
-        $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->where('datum', '<', now()->toDateString())
+        $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->whereNull('note_id')->whereNull('abgesagt_am')->where('datum', '<', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, COUNT(*) as anzahl')->pluck('anzahl', 'lernender_id');
         $lehrbeginn = DB::table('lernende')->whereIn('lernender_id', $lernenderIds)->pluck('lehrbeginn', 'lernender_id');
         // In einem Rutsch vorladen statt pro Person: verhindert N+1 bei Lehrsemester::nummer()

@@ -15,6 +15,7 @@ use App\Models\Semester;
 use App\Models\User;
 use App\Models\Ziel;
 use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Rechner;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -240,6 +241,24 @@ class RechnerTest extends TestCase
         $this->actingAs($andere)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertNotFound();
         $this->actingAs($this->user)->delete(route('learner.goals.destroy', Ziel::sole()->ziel_id))->assertRedirect();
         $this->assertDatabaseCount('ziele', 0);
+    }
+
+    #[Test]
+    public function ueberfaellig_zaehlt_nur_offene_pruefungen_nicht_benotete_oder_abgesagte(): void
+    {
+        $this->modulNote(4.5, 100);
+        $basis = [
+            'lernender_id' => $this->lernender->lernender_id, 'fach_id' => $this->fach->fach_id,
+            'datum' => now()->subWeek()->toDateString(), 'gewichtung_prozent' => 100, 'quelle' => Pruefung::MANUELL,
+        ];
+        Pruefung::create($basis + ['note_id' => Note::sole()->note_id]);
+        Pruefung::create($basis + ['abgesagt_am' => now()]);
+
+        $this->assertSame(0, app(LernstandRechner::class)->fuer([$this->lernender->lernender_id])[$this->lernender->lernender_id]->ueberfaellig);
+
+        Pruefung::create($basis);
+
+        $this->assertSame(1, app(LernstandRechner::class)->fuer([$this->lernender->lernender_id])[$this->lernender->lernender_id]->ueberfaellig);
     }
 
     #[Test]
