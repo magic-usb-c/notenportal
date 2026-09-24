@@ -518,6 +518,12 @@ aus dem README wörtlich ausführen, ohne Vorbereitung und ohne Nacharbeit, und 
 `php artisan notenportal:bereitschaft` sowie einen Aufruf von `/login` prüfen. Erst dieser Lauf
 schliesst «github installations ready» ab; bis dahin gilt der Weg als belegt, aber nicht bewiesen.
 
+Nicht auf dieser Maschine: Der Produktionsserver trägt das laufende Portal, hat rund 4,5 GB freien
+Arbeitsspeicher und steht kurz vor dem Go-Live. Eine Probeinstallation in einem Container hier
+würde eine Netzbrücke und Firewallregeln neben den laufenden Apache setzen – dafür ist der
+Nachweis zu billig und das Risiko zu teuer. Er gehört auf eine eigene, leere VM (24.04 oder 26.04),
+wo ein misslungener Lauf nichts kostet.
+
 ## Modulseiten auf 390 Pixel ungeprüft (14.09.2026)
 
 Die drei neuen Seiten unter `/modules` (Liste, Detail mit Unterlagen, Formular) sind auf dem
