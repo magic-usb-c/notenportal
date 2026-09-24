@@ -563,3 +563,10 @@ Regressionstest (fällt ohne Fix):
   «Bearbeiten» eines Abgabetermins öffnete das leere Erfassen-Formular.
 - Restliche Palettenfarben (`text-red-600`, `text-white` auf Accent, Gelb) in Auth-, Agenda-,
   Einrichtungs- und Kalender-Views durch Tokens ersetzt.
+- Kalenderfehler mehrerer Lernender erschienen als ein einziger Handlungsbedarf ohne Link auf die Person.
+- Pilot-Vorbereitung löschte Feedback innerhalb der Transaktion (Dateien weg, Rollback liesse Zeilen stehen).
+
+Nachprüfung (read-only) ohne Befund: Mails/Benachrichtigungen (Empfänger, Idempotenz, signierte
+Abmeldelinks, Fehler pro Empfänger), Import (Berechtigung, Encoding, Transaktion, Dubletten, SSRF)
+und Berufsbildner-Abläufe (nur aktive Betreuung, verschachtelte Objekte über den Lernenden).
+Seit 24.09. prüft CI (`.github/workflows/tests.yml`) jeden Pull Request mit Pint, Build, ss und Tests.
