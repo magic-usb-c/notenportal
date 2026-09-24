@@ -45,6 +45,10 @@ php artisan test tests/Feature/Lernender                # ein Ordner
 DB_DATABASE=notenportal_b_test php artisan test         # zweite DB für parallele Läufe
 ```
 
+Jeder Pull Request und jeder Push auf `main` durchläuft `.github/workflows/tests.yml`:
+`vendor/bin/pint --test`, `npm run build`, die ss-Prüfung der Views und die ganze Testsuite
+gegen MariaDB 10.11. Lokal vorher dieselben Befehle laufen lassen spart eine Runde.
+
 ## Regeln für Code und Texte
 
 - **Sprache**: Die Oberfläche ist deutsch in Schweizer Hochdeutsch, also durchgehend **ss**
