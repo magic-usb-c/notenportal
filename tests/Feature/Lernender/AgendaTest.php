@@ -552,6 +552,17 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function export_link_eines_deaktivierten_kontos_liefert_nichts(): void
+    {
+        $this->planen();
+        $token = CalendarExport::token($this->user);
+        $this->user->update(['aktiv' => false]);
+        $this->app['auth']->forgetGuards();
+
+        $this->get(route('calendar.export', ['token' => $token]))->assertNotFound();
+    }
+
+    #[Test]
     public function export_token_kann_neu_erzeugt_werden_und_alter_link_verliert_gueltigkeit(): void
     {
         $this->planen();

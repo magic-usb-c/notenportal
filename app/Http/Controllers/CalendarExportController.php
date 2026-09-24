@@ -16,7 +16,7 @@ class CalendarExportController extends Controller
 {
     public function __invoke(string $token, CalendarExport $export): Response
     {
-        $user = User::where('kalender_token', $token)->firstOrFail();
+        $user = User::where('kalender_token', $token)->where('aktiv', true)->firstOrFail();
 
         return response($export->forUser($user), 200, [
             'Content-Type' => 'text/calendar; charset=utf-8',

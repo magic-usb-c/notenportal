@@ -95,8 +95,8 @@ class NotenExportController extends VerwaltungController
                 $fachModul = $r->fach_name ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
                 $zeile = [
                     $r->pruefungsdatum ? Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
-                    $r->semester_bezeichnung,
-                    $r->kategorie_name ?? '',
+                    Csv::safe($r->semester_bezeichnung),
+                    Csv::safe($r->kategorie_name ?? ''),
                     Csv::safe($fachModul),
                     Csv::safe($r->titel ?? ''),
                     number_format((float) $r->note_wert, 2, '.', ''),
