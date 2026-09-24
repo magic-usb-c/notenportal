@@ -83,11 +83,12 @@ class ModulController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->nummerVereinheitlichen($request);
         $daten = $request->validate($this->regeln(null));
 
         $modul = DB::transaction(function () use ($daten, $request) {
             $modul = Modul::create([
-                'modul_nummer' => mb_strtoupper(trim($daten['modul_nummer'])),
+                'modul_nummer' => $daten['modul_nummer'],
                 'titel' => $daten['titel'],
                 'version' => $daten['version'] ?? null,
                 'beschreibung' => $daten['beschreibung'] ?? null,
@@ -122,6 +123,7 @@ class ModulController extends Controller
     public function update(Request $request, int $modul_id): RedirectResponse
     {
         $modul = Modul::query()->findOrFail($modul_id);
+        $this->nummerVereinheitlichen($request);
         $daten = $request->validate($this->regeln($modul_id));
         $this->standPruefen($request, $modul);
 
@@ -135,7 +137,7 @@ class ModulController extends Controller
 
             // Die Nummer ist die Identität des Moduls: an ihr hängen fremde Noten. Nur Admins ändern sie.
             if ($this->darfNummerAendern($request)) {
-                $werte['modul_nummer'] = mb_strtoupper(trim($daten['modul_nummer']));
+                $werte['modul_nummer'] = $daten['modul_nummer'];
             }
 
             $modul->update($werte);
@@ -211,6 +213,14 @@ class ModulController extends Controller
             throw ValidationException::withMessages([
                 'handlungsziele' => __('Jemand anderes hat dieses Modul inzwischen geändert. Öffne die Seite neu und trag deine Ergänzung dort ein, damit nichts verloren geht.'),
             ]);
+        }
+    }
+
+    /** Grossschreibung vor der Prüfung: sie kann die Länge ändern (ß → SS) und muss auch für «unique» gelten. */
+    private function nummerVereinheitlichen(Request $request): void
+    {
+        if (is_string($request->input('modul_nummer'))) {
+            $request->merge(['modul_nummer' => mb_strtoupper(trim($request->input('modul_nummer')))]);
         }
     }
 

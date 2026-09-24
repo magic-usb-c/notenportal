@@ -43,6 +43,16 @@ class GemeinsameModuleTest extends TestCase
     }
 
     #[Test]
+    public function modulnummer_wird_nach_der_grossschreibung_auf_laenge_geprueft(): void
+    {
+        $this->actingAs($this->lernender())
+            ->post(route('modules.store'), ['modul_nummer' => str_repeat('ß', 30), 'titel' => 'Zu lang'])
+            ->assertSessionHasErrors('modul_nummer');
+
+        $this->assertSame(0, DB::table('module')->where('titel', 'Zu lang')->count());
+    }
+
+    #[Test]
     public function jede_rolle_darf_ein_fehlendes_modul_anlegen_und_alle_sehen_es(): void
     {
         $this->actingAs($this->lernender())
