@@ -166,6 +166,7 @@ class CalendarExportTest extends TestCase
         ]);
         $termin(['summary' => 'Elternabend', 'description' => 'Aula', 'location' => 'Chur', 'ends_at' => now()->addDays(3)->setTime(9, 30)]);
         $termin(['summary' => 'Sporttag', 'all_day' => true, 'starts_at' => now()->addDays(4)->startOfDay()]);
+        $termin(['summary' => 'Lager', 'all_day' => true, 'starts_at' => now()->addDays(5)->startOfDay(), 'ends_at' => now()->addDays(8)->startOfDay()]);
         $termin(['summary' => 'Lektion Mathe', 'kind' => CalendarEvent::LESSON]);
         $termin(['summary' => 'Alter Termin', 'starts_at' => now()->subDays(90)]);
 
@@ -173,7 +174,7 @@ class CalendarExportTest extends TestCase
             ->keyBy(fn ($e) => (string) $e->SUMMARY);
 
         $this->assertEqualsCanonicalizing(
-            ['Elternabend', 'Sporttag'],
+            ['Elternabend', 'Sporttag', 'Lager'],
             $events->keys()->reject(fn ($s) => str_contains($s, 'Prüfung'))->values()->all(),
         );
         $elternabend = $events['Elternabend'];
@@ -181,6 +182,8 @@ class CalendarExportTest extends TestCase
         $this->assertSame('Chur', (string) $elternabend->LOCATION);
         $this->assertSame(90 * 60, $elternabend->DTEND->getDateTime()->getTimestamp() - $elternabend->DTSTART->getDateTime()->getTimestamp());
         $this->assertFalse($events['Sporttag']->DTSTART->hasTime(), 'Ganztägige Termine als DATE ohne Uhrzeit.');
+        $this->assertSame(now()->addDays(5)->format('Ymd'), (string) $events['Sporttag']->DTEND);
+        $this->assertSame(now()->addDays(8)->format('Ymd'), (string) $events['Lager']->DTEND, 'Mehrtägige Ganztagestermine behalten ihr Ende.');
 
         // Berufsbildner-Abo enthält nur Prüfungen, nie die privaten Termine der Lernenden.
         $bb = User::factory()->berufsbildner()->create();

@@ -153,11 +153,14 @@ final class CalendarExport
         }
         $start = $e->starts_at->toDateTimeImmutable();
         $minuten = $e->ends_at ? max(1, (int) $e->starts_at->diffInMinutes($e->ends_at)) : 60;
-        $this->zeit($event, $start, ! $e->all_day, $minuten);
+        // Mehrtägige Ganztagestermine: ends_at ist das exklusive DTEND des Quellkalenders.
+        $ende = $e->all_day && $e->ends_at && $e->ends_at->toDateString() > $e->starts_at->toDateString()
+            ? $e->ends_at->toDateTimeImmutable() : null;
+        $this->zeit($event, $start, ! $e->all_day, $minuten, $ende);
     }
 
     /** Zeiten in UTC (von allen Kalendern verstanden), ganztägige als DATE. */
-    private function zeit($event, DateTimeImmutable $start, bool $mitZeit, int $minuten): void
+    private function zeit($event, DateTimeImmutable $start, bool $mitZeit, int $minuten, ?DateTimeImmutable $endeGanztags = null): void
     {
         if ($mitZeit) {
             $utc = $start->setTimezone(new DateTimeZone('UTC'));
@@ -165,7 +168,7 @@ final class CalendarExport
             $event->add('DTEND', $utc->modify('+'.$minuten.' minutes'));
         } else {
             $event->add('DTSTART', $start, ['VALUE' => 'DATE']);
-            $event->add('DTEND', $start->modify('+1 day'), ['VALUE' => 'DATE']);
+            $event->add('DTEND', $endeGanztags ?? $start->modify('+1 day'), ['VALUE' => 'DATE']);
         }
     }
 }
