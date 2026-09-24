@@ -316,16 +316,17 @@ final class Uebersicht
         $kalenderFehler = CalendarFeed::query()->where('last_status', CalendarFeed::ERROR)
             ->whereHas('lernender', fn ($q) => $q->whereNull('geloescht_am'))
             ->with('lernender.benutzer')->get();
-        if ($kalenderFehler->isNotEmpty()) {
-            $anzahl = $kalenderFehler->count();
-            $ersterLernender = $kalenderFehler->first()->lernender;
+        // Ein Eintrag je betroffene Person: es gibt keine Admin-Liste aller Feeds, der Link führt zur Person.
+        foreach ($kalenderFehler->groupBy('lernender_id') as $feeds) {
+            $anzahl = $feeds->count();
+            $lernender = $feeds->first()->lernender;
             $eintraege[] = [
                 'text' => $anzahl === 1 ? __('1 Kalenderabgleich mit Fehler') : __(':anzahl Kalenderabgleiche mit Fehlern', ['anzahl' => $anzahl]),
-                'meta' => $anzahl === 1 ? $ersterLernender->benutzer->vorname.' '.$ersterLernender->benutzer->nachname : null,
+                'meta' => $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname,
                 'badge' => $anzahl,
                 'note' => null,
                 'ton' => 'gelb',
-                'link' => route('admin.learners.show', $ersterLernender->lernender_id),
+                'link' => route('admin.learners.show', $lernender->lernender_id),
             ];
         }
 

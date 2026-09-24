@@ -34,6 +34,10 @@ class PilotVorbereiten extends Command
             return self::SUCCESS;
         }
 
+        // Zuerst und über das Model, damit Screenshots und Anhänge auch von der Disk verschwinden.
+        // Bricht das ab, ist sonst noch nichts gelöscht und der Befehl lässt sich einfach wiederholen.
+        Feedback::query()->chunkById(100, fn ($meldungen) => $meldungen->each->delete());
+
         DB::transaction(function () {
             foreach (array_diff(self::TABELLEN, ['feedback']) as $tabelle) {
                 DB::table($tabelle)->delete();
@@ -41,9 +45,6 @@ class PilotVorbereiten extends Command
 
             DB::table('benutzer')->whereNull('geloescht_am')->update(['passwort_wechsel_noetig' => true]);
         });
-
-        // Über das Model, damit Screenshots und Anhänge auch von der Disk verschwinden.
-        Feedback::query()->chunkById(100, fn ($meldungen) => $meldungen->each->delete());
 
         $this->info('Testbetrieb vorbereitet.');
 

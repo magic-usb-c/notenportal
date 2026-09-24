@@ -107,4 +107,23 @@ class DashboardTest extends TestCase
             ->assertSee('Lea Muster')
             ->assertSee(route('admin.learners.show', $lernender->lernender->lernender_id), false);
     }
+
+    #[Test]
+    public function kalenderabgleich_fehler_mehrerer_lernender_verlinken_jede_person(): void
+    {
+        $admin = User::whereHas('rollen', fn ($q) => $q->where('name', 'Admin'))->firstOrFail();
+        $lea = User::factory()->lernender()->create(['vorname' => 'Lea', 'nachname' => 'Muster']);
+        $tim = User::factory()->lernender()->create(['vorname' => 'Tim', 'nachname' => 'Beispiel']);
+        foreach ([$lea, $tim] as $user) {
+            CalendarFeed::create([
+                'lernender_id' => $user->lernender->lernender_id, 'url' => 'https://schulnetz.example/ical/'.$user->benutzer_id,
+                'last_status' => CalendarFeed::ERROR, 'last_error' => 'Zeitüberschreitung',
+            ]);
+        }
+
+        $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk()
+            ->assertSee('Lea Muster')->assertSee('Tim Beispiel')
+            ->assertSee(route('admin.learners.show', $lea->lernender->lernender_id), false)
+            ->assertSee(route('admin.learners.show', $tim->lernender->lernender_id), false);
+    }
 }

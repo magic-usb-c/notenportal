@@ -5,8 +5,8 @@
      data-keepalive="{{ route('session.keep-alive') }}"
      data-login="{{ route('login') }}"
      data-logout="{{ route('logout') }}"
-     class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 print:hidden">
-    <div class="w-full max-w-sm rounded-xl bg-card p-6 shadow-lg">
+     class="fixed inset-0 z-[70] flex items-center justify-center glass-scrim p-4 print:hidden">
+    <div class="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-e3">
         <h2 id="np-sitzung-titel" class="text-base font-semibold text-text">{{ __('Du wirst gleich wegen Inaktivität abgemeldet.') }}</h2>
         <div class="mt-5 flex justify-end gap-3">
             <button type="button" id="np-sitzung-bleiben" class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">{{ __('Angemeldet bleiben') }}</button>
