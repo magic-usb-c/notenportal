@@ -146,9 +146,12 @@ class CheckNotifications extends Command
     private function semesterEnding(NotenQuelle $quelle): void
     {
         $tage = NotificationCatalog::param(NotificationCatalog::SEMESTER_ENDING, 'days_before');
-        $ziel = today()->addDays($tage)->toDateString();
+        // Zwei Tage Nachholfenster: fällt der Scheduler einmal aus, kommt die Erinnerung am nächsten Lauf;
+        // der once-Schlüssel je Semester und Lernendem verhindert den Doppelversand.
+        $von = today()->addDays(max(0, $tage - 2))->toDateString();
+        $bis = today()->addDays($tage)->toDateString();
 
-        $semester = Semester::query()->whereDate('end_datum', $ziel)->get();
+        $semester = Semester::query()->whereBetween('end_datum', [$von, $bis])->get();
         if ($semester->isEmpty()) {
             return;
         }

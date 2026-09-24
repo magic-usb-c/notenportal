@@ -114,6 +114,26 @@ class TaeglichePruefungTest extends TestCase
     }
 
     #[Test]
+    public function semesterende_wird_nach_ausgefallenem_lauf_genau_einmal_nachgeholt(): void
+    {
+        Notification::fake();
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        Semester::factory()->create([
+            'start_datum' => today()->subMonths(2)->toDateString(),
+            'end_datum' => today()->addDays(13)->toDateString(),
+        ]);
+        Pruefung::create([
+            'lernender_id' => $lernenderUser->lernender->lernender_id, 'fach_id' => Fach::factory()->create()->fach_id,
+            'titel' => 'Semesterprüfung', 'datum' => today()->addDays(5)->toDateString(), 'gewichtung_prozent' => 50,
+        ]);
+
+        $this->artisan('notifications:check');
+        $this->artisan('notifications:check');
+
+        $this->assertCount(1, Notification::sent($lernenderUser, PortalMail::class)->filter(fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_ENDING));
+    }
+
+    #[Test]
     public function semester_ohne_offene_punkte_wird_nicht_gemeldet(): void
     {
         Notification::fake();
