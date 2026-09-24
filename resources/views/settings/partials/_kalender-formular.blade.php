@@ -3,7 +3,7 @@
 @php
     $label = 'text-sm font-medium text-text';
     $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
-    $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
+    $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $idSuffix = $feed?->id ?? 'neu';
 @endphp
 <form method="POST" action="{{ route('learner.calendar.feed.store') }}" class="flex flex-col gap-4" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -17,7 +17,7 @@
     <div>
         <label for="feed_url_{{ $idSuffix }}" class="{{ $label }}">
             {{ __('iCal-Adresse') }}
-            @unless($feed)<span class="text-red-600 dark:text-red-400">*</span>@endunless
+            @unless($feed)<span class="text-note-ungenuegend">*</span>@endunless
         </label>
         {{-- Die bestehende Adresse ist ein Geheimnis und wird nie in dieses Feld eingesetzt. --}}
         <input id="feed_url_{{ $idSuffix }}" name="url" type="text" @unless($feed) required @endunless maxlength="2000"
@@ -40,5 +40,5 @@
             {{ __('Lektionen (Stundenplan)') }}
         </label>
     </fieldset>
-    <button :disabled="loading" class="h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
+    <button :disabled="loading" class="h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
 </form>

@@ -557,6 +557,34 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function nicht_verfuegbarer_bezug_bei_uebernahme_meldet_fehler_als_toast(): void
+    {
+        $event = CalendarEvent::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'calendar_feed_id' => $this->feed()->id, 'kind' => CalendarEvent::EXAM,
+            'uid' => 'exam-y', 'summary' => 'Prüfung', 'starts_at' => now()->addDays(3), 'all_day' => false,
+        ]);
+
+        $this->actingAs($this->user)->from(route('learner.exams.index'))->post(route('learner.exams.adopt', $event->id), [
+            'bezug' => 'modul:999999',
+        ])->assertRedirect(route('learner.exams.index'))->assertSessionHas('error');
+
+        $this->assertSame(0, Pruefung::count());
+    }
+
+    #[Test]
+    public function planen_drawer_oeffnet_nach_fehler_mit_eingaben_wieder(): void
+    {
+        $this->actingAs($this->user)->from(route('learner.exams.index'))
+            ->post(route('learner.exams.store'), ['_drawer' => 'pruefung', 'titel' => 'Ohne Datum'])
+            ->assertSessionHasErrors('datum');
+
+        $this->followingRedirects()->actingAs($this->user)->from(route('learner.exams.index'))
+            ->post(route('learner.exams.store'), ['_drawer' => 'pruefung', 'titel' => 'Ohne Datum'])
+            ->assertSee('offen: true', false)
+            ->assertSee('value="Ohne Datum"', false);
+    }
+
+    #[Test]
     public function fremde_erkannte_pruefung_kann_nicht_uebernommen_werden(): void
     {
         $event = CalendarEvent::create([

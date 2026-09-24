@@ -30,7 +30,7 @@
                             <form method="POST" action="{{ route('learner.calendar.feed.destroy', $f->id) }}" onsubmit="return confirm('{{ __('Kalender entfernen?') }}');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="loading" class="inline-flex items-center justify-center w-8 h-8 rounded-lg disabled:opacity-60 text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10" aria-label="{{ __('Entfernen') }}">×</button>
+                                <button :disabled="loading" class="inline-flex items-center justify-center w-8 h-8 rounded-lg disabled:opacity-60 text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Entfernen') }}">×</button>
                             </form>
                         </div>
                     </div>
@@ -43,7 +43,7 @@
                             <span>{{ __('Noch nicht abgeglichen.') }}</span>
                         @endif
                         @if($f->last_status === \App\Models\CalendarFeed::ERROR && $f->last_error)
-                            <span class="text-red-600 dark:text-red-400">{{ $f->last_error }}</span>
+                            <span class="text-note-ungenuegend">{{ $f->last_error }}</span>
                         @endif
                     </div>
                     <div class="mt-1.5 flex flex-wrap gap-1.5">

@@ -1,8 +1,8 @@
 @php
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
-    $textarea = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-    $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
+    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $textarea = 'mt-1.5 w-full rounded-lg border border-border-strong/70 bg-input px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
 @endphp
 <form method="POST" action="{{ $b ? route('learner.exams.update', $b->pruefung_id) : route('learner.exams.store') }}"
@@ -11,6 +11,8 @@
     @csrf
     @if($b)
         @method('PUT')
+    @else
+        <input type="hidden" name="_drawer" value="pruefung">
     @endif
 
     @if($b && $b->quelle === \App\Models\Pruefung::ICAL && filled($b->lokal_gesperrt))
@@ -49,7 +51,7 @@
     @endif
 
     <div>
-        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
         <select id="bezug" name="bezug" required class="{{ $feld }}">
             <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -71,7 +73,7 @@
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-red-600 dark:text-red-400">*</span></label>
+            <label for="datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-note-ungenuegend">*</span></label>
             <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
@@ -143,7 +145,7 @@
             @forelse($b->dokumente as $d)
                 <div class="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
                     <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="text-sm text-accent-text hover:underline truncate">{{ $d->titel }}</a>
-                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="text-muted hover:text-red-600 dark:hover:text-red-400 text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
+                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="text-muted hover:text-note-ungenuegend text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
                 </div>
             @empty
                 <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
@@ -160,7 +162,7 @@
 
     <div class="flex gap-2 mt-2">
         <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">{{ __('Abbrechen') }}</a>
-        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Planen') }}</button>
+        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Planen') }}</button>
     </div>
 </form>
 

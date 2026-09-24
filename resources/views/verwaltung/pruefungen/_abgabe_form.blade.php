@@ -2,7 +2,7 @@
 @php
     $label = 'text-sm font-medium text-text';
     $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
-    $fehler = 'mt-1 text-xs text-red-600 dark:text-red-400';
+    $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
 @endphp
 <form method="POST" action="{{ $b ? route($bereich.'.exams.update', $b->pruefung_id) : route($bereich.'.exams.store') }}"
@@ -14,7 +14,7 @@
     <input type="hidden" name="lernender_id" value="{{ $filter['lernender_id'] }}">
 
     <div>
-        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
         <select id="abgabe-bezug" name="bezug" required class="{{ $feld }}">
             <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -29,14 +29,14 @@
     </div>
 
     <div>
-        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }} <span class="text-red-600 dark:text-red-400">*</span></label>
+        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }} <span class="text-note-ungenuegend">*</span></label>
         <input id="abgabe-titel" name="titel" required maxlength="150" value="{{ old('titel', $b?->titel) }}" class="{{ $feld }}">
         @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-red-600 dark:text-red-400">*</span></label>
+            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-note-ungenuegend">*</span></label>
             <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

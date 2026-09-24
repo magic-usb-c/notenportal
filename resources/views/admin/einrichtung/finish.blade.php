@@ -29,12 +29,12 @@
             <form method="POST" action="{{ route('admin.setup.finish') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <button type="submit" :disabled="loading" @class(['inline-flex items-center px-5 h-10 rounded-xl text-sm font-semibold disabled:opacity-60',
-                    'bg-accent text-white np-btn-primary' => $offen->isEmpty(), 'glass-btn text-text' => $offen->isNotEmpty()])>
+                    'bg-accent text-accent-contrast np-btn-primary' => $offen->isEmpty(), 'glass-btn text-text' => $offen->isNotEmpty()])>
                     {{ $offen->isEmpty() ? __('Einrichtung abschliessen') : __('Trotzdem abschliessen') }}
                 </button>
             </form>
         @else
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">{{ __('Zur Übersicht') }}</a>
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">{{ __('Zur Übersicht') }}</a>
         @endif
     </div>
 </x-einrichtung>

@@ -27,7 +27,7 @@
         </div>
         <div class="text-xs text-muted truncate">
             @if($e['zeit']) {{ __(':zeit Uhr · ', ['zeit' => $e['zeit']]) }}@endif
-            <span class="{{ $faellig ? 'text-yellow-700 dark:text-yellow-400 font-medium' : ($tage >= 0 && $tage <= 7 ? 'text-accent font-medium' : '') }}">{{ $wann }}</span>
+            <span class="{{ $faellig ? 'text-note-knapp font-medium' : ($tage >= 0 && $tage <= 7 ? 'text-accent-text font-medium' : '') }}">{{ $wann }}</span>
             · {{ $e['nebentext'] }}
         </div>
     </div>
@@ -39,7 +39,7 @@
                 </a>
             @else
                 <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}"
-                   class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm {{ $faellig ? 'bg-accent text-white np-btn-primary' : 'text-accent hover:bg-accent/10' }}">{{ __('Note eintragen') }}</a>
+                   class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm {{ $faellig ? 'bg-accent text-accent-contrast np-btn-primary' : 'text-accent-text hover:bg-accent/10' }}">{{ __('Note eintragen') }}</a>
             @endif
             <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}"
                class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="{{ __('Bearbeiten') }}">
@@ -48,7 +48,7 @@
             <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" onsubmit="return confirm('{{ __('Prüfung entfernen?') }}');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('DELETE')
-                <button :disabled="loading" class="inline-flex items-center justify-center w-9 h-9 rounded-lg disabled:opacity-60 text-muted hover:text-red-600 dark:hover:text-red-400 hover:bg-red-500/10" aria-label="{{ __('Entfernen') }}">×</button>
+                <button :disabled="loading" class="inline-flex items-center justify-center w-9 h-9 rounded-lg disabled:opacity-60 text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Entfernen') }}">×</button>
             </form>
         @elseif($e['art'] === 'erkannt')
             <form method="POST" action="{{ route('learner.exams.adopt', $e['event']->id) }}" class="flex items-center gap-1.5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

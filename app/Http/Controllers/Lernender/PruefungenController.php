@@ -127,7 +127,8 @@ class PruefungenController extends Controller
         try {
             $this->noteService->kategorieFuer((int) $lernender->lernender_id, $typ, (int) $id, $event->starts_at);
         } catch (ValidationException $e) {
-            throw ValidationException::withMessages(['bezug' => $this->bezugFehler($e, $typ)]);
+            // Die Zeile hat kein Feld für eine Meldung – der Grund kommt als Toast.
+            return back()->with('error', $this->bezugFehler($e, $typ));
         }
 
         $info = $this->parser->parse($event->summary, $event->description);

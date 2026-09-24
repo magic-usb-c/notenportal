@@ -137,7 +137,7 @@
             @endif
         </div>
 
-        <x-drawer name="pruefung" :offen="$bearbeiten || request()->has('planen')" :titel="$bearbeiten ? __('Prüfung bearbeiten') : __('Prüfung planen')">
+        <x-drawer name="pruefung" :offen="$bearbeiten || request()->has('planen') || old('_drawer') === 'pruefung'" :titel="$bearbeiten ? __('Prüfung bearbeiten') : __('Prüfung planen')">
             @include('lernender.agenda._form')
         </x-drawer>
 

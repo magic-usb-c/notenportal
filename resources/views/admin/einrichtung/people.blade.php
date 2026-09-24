@@ -2,7 +2,7 @@
     @php
         $feld = 'h-10 w-full rounded-lg border border-border bg-input text-text px-2 text-sm normal-case tracking-normal focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'flex flex-col gap-1 text-sm font-medium text-text min-w-0';
-        $knopf = 'inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60';
+        $knopf = 'inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60';
         $fehlerKeys = array_keys($errors->getMessages());
         $meldungen = fn (string $praefix) => collect($errors->getMessages())->filter(fn ($m, $k) => str_starts_with($k, $praefix))->flatten()->unique();
         $leerePerson = ['vorname' => '', 'nachname' => '', 'email' => '', 'rolle' => 'Berufsbildner'];

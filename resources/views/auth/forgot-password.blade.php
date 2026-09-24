@@ -16,15 +16,15 @@
                    autocomplete="username" placeholder="{{ __('name@firma.ch') }}"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
-                          @error('email') border-red-400 @enderror">
+                          @error('email') border-note-ungenuegend @enderror">
             @error('email')
-                <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
             @enderror
         </div>
 
         <div class="pt-2">
             <button type="submit" :disabled="loading"
-                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-white font-semibold np-btn-primary
+                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary
                            focus:outline-hidden focus:ring-2 focus:ring-accent/50 disabled:opacity-60">
                 {{ __('Link zusenden') }}
             </button>

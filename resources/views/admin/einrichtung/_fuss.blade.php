@@ -14,7 +14,7 @@
         @endif
         @if($knopf ?? true)
             <button type="submit" :disabled="loading"
-                    class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary disabled:opacity-60">{{ $knopf ?? __('Speichern und weiter') }}</button>
+                    class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ $knopf ?? __('Speichern und weiter') }}</button>
         @endif
     </div>
 </div>

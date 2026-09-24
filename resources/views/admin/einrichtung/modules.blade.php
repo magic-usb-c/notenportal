@@ -11,7 +11,7 @@
     @if($lehrberufe->isEmpty())
         <section class="rounded-2xl border border-border bg-card p-8 flex flex-col items-center gap-3 text-center">
             <p class="text-sm text-muted">{{ __('Noch keine Lehrberufe') }}</p>
-            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-white text-sm font-semibold np-btn-primary">{{ __('Lehrberufe anlegen') }}</a>
+            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">{{ __('Lehrberufe anlegen') }}</a>
         </section>
         @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
     @else
