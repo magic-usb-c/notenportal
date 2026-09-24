@@ -317,7 +317,7 @@ class EinrichtungController extends Controller
             'lernende.*.lehrberuf_id' => ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'],
             'lernende.*.lehrbeginn' => ['required', 'date'],
             'lernende.*.lehrende' => ['nullable', 'date', 'after:lernende.*.lehrbeginn'],
-            'lernende.*.berufsbildner_id' => ['nullable', 'integer', 'exists:berufsbildner,berufsbildner_id'],
+            'lernende.*.berufsbildner_id' => ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')],
             'lernende.*.track' => ['nullable', 'in:BMS,ABU'],
         ], [], self::attribute());
 

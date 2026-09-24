@@ -171,4 +171,20 @@ class EinrichtungTest extends TestCase
             fn ($q) => $q->whereIn('email', ['ra@betrieb.ch', 'sf@betrieb.ch']))->count());
         $this->assertFalse(Einrichtung::offen(), 'Das Anlegen darf die abgeschlossene Einrichtung nicht wieder öffnen.');
     }
+
+    #[Test]
+    public function massenanlage_lehnt_geloeschte_berufsbildner_ab(): void
+    {
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
+        $bb = User::factory()->berufsbildner()->create()->berufsbildner;
+        DB::table('berufsbildner')->where('berufsbildner_id', $bb->berufsbildner_id)->update(['geloescht_am' => now()]);
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->post(route('admin.setup.learners'), ['lernende' => [
+            ['vorname' => 'Reto', 'nachname' => 'Amrein', 'email' => 'ra@betrieb.ch',
+                'lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2026-08-01', 'berufsbildner_id' => $bb->berufsbildner_id],
+        ]])->assertSessionHasErrors('lernende.0.berufsbildner_id');
+
+        $this->assertDatabaseMissing('benutzer', ['email' => 'ra@betrieb.ch']);
+    }
 }
