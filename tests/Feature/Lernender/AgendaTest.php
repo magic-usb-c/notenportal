@@ -538,6 +538,25 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function uebernommene_pruefung_kuerzt_lange_felder_und_begrenzt_gewichtung(): void
+    {
+        $event = CalendarEvent::create([
+            'lernender_id' => $this->user->lernender->lernender_id, 'calendar_feed_id' => $this->feed()->id, 'kind' => CalendarEvent::EXAM,
+            'uid' => 'exam-lang', 'summary' => 'Prüfung', 'description' => "Gewichtung: 250%\nRaum: ".str_repeat('R', 90)."\nHilfsmittel: ".str_repeat('H', 300),
+            'starts_at' => now()->addDays(3), 'all_day' => false,
+        ]);
+
+        $this->actingAs($this->user)->post(route('learner.exams.adopt', $event->id), [
+            'bezug' => 'modul:'.$this->modul->modul_id,
+        ])->assertSessionHasNoErrors()->assertRedirect(route('learner.exams.index'));
+
+        $pruefung = Pruefung::sole();
+        $this->assertEquals(100, $pruefung->gewichtung_prozent);
+        $this->assertSame(60, mb_strlen($pruefung->raum));
+        $this->assertSame(255, mb_strlen($pruefung->hilfsmittel));
+    }
+
+    #[Test]
     public function fremde_erkannte_pruefung_kann_nicht_uebernommen_werden(): void
     {
         $event = CalendarEvent::create([

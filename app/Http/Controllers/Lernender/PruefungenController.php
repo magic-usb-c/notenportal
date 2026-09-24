@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CalendarEvent;
 use App\Models\Lernender;
 use App\Models\Pruefung;
+use App\Services\Calendar\CalendarSync;
 use App\Services\Calendar\SchoolNetDescriptionParser;
 use App\Services\Noten\NoteService;
 use App\Support\Zahl;
@@ -130,18 +131,13 @@ class PruefungenController extends Controller
         }
 
         $info = $this->parser->parse($event->summary, $event->description);
+        $werte = CalendarSync::pruefungsWerte($info, $event->starts_at, $event->ends_at, (bool) $event->all_day, $event->location);
         $pruefung = $lernender->pruefungen()->create([
             'fach_id' => $typ === 'fach' ? (int) $id : null,
             'modul_id' => $typ === 'modul' ? (int) $id : null,
-            'titel' => $info['title'] ?? $event->summary,
-            'datum' => $event->starts_at->toDateString(),
-            'uhrzeit' => $event->all_day ? null : $event->starts_at->format('H:i:s'),
-            'dauer_minuten' => $info['duration_minutes'] ?? ($event->ends_at ? max(0, (int) $event->starts_at->diffInMinutes($event->ends_at)) : null),
-            'pruefungsart' => $info['exam_type'] ?? null,
-            'hilfsmittel' => $info['aids'] ?? null,
-            'stoff' => $info['material'] ?? null,
-            'raum' => $event->location,
-            'gewichtung_prozent' => $info['weight_percent'] ?? 100,
+            ...$werte,
+            'titel' => $werte['titel'] ?? mb_substr($event->summary, 0, 150),
+            'gewichtung_prozent' => $werte['gewichtung_prozent'] ?? 100,
             'quelle' => Pruefung::ICAL,
             'extern_uid' => $event->uid,
         ]);

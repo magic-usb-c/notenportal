@@ -10,6 +10,7 @@ use App\Models\Dokument;
 use App\Models\Lernender;
 use App\Models\Pruefung;
 use Carbon\CarbonImmutable;
+use Carbon\CarbonInterface;
 use DateTimeZone;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
@@ -340,29 +341,45 @@ final class CalendarSync
         return $code !== '' && isset($faecher[$code]) ? ['fach', $faecher[$code]] : null;
     }
 
-    private function pruefungSpeichern(CalendarFeed $feed, Lernender $lernender, string $uid, array $bezug, array $info, CarbonImmutable $start, ?CarbonImmutable $ende, bool $ganztags, ?string $ort): int
+    /**
+     * Prüfungsfelder aus einem Kalendertermin, auf die Spaltenlängen gekürzt und die Gewichtung auf 100 % begrenzt.
+     * Gemeinsam für den Abgleich und das manuelle Übernehmen (Lernender\PruefungenController::adopt).
+     *
+     * @return array<string, mixed>
+     */
+    public static function pruefungsWerte(array $info, CarbonInterface $start, ?CarbonInterface $ende, bool $ganztags, ?string $ort): array
     {
-        $titel = trim(implode(': ', array_filter([$info['label'], $info['title']])));
+        $titel = trim(implode(': ', array_filter([$info['label'] ?? null, $info['title'] ?? null])));
         $dauer = $info['duration_minutes'] ?? ($ende && ! $ganztags ? max(0, (int) $start->diffInMinutes($ende)) : null);
+        $raum = $info['room'] ?? $ort;
         $werte = [
-            'fach_id' => $bezug[0] === 'fach' ? $bezug[1] : null,
-            'modul_id' => $bezug[0] === 'modul' ? $bezug[1] : null,
             'titel' => $titel !== '' ? mb_substr($titel, 0, 150) : null,
             'datum' => $start->toDateString(),
             'uhrzeit' => $ganztags ? null : $start->format('H:i:s'),
             'dauer_minuten' => $dauer ?: null,
-            'pruefungsart' => $info['exam_type'] ? mb_substr($info['exam_type'], 0, 150) : null,
-            'hilfsmittel' => $info['aids'] ? mb_substr($info['aids'], 0, 255) : null,
-            'stoff' => $info['material'],
-            'raum' => ($info['room'] ?? $ort) ? mb_substr((string) ($info['room'] ?? $ort), 0, 60) : null,
-            'lehrperson' => $info['teacher'] ? mb_substr($info['teacher'], 0, 60) : null,
+            'pruefungsart' => ($info['exam_type'] ?? null) ? mb_substr($info['exam_type'], 0, 150) : null,
+            'hilfsmittel' => ($info['aids'] ?? null) ? mb_substr($info['aids'], 0, 255) : null,
+            'stoff' => $info['material'] ?? null,
+            'raum' => $raum ? mb_substr((string) $raum, 0, 60) : null,
+            'lehrperson' => ($info['teacher'] ?? null) ? mb_substr($info['teacher'], 0, 60) : null,
+        ];
+        if (($info['weight_percent'] ?? null) !== null) {
+            $werte['gewichtung_prozent'] = min(100, $info['weight_percent']);
+        }
+
+        return $werte;
+    }
+
+    private function pruefungSpeichern(CalendarFeed $feed, Lernender $lernender, string $uid, array $bezug, array $info, CarbonImmutable $start, ?CarbonImmutable $ende, bool $ganztags, ?string $ort): int
+    {
+        $werte = [
+            'fach_id' => $bezug[0] === 'fach' ? $bezug[1] : null,
+            'modul_id' => $bezug[0] === 'modul' ? $bezug[1] : null,
+            ...self::pruefungsWerte($info, $start, $ende, $ganztags, $ort),
             'quelle' => 'ical',
             'calendar_feed_id' => $feed->id,
             'abgesagt_am' => null,
         ];
-        if ($info['weight_percent'] !== null) {
-            $werte['gewichtung_prozent'] = min(100, $info['weight_percent']);
-        }
 
         $pruefung = Pruefung::firstOrNew(['lernender_id' => $lernender->lernender_id, 'extern_uid' => $uid]);
         $this->sperreBeachten($pruefung, $werte);
