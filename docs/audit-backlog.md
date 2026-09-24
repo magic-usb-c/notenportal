@@ -526,16 +526,40 @@ würde eine Netzbrücke und Firewallregeln neben den laufenden Apache setzen –
 Nachweis zu billig und das Risiko zu teuer. Er gehört auf eine eigene, leere VM (24.04 oder 26.04),
 wo ein misslungener Lauf nichts kostet.
 
-## Modulseiten auf 390 Pixel ungeprüft (14.09.2026)
+## Modulseiten auf 390 Pixel (14.09.2026, geprüft 24.09.2026)
 
-Die drei neuen Seiten unter `/modules` (Liste, Detail mit Unterlagen, Formular) sind auf dem
-Schreibtisch geprüft, nicht aber im schmalen Fenster: dafür braucht `~/tools/visual/breite.mjs`
-eine Anmeldung auf Prod, und das Prüfpasswort `NP_TEST_PW` liegt nicht vor. Die Tabelle der
-Modulliste steckt in `overflow-x-auto`, das Hochladeformular bricht ab `sm:` um – belegt ist
-das damit nicht. Nachzuholen, sobald David ein Konto für Prüfläufe bereitstellt:
-`node breite.mjs --base=http://127.0.0.1 --rolle=learner --breite=390 /modules`.
+~~Die drei Seiten unter `/modules` waren im schmalen Fenster ungeprüft.~~ Erledigt (24.09.): ein
+Playwright-Crawl über alle GET-Seiten je Rolle auf der Demo-Instanz (1280 und 390 px, Passwort
+nur über `NP_TEST_PW`) meldet für `/modules`, `/modules/{id}`, `/modules/create` und
+`/modules/{id}/edit` weder seitliches Überlaufen noch JS-Fehler oder verschachtelte Formulare.
 
 Ebenfalls offen: die Leistungsbeurteilungs-Elemente (`modul_lbv_elemente`) zeigt die Detailseite
 nur an, erfassen lassen sie sich über die Oberfläche noch nicht – sie kommen bisher allein aus
 dem Katalogimport. Für den Fall «Modul fehlt ganz» genügen Nummer, Titel, Ziele und Unterlagen;
 wer die Beurteilungsvorgabe selbst erfassen will, braucht ein eigenes Formular.
+
+## Audit v3 vor dem Code-Freeze (24.09.2026)
+
+Mehrdimensionales Audit (Korrektheit, Berechtigung, Datei-Fehlerpfade, Kalender, Views) plus
+Crawl aller GET-Seiten je Rolle bei 1280/390 px. 15 bestätigte Befunde, alle behoben, je mit
+Regressionstest (fällt ohne Fix):
+
+- Prüfung bearbeiten: verschachtelte Formulare (Anhang entfernen) liessen Speichern ins Leere laufen.
+- Ampel zählte benotete und abgesagte vergangene Prüfungen als fehlende Noten.
+- «Tiefer Schnitt» in BB-Übersicht und Lernendenliste rechnete per SQL mit fixer Grenze statt über
+  `Auswertung` mit der eingestellten Genügend-Grenze.
+- Fehlgeschlagenes Speichern von Dateien (Ablage, Modulablage, Feedback, Logo, Katalog) legte
+  Datensätze ohne Datei an; Datenauskunft zeigte bei ZIP-Fehler 500 → `DateiNichtGespeichert`, Toast.
+- iCal-Abo deaktivierter Konten lieferte weiter Termine; Noten-CSV schützte Semester/Kategorie nicht
+  gegen Formeln.
+- Semesterende-Erinnerung fiel nach einem ausgefallenen Scheduler-Lauf aus (Fenster statt Stichtag).
+- Mehrtägige Ganztagestermine im iCal-Abo endeten nach einem Tag.
+- Pilot-Vorbereitung löschte Feedback-Dateien nicht von der Disk.
+- Massenanlage nahm gelöschte Berufsbildner an.
+- Übernahme erkannter Kalenderprüfungen kürzte Felder nicht wie der Abgleich (500 bei langen Werten,
+  Gewichtung > 100 %); gesperrter Bezug meldete sich unsichtbar → Toast.
+- Modulnummer wurde erst nach der Längenprüfung grossgeschrieben (ß → SS sprengte die Spalte).
+- «Prüfung planen» und «Abgabetermin erfassen» zeigten Validierungsfehler nie (Drawer blieb zu);
+  «Bearbeiten» eines Abgabetermins öffnete das leere Erfassen-Formular.
+- Restliche Palettenfarben (`text-red-600`, `text-white` auf Accent, Gelb) in Auth-, Agenda-,
+  Einrichtungs- und Kalender-Views durch Tokens ersetzt.
