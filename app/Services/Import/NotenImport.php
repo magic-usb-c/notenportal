@@ -110,8 +110,9 @@ final class NotenImport
      * Bearbeitete Vorschau-Zeilen nach Korrekturen in der Vorschau serverseitig neu prüfen («Erneut prüfen»):
      * gleiche Regeln wie vorschau(), aber der Bezug ist bereits eine feste Auswahl. Die Sicherheit der Zuordnung
      * (Feld «sicher») wird aus der vorherigen Vorschau übernommen und nur dann auf sicher gesetzt, wenn die Person
-     * den Bezug tatsächlich geändert hat – ein Klick auf «Erneut prüfen» ohne Korrektur darf ein nur geratenes
-     * Fach/Modul nicht stillschweigend als «bereit» einstufen.
+     * den Bezug tatsächlich auf ein Fach/Modul gesetzt oder gewechselt hat – ein Klick auf «Erneut prüfen» ohne
+     * Korrektur darf ein nur geratenes Fach/Modul nicht stillschweigend als «bereit» einstufen. Eine Zeile, die
+     * gar nicht zuordenbar war, zählt dabei mit: wer sie von Hand zuordnet, wählt ebenso bewusst.
      *
      * @param  list<array<string, mixed>>  $zeilen
      * @param  list<array<string, mixed>>  $vorherigeZeilen  letzter bekannter Stand (Session) mit Feldern nr/bezug/sicher
@@ -144,7 +145,7 @@ final class NotenImport
                 $vorher = $vorherIndex[$nr] ?? null;
                 $vorherBezug = $vorher['bezug'] ?? null;
                 $vorherSicher = (bool) ($vorher['sicher'] ?? false);
-                $sicher = $vorherBezug !== null && $vorherBezug !== $bezug ? true : $vorherSicher;
+                $sicher = $bezug !== null && $vorherBezug !== $bezug ? true : $vorherSicher;
 
                 $bewertet = $this->bewerten(
                     $datum, $bezug, $note, $gewicht, $datumRoh, $noteRoh, $sicher, $lernenderId,

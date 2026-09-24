@@ -55,6 +55,7 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::post('/grades/seen-all', [NotenGesehenController::class, 'alle'])->name('learners.grades.seen_all');
     Route::get('/grades/import', [NotenImportController::class, 'index'])->name('learners.grades.import.index');
     Route::post('/grades/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('learners.grades.import.read');
+    Route::post('/grades/import/validate', [NotenImportController::class, 'pruefen'])->middleware('throttle:60,1')->name('learners.grades.import.validate');
     Route::post('/grades/import/apply', [NotenImportController::class, 'uebernehmen'])->name('learners.grades.import.apply');
     Route::post('/grades/import/discard', [NotenImportController::class, 'verwerfen'])->name('learners.grades.import.discard');
     Route::get('/grades/import/template', [NotenImportController::class, 'vorlage'])->name('learners.grades.import.template');

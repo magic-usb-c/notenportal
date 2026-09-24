@@ -58,6 +58,30 @@ class NotenImportVerwaltungTest extends TestCase
     }
 
     #[Test]
+    public function admin_kann_korrigierte_zeilen_erneut_pruefen_lassen(): void
+    {
+        $lernenderId = (int) $this->lernenderUser->lernender->lernender_id;
+        $admin = User::factory()->admin()->create();
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n09.03.2026;Sprache;Vortrag;5.0;\n";
+
+        $this->actingAs($admin)->post(route('admin.learners.grades.import.read', $lernenderId),
+            ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
+
+        $zeile = session('notenimport.'.$lernenderId)['zeilen'][0];
+        $this->assertSame('fehler', $zeile['status'], 'Ohne passendes Fach ist die Zeile nicht zuordenbar.');
+
+        // Der Bezug wird von Hand auf ein Modul des Lehrberufs gesetzt; das Prüfen bestätigt die
+        // Korrektur, ohne zu speichern – derselbe Weg wie beim Lernenden, nur über die Verwaltung.
+        $antwort = $this->actingAs($admin)
+            ->post(route('admin.learners.grades.import.validate', $lernenderId),
+                ['zeilen' => json_encode([[...$zeile, 'bezug' => 'modul:'.$this->modul, 'uebernehmen' => true]])])
+            ->assertOk()->json();
+
+        $this->assertSame('ok', $antwort['zeilen'][0]['status']);
+        $this->assertSame('ok', session('notenimport.'.$lernenderId)['zeilen'][0]['status']);
+    }
+
+    #[Test]
     public function admin_kann_die_vorschau_verwerfen(): void
     {
         $lernenderId = (int) $this->lernenderUser->lernender->lernender_id;
@@ -91,7 +115,7 @@ class NotenImportVerwaltungTest extends TestCase
     }
 
     #[Test]
-    public function berufsbildner_darf_weder_uebernehmen_noch_verwerfen(): void
+    public function berufsbildner_darf_den_import_nicht_bedienen(): void
     {
         $lernenderId = (int) $this->lernenderUser->lernender->lernender_id;
         $bb = User::factory()->berufsbildner()->create();
@@ -99,5 +123,8 @@ class NotenImportVerwaltungTest extends TestCase
 
         $this->actingAs($bb)->post(route('trainer.learners.grades.import.discard', $lernenderId))->assertForbidden();
         $this->actingAs($bb)->post(route('trainer.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode([])])->assertForbidden();
+        // Auch das blosse Prüfen ist gesperrt: die Berechtigung hängt am Anlegen von Noten,
+        // und die Antwort verriete sonst Fach- und Modulzuordnungen einer fremden Person.
+        $this->actingAs($bb)->post(route('trainer.learners.grades.import.validate', $lernenderId), ['zeilen' => json_encode([])])->assertForbidden();
     }
 }
