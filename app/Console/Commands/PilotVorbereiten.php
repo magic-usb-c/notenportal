@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Feedback;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -34,12 +35,15 @@ class PilotVorbereiten extends Command
         }
 
         DB::transaction(function () {
-            foreach (self::TABELLEN as $tabelle) {
+            foreach (array_diff(self::TABELLEN, ['feedback']) as $tabelle) {
                 DB::table($tabelle)->delete();
             }
 
             DB::table('benutzer')->whereNull('geloescht_am')->update(['passwort_wechsel_noetig' => true]);
         });
+
+        // Über das Model, damit Screenshots und Anhänge auch von der Disk verschwinden.
+        Feedback::query()->chunkById(100, fn ($meldungen) => $meldungen->each->delete());
 
         $this->info('Testbetrieb vorbereitet.');
 
