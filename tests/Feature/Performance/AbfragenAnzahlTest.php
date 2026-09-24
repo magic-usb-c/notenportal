@@ -540,4 +540,88 @@ class AbfragenAnzahlTest extends TestCase
 
         $this->assertWaechstNicht($klein, $gross, 25, 'Admin-Feedback-Liste');
     }
+
+    // --- Verwaltung: Notenliste, Lernendenliste BB, Berufsbildner, Benutzer -------------------
+
+    #[Test]
+    public function verwaltung_notenliste_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $betrieb = $this->betrieb();
+        $semester = $this->semesterReihe(2);
+        $bbUser = User::factory()->berufsbildner()->create();
+
+        $lernender = $this->lernender($betrieb, Carbon::parse($semester->first()->start_datum), Carbon::parse($semester->last()->end_datum));
+        Betreuung::factory()->create(['berufsbildner_id' => $bbUser->berufsbildner->berufsbildner_id, 'lernender_id' => $lernender->lernender_id]);
+        $this->noten($betrieb, $lernender, $semester, 4);
+        $this->kommentare($lernender, 1);
+
+        $klein = $this->abfragenFuer(fn () => $this->actingAs($bbUser)
+            ->get(route('trainer.learners.grades.index', $lernender->lernender_id))->assertOk());
+
+        $semesterGross = $this->semesterReihe(6, Carbon::parse($semester->last()->end_datum)->addDay(), $semester->count() + 1);
+        $lernender->update(['lehrende' => $semesterGross->last()->end_datum]);
+        $this->noten($betrieb, $lernender, $semester->concat($semesterGross), 24);
+        $this->kommentare($lernender, 1);
+
+        $gross = $this->abfragenFuer(fn () => $this->actingAs($bbUser)
+            ->get(route('trainer.learners.grades.index', $lernender->lernender_id))->assertOk());
+
+        $this->assertWaechstNicht($klein, $gross, 40, 'Verwaltung-Notenliste');
+    }
+
+    #[Test]
+    public function berufsbildner_lernendenliste_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $betrieb = $this->betrieb();
+        $semester = $this->semesterReihe(2);
+        $bbUser = User::factory()->berufsbildner()->create();
+
+        $macheLernende = function (int $anzahl) use ($betrieb, $semester, $bbUser) {
+            for ($i = 0; $i < $anzahl; $i++) {
+                $lernender = $this->lernender($betrieb, Carbon::parse($semester->first()->start_datum), Carbon::parse($semester->last()->end_datum));
+                Betreuung::factory()->create(['berufsbildner_id' => $bbUser->berufsbildner->berufsbildner_id, 'lernender_id' => $lernender->lernender_id]);
+                $this->noten($betrieb, $lernender, $semester, 3);
+                $this->pruefungen($betrieb, $lernender, 1);
+            }
+        };
+
+        $macheLernende(3);
+        $klein = $this->abfragenFuer(fn () => $this->actingAs($bbUser)->get(route('trainer.learners.index'))->assertOk());
+
+        $macheLernende(12);
+        $gross = $this->abfragenFuer(fn () => $this->actingAs($bbUser)->get(route('trainer.learners.index'))->assertOk());
+
+        $this->assertWaechstNicht($klein, $gross, 40, 'Berufsbildner-Lernendenliste');
+    }
+
+    #[Test]
+    public function admin_berufsbildner_und_benutzer_abfragenzahl_unabhaengig_von_datenmenge(): void
+    {
+        $betrieb = $this->betrieb();
+        $semester = $this->semesterReihe(2);
+        $admin = User::factory()->admin()->create();
+
+        $macheBetrieb = function (int $anzahl) use ($betrieb, $semester) {
+            for ($i = 0; $i < $anzahl; $i++) {
+                $bbUser = User::factory()->berufsbildner()->create();
+                foreach ([1, 2] as $_) {
+                    Betreuung::factory()->create([
+                        'berufsbildner_id' => $bbUser->berufsbildner->berufsbildner_id,
+                        'lernender_id' => $this->lernender($betrieb, Carbon::parse($semester->first()->start_datum), Carbon::parse($semester->last()->end_datum))->lernender_id,
+                    ]);
+                }
+            }
+        };
+
+        $macheBetrieb(2);
+        $kleinBb = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.trainers.index'))->assertOk());
+        $kleinBenutzer = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.users.index'))->assertOk());
+
+        $macheBetrieb(8);
+        $grossBb = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.trainers.index'))->assertOk());
+        $grossBenutzer = $this->abfragenFuer(fn () => $this->actingAs($admin)->get(route('admin.users.index'))->assertOk());
+
+        $this->assertWaechstNicht($kleinBb, $grossBb, 25, 'Admin-Berufsbildner');
+        $this->assertWaechstNicht($kleinBenutzer, $grossBenutzer, 25, 'Admin-Benutzer');
+    }
 }
