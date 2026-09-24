@@ -237,6 +237,27 @@ class DatenauskunftTest extends TestCase
     }
 
     #[Test]
+    public function fehler_beim_zip_bau_fuehrt_zurueck_mit_meldung_statt_500(): void
+    {
+        // Eine unlesbare Datei besteht is_file(), lässt aber $zip->close() scheitern.
+        Storage::fake('local');
+        $user = User::factory()->lernender()->create();
+        $pfad = 'lernende/'.$user->lernender->lernender_id.'/dokumente/gesperrt.pdf';
+        Storage::disk('local')->put($pfad, '%PDF-1.4');
+        chmod(Storage::disk('local')->path($pfad), 0);
+        Dokument::create([
+            'lernender_id' => $user->lernender->lernender_id, 'art' => 'zeugnis', 'titel' => 'Gesperrt', 'originalname' => 'gesperrt.pdf',
+            'pfad' => $pfad, 'mime' => 'application/pdf', 'groesse' => 8, 'sha256' => str_repeat('a', 64),
+            'hochgeladen_von_benutzer_id' => $user->benutzer_id,
+        ]);
+
+        $this->confirmed($user)->from(route('settings.profile'))->get(route('profile.data-export'))
+            ->assertRedirect(route('settings.profile'))->assertSessionHas('error');
+        $this->confirmed(User::factory()->admin()->create())->from(route('admin.users.index'))->get(route('admin.users.data-export', $user->benutzer_id))
+            ->assertRedirect(route('admin.users.index'))->assertSessionHas('error');
+    }
+
+    #[Test]
     public function eigene_datenauskunft_verlangt_anmeldung(): void
     {
         $this->get(route('profile.data-export'))->assertRedirect(route('login'));

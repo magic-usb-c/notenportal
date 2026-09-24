@@ -510,5 +510,7 @@
     "Modul geändert": "Module changed",
     "Moduldokument hochgeladen": "Module document uploaded",
     "Moduldokument gelöscht": "Module document deleted",
-    "Jemand anderes hat dieses Modul inzwischen geändert. Öffne die Seite neu und trag deine Ergänzung dort ein, damit nichts verloren geht.": "Someone else has changed this module in the meantime. Reload the page and add your contribution there so nothing is lost."
+    "Jemand anderes hat dieses Modul inzwischen geändert. Öffne die Seite neu und trag deine Ergänzung dort ein, damit nichts verloren geht.": "Someone else has changed this module in the meantime. Reload the page and add your contribution there so nothing is lost.",
+    "Die Datenauskunft liess sich nicht erstellen. Bitte später erneut versuchen.": "The data export could not be created. Please try again later.",
+    "Die Datei liess sich nicht speichern. Bitte später erneut versuchen.": "The file could not be saved. Please try again later."
 }

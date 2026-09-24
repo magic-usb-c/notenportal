@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Exceptions\DateiNichtGespeichert;
 use Closure;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -83,7 +84,7 @@ final class Betriebslogo
         $inhalt = self::neuKodieren($datei->getRealPath(), $typ) ?? file_get_contents($datei->getRealPath());
 
         self::datenLoeschen();
-        Storage::disk(self::DISK)->put(self::ORDNER.'/logo.'.$endung, $inhalt);
+        DateiNichtGespeichert::pruefen(Storage::disk(self::DISK)->put(self::ORDNER.'/logo.'.$endung, $inhalt), self::ORDNER);
         Einstellungen::set(Einstellungen::LOGO_DATEI, 'logo.'.$endung);
     }
 

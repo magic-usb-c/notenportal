@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 /** Datenauskunft (Art. 25 DSG) für ein beliebiges Konto, ausgelöst vom Admin. */
 class DatenauskunftController extends Controller
@@ -26,7 +27,13 @@ class DatenauskunftController extends Controller
             return back()->with('error', __('Die Datenauskunft ist zu gross zum Herunterladen. Bitte bei einem Admin melden.'));
         }
 
-        $pfad = $this->datenauskunft->erzeugen($user);
+        try {
+            $pfad = $this->datenauskunft->erzeugen($user);
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('error', __('Die Datenauskunft liess sich nicht erstellen. Bitte später erneut versuchen.'));
+        }
 
         Log::info('Datenauskunft erstellt', ['benutzer_id' => $user->benutzer_id, 'ausgeloest_von' => $request->user()->benutzer_id]);
         Protokoll::schreiben(Protokoll::ADMIN_DATENAUSKUNFT_ERSTELLT, $user);

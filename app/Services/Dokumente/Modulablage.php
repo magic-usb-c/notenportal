@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Dokumente;
 
+use App\Exceptions\DateiNichtGespeichert;
 use App\Models\Modul;
 use App\Models\ModulDokument;
 use Illuminate\Http\UploadedFile;
@@ -47,11 +48,11 @@ final class Modulablage
     {
         $endung = strtolower($datei->getClientOriginalExtension()) ?: ($datei->guessExtension() ?? 'bin');
         $original = mb_substr($datei->getClientOriginalName(), 0, 255);
-        $pfad = $datei->storeAs(
+        $pfad = DateiNichtGespeichert::pruefen($datei->storeAs(
             'module/'.$modul->modul_id,
             Str::uuid()->toString().'.'.$endung,
             self::DISK,
-        );
+        ), 'module/'.$modul->modul_id);
 
         return ModulDokument::create([
             'modul_id' => $modul->modul_id,

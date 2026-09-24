@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Feedback;
 
+use App\Exceptions\DateiNichtGespeichert;
 use App\Models\Feedback;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -33,7 +34,7 @@ final class Screenshot
     public function speichern(UploadedFile $datei): array
     {
         $endung = strtolower($datei->extension() ?: $datei->guessExtension() ?: 'jpg');
-        $pfad = $datei->storeAs('feedback/'.now()->format('Y'), Str::uuid()->toString().'.'.$endung, self::DISK);
+        $pfad = DateiNichtGespeichert::pruefen($datei->storeAs('feedback/'.now()->format('Y'), Str::uuid()->toString().'.'.$endung, self::DISK), 'feedback');
 
         return [
             'pfad' => $pfad,

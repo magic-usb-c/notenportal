@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\DateiNichtGespeichert;
 use App\Http\Controllers\Controller;
 use App\Services\Import\Katalogimport;
 use App\Support\Protokoll;
@@ -72,7 +73,7 @@ class ModulkatalogController extends Controller
         }
 
         $this->aufraeumen();
-        $pfad = $datei->storeAs(self::ORDNER, Str::uuid()->toString().'.json', self::DISK);
+        $pfad = DateiNichtGespeichert::pruefen($datei->storeAs(self::ORDNER, Str::uuid()->toString().'.json', self::DISK), self::ORDNER);
 
         // Nur Kennzahlen in die Session; die Listen gekürzt, damit auch eine Ernte mit vielen
         // Konflikten die Sitzung nicht aufbläht.

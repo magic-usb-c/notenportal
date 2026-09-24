@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Feedback;
 
+use App\Exceptions\DateiNichtGespeichert;
 use App\Models\Feedback;
 use App\Models\FeedbackAnhang;
 use Closure;
@@ -127,7 +128,7 @@ final class Anhang
 
         $inhalt = $inhalt === false ? '' : $inhalt;
         $pfad = self::ORDNER.'/'.now()->format('Y').'/'.Str::uuid()->toString().'.'.$endung;
-        Storage::disk(self::DISK)->put($pfad, $inhalt);
+        DateiNichtGespeichert::pruefen(Storage::disk(self::DISK)->put($pfad, $inhalt), $pfad);
 
         return [
             'dateiname' => $original !== '' ? $original : 'anhang.'.$endung,

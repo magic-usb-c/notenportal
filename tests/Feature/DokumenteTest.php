@@ -6,9 +6,11 @@ namespace Tests\Feature;
 
 use App\Models\Dokument;
 use App\Models\User;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -18,6 +20,22 @@ class DokumenteTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+    }
+
+    #[Test]
+    public function fehlgeschlagenes_speichern_legt_keinen_datensatz_an_und_meldet_fehler(): void
+    {
+        $user = User::factory()->lernender()->create();
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('putFileAs')->andReturn(false);
+        Storage::set('local', $disk);
+
+        $this->actingAs($user)->from(route('learner.documents.index'))->post(route('learner.documents.store'), [
+            'datei' => UploadedFile::fake()->create('scan.pdf', 20, 'application/pdf'),
+            'art' => 'zeugnis',
+        ])->assertRedirect(route('learner.documents.index'))->assertSessionHas('error');
+
+        $this->assertDatabaseCount('dokumente', 0);
     }
 
     #[Test]

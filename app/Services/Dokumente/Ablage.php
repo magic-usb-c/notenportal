@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Dokumente;
 
+use App\Exceptions\DateiNichtGespeichert;
 use App\Models\Dokument;
 use App\Models\Lernender;
 use Illuminate\Http\UploadedFile;
@@ -47,11 +48,11 @@ final class Ablage
     {
         $endung = strtolower($datei->getClientOriginalExtension()) ?: ($datei->guessExtension() ?? 'bin');
         $original = mb_substr($datei->getClientOriginalName(), 0, 255);
-        $pfad = $datei->storeAs(
+        $pfad = DateiNichtGespeichert::pruefen($datei->storeAs(
             'lernende/'.$lernender->lernender_id.'/dokumente/'.now()->format('Y'),
             Str::uuid()->toString().'.'.$endung,
             self::DISK,
-        );
+        ), 'lernende/'.$lernender->lernender_id.'/dokumente/'.now()->format('Y'));
 
         return Dokument::create([
             'lernender_id' => $lernender->lernender_id,
