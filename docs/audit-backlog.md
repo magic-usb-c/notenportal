@@ -42,7 +42,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 - ~~**[niedrig] BenutzerController::update speichert vor zweiter Validierung**~~ erledigt (11.09.): bereits ein einziges `validate()` + `DB::transaction` in `Admin\BenutzerController::update` und `Verwaltung\LernendeController::update`; Tests `BenutzerControllerTest::ungueltige_eingabe_speichert_nichts` und `AnlegenUndBearbeitenTest::ungueltiges_bearbeiten_speichert_nichts` grün.
 - ~~**[mittel] markAlleGesehen markiert ALLE Noten, auch ausserhalb des aktiven Filters**~~ erledigt (11.09.): Filter (`kategorie_id`/`semester_id`) wird im Formular mitgeschickt und serverseitig über `NotenGesehenController::gefilterteNoten()` angewendet (geteilt mit dem Zähler in `LernendeNotenController::index`); Test `AlleGesehenTest::markiert_nur_noten_im_aktiven_filter` grün.
 - ~~**[niedrig] BB-Soft-Delete-Inkonsistenz** (Berufsbildner-Model ohne SoftDeletes trotz geloescht_am-Spalte)~~ erledigt (11.09. geprüft): `Berufsbildner` nutzt `SoftDeletes` mit `DELETED_AT = 'geloescht_am'`, Raw-Queries filtern `bb.geloescht_am`.
-- **[niedrig] Kalenderabgleich-Fehler im Admin-Handlungsbedarf** verlinken bei mehreren betroffenen Lernenden nur auf den ersten (es gibt keine Admin-Übersicht aller Kalender-Feeds); bei Bedarf eigene Liste aller fehlerhaften Feeds ergänzen (Block AG, 11.09.2026).
+- ~~**[niedrig] Kalenderabgleich-Fehler im Admin-Handlungsbedarf** verlinken bei mehreren betroffenen Lernenden nur auf den ersten~~ erledigt (24.09.): ein Eintrag je betroffene Person mit Link; Test `DashboardTest::kalenderabgleich_fehler_mehrerer_lernender_verlinken_jede_person`.
 
 ## Qualitätsblock Notenlogik & Dashboards (10.09.2026) – bewusst weggelassen
 
