@@ -279,7 +279,7 @@ final class Katalogimport
                     ->where('lehrberuf_id', $beruf->lehrberuf_id)->where('modul_id', $modulId)->first();
 
                 if ($bestehend !== null) {
-                    $daten = ['pflicht' => $z['pflicht'], 'pflichtgrad' => $z['pflichtgrad']];
+                    $daten = ['pflicht' => $z['pflicht'], 'pflichtgrad' => $z['pflichtgrad'], 'version' => $z['version'] ?? null];
                     if ($semester !== null && ($bestehend->empfohlenes_lehrsemester_nr ?? null) === null) {
                         $daten['empfohlenes_lehrsemester_nr'] = $semester;
                     }
@@ -293,6 +293,7 @@ final class Katalogimport
                         'kategorie_id' => $lernort,
                         'pflicht' => $z['pflicht'],
                         'pflichtgrad' => $z['pflichtgrad'],
+                        'version' => $z['version'] ?? null,
                         'empfohlenes_lehrsemester_nr' => $semester,
                         'aktiv' => 1,
                         'erstellt_am' => now(),

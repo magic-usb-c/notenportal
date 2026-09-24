@@ -1,6 +1,6 @@
 @php
     // Verweis in den Modulbaukasten nur mit bekannter Version – siehe App\Support\Modulbaukasten.
-    $mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $modul->version);
+    $mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $mbkVersion ?? $modul->version);
     $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
     $groesse = fn (int $b) => $b >= 1048576 ? number_format($b / 1048576, 1).' MB' : max(1, (int) round($b / 1024)).' KB';
     $ich = (int) auth()->user()->benutzer_id;

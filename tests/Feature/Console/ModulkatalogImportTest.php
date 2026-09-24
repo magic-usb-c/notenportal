@@ -134,6 +134,43 @@ class ModulkatalogImportTest extends TestCase
     }
 
     #[Test]
+    public function die_zuordnung_traegt_die_version_ihres_abschlusses(): void
+    {
+        // Dasselbe Modul ist in zwei Jahrgängen gleichzeitig gültig. Die Modulzeile kann nur EINE
+        // Version halten (die höhere, weil `modul_nummer` eindeutig ist) – die Zuordnung hält
+        // deshalb die Version ihres Abschlusses. Sonst verwiese der ältere Jahrgang auf die
+        // neuere Modulseite im Modulbaukasten.
+        $datei = $this->ernte([
+            'abschluesse' => [
+                ['name' => 'Altberuf EFZ Muster (2021)', 'kennung' => 'alt', 'module' => [
+                    ['nummer' => '987', 'version' => '1', 'titel' => 'Musterobjekte prüfen', 'pflichtgrad' => 'pfl', 'lehrjahr' => 1],
+                ]],
+                ['name' => 'Neuberuf EFZ Muster (2026)', 'kennung' => 'neu', 'module' => [
+                    ['nummer' => '987', 'version' => '2', 'titel' => 'Musterobjekte prüfen', 'pflichtgrad' => 'pfl', 'lehrjahr' => 1],
+                ]],
+            ],
+            'module' => [
+                ['nummer' => '987', 'version' => '1', 'titel' => 'Musterobjekte prüfen'],
+                ['nummer' => '987', 'version' => '2', 'titel' => 'Musterobjekte prüfen'],
+            ],
+        ]);
+
+        $this->artisan('notenportal:modulkatalog', ['datei' => $datei, '--anwenden' => true])->assertSuccessful();
+
+        $modul = DB::table('module')->where('modul_nummer', 'M987')->first();
+        $this->assertSame('2', $modul->version, 'Die Modulzeile führt die höhere Version.');
+
+        $version = fn (string $kennung) => DB::table('lehrberuf_module as lbm')
+            ->join('lehrberufe as lb', 'lb.lehrberuf_id', '=', 'lbm.lehrberuf_id')
+            ->where('lb.quelle_kennung', $kennung)
+            ->where('lbm.modul_id', $modul->modul_id)
+            ->value('lbm.version');
+
+        $this->assertSame('1', $version('alt'), 'Der ältere Jahrgang behält seine Version.');
+        $this->assertSame('2', $version('neu'));
+    }
+
+    #[Test]
     public function ein_zweiter_lauf_aktualisiert_statt_zu_verdoppeln(): void
     {
         $datei = $this->ernte();

@@ -21,12 +21,23 @@ class StammdatenModuleController extends Controller
         $kategorieId = $request->integer('kategorie_id') ?: null;
         $gruppieren = in_array($request->input('gruppieren'), self::GRUPPIERUNGEN, true) ? $request->input('gruppieren') : '';
 
+        // Ist nach einem Lehrberuf gefiltert, gilt dessen Katalogversion: sie ist je Zuordnung
+        // eindeutig (Primärschlüssel lehrberuf_id, modul_id) und kann von der Version am Modul
+        // abweichen, weil einzelne Nummern in zwei Jahrgängen gleichzeitig gültig sind. Ohne
+        // Filter fasst die Liste mehrere Lehrberufe je Modul zusammen – dann bleibt nur die
+        // Version am Modul (siehe Migration 2026_09_24_000001).
+        $versionSpalte = $lehrberufId
+            ? DB::raw('COALESCE(lbv.version, m.version) as version')
+            : 'm.version';
+
         $module = DB::table('module as m')
             ->select([
-                'm.modul_id', 'm.modul_nummer', 'm.titel', 'm.version', 'm.aktiv',
+                'm.modul_id', 'm.modul_nummer', 'm.titel', $versionSpalte, 'm.aktiv',
                 DB::raw('COUNT(DISTINCT lbm.lehrberuf_id) as lehrberuf_count'),
             ])
             ->leftJoin('lehrberuf_module as lbm', 'lbm.modul_id', '=', 'm.modul_id')
+            ->when($lehrberufId, fn ($q, $id) => $q->leftJoin('lehrberuf_module as lbv', fn ($j) => $j
+                ->on('lbv.modul_id', '=', 'm.modul_id')->where('lbv.lehrberuf_id', $id)))
             ->when($suche !== '', function ($q) use ($suche) {
                 $like = '%'.addcslashes($suche, '%_\\').'%';
                 $q->where(fn ($w) => $w->where('m.modul_nummer', 'like', $like)->orWhere('m.titel', 'like', $like));
@@ -36,6 +47,7 @@ class StammdatenModuleController extends Controller
             ->when($kategorieId, fn ($q, $id) => $q->whereExists(fn ($e) => $e->select(DB::raw(1))
                 ->from('lehrberuf_module as x')->whereColumn('x.modul_id', 'm.modul_id')->where('x.kategorie_id', $id)))
             ->groupBy('m.modul_id', 'm.modul_nummer', 'm.titel', 'm.version', 'm.aktiv')
+            ->when($lehrberufId, fn ($q) => $q->groupBy('lbv.version'))
             ->orderBy('m.modul_nummer')
             ->get();
 

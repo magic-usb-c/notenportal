@@ -128,12 +128,19 @@ class NotenController extends Controller
                     ->sortBy('label')->values(),
             ])->values();
 
+        // Katalogversion: der Beruf des Lernenden entscheidet. Nur wo der Katalog für diesen Beruf
+        // nichts nennt, gilt die Version am Modul – sonst zeigte der Verweis den älteren Jahrgang
+        // auf die neuere Modulversion (siehe Migration 2026_09_24_000001).
+        $lehrberufId = (int) ($request->user()->lernender->lehrberuf_id ?? 0);
+
         $belegungen = DB::table('modul_belegungen as mb')
             ->join('module as m', 'm.modul_id', '=', 'mb.modul_id')
+            ->leftJoin('lehrberuf_module as lbm', fn ($j) => $j->on('lbm.modul_id', '=', 'mb.modul_id')
+                ->where('lbm.lehrberuf_id', $lehrberufId))
             ->where('mb.lernender_id', (int) $request->user()->lernender->lernender_id)
             ->orderBy('mb.start_datum')
             ->orderBy('mb.modul_belegung_id')
-            ->get(['mb.modul_id', 'mb.end_datum', 'm.modul_nummer', 'm.version'])
+            ->get(['mb.modul_id', 'mb.end_datum', 'm.modul_nummer', DB::raw('COALESCE(lbm.version, m.version) as version')])
             ->groupBy('modul_id')
             ->map(fn ($liste) => [
                 'offen' => $liste->last()->end_datum === null,

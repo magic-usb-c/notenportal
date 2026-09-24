@@ -144,6 +144,26 @@ class GemeinsameModuleTest extends TestCase
     }
 
     #[Test]
+    public function der_verweis_nimmt_die_katalogversion_des_eigenen_lehrberufs(): void
+    {
+        // Das Modul selbst führt V5 (der Katalog kennt nur eine Zeile je Nummer), der Lehrberuf
+        // dieses Lernenden steht aber noch auf V4. Der Verweis muss seiner Version folgen, sonst
+        // landet er auf der Modulseite des neueren Jahrgangs.
+        $modulId = DB::table('module')->insertGetId([
+            'modul_nummer' => 'M117', 'titel' => 'Zwei Jahrgänge', 'version' => '5',
+        ]);
+        DB::table('lehrberuf_module')->insert([
+            'lehrberuf_id' => $this->lehrberuf, 'modul_id' => $modulId, 'version' => '4',
+        ]);
+
+        $this->actingAs($this->lernender())
+            ->get(route('modules.show', $modulId))
+            ->assertOk()
+            ->assertSee('modulbaukasten.ch/module/117/4/de-DE', false)
+            ->assertDontSee('modulbaukasten.ch/module/117/5/de-DE', false);
+    }
+
+    #[Test]
     public function ohne_anmeldung_kein_zugriff(): void
     {
         $this->get(route('modules.index'))->assertRedirect(route('login'));

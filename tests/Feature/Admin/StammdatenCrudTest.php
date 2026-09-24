@@ -49,6 +49,33 @@ class StammdatenCrudTest extends TestCase
     }
 
     #[Test]
+    public function die_modulliste_nimmt_gefiltert_die_version_des_lehrberufs(): void
+    {
+        // Das Modul selbst führt V5, der gewählte Lehrberuf steht laut Katalog noch auf V4.
+        // Ist nach ihm gefiltert, ist seine Version eindeutig – der Verweis muss ihr folgen.
+        $admin = User::factory()->admin()->create();
+        $lehrberuf = Lehrberuf::factory()->create();
+        $modul = Modul::factory()->create(['modul_nummer' => '117', 'version' => '5']);
+        DB::table('lehrberuf_module')->insert([
+            'lehrberuf_id' => $lehrberuf->lehrberuf_id, 'modul_id' => $modul->modul_id,
+            'kategorie_id' => Kategorie::where('code', 'FACH')->value('kategorie_id'), 'version' => '4',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.master-data.modules.index', ['lehrberuf_id' => $lehrberuf->lehrberuf_id]))
+            ->assertOk()
+            ->assertSee('modulbaukasten.ch/module/117/4/de-DE', false)
+            ->assertDontSee('modulbaukasten.ch/module/117/5/de-DE', false);
+
+        // Ohne Filter fasst die Liste mehrere Lehrberufe je Modul zusammen; dann bleibt es bei der
+        // Version am Modul, weil keine Zuordnung eindeutig massgebend ist.
+        $this->actingAs($admin)
+            ->get(route('admin.master-data.modules.index'))
+            ->assertOk()
+            ->assertSee('modulbaukasten.ch/module/117/5/de-DE', false);
+    }
+
+    #[Test]
     public function modul_wird_vom_lehrberuf_entfernt(): void
     {
         $admin = User::factory()->admin()->create();

@@ -57,6 +57,7 @@ class ModulController extends Controller
         return view('module.show', [
             'modul' => $modul,
             'belegt' => $this->istBelegt($modul->modul_id),
+            'mbkVersion' => $this->katalogversion($modul),
         ]);
     }
 
@@ -225,6 +226,25 @@ class ModulController extends Controller
             'link' => ['nullable', 'url:http,https', 'max:500'],
             'handlungsziele' => ['nullable', 'string', 'max:8000'],
         ];
+    }
+
+    /**
+     * Katalogversion für den Verweis in den Modulbaukasten: massgebend ist die Version, die der
+     * Katalog für den Lehrberuf der angemeldeten Person nennt. Fehlt sie – oder betrachtet jemand
+     * ohne Lehrberuf das Modul –, gilt die Version am Modul selbst.
+     */
+    private function katalogversion(Modul $modul): ?string
+    {
+        $lehrberufId = (int) (request()->user()?->lernender?->lehrberuf_id ?? 0);
+
+        $ausZuordnung = $lehrberufId > 0 ? DB::table('lehrberuf_module')
+            ->where('lehrberuf_id', $lehrberufId)
+            ->where('modul_id', $modul->modul_id)
+            ->value('version') : null;
+
+        return $ausZuordnung !== null && trim((string) $ausZuordnung) !== ''
+            ? (string) $ausZuordnung
+            : $modul->version;
     }
 
     /** Führt die angemeldete Person dieses Modul bereits selbst? (Nur Lernende haben Belegungen.) */
