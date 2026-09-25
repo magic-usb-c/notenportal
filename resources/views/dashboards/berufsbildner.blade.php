@@ -48,9 +48,9 @@
                         get zaehlNeu() { return this.zeilen.filter(z => z.neu > 0).length },
                      }">
                 <x-slot:aktionen>
-                    <div class="flex flex-wrap items-center justify-end gap-2">
+                    <div class="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
                         <input type="search" x-model="suche" placeholder="{{ __('Suchen') }}" aria-label="{{ __('Lernende suchen') }}"
-                               class="h-8 w-28 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
+                               class="h-8 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
                         <div role="radiogroup" x-radiogroup aria-label="{{ __('Filter') }}" class="flex max-w-full items-center gap-1 overflow-x-auto rounded-lg bg-surface-2 p-0.5 text-xs">
                             <button type="button" role="radio" :aria-checked="filter === 'alle'" @click="filter = 'alle'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'alle' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Alle').' ') + zaehlAlle"></button>
                             <button type="button" role="radio" :aria-checked="filter === 'rot'" @click="filter = 'rot'" class="h-8 shrink-0 whitespace-nowrap rounded-md px-2.5" :class="filter === 'rot' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Kritisch').' ') + zaehlKritisch"></button>
@@ -82,9 +82,9 @@
                         <table class="w-full text-sm tabular-nums">
                             <thead>
                                 <tr class="border-y border-border">
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status'), true) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status'), true) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted">{{ __('Lj') }}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lj') }}</th>
                                     <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('semester') }}">{!! $sortLink('semester', __('Semester')) !!}</th>
                                     <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('gesamt') }}">{!! $sortLink('gesamt', __('Gesamt')) !!}</th>
@@ -101,12 +101,13 @@
                                     @endphp
                                     <tr class="border-b border-border last:border-0 hover:bg-surface-2/60"
                                         x-show="(filter === 'alle' || filter === '{{ $s->status }}' || (filter === 'neu' && {{ $z->neu }} > 0)) && (suche === '' || @js(mb_strtolower($b->vorname.' '.$b->nachname)).includes(suche.toLowerCase()))">
-                                        <td class="h-11 px-3"><x-status :status="$s->status" /></td>
+                                        <td class="hidden h-11 px-3 sm:table-cell"><x-status :status="$s->status" /></td>
                                         <td class="h-11 px-3">
                                             <a href="{{ route('trainer.learners.show', $z->lernender->lernender_id) }}" class="font-medium text-text hover:text-accent-text">{{ $b->vorname }} {{ $b->nachname }}</a>
                                             <div class="truncate text-xs text-muted" title="{{ $z->lernender->lehrberuf?->name }}">{{ $z->lernender->lehrberuf?->kuerzel }}</div>
+                                            <x-status :status="$s->status" class="mt-1 mb-1.5 sm:hidden" />
                                         </td>
-                                        <td class="h-11 px-2 text-right">{{ $z->lehrjahr ?? '–' }}</td>
+                                        <td class="hidden h-11 px-2 text-right sm:table-cell">{{ $z->lehrjahr ?? '–' }}</td>
                                         <td class="hidden h-11 px-3 md:table-cell"><x-sparkline :werte="$s->verlauf" :zahl="false" /></td>
                                         <td class="h-11 px-3 text-right whitespace-nowrap">
                                             <x-note :wert="$s->semesterNote" :stellen="1" />
