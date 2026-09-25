@@ -140,7 +140,7 @@
                                             <th scope="row" class="w-full max-w-0 px-4 text-left font-normal">
                                                 <button type="button" @click.stop="offen = ! offen" :aria-expanded="offen" aria-controls="{{ $zeileId }}"
                                                         class="flex w-full min-w-0 items-baseline gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
-                                                    <span class="truncate font-medium text-text">{{ $el->label }}</span>
+                                                    <span class="line-clamp-2 font-medium text-text sm:line-clamp-none sm:truncate">{{ $el->label }}</span>
                                                     @if($beleg && $beleg['versuche'] > 1)
                                                         <span class="shrink-0 text-xs text-muted">{{ __(':n. Versuch', ['n' => $beleg['versuche']]) }}</span>
                                                     @endif
