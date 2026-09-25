@@ -26,6 +26,7 @@ Liegen unter `~/tools/visual/` (ausserhalb des Repos, Node + Playwright, `node_m
 | `sprache.mjs` | `__()`-Strings ohne Eintrag in `lang/en.json` (blieben im Englisch-Modus Deutsch), fehlende `validation.php`-Attribute | Nach neuen Views/Texten, vor Releases |
 | `umbruch.mjs` | Knöpfe/Links/Nav/Tabellenköpfe/Tabs/Badges, die bei 390/1024/1440/2560px umbrechen oder abgeschnitten werden | Nach Layout-/Breakpoint-Änderungen |
 | `abgeschnitten.mjs` | Elemente, die ein Vorfahr mit `overflow-hidden` (z. B. `x-karte`) seitlich abschneidet – `breite.mjs` sieht das nicht; dazu mit Ellipse auf < 80 px zusammengedrückter Text (Titel neben Knöpfen) | Nach Layout-Änderungen an Karten/Kopfzeilen, Standard 390 px (`--breite=`) |
+| `zielgroesse.mjs` | Bedienelemente unter 24×24 px mit engen Nachbarn (WCAG 2.5.8) und feste Höhen (`h-9`/`h-11`), die das Layout zusammendrückt (z. B. `flex-1` in `flex-col`) | Nach Änderungen an Formular-Fusszeilen und Knopfgruppen, Standard 390 px |
 | `pruefen.mjs` | Orchestriert alle obigen Checks als eigene kurze Prozesse (speicherschonend) | `node pruefen.mjs all` für einen Gesamtdurchlauf |
 | `bogen.mjs` | Baut aus markierten Screenshots einen 3×3-Bogen (400px/Kachel) für die haiku-Sichtprüfung | Nach `leer.mjs`, wenn Bilder zur Sichtprüfung anfallen |
 | `fokus-rueckgabe.mjs` | Drawer/Modal gibt nach Escape den Fokus nicht an den Auslöser zurück | Nach Änderungen an `drawer`/`modal`-Komponenten |
