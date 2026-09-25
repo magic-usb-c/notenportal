@@ -140,6 +140,30 @@ class RechenkernTest extends TestCase
     }
 
     #[Test]
+    public function element_nur_mit_gewicht_null_hat_keine_note(): void
+    {
+        $a = (new Rechenkern)->auswerten([
+            $this->fach(self::MATHE, 1, 5.0, 0),
+            $this->fach(self::MATHE, 1, 3.0, 0),
+        ], $this->konfiguration());
+
+        $this->assertNull($a->elemente['f10s1']->note ?? null);
+        $this->assertNull($a->wert(Zielgroesse::parse('fach:10')));
+    }
+
+    #[Test]
+    public function promotion_mit_noten_genau_auf_der_grenze_ist_erfuellt(): void
+    {
+        $p = (new Rechenkern)->auswerten([
+            $this->fach(self::MATHE, 1, 4.0), $this->fach(self::DEUTSCH, 1, 4.0), $this->fach(self::ENGLISCH, 1, 4.0),
+        ], $this->konfiguration())->promotion(self::BMS, 1);
+
+        $this->assertTrue($p['erfuellt']);
+        $this->assertSame(0, $p['ungenuegend']);
+        $this->assertSame(0.0, $p['minuspunkte']);
+    }
+
+    #[Test]
     public function semesterschnitt_ueber_alle_kategorien(): void
     {
         $a = (new Rechenkern)->auswerten([
