@@ -19,11 +19,11 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
                             <tr>
-                                <th class="text-left p-3 whitespace-nowrap">{{ __('Datum') }}</th>
-                                <th class="text-left p-3 whitespace-nowrap">{{ __('Kategorie') }}</th>
+                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Datum') }}</th>
+                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
                                 <th class="text-left p-3">{{ __('Text') }}</th>
-                                <th class="text-left p-3 whitespace-nowrap">{{ __('Status') }}</th>
-                                <th class="text-left p-3">{{ __('Antwort') }}</th>
+                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Status') }}</th>
+                                <th class="hidden text-left p-3 sm:table-cell">{{ __('Antwort') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
@@ -37,9 +37,13 @@
                                     $gekuerzt = mb_strlen($m->text) > 140;
                                 @endphp
                                 <tr class="even:bg-bg/30">
-                                    <td class="p-3 text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
-                                    <td class="p-3 whitespace-nowrap">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
+                                    <td class="hidden p-3 text-muted whitespace-nowrap sm:table-cell">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
+                                    <td class="hidden p-3 whitespace-nowrap sm:table-cell">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
                                     <td class="p-3 max-w-md">
+                                        <p class="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted sm:hidden">
+                                            <span>{{ $m->erstellt_am->format('d.m.Y') }} · {{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</span>
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full {{ $statusClasses }}">{{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}</span>
+                                        </p>
                                         @if($gekuerzt)
                                             <details class="np-details">
                                                 <summary class="cursor-pointer select-none list-none">
@@ -56,13 +60,16 @@
                                         @elseif($mitStimmen && ($m->stimmen_count ?? 0) > 0)
                                             <p class="mt-1 text-xs text-muted">{{ __(':n Personen betrifft das auch', ['n' => $m->stimmen_count]) }}</p>
                                         @endif
+                                        @if($m->admin_notiz)
+                                            <p class="mt-2 border-l-2 border-border-strong/60 pl-2 whitespace-pre-wrap sm:hidden"><span class="block text-xs text-muted">{{ __('Antwort') }}</span>{{ $m->admin_notiz }}</p>
+                                        @endif
                                     </td>
-                                    <td class="p-3 whitespace-nowrap">
+                                    <td class="hidden p-3 whitespace-nowrap sm:table-cell">
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $statusClasses }}">
                                             {{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}
                                         </span>
                                     </td>
-                                    <td class="p-3 max-w-xs">
+                                    <td class="hidden p-3 max-w-xs sm:table-cell">
                                         @if($m->admin_notiz)
                                             <span class="whitespace-pre-wrap">{{ $m->admin_notiz }}</span>
                                         @else

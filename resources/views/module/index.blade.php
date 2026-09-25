@@ -29,25 +29,25 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
-                                <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Ziele') }}</th>
-                                <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Unterlagen') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted">{{ __('Ziele') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted">{{ __('Unterlagen') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
                             @forelse($module as $m)
                                 <tr class="h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                                    <td class="px-4 font-mono font-semibold whitespace-nowrap">
+                                    <td class="px-2.5 sm:px-4 font-mono font-semibold whitespace-nowrap">
                                         <a href="{{ route('modules.show', $m->modul_id) }}" class="text-accent-text hover:underline">{{ $m->modul_nummer }}</a>
                                         @if($m->version)<span class="ml-1.5 font-sans text-2xs font-normal text-muted">V{{ $m->version }}</span>@endif
                                     </td>
-                                    <td class="px-4 text-text">
+                                    <td class="px-2.5 sm:px-4 text-text">
                                         <a href="{{ route('modules.show', $m->modul_id) }}" class="hover:underline">{{ $m->titel }}</a>
                                         @unless($m->aktiv)<span class="ml-2 rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ __('inaktiv') }}</span>@endunless
                                     </td>
-                                    <td class="px-4 text-right text-muted">{{ $m->handlungsziele_count }}</td>
-                                    <td class="px-4 text-right text-muted">{{ $m->dokumente_count }}</td>
+                                    <td class="px-2.5 sm:px-4 text-right text-muted">{{ $m->handlungsziele_count }}</td>
+                                    <td class="px-2.5 sm:px-4 text-right text-muted">{{ $m->dokumente_count }}</td>
                                 </tr>
                             @empty
                                 <tr>
