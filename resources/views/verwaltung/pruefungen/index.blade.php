@@ -59,8 +59,8 @@
                             <div class="p-4">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="truncate font-medium text-text">{{ trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : '')) }}</span>
+                                        <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                                            <span class="font-medium text-text [overflow-wrap:anywhere]">{{ trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : '')) }}</span>
                                             @if($p->istAbgabe())
                                                 <span class="{{ $pillBasis }} bg-accent/10 text-accent-text shrink-0">{{ __('Abgabetermin') }}</span>
                                             @endif
