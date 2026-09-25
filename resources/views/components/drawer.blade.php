@@ -11,22 +11,23 @@
 
 {{--
     Generischer Drawer (Erfassen, Bearbeiten, Planen): schwebt rechts über der Seite, Scrim schliesst,
-    Esc schliesst, Fokus bleibt innerhalb. Öffnen per Alpine-Event: $dispatch('open-drawer', 'name').
+    Esc schliesst, Fokus bleibt innerhalb und kehrt danach zum Auslöser zurück. Öffnen per Alpine-Event: $dispatch('open-drawer', 'name').
 --}}
 <div
     x-data="{
         offen: @js((bool) $offen),
+        ausloeser: null,
         focusables() {
             let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, [tabindex]:not([tabindex=\'-1\'])'
-            return [...$el.querySelectorAll(selector)].filter(el => ! el.hasAttribute('disabled'))
+            return [...$el.querySelectorAll(selector)].filter(el => ! el.hasAttribute('disabled') && el.getClientRects().length > 0)
         },
         ersterFokus() { return this.focusables()[0] },
         letzterFokus() { return this.focusables().slice(-1)[0] },
         naechsterFokus() { return this.focusables()[(this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1)] || this.ersterFokus() },
         vorherigerFokus() { return this.focusables()[Math.max(0, this.focusables().indexOf(document.activeElement)) - 1] || this.letzterFokus() },
     }"
-    x-init="offen && $nextTick(() => ersterFokus()?.focus())"
-    x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { offen = true; $nextTick(() => ersterFokus()?.focus()) }"
+    x-init="offen && $nextTick(() => ersterFokus()?.focus()); $watch('offen', v => { if (! v && ausloeser?.isConnected) { ausloeser.focus(); ausloeser = null } })"
+    x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { ausloeser = document.activeElement; offen = true; $nextTick(() => ersterFokus()?.focus()) }"
     x-on:close-drawer.window="$event.detail === '{{ $name }}' ? offen = false : null"
     x-on:keydown.escape.window="offen = false"
     x-on:keydown.tab.prevent="$event.shiftKey || naechsterFokus().focus()"

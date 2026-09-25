@@ -20,10 +20,11 @@ $maxWidth = [
 <div
     x-data="{
         show: @js($show),
+        ausloeser: null,
         focusables() {
             let selector = 'a, button, input:not([type=\'hidden\']), textarea, select, details, [tabindex]:not([tabindex=\'-1\'])'
             return [...$el.querySelectorAll(selector)]
-                .filter(el => ! el.hasAttribute('disabled'))
+                .filter(el => ! el.hasAttribute('disabled') && el.getClientRects().length > 0)
         },
         firstFocusable() { return this.focusables()[0] },
         lastFocusable() { return this.focusables().slice(-1)[0] },
@@ -34,10 +35,13 @@ $maxWidth = [
     }"
     x-init="$watch('show', value => {
         if (value) {
+            ausloeser = document.activeElement;
             document.body.classList.add('overflow-y-hidden');
             {{ $attributes->has('focusable') ? 'setTimeout(() => firstFocusable().focus(), 100)' : '' }}
         } else {
             document.body.classList.remove('overflow-y-hidden');
+            if (ausloeser?.isConnected) ausloeser.focus();
+            ausloeser = null;
         }
     })"
     x-on:open-modal.window="$event.detail == '{{ $name }}' ? show = true : null"
