@@ -70,9 +70,9 @@
         <div class="mx-auto flex np-seite flex-col gap-6 px-4 sm:px-6 lg:px-8">
 
             {{-- Statuszeile --}}
-            <dl class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+            <dl class="flex flex-wrap items-baseline gap-x-5 gap-y-2 sm:gap-x-3">
                 @foreach($status as [$label, $wert])
-                    @unless($loop->first)<span class="text-muted" aria-hidden="true">·</span>@endunless
+                    @unless($loop->first)<span class="hidden text-muted sm:inline" aria-hidden="true">·</span>@endunless
                     <div class="flex items-baseline gap-2">
                         <dt class="text-xs text-muted">{{ $label }}</dt>
                         <dd><x-note :wert="$wert" :stellen="1" class="text-2xl" /></dd>
