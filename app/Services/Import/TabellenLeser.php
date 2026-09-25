@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Import;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Smalot\PdfParser\Parser;
 
@@ -14,6 +15,8 @@ use Smalot\PdfParser\Parser;
 final class TabellenLeser
 {
     public const int MAX_ZEILEN = 500;
+
+    public const int MAX_SPALTEN = 60;
 
     /** @return list<list<string>> */
     public function lesen(string $pfad, string $endung): array
@@ -48,11 +51,12 @@ final class TabellenLeser
         $reader->setReadDataOnly(true);
         $blatt = $reader->load($pfad)->getSheet(0);
 
+        $letzteSpalte = Coordinate::stringFromColumnIndex(min(Coordinate::columnIndexFromString($blatt->getHighestDataColumn()), self::MAX_SPALTEN));
         // Formeln aus fremden Dateien nie berechnen – den in der Datei gespeicherten Wert nehmen
         $zeilen = [];
         foreach ($blatt->getRowIterator(1, min($blatt->getHighestDataRow(), self::MAX_ZEILEN + 20)) as $zeile) {
             $zellen = [];
-            foreach ($zeile->getCellIterator() as $zelle) {
+            foreach ($zeile->getCellIterator('A', $letzteSpalte) as $zelle) {
                 $v = $zelle->isFormula() ? $zelle->getOldCalculatedValue() : $zelle->getValue();
                 $zellen[] = $v === null ? '' : trim(is_float($v) ? rtrim(rtrim(sprintf('%.6F', $v), '0'), '.') : (string) $v);
             }

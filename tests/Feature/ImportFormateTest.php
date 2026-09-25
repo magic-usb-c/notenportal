@@ -131,6 +131,22 @@ class ImportFormateTest extends TestCase
     }
 
     #[Test]
+    public function excel_mit_wert_in_ferner_spalte_liest_nur_die_ersten_spalten(): void
+    {
+        $blatt = new Spreadsheet;
+        $blatt->getActiveSheet()->fromArray([['Datum', 'Fach', 'Note'], ['11.09.2026', 'Mathematik', 5.5]]);
+        $blatt->getActiveSheet()->setCellValue('XFD500', 'x');
+        $pfad = tempnam(sys_get_temp_dir(), 'np').'.xlsx';
+        (new Xlsx($blatt))->save($pfad);
+        $tabelle = app(TabellenLeser::class)->lesen($pfad, 'xlsx');
+        unlink($pfad);
+
+        $this->assertSame(['Datum', 'Fach', 'Note'], array_slice($tabelle[0], 0, 3));
+        $this->assertSame('5.5', $tabelle[1][2]);
+        $this->assertLessThanOrEqual(TabellenLeser::MAX_SPALTEN, max(array_map(count(...), $tabelle)));
+    }
+
+    #[Test]
     public function bm_zeugnis_liefert_aktuelle_semesternote_und_trennt_bm_von_berufsfachschule(): void
     {
         $this->assertSame([
