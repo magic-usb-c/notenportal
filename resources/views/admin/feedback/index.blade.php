@@ -55,7 +55,7 @@
                     <x-slot:weitere>
                         <label class="flex h-9 items-center gap-2 px-1 text-sm text-text">
                             <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()"
-                                   class="rounded border-border-strong/70 text-accent focus:ring-ring">
+                                   class="rounded border-border-strong/70 text-accent-text focus:ring-ring">
                             {{ __('Duplikate anzeigen') }}
                         </label>
                     </x-slot:weitere>
@@ -191,7 +191,7 @@
                                     </td>
                                     <td class="px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
                                     <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
-                                        <button type="button" @click="open = !open"
+                                        <button type="button" @click="open = !open" :aria-expanded="open"
                                                 class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2">
                                             <span x-text="open ? @js(__('Schliessen')) : @js(__('Details'))"></span>
                                         </button>
@@ -333,7 +333,7 @@
                                 <tr>
                                     <td colspan="7" class="p-10 text-center text-muted">
                                         @if(! $gibtEs)
-                                            <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                                            <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text" aria-hidden="true">
                                                 <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z"/></svg>
                                             </span>
                                             <p class="text-text font-medium">{{ __('Noch keine Meldungen') }}</p>

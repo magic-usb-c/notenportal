@@ -44,7 +44,7 @@
                                             <details class="np-details">
                                                 <summary class="cursor-pointer select-none list-none">
                                                     {{ Str::limit($m->text, 140) }}
-                                                    <span class="text-accent text-xs">{{ __('mehr') }}</span>
+                                                    <span class="text-accent-text text-xs">{{ __('mehr') }}</span>
                                                 </summary>
                                                 <p class="mt-1 whitespace-pre-wrap">{{ $m->text }}</p>
                                             </details>
@@ -73,7 +73,7 @@
                             @empty
                                 <tr>
                                     <td colspan="5" class="p-10 text-center text-muted">
-                                        <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                                        <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text" aria-hidden="true">
                                             <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z"/></svg>
                                         </span>
                                         <p class="text-text font-medium mb-1">{{ __('Noch keine Meldungen') }}</p>

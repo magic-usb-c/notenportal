@@ -90,7 +90,7 @@
         <div class="flex gap-1.5 mt-2">
             @foreach([25, 50, 100] as $g)
                 <button type="button" @click="gewicht = '{{ $g }}'" class="min-h-9 min-w-12 px-3 rounded-lg border text-xs transition-colors"
-                        :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'">{{ $g }}%</button>
+                        :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border text-muted hover:text-text'">{{ $g }}%</button>
             @endforeach
         </div>
         @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror

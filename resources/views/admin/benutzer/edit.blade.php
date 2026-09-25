@@ -68,7 +68,7 @@
                             @foreach(['Admin', 'Berufsbildner'] as $rolle)
                                 <label class="inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10">
                                     <input type="checkbox" name="rollen[]" value="{{ $rolle }}" @checked(in_array($rolle, old('rollen', $rollen->all()), true))
-                                           class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                           class="w-4 h-4 rounded border-border text-accent-text focus:ring-ring">
                                     {{ __($rolle) }}
                                 </label>
                             @endforeach
@@ -102,10 +102,10 @@
                                 </label>
                                 <div class="flex items-center gap-3">
                                     <button type="button" @click="generieren()"
-                                            class="text-xs text-accent hover:underline">
+                                            class="text-xs text-accent-text hover:underline">
                                         {{ __('Generieren') }}
                                     </button>
-                                    <button type="button" @click="show = !show"
+                                    <button type="button" @click="show = !show" :aria-pressed="show"
                                             class="text-xs text-muted hover:text-text">
                                         <span x-show="!show">{{ __('Anzeigen') }}</span>
                                         <span x-show="show" x-cloak>{{ __('Verbergen') }}</span>

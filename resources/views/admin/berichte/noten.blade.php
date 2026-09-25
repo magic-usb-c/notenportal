@@ -188,7 +188,7 @@
                             @forelse($zeilen as $z)
                                 <tr class="hover:bg-accent/5">
                                     <td class="px-5 py-2.5 whitespace-nowrap">
-                                        <a href="{{ route('admin.learners.show', $z->id) }}" class="font-medium hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                        <a href="{{ route('admin.learners.show', $z->id) }}" class="font-medium hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
                                         @if($z->lehrberuf)<span class="ml-1 text-xs text-muted">{{ $z->lehrberuf }}</span>@endif
                                     </td>
                                     <td class="px-3 py-2.5">
@@ -207,7 +207,7 @@
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted">{{ $z->pruefungen }}</td>
                                     <td class="px-3 py-2.5 text-right tabular-nums text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
                                     <td class="px-5 py-2.5 text-right print:hidden">
-                                        <a href="{{ route('admin.learners.grades.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="text-xs text-accent hover:underline whitespace-nowrap">{{ __('Noten') }} →</a>
+                                        <a href="{{ route('admin.learners.grades.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="text-xs text-accent-text hover:underline whitespace-nowrap">{{ __('Noten') }} →</a>
                                     </td>
                                 </tr>
                             @empty
@@ -215,7 +215,7 @@
                                     <td colspan="8" class="px-5 py-10 text-center text-sm text-muted">
                                         {{ __('Keine Lernenden') }}
                                         @if($filterAktiv)
-                                            <a href="{{ route('admin.reports.grades') }}" class="ml-2 text-accent hover:underline">{{ __('Filter zurücksetzen') }}</a>
+                                            <a href="{{ route('admin.reports.grades') }}" class="ml-2 text-accent-text hover:underline">{{ __('Filter zurücksetzen') }}</a>
                                         @endif
                                     </td>
                                 </tr>

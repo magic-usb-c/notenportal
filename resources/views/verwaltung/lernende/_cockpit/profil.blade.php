@@ -11,7 +11,7 @@
     {{-- Stammdaten --}}
     <x-karte :titel="__('Profil')" class="lg:col-span-8">
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-            <div><dt class="{{ $label }}">{{ __('E-Mail') }}</dt><dd class="text-text break-all"><a href="mailto:{{ $benutzer->email }}" class="hover:text-accent">{{ $benutzer->email }}</a></dd></div>
+            <div><dt class="{{ $label }}">{{ __('E-Mail') }}</dt><dd class="text-text break-all"><a href="mailto:{{ $benutzer->email }}" class="hover:text-accent-text">{{ $benutzer->email }}</a></dd></div>
             <div><dt class="{{ $label }}">{{ __('Benutzername') }}</dt><dd class="text-text font-mono">{{ $benutzer->benutzername }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Lehrbeginn') }}</dt><dd class="text-text">{{ $datum($lernender->lehrbeginn) }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Lehrende') }}</dt><dd class="text-text">{{ $datum($lernender->lehrende) }}</dd></div>
@@ -149,7 +149,7 @@
         <div class="divide-y divide-border">
             @forelse($lernender->tracks as $t)
                 <div class="px-5 py-3 flex flex-wrap items-center gap-3">
-                    <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold {{ $t->end_datum ? 'bg-bg text-muted border border-border' : 'bg-accent/10 text-accent' }}">{{ $t->track_typ }}</span>
+                    <span class="inline-flex px-2.5 py-1 rounded-lg text-xs font-bold {{ $t->end_datum ? 'bg-bg text-muted border border-border' : 'bg-accent/10 text-accent-text' }}">{{ $t->track_typ }}</span>
                     <div class="flex-1 min-w-0 text-sm text-text">
                         {{ __('ab :datum', ['datum' => $t->start_datum->format('d.m.Y')]) }}
                         @if($t->startSemester)<span class="text-muted">({{ $t->startSemester->bezeichnung }})</span>@endif

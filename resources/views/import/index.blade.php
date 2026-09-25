@@ -22,7 +22,7 @@
                            :class="ueber ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'"
                            @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
                            @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
-                        <svg class="w-8 h-8 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M9 4v16M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                        <svg class="w-8 h-8 text-accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M9 4v16M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
                         <span class="text-sm font-medium text-text" x-text="name || @js(__('Notenliste wählen oder hierher ziehen'))"></span>
                         <span class="text-xs text-muted">{{ __('Excel, CSV oder PDF mit Datum, Fach/Modul und Note') }}</span>
                         <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only" accept=".xlsx,.xls,.ods,.csv,.pdf"
@@ -30,7 +30,7 @@
                     </label>
                     @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
-                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ __('Vorlage (CSV)') }}</a>
+                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Vorlage (CSV)') }}</a>
                         <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Datei lesen') }}</button>
                     </div>
                 </form>
@@ -98,7 +98,7 @@
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
                                 @if($vorschau['format'] ?? null)
-                                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-accent/10 border border-border text-accent">{{ $vorschau['format'] }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-accent/10 border border-border text-accent-text">{{ $vorschau['format'] }}</span>
                                 @endif
                                 @foreach($vorschau['erkannt'] as $art => $index)
                                     <span class="px-2 py-0.5 rounded-full text-[11px] bg-bg/60 border border-border text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
@@ -127,7 +127,7 @@
                                         <th class="px-3 py-2 w-12">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                 <input type="checkbox" aria-label="{{ __('Alle auswählen') }}" :checked="gewaehlt === zeilen.length" @change="alle($event.target.checked)"
-                                                       class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                                       class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring">
                                             </label>
                                         </th>
                                         <th class="text-left px-2 py-2 font-medium">{{ __('Zeile') }}</th>
@@ -145,7 +145,7 @@
                                             <td class="px-3 py-1.5">
                                                 <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                     <input type="checkbox" x-model="z.uebernehmen" :disabled="z.status === 'fehler'"
-                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring disabled:opacity-60">
+                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring disabled:opacity-60">
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>

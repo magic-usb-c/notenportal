@@ -21,7 +21,7 @@
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
                         'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                         <input type="checkbox" name="berufe[]" value="{{ $kuerzel }}" @checked($da || in_array($kuerzel, $gewaehlt, true)) @disabled($da)
-                               class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                               class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring">
                         <span class="min-w-0 flex-1">
                             <span class="block text-sm text-text">{{ $name }}</span>
                             <span class="text-xs text-muted">{{ $kuerzel }}</span>
@@ -47,7 +47,7 @@
                                 class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
                     </div>
                 </template>
-                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="self-start inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">+ {{ __('Weiterer Lehrberuf') }}</button>
+                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="self-start inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weiterer Lehrberuf') }}</button>
             </div>
         </section>
 
@@ -64,7 +64,7 @@
                             <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
                                 'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                                 <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
-                                       class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                       class="w-4 h-4 rounded border-border text-accent-text focus:ring-ring">
                                 {{ $name }}
                             </label>
                         @endforeach

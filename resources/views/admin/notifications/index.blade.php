@@ -6,7 +6,7 @@
 
     @php
         $toggle = 'inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border bg-input text-xs text-text cursor-pointer '
-            .'has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent has-focus-visible:ring-2 has-focus-visible:ring-ring has-disabled:opacity-60 has-disabled:cursor-not-allowed';
+            .'has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring has-disabled:opacity-60 has-disabled:cursor-not-allowed';
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-2 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
     @endphp
 

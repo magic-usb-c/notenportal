@@ -47,7 +47,7 @@
                         @php($mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $modul->version))
                         <p class="mt-1 text-xs text-muted">
                             @if($mbk)
-                                <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer" class="text-accent underline underline-offset-2">{{ __('Im Modulbaukasten öffnen') }}</a>
+                                <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer" class="text-accent-text underline underline-offset-2">{{ __('Im Modulbaukasten öffnen') }}</a>
                             @else
                                 {{ __('Ohne Version gibt es keinen Verweis auf den Modulbaukasten.') }}
                             @endif
@@ -77,7 +77,7 @@
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $modul->aktiv))
-                               class="rounded-sm border-border text-accent focus:ring-ring">
+                               class="rounded-sm border-border text-accent-text focus:ring-ring">
                         <label for="aktiv" class="text-sm text-text">{{ __('Modul aktiv') }}</label>
                     </div>
 

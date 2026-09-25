@@ -20,7 +20,7 @@
                 @php $ist = $aktiv && (int) $aktiv->lehrberuf_id === (int) $lb->lehrberuf_id; @endphp
                 <a href="{{ route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" role="tab" aria-selected="{{ $ist ? 'true' : 'false' }}" title="{{ $lb->name }}"
                    @class(['inline-flex items-center gap-2 px-3 min-h-9 rounded-full text-sm border transition-colors',
-                       'border-accent/50 bg-accent/10 text-accent' => $ist, 'border-border text-muted hover:text-text' => ! $ist])>
+                       'border-accent/50 bg-accent/10 text-accent-text' => $ist, 'border-border text-muted hover:text-text' => ! $ist])>
                     {{ $lb->kuerzel }}
                     <span @class(['text-[11px] tabular-nums px-1.5 rounded-full', 'bg-accent/15' => $lb->anzahl, 'bg-bg' => ! $lb->anzahl])>{{ $lb->anzahl }}</span>
                 </a>
@@ -44,7 +44,7 @@
                 </div>
                 <p class="text-xs text-muted">
                     {{ __('Viele Module von Hand? Der Modulkatalog lässt sich als Datei einlesen – mit Nummern, Titeln, Versionen und Handlungszielen.') }}
-                    <a href="{{ route('admin.master-data.modules.catalog') }}" class="text-accent hover:underline">{{ __('Katalog einlesen') }}</a>
+                    <a href="{{ route('admin.master-data.modules.catalog') }}" class="text-accent-text hover:underline">{{ __('Katalog einlesen') }}</a>
                 </p>
                 <div class="w-56">
                     <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }} *</label>
@@ -57,7 +57,7 @@
                 <section class="rounded-2xl border border-border bg-card p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold text-text">{{ __('Zugeordnet') }} · {{ $zugeordnet->count() }}</h3>
-                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
+                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent-text hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
                     </div>
                     <div class="grid md:grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)

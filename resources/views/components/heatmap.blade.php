@@ -29,7 +29,7 @@
                         <tr class="hover:bg-accent/5">
                             <td class="sticky left-0 bg-card px-5 py-0.5 text-text truncate max-w-64" title="{{ $z['label'] }}">
                                 {{ $z['label'] }}
-                                @if($z['offen'])<span class="ml-1 text-[10px] text-accent font-semibold">{{ __('offen') }}</span>@endif
+                                @if($z['offen'])<span class="ml-1 text-[10px] text-accent-text font-semibold">{{ __('offen') }}</span>@endif
                             </td>
                             @foreach($daten['semester'] as $s)
                                 <td class="px-1 py-0.5 text-center">

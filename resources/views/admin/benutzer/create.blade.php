@@ -81,7 +81,7 @@
                             <div class="flex items-center justify-between">
                                 <label for="passwort" class="text-sm font-medium text-text">{{ __('Passwort') }} * <span class="text-xs font-normal">{{ __('(mind. 10 Zeichen, Buchstaben und Ziffern)') }}</span></label>
                                 <button type="button" @click="generieren()"
-                                        class="text-xs text-accent hover:underline">
+                                        class="text-xs text-accent-text hover:underline">
                                     {{ __('Generieren') }}
                                 </button>
                             </div>
@@ -94,7 +94,7 @@
                         <div>
                             <div class="flex items-center justify-between">
                                 <label for="passwort_confirmation" class="text-sm font-medium text-text">{{ __('Passwort bestätigen') }} *</label>
-                                <button type="button" @click="show = !show"
+                                <button type="button" @click="show = !show" :aria-pressed="show"
                                         class="text-xs text-muted hover:text-text">
                                     <span x-show="!show">{{ __('Anzeigen') }}</span>
                                     <span x-show="show" x-cloak>{{ __('Verbergen') }}</span>
@@ -124,7 +124,7 @@
                                     <input type="radio" name="rolle_id" value="{{ $r->rolle_id }}"
                                            x-model="rolle" class="sr-only" required>
                                     <svg class="w-6 h-6 mx-auto mb-1.5 transition-colors"
-                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent' : 'text-muted'"
+                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent-text' : 'text-muted'"
                                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $rolleMeta['icon'] }}"/>
                                         @if($r->name !== 'Lernender' && $r->name !== 'Berufsbildner')
@@ -132,7 +132,7 @@
                                         @endif
                                     </svg>
                                     <div class="font-semibold text-sm"
-                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent' : 'text-text'">{{ __($r->name) }}</div>
+                                         :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent-text' : 'text-text'">{{ __($r->name) }}</div>
                                     <div class="text-[11px] text-muted mt-0.5">{{ $rolleMeta['desc'] }}</div>
                                 </label>
                             @endforeach

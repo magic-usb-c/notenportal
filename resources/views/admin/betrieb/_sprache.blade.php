@@ -21,7 +21,7 @@
         </div>
         <label for="sprachwahl_aktiv" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
             <input id="sprachwahl_aktiv" name="sprachwahl_aktiv" type="checkbox" value="1" @checked(old('sprachwahl_aktiv', $wahlAktiv))
-                   class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
+                   class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent-text focus:ring-2 focus:ring-ring/30">
             {{ __('Benutzer wählen die Sprache selbst') }}
         </label>
         <div class="flex justify-end">

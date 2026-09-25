@@ -47,7 +47,7 @@
             <div class="flex flex-wrap items-center gap-2" x-show="ziele.length" x-cloak>
                 <template x-for="z in ziele" :key="z.id">
                     <div class="inline-flex items-center rounded-full border text-sm transition-colors"
-                         :class="zielText === z.ziel ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border bg-card/60 text-text'">
+                         :class="zielText === z.ziel ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border bg-card/60 text-text'">
                         <button type="button" class="pl-3 pr-2 min-h-9 inline-flex items-center gap-1.5" @click="setzeZiel(z.ziel, z.zielwert)">
                             <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 3a5 5 0 110 10 5 5 0 010-10zm0 3a2 2 0 100 4 2 2 0 000-4z"/></svg>
                             <span x-text="z.label"></span>
@@ -73,7 +73,7 @@
                             @foreach($ebenen as $wert => $name)
                                 <button type="button" role="tab" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')"
                                         class="min-h-9 rounded-lg text-xs sm:text-sm font-medium transition-colors"
-                                        :class="ebene === '{{ $wert }}' ? 'bg-card text-accent shadow-sm' : 'text-muted hover:text-text'">{{ $name }}</button>
+                                        :class="ebene === '{{ $wert }}' ? 'bg-card text-accent-text shadow-sm' : 'text-muted hover:text-text'">{{ $name }}</button>
                             @endforeach
                         </div>
 
@@ -112,7 +112,7 @@
                                     @foreach(['4.0', '4.5', '5.0', '5.5'] as $v)
                                         <button type="button" @click="zielwert = '{{ $v }}'"
                                                 class="min-h-9 px-2.5 rounded-lg border text-xs tabular-nums transition-colors"
-                                                :class="parseFloat(zielwert) === {{ $v }} ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:text-text'">{{ $v }}</button>
+                                                :class="parseFloat(zielwert) === {{ $v }} ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border text-muted hover:text-text'">{{ $v }}</button>
                                     @endforeach
                                 </div>
                             </div>
@@ -162,15 +162,15 @@
                                             <template x-for="s in katalog.semester" :key="s.id"><option :value="String(s.id)" x-text="s.name" :selected="String(s.id) === z.semester"></option></template>
                                         </select>
                                         <div class="flex-1 min-w-0 flex items-center gap-2 text-xs text-muted" x-show="z.typ !== 'fach'">
-                                            <span x-show="z.quelle === 'rest'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">{{ __('Rest') }}</span>
-                                            <span x-show="z.quelle === 'geplant'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent font-medium">{{ __('geplant') }}</span>
+                                            <span x-show="z.quelle === 'rest'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('Rest') }}</span>
+                                            <span x-show="z.quelle === 'geplant'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('geplant') }}</span>
                                             <span class="truncate" x-text="z.titel ?? ''"></span>
                                         </div>
                                         <label class="flex items-center gap-1 text-xs text-muted shrink-0">
                                             <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="w-16 rounded-lg border border-border bg-input text-text text-sm px-2 py-1.5 text-right tabular-nums focus:ring-2 focus:ring-ring" aria-label="{{ __('Gewichtung in Prozent') }}">%
                                         </label>
                                         <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
-                                               class="w-16 shrink-0 rounded-lg border border-border bg-input text-sm px-2 py-1.5 text-center font-semibold tabular-nums focus:ring-2 focus:ring-ring placeholder:text-accent"
+                                               class="w-16 shrink-0 rounded-lg border border-border bg-input text-sm px-2 py-1.5 text-center font-semibold tabular-nums focus:ring-2 focus:ring-ring placeholder:text-accent-text"
                                                :class="z.wert === '' ? 'border-accent/40' : klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}">
                                     </div>
                                 </div>

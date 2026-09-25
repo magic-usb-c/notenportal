@@ -5,10 +5,10 @@
             <div class="inline-flex rounded-lg bg-bg/60 border border-border p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="{{ __('Ansicht') }}">
                 <a href="{{ route('learner.exams.index', array_filter(['ansicht' => null, 'lektionen' => $zeigeLektionen ? 1 : null])) }}"
                    role="radio" aria-checked="{{ $ansicht === 'liste' ? 'true' : 'false' }}"
-                   class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'liste' ? 'bg-card text-accent shadow-xs' : 'text-muted' }}">{{ __('Liste') }}</a>
+                   class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'liste' ? 'bg-card text-accent-text shadow-xs' : 'text-muted' }}">{{ __('Liste') }}</a>
                 <a href="{{ route('learner.exams.index', array_filter(['ansicht' => 'monat', 'monat' => $monat->format('Y-m'), 'lektionen' => $zeigeLektionen ? 1 : null])) }}"
                    role="radio" aria-checked="{{ $ansicht === 'monat' ? 'true' : 'false' }}"
-                   class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'monat' ? 'bg-card text-accent shadow-xs' : 'text-muted' }}">{{ __('Monat') }}</a>
+                   class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'monat' ? 'bg-card text-accent-text shadow-xs' : 'text-muted' }}">{{ __('Monat') }}</a>
             </div>
             <x-slot:aktionen>
                 <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Kalender-Abo') }}</a>
@@ -22,11 +22,11 @@
         <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-                <span class="inline-flex items-center gap-1.5 text-text"><span class="text-accent" aria-hidden="true">●</span> {{ __('Prüfungen') }}</span>
-                <span class="inline-flex items-center gap-1.5 text-text"><span class="text-accent" aria-hidden="true">◆</span> {{ __('Erkannt, nicht zugeordnet') }}</span>
+                <span class="inline-flex items-center gap-1.5 text-text"><span class="text-accent-text" aria-hidden="true">●</span> {{ __('Prüfungen') }}</span>
+                <span class="inline-flex items-center gap-1.5 text-text"><span class="text-accent-text" aria-hidden="true">◆</span> {{ __('Erkannt, nicht zugeordnet') }}</span>
                 <span class="inline-flex items-center gap-1.5 text-text"><span class="text-muted" aria-hidden="true">◇</span> {{ __('Schulnetz-Termine') }}</span>
                 <a href="{{ route('learner.exams.index', array_filter(['ansicht' => $ansicht === 'monat' ? 'monat' : null, 'monat' => $ansicht === 'monat' ? $monat->format('Y-m') : null, 'lektionen' => $zeigeLektionen ? null : 1])) }}"
-                   class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 {{ $zeigeLektionen ? 'bg-accent/10 text-accent' : 'text-muted hover:text-text' }}">
+                   class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 {{ $zeigeLektionen ? 'bg-accent/10 text-accent-text' : 'text-muted hover:text-text' }}">
                     <span aria-hidden="true">○</span> {{ $zeigeLektionen ? __('Stundenplan ausblenden') : __('Stundenplan einblenden') }}
                 </a>
             </div>
@@ -106,7 +106,7 @@
                                        {{ $tag['imMonat'] ? 'bg-card' : 'bg-bg/40 text-muted' }}">
                             <span class="text-xs tabular-nums {{ $tag['heute'] ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-accent-contrast' : 'text-muted' }}">{{ $tag['datum']->format('d') }}</span>
                             @foreach($chips as $c)
-                                <span class="text-[11px] truncate leading-tight {{ in_array($c['art'], ['pruefung', 'erkannt'], true) ? 'text-accent' : 'text-muted' }}">
+                                <span class="text-[11px] truncate leading-tight {{ in_array($c['art'], ['pruefung', 'erkannt'], true) ? 'text-accent-text' : 'text-muted' }}">
                                     {{ ['pruefung' => '●', 'erkannt' => '◆', 'termin' => '◇', 'lektion' => '○'][$c['art']] }} {{ $c['titel'] }}
                                 </span>
                             @endforeach
@@ -151,7 +151,7 @@
                     <template x-for="e in (tagAusgewaehlt ? tagAusgewaehlt.eintraege : [])" :key="e.titel + e.zeit">
                         <a :href="e.href ?? '#'" class="flex items-start gap-2 rounded-lg border border-border px-3 py-2.5"
                            :class="e.href ? 'hover:bg-accent/5' : 'pointer-events-none'">
-                            <span aria-hidden="true" :class="['pruefung', 'erkannt'].includes(e.art) ? 'text-accent' : 'text-muted'"
+                            <span aria-hidden="true" :class="['pruefung', 'erkannt'].includes(e.art) ? 'text-accent-text' : 'text-muted'"
                                   x-text="({pruefung: '●', erkannt: '◆', termin: '◇', lektion: '○'})[e.art]"></span>
                             <span class="min-w-0 flex-1">
                                 <span class="block text-sm text-text truncate" x-text="e.titel"></span>

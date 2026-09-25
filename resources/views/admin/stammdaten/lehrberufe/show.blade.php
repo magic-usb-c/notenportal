@@ -55,7 +55,7 @@
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
+                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 pr-4">
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
@@ -65,7 +65,7 @@
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
+                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
@@ -123,7 +123,7 @@
                         <div class="flex items-end gap-2">
                             <label class="flex items-center gap-2 text-sm text-text">
                                 <input type="checkbox" name="pflicht" value="1" checked
-                                       class="rounded-sm border-border text-accent focus:ring-ring">
+                                       class="rounded-sm border-border text-accent-text focus:ring-ring">
                                 {{ __('Pflichtmodul') }}
                             </label>
                         </div>
@@ -162,7 +162,7 @@
                                         <td class="py-2 pr-4 text-text">{{ $f->name }}</td>
                                         <td class="py-2 pr-4">
                                             @if($f->track_typ)
-                                                <span class="px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent">
+                                                <span class="px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent-text">
                                                     {{ $f->track_typ }}
                                                 </span>
                                             @else

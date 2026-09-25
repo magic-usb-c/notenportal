@@ -37,6 +37,7 @@ Alpha immer über den Token: `bg-accent/10`, `border-border-strong/60`; in CSS `
 - `text-white` – auch auf Accent (im Dunkelmodus ist Accent hell → dunkle Schrift). Stattdessen `text-accent-contrast`. Ausnahmen: SVG in Mail-Vorlagen, Druckansicht.
 - Tailwind-Palettenfarben (`green-*`, `emerald-*`, `yellow-*`, `red-*`, `blue-*` …) für Bedeutung. Neu nur Note-Tokens; Bestand (u. a. `NotenSkala`) wird in Paket 2 umgestellt.
 - Fehlertext: `text-note-ungenuegend` (nicht `text-red-600`).
+- `text-accent` für Text – immer `text-accent-text` (eigene Akzentfarbe garantiert für `--accent` nur 3:1). `text-accent` nur für Grafik (Logo-SVG).
 
 Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `~/tools/kontrast/kontrast.mjs` rechnen: Text ≥ 4.5:1, UI-Grenzen/Grafik ≥ 3:1.
 

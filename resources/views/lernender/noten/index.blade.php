@@ -192,7 +192,7 @@
                                                         @endif
                                                         @if($mbk)
                                                             <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer"
-                                                               class="ml-auto shrink-0 text-accent underline underline-offset-2">
+                                                               class="ml-auto shrink-0 text-accent-text underline underline-offset-2">
                                                                 {{ __('Modulbeschreibung') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span>
                                                             </a>
                                                         @endif

@@ -13,7 +13,7 @@
                             @endif
                         @endforeach
                         <button type="submit" :disabled="loading"
-                                class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-accent disabled:opacity-60">
+                                class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-accent-text disabled:opacity-60">
                             {{ __('Alle :anzahl als gesehen markieren', ['anzahl' => $neuCount]) }}
                         </button>
                     </form>
@@ -174,7 +174,7 @@
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         <button type="submit" :disabled="loading"
-                                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-accent text-sm font-medium disabled:opacity-60">{{ __('Als gesehen markieren') }}</button>
+                                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-accent-text text-sm font-medium disabled:opacity-60">{{ __('Als gesehen markieren') }}</button>
                                     </form>
                                 @else
                                     <span class="text-xs text-muted">{{ __('Gesehen am :datum Uhr', ['datum' => $gesehen->gesehen_am->format('d.m.Y H:i')]) }}</span>
@@ -183,7 +183,7 @@
                                 <div class="flex items-center gap-2">
                                     @if($darfKorrigieren)
                                         <a href="{{ route("{$bereich}.learners.grades.edit", [$lernender->lernender_id, $n->note_id]) }}"
-                                           class="inline-flex items-center px-3 min-h-[36px] rounded-xl text-xs text-accent border border-accent/20 hover:bg-accent/10">{{ __('Korrigieren') }}</a>
+                                           class="inline-flex items-center px-3 min-h-[36px] rounded-xl text-xs text-accent-text border border-accent/20 hover:bg-accent/10">{{ __('Korrigieren') }}</a>
                                     @endif
                                     @if($darfLoeschen)
                                         <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"

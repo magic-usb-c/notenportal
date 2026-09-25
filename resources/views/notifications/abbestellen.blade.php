@@ -8,7 +8,7 @@
             {{ __('Der Betrieb schreibt diesen Anlass vor – er lässt sich nicht abbestellen.') }}
         </p>
         <p class="mt-6 text-center text-sm">
-            <a href="{{ route('login') }}" class="text-accent font-medium hover:underline">{{ __('Zur Anmeldung') }}</a>
+            <a href="{{ route('login') }}" class="text-accent-text font-medium hover:underline">{{ __('Zur Anmeldung') }}</a>
         </p>
     @else
         <p class="text-sm text-muted text-center">{{ __('Du erhältst dann keine Mails mehr zu diesem Anlass.') }}</p>

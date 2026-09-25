@@ -33,7 +33,7 @@
                     <span class="text-xs text-muted">{{ __('kritisch · :gelb beobachten', ['gelb' => $kennzahlen['gelb']]) }}</span>
                 </span>
                 <a href="{{ route('admin.feedback.index') }}" class="flex items-baseline gap-1.5 hover:opacity-80">
-                    <span class="text-2xl font-semibold tabular-nums {{ $kennzahlen['feedback'] ? 'text-accent' : 'text-text' }}">{{ $kennzahlen['feedback'] }}</span>
+                    <span class="text-2xl font-semibold tabular-nums {{ $kennzahlen['feedback'] ? 'text-accent-text' : 'text-text' }}">{{ $kennzahlen['feedback'] }}</span>
                     <span class="text-xs text-muted">{{ __('offene Meldungen') }}</span>
                 </a>
             </div>
@@ -58,10 +58,10 @@
                                         <span @class(['px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums',
                                             'bg-note-ungenuegend/15 text-note-ungenuegend' => $h['ton'] === 'rot',
                                             'bg-note-knapp/15 text-note-knapp' => $h['ton'] === 'gelb',
-                                            'bg-accent/15 text-accent' => $h['ton'] === 'accent',
+                                            'bg-accent/15 text-accent-text' => $h['ton'] === 'accent',
                                         ])>{{ $h['badge'] }}</span>
                                     @endif
-                                    <span class="text-xs text-accent">{{ __('Beheben ›') }}</span>
+                                    <span class="text-xs text-accent-text">{{ __('Beheben ›') }}</span>
                                 </span>
                             </a>
                         @endforeach
@@ -90,7 +90,7 @@
                                         <td class="px-3 text-right text-muted">{{ $bb->lernende }}</td>
                                         <td class="px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
                                         <td class="px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
-                                        <td class="px-5 text-right {{ $bb->neu > 20 ? 'text-accent font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                        <td class="px-5 text-right {{ $bb->neu > 20 ? 'text-accent-text font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="5" class="px-5 py-8 text-center text-muted">{{ __('Noch keine Berufsbildner') }}</td></tr>

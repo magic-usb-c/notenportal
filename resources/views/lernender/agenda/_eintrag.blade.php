@@ -9,7 +9,7 @@
         default => __('vor :anzahl Tagen', ['anzahl' => abs($tage)]),
     };
     $symbol = ['pruefung' => '●', 'erkannt' => '◆', 'termin' => '◇', 'lektion' => '○'][$e['art']];
-    $symbolFarbe = in_array($e['art'], ['pruefung', 'erkannt'], true) ? 'text-accent' : 'text-muted';
+    $symbolFarbe = in_array($e['art'], ['pruefung', 'erkannt'], true) ? 'text-accent-text' : 'text-muted';
     $p = $e['pruefung'];
 @endphp
 <div class="px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -65,7 +65,7 @@
                         </optgroup>
                     @endforeach
                 </select>
-                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10 disabled:opacity-60">{{ __('Übernehmen') }}</button>
+                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10 disabled:opacity-60">{{ __('Übernehmen') }}</button>
             </form>
         @endif
     </div>

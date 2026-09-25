@@ -22,7 +22,7 @@
                             <div class="text-xs text-muted truncate">{{ $f->host() }}</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button type="button" @click="bearbeiten = !bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Bearbeiten') }}</button>
+                            <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Bearbeiten') }}</button>
                             <form method="POST" action="{{ route('learner.calendar.feed.sync', $f->id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
                                 <button :disabled="loading" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text disabled:opacity-60">{{ __('Jetzt abgleichen') }}</button>
@@ -48,7 +48,7 @@
                     </div>
                     <div class="mt-1.5 flex flex-wrap gap-1.5">
                         @foreach([['import_exams', __('Prüfungen')], ['import_appointments', __('Termine')], ['import_lessons', __('Lektionen (Stundenplan)')]] as [$feld, $bezeichnung])
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] {{ $f->$feld ? 'bg-accent/10 text-accent' : 'text-muted line-through' }}">{{ $bezeichnung }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] {{ $f->$feld ? 'bg-accent/10 text-accent-text' : 'text-muted line-through' }}">{{ $bezeichnung }}</span>
                         @endforeach
                     </div>
 
@@ -63,7 +63,7 @@
     @if($feeds->count() < \App\Models\CalendarFeed::MAX_PRO_LERNENDEM)
         <div class="rounded-lg border border-border bg-bg/40 px-3 py-3" x-data="{ bearbeiten: {{ $feeds->isEmpty() || (old('feed_id') !== null && ! filled(old('feed_id'))) ? 'true' : 'false' }} }">
             @if($feeds->isNotEmpty())
-                <button type="button" @click="bearbeiten = !bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Kalender hinzufügen') }}</button>
+                <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Kalender hinzufügen') }}</button>
             @else
                 <h4 class="text-sm font-medium text-text mb-2">{{ __('Kalender hinzufügen') }}</h4>
             @endif

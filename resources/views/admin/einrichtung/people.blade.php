@@ -63,7 +63,7 @@
             <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('personen') as $m)<li>{{ $m }}</li>@endforeach</ul>
         @endif
         <div class="flex items-center justify-between gap-3">
-            <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">+ {{ __('Weitere Person') }}</button>
+            <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weitere Person') }}</button>
             <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Konten anlegen') }}</button>
         </div>
     </form>
@@ -121,7 +121,7 @@
                 <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('lernende') as $m)<li>{{ $m }}</li>@endforeach</ul>
             @endif
             <div class="flex items-center justify-between gap-3">
-                <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">+ {{ __('Weitere Lernende') }}</button>
+                <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weitere Lernende') }}</button>
                 <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Lernende anlegen') }}</button>
             </div>
         </form>

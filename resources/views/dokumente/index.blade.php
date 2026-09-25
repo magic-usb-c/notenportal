@@ -33,7 +33,7 @@
                            :class="ueber ? 'border-accent bg-accent/5' : 'border-border hover:border-accent/50'"
                            @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
                            @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
-                        <svg class="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+                        <svg class="w-7 h-7 text-accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
                         <span class="text-sm font-medium text-text" x-text="name || @js(__('Datei wählen oder hierher ziehen'))"></span>
                         <span class="text-xs text-muted">{{ __('PDF, Bild, Excel, CSV · bis 10 MB') }}</span>
                         <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only"
@@ -72,7 +72,7 @@
 
             @if($dokumente->isEmpty())
                 <div class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-5 py-10 text-center">
-                    <span class="inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent" aria-hidden="true">
+                    <span class="inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text" aria-hidden="true">
                         <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
                     </span>
                     <p class="text-sm font-medium text-text">{{ __('Noch keine Dokumente') }}</p>
@@ -88,7 +88,7 @@
                         <ul class="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
                                 <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">
-                                    <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
+                                    <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent-text text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
                                     <div class="min-w-0 flex-1">
                                         <div class="text-sm font-medium text-text truncate">{{ $d->titel }}</div>
                                         <div class="text-xs text-muted truncate">
@@ -97,11 +97,11 @@
                                     </div>
                                     <div class="flex items-center justify-end gap-1 shrink-0 w-full sm:w-auto">
                                         @if($d->art === 'zeugnis' && $d->istPdf() && \Illuminate\Support\Facades\Route::has('learner.documents.reconcile'))
-                                            <a href="{{ $r('reconcile', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ __('Abgleich') }}</a>
+                                            <a href="{{ $r('reconcile', ['dokument_id' => $d->dokument_id]) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Abgleich') }}</a>
                                         @endif
                                         @if(in_array($d->mime, \App\Models\Dokument::INLINE, true))
                                             <a href="{{ $r('show', ['dokument_id' => $d->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener"
-                                               class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ __('Öffnen') }}</a>
+                                               class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Öffnen') }}</a>
                                         @endif
                                         <a href="{{ $r('show', ['dokument_id' => $d->dokument_id]) }}" aria-label="{{ __(':titel herunterladen', ['titel' => $d->titel]) }}"
                                            class="w-9 h-9 inline-flex items-center justify-center rounded-lg text-muted hover:text-text hover:bg-accent/10">

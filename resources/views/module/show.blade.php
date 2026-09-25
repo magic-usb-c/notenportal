@@ -103,7 +103,7 @@
                     <ul class="divide-y divide-border rounded-xl border border-border overflow-hidden">
                         @foreach($modul->dokumente as $d)
                             <li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:flex-nowrap">
-                                <span class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-[10px] font-bold text-accent">{{ strtoupper($d->endung()) }}</span>
+                                <span class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-[10px] font-bold text-accent-text">{{ strtoupper($d->endung()) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate text-sm font-medium text-text">{{ $d->titel }}</div>
                                     <div class="truncate text-xs text-muted">
@@ -113,7 +113,7 @@
                                 <div class="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
                                     @if(in_array($d->mime, \App\Models\ModulDokument::INLINE, true))
                                         <a href="{{ route('modules.documents.show', [$modul->modul_id, $d->modul_dokument_id]) }}" target="_blank" rel="noopener"
-                                           class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent hover:bg-accent/10">{{ __('Öffnen') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span></a>
+                                           class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Öffnen') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span></a>
                                     @endif
                                     <a href="{{ route('modules.documents.show', [$modul->modul_id, $d->modul_dokument_id]) }}?download=1"
                                        aria-label="{{ __(':titel herunterladen', ['titel' => $d->titel]) }}"

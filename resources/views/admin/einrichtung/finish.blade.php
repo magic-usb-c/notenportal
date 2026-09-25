@@ -15,7 +15,7 @@
                         <span class="block text-sm font-medium text-text">{{ __($name) }}</span>
                         <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : __('offen') }}</span>
                     </span>
-                    <a href="{{ route('admin.setup', $key) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent hover:bg-accent/10">{{ $ok ? __('Bearbeiten') : __('Erledigen') }}</a>
+                    <a href="{{ route('admin.setup', $key) }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ $ok ? __('Bearbeiten') : __('Erledigen') }}</a>
                 </li>
             @endforeach
         </ul>

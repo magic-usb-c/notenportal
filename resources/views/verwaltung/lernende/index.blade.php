@@ -110,7 +110,7 @@
                     @endphp
                     <div class="p-4 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}">
                         <div class="flex items-start gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
+                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
                                 {{ $initialen ?: '?' }}
                             </div>
                             <div class="min-w-0 flex-1">
@@ -169,11 +169,11 @@
                                     onclick="window.location='{{ $zielUrl }}'">
                                     <td class="px-3">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0" aria-hidden="true">
+                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0" aria-hidden="true">
                                                 {{ $initialen ?: '?' }}
                                             </div>
                                             <div class="min-w-0">
-                                                <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="font-medium text-text hover:text-accent">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                                <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="font-medium text-text hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
                                                 @if($filter['suche'] !== '')
                                                     <div class="text-xs text-muted truncate">{{ $l->benutzer->email }}</div>
                                                 @endif
@@ -202,7 +202,7 @@
                                                 <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-surface-2 text-muted border border-border">{{ __('Inaktiv') }}</span>
                                             @endif
                                             @if($z->bms)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-accent/10 text-accent">BMS</span>
+                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-accent/10 text-accent-text">BMS</span>
                                             @endif
                                             @if($bereich === 'admin' && ! $z->betreuer && $l->benutzer->aktiv)
                                                 <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-knapp/14 text-note-knapp">{{ __('Ohne BB') }}</span>

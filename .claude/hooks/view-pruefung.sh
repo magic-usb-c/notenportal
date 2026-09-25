@@ -15,6 +15,8 @@ if [[ "$datei" != */views/mail/* && "$datei" != */views/vendor/mail/* && "$datei
     [[ -n "$farbe" ]] && befunde+="Farb-Hardcode (Tokens bg-card/bg-bg/text-text/text-muted verwenden):\n$farbe\n"
     weiss="$(grep -nE '(^|[" :])text-white([" /:]|$)' "$datei" | grep -vE 'bg-(accent|red|green|emerald|yellow|amber|blue|sky|indigo|violet|rose|orange)-?' )"
     [[ -n "$weiss" ]] && befunde+="text-white ohne farbigen Hintergrund auf derselben Zeile (nur auf bg-accent/Statusfarbe erlaubt, sonst ignorieren falls Hintergrund anderswo gesetzt):\n$weiss\n"
+    akzent="$(grep -nE "(^|[\" ':])text-accent([\"' /]|$)" "$datei" | grep -v 'application-logo')"
+    [[ -n "$akzent" ]] && befunde+="text-accent für Text (eigene Akzentfarbe garantiert nur 3:1) – text-accent-text verwenden:\n$akzent\n"
 fi
 
 [[ -z "$befunde" ]] && exit 0

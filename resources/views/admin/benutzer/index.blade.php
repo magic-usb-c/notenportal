@@ -45,7 +45,7 @@
                     @endphp
                     <div class="p-4">
                         <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0">
                                 {{ $initials ?: '?' }}
                             </div>
                             <div class="min-w-0 flex-1">
@@ -63,10 +63,10 @@
                             <div class="flex items-center gap-3 flex-wrap">
                                 @if($b->lernender_id)
                                     <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                       class="text-sm text-accent hover:underline">{{ __('Verwalten') }}</a>
+                                       class="text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
                                 @else
                                     <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                       class="text-sm text-accent hover:underline">{{ __('Bearbeiten') }}</a>
+                                       class="text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
                                     <form method="POST"
                                           action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                           class="inline"
@@ -113,7 +113,7 @@
                                 <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
                                     <td class="px-3">
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent text-xs font-bold flex items-center justify-center shrink-0">
+                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0">
                                                 {{ $initials ?: '?' }}
                                             </div>
                                             <div class="min-w-0">

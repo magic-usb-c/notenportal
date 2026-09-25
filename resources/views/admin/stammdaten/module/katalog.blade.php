@@ -47,7 +47,7 @@
 
                         <label class="flex items-start gap-2.5 text-sm text-text">
                             <input type="checkbox" name="ohne_berufe" value="1" @checked(old('ohne_berufe'))
-                                   class="mt-0.5 rounded border-border text-accent focus:ring-ring">
+                                   class="mt-0.5 rounded border-border text-accent-text focus:ring-ring">
                             <span>
                                 {{ __('Keine neuen Lehrberufe anlegen') }}
                                 <span class="block text-xs text-muted">{{ __('Module werden dann nur bestehenden Lehrberufen zugeordnet.') }}</span>
@@ -56,7 +56,7 @@
 
                         <label class="flex items-start gap-2.5 text-sm text-text">
                             <input type="checkbox" name="eigene_uebernehmen" value="1" @checked(old('eigene_uebernehmen'))
-                                   class="mt-0.5 rounded border-border text-accent focus:ring-ring">
+                                   class="mt-0.5 rounded border-border text-accent-text focus:ring-ring">
                             <span>
                                 {{ __('Eigene Module überschreiben') }}
                                 <span class="block text-xs text-muted">{{ __('Sonst bleiben selbst erfasste Module mit derselben Nummer unberührt.') }}</span>

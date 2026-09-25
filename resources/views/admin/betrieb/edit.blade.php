@@ -45,8 +45,8 @@
                 </div>
 
                 <div class="pt-1 flex flex-wrap gap-4 text-sm">
-                    <a href="{{ route('admin.mail-log.index') }}" class="text-accent hover:underline">{{ __('Versandprotokoll') }}</a>
-                    <a href="{{ route('admin.notifications.index') }}" class="text-accent hover:underline">{{ __('Benachrichtigungen') }}</a>
+                    <a href="{{ route('admin.mail-log.index') }}" class="text-accent-text hover:underline">{{ __('Versandprotokoll') }}</a>
+                    <a href="{{ route('admin.notifications.index') }}" class="text-accent-text hover:underline">{{ __('Benachrichtigungen') }}</a>
                 </div>
             </section>
 
