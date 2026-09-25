@@ -17,6 +17,8 @@ if [[ "$datei" != */views/mail/* && "$datei" != */views/vendor/mail/* && "$datei
     [[ -n "$weiss" ]] && befunde+="text-white ohne farbigen Hintergrund auf derselben Zeile (nur auf bg-accent/Statusfarbe erlaubt, sonst ignorieren falls Hintergrund anderswo gesetzt):\n$weiss\n"
     akzent="$(grep -nE "(^|[\" ':])text-accent([\"' /]|$)" "$datei" | grep -vE 'application-logo|type="(checkbox|radio)"|rounded border-border')"
     [[ -n "$akzent" ]] && befunde+="text-accent für Text (eigene Akzentfarbe garantiert nur 3:1) – text-accent-text verwenden:\n$akzent\n"
+    versal="$(grep -nE "uppercase[^\"]*tracking-widest|tracking-widest[^\"]*uppercase|font-(extrabold|black)" "$datei")"
+    [[ -n "$versal" ]] && befunde+="Versalien-Label oder font-extrabold/black (Satzschreibung text-sm font-medium, Gewicht höchstens font-bold):\n$versal\n"
 fi
 
 [[ -z "$befunde" ]] && exit 0

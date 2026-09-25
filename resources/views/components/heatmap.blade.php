@@ -49,7 +49,7 @@
                     @foreach($daten['semester'] as $s)
                         <td class="px-1 pt-3 pb-2 text-center"><span aria-hidden="true">{{ $marke($daten['semesterschnitt'][$s['id']] ?? null) }}</span><x-note :wert="$daten['semesterschnitt'][$s['id']] ?? null" :stellen="1" /></td>
                     @endforeach
-                    <td class="px-5 pt-3 pb-2 text-center"><span aria-hidden="true">{{ $marke($daten['gesamt']) }}</span><x-note :wert="$daten['gesamt']" :stellen="1" class="text-base font-extrabold" /></td>
+                    <td class="px-5 pt-3 pb-2 text-center"><span aria-hidden="true">{{ $marke($daten['gesamt']) }}</span><x-note :wert="$daten['gesamt']" :stellen="1" class="text-base font-bold" /></td>
                 </tr>
             </tfoot>
         </table>
