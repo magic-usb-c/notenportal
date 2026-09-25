@@ -25,6 +25,7 @@ Liegen unter `~/tools/visual/` (ausserhalb des Repos, Node + Playwright, `node_m
 | `rollen.mjs` + `funktionen.json` | Eine Funktion (Klick → erwartetes Element) funktioniert für eine Rolle nicht (z.B. fehlendes `x-data`) | Bei rollenabhängigen Buttons/Aktionen; neue Einträge in `funktionen.json` ergänzen |
 | `sprache.mjs` | `__()`-Strings ohne Eintrag in `lang/en.json` (blieben im Englisch-Modus Deutsch), fehlende `validation.php`-Attribute | Nach neuen Views/Texten, vor Releases |
 | `umbruch.mjs` | Knöpfe/Links/Nav/Tabellenköpfe/Tabs/Badges, die bei 390/1024/1440/2560px umbrechen oder abgeschnitten werden | Nach Layout-/Breakpoint-Änderungen |
+| `abgeschnitten.mjs` | Elemente, die ein Vorfahr mit `overflow-hidden` (z. B. `x-karte`) seitlich abschneidet – `breite.mjs` sieht das nicht | Nach Layout-Änderungen an Karten/Kopfzeilen, Standard 390 px (`--breite=`) |
 | `pruefen.mjs` | Orchestriert alle obigen Checks als eigene kurze Prozesse (speicherschonend) | `node pruefen.mjs all` für einen Gesamtdurchlauf |
 | `bogen.mjs` | Baut aus markierten Screenshots einen 3×3-Bogen (400px/Kachel) für die haiku-Sichtprüfung | Nach `leer.mjs`, wenn Bilder zur Sichtprüfung anfallen |
 | `fokus-rueckgabe.mjs` | Drawer/Modal gibt nach Escape den Fokus nicht an den Auslöser zurück | Nach Änderungen an `drawer`/`modal`-Komponenten |
