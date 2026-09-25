@@ -28,6 +28,10 @@ Liegen unter `~/tools/visual/` (ausserhalb des Repos, Node + Playwright, `node_m
 | `pruefen.mjs` | Orchestriert alle obigen Checks als eigene kurze Prozesse (speicherschonend) | `node pruefen.mjs all` für einen Gesamtdurchlauf |
 | `bogen.mjs` | Baut aus markierten Screenshots einen 3×3-Bogen (400px/Kachel) für die haiku-Sichtprüfung | Nach `leer.mjs`, wenn Bilder zur Sichtprüfung anfallen |
 
+Weitere Werkzeuge in `~/tools/visual`: `shot.mjs` (Screenshots), `breite.mjs` (seitliches Überlaufen bei 390 px), `nutzung.mjs` (ungenutzte Fensterbreite auf grossen Bildschirmen), `import.mjs`, `zeugnis.mjs`, `erstinbetrieb.mjs`.
+
+Demo-Server starten: `cd public && DB_DATABASE=notenportal_demo CACHE_STORE=array php -S 127.0.0.1:8090 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
+
 Aufrufmuster (alle Checks gleich): `node <check>.mjs [--rolle=learner|trainer|admin] [--breite=1280] [--prod|--demo] [--ziel=/pfad]`.
 
 ## haiku-Bildprüfung (nur für vorgefilterte Screenshots aus `leer.mjs`/`bogen.mjs`)
