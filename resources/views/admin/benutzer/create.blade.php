@@ -61,7 +61,7 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4"
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"
                          x-data="{
                              show: false,
                              generieren() {

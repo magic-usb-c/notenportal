@@ -12,7 +12,7 @@
 
     <div x-data="{ gut: {{ (float) $wert('note_gut') }}, gen: {{ (float) $wert('note_genuegend') }}, krit: {{ (float) $wert('note_kritisch') }},
                    b(v) { return Math.max(0, Math.min(100, (v - 1) / 5 * 100)); } }">
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-3 items-end gap-4">
             @foreach(['note_gut' => [__('Gut ab'), 'gut'], 'note_genuegend' => [__('Genügend ab'), 'gen'], 'note_kritisch' => [__('Knapp ab'), 'krit']] as $k => [$text, $modell])
                 <div>
                     <label for="{{ $k }}" class="{{ $label }}">{{ $text }} *</label>
