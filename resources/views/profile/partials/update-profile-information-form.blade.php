@@ -338,7 +338,7 @@
 
                     <label for="bewegung_reduziert" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                         <input id="bewegung_reduziert" name="bewegung_reduziert" type="checkbox" value="1" x-model="bewegungReduziert" @change="anwenden()"
-                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent-text focus:ring-2 focus:ring-ring/30">
+                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
                         {{ __('Bewegungen reduzieren') }}
                     </label>
 
@@ -409,7 +409,7 @@
                                 @foreach($dashboardKarten as $schluessel => $bezeichnung)
                                     <label class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                                         <input type="checkbox" name="karten[]" value="{{ $schluessel }}"
-                                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent-text focus:ring-2 focus:ring-ring/30"
+                                               class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30"
                                                @checked(in_array($schluessel, $altKartenSichtbar, true))>
                                         {{ __(':karte anzeigen', ['karte' => __($bezeichnung)]) }}
                                     </label>
@@ -423,7 +423,7 @@
             @elseif($kontrastOption ?? false)
                 <label for="kontrast" class="mt-3 flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
                     <input id="kontrast" name="kontrast" type="checkbox" value="1" @checked(old('kontrast', $user->kontrast))
-                           class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent-text focus:ring-2 focus:ring-ring/30">
+                           class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
                     {{ __('Hoher Kontrast') }}
                 </label>
             @endif

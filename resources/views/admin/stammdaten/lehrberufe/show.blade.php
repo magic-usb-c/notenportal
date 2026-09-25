@@ -55,7 +55,7 @@
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring"></label>
+                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 pr-4">
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
@@ -65,7 +65,7 @@
                                         <td class="py-2 pr-4 text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring"></label>
+                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
                                         <td class="py-2 text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"

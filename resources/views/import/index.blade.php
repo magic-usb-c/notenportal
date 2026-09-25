@@ -127,7 +127,7 @@
                                         <th class="px-3 py-2 w-12">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                 <input type="checkbox" aria-label="{{ __('Alle auswählen') }}" :checked="gewaehlt === zeilen.length" @change="alle($event.target.checked)"
-                                                       class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring">
+                                                       class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                                             </label>
                                         </th>
                                         <th class="text-left px-2 py-2 font-medium">{{ __('Zeile') }}</th>
@@ -145,7 +145,7 @@
                                             <td class="px-3 py-1.5">
                                                 <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                     <input type="checkbox" x-model="z.uebernehmen" :disabled="z.status === 'fehler'"
-                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring disabled:opacity-60">
+                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring disabled:opacity-60">
                                                 </label>
                                             </td>
                                             <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>

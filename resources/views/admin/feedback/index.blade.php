@@ -55,7 +55,7 @@
                     <x-slot:weitere>
                         <label class="flex h-9 items-center gap-2 px-1 text-sm text-text">
                             <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()"
-                                   class="rounded border-border-strong/70 text-accent-text focus:ring-ring">
+                                   class="rounded border-border-strong/70 text-accent focus:ring-ring">
                             {{ __('Duplikate anzeigen') }}
                         </label>
                     </x-slot:weitere>

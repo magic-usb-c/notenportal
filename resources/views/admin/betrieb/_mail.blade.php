@@ -42,7 +42,7 @@
             @error('mail_password')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
             @if($werte['has_password'])
                 <label for="mail_password_clear" class="mt-2 flex items-center gap-2 text-xs text-muted">
-                    <input id="mail_password_clear" name="mail_password_clear" type="checkbox" value="1" class="rounded border-border text-accent-text focus:ring-ring">
+                    <input id="mail_password_clear" name="mail_password_clear" type="checkbox" value="1" class="rounded border-border text-accent focus:ring-ring">
                     {{ __('Passwort entfernen') }}
                 </label>
             @endif

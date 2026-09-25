@@ -80,7 +80,7 @@
                                             <td class="px-5 py-2.5">
                                                 @if($z['status'] === 'fehlt' && $darfUebernehmen && $semesterId)
                                                     <label class="inline-flex items-center gap-2 min-h-9 text-sm cursor-pointer">
-                                                        <input type="checkbox" name="zeilen[{{ $i }}][uebernehmen]" value="1" checked class="w-5 h-5 rounded border-border text-accent-text focus:ring-ring">
+                                                        <input type="checkbox" name="zeilen[{{ $i }}][uebernehmen]" value="1" checked class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                                                         {{ __('übernehmen') }}
                                                     </label>
                                                 @else
