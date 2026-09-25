@@ -25,17 +25,17 @@
             $mbk = \App\Support\Modulbaukasten::modulLink($m->modul_nummer, $m->version ?? null);
 
             return '<tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                <td class="px-4 font-mono font-semibold text-text whitespace-nowrap">'.e($m->modul_nummer)
+                <td class="px-2.5 sm:px-4 font-mono font-semibold text-text whitespace-nowrap">'.e($m->modul_nummer)
                     .(($m->version ?? null) ? '<span class="ml-1.5 font-sans text-2xs font-normal text-muted">V'.e($m->version).'</span>' : '').'</td>
-                <td class="px-4 text-text">'.e($m->titel).($mbk === null ? '' :
+                <td class="px-2.5 sm:px-4 text-text">'.e($m->titel).($mbk === null ? '' :
                     ' <a href="'.e($mbk).'" target="_blank" rel="noopener noreferrer"
                          class="ml-1 text-xs text-accent-text underline underline-offset-2 hover:opacity-80">'
                         .e(__('Modulbaukasten')).'<span class="sr-only"> ('.e(__('neues Fenster')).')</span></a>').'</td>
-                <td class="px-4 text-right text-muted">'.e((string) $m->lehrberuf_count).'</td>
-                <td class="px-4">'.($m->aktiv
+                <td class="hidden px-2.5 sm:px-4 text-right text-muted sm:table-cell">'.e((string) $m->lehrberuf_count).'</td>
+                <td class="px-2.5 sm:px-4">'.($m->aktiv
                     ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'
                     : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">'.e(__('inaktiv')).'</span>').'</td>
-                <td class="px-4 text-right">
+                <td class="px-2.5 sm:px-4 text-right">
                     <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">'.e(__('Bearbeiten')).'</a>
                 </td>
             </tr>';
@@ -84,11 +84,11 @@
                             <table class="w-full text-sm tabular-nums">
                                 <thead class="sticky top-0 bg-surface-2">
                                     <tr>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
-                                        <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Lehrberufe') }}</th>
-                                        <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
-                                        <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                        <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
+                                        <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
+                                        <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lehrberufe') }}</th>
+                                        <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                        <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border">
@@ -108,11 +108,11 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
-                                <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Lehrberufe') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
-                                <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
+                                <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lehrberufe') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
