@@ -8,10 +8,10 @@
     <div class="overflow-x-auto">
         <table class="w-full text-sm border-separate border-spacing-y-0.5">
             <thead>
-                <tr class="text-[11px] uppercase tracking-widest text-muted">
+                <tr class="text-2xs font-medium text-muted">
                     <th class="sticky left-0 bg-card text-left font-medium px-5 py-2 min-w-48">{{ __('Fach / Modul') }}</th>
                     @foreach($daten['semester'] as $s)
-                        <th class="font-medium px-1 py-2 text-center whitespace-nowrap">{{ $s['name'] }}</th>
+                        <th class="font-medium px-1 py-2 text-center leading-tight">{{ $s['name'] }}</th>
                     @endforeach
                     <th class="font-medium px-5 py-2 text-center">{{ __('Lehrzeit') }}</th>
                 </tr>
@@ -45,7 +45,7 @@
             </tbody>
             <tfoot>
                 <tr class="text-xs">
-                    <th class="sticky left-0 bg-card text-left px-5 pt-3 pb-2 font-semibold text-muted uppercase tracking-widest text-[11px]">{{ __('Semesterschnitt') }}</th>
+                    <th class="sticky left-0 bg-card text-left px-5 pt-3 pb-2 text-xs font-semibold text-muted">{{ __('Semesterschnitt') }}</th>
                     @foreach($daten['semester'] as $s)
                         <td class="px-1 pt-3 pb-2 text-center"><span aria-hidden="true">{{ $marke($daten['semesterschnitt'][$s['id']] ?? null) }}</span><x-note :wert="$daten['semesterschnitt'][$s['id']] ?? null" :stellen="1" /></td>
                     @endforeach

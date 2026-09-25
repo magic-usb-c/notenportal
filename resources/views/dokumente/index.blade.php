@@ -84,7 +84,7 @@
                 @foreach(\App\Models\Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))
                     <section class="flex flex-col gap-2">
-                        <h3 class="px-1 text-xs uppercase tracking-widest text-muted font-semibold">{{ \App\Models\Dokument::label($art) }} · {{ $gruppen[$art]->count() }}</h3>
+                        <h3 class="px-1 text-sm font-semibold text-text">{{ \App\Models\Dokument::label($art) }} · {{ $gruppen[$art]->count() }}</h3>
                         <ul class="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
                                 <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">

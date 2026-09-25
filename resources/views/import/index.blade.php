@@ -108,7 +108,7 @@
                         <dl class="ml-auto flex flex-wrap gap-5 text-center">
                             @foreach(['ok' => __('bereit'), 'warnung' => __('Warnung'), 'pruefen' => __('prüfen'), 'doppelt' => __('bereits erfasst'), 'fehler' => __('Fehler')] as $status => $text)
                                 <div>
-                                    <dt class="text-[11px] uppercase tracking-widest text-muted">{{ $text }}</dt>
+                                    <dt class="text-xs text-muted">{{ $text }}</dt>
                                     <dd @class(['text-xl font-bold tabular-nums',
                                         'text-note-gut' => $status === 'ok',
                                         'text-note-knapp' => in_array($status, ['warnung', 'pruefen'], true),

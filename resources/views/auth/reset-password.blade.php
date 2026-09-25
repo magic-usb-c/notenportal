@@ -9,7 +9,7 @@
         <input type="hidden" name="token" value="{{ $token }}">
 
         <div>
-            <label for="email" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('E-Mail') }}</label>
+            <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
             <input id="email" type="email" name="email" value="{{ old('email', $email) }}" required autofocus
                    autocomplete="username"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
@@ -21,7 +21,7 @@
         </div>
 
         <div>
-            <label for="password" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('Neues Passwort') }}</label>
+            <label for="password" class="block text-sm font-medium text-text mb-1.5">{{ __('Neues Passwort') }}</label>
             <input id="password" type="password" name="password" required autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
@@ -32,7 +32,7 @@
         </div>
 
         <div>
-            <label for="password_confirmation" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('Passwort bestätigen') }}</label>
+            <label for="password_confirmation" class="block text-sm font-medium text-text mb-1.5">{{ __('Passwort bestätigen') }}</label>
             <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent">

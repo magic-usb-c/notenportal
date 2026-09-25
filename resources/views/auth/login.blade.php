@@ -26,7 +26,7 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('E-Mail') }}</label>
+            <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted pointer-events-none">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -45,7 +45,7 @@
         </div>
 
         <div>
-            <label for="password" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('Passwort') }}</label>
+            <label for="password" class="block text-sm font-medium text-text mb-1.5">{{ __('Passwort') }}</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-muted pointer-events-none">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

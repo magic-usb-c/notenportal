@@ -11,7 +11,7 @@
         @csrf
 
         <div>
-            <label for="email" class="block text-xs uppercase tracking-wide text-muted mb-1">{{ __('E-Mail') }}</label>
+            <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
             <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                    autocomplete="username" placeholder="{{ __('name@firma.ch') }}"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3

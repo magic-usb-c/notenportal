@@ -62,7 +62,7 @@
                     <div class="grid md:grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)
                             <div>
-                                <div class="text-[11px] uppercase tracking-widest text-muted mb-2">{{ $lernort }}</div>
+                                <div class="text-xs font-medium text-muted mb-2">{{ $lernort }}</div>
                                 <ul class="flex flex-col gap-1 text-sm">
                                     @foreach($liste as $m)
                                         <li class="flex gap-3 min-w-0"><span class="font-mono text-muted w-12 shrink-0">{{ $m->modul_nummer }}</span><span class="truncate text-text">{{ $m->titel }}</span></li>

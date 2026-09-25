@@ -9,7 +9,7 @@
         @method('PUT')
 
         <div>
-            <label for="password" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">{{ __('Neues Passwort') }} *</label>
+            <label for="password" class="block text-sm font-medium text-text mb-1.5">{{ __('Neues Passwort') }} *</label>
             <input id="password" type="password" name="password" required autofocus autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
@@ -20,7 +20,7 @@
         </div>
 
         <div>
-            <label for="password_confirmation" class="block text-xs uppercase tracking-widest text-muted font-medium mb-1">{{ __('Passwort wiederholen') }} *</label>
+            <label for="password_confirmation" class="block text-sm font-medium text-text mb-1.5">{{ __('Passwort wiederholen') }} *</label>
             <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
                    class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent">
