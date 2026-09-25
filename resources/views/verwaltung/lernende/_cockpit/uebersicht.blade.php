@@ -78,33 +78,28 @@
         @endif
 
         @if($modulstatus->isNotEmpty())
+            @php
+                [$modulstatusFertig, $modulstatusOffen] = $modulstatus->partition(fn ($ms) => ($ms['bewerteter_anteil_prozent'] ?? 0) >= 100);
+            @endphp
             <x-karte :titel="__('Modulstatus')" :polster="false">
                 <div class="divide-y divide-border/70">
-                    @foreach($modulstatus as $ms)
-                        <div class="px-5 py-2.5">
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="truncate text-sm text-text">{{ $ms['label'] }}</span>
-                                @if($ms['bewerteter_anteil_prozent'] !== null)
-                                    <span class="shrink-0 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($ms['bewerteter_anteil_prozent']) }}</span>
-                                @endif
-                            </div>
-                            @if($ms['bewerteter_anteil_prozent'] !== null)
-                                <span class="mt-1 block h-1 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                                    <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
-                                </span>
-                            @endif
-                            <div class="mt-1 truncate text-xs text-muted">
-                                @if($ms['naechster_termin'])
-                                    {{ $ms['naechster_termin']['titel'] }} · {{ $ms['naechster_termin']['restdauer'] }}
-                                @elseif($ms['dauer_seit_beginn'])
-                                    {{ $ms['dauer_seit_beginn'] }}
-                                @else
-                                    {{ __('Keine Termine') }}
-                                @endif
-                            </div>
-                        </div>
+                    @foreach($modulstatusOffen as $ms)
+                        @include('verwaltung.lernende._cockpit._modulstatus-zeile')
                     @endforeach
                 </div>
+                @if($modulstatusFertig->isNotEmpty())
+                    <details class="group np-details border-t border-border/70">
+                        <summary class="flex min-h-11 cursor-pointer list-none items-center gap-1.5 px-5 text-xs font-medium text-muted hover:text-text">
+                            <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
+                            {{ __('Vollständig bewertet') }} <span class="tabular-nums">{{ $modulstatusFertig->count() }}</span>
+                        </summary>
+                        <div class="divide-y divide-border/70 border-t border-border/70">
+                            @foreach($modulstatusFertig as $ms)
+                                @include('verwaltung.lernende._cockpit._modulstatus-zeile')
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
             </x-karte>
         @endif
 
