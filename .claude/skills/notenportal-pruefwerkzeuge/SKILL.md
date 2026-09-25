@@ -27,6 +27,7 @@ Liegen unter `~/tools/visual/` (ausserhalb des Repos, Node + Playwright, `node_m
 | `umbruch.mjs` | Knöpfe/Links/Nav/Tabellenköpfe/Tabs/Badges, die bei 390/1024/1440/2560px umbrechen oder abgeschnitten werden | Nach Layout-/Breakpoint-Änderungen |
 | `pruefen.mjs` | Orchestriert alle obigen Checks als eigene kurze Prozesse (speicherschonend) | `node pruefen.mjs all` für einen Gesamtdurchlauf |
 | `bogen.mjs` | Baut aus markierten Screenshots einen 3×3-Bogen (400px/Kachel) für die haiku-Sichtprüfung | Nach `leer.mjs`, wenn Bilder zur Sichtprüfung anfallen |
+| `fokus-rueckgabe.mjs` | Drawer/Modal gibt nach Escape den Fokus nicht an den Auslöser zurück | Nach Änderungen an `drawer`/`modal`-Komponenten |
 
 Weitere Werkzeuge in `~/tools/visual`: `shot.mjs` (Screenshots), `breite.mjs` (seitliches Überlaufen bei 390 px), `nutzung.mjs` (ungenutzte Fensterbreite auf grossen Bildschirmen), `import.mjs`, `zeugnis.mjs`, `erstinbetrieb.mjs`.
 
@@ -71,7 +72,6 @@ Beispiel-Antwort:
 - `/grades` „Neue Note“-Drawer: Formular wurde per `x-html` neu gerendert und verlor beim Tippen den Fokus (Commit 2d2d306, jetzt direktes Einfügen + Alpine-Observer). `tippen.mjs` muss hier grün bleiben.
 - „Hinweis entfernen“ / „Verbindung testen“ (`admin/betrieb/_hinweis.blade.php`, `_kopie.blade.php`): Knopf sperrte sich synchron und schickte den falschen Wert – jetzt `setTimeout(() => loading = true)`. `knoepfe.mjs`/`lint-knopf.mjs` müssen hier grün bleiben.
 - Kalender-Abo-Knopf für Betreuer/Admin (`verwaltung/pruefungen/index.blade.php`): reagierte nicht (kein `x-data` in der Vorfahrenkette) – seit Commit 1cad406 verlinkt der Knopf stattdessen direkt auf `/settings/calendar`. `rollen.mjs`/`funktionen.json` (Eintrag `kalender-abo`) prüfen das für alle drei Rollen.
-- Reale, aktuell offene Auffälligkeit: `tippen.mjs`/`leer.mjs` melden auf jeder eingeloggten Seite einen Alpine-Fehler `routeName is not defined` (Feedback-Widget, `resources/views/components/feedback-widget.blade.php` Zeile 168: `x-text="routeName ?? pfad"` – beide Variablen existieren nicht im äusseren `feedbackDialog()`-Scope, nur als Closure-Werte in `senden()`). Kein Fund der Prüfwerkzeuge, sondern ein echter, noch offener Bug.
 
 ## Output-Format
 Alle Checks nutzen `lib/np.mjs`: `✗ <check> <role> <width> <path> <detail>` je Fund, eine Zusammenfassungszeile, JSON unter `~/tools/out/checks/<datum>/<check>.json`. Exit-Code 0 = keine Funde, 1 = Funde vorhanden.
