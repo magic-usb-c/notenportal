@@ -22,22 +22,23 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <x-akzent-eigen-stil :hex="$npAkzentEigen ?? null" />
 </head>
+@php($angemeldet = rescue(fn () => auth()->user(), null, false))
 <body class="font-sans antialiased bg-bg text-text min-h-screen flex flex-col items-center justify-center p-6">
     <div class="max-w-md w-full text-center space-y-4">
         <div class="text-7xl font-bold text-muted/30">{{ $code }}</div>
         <h1 class="text-2xl font-semibold text-text">{{ $title }}</h1>
         <p class="text-muted text-sm">{{ $message }}</p>
-        @if($code === 403 && auth()->check())
+        @if($code === 403 && $angemeldet)
             {{-- Häufig: Mail-Link für ein anderes Konto (z. B. Admin-Adresse), geöffnet in einer fremden Sitzung --}}
-            <p class="text-muted text-sm">{{ __('Angemeldet als :name', ['name' => auth()->user()->vorname.' '.auth()->user()->nachname.' ('.auth()->user()->email.')']) }}</p>
+            <p class="text-muted text-sm">{{ __('Angemeldet als :name', ['name' => $angemeldet->vorname.' '.$angemeldet->nachname.' ('.$angemeldet->email.')']) }}</p>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <input type="hidden" name="weiter" value="{{ request()->getRequestUri() }}">
-                <button type="submit" class="text-sm text-accent underline underline-offset-2">{{ __('Mit anderem Konto anmelden') }}</button>
+                <button type="submit" class="text-sm text-accent-text underline underline-offset-2">{{ __('Mit anderem Konto anmelden') }}</button>
             </form>
         @endif
         <div class="pt-2">
-            @auth
+            @if($angemeldet)
                 <a href="{{ url('/') }}"
                    class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-accent-contrast np-btn-primary">
                     {{ __('Zum Dashboard') }}
@@ -47,7 +48,7 @@
                    class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-accent-contrast np-btn-primary">
                     {{ __('Zur Anmeldung') }}
                 </a>
-            @endauth
+            @endif
         </div>
     </div>
 </body>

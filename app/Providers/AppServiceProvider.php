@@ -55,7 +55,8 @@ class AppServiceProvider extends ServiceProvider
         // Farbthema und persönliche Darstellung serverseitig ins <html> (kein Flackern).
         // errors.layout: Fehlerseiten (403/404/500) sieht auch ein angemeldeter Benutzer.
         View::composer(['layouts.app', 'layouts.guest', 'errors.layout'], function ($view) {
-            $user = Auth::user();
+            // Ohne Datenbank (z. B. beim 500er) die Fehlerseite trotzdem rendern – dann als Gast.
+            $user = rescue(fn () => Auth::user(), null, false);
             $theme = Theme::fuer($user);
             $praeferenzen = Darstellung::fuer($user);
 
