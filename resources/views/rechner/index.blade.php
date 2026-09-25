@@ -69,10 +69,10 @@
                 {{-- Eingaben --}}
                 <div class="lg:col-span-5 flex flex-col gap-5">
                     <section class="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
-                        <div role="tablist" aria-label="{{ __('Ebene') }}" class="grid grid-cols-5 gap-1 p-1 rounded-xl bg-bg/60 border border-border">
+                        <div role="tablist" aria-label="{{ __('Ebene') }}" class="flex flex-wrap gap-0.5 sm:gap-1 p-1 rounded-xl bg-bg/60 border border-border">
                             @foreach($ebenen as $wert => $name)
                                 <button type="button" role="tab" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')"
-                                        class="min-h-9 rounded-lg text-xs sm:text-sm font-medium transition-colors"
+                                        class="min-h-9 flex-auto shrink-0 whitespace-nowrap rounded-lg px-1.5 sm:px-2.5 text-xs sm:text-sm font-medium transition-colors"
                                         :class="ebene === '{{ $wert }}' ? 'bg-card text-accent-text shadow-sm' : 'text-muted hover:text-text'">{{ $name }}</button>
                             @endforeach
                         </div>
@@ -137,11 +137,11 @@
                     </section>
 
                     <section class="rounded-xl border border-border bg-card overflow-hidden">
-                        <div class="px-5 py-4 flex items-center justify-between gap-3 border-b border-border/70">
-                            <h3 class="font-semibold text-text">{{ __('Offene Prüfungen') }} <span class="ml-1 text-sm text-muted tabular-nums" x-text="offene"></span></h3>
-                            <div class="flex gap-1.5">
-                                <button type="button" x-show="katalog.faecher.length" @click="neueZeile('fach')" class="px-3 min-h-9 rounded-lg glass-btn text-xs text-text">+ {{ __('Fach') }}</button>
-                                <button type="button" x-show="katalog.module.length" @click="neueZeile('modul')" class="px-3 min-h-9 rounded-lg glass-btn text-xs text-text">+ {{ __('Modul') }}</button>
+                        <div class="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-border/70">
+                            <h3 class="whitespace-nowrap font-semibold text-text">{{ __('Offene Prüfungen') }} <span class="ml-1 text-sm text-muted tabular-nums" x-text="offene"></span></h3>
+                            <div class="ms-auto flex gap-1.5">
+                                <button type="button" x-show="katalog.faecher.length" @click="neueZeile('fach')" class="px-3 min-h-9 whitespace-nowrap rounded-lg glass-btn text-xs text-text">+ {{ __('Fach') }}</button>
+                                <button type="button" x-show="katalog.module.length" @click="neueZeile('modul')" class="px-3 min-h-9 whitespace-nowrap rounded-lg glass-btn text-xs text-text">+ {{ __('Modul') }}</button>
                             </div>
                         </div>
 
@@ -157,16 +157,16 @@
                                         </select>
                                         <button type="button" @click="entferne(z.nr)" class="w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Prüfung entfernen') }}">×</button>
                                     </div>
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex flex-wrap items-center gap-2">
                                         <select x-show="z.typ === 'fach'" x-model="z.semester" class="flex-1 min-w-0 {{ $feld }}" aria-label="{{ __('Semester') }}">
                                             <template x-for="s in katalog.semester" :key="s.id"><option :value="String(s.id)" x-text="s.name" :selected="String(s.id) === z.semester"></option></template>
                                         </select>
-                                        <div class="flex-1 min-w-0 flex items-center gap-2 text-xs text-muted" x-show="z.typ !== 'fach'">
+                                        <div class="flex-1 min-w-32 flex items-center gap-2 text-xs text-muted" x-show="z.typ !== 'fach'">
                                             <span x-show="z.quelle === 'rest'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('Rest') }}</span>
                                             <span x-show="z.quelle === 'geplant'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('geplant') }}</span>
                                             <span class="truncate" x-text="z.titel ?? ''"></span>
                                         </div>
-                                        <label class="flex items-center gap-1 text-xs text-muted shrink-0">
+                                        <label class="ms-auto flex items-center gap-1 text-xs text-muted shrink-0">
                                             <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="w-16 rounded-lg border border-border bg-input text-text text-sm px-2 py-1.5 text-right tabular-nums focus:ring-2 focus:ring-ring" aria-label="{{ __('Gewichtung in Prozent') }}">%
                                         </label>
                                         <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
@@ -191,7 +191,7 @@
                                 <div class="text-xs font-medium text-muted"
                                      x-text="{ benoetigt: @js(__('Benötigt')), erreicht: @js(__('Schon erreicht')), unerreichbar: @js(__('Nicht erreichbar')), ohne_einfluss: @js(__('Kein Einfluss')), keine_unbekannten: @js(__('Ergebnis')) }[ergebnis.loesung.status]"></div>
 
-                                <div class="mt-2 text-7xl font-extrabold tabular-nums tracking-tight" :class="heroKlasse">
+                                <div class="mt-2 text-display font-bold" :class="heroKlasse">
                                     <span x-show="ergebnis.loesung.status === 'benoetigt'" x-text="fmt(ergebnis.loesung.note, 2)"></span>
                                     <span x-show="ergebnis.loesung.status === 'erreicht'">✓</span>
                                     <span x-show="['unerreichbar', 'ohne_einfluss', 'keine_unbekannten'].includes(ergebnis.loesung.status)" x-text="fmt(ergebnis.loesung.resultat ?? ergebnis.loesung.aktuell)"></span>

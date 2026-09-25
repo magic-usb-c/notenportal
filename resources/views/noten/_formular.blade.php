@@ -117,7 +117,7 @@
             <a href="{{ $zurueck }}" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">{{ __('Abbrechen') }}</a>
         @endif
         <button type="submit" :disabled="loading"
-                class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+                class="inline-flex h-11 sm:flex-1 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
             <svg x-show="loading" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>

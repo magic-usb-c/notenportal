@@ -17,7 +17,7 @@
         <div class="text-lg font-bold text-text tabular-nums leading-none">{{ $e['datum']->format('d') }}</div>
         <div class="text-[11px] uppercase tracking-wider text-muted">{{ \App\Support\Format::datum($e['datum'], 'M') }}</div>
     </div>
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-40">
         <div class="font-medium text-text truncate flex items-center gap-1.5">
             <span aria-hidden="true" class="{{ $symbolFarbe }}">{{ $symbol }}</span>
             <span class="truncate">{{ $e['titel'] }}</span>
@@ -31,7 +31,7 @@
             · {{ $e['nebentext'] }}
         </div>
     </div>
-    <div class="flex items-center gap-1.5 shrink-0">
+    <div class="ms-auto flex items-center gap-1.5 shrink-0">
         @if($e['art'] === 'pruefung')
             @if($p->note)
                 <a href="{{ route('learner.grades.index') }}" class="inline-flex items-center gap-1.5">
