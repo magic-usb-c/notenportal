@@ -185,6 +185,24 @@
                 </section>
             @endif
 
+            @if($katalogModule > 0)
+                <section class="{{ $karte }}">
+                    <h2 class="text-sm font-semibold text-text">{{ __('Katalog weitergeben') }}</h2>
+                    <p class="text-sm text-muted">
+                        {{ __('Diese Instanz hat :anzahl Module aus dem Katalog. Der Download erzeugt genau die Datei, die oben wieder eingelesen werden kann – so kommt eine zweite Installation ohne neue Ernte zum selben Stand.', ['anzahl' => $katalogModule]) }}
+                    </p>
+                    <div>
+                        <a href="{{ route('admin.master-data.modules.catalog.export') }}"
+                           class="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm font-medium text-text hover:bg-surface-2">
+                            {{ __('Katalog herunterladen') }}
+                        </a>
+                    </div>
+                    <p class="text-xs text-muted">
+                        {{ __('Selbst erfasste Module sind nicht dabei; dafür gibt es auf dem Server notenportal:modulkatalog-export --mit-eigenen.') }}
+                    </p>
+                </section>
+            @endif
+
         </div>
     </div>
 </x-app-layout>

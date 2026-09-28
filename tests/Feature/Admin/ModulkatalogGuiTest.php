@@ -132,4 +132,51 @@ class ModulkatalogGuiTest extends TestCase
             ->get(route('admin.master-data.modules.catalog'))
             ->assertForbidden();
     }
+
+    #[Test]
+    public function der_knopf_zum_weitergeben_erscheint_erst_mit_katalog(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)->get(route('admin.master-data.modules.catalog'))
+            ->assertOk()
+            ->assertDontSee(__('Katalog herunterladen'));
+
+        $this->actingAs($admin)->post(route('admin.master-data.modules.catalog.read'), ['datei' => $this->ernte()]);
+        $this->actingAs($admin)->post(route('admin.master-data.modules.catalog.apply'), [
+            'token' => session('modulkatalog.vorschau')['token'],
+        ]);
+
+        $this->actingAs($admin)->get(route('admin.master-data.modules.catalog'))
+            ->assertOk()
+            ->assertSee(__('Katalog herunterladen'));
+    }
+
+    #[Test]
+    public function der_download_liefert_die_datei_fuer_die_zweite_instanz(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post(route('admin.master-data.modules.catalog.read'), ['datei' => $this->ernte()]);
+        $this->actingAs($admin)->post(route('admin.master-data.modules.catalog.apply'), [
+            'token' => session('modulkatalog.vorschau')['token'],
+        ]);
+
+        $antwort = $this->actingAs($admin)->get(route('admin.master-data.modules.catalog.export'))->assertOk();
+        $antwort->assertHeader('Content-Type', 'application/json');
+        $this->assertStringContainsString('modulkatalog-', (string) $antwort->headers->get('Content-Disposition'));
+
+        // Dieselbe Datei, die der Upload oben wieder annimmt: Module samt Zielen und Zuordnung.
+        $daten = json_decode($antwort->streamedContent(), true);
+        $this->assertSame('M987', $daten['module'][0]['nummer']);
+        $this->assertSame('Erstes Ziel.', $daten['module'][0]['handlungsziele'][0]['text']);
+        $this->assertSame('Prüfberuf/in EFZ Musterrichtung (2026)', $daten['abschluesse'][0]['name']);
+    }
+
+    #[Test]
+    public function ohne_adminrolle_gibt_es_den_katalog_nicht_zum_herunterladen(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('admin.master-data.modules.catalog.export'))
+            ->assertForbidden();
+    }
 }

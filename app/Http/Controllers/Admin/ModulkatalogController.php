@@ -6,17 +6,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exceptions\DateiNichtGespeichert;
 use App\Http\Controllers\Controller;
+use App\Services\Export\Katalogexport;
 use App\Services\Import\Katalogimport;
+use App\Support\Modulbaukasten;
 use App\Support\Protokoll;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Modulkatalog über die Oberfläche einlesen: Ernte hochladen → Vorschau prüfen → übernehmen.
@@ -48,6 +52,10 @@ class ModulkatalogController extends Controller
         return view('admin.stammdaten.module.katalog', [
             'bereit' => Katalogimport::bereit(),
             'vorschau' => $request->session()->get(self::SCHLUESSEL),
+            // Nur wenn hier ein Katalog steht, lohnt sich der Knopf zum Weitergeben.
+            'katalogModule' => Katalogimport::bereit()
+                ? DB::table('module')->where('quelle', Modulbaukasten::QUELLE)->where('aktiv', 1)->count()
+                : 0,
         ]);
     }
 
@@ -150,6 +158,29 @@ class ModulkatalogController extends Controller
         }
 
         return redirect()->route('admin.master-data.modules.catalog');
+    }
+
+    /**
+     * Den Katalog dieser Instanz herunterladen, um ihn auf einer zweiten Instanz einzulesen –
+     * dieselbe Datei, die `notenportal:modulkatalog-export` schreibt. Damit braucht auch der
+     * zweite Server keine Kommandozeile und keine erneute Ernte.
+     */
+    public function herunterladen(Katalogexport $export): StreamedResponse
+    {
+        // Ohne die Katalogspalten gäbe es nur eine QueryException statt eines Satzes – die Seite
+        // zeigt den Knopf dann ohnehin nicht, ein Lesezeichen käme aber hier an.
+        abort_unless(Katalogimport::bereit(), 409);
+
+        $json = $export->json();
+        Protokoll::schreiben(Protokoll::ADMIN_MODULKATALOG_EXPORTIERT, null, ['bytes' => strlen($json)]);
+
+        return response()->streamDownload(function () use ($json): void {
+            echo $json;
+        }, $export->dateiname(), [
+            'Content-Type' => 'application/json',
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /** Ernten, die niemand übernommen hat, liegen sonst dauerhaft in der Ablage. */

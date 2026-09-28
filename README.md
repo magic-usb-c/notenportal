@@ -40,6 +40,11 @@ Danach geht es nur noch im Browser weiter:
    Kategorien, Semester, Lehrberufe und Fächer, Module, Personen, E-Mail, Abschluss.
    Lehrberufe, BMS- und ABU-Fächer sind vorausgewählt, der Semesterplan wird vorgeschlagen.
 
+Der Modulkatalog (Nummern, Titel, Handlungsziele, Leistungsbeurteilungen) liegt nicht im
+Repository – er gehört ICT-Berufsbildung Schweiz. Im Schritt «Module» lässt er sich als Datei
+einlesen; steht er schon auf einer anderen Instanz, liefert dort
+`php artisan notenportal:modulkatalog-export` genau diese Datei. Der ganze Weg: `docs/modulkatalog.md`.
+
 Zum Schluss stehen Berufsbildner und Lernende mit Startpasswörtern zum Ausdrucken bereit.
 Ein leeres Portal braucht keinen einzigen SQL-Befehl und keinen Eingriff in die Datenbank.
 

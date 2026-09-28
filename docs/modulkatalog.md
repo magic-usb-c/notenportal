@@ -65,6 +65,29 @@ Ernte liegt nicht öffentlich, wird nach der Übernahme gelöscht und spätesten
 weggeräumt; eine Vorschau lässt sich nur einmal übernehmen. Damit braucht eine frische Installation
 für die Modulstammdaten nur noch den Browser – geerntet wird weiterhin auf einem Rechner mit Node.
 
+### Eine zweite Instanz mitversorgen
+
+Steht der Katalog auf einer Instanz, muss die nächste nicht neu ernten – und schon gar nicht
+liegen die Katalogdaten im Repository (siehe Rechtslage oben):
+
+```bash
+# Auf der Instanz mit Katalog: schreibt storage/app/modulkatalog-JJJJ-MM-TT.json
+php artisan notenportal:modulkatalog-export
+php artisan notenportal:modulkatalog-export --nur="Entwickler/in digitales Business EFZ"  # nur ein Beruf
+
+# Datei auf die neue Instanz kopieren, dort wie eine Ernte einlesen
+php artisan notenportal:modulkatalog modulkatalog-2026-09-28.json --anwenden
+```
+
+Der Export schreibt dasselbe Format, das der Import liest – dieselbe Datei geht also auch über
+**Stammdaten → Module → «Katalog einlesen»** hinein. Dort steht auch der Knopf «Katalog
+herunterladen», sobald Katalogmodule vorhanden sind: damit kommt der zweite Server ganz ohne
+Kommandozeile aus. Zusätzlich zum Lehrjahr führt der Export je Zuordnung das genaue `semester`
+(1–12) mit, weil es in den Stammdaten von Hand gesetzt sein kann; der Import bevorzugt dieses Feld
+und fällt sonst auf das Lehrjahr zurück. Ausgegeben werden nur Module aus dem Katalog;
+selbst angelegte Module gehören den Lernenden, die sie erfasst haben, und kommen nur mit
+`--mit-eigenen` mit (auf der Zielinstanz gelten sie dann als Katalogmodul).
+
 Der Import ist alles-oder-nichts, legt fehlende Lehrberufe an und ordnet Module mit Lernort
 (Fachunterricht/ÜK), Pflichtgrad und empfohlenem Lehrsemester zu. Wiederholte Läufe aktualisieren,
 statt zu verdoppeln. Abschlüsse, die sich nur im Jahrgang der Bildungsverordnung unterscheiden,

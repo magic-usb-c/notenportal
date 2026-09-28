@@ -285,6 +285,9 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('master-data.modules.catalog.apply');
         Route::post('/master-data/modules/catalog/discard', [ModulkatalogController::class, 'verwerfen'])
             ->name('master-data.modules.catalog.discard');
+        Route::get('/master-data/modules/catalog/export', [ModulkatalogController::class, 'herunterladen'])
+            ->middleware('throttle:10,1,catalog-export')
+            ->name('master-data.modules.catalog.export');
 
         // Stammdaten: Fächer
         Route::get('/master-data/subjects', [StammdatenFaecherController::class, 'index'])

@@ -274,7 +274,9 @@ final class Katalogimport
                 if ($modulId === null) {
                     continue;
                 }
-                $semester = $z['lehrjahr'] !== null ? $z['lehrjahr'] * 2 - 1 : null;
+                // Ein genaues Semester sticht das Lehrjahr: nur der eigene Export führt es mit, und
+                // dort steht der Wert, den der Betrieb von Hand gesetzt hat.
+                $semester = $z['semester'] ?? ($z['lehrjahr'] !== null ? $z['lehrjahr'] * 2 - 1 : null);
                 $bestehend = DB::table('lehrberuf_module')
                     ->where('lehrberuf_id', $beruf->lehrberuf_id)->where('modul_id', $modulId)->first();
 

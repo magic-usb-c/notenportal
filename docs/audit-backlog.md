@@ -570,3 +570,13 @@ Nachprüfung (read-only) ohne Befund: Mails/Benachrichtigungen (Empfänger, Idem
 Abmeldelinks, Fehler pro Empfänger), Import (Berechtigung, Encoding, Transaktion, Dubletten, SSRF)
 und Berufsbildner-Abläufe (nur aktive Betreuung, verschachtelte Objekte über den Lernenden).
 Seit 24.09. prüft CI (`.github/workflows/tests.yml`) jeden Pull Request mit Pint, Build, ss und Tests.
+
+## Modulkatalog-Export (28.09.2026)
+
+Behoben (Review): das von Hand gesetzte Lehrsemester ging beim Export verloren (nur das Lehrjahr
+wurde geschrieben, 1–12 liess sich daraus nicht zurückholen) – die Datei führt jetzt `semester` mit,
+der Import bevorzugt es; die Download-Route prüft die Katalogspalten und ist gedrosselt.
+
+Bewusst gelassen: Der Export schreibt die Modulnummern in der internen Form (`M987`), nicht in der
+rohen Form einer Ernte (`987`). Der Import normalisiert beides gleich
+(`Modulbaukasten::nummerNormalisieren`), ein Umschreiben brächte nur Kosmetik und ein zweites Format.

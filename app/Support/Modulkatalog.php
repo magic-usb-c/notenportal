@@ -60,6 +60,10 @@ final class Modulkatalog
                 }
                 $grad = in_array($m['pflichtgrad'] ?? null, self::GRADE, true) ? $m['pflichtgrad'] : null;
                 $lehrjahr = (int) ($m['lehrjahr'] ?? 0);
+                // Eine Ernte kennt nur das Lehrjahr. Der eigene Export (App\Services\Export\Katalogexport)
+                // gibt zusätzlich das genaue Semester aus, weil es im Portal von Hand gesetzt sein kann –
+                // aus dem Lehrjahr allein liesse es sich nicht zurückrechnen.
+                $semester = (int) ($m['semester'] ?? 0);
                 $zuordnungen[] = [
                     'nummer' => $nummer,
                     'version' => self::version($m['version'] ?? null),
@@ -68,6 +72,7 @@ final class Modulkatalog
                     // Pflicht ist der ausgewertete Schalter: Wahlpflicht- und Wahlmodule sind frei.
                     'pflicht' => $grad === 'pfl' ? 1 : 0,
                     'lehrjahr' => $lehrjahr >= 1 && $lehrjahr <= 4 ? $lehrjahr : null,
+                    'semester' => $semester >= 1 && $semester <= 12 ? $semester : null,
                     'kompetenzfeld' => self::text($m['kompetenzfeld'] ?? null, 120),
                     'auslaufend' => (bool) ($m['auslaufend'] ?? false),
                 ];

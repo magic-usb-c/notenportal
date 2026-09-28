@@ -79,6 +79,8 @@ final class Protokoll
 
     public const string ADMIN_MODULKATALOG_IMPORTIERT = 'admin.modulkatalog_importiert';
 
+    public const string ADMIN_MODULKATALOG_EXPORTIERT = 'admin.modulkatalog_exportiert';
+
     // Module sind gemeinsame Stammdaten: diese Aktionen stehen allen Angemeldeten offen.
     public const string MODUL_ANGELEGT = 'modul.angelegt';
 
@@ -117,6 +119,7 @@ final class Protokoll
         self::ADMIN_FEEDBACK_DUPLIKAT_AUFGEHOBEN => 'Duplikat-Markierung aufgehoben',
         self::ADMIN_FEEDBACK_KNOPF_GEAENDERT => 'Feedback-Knopf geändert',
         self::ADMIN_MODULKATALOG_IMPORTIERT => 'Modulkatalog importiert',
+        self::ADMIN_MODULKATALOG_EXPORTIERT => 'Modulkatalog ausgegeben',
         self::MODUL_ANGELEGT => 'Modul angelegt',
         self::MODUL_GEAENDERT => 'Modul geändert',
         self::MODUL_DOKUMENT_HOCHGELADEN => 'Moduldokument hochgeladen',
