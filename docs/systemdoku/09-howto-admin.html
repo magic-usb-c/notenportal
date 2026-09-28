@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Howto – Admin</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › <a href="08-howto.html">Howto</a> › Admin</p>
+
+<h1>Howto – Admin</h1>
+<p class="lead">Menü: Übersicht · Lernende · Prüfungstermine · Personen · Stammdaten · Berichte · Feedback. Der Admin darf zusätzlich alles, was der Berufsbildner darf – für <i>alle</i> Lernenden.</p>
+
+<h2>Übersicht</h2>
+<figure>
+  <img src="bilder/admin.png" alt="Admin-Dashboard">
+  <figcaption>Kennzahlen, «Handlungsbedarf» mit direktem «Beheben», Last je Berufsbildner, erfasste Noten pro Woche.</figcaption>
+</figure>
+<p>«Handlungsbedarf» ist die tägliche Arbeitsliste: Lernende ohne Track oder Betreuung, fehlende
+Sicherung, offene Meldungen, fehlgeschlagene Jobs und Mails, Kalenderfehler, kritische Lernende.</p>
+
+<h2>Personen anlegen</h2>
+<figure>
+  <img src="bilder/admin-users.png" alt="Benutzerverwaltung">
+  <figcaption>Personen → Benutzer: Rollen, Benutzername, aktiv/inaktiv, Passwort zurücksetzen, Datenauskunft.</figcaption>
+</figure>
+<table>
+<tr><th>Fall</th><th>Weg</th></tr>
+<tr><td>Einzelne Person</td><td>Personen → Benutzer → «Benutzer anlegen»; Rolle Admin oder Berufsbildner wählen</td></tr>
+<tr><td>Einzelner Lernender</td><td>Lernende → «+ Lernende» (Lehrberuf, Lehrbeginn, Betreuung, Track)</td></tr>
+<tr><td>Ganzer Jahrgang</td><td>Betrieb → «Einrichtung» → Schritt «Personen»: bis 100 Lernende und 50 Berufsbildner je Vorgang, Startpasswörter zum Ausdrucken</td></tr>
+<tr><td>Zugang weg</td><td>Personen → Benutzer → Person → «Passwort zurücksetzen»: schickt einen Link, 7 Tage gültig</td></tr>
+<tr><td>Person verlässt den Betrieb</td><td>Konto auf <i>inaktiv</i> setzen – die Anmeldung ist sofort gesperrt, die Daten bleiben für Auswertungen erhalten</td></tr>
+</table>
+<figure>
+  <img src="bilder/admin-learners.png" alt="Lernendenverwaltung">
+  <figcaption>Lernende: alle Personen mit Lehrberuf, Lehrjahr, Betreuung und Schnitt – die Liste, in der die meiste Pflege passiert.</figcaption>
+</figure>
+<div class="hinweis">Startpasswörter erscheinen genau einmal und erzwingen beim ersten Login einen Wechsel. Nie notieren, nie per Mail weiterschicken – der Einladungslink ist der bessere Weg.</div>
+
+<h2>Stammdaten pflegen</h2>
+<table>
+<tr><th>Seite</th><th>Wofür</th><th>Worauf achten</th></tr>
+<tr><td>Lehrberufe</td><td>Beruf mit Fächern und Modulen, Lernort, Pflicht, empfohlenes Semester</td><td>Hier entscheidet sich, was Lernende im Notenformular überhaupt zur Auswahl haben</td></tr>
+<tr><td>Fächer</td><td>Fach mit Kategorie und optionalem Track (BMS/ABU)</td><td>Ohne Track gilt das Fach für alle</td></tr>
+<tr><td>Kategorien</td><td>Rundung, Gewicht im Gesamtschnitt, Promotionsregeln</td><td>Änderungen wirken rückwirkend auf alle Berechnungen – das ist gewollt</td></tr>
+<tr><td>Semester</td><td>Bezeichnung, Start, Ende</td><td>Nur leere Semester lassen sich löschen</td></tr>
+<tr><td>Module</td><td>Nummer, Titel, Katalogversion, Verweis</td><td>Die Nummer ändert nur ein Admin: an ihr hängen die Noten aller</td></tr>
+</table>
+<figure>
+  <img src="bilder/admin-master-data-professions.png" alt="Stammdaten, Lehrberufe">
+  <figcaption>Stammdaten → Lehrberufe. Ein Klick auf den Beruf öffnet seine Fächer und Module.</figcaption>
+</figure>
+<figure>
+  <img src="bilder/admin-master-data-modules.png" alt="Stammdaten, Module">
+  <figcaption>Module: Nummer, Titel, Katalogversion und wie oft ein Modul belegt ist.</figcaption>
+</figure>
+<figure>
+  <img src="bilder/admin-master-data-categories.png" alt="Stammdaten, Kategorien">
+  <figcaption>Kategorien: Rundung je Element und Schnitt, Gewicht im Gesamtschnitt, Promotionsregeln.</figcaption>
+</figure>
+
+<h2>Modulkatalog einlesen</h2>
+<figure>
+  <img src="bilder/admin-master-data-modules-catalog.png" alt="Modulkatalog einlesen">
+  <figcaption>Stammdaten → Module → Katalog: Datei hochladen, Vorschau prüfen, übernehmen.</figcaption>
+</figure>
+<ol>
+<li><b>Datei besorgen.</b> Läuft schon eine Instanz, liefert sie den Stand per Knopf «Katalog herunterladen» oder auf der Kommandozeile mit <code>php artisan notenportal:modulkatalog-export</code>. Sonst wird der Katalog mit <code>tools/modulkatalog-ernte.mjs</code> von modulbaukasten.ch geholt.</li>
+<li><b>Hochladen.</b> Stammdaten → Module → «Katalog einlesen».</li>
+<li><b>Vorschau lesen:</b> Zahlen, Konflikte, neue Lehrberufe. Eine Vorschau gilt nur einmal.</li>
+<li><b>Übernehmen.</b> Eigene Titel und der Lernort bleiben erhalten.</li>
+</ol>
+<div class="hinweis">Der Katalog gehört ICT-Berufsbildung Schweiz und liegt deshalb <b>nicht</b> im Repository. Eine selbst erfundene Modulnummer, die der Katalog bei einem fremden Beruf führt, meldet der Import als Konflikt und lässt sie aus.</div>
+<p>Dasselbe auf der Kommandozeile:</p>
+<pre><code>php artisan notenportal:modulkatalog ernte.json              # nur Vorschau
+php artisan notenportal:modulkatalog ernte.json --anwenden   # schreiben, in einer Transaktion
+php artisan notenportal:modulkatalog-export katalog.json     # Stand dieser Instanz ausgeben</code></pre>
+
+<h2>Betrieb</h2>
+<figure>
+  <img src="bilder/admin-operations.png" alt="Seite Betrieb">
+  <figcaption>Betrieb: Notengrenzen mit Live-Skala, Sicherungen, Kopie ausser Haus, Logo, Systemhinweis, Sitzungs-Timeout.</figcaption>
+</figure>
+<table>
+<tr><th>Bereich</th><th>Inhalt</th></tr>
+<tr><td>Betrieb</td><td>Name, Logo (PNG/JPG/WebP, max. 1 MB), Thema, Notengrenzen, Rundung, Fristen</td></tr>
+<tr><td>Sicherungen</td><td>Zustand, «Jetzt sichern», Herunterladen, Löschen; Kopie ausser Haus mit «Verbindung testen»</td></tr>
+<tr><td>Systemhinweis</td><td>Banner mit Text, Stufe, Zielgruppe und Zeitfenster – auch auf der Anmeldeseite</td></tr>
+<tr><td>Sitzungs-Timeout</td><td>15–480 Minuten; zwei Minuten vorher kommt die Warnung «Angemeldet bleiben»</td></tr>
+<tr><td>Einrichtung</td><td>Öffnet die geführte Ersteinrichtung erneut – der Weg für ganze Jahrgänge</td></tr>
+</table>
+
+<h2>E-Mail</h2>
+<ol>
+<li>Betrieb → E-Mail: Server, Port, Absender, Benutzername, Passwort (verschlüsselt in der Datenbank, überschreibt die <code>.env</code>).</li>
+<li>«Testmail senden», dann das Versandprotokoll prüfen.</li>
+<li><b>Vor dem Produktivgang die Umleitung leeren</b> – solange dort eine Adresse steht, gehen <i>alle</i> Mails dorthin.</li>
+</ol>
+<figure>
+  <img src="bilder/admin-notifications.png" alt="Benachrichtigungen">
+  <figcaption>Anlässe global ein- oder ausschalten, verpflichtend machen, Standardfrequenz und Parameter setzen.</figcaption>
+</figure>
+<p>Was der Admin als verpflichtend markiert, kann niemand abwählen – es erscheint bei den Benutzern
+gesperrt sichtbar. Alles andere entscheidet jede Person selbst.</p>
+
+<h2>Berichte</h2>
+<figure>
+  <img src="bilder/admin-reports-grades.png" alt="Notenbericht">
+  <figcaption>Notenbericht: Zeitraum, Lehrberuf, Berufsbildner; Status, Kategorien, tiefste Fächer, Verteilung der Zeugnisnoten.</figcaption>
+</figure>
+<p>Sortierbar, als CSV exportierbar, druckbar. Für Standortgespräche und Lehrabschlussplanung.</p>
+
+<h2>Feedback beantworten</h2>
+<p>Meldungen aus dem Portal (Fehler, Idee, Frage, Sonstiges) landen unter «Feedback» – mit Seite,
+Rolle, Browser, Zeit, letzten JS-Fehlern und optional einem Screenshot. Eine Antwort benachrichtigt
+die meldende Person. Der schwebende Meldeknopf lässt sich unter Betrieb abschalten.</p>
+
+<h2>Aktivitätsprotokoll</h2>
+<figure>
+  <img src="bilder/admin-activity.png" alt="Aktivitätsprotokoll">
+  <figcaption>An- und Abmeldungen, Kontoänderungen, Betrieb, Sicherungen, Noten, Betreuungen – mit Zeit, Person, Ziel und IP.</figcaption>
+</figure>
+<p>365 Tage aufbewahrt, filterbar nach Aktion, Person und Zeitraum. Passwörter, Token und andere
+Geheimnisse werden nie protokolliert.</p>
+
+<h2>Datenauskunft</h2>
+<p>Jede Person kann ihre Daten selbst als ZIP herunterladen (Einstellungen → Daten). Der Admin kann
+das für jedes Konto tun (Personen → Benutzer → Datenauskunft). Enthalten sind Kontodaten und je
+nach Rolle Noten, Prüfungen, Ziele, Dokumente oder Betreuungen und Kommentare – nie Daten
+anderer Personen. Grundlage: Art. 25 DSG.</p>

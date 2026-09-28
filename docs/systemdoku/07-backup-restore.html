@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Backup / Restore</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Backup / Restore</p>
+
+<h1>Backup / Restore</h1>
+<p class="lead">Eine Sicherung enthält beides: die Datenbank und die Dateien der Lernenden. Nur zusammen ergeben sie ein wiederherstellbares Portal.</p>
+
+<h2>Sicherungsarten</h2>
+<table>
+<tr><th>Art</th><th>Zeit</th><th>Inhalt</th><th>Aufbewahrung</th><th>Ort</th></tr>
+<tr><td>Automatisch (Portal)</td><td>täglich 02:30</td><td>ZIP mit <code>datenbank.sql</code>, <code>dateien/lernende/…</code>, <code>LIESMICH.txt</code></td><td>die 14 neusten</td><td><code>storage/app/private/sicherungen/</code></td></tr>
+<tr><td>Kopie ausser Haus</td><td>nach jeder Sicherung</td><td>dieselben ZIP-Dateien</td><td>Ziel bestimmt</td><td>Ordner (Netzlaufwerk) oder SSH-Server, per rsync</td></tr>
+<tr><td>Auf Knopfdruck</td><td>bei Bedarf</td><td>wie automatisch</td><td>zählt zu den 14</td><td>Admin → Betrieb → «Jetzt sichern»</td></tr>
+<tr><td>Manueller Dump</td><td>vor jedem Eingriff</td><td>nur Datenbank</td><td>von Hand</td><td><code>~/db-backups/</code></td></tr>
+<tr><td>VM-Snapshot</td><td>vor grossen Änderungen</td><td>ganze Maschine</td><td>von Hand</td><td>Virtualisierung</td></tr>
+</table>
+<p>Herunterladen, Löschen und der Zustand der Sicherungen stehen im Portal unter Admin → Betrieb.
+Ist die neuste Sicherung älter als zwei Tage oder ist eine fehlgeschlagen, erscheint dort und im
+Dashboard eine Warnung.</p>
+<figure>
+  <img src="bilder/admin-operations.png" alt="Sicherungen auf der Seite Betrieb">
+  <figcaption>Admin → Betrieb: Liste der Sicherungen mit Datum, Grösse und Download.</figcaption>
+</figure>
+
+<h3>Manueller Dump</h3>
+<pre><code>sudo mysqldump --single-transaction notenportal \
+  > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-eingriff.sql
+ls -lh ~/db-backups/ | tail -3</code></pre>
+<div class="hinweis">Grösse immer kontrollieren. Am 09.09.2026 war ein Dump 875 Byte gross – nur der Kopf, keine Daten. Ein Dump unter 50 KB ist bei diesem Portal ein Fehlschlag.</div>
+
+<h2>Wiederherstellen</h2>
+<pre><code># 1. Sicherung auspacken
+unzip notenportal-JJJJMMTT-HHMMSS.zip -d /tmp/wiederherstellung
+
+# 2. Aktuellen Stand vorher wegsichern – auch einen kaputten
+sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-vor-wiederherstellung.sql
+
+# 3. Datenbank einspielen
+sudo mysql notenportal < /tmp/wiederherstellung/datenbank.sql
+
+# 4. Dateien zurückspielen
+rsync -a /tmp/wiederherstellung/dateien/lernende/ /var/www/notenportal/storage/app/private/lernende/
+
+# 5. Rechte und Caches
+sudo chgrp -R www-data storage/app/private && sudo chmod -R g+rwX storage/app/private
+sudo -u www-data php artisan optimize:clear
+
+# 6. Kontrolle
+php artisan notenportal:bereitschaft</code></pre>
+<p>Danach <code>/login</code> aufrufen, mit einem Konto anmelden und stichprobenweise prüfen, ob
+Noten, Dokumente und Prüfungen da sind.</p>
+
+<h3>Nur einzelne Daten zurückholen</h3>
+<p>Soll nicht alles überschrieben werden, den Dump in die Kopie einspielen und dort abgreifen:</p>
+<pre><code>sudo mysql notenportal_probe < /tmp/wiederherstellung/datenbank.sql
+sudo mysql notenportal_probe -e "SELECT * FROM noten WHERE lernender_id = 7;"</code></pre>
+
+<h2>Restorelog</h2>
+<table>
+<tr><th>Art</th><th>Datum</th><th>Erfolg / Fehlschlag</th><th>ADMIN</th><th>Bemerkung</th></tr>
+<tr><td>Restore-Test (Datenbank + Dateien)</td><td>11.09.2026</td><td>Erfolg</td><td>David von Allmen</td><td>ZIP <code>notenportal-20260911-113535.zip</code> in <code>notenportal_probe</code>: 38 Tabellen, Zeilenzahlen identisch mit Prod (ausser <code>cache_locks</code>), Dokumente 2 = 2</td></tr>
+<tr><td>Wiederherstellung nach Migrationsabbruch</td><td>10.09.2026</td><td>Erfolg</td><td>David von Allmen</td><td>Halbmigrierten Stand gesichert, <code>notenportal</code> aus dem Dump von 13:53 neu aufgebaut, Migration korrigiert und erneut ausgeführt</td></tr>
+<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+</table>
+<p>Jeder Restore – auch jeder Test – gehört mit einer Zeile hierher.</p>
+
+<h2>Offen</h2>
+<ul>
+<li>Ziel für die Kopie ausser Haus eintragen (Admin → Betrieb → «Verbindung testen»). Bis dahin liegen alle Sicherungen nur auf demselben Server wie die Daten.</li>
+<li>Wochenstände zusätzlich zu den 14 Tagesständen.</li>
+<li>Restore-Test als fester Halbjahrestermin.</li>
+</ul>

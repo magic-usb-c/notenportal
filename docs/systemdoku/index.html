@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Systemdoku Notenportal</title>
+<link rel="stylesheet" href="stil.css">
+
+<h1>Systemdokumentation Notenportal</h1>
+<p class="lead">Ein OneNote-Abschnitt in elf Seiten. Diese Startseite gehört <b>nicht</b> nach OneNote – sie erklärt nur, wie die anderen hineinkommen.</p>
+
+<h2>So kommt der Abschnitt nach OneNote</h2>
+<ol>
+<li>In OneNote einen Abschnitt <b>Notenportal</b> anlegen.</li>
+<li>Die erste Seite unten öffnen, im Browser <b>Ctrl + A</b>, <b>Ctrl + C</b>.</li>
+<li>In OneNote eine neue Seite, <b>Ctrl + V</b>. Tabellen, Bilder und Formatierung kommen mit.</li>
+<li>Den Seitentitel oben eintragen (er steht auch als Überschrift im eingefügten Text).</li>
+<li>Für jede weitere Seite wiederholen – in der Reihenfolge der Tabelle.</li>
+<li>Die eingerückten Seiten in OneNote rechts anklicken → <b>«Zu Unterseite tiefer stufen»</b>.</li>
+</ol>
+<div class="hinweis">Die Bilder müssen im Browser sichtbar geladen sein, bevor kopiert wird – am Ende der Seite einmal ganz nach unten scrollen. Ordner <code>bilder/</code> immer mitnehmen, wenn die Dateien weitergegeben werden.</div>
+
+<h2>Seiten</h2>
+<table>
+<tr><th>Ebene</th><th>OneNote-Seitentitel</th><th>Datei</th></tr>
+<tr><td>Seite</td><td><b>Notenportal</b></td><td><a href="01-notenportal.html">01-notenportal.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Installation Server</td><td><a href="02-installation-server.html">02-installation-server.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Installation Client</td><td><a href="03-installation-client.html">03-installation-client.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Datenbank</td><td><a href="04-datenbank.html">04-datenbank.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Wartung und Update</td><td><a href="05-wartung-update.html">05-wartung-update.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Monitoring</td><td><a href="06-monitoring.html">06-monitoring.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Backup / Restore</td><td><a href="07-backup-restore.html">07-backup-restore.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Howto</td><td><a href="08-howto.html">08-howto.html</a></td></tr>
+<tr><td>↳↳ Unterseite</td><td>Howto – Admin</td><td><a href="09-howto-admin.html">09-howto-admin.html</a></td></tr>
+<tr><td>↳↳ Unterseite</td><td>Howto – Berufsbildner</td><td><a href="10-howto-berufsbildner.html">10-howto-berufsbildner.html</a></td></tr>
+<tr><td>↳↳ Unterseite</td><td>Howto – Lernende</td><td><a href="11-howto-lernende.html">11-howto-lernende.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Kontakte / Support</td><td><a href="12-kontakte-support.html">12-kontakte-support.html</a></td></tr>
+<tr><td>↳ Unterseite</td><td>Weiterführende Dokumente</td><td><a href="13-weiterfuehrende-dokumente.html">13-weiterfuehrende-dokumente.html</a></td></tr>
+</table>
+
+<h2>Noch auszufüllen</h2>
+<p>Zwei Stellen sind bewusst leer, weil nur der Betrieb sie kennt:</p>
+<ul>
+<li><b>Kontakte / Support</b> – Namen, Mailadressen und Telefonnummern.</li>
+<li><b>Monitoring</b> – die PRTG-Sensoren sind als Vorgabe formuliert; nach dem Aufbau Sensornamen und Intervalle nachtragen.</li>
+</ul>
+
+<h2>Bilder auffrischen</h2>
+<p>Alle Screenshots stammen aus der Demoinstanz und enthalten nur erfundene Daten. Neu aufnehmen:
+<code>tools/systemdoku-bilder.mjs</code>, Anleitung in <code>LIESMICH.md</code> daneben.</p>

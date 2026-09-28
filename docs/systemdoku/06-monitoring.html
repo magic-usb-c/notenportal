@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Monitoring</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Monitoring</p>
+
+<h1>Monitoring</h1>
+<p class="lead">Zwei Ebenen: PRTG überwacht den Server von aussen, das Portal meldet seine eigenen Störungen selbst.</p>
+
+<h2>Sensoren</h2>
+<table>
+<tr><th>Business-Service / Host</th><th>PRTG-Sensor</th><th>Bemerkung</th></tr>
+<tr><td>srv-lab-dva-001</td><td>Ping</td><td>Grundverfügbarkeit der VM</td></tr>
+<tr><td>srv-lab-dva-001</td><td>CPU / RAM / Disk Free</td><td>Warnung bei &lt; 15 % freiem Platz – Sicherungen und Dokumente wachsen</td></tr>
+<tr><td>Notenportal Web</td><td>HTTP <code>http://172.26.14.101/login</code></td><td>Erwartet 200 und den Text «Anmelden». Der beste einzelne Sensor: er prüft Apache, PHP <i>und</i> Datenbank in einem Zug</td></tr>
+<tr><td>Notenportal Web</td><td>HTTPS Zertifikat</td><td>Warnung 30 Tage vor Ablauf. Lab-Zertifikat läuft am 14.12.2028 ab</td></tr>
+<tr><td>srv-lab-dva-001</td><td>Dienst <code>apache2</code></td><td>SSH- oder SNMP-Sensor</td></tr>
+<tr><td>srv-lab-dva-001</td><td>Dienst <code>mariadb</code></td><td>SSH- oder SNMP-Sensor</td></tr>
+<tr><td>Notenportal Sicherung</td><td>Datei-Alter <code>storage/app/private/sicherungen</code></td><td>Fehler, wenn die neuste Sicherung älter als 48 Stunden ist</td></tr>
+</table>
+<div class="hinweis">Noch nicht eingerichtet – die Tabelle ist die Vorgabe für den Aufbau in PRTG. Wer sie umsetzt, trägt hier Sensornamen und Intervalle nach.</div>
+
+<h2>Was das Portal selbst meldet</h2>
+<p>Das Admin-Dashboard sammelt unter «Handlungsbedarf», was nicht stimmt: fehlgeschlagene Jobs,
+fehlgeschlagene Mails der letzten sieben Tage, Kalenderabgleich-Fehler, fehlende Sicherung,
+Lernende ohne Track oder Betreuung, offene Meldungen.</p>
+<figure>
+  <img src="bilder/admin.png" alt="Admin-Dashboard mit Handlungsbedarf">
+  <figcaption>Admin-Dashboard: Kennzahlen oben, darunter «Handlungsbedarf» – jede Zeile führt mit «Beheben» direkt zur Ursache.</figcaption>
+</figure>
+
+<h2>Prüfung auf Knopfdruck</h2>
+<pre><code>php artisan notenportal:bereitschaft          # lesbar
+php artisan notenportal:bereitschaft --json   # für ein Monitoring-Skript</code></pre>
+<p>Rein lesend, ändert nichts. Exit-Code 1, sobald ein Punkt als Fehler gilt – damit taugt der Befehl
+direkt als PRTG-«Script v2»-Sensor über SSH.</p>
+<table>
+<tr><th>Geprüft wird</th></tr>
+<tr><td>Umgebung: <code>APP_ENV</code>, <code>APP_DEBUG</code>, <code>APP_URL</code>, Secure-Cookie</td></tr>
+<tr><td>Mail-Umleitung noch aktiv? (im Betrieb muss sie leer sein)</td></tr>
+<tr><td>Kopie ausser Haus eingerichtet und erreichbar</td></tr>
+<tr><td>Alter der letzten Sicherung</td></tr>
+<tr><td>Fehlgeschlagene Jobs und Mails</td></tr>
+<tr><td>Fehler beim Kalenderabgleich</td></tr>
+<tr><td>Offene Migrationen</td></tr>
+</table>
+
+<h2>Kennzahlen im Betrieb</h2>
+<figure>
+  <img src="bilder/admin-operations.png" alt="Seite Betrieb mit Sicherungen">
+  <figcaption>Admin → Betrieb: Zustand der Sicherungen, «Jetzt sichern», Kopie ausser Haus, Notengrenzen, Systemhinweis.</figcaption>
+</figure>
+<figure>
+  <img src="bilder/admin-mail-log.png" alt="Versandprotokoll">
+  <figcaption>Versandprotokoll: jede Mail mit Status, Empfänger und Fehlertext, «Erneut senden» pro Zeile.</figcaption>
+</figure>

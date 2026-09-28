@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Installation Server</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Installation Server</p>
+
+<h1>Installation Server</h1>
+<p class="lead">Von einem leeren Ubuntu zum laufenden Portal: ein Befehl, danach nur noch Browser.</p>
+
+<h2>Voraussetzungen</h2>
+<table>
+<tr><th>Punkt</th><th>Wert</th></tr>
+<tr><td>Betriebssystem</td><td>Ubuntu 24.04 LTS (frisch reicht)</td></tr>
+<tr><td>Rechte</td><td>Ein Benutzer mit <code>sudo</code></td></tr>
+<tr><td>Arbeitsspeicher</td><td>ca. 2 GB</td></tr>
+<tr><td>Port</td><td>80 frei (oder mit <code>--port</code> ein anderer)</td></tr>
+<tr><td>Netz</td><td>Internetzugang während der Installation</td></tr>
+</table>
+<p>Alles andere – Apache, MariaDB, PHP, Node, Composer – installiert das Skript selbst.</p>
+
+<h2>Installation</h2>
+<pre><code>sudo apt update && sudo apt install -y git
+sudo install -d -o "$USER" -g "$USER" /var/www/notenportal
+git clone https://github.com/magic-usb-c/notenportal.git /var/www/notenportal
+cd /var/www/notenportal
+sudo ./install.sh</code></pre>
+<div class="hinweis"><b>Warum <code>/var/www</code>?</b> Ubuntu legt Home-Verzeichnisse so an, dass Apache sie nicht betreten darf – jede Seite käme als «403 Forbidden». Liegt das Portal falsch, bricht <code>install.sh</code> sofort ab und nennt den Befehl zum Verschieben.</div>
+<p>Am Ende nennt das Skript die Adresse, die E-Mail des ersten Admin-Kontos und ein Startpasswort.
+<b>Dieses Passwort erscheint genau einmal.</b></p>
+
+<h2>Was das Skript erledigt</h2>
+<table>
+<tr><th>Schritt</th><th>Inhalt</th></tr>
+<tr><td>Pakete</td><td>Apache, MariaDB, PHP ≥ 8.3 samt Erweiterungen, Node 22, Composer</td></tr>
+<tr><td>Datenbank</td><td>Datenbank plus zwei Benutzer: einer nur für Daten, einer für Schemaänderungen</td></tr>
+<tr><td>Konfiguration</td><td><code>.env</code> mit Zufallspasswörtern und Produktionswerten, Anwendungsschlüssel</td></tr>
+<tr><td>Schema</td><td>Migrationen, Grundstammdaten (Rollen, Kategorien)</td></tr>
+<tr><td>Konto</td><td>Erstes Admin-Konto mit Startpasswort</td></tr>
+<tr><td>Oberfläche</td><td><code>npm ci</code> und Build</td></tr>
+<tr><td>Webserver</td><td>VirtualHost, Port, ufw-Freigabe falls ufw läuft</td></tr>
+<tr><td>Automatik</td><td><code>/etc/cron.d/&lt;verzeichnis&gt;</code> für Sicherung, Mailversand, Benachrichtigungen</td></tr>
+<tr><td>Abschluss</td><td>Dateirechte, Schlusstest gegen <code>/login</code></td></tr>
+</table>
+
+<h3>Optionen</h3>
+<pre><code>sudo ./install.sh --help                             zeigt die Liste
+sudo ./install.sh --port 8082 --db notenportal_i2    zweite Instanz daneben
+sudo ./install.sh --host notenportal.example.ch      Servername statt erkannter IP
+sudo ./install.sh --ohne-firewall                    keine ufw-Freigabe
+sudo ./install.sh --neues-admin-passwort             neues Startpasswort, wenn der Zugang weg ist</code></pre>
+<p>Ein erneuter Lauf im selben Verzeichnis ist ein <b>Update</b>: Pakete, Abhängigkeiten, Build und
+Migrationen werden nachgezogen; <code>.env</code>, Webserver-Konfiguration und Konten bleiben.</p>
+
+<h2>Einrichtung im Browser</h2>
+<p>Anmelden mit E-Mail und Startpasswort, das Portal verlangt sofort ein eigenes Passwort, dann
+öffnet die Einrichtung von selbst und führt durch acht Schritte.</p>
+<figure>
+  <img src="bilder/admin-setup.png" alt="Einrichtung, Schritt 1: Betrieb und Notengrenzen">
+  <figcaption>Einrichtung Schritt 1 von 8 – links die Schritte mit Stand, rechts das Formular.</figcaption>
+</figure>
+<table>
+<tr><th>#</th><th>Schritt</th><th>Was hier passiert</th></tr>
+<tr><td>1</td><td>Betrieb</td><td>Eigenes Konto, Betriebsname, Notengrenzen (gut / genügend / knapp), Rundung, Fristen</td></tr>
+<tr><td>2</td><td>Kategorien</td><td>Schule, ÜK, Betrieb … mit Rundung, Gewicht und Promotionsregeln</td></tr>
+<tr><td>3</td><td>Semester</td><td>Generator mit Vorschau erzeugt den ganzen Semesterplan</td></tr>
+<tr><td>4</td><td>Lehrberufe &amp; Fächer</td><td>Lehrberufe und BMS/ABU-Fächer sind vorausgewählt</td></tr>
+<tr><td>5</td><td>Module</td><td>Module je Lernort als Liste; hier lässt sich auch der Modulkatalog einlesen</td></tr>
+<tr><td>6</td><td>Personen</td><td>Berufsbildner, Admins und Lernende zeilenweise; Startpasswörter zum Drucken</td></tr>
+<tr><td>7</td><td>E-Mail</td><td>SMTP-Server, Absender, Passwort, Testmail</td></tr>
+<tr><td>8</td><td>Abschluss</td><td>Übersicht, danach ist das Portal betriebsbereit</td></tr>
+</table>
+<p>Die Einrichtung bleibt danach erreichbar (Betrieb → «Einrichtung») und ist der Weg, später einen
+ganzen Jahrgang auf einmal anzulegen: bis 100 Lernende und 50 Berufsbildner je Vorgang.</p>
+
+<h2>Was von Hand bleibt</h2>
+<table>
+<tr><th>Punkt</th><th>Vorgehen</th></tr>
+<tr><td>HTTPS</td><td>Das Skript richtet kein Zertifikat ein. Ohne TLS gehen Passwörter im Klartext durchs Netz. Eigene CA oder Firmenzertifikat: <code>docs/betrieb.md</code>, Abschnitt «HTTPS».</td></tr>
+<tr><td>E-Mail</td><td>Erstinstallation schreibt Mails nur ins Log. SMTP unter Admin → Betrieb → E-Mail eintragen, Testmail senden.</td></tr>
+<tr><td>Kopie ausser Haus</td><td>Ziel (Ordner oder SSH) unter Admin → Betrieb hinterlegen, «Verbindung testen».</td></tr>
+<tr><td>Zeitzonen der Datenbank</td><td><code>mysql_tzinfo_to_sql /usr/share/zoneinfo | sudo mysql mysql</code></td></tr>
+<tr><td>Firewall</td><td>Das Skript öffnet nur den Portalport; einschränken auf die berechtigten Netze bleibt Handarbeit.</td></tr>
+</table>
+
+<h2>Kontrolle</h2>
+<pre><code>php artisan notenportal:bereitschaft</code></pre>
+<p>Rein lesend. Prüft Umgebung (APP_ENV, APP_DEBUG, APP_URL, Secure-Cookie), Mail-Umleitung,
+Kopie ausser Haus, letzte Sicherung, fehlgeschlagene Jobs und Mails, Kalenderabgleich und offene
+Migrationen. Jeder Punkt hat Status <i>ok / warnung / fehler</i> samt Handlungsanweisung;
+Exit-Code 1, sobald ein Punkt als Fehler gilt. Mit <code>--json</code> maschinenlesbar.</p>
+
+<h2>Zweite Instanz auf demselben Server</h2>
+<pre><code>sudo ./install.sh --port 8082 --db notenportal_i2 --ohne-firewall</code></pre>
+<p>Legt eine eigene Datenbank, einen eigenen DB-Benutzer, einen eigenen VirtualHost und die Zeile
+<code>Listen 8082</code> an. Die bestehende Instanz bleibt unangetastet. Entfernen:</p>
+<pre><code>sudo a2dissite notenportal-i2
+sudo sed -i '/^Listen 8082$/d' /etc/apache2/ports.conf
+sudo systemctl reload apache2
+sudo mysql -e "DROP DATABASE notenportal_i2; DROP USER 'notenportal_i2_web'@'localhost';"
+sudo rm -rf /var/www/notenportal-i2 /etc/apache2/sites-available/notenportal-i2.conf</code></pre>

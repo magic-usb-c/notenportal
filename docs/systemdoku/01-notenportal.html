@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Notenportal</title>
+<link rel="stylesheet" href="stil.css">
+
+<h1>Notenportal</h1>
+<p class="lead">Systemdokumentation · Stand 28.09.2026 · Hauptseite des OneNote-Abschnitts</p>
+
+<h2>Beschreibung</h2>
+<p>Das Notenportal verwaltet die Schulnoten von Lernenden in der Schweizer Berufslehre.
+Lernende erfassen ihre Noten und sehen daraus Zeugnisnote, Promotionsstand und Modulfortschritt.
+Berufsbildner begleiten ihre Lernenden über eine Ampel mit Begründung. Admins richten Betrieb,
+Stammdaten und Konten ein.</p>
+<p>Es ist eine Webanwendung auf einem einzelnen Linux-Server: Apache liefert aus, PHP rechnet,
+MariaDB speichert. Kein Cloud-Dienst, keine Agents auf Clients, keine Lizenzkosten.</p>
+
+<h2>Skizze</h2>
+<pre>
+   Browser (Lernende · Berufsbildner · Admin)
+        │  HTTP :80  /  HTTPS :443
+        ▼
+   ┌──────────────────────────────────────────────┐
+   │  srv-lab-dva-001   Ubuntu 24.04              │
+   │                                              │
+   │   Apache 2.4  ──  mod_php 8.3  ──  Laravel 13│
+   │        │                    │                │
+   │        │                    ├──▶ MariaDB 10.11   (notenportal)
+   │        │                    └──▶ storage/app/private/
+   │        │                            Dokumente · Sicherungen
+   │        │                                     │
+   │   Cron (jede Minute) ──▶ artisan schedule:run│
+   │        Sicherung 02:30 · Mailqueue · Kalender│
+   └──────────────────────────────────────────────┘
+        │                      ▲
+        │ SMTP (ausgehend)     │ iCal (ausgehend, stündlich)
+        ▼                      │
+   Mailserver            Schulnetz / Nextcloud / Outlook
+</pre>
+
+<h2>Infrastruktur</h2>
+<table>
+<tr><th>System</th><th>Name</th><th>Typ</th><th>IP-Adresse</th><th>Funktion / Beschreibung</th><th>Bemerkungen</th></tr>
+<tr><td>Server</td><td>srv-lab-dva-001</td><td>VM, Ubuntu 24.04 LTS</td><td>172.26.14.101/24 (ens160)</td><td>Trägt alles: Web, Datenbank, Dateien, Cron</td><td>ICT-LAB, geschlossenes Netz</td></tr>
+<tr><td>Webserver</td><td>Apache 2.4</td><td>Dienst</td><td>:80 und :443</td><td>Liefert das Portal aus</td><td>mpm_prefork + mod_php; vhosts <code>notenportal.conf</code>, <code>notenportal-ssl.conf</code></td></tr>
+<tr><td>Laufzeit</td><td>PHP 8.3</td><td>Dienst</td><td>–</td><td>Laravel 13, Rechenkern für Noten</td><td>Distro-Pakete, opcache aktiv</td></tr>
+<tr><td>Datenbank</td><td>MariaDB 10.11</td><td>Dienst</td><td>127.0.0.1:3306</td><td>Datenbank <code>notenportal</code></td><td>Nur lokal erreichbar, kein Netzwerk-Listener nach aussen</td></tr>
+<tr><td>Dateiablage</td><td>storage/app/private</td><td>Verzeichnis</td><td>–</td><td>Dokumente der Lernenden, Modulunterlagen, Sicherungen</td><td>Nie über den Webserver direkt; Auslieferung nur über Controller</td></tr>
+<tr><td>Testinstanz</td><td>/var/www/notenportal-i2</td><td>Zweite Installation</td><td>127.0.0.1:8082</td><td>Installations- und Updatetests</td><td>Eigene DB <code>notenportal_i2</code>; ufw sperrt den Port von aussen</td></tr>
+<tr><td>Demoinstanz</td><td>notenportal_demo</td><td>Zweite Datenbank</td><td>127.0.0.1:8090</td><td>Schulung und Screenshots</td><td>Nur erfundene Daten</td></tr>
+</table>
+
+<h2>Cloud-Dienste</h2>
+<table>
+<tr><th>System</th><th>Name</th><th>Ressourcen-Typ</th><th>Bemerkungen</th></tr>
+<tr><td>–</td><td>keine</td><td>–</td><td>Das Portal läuft vollständig on-premise. Nach aussen geht nur SMTP (Mailversand) und – falls Lernende einen Kalender abonnieren – das stündliche Lesen einer iCal-Adresse.</td></tr>
+</table>
+
+<h2>Berechtigungen</h2>
+<table>
+<tr><th>User / Gruppe</th><th>Application</th><th>Bemerkungen</th></tr>
+<tr><td><code>np_web</code></td><td>MariaDB</td><td>Zugang der Anwendung. Nur Daten: SELECT/INSERT/UPDATE/DELETE. Keine Schemaänderungen.</td></tr>
+<tr><td><code>np_migrate</code></td><td>MariaDB</td><td>Darf das Schema ändern. Wird ausschliesslich von <code>php artisan notenportal:migrate</code> benutzt.</td></tr>
+<tr><td><code>www-data</code></td><td>Apache, PHP, Cron</td><td>Führt das Portal aus. Gruppe aller Portaldateien (Verzeichnisse mit Setgid, damit neue Dateien die Gruppe erben).</td></tr>
+<tr><td><code>ubuntu</code></td><td>Shell</td><td>Administration. Mitglied von <code>www-data</code>, hat <code>sudo</code>. Keine eigenen MariaDB-Rechte – Datenbankbefehle laufen über <code>sudo mysql</code>.</td></tr>
+<tr><td>Rolle <b>Admin</b></td><td>Notenportal</td><td>Alles: Konten, Stammdaten, Betrieb, Berichte, Noten anlegen und löschen.</td></tr>
+<tr><td>Rolle <b>Berufsbildner</b></td><td>Notenportal</td><td>Nur aktiv betreute Lernende. Noten lesen, korrigieren, kommentieren – nicht anlegen oder löschen.</td></tr>
+<tr><td>Rolle <b>Lernender</b></td><td>Notenportal</td><td>Nur eigene Daten.</td></tr>
+</table>
+<p>Rollen hängen an der Tabelle <code>benutzer_rollen</code>; eine Person kann mehrere haben.
+Wer welche Lernenden sieht, entscheidet <code>Lernender::sichtbarFuer()</code> an einer einzigen Stelle im Code.</p>
+
+<h2>Spezielles</h2>
+<ul>
+<li><b>Die Arbeitskopie ist der Produktionsserver.</b> <code>/var/www/notenportal</code> läuft live; ein <code>npm run build</code> ist sofort draussen. Migrationen laufen darum zuerst gegen die Kopie <code>notenportal_probe</code>.</li>
+<li><b>Modulkatalog.</b> Nummern, Titel und Handlungsziele der ICT-Module gehören ICT-Berufsbildung Schweiz und liegen <i>nicht</i> im Repository. Sie werden als Datei eingelesen (siehe Howto Admin).</li>
+<li><b>Sprache.</b> Oberfläche Deutsch (Schweizer Hochdeutsch, also durchgehend doppel-s), URLs und Routen Englisch (<code>/grades</code>, <code>/admin/setup</code>). Alte deutsche Lesezeichen leiten dauerhaft weiter.</li>
+<li><b>Rechenkern.</b> Jeder Durchschnitt kommt aus <code>App\Services\Auswertung</code> – nie aus einer Query oder einem View. Regeln: <code>docs/notenlogik.md</code>.</li>
+<li><b>Offen vor dem Betrieb ausserhalb des Labs:</b> HTTPS-Redirect und HSTS, Secure-Cookie, produktive SMTP-Zugangsdaten, Sicherungsziel ausser Haus. Siehe Seite «Backup / Restore» und «Wartung und Update».</li>
+</ul>
+
+<h2>Unterseiten</h2>
+<table>
+<tr><th>Seite</th><th>Inhalt</th></tr>
+<tr><td><a href="02-installation-server.html">Installation Server</a></td><td>Von leerem Ubuntu zum laufenden Portal</td></tr>
+<tr><td><a href="03-installation-client.html">Installation Client</a></td><td>Was auf den Geräten der Benutzer nötig ist</td></tr>
+<tr><td><a href="04-datenbank.html">Datenbank</a></td><td>Schema, Tabellen, Regeln</td></tr>
+<tr><td><a href="05-wartung-update.html">Wartung und Update</a></td><td>Update, Migrationen, Caches, Rechte, Logs</td></tr>
+<tr><td><a href="06-monitoring.html">Monitoring</a></td><td>Sensoren und was das Portal selbst meldet</td></tr>
+<tr><td><a href="07-backup-restore.html">Backup / Restore</a></td><td>Sicherungsarten, Wiederherstellung, Restorelog</td></tr>
+<tr><td><a href="08-howto.html">Howto</a></td><td>Anleitungen je Rolle</td></tr>
+<tr><td><a href="12-kontakte-support.html">Kontakte / Support</a></td><td>Wer hilft wobei</td></tr>
+<tr><td><a href="13-weiterfuehrende-dokumente.html">Weiterführende Dokumente</a></td><td>Wo mehr steht</td></tr>
+</table>

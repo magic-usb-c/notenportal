@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Installation Client</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Installation Client</p>
+
+<h1>Installation Client</h1>
+<p class="lead">Es gibt keine Client-Software. Ein Browser genügt.</p>
+
+<h2>Anforderungen</h2>
+<table>
+<tr><th>Punkt</th><th>Wert</th></tr>
+<tr><td>Software</td><td>Keine Installation, kein Agent, kein Plug-in</td></tr>
+<tr><td>Browser</td><td>Chrome, Edge, Firefox oder Safari in aktueller Version; JavaScript aktiv</td></tr>
+<tr><td>Bildschirm</td><td>Ab 390 Pixel Breite bedienbar – Handy, Tablet, Notebook</td></tr>
+<tr><td>Netz</td><td>Zugang zum Lab-Netz; Adresse <code>http://172.26.14.101</code> (bzw. <code>https://</code>)</td></tr>
+<tr><td>Zugang</td><td>E-Mail-Adresse und Startpasswort vom Admin; beim ersten Login ist ein eigenes Passwort Pflicht</td></tr>
+</table>
+
+<figure>
+  <img src="bilder/login.png" alt="Anmeldeseite des Notenportals">
+  <figcaption>Anmeldeseite. «Passwort vergessen» schickt einen Link, der 60 Minuten gültig ist.</figcaption>
+</figure>
+
+<h2>Als App installieren (optional)</h2>
+<p>Das Portal ist eine PWA – es lässt sich wie eine App auf den Startbildschirm legen und startet
+dann ohne Adresszeile.</p>
+<table>
+<tr><th>Gerät</th><th>Weg</th></tr>
+<tr><td>Windows, Chrome/Edge</td><td>Adresszeile → Symbol «Installieren» bzw. Menü → Apps → «Diese Seite als App installieren»</td></tr>
+<tr><td>Android</td><td>Menü → «Zum Startbildschirm hinzufügen»</td></tr>
+<tr><td>iPhone / iPad, Safari</td><td>Teilen → «Zum Home-Bildschirm»</td></tr>
+</table>
+<p>Ohne Verbindung erscheint eine Offline-Seite. Zwischengespeichert werden nur Programmdateien und
+Symbole – nie Noten oder andere Personendaten. Beim Abmelden leert die App ihren Zwischenspeicher.</p>
+
+<h2>Zertifikat der Lab-CA importieren</h2>
+<p>Im Lab gibt es keinen öffentlichen DNS-Namen und darum kein Let's-Encrypt-Zertifikat. Das Portal
+benutzt eine eigene Zertifizierungsstelle. Ohne deren Zertifikat warnt der Browser «Nicht sicher»
+– die Verbindung ist trotzdem verschlüsselt.</p>
+<table>
+<tr><th>System</th><th>Weg</th></tr>
+<tr><td>Windows</td><td><code>certmgr.msc</code> → «Vertrauenswürdige Stammzertifizierungsstellen» → Importieren</td></tr>
+<tr><td>macOS</td><td>Schlüsselbundverwaltung → System → Zertifikat hineinziehen → «Immer vertrauen»</td></tr>
+<tr><td>Firefox</td><td>Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren</td></tr>
+</table>
+<p>Die Datei heisst <code>ca.crt</code> und liegt auf dem Server unter <code>/etc/ssl/notenportal/</code>.
+Nur diese Datei wird verteilt – <code>ca.key</code> bleibt auf dem Server.</p>
+
+<h2>Kalender abonnieren (optional)</h2>
+<p>Jede Person kann ihre Prüfungstermine im eigenen Kalenderprogramm sehen. Den Link liefert
+Einstellungen → Kalender; er enthält ein persönliches Token und lässt sich dort auch neu erzeugen.</p>
+<figure>
+  <img src="bilder/settings-calendar.png" alt="Einstellungen, Reiter Kalender">
+  <figcaption>Einstellungen → Kalender: Abo-Link nach aussen, bei Lernenden zusätzlich bis zu fünf eingelesene Kalender.</figcaption>
+</figure>
+<table>
+<tr><th>Programm</th><th>Weg</th></tr>
+<tr><td>Outlook</td><td>Kalender hinzufügen → «Aus dem Internet abonnieren» → Link einfügen</td></tr>
+<tr><td>Google Kalender</td><td>Weitere Kalender → «Per URL» → Link einfügen</td></tr>
+<tr><td>Apple Kalender</td><td>Ablage → «Neues Kalenderabonnement» → Link einfügen</td></tr>
+</table>
+<div class="hinweis">Der Link ist ein Schlüssel: Wer ihn hat, sieht die Termine. Nicht weitergeben – und wenn doch passiert, in den Einstellungen neu erzeugen.</div>

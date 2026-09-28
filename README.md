@@ -138,6 +138,7 @@ Wegweiser durch die Dokumentation:
 | `docs/betrieb.md` | Betrieb, HTTPS, Sicherung, Wiederherstellung, Änderungsprotokoll |
 | `docs/modulkatalog.md` | Modulkatalog von modulbaukasten.ch ernten und einlesen |
 | `docs/audit-backlog.md` | Bewusst offen gelassene Punkte samt Begründung |
+| `docs/systemdoku/` | Systemdokumentation als OneNote-Abschnitt (HTML zum Einfügen, mit Screenshots) |
 
 ---
 

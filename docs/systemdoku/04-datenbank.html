@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Datenbank</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Datenbank</p>
+
+<h1>Datenbank</h1>
+<p class="lead">MariaDB 10.11, Datenbank <code>notenportal</code>, 44 Tabellen. Alles auf Deutsch benannt.</p>
+
+<h2>Eckdaten</h2>
+<table>
+<tr><th>Punkt</th><th>Wert</th></tr>
+<tr><td>Server</td><td>MariaDB 10.11, nur <code>127.0.0.1</code></td></tr>
+<tr><td>Zeichensatz</td><td>utf8mb4, Sortierung <code>utf8mb4_unicode_ci</code></td></tr>
+<tr><td>Datenbanken</td><td><code>notenportal</code> (Betrieb) · <code>notenportal_probe</code> (Migrationstest) · <code>notenportal_demo</code> (Schulung) · <code>notenportal_test</code>, <code>_b_test</code>, <code>_c_test</code>, <code>_d_test</code> (PHPUnit, werden bei jedem Lauf neu aufgebaut)</td></tr>
+<tr><td>Benutzer</td><td><code>np_web</code> nur Daten · <code>np_migrate</code> Schema</td></tr>
+<tr><td>Zeitstempel</td><td>Immer <code>erstellt_am</code> / <code>aktualisiert_am</code>; Zeitzone der Sitzung <code>Europe/Zurich</code></td></tr>
+<tr><td>Löschen</td><td>Soft-Delete über <code>geloescht_am</code> – Daten verschwinden aus der Anwendung, bleiben aber nachvollziehbar</td></tr>
+<tr><td>Integrität</td><td>Fremdschlüssel, zusammengesetzte FKs und CHECK-Constraints in der Datenbank selbst, nicht nur im Code</td></tr>
+</table>
+
+<h2>Beziehungen im Überblick</h2>
+<pre>
+  benutzer ──┬── benutzer_rollen ── rollen        (Admin · Berufsbildner · Lernender)
+             │
+             ├── berufsbildner ── betreuungen ──┐
+             │                                  │
+             └── lernende ─────────────────────┘
+                    │  lehrberuf_id
+                    ▼
+                lehrberufe ──┬── lehrberuf_faecher ── faecher ── kategorien
+                             └── lehrberuf_module  ── module
+
+                lernende ──┬── noten ────────── semester
+                           │     │  kategorie_id (abgeleitet)
+                           │     └─ fach_id  X O D E R  modul_belegung_id
+                           ├── modul_belegungen ── module
+                           ├── pruefungen (fach_id XODER modul_id)
+                           ├── ziele
+                           └── dokumente
+</pre>
+<p>Die wichtigste Regel steht in der Mitte: Eine Note hängt <b>entweder</b> an einem Fach
+<b>oder</b> an einer Modulbelegung – nie an beidem und nie an keinem. Ein CHECK in der Datenbank
+erzwingt das.</p>
+
+<h2>Tabellen</h2>
+
+<h3>Personen und Rechte</h3>
+<table>
+<tr><th>Tabelle</th><th>Inhalt</th></tr>
+<tr><td><code>benutzer</code></td><td>Konto: E-Mail (= Login), Name, Passwort-Hash, aktiv, Darstellung, Sprache, Kalender-Token</td></tr>
+<tr><td><code>rollen</code> / <code>benutzer_rollen</code></td><td>Admin, Berufsbildner, Lernender. Mehrfachrollen möglich – in <code>benutzer</code> gibt es <b>keine</b> Rollenspalte</td></tr>
+<tr><td><code>lernende</code></td><td>Lehrverhältnis: Lehrberuf, Lehrbeginn, Lehrende, interne Bemerkung (nur BB/Admin)</td></tr>
+<tr><td><code>berufsbildner</code></td><td>Verweis aufs Konto</td></tr>
+<tr><td><code>betreuungen</code></td><td>Wer betreut wen, von wann bis wann. Nur eine <i>aktive</i> Betreuung gibt Sicht auf Daten</td></tr>
+<tr><td><code>lernender_tracks</code></td><td>BMS- oder ABU-Abschnitt mit Start- und Endsemester</td></tr>
+</table>
+
+<h3>Stammdaten</h3>
+<table>
+<tr><th>Tabelle</th><th>Inhalt</th></tr>
+<tr><td><code>lehrberufe</code></td><td>Kürzel, Name, SBFI-Berufsnummer, Bildungsstufe, BiVo-Jahr</td></tr>
+<tr><td><code>kategorien</code></td><td>Lernorte bzw. Notengruppen mit Rundung, Gewicht im Gesamtschnitt und Promotionsregeln</td></tr>
+<tr><td><code>faecher</code></td><td>Fach mit Kategorie und optionalem Track (BMS/ABU)</td></tr>
+<tr><td><code>module</code></td><td>Gemeinsame Stammdaten: ein Datensatz je Modul, den jede angemeldete Person anlegen und ergänzen darf. Optional Katalogfelder (Version, Kompetenzfeld, Objekt, auslaufend)</td></tr>
+<tr><td><code>lehrberuf_faecher</code> / <code>lehrberuf_module</code></td><td>Welcher Beruf hat welche Fächer und Module – beim Modul zusätzlich Lernort, Pflichtgrad und empfohlenes Semester</td></tr>
+<tr><td><code>modul_handlungsziele</code> / <code>modul_lbv_elemente</code></td><td>Offizielle Handlungsziele und Leistungsbeurteilungsvorgaben aus dem Katalog (Referenz, kein Rechenweg)</td></tr>
+<tr><td><code>modul_dokumente</code></td><td>Unterlagen am Modul, nicht an einer Person. Datei privat auf der Platte, Auslieferung nur über den Controller</td></tr>
+<tr><td><code>semester</code></td><td>Bezeichnung, Start, Ende, Sortierung</td></tr>
+<tr><td><code>einstellungen</code></td><td>Schlüssel/Wert: Betriebsname, Notengrenzen, Rundung, Fristen, Theme, Mail-Umleitung …</td></tr>
+</table>
+
+<h3>Noten und Leistung</h3>
+<table>
+<tr><th>Tabelle</th><th>Inhalt</th></tr>
+<tr><td><code>noten</code></td><td>Die zentrale Tabelle: Lernender, Semester, Kategorie (abgeleitet), Fach <i>oder</i> Modulbelegung, Titel, Prüfungsdatum, Note 1–6, Gewichtung in Prozent, erfasst von / geändert von</td></tr>
+<tr><td><code>modul_belegungen</code></td><td>Ein Lernender belegt ein Modul. Eine Wiederholung ist eine <b>neue</b> Belegung; gerechnet wird nur die jüngste</td></tr>
+<tr><td><code>ziele</code></td><td>Wunschnote auf Ebene Gesamt, Kategorie, Fach oder Modul</td></tr>
+<tr><td><code>noten_gesehen</code></td><td>Wer hat welche Note wann zur Kenntnis genommen</td></tr>
+<tr><td><code>noten_kommentare</code></td><td>Kommentare von Berufsbildnern zu einzelnen Noten</td></tr>
+</table>
+
+<h3>Prüfungen, Kalender, Dokumente</h3>
+<table>
+<tr><th>Tabelle</th><th>Inhalt</th></tr>
+<tr><td><code>pruefungen</code></td><td>Geplante Prüfung oder Abgabe: Datum, Uhrzeit, Dauer, Art, Hilfsmittel, Stoff, Raum, Lehrperson, Gewichtung. Ist die Note erfasst, zeigt <code>note_id</code> darauf</td></tr>
+<tr><td><code>calendar_feeds</code></td><td>Bis zu fünf iCal-Abos je Benutzer; die Adresse liegt verschlüsselt</td></tr>
+<tr><td><code>calendar_events</code></td><td>Lektionen und Termine aus dem Abo</td></tr>
+<tr><td><code>dokumente</code></td><td>Zeugnisse, Notenlisten, Anhänge einer Prüfung. Datei privat auf der Platte, in der Tabelle stehen Pfad, Prüfsumme und Grösse</td></tr>
+</table>
+
+<h3>Mail, Benachrichtigung, System</h3>
+<table>
+<tr><th>Tabelle</th><th>Inhalt</th></tr>
+<tr><td><code>notification_policies</code></td><td>Was der Admin je Anlass vorgibt: ein/aus, verpflichtend, Standardfrequenz</td></tr>
+<tr><td><code>notification_preferences</code></td><td>Was die einzelne Person daraus gewählt hat</td></tr>
+<tr><td><code>notification_digest_items</code> / <code>notification_marks</code></td><td>Zwischenspeicher der Tageszusammenfassung; Merker gegen Doppelversand</td></tr>
+<tr><td><code>mail_log</code></td><td>Versandprotokoll mit Status, Fehler und «Erneut senden»</td></tr>
+<tr><td><code>feedback</code>, <code>feedback_anhaenge</code>, <code>feedback_stimmen</code></td><td>Meldungen aus dem Portal samt Anhängen und Zustimmung anderer</td></tr>
+<tr><td><code>aktivitaeten</code></td><td>Sicherheitsrelevante Aktionen mit Zeit, Person, Ziel und IP; 365 Tage aufbewahrt. Geheimnisse werden nie protokolliert</td></tr>
+<tr><td><code>password_reset_tokens</code> (60 Min.) / <code>password_invite_tokens</code> (7 Tage)</td><td>Einmal-Links für «Passwort vergessen» und Kontoeröffnung</td></tr>
+<tr><td><code>jobs</code>, <code>failed_jobs</code>, <code>job_batches</code>, <code>cache</code>, <code>cache_locks</code>, <code>migrations</code></td><td>Laravel-Technik: Warteschlange, Zwischenspeicher, Stand der Migrationen</td></tr>
+</table>
+
+<h2>Regeln, die man kennen muss</h2>
+<ul>
+<li><b>Kategorie wird abgeleitet, nie eingetippt.</b> Bei einer Fachnote aus <code>faecher.kategorie_id</code>, bei einer Modulnote aus <code>lehrberuf_module.kategorie_id</code> (dem Lernort). Führt jemand ein Modul, das sein Lehrberuf nicht vorsieht, gilt die im Beruf häufigste Kategorie.</li>
+<li><b>Kein Durchschnitt steht in der Datenbank.</b> Jeder Schnitt wird bei Bedarf gerechnet – von <code>App\Services\Auswertung</code>, nie in SQL oder im View. Damit ändert eine geänderte Rundungsregel rückwirkend alles Richtige.</li>
+<li><b>Die Modulnummer ist fest.</b> An ihr hängen die Noten aller Personen; sie ändert nur ein Admin.</li>
+<li><b>Lernenden-ID kommt aus der Sitzung</b>, nie aus dem Request – sonst könnte jemand fremde Daten anfordern.</li>
+<li><b>Semester:</b> Im Kontext einer Person erscheint die persönliche Nummer («3. Semester»), ohne Person der neutrale Name («HS 26/27»).</li>
+</ul>
+
+<h2>Schema ändern</h2>
+<pre><code># 1. Dump und Git-Tag
+sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-x.sql
+
+# 2. Erst gegen die Kopie, mit Rollback-Test
+sudo mysql notenportal_probe < ~/db-backups/notenportal-....sql
+DB_DATABASE=notenportal_probe php artisan migrate --force
+
+# 3. Dann erst gegen den Betrieb
+php artisan notenportal:migrate</code></pre>
+<div class="hinweis"><code>php artisan migrate</code> allein genügt hier nicht: Der Web-Benutzer darf das Schema gar nicht ändern. <code>notenportal:migrate</code> nimmt dafür den Benutzer <code>np_migrate</code> aus der <code>.env</code>.</div>
+<p>Jede Schemaänderung wird im Änderungsprotokoll in <code>docs/betrieb.md</code> festgehalten – mit Dump-Name, Tag und Ergebnis.</p>
+
+<h2>Handgriffe auf der Kommandozeile</h2>
+<pre><code>sudo mysql notenportal -e "SHOW TABLES;"
+sudo mysql notenportal -e "SELECT COUNT(*) FROM noten WHERE geloescht_am IS NULL;"
+php artisan notenportal:migrate --pretend     # zeigt nur, was liefe
+php artisan migrate:status</code></pre>
+<p>Der Shell-Benutzer <code>ubuntu</code> hat bewusst keine eigenen MariaDB-Rechte – darum immer <code>sudo mysql</code>.</p>

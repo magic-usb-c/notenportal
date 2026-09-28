@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="de-CH">
+<meta charset="utf-8">
+<title>Wartung und Update</title>
+<link rel="stylesheet" href="stil.css">
+<p class="nav"><a href="01-notenportal.html">Notenportal</a> › Wartung und Update</p>
+
+<h1>Wartung und Update</h1>
+<p class="lead">Was regelmässig läuft, was von Hand gehört und was bei Störungen zuerst zu prüfen ist.</p>
+
+<h2>Update einspielen</h2>
+<pre><code>cd /var/www/notenportal
+sudo mysqldump --single-transaction notenportal > ~/db-backups/notenportal-$(date +%Y%m%d-%H%M)-vor-update.sql
+git pull --ff-only
+npm ci && npm run build
+php artisan notenportal:migrate
+sudo -u www-data php artisan optimize
+php artisan notenportal:bereitschaft</code></pre>
+<p>Alternativ erledigt <code>sudo ./install.sh</code> im selben Verzeichnis dasselbe und zieht zusätzlich
+Systempakete nach. <code>.env</code>, Webserver-Konfiguration und Konten bleiben unverändert.</p>
+<div class="hinweis"><b>Reihenfolge zählt.</b> Erst Dump, dann Code, dann Migration, dann Caches. Der Build landet in <code>public/build</code> und ist sofort live – ein halber Build heisst eine halbe Seite.</div>
+
+<h2>Caches</h2>
+<table>
+<tr><th>Befehl</th><th>Wirkung</th></tr>
+<tr><td><code>sudo -u www-data php artisan optimize</code></td><td>Config-, Routen- und View-Cache aufbauen. Nach jedem Update.</td></tr>
+<tr><td><code>sudo -u www-data php artisan optimize:clear</code></td><td>Alles leeren. Nach Änderungen an <code>.env</code> oder wenn eine Einstellung nicht greift.</td></tr>
+</table>
+<div class="hinweis">Immer <b><code>sudo -u www-data</code></b>. Als <code>ubuntu</code> kompilierte Views gehören dem falschen Benutzer – Apache scheitert danach mit «touch(): Utime failed» und liefert HTTP 500.</div>
+
+<h2>Dateirechte</h2>
+<p>Apache liest als <code>www-data</code> über Gruppenrechte. Symptom bei kaputten Rechten:
+HTTP 500 <i>ohne</i> Eintrag im Laravel-Log.</p>
+<pre><code>cd /var/www/notenportal
+find . -path './.git' -prune -o -type d -user ubuntu -exec chmod u+rwx,g+rxs {} \;
+find . -path './.git' -prune -o -type f -user ubuntu -exec chmod u+rw,g+r {} +
+find . -path './.git' -prune -o -user ubuntu ! -group www-data -exec chgrp www-data {} +</code></pre>
+
+<h2>Was automatisch läuft</h2>
+<p>Ein Cron-Eintrag (<code>/etc/cron.d/notenportal</code>) ruft jede Minute den Laravel-Scheduler auf;
+dieser startet die Aufgaben zu ihrer Zeit.</p>
+<table>
+<tr><th>Zeit</th><th>Aufgabe</th><th>Befehl</th></tr>
+<tr><td>02:30</td><td>Sicherung, danach Kopie ausser Haus</td><td><code>notenportal:sicherung</code></td></tr>
+<tr><td>03:15</td><td>Aktivitätsprotokoll aufräumen (älter als 365 Tage)</td><td><code>notenportal:aktivitaeten-aufraeumen</code></td></tr>
+<tr><td>06:30</td><td>Benachrichtigungen prüfen (Prüfung bald, Note fehlt, Inaktivität …)</td><td><code>notifications:check</code></td></tr>
+<tr><td>18:00</td><td>Tageszusammenfassungen versenden</td><td><code>notifications:digest</code></td></tr>
+<tr><td>stündlich (:17)</td><td>Abonnierte Kalender abgleichen</td><td><code>calendar:sync</code></td></tr>
+<tr><td>jede Minute</td><td>Mailwarteschlange abarbeiten</td><td><code>queue:work --stop-when-empty --max-time=50 --tries=3</code></td></tr>
+</table>
+<p>Prüfen, ob der Scheduler läuft: <code>php artisan schedule:list</code>.</p>
+
+<h2>Wenn etwas klemmt</h2>
+<table>
+<tr><th>Symptom</th><th>Zuerst prüfen</th></tr>
+<tr><td>HTTP 500, nichts im Laravel-Log</td><td>Dateirechte (siehe oben), dann <code>/var/log/apache2/error.log</code></td></tr>
+<tr><td>HTTP 500 mit Log-Eintrag</td><td><code>tail -50 storage/logs/laravel-$(date +%Y-%m-%d).log</code></td></tr>
+<tr><td>Einstellung greift nicht</td><td><code>sudo -u www-data php artisan optimize:clear</code></td></tr>
+<tr><td>Keine Mails</td><td>Admin → Betrieb → E-Mail (Umleitung noch gesetzt?), dann Versandprotokoll, dann <code>php artisan queue:failed</code></td></tr>
+<tr><td>Kalender bringt nichts</td><td>Einstellungen → Kalender, Spalte Status und Fehler; Quelle antwortet evtl. 304 (unverändert – das ist in Ordnung)</td></tr>
+<tr><td>Seite weiss oder alte Version</td><td><code>npm ci && npm run build</code> nachziehen</td></tr>
+<tr><td>Tests brechen mit <code>UnableToCreateDirectory</code> ab</td><td>Ein Lauf als <code>www-data</code> hat <code>storage/framework/testing/</code> zu eng angelegt: <code>sudo chmod -R 2775 storage/framework/testing</code></td></tr>
+<tr><td>Allgemeiner Rundumblick</td><td><code>php artisan notenportal:bereitschaft</code></td></tr>
+</table>
+
+<h2>Logs</h2>
+<table>
+<tr><th>Was</th><th>Wo</th></tr>
+<tr><td>Anwendung</td><td><code>storage/logs/laravel-JJJJ-MM-TT.log</code> (täglich, Level <code>info</code>)</td></tr>
+<tr><td>Webserver</td><td><code>/var/log/apache2/error.log</code>, <code>access.log</code></td></tr>
+<tr><td>Mailversand</td><td>Im Portal: Admin → Versandprotokoll</td></tr>
+<tr><td>Sicherheitsrelevante Aktionen</td><td>Im Portal: Admin → Aktivitätsprotokoll (365 Tage)</td></tr>
+</table>
+<figure>
+  <img src="bilder/admin-activity.png" alt="Aktivitätsprotokoll im Portal">
+  <figcaption>Aktivitätsprotokoll: An- und Abmeldungen, Kontoänderungen, Sicherungen, Noten – mit Zeit, Person, Ziel und IP.</figcaption>
+</figure>
+
+<h2>Regelmässig prüfen</h2>
+<table>
+<tr><th>Rhythmus</th><th>Aufgabe</th></tr>
+<tr><td>täglich</td><td>Admin-Dashboard «Handlungsbedarf»: fehlgeschlagene Jobs, fehlgeschlagene Mails, Kalenderfehler, Sicherung</td></tr>
+<tr><td>wöchentlich</td><td>Sicherung heruntergeladen und stichprobenweise geöffnet; Speicherplatz <code>df -h</code></td></tr>
+<tr><td>monatlich</td><td><code>sudo apt update && sudo apt upgrade</code>, danach <code>notenportal:bereitschaft</code></td></tr>
+<tr><td>halbjährlich</td><td>Restore-Test nach Anleitung, Ergebnis ins Restorelog</td></tr>
+<tr><td>vor dem 14.12.2028</td><td>Serverzertifikat der Lab-CA erneuern (<code>docs/betrieb.md</code>, Abschnitt «HTTPS»)</td></tr>
+</table>
