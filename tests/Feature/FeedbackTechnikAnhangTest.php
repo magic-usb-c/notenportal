@@ -158,13 +158,23 @@ class FeedbackTechnikAnhangTest extends TestCase
         $user = User::factory()->lernender()->create();
         $kaputt = UploadedFile::fake()->createWithContent('bild.png', $ohneBilddaten);
 
+        // Der Screenshot ist gültig: er darf trotzdem nicht als Datei zurückbleiben, wenn der
+        // Anhang danach abgewiesen wird.
+        $screenshot = UploadedFile::fake()->image('screenshot.jpg', 800, 600);
+
         $this->actingAs($user)->post(route('feedback.store'), [
             'kategorie' => 'fehler',
             'text' => 'Bild ohne Bilddaten.',
             'anhaenge' => [$kaputt],
+            'screenshot' => $screenshot,
         ], ['Accept' => 'application/json'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['anhaenge']);
+
+        // Die abgewiesene Meldung darf keine halben Spuren hinterlassen – weder einen Datensatz
+        // ohne Anhang noch eine Datei auf der Disk.
+        $this->assertSame(0, Feedback::count());
+        $this->assertSame([], Storage::disk('local')->allFiles('feedback'));
     }
 
     #[Test]

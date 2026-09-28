@@ -21,6 +21,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -68,6 +69,32 @@ class FeedbackController extends Controller
             $kategorie = Feedback::KATEGORIE_LOB;
         }
 
+        // Erst alle Dateien ablegen, dann den Datensatz anlegen: Anhang::speichern() weist ein nicht
+        // neu kodierbares Bild mit einer ValidationException ab. Lief Feedback::create() vorher,
+        // bliebe die Meldung ohne den Anhang zurück, obwohl der Nutzer einen Fehler sieht.
+        // Scheitert eine Datei, verschwinden die bereits abgelegten wieder.
+        $gespeicherteDateien = [];
+        try {
+            $screenshot = $request->hasFile('screenshot')
+                ? $screenshotService->speichern($request->file('screenshot'))
+                : null;
+            if ($screenshot !== null) {
+                $gespeicherteDateien[] = $screenshot['pfad'];
+            }
+
+            $anhaenge = [];
+            if (Feedback::hatAnhaengeTabelle()) {
+                foreach ($request->file('anhaenge', []) as $datei) {
+                    $anhaenge[] = $gespeichert = $anhangService->speichern($datei);
+                    $gespeicherteDateien[] = $gespeichert['pfad'];
+                }
+            }
+        } catch (\Throwable $e) {
+            Storage::disk('local')->delete($gespeicherteDateien);
+
+            throw $e;
+        }
+
         $feedback = Feedback::create([
             'benutzer_id' => (int) $request->user()->benutzer_id,
             'rolle' => $request->user()->rollen()->pluck('name')->first(),
@@ -80,22 +107,13 @@ class FeedbackController extends Controller
             'viewport' => $validated['viewport'] ?? null,
             'js_fehler' => $letzteFehler,
             'technik_details' => Feedback::hatTechnikSpalte() ? $this->technikDetails($validated['technik'] ?? null) : null,
+            'screenshot_pfad' => $screenshot['pfad'] ?? null,
+            'screenshot_mime' => $screenshot['mime'] ?? null,
+            'screenshot_groesse' => $screenshot['groesse'] ?? null,
         ]);
 
-        if ($request->hasFile('screenshot')) {
-            $gespeichert = $screenshotService->speichern($request->file('screenshot'));
-            $feedback->update([
-                'screenshot_pfad' => $gespeichert['pfad'],
-                'screenshot_mime' => $gespeichert['mime'],
-                'screenshot_groesse' => $gespeichert['groesse'],
-            ]);
-        }
-
-        if (Feedback::hatAnhaengeTabelle()) {
-            foreach ($request->file('anhaenge', []) as $datei) {
-                $gespeichert = $anhangService->speichern($datei);
-                FeedbackAnhang::create(['feedback_id' => $feedback->feedback_id, ...$gespeichert]);
-            }
+        foreach ($anhaenge as $gespeichert) {
+            FeedbackAnhang::create(['feedback_id' => $feedback->feedback_id, ...$gespeichert]);
         }
 
         $melder = $request->user();
