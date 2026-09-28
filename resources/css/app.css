@@ -27,6 +27,29 @@
   --color-accent-text: rgb(var(--accent-text));
   --color-ring: rgb(var(--ring));
 
+  /* Textebenen nach den Human Interface Guidelines (Label, Secondary, Tertiary,
+     Quaternary): abgestufter Kontrast derselben Textfarbe statt eigener Werte.
+     `text` und `muted` sind Ebene 1 und 2 (Bestand), `faint` und `ghost`
+     ergänzen Ebene 3 und 4. Abgeleitet per Alpha, damit alle zwölf Themes und
+     beide Modi ohne eigene Werte mitkommen.
+     Diese zwei Ebenen sind ausdrücklich NICHT für lesbaren Text. Gemessen mit
+     ~/tools/kontrast/alpha.mjs: unterhalb von `muted` (5.0:1 im schlechtesten
+     Theme) lässt sich keine Stufe mehr einziehen, die 4.5:1 noch hält und von
+     `muted` unterscheidbar bleibt. Auch bei Apple unterschreiten Tertiary und
+     Quaternary die Textschwelle – WCAG 1.4.3 nimmt inaktive Bedienelemente
+     davon aus. Also: `faint` für inaktive/deaktivierte Bedienelemente, `ghost`
+     für Dekoration ohne Informationswert (Trennpunkte, Wasserzeichen).
+     Platzhalter und Sekundärtext bleiben bei `muted`. */
+  --color-faint: rgb(var(--text) / 0.45);
+  --color-ghost: rgb(var(--text) / 0.25);
+
+  /* Füllebenen (HIG: Fill, Secondary fill, Tertiary fill) für Flächen, die
+     keine Karte sind: Spur eines Fortschrittsbalkens, Segmentgrund, Platzhalter
+     beim Laden. Ebenfalls aus der Textfarbe abgeleitet, damit sie in jedem
+     Theme zur Fläche darunter passt. */
+  --color-fill: rgb(var(--text) / 0.08);
+  --color-fill-2: rgb(var(--text) / 0.05);
+
   --color-note-gut: rgb(var(--note-gut));
   --color-note-genuegend: rgb(var(--note-genuegend));
   --color-note-knapp: rgb(var(--note-knapp));
@@ -44,26 +67,47 @@
   --shadow-e3: var(--elev-3);
 }
 
-/* Schrift, Typo-Skala (1.2, Zeilenhöhen im 4-px-Raster), Radien, Motion */
+/* Schrift, Typo-Skala, Radien, Motion
+   --------------------------------------------------------------------------
+   Die Skala folgt den Text Styles der Apple Human Interface Guidelines
+   (Abschnitt «Specifications», iOS/iPadOS Dynamic Type, Stufe «Large»):
+   Caption 1 12/16 · Footnote 13/18 · Subhead 15/20 · Body 17/22 ·
+   Title 3 20/25 · Title 2 22/28 · Title 1 28/34. Grösse und Zeilenhöhe sind
+   von dort übernommen, die Klassennamen bleiben, damit keine View umgeschrieben
+   werden muss.
+   Zwei bewusste Abweichungen, beide dokumentiert:
+   - `text-base` trägt Apples Body-Grösse (17 px), aber 26 px Zeilenhöhe statt
+     22 px. 17/22 ist auf Apple-Geräten für kurze Zeilen gedacht; im Browser
+     laufen Absätze über die volle Kartenbreite, wo eine engere Zeilenhöhe die
+     Zeilenführung erschwert.
+   - Das Tracking stammt aus Apples macOS-Tabelle (Werte in 1/1000 em), gilt
+     dort aber für SF Pro mit optischen Graden. Inter hat andere Metriken, und
+     Apples positive Werte ab 24 px würden es locker wirken lassen – die
+     negativen Werte bis 22 px sind übernommen, darüber eigene.
+   ========================================================================== */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-  --text-2xs: 0.75rem;              /* 12 px Tabellenkopf, Achsen, Meta */
+  --text-2xs: 0.75rem;              /* 12 px Caption 1 – Tabellenkopf, Achsen, Meta */
   --text-2xs--line-height: 1rem;
-  --text-xs: 0.8125rem;             /* 13 px Hilfetext, Sekundärzeile */
+  --text-xs: 0.8125rem;             /* 13 px Footnote – Hilfetext, Sekundärzeile */
   --text-xs--line-height: 1.125rem;
-  --text-sm: 0.875rem;              /* 14 px UI-Grundschrift */
+  --text-xs--letter-spacing: -0.006em;
+  --text-sm: 0.9375rem;             /* 15 px Subhead – UI-Grundschrift */
   --text-sm--line-height: 1.25rem;
-  --text-base: 1rem;                /* 16 px Fliesstext, Formulare mobil */
-  --text-base--line-height: 1.5rem;
-  --text-lg: 1.25rem;               /* 20 px Kartentitel gross, Drawer-Titel */
-  --text-lg--line-height: 1.75rem;
-  --text-xl: 1.5rem;                /* 24 px Seitentitel (h1) */
-  --text-xl--line-height: 2rem;
-  --text-xl--letter-spacing: -0.01em;
-  --text-2xl: 1.875rem;             /* 30 px Kennzahl in Statuszeile */
-  --text-2xl--line-height: 2.25rem;
+  --text-sm--letter-spacing: -0.016em;
+  --text-base: 1.0625rem;           /* 17 px Body – Fliesstext, Formulare mobil */
+  --text-base--line-height: 1.625rem;
+  --text-base--letter-spacing: -0.026em;
+  --text-lg: 1.25rem;               /* 20 px Title 3 – Kartentitel gross, Drawer-Titel */
+  --text-lg--line-height: 1.5625rem;
+  --text-lg--letter-spacing: -0.023em;
+  --text-xl: 1.375rem;              /* 22 px Title 2 – Seitentitel (h1) */
+  --text-xl--line-height: 1.75rem;
+  --text-xl--letter-spacing: -0.012em;
+  --text-2xl: 1.75rem;              /* 28 px Title 1 – Kennzahl in Statuszeile */
+  --text-2xl--line-height: 2.125rem;
   --text-2xl--letter-spacing: -0.01em;
   --text-display: 3rem;             /* 48 px eine Heldenzahl pro Seite */
   --text-display--line-height: 1;
@@ -220,6 +264,59 @@
   &:focus-visible {
     outline: 2px solid rgb(var(--ring));
     outline-offset: 2px;
+  }
+}
+
+/* ==========================================================================
+   Scroll-Edge-Effekt (Human Interface Guidelines, «Layout» → Visual hierarchy:
+   «Instead of applying a solid or semi-opaque background color beneath
+   controls, use a scroll edge effect to visually elevate controls above
+   content.») Der Inhalt läuft unter die Leiste und verblasst dort, statt an
+   einer harten Kante abzuschneiden. Kommt auf das Element unter der Leiste;
+   die Leiste selbst bleibt `glass-bar`.
+   ========================================================================== */
+
+@utility np-scroll-edge {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1.5rem;
+    background: linear-gradient(to bottom, rgb(var(--bg-rgb) / 0.95), rgb(var(--bg-rgb) / 0));
+    pointer-events: none;
+    z-index: 20;
+  }
+  /* Ohne Transparenz gibt es nichts zu verblassen: dort wirkt die Kante der Leiste. */
+  @media (prefers-reduced-transparency: reduce) {
+    &::before { display: none; }
+  }
+}
+
+/* ==========================================================================
+   Trefferfläche. Die Human Interface Guidelines verlangen für Bedienelemente
+   «a hit region of at least 44x44 pt». Am Zeigegerät wäre das in dichten
+   Notentabellen verschwendeter Platz – und überlappende Flächen liessen
+   Klicks auf dem falschen Knopf landen. Darum greift die Vergrösserung nur
+   bei grober Zeigegenauigkeit (Finger); am Desktop bleibt die WCAG-Schwelle
+   von 24 px, die ~/tools/visual/zielgroesse.mjs prüft.
+   ========================================================================== */
+
+@utility np-ziel {
+  @media (pointer: coarse) {
+    position: relative;
+    &::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      translate: -50% -50%;
+      width: 100%;
+      height: 100%;
+      min-width: 44px;
+      min-height: 44px;
+    }
   }
 }
 

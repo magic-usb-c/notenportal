@@ -63,17 +63,17 @@
                             <div class="flex items-center gap-3 flex-wrap">
                                 @if($b->lernender_id)
                                     <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                       class="text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
+                                       class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
                                 @else
                                     <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                       class="text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
+                                       class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
                                     <form method="POST"
                                           action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                           class="inline"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                           onsubmit="return confirm(@js(__('Status wirklich ändern?')));">
                                         @csrf
-                                        <button :disabled="loading" class="text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                        <button :disabled="loading" class="np-ziel inline-flex min-h-6 items-center text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
                                             {{ $b->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                                         </button>
                                     </form>
@@ -139,17 +139,17 @@
                                         <div class="flex items-center justify-end gap-3 flex-wrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                             @if($b->lernender_id)
                                                 <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                                   class="text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
+                                                   class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
                                             @else
                                             <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                               class="text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
+                                               class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
                                             <form method="POST"
                                                   action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                                   class="inline"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                   onsubmit="return confirm(@js(__('Status wirklich ändern?')));">
                                                 @csrf
-                                                <button :disabled="loading" class="text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                                <button :disabled="loading" class="np-ziel inline-flex min-h-6 items-center text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
                                                     {{ $b->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                                                 </button>
                                             </form>
