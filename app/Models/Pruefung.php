@@ -41,12 +41,14 @@ class Pruefung extends Model
      * Felder, die der Lernende einzeln gegen den Kalenderabgleich sperren kann (Rückmeldung #15
      * Phase 1): nie `abgesagt_am` (eine Absage der Quelle muss immer durchkommen) und nie
      * `quelle`/`extern_uid`/`note_id`/`notizen` (Notizen sind ohnehin schon unberührt vom Abgleich).
+     * `raum` fehlt bewusst: kein Formular bietet es zum Bearbeiten an, es kommt ausschliesslich aus
+     * dem Kalenderabgleich – eine Sperre dafür griffe ohnehin nie.
      *
      * @var list<string>
      */
     public const array SPERRBARE_FELDER = [
         'fach_id', 'modul_id', 'titel', 'datum', 'uhrzeit', 'dauer_minuten',
-        'pruefungsart', 'hilfsmittel', 'stoff', 'raum', 'gewichtung_prozent',
+        'pruefungsart', 'hilfsmittel', 'stoff', 'gewichtung_prozent',
     ];
 
     private static ?bool $hatArtSpalte = null;

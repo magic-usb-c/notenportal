@@ -22,7 +22,7 @@
                 'fach_id' => __('Zuordnung'), 'modul_id' => __('Zuordnung'), 'titel' => __('Titel'),
                 'datum' => __('Datum'), 'uhrzeit' => __('Uhrzeit'), 'dauer_minuten' => __('Dauer (Min.)'),
                 'pruefungsart' => __('Prüfungsart'), 'hilfsmittel' => __('Erlaubte Hilfsmittel'),
-                'stoff' => __('Prüfungsstoff'), 'raum' => __('Raum'), 'gewichtung_prozent' => __('Gewichtung %'),
+                'stoff' => __('Prüfungsstoff'), 'gewichtung_prozent' => __('Gewichtung %'),
             ];
             $lokalListe = [];
             foreach ($b->lokal_gesperrt as $feld => $quellwert) {

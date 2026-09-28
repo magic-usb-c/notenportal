@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Einstellung;
 use App\Models\User;
 use App\Support\Einstellungen;
 use PHPUnit\Framework\Attributes\Test;
@@ -34,5 +35,19 @@ class EinstellungenTest extends TestCase
 
         Einstellungen::set(Einstellungen::BETRIEB_NAME, 'Neu AG');
         $this->assertSame('Neu AG', Einstellungen::get(Einstellungen::BETRIEB_NAME));
+    }
+
+    #[Test]
+    public function alle_wird_pro_request_nur_einmal_geladen_und_von_vergessen_geleert(): void
+    {
+        Einstellungen::set(Einstellungen::BETRIEB_NAME, 'Erst AG');
+        Einstellungen::alle(); // füllt den statischen Zwischenspeicher
+
+        // Änderung direkt an der DB-Zeile, am statischen Zwischenspeicher vorbei.
+        Einstellung::where('schluessel', Einstellungen::BETRIEB_NAME)->update(['wert' => 'Umgangen AG']);
+        $this->assertSame('Erst AG', Einstellungen::get(Einstellungen::BETRIEB_NAME), 'zweiter Aufruf bedient aus dem statischen Zwischenspeicher');
+
+        Einstellungen::vergessen();
+        $this->assertSame('Umgangen AG', Einstellungen::get(Einstellungen::BETRIEB_NAME), 'vergessen() leert auch den statischen Zwischenspeicher');
     }
 }

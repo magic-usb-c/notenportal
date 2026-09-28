@@ -50,6 +50,14 @@ class Einstellungen
 
     private const string CACHE_KEY = 'einstellungen';
 
+    /**
+     * Statischer Zwischenspeicher pro Request: alle() wird sonst bei jedem einzelnen get() erneut
+     * (wenn auch nur gegen den Cache) angefragt. null bedeutet „noch nicht geladen“.
+     *
+     * @var array<string, string|null>|null
+     */
+    private static ?array $cache = null;
+
     public static function get(string $schluessel, ?string $standard = null): ?string
     {
         return self::alle()[$schluessel] ?? $standard;
@@ -58,12 +66,19 @@ class Einstellungen
     public static function set(string $schluessel, ?string $wert): void
     {
         Einstellung::updateOrCreate(['schluessel' => $schluessel], ['wert' => $wert]);
+        self::vergessen();
+    }
+
+    /** Cache und statischen Zwischenspeicher leeren – nach set() sowie in Tests, wenn Werte direkt in der DB geändert werden. */
+    public static function vergessen(): void
+    {
+        self::$cache = null;
         Cache::forget(self::CACHE_KEY);
     }
 
     /** @return array<string, string|null> */
     public static function alle(): array
     {
-        return Cache::rememberForever(self::CACHE_KEY, fn () => Einstellung::pluck('wert', 'schluessel')->all());
+        return self::$cache ??= Cache::rememberForever(self::CACHE_KEY, fn () => Einstellung::pluck('wert', 'schluessel')->all());
     }
 }

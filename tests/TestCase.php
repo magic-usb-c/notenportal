@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Support\Einstellungen;
 use Database\Seeders\BasisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
@@ -27,5 +28,16 @@ abstract class TestCase extends BaseTestCase
         if (! str_ends_with($datenbank, '_test')) {
             throw new RuntimeException("Tests laufen nur gegen eine *_test-Datenbank, nicht gegen «{$datenbank}».");
         }
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Einstellungen::alle() memoisiert statisch pro Request. Anders als der Cache (Treiber
+        // «array») wird dieser Zwischenspeicher beim Hochfahren einer neuen Testanwendung nicht
+        // automatisch geleert – ohne diesen Reset sähe ein Test die von einem vorigen Test über
+        // set() gesetzten, danach per Transaktions-Rollback wieder verworfenen Werte.
+        Einstellungen::vergessen();
     }
 }

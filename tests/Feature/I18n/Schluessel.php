@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\I18n;
 
+use App\Models\Dokument;
 use App\Models\Feedback;
+use App\Models\MailLog;
+use App\Services\Betrieb\SicherungKopie;
+use App\Services\Notifications\MailSettings;
+use App\Services\Notifications\NotificationCatalog;
 use App\Support\Darstellung;
 use App\Support\Protokoll;
 use Symfony\Component\Finder\Finder;
@@ -64,7 +69,18 @@ final class Schluessel
     /** Werte, die per __($variable) übersetzt werden und deshalb nicht literal im Code stehen. */
     public static function dynamisch(): array
     {
-        return [...array_values(Feedback::KATEGORIEN), ...array_values(Darstellung::AKZENTE), ...array_values(Protokoll::LABELS)];
+        return [
+            ...array_values(Feedback::KATEGORIEN),
+            ...array_values(Feedback::STATUS),
+            ...array_values(Darstellung::AKZENTE),
+            ...array_values(Protokoll::LABELS),
+            ...array_values(MailLog::STATUS),
+            ...array_values(NotificationCatalog::FREQUENCIES),
+            ...array_values(NotificationCatalog::GROUPS),
+            ...array_values(SicherungKopie::ZIELE),
+            ...array_values(MailSettings::ENCRYPTIONS),
+            ...array_values(Dokument::ARTEN),
+        ];
     }
 
     /** @return array<string, array<string, string>> Datei (relativ) => Übersetzungen */

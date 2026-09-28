@@ -11,16 +11,20 @@ use Closure;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Eigene Anhänge zu einer Feedback-Meldung (Block G): bis zu drei Dateien, je max. 5 MB, PNG/JPG/
  * WebP/PDF/TXT/LOG. Der Inhalt wird geprüft (nicht nur die Endung): Bilder wie beim Betriebslogo
- * mit GD neu kodiert (App\Support\Betriebslogo::neuKodieren – gleiches Vorgehen), PDF an der
- * Signatur erkannt, Text-Dateien müssen gültiges UTF-8 ohne Nullbytes sein (schliesst getarnten
- * Binärcode mit .txt/.log-Endung aus). Abgelegt auf der privaten Disk, ausgeliefert nur an Admins
- * und die meldende Person (App\Http\Controllers\FeedbackController::anhang) mit
- * Content-Disposition attachment, nosniff und einer sandboxenden CSP.
+ * mit GD neu kodiert (App\Support\Betriebslogo::neuKodieren – gleiches Vorgehen), aber – anders als
+ * beim (nur für Admins zugänglichen) Betriebslogo – ohne GD-Erweiterung oder bei einem trotz
+ * gültigem Kopf nicht dekodierbaren Bild abgelehnt statt ungeprüft übernommen (breitere Nutzerschaft,
+ * siehe Anhang::speichern()). PDF an der Signatur erkannt, Text-Dateien müssen gültiges UTF-8 ohne
+ * Nullbytes sein (schliesst getarnten Binärcode mit .txt/.log-Endung aus). Abgelegt auf der privaten
+ * Disk, ausgeliefert nur an Admins und die meldende Person
+ * (App\Http\Controllers\FeedbackController::anhang) mit Content-Disposition attachment, nosniff und
+ * einer sandboxenden CSP.
  */
 final class Anhang
 {
@@ -115,7 +119,16 @@ final class Anhang
         if ($bild !== null) {
             $endung = $bild['endung'];
             $mime = $bild['mime'];
-            $inhalt = self::neuKodieren($quelle, $bild['typ']) ?? file_get_contents($quelle);
+            $inhalt = self::neuKodieren($quelle, $bild['typ']);
+            if ($inhalt === null) {
+                // Neukodieren ist die Schutzmassnahme gegen eingebettete Nutzlast in Bilddateien
+                // (z. B. ein gültiger Bildkopf mit angehängtem Skript). Fehlt sie – GD nicht
+                // installiert oder das Bild liess sich trotz gültigem Kopf nicht dekodieren –,
+                // dürfen nie die ungeprüften Originalbytes übernommen werden.
+                throw ValidationException::withMessages([
+                    'anhaenge' => __('Das Bild liess sich nicht verarbeiten. Bitte ein anderes Bild oder ein PDF anhängen.'),
+                ]);
+            }
         } elseif (self::istPdf($quelle)) {
             $endung = 'pdf';
             $mime = 'application/pdf';

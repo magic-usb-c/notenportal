@@ -139,6 +139,35 @@ class FeedbackTechnikAnhangTest extends TestCase
     }
 
     #[Test]
+    public function bild_ohne_erfolgreiche_neukodierung_wird_abgelehnt_statt_ungeprueft_uebernommen(): void
+    {
+        // Neukodieren (Anhang::neuKodieren) ist der Schutz gegen eingebettete Nutzlast in Bildern.
+        // Ohne die GD-Erweiterung auszubauen, lässt sich derselbe Rückfall-Pfad erzwingen: eine
+        // Datei mit gültigem PNG-Kopf (getimagesize erkennt sie, besteht also inhaltPruefen()),
+        // deren Bilddaten aber fehlen – imagecreatefromstring() liefert dafür false, genau wie bei
+        // fehlender GD-Erweiterung. Beide Fälle müssen abgelehnt werden, nie die Originalbytes.
+        $bild = imagecreatetruecolor(20, 15);
+        ob_start();
+        imagepng($bild);
+        $vollstaendig = ob_get_clean();
+        imagedestroy($bild);
+        // PNG-Signatur (8 Byte) + IHDR-Chunk (4+4+13+4 Byte): getimagesize() liest nur das, die
+        // Bilddaten (IDAT/IEND) fehlen absichtlich.
+        $ohneBilddaten = substr($vollstaendig, 0, 33);
+
+        $user = User::factory()->lernender()->create();
+        $kaputt = UploadedFile::fake()->createWithContent('bild.png', $ohneBilddaten);
+
+        $this->actingAs($user)->post(route('feedback.store'), [
+            'kategorie' => 'fehler',
+            'text' => 'Bild ohne Bilddaten.',
+            'anhaenge' => [$kaputt],
+        ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['anhaenge']);
+    }
+
+    #[Test]
     public function anhang_mit_zu_hoher_pixelzahl_wird_trotz_kleiner_dateigroesse_abgelehnt(): void
     {
         // Schützt vor einer GD-Dekompressionsbombe (App\Services\Feedback\Anhang::MAX_PX,

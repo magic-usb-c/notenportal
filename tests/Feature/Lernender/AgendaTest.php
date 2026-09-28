@@ -456,6 +456,15 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function raum_ist_nicht_sperrbar_weil_es_kein_formular_erfasst(): void
+    {
+        // Regressionstest: raum stand früher in SPERRBARE_FELDER, obwohl validiere() nie einen
+        // Schlüssel `raum` zurückgibt – die Sperre griff dadurch nie. raum kommt ausschliesslich
+        // aus dem Kalenderabgleich, darum darf es hier nicht mehr auftauchen.
+        $this->assertNotContains('raum', Pruefung::SPERRBARE_FELDER);
+    }
+
+    #[Test]
     public function bearbeiten_einer_manuellen_pruefung_sperrt_nichts(): void
     {
         $p = $this->planen();
