@@ -35,8 +35,13 @@ final class Einrichtung
         'INAP' => 'Informatiker/in EFZ Applikationsentwicklung',
         'INPE' => 'Informatiker/in EFZ Plattformentwicklung',
         'EDB' => 'Entwickler/in digitales Business EFZ',
+        'INBE' => 'Betriebsinformatiker/in EFZ',
         'ICTF' => 'ICT-Fachmann/-frau EFZ',
+        'IPRA' => 'Informatikpraktiker/in EBA',
         'MEDI' => 'Mediamatiker/in EFZ',
+        'GIGA' => 'Gebäudeinformatiker/in EFZ Gebäudeautomation',
+        'GIKM' => 'Gebäudeinformatiker/in EFZ Kommunikation und Multimedia',
+        'GIPL' => 'Gebäudeinformatiker/in EFZ Planung',
         'KFM' => 'Kaufmann/-frau EFZ',
     ];
 
