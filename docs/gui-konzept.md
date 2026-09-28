@@ -38,18 +38,37 @@ Screenshots des Ist-Stands: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (136
 ### Typografie
 Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, kein externer CDN-Aufruf mehr). Für UI gebaut, stufenlos 100–900, `tnum`, `case`, `cv11` (<https://rsms.me/inter/>). Alternative mit mehr Charakter: Geist (OFL, <https://vercel.com/font>). Figtree fällt weg (D9).
 
-Skala an 1.2 (kleine Terz) angelehnt, auf ganze px gerundet, Zeilenhöhen im 4-px-Raster (fluide Variante bei Bedarf mit Utopia/`clamp()`: <https://utopia.fyi/type/calculator/>):
+Die Skala war ursprünglich an 1.2 (kleine Terz) angelehnt. Seit dem 28.09.2026 trägt sie
+stattdessen die **Text Styles der Apple Human Interface Guidelines** (Abschnitt
+«Specifications», iOS/iPadOS Dynamic Type, Stufe «Large (default)»), weil das eine über
+Jahre an echten Geräten geprüfte Lesbarkeitsstaffel ist statt einer rein rechnerischen.
+Das Tracking stammt aus Apples macOS-Tabelle (Werte in 1/1000 em). Die Klassennamen sind
+unverändert geblieben, es musste keine View umgeschrieben werden.
 
-| Token | rem / px | Zeilenhöhe | Gewicht | Einsatz |
+| Token | px / Zeile | Apple Text Style | Gewicht | Einsatz |
 |---|---|---|---|---|
-| `text-2xs` | 0.75 / 12 | 1rem | 500 | Tabellenkopf, Achsen, Meta |
-| `text-xs` | 0.8125 / 13 | 1.125rem | 400/500 | Hilfetext, Sekundärzeile |
-| `text-sm` | 0.875 / 14 | 1.25rem | 400 | **UI-Grundschrift**, Tabellen, Buttons (500) |
-| `text-base` | 1 / 16 | 1.5rem | 400 | Formulare mobil, Fliesstext |
-| `text-lg` | 1.25 / 20 | 1.75rem | 600 | Kartentitel gross, Drawer-Titel |
-| `text-xl` | 1.5 / 24 | 2rem | 600 | Seitentitel (h1), `tracking-[-0.01em]` |
-| `text-2xl` | 1.875 / 30 | 2.25rem | 600 | Kennzahl in Statuszeile |
-| `text-display` | 3 / 48 | 1 | 600 | eine Heldenzahl pro Seite, `tracking-[-0.02em]`, proportionale Ziffern |
+| `text-2xs` | 12 / 16 | Caption 1 | 500 | Tabellenkopf, Achsen, Meta |
+| `text-xs` | 13 / 18 | Footnote | 400/500 | Hilfetext, Sekundärzeile |
+| `text-sm` | 15 / 20 | Subhead | 400 | **UI-Grundschrift**, Tabellen, Buttons (500) |
+| `text-base` | 17 / 26 | Body | 400 | Formulare mobil, Fliesstext |
+| `text-lg` | 20 / 25 | Title 3 | 600 | Kartentitel gross, Drawer-Titel |
+| `text-xl` | 22 / 28 | Title 2 | 600 | Seitentitel (h1) |
+| `text-2xl` | 28 / 34 | Title 1 | 600 | Kennzahl in Statuszeile |
+| `text-display` | 48 / 1 | – | 600 | eine Heldenzahl pro Seite, proportionale Ziffern |
+
+Zwei bewusste Abweichungen von Apple, beide im Stylesheet begründet:
+- `text-base` behält 26 px Zeilenhöhe statt Apples 22. Apples 17/22 ist für kurze Zeilen
+  auf Gerätebreite gedacht; im Browser laufen Absätze über die volle Kartenbreite.
+- Das Tracking ist bis 22 px von Apple übernommen, darüber eigene Werte: Apples Tabelle
+  gilt für SF Pro mit optischen Graden, Inter hat andere Metriken, und Apples positive
+  Werte ab 24 px liessen es locker wirken.
+
+Nicht übernommen wurden **SF Pro** und **SF Symbols**: Apples Lizenz deckt Apps für
+Apple-Plattformen ab, nicht eine Web-Anwendung. Es bleibt bei Inter und eigenen Icons.
+Ebenso wenig Apples Systemfarben – Apple gibt sie nur als Farbfelder aus und schreibt
+ausdrücklich «Avoid hard-coding system color values … The actual color values may
+fluctuate from release to release». Die zwölf gerechneten Themes bleiben also; von Apple
+kommt die *Struktur* (abgestufte Label- und Füllebenen), nicht der Wert.
 
 Regeln: keine Versalien-Labels mit `tracking-widest` mehr. Labels in Satzschreibung, `text-sm font-medium`. 700 nur für die Heldenzahl, sonst 400/500/600. `tabular-nums` nur, wo Zahlen untereinander stehen – nicht auf der Heldenzahl (dataviz-Skill, Anti-Patterns).
 

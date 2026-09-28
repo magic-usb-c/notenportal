@@ -22,6 +22,8 @@ Leitsatz: ruhig, Hierarchie über Typografie und Abstand, **Farbe nur mit Bedeut
 | Tabellenkopf, Zeilen-Hover, Segment-Grund | `bg-surface-2` (Hover: `hover:bg-surface-2/60`) |
 | Eingabefeld | `bg-input` |
 | Text / Sekundärtext | `text-text` / `text-muted` |
+| Inaktives Bedienelement / reine Dekoration | `text-faint` / `text-ghost` – **nie für lesbaren Text** |
+| Fläche ohne Karte (Fortschrittsspur, Segmentgrund, Ladeplatzhalter) | `bg-fill` / `bg-fill-2` |
 | Trennlinie (dekorativ) | `border-border` |
 | Eingabefeld-Rand, Sekundärbutton-Rand | `border-border-strong/70` bzw. `/60` |
 | Primärfläche (genau eine Primäraktion pro Ansicht) | `bg-accent` + **`text-accent-contrast`** |
@@ -39,7 +41,12 @@ Alpha immer über den Token: `bg-accent/10`, `border-border-strong/60`; in CSS `
 - Fehlertext: `text-note-ungenuegend` (nicht `text-red-600`).
 - `text-accent` für Text – immer `text-accent-text` (eigene Akzentfarbe garantiert für `--accent` nur 3:1). `text-accent` nur für Grafik (Logo-SVG) und die Füllfarbe von Checkboxen.
 
-Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `~/tools/kontrast/kontrast.mjs` rechnen: Text ≥ 4.5:1, UI-Grenzen/Grafik ≥ 3:1.
+`text-faint`/`text-ghost` und `bg-fill`/`bg-fill-2` sind Apples abgestufte Label- bzw.
+Füllebenen (Tertiary/Quaternary), aus `--text` per Deckung abgeleitet, damit sie in
+jedem Theme passen. Sie liegen bewusst unter 4.5:1 – WCAG 1.4.3 nimmt inaktive
+Bedienelemente aus. Platzhalter und Sekundärtext bleiben bei `text-muted`.
+
+Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `~/tools/kontrast/kontrast.mjs` rechnen: Text ≥ 4.5:1, UI-Grenzen/Grafik ≥ 3:1. `~/tools/kontrast/alpha.mjs` prüft zusätzlich alle 24 Theme-Blöcke auf einmal und meldet mit Exit-Code 1, wenn `text`/`muted` ihre Schwelle reissen.
 
 ## 3. Themes und Modus
 - `<html data-theme="gletscher">` (Standard) + Klasse `.dark` für Dunkel. Weitere Themes (Paket 8) als `[data-theme='…']` / `[data-theme='…'].dark` **nach** dem Gletscher-Block in `theme.css`.
@@ -49,19 +56,26 @@ Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunke
 ## 4. Typografie
 Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via Vite). Keine Google-/Bunny-Fonts, kein CDN.
 
-| Klasse | Grösse | Einsatz |
-|---|---|---|
-| `text-2xs` | 12 px | Tabellenkopf, Achsen, Meta |
-| `text-xs` | 13 px | Hilfetext, Sekundärzeile |
-| `text-sm` | 14 px | **UI-Grundschrift**, Tabellen, Buttons (`font-medium`) |
-| `text-base` | 16 px | Fliesstext, Formulare mobil |
-| `text-lg` | 20 px | Kartentitel gross, Drawer-Titel (`font-semibold`) |
-| `text-xl` | 24 px | Seitentitel h1 (`font-semibold`, Sperrung schon im Token) |
-| `text-2xl` | 30 px | Kennzahl in Statuszeile |
-| `text-display` | 48 px | **eine** Heldenzahl pro Seite (600, ohne `tabular-nums`) |
+Die Skala folgt den Text Styles der **Apple Human Interface Guidelines** (Abschnitt
+«Specifications», iOS/iPadOS Dynamic Type, Stufe «Large»); das Tracking stammt aus
+Apples macOS-Tabelle. Grösse/Zeilenhöhe stehen als Tokens in `resources/css/app.css`,
+die Klassennamen bleiben die von Tailwind.
+
+| Klasse | Grösse/Zeile | Apple Text Style | Einsatz |
+|---|---|---|---|
+| `text-2xs` | 12/16 | Caption 1 | Tabellenkopf, Achsen, Meta |
+| `text-xs` | 13/18 | Footnote | Hilfetext, Sekundärzeile |
+| `text-sm` | 15/20 | Subhead | **UI-Grundschrift**, Tabellen, Buttons (`font-medium`) |
+| `text-base` | 17/26 | Body | Fliesstext, Formulare mobil |
+| `text-lg` | 20/25 | Title 3 | Kartentitel gross, Drawer-Titel (`font-semibold`) |
+| `text-xl` | 22/28 | Title 2 | Seitentitel h1 (`font-semibold`, Sperrung schon im Token) |
+| `text-2xl` | 28/34 | Title 1 | Kennzahl in Statuszeile |
+| `text-display` | 48 px | – | **eine** Heldenzahl pro Seite (600, ohne `tabular-nums`) |
 
 - Labels in Satzschreibung: `text-sm font-medium text-text`. **Verboten:** `uppercase tracking-widest`-Labels, `font-extrabold`, `font-black`. `font-bold` nur für die Heldenzahl.
 - `tabular-nums` nur, wo Zahlen untereinander stehen (Tabellen, Listen). Zahlenspalten rechtsbündig.
+- Schriftgrössen nie hart setzen (`text-[15px]`, `style="font-size:…"`) – nur die Klassen oben.
+  Wer eine Stufe vermisst, ergänzt sie als Token, nicht in der View.
 
 ## 5. Flächen, Glas, Radien, Abstände
 
@@ -78,6 +92,13 @@ Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via 
 - Entfernt (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-text-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, `NotenSkala::glow()`, Radial-Gradient auf `body`, globale `transition` auf `*`, Scale-Effekte (`active:scale-*`, `hover:scale-*`), `blur-3xl`-Deko-Orbs.
 - Radien: `rounded-md` Badge · `rounded-lg` Button/Input/Segment · `rounded-xl` Karte/Tabelle · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Avatar/Punkt. `rounded-3xl` verboten (ist Alias auf 16 px).
 - Abstände im 4-px-Raster: Karte `p-4`/`p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`/`gap-10`.
+- **Trefferfläche:** jedes Bedienelement mindestens 24x24 px (WCAG 2.5.8) – Textlinks als Aktion
+  deshalb `inline-flex min-h-6 items-center`, nicht nackt. Zusätzlich `np-ziel`: streckt die
+  Trefferfläche **nur auf Touch-Geräten** auf die von Apple geforderten 44x44 pt, ohne die Optik zu
+  ändern. Am Zeigergerät bewusst nicht – überlappende 44er legten in dichten Notentabellen Klicks
+  auf den falschen Knopf. Geprüft mit `~/tools/visual/zielgroesse.mjs`.
+- `np-scroll-edge` blendet Inhalt am oberen Rand eines eigenen Scrollbereichs aus (Apples Scroll Edge
+  Effect). Für die Hauptnavigation **nicht** nötig: `glass-bar` erfüllt das bereits mit Blur.
 - Container überall `np-seite mx-auto px-4 sm:px-6 lg:px-8`; Seitenkopf im selben Container. `np-seite` (Utility in `app.css`) füllt das Fenster, Deckel 2048 px. `max-w-7xl` nicht mehr schreiben. Lese-/Formularseiten `max-w-3xl` links bündig.
 - Seitenkopf nur über `<x-seitenkopf titel untertitel zaehler schmal>` im Slot `header` (Layout setzt ihn ohne Band in den Container); Aktionen im Slot `aktionen`, höchstens eine Primäraktion; Default-Slot = Bedienelement neben dem Titel. Inhalt darunter: `<div class="py-6"><div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">` (Formular: innen `<div class="max-w-3xl">` + `schmal`).
 - Toast nur über `<x-toast art="erfolg|fehler">` (Layout rendert Flash automatisch), Menüs über `<x-dropdown>` (G2). Modal und Drawer liegen auf `z-[70]` über der Navigation.
