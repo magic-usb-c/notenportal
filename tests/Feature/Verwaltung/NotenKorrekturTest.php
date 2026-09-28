@@ -29,6 +29,10 @@ class NotenKorrekturTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // Der Änderungshinweis wird serverseitig mit dem Datum des Requests
+        // gebaut, die Erwartung im Test erst danach – über Mitternacht liefen
+        // beide auseinander.
+        $this->freezeTime();
 
         $this->lernenderUser = User::factory()->lernender()->create();
         $this->lernender = $this->lernenderUser->lernender;

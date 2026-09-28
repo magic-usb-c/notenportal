@@ -282,7 +282,7 @@ class AusloeserTest extends TestCase
         Konfiguration::vergessen();
 
         $lernenderUser = User::factory()
-            ->lernender(['lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2024-08-01', 'lehrende' => '2028-07-31'])
+            ->lernender(['lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2024-08-01'])
             ->create(['email' => 'lernender@firma.ch']);
         $lernender = $lernenderUser->lernender;
         $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch']);

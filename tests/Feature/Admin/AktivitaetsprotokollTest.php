@@ -413,7 +413,7 @@ class AktivitaetsprotokollTest extends TestCase
         DB::table('semester')->insert(['bezeichnung' => '25/26-2', 'start_datum' => '2026-02-01', 'end_datum' => '2026-07-31', 'sortierung' => 10]);
         Konfiguration::vergessen();
 
-        $lernenderUser = User::factory()->lernender(['lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2024-08-01', 'lehrende' => '2028-07-31'])->create();
+        $lernenderUser = User::factory()->lernender(['lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2024-08-01'])->create();
         $lernenderId = (int) $lernenderUser->lernender->lernender_id;
         $admin = User::factory()->admin()->create();
         $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n";

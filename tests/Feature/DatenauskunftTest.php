@@ -33,6 +33,9 @@ class DatenauskunftTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+        // Der Dateiname des ZIP entsteht erst im Controller. Läuft der Test genau
+        // über Mitternacht, erwartet er ein anderes Datum als der Server einsetzt.
+        $this->freezeTime();
     }
 
     protected function tearDown(): void
