@@ -103,7 +103,14 @@ class AgendaTest extends TestCase
     {
         $this->planen();
 
-        $this->actingAs($this->user)->get(route('learner.exams.index', ['ansicht' => 'monat']))
+        // Ohne Monatsangabe zeigt die Ansicht den laufenden Monat und muss auch dann fehlerfrei rendern.
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['ansicht' => 'monat']))->assertOk();
+
+        // Der Eintrag wird im Monat der Prüfung erwartet, nicht im laufenden: `planen()` legt sie eine
+        // Woche in die Zukunft, was je nach Kalendertag im Folgemonat liegt. Ohne diese Angabe hing der
+        // Test am Datum des Testlaufs und kippte am Monatsende.
+        $this->actingAs($this->user)
+            ->get(route('learner.exams.index', ['ansicht' => 'monat', 'monat' => now()->addWeek()->format('Y-m')]))
             ->assertOk()->assertSee('LB2');
     }
 

@@ -16,10 +16,17 @@ Composer installiert das Skript selbst.
 
 ```bash
 sudo apt update && sudo apt install -y git
-git clone https://github.com/magic-usb-c/notenportal.git
-cd notenportal
+sudo install -d -o "$USER" -g "$USER" /var/www/notenportal
+git clone https://github.com/magic-usb-c/notenportal.git /var/www/notenportal
+cd /var/www/notenportal
 sudo ./install.sh
 ```
+
+Das Portal gehört nach `/var/www`, nicht ins Home-Verzeichnis: Ubuntu legt Home-Verzeichnisse so
+an, dass der Webserver sie nicht betreten darf – Apache würde jede Seite mit «403 Forbidden»
+beantworten. Die erste Zeile legt das Verzeichnis darum vorab auf dich als Eigentümer an; so kann
+das Skript später ohne `sudo` bauen. Liegt das Portal trotzdem falsch, bricht `install.sh` gleich am
+Anfang ab und nennt den Befehl zum Verschieben.
 
 Am Ende nennt das Skript die Adresse, die E-Mail des ersten Admin-Kontos und ein
 Startpasswort. Dieses Passwort erscheint genau einmal – notiere es, bevor du das Fenster

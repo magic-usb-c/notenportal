@@ -40,17 +40,85 @@ URL="http://${HOST}$([[ "$PORT" == "80" ]] || echo ":$PORT")"
 schritt() { printf '\n\033[1;34m▸ %s\033[0m\n' "$*"; }
 als() { sudo -u "$BESITZER" -H bash -c "cd '$VERZ' && $*"; }
 
+schritt "Voraussetzungen"
+# Alles Prüfbare vor dem ersten apt-get: schlägt eine Voraussetzung erst mitten in der Installation
+# fehl, bleibt ein halb eingerichteter Server zurück (Dienste laufen, Portal fehlt).
+if [[ -r /etc/os-release ]]; then
+    SYSTEM_ID="$(. /etc/os-release && echo "${ID:-}")"
+    SYSTEM_VERSION="$(. /etc/os-release && echo "${VERSION_ID:-0}")"
+    SYSTEM_NAME="$(. /etc/os-release && echo "${PRETTY_NAME:-unbekannt}")"
+else
+    SYSTEM_ID=""; SYSTEM_VERSION="0"; SYSTEM_NAME="unbekannt"
+fi
+case "$SYSTEM_ID" in
+    ubuntu)
+        if [[ "$(printf '%s\n24.04\n' "$SYSTEM_VERSION" | sort -V | head -1)" != "24.04" ]]; then
+            echo "$SYSTEM_NAME ist zu alt – das Notenportal braucht Ubuntu 24.04 LTS oder neuer (wegen PHP 8.3)."
+            exit 1
+        fi
+        ;;
+    debian) echo "  $SYSTEM_NAME – nicht erprobt, aber die Pakete stimmen; bei Fehlern Ubuntu 24.04 LTS nehmen." ;;
+    *)
+        echo "Nicht unterstütztes System: $SYSTEM_NAME. Das Notenportal wird auf Ubuntu 24.04 LTS oder neuer installiert."
+        exit 1
+        ;;
+esac
+echo "  $SYSTEM_NAME"
+
+# Apache liest die Anwendung als www-data. Liegt das Verzeichnis unter einem Home-Verzeichnis, fehlt
+# dort das Durchgangsrecht (Ubuntu legt Home-Verzeichnisse als 750 an) – Apache antwortete mit 403,
+# ohne dass die Ursache im Portal zu sehen wäre. Das muss vor der Installation geklärt sein.
+PFAD_PRUEF="$VERZ"
+while [[ "$PFAD_PRUEF" != "/" ]]; do
+    if ! sudo -u www-data test -x "$PFAD_PRUEF"; then
+        echo "Der Webserver-Benutzer www-data kann $PFAD_PRUEF nicht betreten – Apache würde 403 liefern."
+        echo "Verschiebe das Portal an eine Stelle ausserhalb der Home-Verzeichnisse und starte dort erneut:"
+        echo "  sudo mv \"$VERZ\" /var/www/notenportal && cd /var/www/notenportal && sudo ./install.sh"
+        exit 1
+    fi
+    PFAD_PRUEF="$(dirname "$PFAD_PRUEF")"
+done
+
+# composer und npm laufen als $BESITZER, nicht als root (sonst gehörten vendor/ und node_modules/
+# der Installation root). Wurde das Repo mit «sudo git clone» geholt, gehört alles root und die
+# beiden Schritte scheitern mitten im Lauf mit einem unverständlichen Schreibfehler.
+if ! sudo -u "$BESITZER" test -w "$VERZ"; then
+    echo "$BESITZER darf in $VERZ nicht schreiben – composer und npm würden abbrechen."
+    echo "Eigentum übertragen und erneut starten:"
+    echo "  sudo chown -R $BESITZER:$BESITZER \"$VERZ\" && sudo ./install.sh"
+    exit 1
+fi
+
 schritt "Pakete"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 # Unversionierte Metapakete statt php8.3-*: sie zeigen auf die PHP-Version der jeweiligen
-# Ubuntu-Ausgabe (24.04 → 8.3, 26.04 → 8.5). Eine feste Nummer hier würde das Portal an genau
-# eine Ubuntu-Ausgabe nageln – auf der nächsten gäbe es die Pakete schlicht nicht.
+# Ubuntu-Ausgabe. Eine feste Nummer hier würde das Portal an genau eine Ubuntu-Ausgabe nageln –
+# auf der nächsten gäbe es die Pakete schlicht nicht.
 apt-get install -y -qq apache2 mariadb-server libapache2-mod-php php-cli php-mysql php-mbstring \
-    php-xml php-curl php-zip php-intl php-gd php-bcmath unzip git curl openssl composer >/dev/null
+    php-xml php-curl php-zip php-intl php-gd php-bcmath unzip git curl openssl >/dev/null
 if ! php -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);' 2>/dev/null; then
     echo "PHP $(php -r 'echo PHP_VERSION;' 2>/dev/null || echo '?') ist zu alt – das Notenportal braucht mindestens 8.3."
     exit 1
+fi
+# Composer liegt in Ubuntu im Bestandteil «universe». Ist der auf dem Abbild nicht aktiviert, würde
+# ein gemeinsamer apt-Aufruf die ganze Installation abbrechen – darum getrennt, mit dem offiziellen
+# Installer als Rückfall (Prüfsumme gegen die veröffentlichte Signatur).
+if ! command -v composer >/dev/null; then
+    apt-get install -y -qq composer >/dev/null 2>&1 || true
+fi
+if ! command -v composer >/dev/null; then
+    echo "  composer fehlt im System – hole ihn von getcomposer.org"
+    curl -fsSL https://getcomposer.org/installer -o /tmp/composer-setup.php
+    ERWARTET="$(curl -fsSL https://composer.github.io/installer.sig)"
+    TATSAECHLICH="$(php -r "echo hash_file('sha384', '/tmp/composer-setup.php');")"
+    if [[ "$ERWARTET" != "$TATSAECHLICH" ]]; then
+        rm -f /tmp/composer-setup.php
+        echo "Die Prüfsumme des Composer-Installers stimmt nicht – Abbruch."
+        exit 1
+    fi
+    php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer --quiet
+    rm -f /tmp/composer-setup.php
 fi
 if ! command -v node >/dev/null || (( $(node -p 'process.versions.node.split(".")[0]') < 20 )); then
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
@@ -180,6 +248,20 @@ if ! sudo -u www-data test -r "$VERZ/public/index.php"; then
 fi
 
 STATUS="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/login" -H "Host: $HOST" || true)"
+if [[ "$STATUS" != "200" ]]; then
+    # Erfolg nur melden, wenn die Anmeldeseite wirklich kommt: eine grüne Zeile mit einem 403 oder 500
+    # daneben wird überlesen, und der Anwender sucht den Fehler später an der falschen Stelle.
+    printf '\n\033[1;31m✖ Das Portal antwortet nicht wie erwartet: HTTP %s statt 200\033[0m\n' "${STATUS:-keine Antwort}"
+    echo "  Adresse:      $URL"
+    case "$STATUS" in
+        403) echo "  403 heisst meist: www-data darf das Verzeichnis nicht lesen – Portal nach /var/www verschieben." ;;
+        500) echo "  500 heisst meist: .env oder Dateirechte – letzte Zeilen ansehen: tail -30 $VERZ/storage/logs/laravel-*.log" ;;
+        000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
+        *) echo "  Fehlerprotokoll: tail -30 /var/log/apache2/$NAME-error.log" ;;
+    esac
+    echo "$ZUGANG" | sed 's/^/  /'
+    exit 1
+fi
 printf '\n\033[1;32m✔ Notenportal läuft: %s\033[0m  (HTTP %s)\n' "$URL" "$STATUS"
 echo "$ZUGANG" | sed 's/^/  /'
 if [[ "$ZUGANG" == *Startpasswort* ]]; then
