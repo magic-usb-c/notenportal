@@ -1,8 +1,11 @@
 *.log
 .DS_Store
+# Jede Variante der .env bleibt draussen – auch datierte Sicherungen wie
+# .env.backup-20260928-064052, die sonst durch ein `git add -A` im Commit landen
+# würden. Einzige Ausnahme: die Vorlage ohne Geheimnisse.
 .env
-.env.backup
-.env.production
+.env.*
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.fleet
