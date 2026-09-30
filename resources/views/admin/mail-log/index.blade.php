@@ -51,33 +51,48 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Zeit') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Zeit') }}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Empfänger') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Anlass') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Betreff') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Versuche') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Fehler') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Anlass') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Betreff') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Versuche') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Fehler') }}</th>
                                 <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktion') }}</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-border">
                             @forelse($eintraege as $e)
                                 <tr class="group hover:bg-surface-2/60">
-                                    <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $e->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $e->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
                                     <td class="px-3 py-2.5 align-top text-left">
-                                        <div>{{ $e->recipient }}</div>
+                                        <div class="hidden sm:block">{{ $e->recipient }}</div>
                                         @if($e->redirected_to)
-                                            <div class="text-xs text-muted">{{ __('→ umgeleitet an :ziel', ['ziel' => $e->redirected_to]) }}</div>
+                                            <div class="hidden sm:block text-xs text-muted">{{ __('→ umgeleitet an :ziel', ['ziel' => $e->redirected_to]) }}</div>
                                         @endif
+                                        <div class="flex flex-col gap-1 sm:hidden">
+                                            <div class="break-all">{{ $e->recipient }}</div>
+                                            @if($e->redirected_to)
+                                                <div class="text-xs text-muted break-all">{{ __('→ umgeleitet an :ziel', ['ziel' => $e->redirected_to]) }}</div>
+                                            @endif
+                                        </div>
+                                        <div class="flex flex-col gap-1 pt-1 text-xs text-muted sm:hidden">
+                                            <span>{{ $e->created_at?->timezone(config('app.timezone'))->format('d.m.Y H:i') }} · {{ $anlaesse[$e->type] ?? $e->type }}</span>
+                                            <span class="break-words">{{ $e->subject }}</span>
+                                            <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <x-status :status="$statusMap[$e->status] ?? 'neutral'" :text="__(\App\Models\MailLog::STATUS[$e->status] ?? $e->status)" />
+                                                @if($e->attempts > 1)<span>{{ __('Versuche') }} {{ $e->attempts }}</span>@endif
+                                            </span>
+                                            @if($e->error)<span class="break-words">{{ $e->error }}</span>@endif
+                                        </div>
                                     </td>
-                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">{{ $anlaesse[$e->type] ?? $e->type }}</td>
-                                    <td class="px-3 py-2.5 align-top max-w-sm truncate">{{ $e->subject }}</td>
-                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ $anlaesse[$e->type] ?? $e->type }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 align-top max-w-sm truncate">{{ $e->subject }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">
                                         <x-status :status="$statusMap[$e->status] ?? 'neutral'" :text="__(\App\Models\MailLog::STATUS[$e->status] ?? $e->status)" />
                                     </td>
-                                    <td class="px-3 py-2.5 text-right align-top">{{ $e->attempts }}</td>
-                                    <td class="px-3 py-2.5 align-top max-w-xs truncate" @if($e->error) title="{{ $e->error }}" @endif>{{ $e->error }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 text-right align-top">{{ $e->attempts }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 align-top max-w-xs truncate" @if($e->error) title="{{ $e->error }}" @endif>{{ $e->error }}</td>
                                     <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                                         @if(in_array($e->status, [\App\Models\MailLog::FAILED, \App\Models\MailLog::SKIPPED], true))
                                             <form method="POST" action="{{ route('admin.mail-log.retry', $e->id) }}"

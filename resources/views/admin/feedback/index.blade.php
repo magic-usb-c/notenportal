@@ -87,12 +87,14 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">{!! $sortLink('datum', __('Datum')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Absender') }}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">
+                                    <span class="flex items-center gap-4">{!! $sortLink('datum', __('Datum')) !!}<span class="sm:hidden">{!! $sortLink('stimmen', __('Stimmen')) !!}</span></span>
+                                </th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Absender') }}</th>
                                 <th scope="col" class="hidden h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Text') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Text') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Aktionen') }}</th>
                             </tr>
                         </thead>
@@ -161,8 +163,33 @@
                                 }"
                                 class="divide-y divide-border">
                                 <tr id="meldung-{{ $m->feedback_id }}" class="hover:bg-surface-2/60">
-                                    <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $m->erstellt_am->format('d.m.Y H:i') }}</td>
-                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="px-3 py-2.5 align-top">
+                                        <div class="hidden sm:block text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</div>
+                                        <div class="flex flex-col gap-1 sm:hidden">
+                                            <div class="font-medium break-words">{{ $m->nachname }} {{ $m->vorname }}</div>
+                                            <div class="text-xs text-muted">{{ $m->erstellt_am->format('d.m.Y H:i') }} · {{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</div>
+                                            <p class="whitespace-pre-wrap break-words">{{ Str::limit($m->text, 160) }}</p>
+                                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                <x-status :status="match ($m->status) {
+                                                        \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
+                                                        \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
+                                                        default => 'gelb',
+                                                    }"
+                                                    :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
+                                                <span class="text-xs text-muted tabular-nums">{{ __('Stimmen') }} {{ $m->stimmen_anzahl ?? 0 }}</span>
+                                                @if($hatDuplikatSpalte && $m->duplikat_von)
+                                                    <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
+                                                       class="inline-flex min-h-6 items-center rounded-md bg-surface-2 px-1.5 text-2xs text-muted hover:text-text">
+                                                        {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
+                                                    </a>
+                                                @endif
+                                                @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
+                                                    <span class="inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted">{{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">
                                         <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
                                         <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
                                         @if($hatDuplikatSpalte && $m->duplikat_von)
@@ -178,10 +205,10 @@
                                         @endif
                                     </td>
                                     <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
-                                    <td class="px-3 py-2.5 max-w-sm align-top">
+                                    <td class="hidden sm:table-cell px-3 py-2.5 max-w-sm align-top">
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
-                                    <td class="px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">
                                         <x-status :status="match ($m->status) {
                                                 \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
                                                 \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
@@ -189,7 +216,7 @@
                                             }"
                                             :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
                                     </td>
-                                    <td class="px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
+                                    <td class="hidden sm:table-cell px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
                                     <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open" :aria-expanded="open"
                                                 class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2">
@@ -204,11 +231,11 @@
                                                 <p class="whitespace-pre-wrap">{{ $m->text }}</p>
                                                 <dl class="text-xs text-muted space-y-1">
                                                     <div><dt class="inline font-medium">{{ __('Rolle:') }}</dt> <dd class="inline">{{ $m->rolle ? __($m->rolle) : '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('Route:') }}</dt> <dd class="inline">{{ $m->route_name ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('URL:') }}</dt> <dd class="inline">{{ $m->url ?? '–' }}</dd></div>
+                                                    <div><dt class="inline font-medium">{{ __('Route:') }}</dt> <dd class="inline break-all">{{ $m->route_name ?? '–' }}</dd></div>
+                                                    <div><dt class="inline font-medium">{{ __('URL:') }}</dt> <dd class="inline break-all">{{ $m->url ?? '–' }}</dd></div>
                                                     <div><dt class="inline font-medium">{{ __('Viewport:') }}</dt> <dd class="inline">{{ $m->viewport ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('Browser:') }}</dt> <dd class="inline">{{ $m->browser ?? $m->user_agent ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('E-Mail:') }}</dt> <dd class="inline">{{ $m->email }}</dd></div>
+                                                    <div><dt class="inline font-medium">{{ __('Browser:') }}</dt> <dd class="inline break-all">{{ $m->browser ?? $m->user_agent ?? '–' }}</dd></div>
+                                                    <div><dt class="inline font-medium">{{ __('E-Mail:') }}</dt> <dd class="inline break-all">{{ $m->email }}</dd></div>
                                                 </dl>
                                                 @if(!empty($m->js_fehler))
                                                     <div>

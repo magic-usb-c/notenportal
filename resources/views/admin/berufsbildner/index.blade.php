@@ -26,9 +26,9 @@
                             <thead class="sticky top-0 z-10 bg-surface-2">
                                 <tr>
                                     <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Berufsbildner') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
+                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
+                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
                                     <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
@@ -43,16 +43,31 @@
                                     <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
                                         <td class="px-3 text-left">
                                             <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0">
+                                                <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold hidden sm:flex items-center justify-center shrink-0">
                                                     {{ $bbInitials ?: '?' }}
                                                 </div>
                                                 <div class="min-w-0">
-                                                    <div class="font-medium text-text truncate">{{ $bb->nachname }} {{ $bb->vorname }}</div>
-                                                    <div class="text-xs text-muted truncate">{{ $bb->email }}</div>
+                                                    <div class="font-medium text-text break-words sm:truncate">{{ $bb->nachname }} {{ $bb->vorname }}</div>
+                                                    <div class="text-xs text-muted break-all sm:truncate">{{ $bb->email }}</div>
+                                                    <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted sm:hidden">
+                                                        <span>{{ $st?->lernende ?? 0 }} {{ __('Lernende') }}</span>
+                                                        @if($warnOhneNoten)
+                                                            <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
+                                                               class="inline-flex min-h-6 items-center gap-1.5 text-note-knapp">
+                                                                {{ __('Ohne Noteneintrag') }} <span class="font-semibold">{{ $st->ohne_noten }}</span>
+                                                            </a>
+                                                        @endif
+                                                        @if($warnTiefAvg)
+                                                            <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
+                                                               class="inline-flex min-h-6 items-center gap-1.5 text-note-ungenuegend">
+                                                                {{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }} <span class="font-semibold">{{ $st->tief_avg }}</span>
+                                                            </a>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-3 text-right">
+                                        <td class="hidden sm:table-cell px-3 text-right">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold bg-surface-2 hover:bg-accent hover:text-accent-contrast transition-colors">
@@ -62,7 +77,7 @@
                                                 <span class="text-muted">0</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 text-right">
+                                        <td class="hidden sm:table-cell px-3 text-right">
                                             @if($warnOhneNoten)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
@@ -73,7 +88,7 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 text-right">
+                                        <td class="hidden sm:table-cell px-3 text-right">
                                             @if($warnTiefAvg)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
@@ -84,8 +99,8 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 text-right">
-                                            <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                                        <td class="px-3 py-1 text-right">
+                                            <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center sm:gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2 whitespace-nowrap">
                                                     {{ __('Lernende') }}

@@ -30,9 +30,10 @@
                 <td class="px-2.5 sm:px-4 text-text">'.e($m->titel).($mbk === null ? '' :
                     ' <a href="'.e($mbk).'" target="_blank" rel="noopener noreferrer"
                          class="ml-1 text-xs text-accent-text underline underline-offset-2 hover:opacity-80">'
-                        .e(__('Modulbaukasten')).'<span class="sr-only"> ('.e(__('neues Fenster')).')</span></a>').'</td>
+                        .e(__('Modulbaukasten')).'<span class="sr-only"> ('.e(__('neues Fenster')).')</span></a>')
+                    .($m->aktiv ? '' : '<span class="block text-xs text-muted sm:hidden">'.e(__('inaktiv')).'</span>').'</td>
                 <td class="hidden px-2.5 sm:px-4 text-right text-muted sm:table-cell">'.e((string) $m->lehrberuf_count).'</td>
-                <td class="px-2.5 sm:px-4">'.($m->aktiv
+                <td class="hidden px-2.5 sm:px-4 sm:table-cell">'.($m->aktiv
                     ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'
                     : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">'.e(__('inaktiv')).'</span>').'</td>
                 <td class="px-2.5 sm:px-4 text-right">
@@ -87,7 +88,7 @@
                                         <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
                                         <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
                                         <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lehrberufe') }}</th>
-                                        <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                        <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted sm:table-cell">{{ __('Status') }}</th>
                                         <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     </tr>
                                 </thead>
@@ -111,7 +112,7 @@
                                 <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Nummer') }}</th>
                                 <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Titel') }}</th>
                                 <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lehrberufe') }}</th>
-                                <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                <th scope="col" class="hidden h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted sm:table-cell">{{ __('Status') }}</th>
                                 <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>

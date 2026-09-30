@@ -46,9 +46,9 @@
                         @foreach($handlungsbedarf as $h)
                             <a href="{{ $h['link'] }}" class="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-accent/5 transition-colors">
                                 <div class="min-w-0">
-                                    <div class="text-sm text-text truncate">{{ $h['text'] }}</div>
+                                    <div class="text-sm text-text break-words sm:truncate">{{ $h['text'] }}</div>
                                     @if($h['meta'])
-                                        <div class="text-xs text-muted truncate">{{ $h['meta'] }}</div>
+                                        <div class="text-xs text-muted break-words sm:truncate">{{ $h['meta'] }}</div>
                                     @endif
                                 </div>
                                 <span class="flex shrink-0 items-center gap-3">
@@ -77,7 +77,7 @@
                             <thead class="sticky top-0 bg-surface-2">
                                 <tr>
                                     <th scope="col" class="h-9 px-2 sm:px-3 sm:px-5 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                                    <th scope="col" class="h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="hidden sm:table-cell h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
                                     <th scope="col" class="h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Kritisch') }}</th>
                                     <th scope="col" class="h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Beobachten') }}</th>
                                     <th scope="col" class="h-9 px-2 sm:px-3 sm:px-5 text-right text-2xs font-medium text-muted">{{ __('Ungesehen') }}</th>
@@ -86,8 +86,11 @@
                             <tbody class="divide-y divide-border">
                                 @forelse($proBb as $bb)
                                     <tr class="h-11">
-                                        <td class="px-2 sm:px-3 sm:px-5 text-text">{{ $bb->name }}</td>
-                                        <td class="px-2 sm:px-3 text-right text-muted">{{ $bb->lernende }}</td>
+                                        <td class="px-2 sm:px-3 sm:px-5 text-text">
+                                            {{ $bb->name }}
+                                            <span class="block text-xs text-muted sm:hidden">{{ $bb->lernende }} {{ __('Lernende') }}</span>
+                                        </td>
+                                        <td class="hidden sm:table-cell px-2 sm:px-3 text-right text-muted">{{ $bb->lernende }}</td>
                                         <td class="px-2 sm:px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
                                         <td class="px-2 sm:px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
                                         <td class="px-2 sm:px-3 sm:px-5 text-right {{ $bb->neu > 20 ? 'text-accent-text font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>

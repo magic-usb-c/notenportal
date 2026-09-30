@@ -19,39 +19,42 @@
                 <table class="w-full text-sm tabular-nums">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Code') }}</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Sortierung') }}</th>
-                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Rundung') }}</th>
-                            <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Gewicht') }}</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Promotion') }}</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
-                            <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                            <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Code') }}</th>
+                            <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted">{{ __('Sortierung') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted">{{ __('Rundung') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-right text-2xs font-medium text-muted">{{ __('Gewicht') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Promotion') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                            <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
                         @forelse($kategorien as $k)
                             <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                                <td class="px-4 font-mono text-text font-semibold">{{ $k->code }}</td>
-                                <td class="px-4 text-text">{{ $k->name }}</td>
-                                <td class="px-4 text-right text-muted">{{ $k->sortierung }}</td>
-                                <td class="px-4 text-right text-muted text-xs">{{ number_format((float) $k->rundung_element, 2) }} / {{ number_format((float) $k->rundung_schnitt, 2) }}</td>
-                                <td class="px-4 text-right text-muted">{{ number_format((float) $k->gewicht_gesamt, 2) }}</td>
-                                <td class="px-4">
+                                <td class="px-2.5 sm:px-4 font-mono text-text font-semibold">{{ $k->code }}</td>
+                                <td class="px-2.5 sm:px-4 text-text">
+                                    {{ $k->name }}
+                                    <span class="block text-xs text-muted sm:hidden">{{ __('Gewicht') }} {{ number_format((float) $k->gewicht_gesamt, 2) }}@unless($k->aktiv) · {{ __('inaktiv') }}@endunless</span>
+                                </td>
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4 text-right text-muted">{{ $k->sortierung }}</td>
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4 text-right text-muted text-xs">{{ number_format((float) $k->rundung_element, 2) }} / {{ number_format((float) $k->rundung_schnitt, 2) }}</td>
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4 text-right text-muted">{{ number_format((float) $k->gewicht_gesamt, 2) }}</td>
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if(! is_null($k->promotion_min_schnitt))
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">–</span>
                                     @endif
                                 </td>
-                                <td class="px-4">
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if($k->aktiv)
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
-                                <td class="px-4 text-right">
+                                <td class="px-2.5 sm:px-4 text-right">
                                     <a href="{{ route('admin.master-data.categories.edit', $k->kategorie_id) }}"
                                        class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">{{ __('Bearbeiten') }}</a>
                                 </td>

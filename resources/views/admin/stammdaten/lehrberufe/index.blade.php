@@ -19,30 +19,36 @@
                 <table class="w-full text-sm">
                     <thead class="sticky top-0 bg-surface-2">
                         <tr>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Kürzel') }}</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
-                            <th scope="col" class="h-9 px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Kürzel') }}</th>
+                            <th scope="col" class="h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
+                            <th scope="col" class="hidden sm:table-cell h-9 px-2.5 sm:px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                            <th scope="col" class="h-9 px-2.5 sm:px-4"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border">
                         @forelse($lehrberufe as $lb)
                             <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                                <td class="px-4 font-mono font-semibold text-text">{{ $lb->kuerzel }}</td>
-                                <td class="px-4 text-text">{{ $lb->name }}</td>
-                                <td class="px-4">
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4 font-mono font-semibold text-text">{{ $lb->kuerzel }}</td>
+                                <td class="px-2.5 sm:px-4 text-text">
+                                    <span class="block font-mono text-xs font-semibold text-muted sm:hidden">{{ $lb->kuerzel }}</span>
+                                    {{ $lb->name }}
+                                    @unless($lb->aktiv)
+                                        <span class="block text-xs text-muted sm:hidden">{{ __('inaktiv') }}</span>
+                                    @endunless
+                                </td>
+                                <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if($lb->aktiv)
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
-                                <td class="px-4 text-right">
-                                    <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                                <td class="px-2.5 sm:px-4 py-1 text-right">
+                                    <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center sm:gap-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                         <a href="{{ route('admin.master-data.professions.edit', $lb->lehrberuf_id) }}"
                                            class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Bearbeiten') }}</a>
                                         <a href="{{ route('admin.master-data.professions.show', $lb->lehrberuf_id) }}"
-                                           class="text-sm text-accent-text hover:underline whitespace-nowrap">{{ __('Module & Fächer') }}</a>
+                                           class="inline-flex min-h-6 items-center text-sm text-accent-text hover:underline whitespace-nowrap">{{ __('Module & Fächer') }}</a>
                                     </div>
                                 </td>
                             </tr>
