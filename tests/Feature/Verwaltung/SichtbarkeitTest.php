@@ -7,6 +7,7 @@ use App\Models\Dokument;
 use App\Models\Fach;
 use App\Models\Lernender;
 use App\Models\Note;
+use App\Models\NotenKommentar;
 use App\Models\Pruefung;
 use App\Models\User;
 use Illuminate\Routing\Route;
@@ -117,10 +118,11 @@ class SichtbarkeitTest extends TestCase
     public function jede_route_des_berufsbildners_zu_einem_lernenden_steht_in_der_pruefliste(): void
     {
         // Neue Routen mit Lernenden- oder Prüfungsbezug fallen sonst still aus der 404-Prüfung oben
-        $geprueft = array_map(fn (array $r) => 'trainer.'.$r[1], $this->routen());
+        // comments.* teilen sich Lernende und Verwaltung; sie haben eigene Tests oben (Schreiben, Löschen)
+        $geprueft = [...array_map(fn (array $r) => 'trainer.'.$r[1], $this->routen()), 'comments.store', 'comments.destroy'];
         $fehlend = collect(app('router')->getRoutes()->getRoutes())
-            ->filter(fn (Route $r) => str_starts_with((string) $r->getName(), 'trainer.')
-                && preg_match('/\{(lernender_id|pruefung_id)\}/', $r->uri()))
+            ->filter(fn (Route $r) => (str_starts_with((string) $r->getName(), 'trainer.') && preg_match('/\{(lernender_id|pruefung_id)\}/', $r->uri()))
+                || str_starts_with((string) $r->getName(), 'comments.'))
             ->map(fn (Route $r) => $r->getName())
             ->reject(fn (string $name) => in_array($name, $geprueft, true))
             ->values()->all();
@@ -145,10 +147,37 @@ class SichtbarkeitTest extends TestCase
 
         // Gegenprobe zur 404-Liste: dieselben Aufrufe der Prüfungsrouten kommen bei aktiver Betreuung durch
         $this->actingAs($this->bb)->put(route('trainer.exams.update', $this->pruefung->getKey()), $this->abgabe())
-            ->assertRedirect();
+            ->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
+        $this->assertSame('Geaendert', $this->pruefung->fresh()->titel);
         $this->actingAs($this->bb)->delete(route('trainer.exams.destroy', $this->pruefung->getKey()), ['lernender_id' => $this->lernender->lernender_id])
             ->assertRedirect()->assertSessionHas('success');
         $this->assertModelMissing($this->pruefung);
+    }
+
+    #[Test]
+    #[DataProvider('nichtAktivBetreut')]
+    public function eigener_kommentar_ist_ohne_aktive_betreuung_nicht_loeschbar(string $art): void
+    {
+        // Schreiben verlangt die aktive Betreuung, Löschen ebenso – auch für den eigenen Kommentar
+        $art === 'fremd'
+            ? Betreuung::factory()->create(['lernender_id' => $this->lernender->lernender_id])
+            : $this->betreue($this->bb, $this->lernender, $art);
+        $kommentar = NotenKommentar::create(['note_id' => $this->note->note_id, 'autor_benutzer_id' => $this->bb->benutzer_id, 'kommentar_text' => 'Aus der Betreuung']);
+
+        $this->actingAs($this->bb)->delete(route('comments.destroy', $kommentar->getKey()))->assertNotFound();
+
+        $this->assertModelExists($kommentar);
+    }
+
+    #[Test]
+    public function eigener_kommentar_ist_bei_aktiver_betreuung_loeschbar(): void
+    {
+        $this->betreue($this->bb, $this->lernender);
+        $kommentar = NotenKommentar::create(['note_id' => $this->note->note_id, 'autor_benutzer_id' => $this->bb->benutzer_id, 'kommentar_text' => 'Aus der Betreuung']);
+
+        $this->actingAs($this->bb)->delete(route('comments.destroy', $kommentar->getKey()))->assertRedirect()->assertSessionHas('success');
+
+        $this->assertModelMissing($kommentar);
     }
 
     #[Test]

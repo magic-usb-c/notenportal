@@ -71,6 +71,12 @@ class KommentarController extends Controller
 
         $user = $request->user();
 
+        // Wie beim Schreiben: Admin/BB nur bei sichtbaren Lernenden, auch für den eigenen Kommentar nach Ende der Betreuung
+        if (! $user->lernender) {
+            $lernenderId = Note::withTrashed()->whereKey($kommentar->note_id)->value('lernender_id');
+            abort_unless(Lernender::sichtbarFuer($user)->whereKey($lernenderId)->exists(), 404);
+        }
+
         // Eigener Kommentar oder Admin darf löschen
         $isOwn = (int) $kommentar->autor_benutzer_id === (int) $user->benutzer_id;
         $isAdmin = $user->hasRole('Admin');
