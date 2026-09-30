@@ -6,7 +6,7 @@
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
      class="mx-auto w-full np-seite px-4 pb-2 pt-1 sm:px-6 lg:px-8 max-lg:hidden print:hidden">
-    <div class="flex items-center gap-3 rounded-xl border border-border bg-card py-2.5 pl-4 pr-2.5 text-sm">
+    <div class="np-karte flex items-center gap-3 py-2.5 pl-4 pr-2.5 text-sm">
         <x-symbol name="chat-bubble-left-ellipsis" class="size-5 text-accent-text" />
         <p class="flex-1 text-text">
             @if($feedbackKnopfAktiv)

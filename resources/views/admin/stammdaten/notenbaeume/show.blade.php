@@ -5,7 +5,7 @@
     $einzugKarte = ['', '@max-5xl:ml-4', '@max-5xl:ml-8', '@max-5xl:ml-12', '@max-5xl:ml-16'];
     $feldname = 'sr-only @max-5xl:not-sr-only @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium @max-5xl:text-muted';
     $karteZelle = '@max-5xl:p-0 @max-5xl:text-left';
-    $zelle = 'h-8 rounded-lg border border-border-strong/70 bg-input px-2 text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $zelle = 'np-feld np-feld-klein px-2 tabular-nums';
     $zahl = fn ($v) => $v === null ? '' : (string) (float) $v;
     $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.').' %';
     $fuer = $baum->bezug === 'lehrberuf' ? $baum->lehrberuf : __('Bildungsgang :track', ['track' => $baum->track_typ]);
@@ -13,12 +13,7 @@
 <x-app-layout>
     <x-slot name="title">{{ $baum->name }}</x-slot>
     <x-slot name="header">
-        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="{{ __('Brotkrumen') }}">
-            <a href="{{ route('admin.master-data.grade-trees.index') }}" class="transition-colors hover:text-text">{{ __('Notenbäume') }}</a>
-            <span class="text-muted/40">›</span>
-            <span class="text-text">{{ $baum->name }}</span>
-        </nav>
-        <x-seitenkopf :titel="$baum->name" :untertitel="$fuer">
+        <x-seitenkopf :zurueck="route('admin.master-data.grade-trees.index')" :titel="$baum->name" :untertitel="$fuer">
             @if($baum->aktiv)
                 <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
             @else
@@ -28,12 +23,12 @@
                 <form method="POST" action="{{ route('admin.master-data.grade-trees.activate', $baum->baum_id) }}">
                     @csrf
                     <input type="hidden" name="aktiv" value="{{ $baum->aktiv ? 0 : 1 }}">
-                    <button type="submit" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
+                    <button type="submit" class="np-knopf np-knopf-sekundaer">
                         {{ $baum->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                     </button>
                 </form>
                 <a href="{{ route('admin.master-data.grade-trees.export', $baum->baum_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Exportieren') }}</a>
+                   class="np-knopf np-knopf-sekundaer">{{ __('Exportieren') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -49,14 +44,14 @@
                     <div>
                         <label for="name" class="text-sm font-medium text-text">{{ __('Name') }} <span class="text-note-ungenuegend">*</span></label>
                         <input id="name" name="name" required maxlength="150" value="{{ old('name', $baum->name) }}"
-                               class="mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30"
+                               class="np-feld mt-1.5"
                                @error('name') aria-invalid="true" aria-describedby="name-fehler" @enderror>
                         @error('name')<p id="name-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div class="sm:col-span-2">
                         <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }}</label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="500"
-                                  class="mt-1.5 w-full rounded-lg border border-border-strong/70 bg-input px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">{{ old('beschreibung', $baum->beschreibung) }}</textarea>
+                                  class="np-feld mt-1.5">{{ old('beschreibung', $baum->beschreibung) }}</textarea>
                     </div>
                 </div>
 
@@ -64,7 +59,7 @@
                     <p class="text-sm text-note-ungenuegend" role="alert">{{ $errors->first('knoten.*') }}</p>
                 @endif
 
-                <div class="@container overflow-x-auto rounded-xl border border-border bg-card">
+                <div class="np-karte @container overflow-x-auto">
                     <table class="w-full text-sm tabular-nums @max-5xl:block">
                         <thead class="bg-surface-2 @max-5xl:hidden">
                             <tr>
@@ -172,7 +167,7 @@
 
                 <div class="flex flex-wrap items-center justify-end gap-3">
                     <button type="submit" :disabled="loading"
-                            class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">
+                            class="np-knopf np-knopf-primaer">
                         {{ __('Speichern') }}
                     </button>
                 </div>
@@ -186,7 +181,7 @@
                           onsubmit="return confirm(@js(__('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name])));">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="inline-flex h-9 items-center rounded-lg px-3 text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10">{{ __('Notenbaum löschen') }}</button>
+                        <button type="submit" class="np-knopf np-knopf-gefahr">{{ __('Notenbaum löschen') }}</button>
                     </form>
                 @endif
             </section>

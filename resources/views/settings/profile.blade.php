@@ -13,7 +13,7 @@
             <div class="mt-5 space-y-5">
 
             @if($lernender)
-                <div class="rounded-xl border border-border bg-card p-5">
+                <div class="np-karte p-5">
                     <h3 class="font-semibold text-text text-sm">{{ __('Lehrausbildung') }}</h3>
                     <dl class="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
                         <div>
@@ -40,19 +40,19 @@
             @endif
 
             {{-- Profil bearbeiten --}}
-            <div class="rounded-xl border border-border bg-card p-6">
+            <div class="np-karte p-6">
                 @include('profile.partials.update-profile-information-form')
             </div>
 
             {{-- Tastenkürzel: bewusst hier statt in einem eigenen Darstellung-Tab (siehe docs/audit-backlog.md) --}}
             @if($tastenkuerzelAktiv)
-                <div class="rounded-xl border border-border bg-card p-6">
+                <div class="np-karte p-6">
                     <div class="flex items-center justify-between gap-4">
                         <div class="min-w-0">
                             <h3 class="font-semibold text-text text-sm">{{ __('Tastenkürzel') }}</h3>
                         </div>
                         <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))"
-                                class="shrink-0 inline-flex items-center gap-1.5 h-9 px-4 rounded-xl glass-btn text-text text-sm font-medium">
+                                class="np-knopf np-knopf-sekundaer shrink-0">
                             {{ __('Tastenkürzel anzeigen') }}
                         </button>
                     </div>
@@ -60,7 +60,7 @@
             @endif
 
             {{-- Sprache (nur mit eingeschalteter Sprachwahl), Passwort ändern --}}
-            @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('profile.partials.sprache')@endif<div class="rounded-xl border border-border bg-card p-6">
+            @if(\App\Http\Middleware\SetLocale::wahlAktiv())@include('profile.partials.sprache')@endif<div class="np-karte p-6">
                 @include('profile.partials.update-password-form')
             </div>
 

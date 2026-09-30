@@ -1,13 +1,13 @@
 <x-einrichtung schritt="categories" :stand="$stand" :titel="__('Kategorien')">
     @php
-        $feld = 'h-10 rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring tabular-nums @max-5xl:w-full';
+        $feld = 'np-feld px-2 tabular-nums @max-5xl:w-full';
         // Ab 64rem Container eine Tabelle, darunter je Kategorie eine Karte mit sichtbaren Feldnamen
         $feldname = 'hidden @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium @max-5xl:text-muted';
     @endphp
     <form method="POST" action="{{ route('admin.setup.categories') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="rounded-2xl border border-border bg-card overflow-hidden">
+        <section class="np-karte overflow-hidden">
             <div class="@container overflow-x-auto">
                 <table class="min-w-full text-sm text-text @max-5xl:block">
                     <thead class="text-xs text-muted @max-5xl:hidden">

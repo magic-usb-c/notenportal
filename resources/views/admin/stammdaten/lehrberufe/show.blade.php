@@ -1,13 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Lehrberuf') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="$lehrberuf->name" :untertitel="$lehrberuf->kuerzel">
-            <x-slot:aktionen>
-                <a href="{{ route('admin.master-data.professions.index') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    {{ __('Zurück') }}
-                </a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="route('admin.master-data.professions.index')" :titel="$lehrberuf->name" :untertitel="$lehrberuf->kuerzel">
         </x-seitenkopf>
     </x-slot>
 
@@ -15,7 +9,7 @@
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-6">
 
             {{-- ========== MODULE ========== --}}
-            <div class="rounded-xl border border-border bg-card p-5 space-y-4">
+            <div class="np-karte p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">{{ __('Module') }}</h3>
                     <span class="text-xs text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneModule->count()]) }}</span>
@@ -47,7 +41,7 @@
                                             <label for="lernort_{{ $m->modul_id }}" class="sr-only">{{ __('Lernort für :titel', ['titel' => $m->titel]) }}</label>
                                             <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
                                                     onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                    class="h-9 min-w-40 rounded-lg border border-border bg-input text-text pl-2 pr-8 text-xs focus:ring-2 focus:ring-ring @max-3xl:w-full">
+                                                    class="np-feld min-w-40 pl-2 pr-8 text-xs @max-3xl:w-full">
                                                 @foreach($kategorien as $k)
                                                     <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
                                                 @endforeach
@@ -63,7 +57,7 @@
                                             <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Semester') }}</span>
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
                                                    onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())" placeholder="–" aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
-                                                   class="h-9 w-16 rounded-lg border border-border bg-input text-text px-2 text-xs tabular-nums focus:ring-2 focus:ring-ring">
+                                                   class="np-feld w-16 px-2 text-xs tabular-nums">
                                         </td>
                                         <td class="py-2 pr-4 text-center @max-3xl:p-0 @max-3xl:text-left">
                                             <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Aktiv') }}</span>
@@ -81,7 +75,7 @@
                                                   onsubmit="return confirm(@js(__('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer])))"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60 disabled:cursor-not-allowed">{{ __('Entfernen') }}</button>
+                                                <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -103,7 +97,7 @@
                         <div class="lg:col-span-2">
                             <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul hinzufügen') }}</label>
                             <select id="modul_id" name="modul_id" required
-                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                                    class="np-feld mt-1">
                                 <option value="">{{ __('Bitte wählen…') }}</option>
                                 @foreach($verfuegbareModule as $m)
                                     <option value="{{ $m->modul_id }}">{{ $m->modul_nummer }} – {{ $m->titel }}</option>
@@ -113,7 +107,7 @@
                         <div>
                             <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Lernort *') }}</label>
                             <select id="kategorie_id" name="kategorie_id" required
-                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                                    class="np-feld mt-1">
                                 @foreach($kategorien as $k)
                                     <option value="{{ $k->kategorie_id }}" @selected($k->code === 'FACH')>{{ $k->name }}</option>
                                 @endforeach
@@ -122,7 +116,7 @@
                         <div>
                             <label for="empfohlenes_lehrsemester_nr" class="text-sm font-medium text-text">{{ __('Empfohlenes Semester') }}</label>
                             <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
-                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                                   class="np-feld mt-1">
                         </div>
                         <div class="flex items-end gap-2">
                             <label class="flex items-center gap-2 text-sm text-text">
@@ -133,7 +127,7 @@
                         </div>
                         <div>
                             <button type="submit" :disabled="loading"
-                                    class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed">
+                                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                                 {{ __('Zuweisen') }}
                             </button>
                         </div>
@@ -142,7 +136,7 @@
             </div>
 
             {{-- ========== FÄCHER ========== --}}
-            <div class="rounded-xl border border-border bg-card p-5 space-y-4">
+            <div class="np-karte p-5 space-y-4">
                 <div class="flex items-center justify-between">
                     <h3 class="font-semibold text-text">{{ __('Fächer (berufsspezifisch)') }}</h3>
                     <span class="text-xs text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneFaecher->count()]) }}</span>
@@ -182,7 +176,7 @@
                                                   onsubmit="return confirm(@js(__('Fach :name entfernen?', ['name' => $f->name])))"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
-                                                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60 disabled:cursor-not-allowed">{{ __('Entfernen') }}</button>
+                                                <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -204,7 +198,7 @@
                         <div class="flex-1">
                             <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach hinzufügen') }}</label>
                             <select id="fach_id" name="fach_id" required
-                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                                    class="np-feld mt-1">
                                 <option value="">{{ __('Bitte wählen…') }}</option>
                                 @foreach($verfuegbareFaecher as $f)
                                     <option value="{{ $f->fach_id }}">{{ $f->kurzname }} – {{ $f->name }}</option>
@@ -212,7 +206,7 @@
                             </select>
                         </div>
                         <button type="submit" :disabled="loading"
-                                class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm whitespace-nowrap disabled:opacity-60 disabled:cursor-not-allowed">
+                                class="np-knopf np-knopf-primaer np-knopf-gross">
                             {{ __('Zuweisen') }}
                         </button>
                     </form>

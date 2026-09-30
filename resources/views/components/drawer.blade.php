@@ -67,7 +67,7 @@
             <div class="flex items-center justify-between gap-3 px-5 h-14 shrink-0 border-b border-border">
                 <h2 class="font-semibold text-text truncate">{{ $kopf ?? $titel }}</h2>
                 <button type="button" @click="offen = false" aria-label="{{ __('Schliessen') }}"
-                        class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-surface-2 shrink-0">
+                        class="np-knopf np-knopf-symbol shrink-0">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>

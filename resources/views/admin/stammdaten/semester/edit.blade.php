@@ -1,19 +1,13 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Semester bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Semester bearbeiten')" schmal>
-            <x-slot:aktionen>
-                <a href="{{ route('admin.master-data.semesters.index') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                    {{ __('Zurück') }}
-                </a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="route('admin.master-data.semesters.index')" :titel="__('Semester bearbeiten')" schmal>
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl rounded-xl border border-border bg-card p-6">
+            <div class="np-karte max-w-3xl p-6">
                 <form method="POST" action="{{ route('admin.master-data.semesters.update', $semester->semester_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
@@ -21,7 +15,7 @@
                     <div>
                         <label for="bezeichnung" class="text-sm font-medium text-text">{{ __('Bezeichnung') }} *</label>
                         <input type="text" id="bezeichnung" name="bezeichnung" value="{{ old('bezeichnung', $semester->bezeichnung) }}" required maxlength="20"
-                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('bezeichnung') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 @error('bezeichnung') border-note-ungenuegend @enderror">
                         @error('bezeichnung')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -31,7 +25,7 @@
                         <div>
                             <label for="start_datum" class="text-sm font-medium text-text">{{ __('Von') }} *</label>
                             <input type="date" id="start_datum" name="start_datum" value="{{ old('start_datum', $semester->start_datum) }}" required
-                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('start_datum') border-note-ungenuegend @enderror">
+                                   class="np-feld mt-1 @error('start_datum') border-note-ungenuegend @enderror">
                             @error('start_datum')
                                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                             @enderror
@@ -39,7 +33,7 @@
                         <div>
                             <label for="end_datum" class="text-sm font-medium text-text">{{ __('Bis') }} *</label>
                             <input type="date" id="end_datum" name="end_datum" value="{{ old('end_datum', $semester->end_datum) }}" required
-                                   class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('end_datum') border-note-ungenuegend @enderror">
+                                   class="np-feld mt-1 @error('end_datum') border-note-ungenuegend @enderror">
                             @error('end_datum')
                                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                             @enderror
@@ -49,7 +43,7 @@
                     <div>
                         <label for="sortierung" class="text-sm font-medium text-text">{{ __('Sortierung') }} *</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung', $semester->sortierung) }}" required min="0"
-                               class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('sortierung') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 @error('sortierung') border-note-ungenuegend @enderror">
                         @error('sortierung')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -57,7 +51,7 @@
 
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
-                                class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">
+                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                             {{ __('Änderungen speichern') }}
                         </button>
                     </div>

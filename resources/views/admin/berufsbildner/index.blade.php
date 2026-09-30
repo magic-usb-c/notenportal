@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Berufsbildner')" :zaehler="$berufsbildner->count()">
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
+                   class="np-knopf np-knopf-primaer">
                     {{ __('Neuer Benutzer') }}
                 </a>
             </x-slot:aktionen>
@@ -15,12 +15,12 @@
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
 
             @if($berufsbildner->isEmpty())
-                <div class="rounded-xl border border-border bg-card px-5 py-10 text-center text-muted text-sm">
+                <div class="np-karte px-5 py-10 text-center text-muted text-sm">
                     {{ __('Keine aktiven Berufsbildner gefunden.') }}
                 </div>
             @else
                 {{-- Übersicht-Tabelle --}}
-                <div class="@container rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte @container overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead class="sticky top-0 z-10 bg-surface-2">
@@ -102,11 +102,11 @@
                                         <td class="px-3 py-1 text-right">
                                             <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center sm:gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
-                                                   class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2 whitespace-nowrap">
+                                                   class="np-knopf np-knopf-sekundaer np-knopf-klein">
                                                     {{ __('Lernende') }}
                                                 </a>
                                                 <a href="{{ route('admin.users.edit', $bb->benutzer_id) }}"
-                                                   class="px-3 py-1.5 rounded-lg bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">
+                                                   class="np-knopf np-knopf-primaer np-knopf-klein">
                                                     {{ __('Bearbeiten') }}
                                                 </a>
                                             </div>

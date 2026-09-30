@@ -1,25 +1,20 @@
 <x-app-layout>
     <x-slot name="title">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</x-slot>
     <x-slot name="header">
-        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="{{ __('Brotkrumen') }}">
-            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">{{ __('Lernende') }}</a>
-            <span class="text-muted/40">›</span>
-            <span class="text-text">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</span>
-        </nav>
-        <x-seitenkopf :titel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname"
+        <x-seitenkopf :zurueck="route($bereich.'.learners.index')" :titel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname"
                        :untertitel="collect([$lernender->lehrberuf?->name, $lernender->lehrjahr() ? __(':jahr. Lehrjahr', ['jahr' => $lernender->lehrjahr()]) : null, $lernender->lehrende ? __('Lehrende :datum', ['datum' => $lernender->lehrende->format('d.m.Y')]) : null])->filter()->implode(' · ')">
             <x-status :status="$stand->status" :title="$stand->gruende ? implode(', ', $stand->gruende) : __('Keine Auffälligkeiten')" />
             <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     {{ $neu ? __('Noten ansehen (:anzahl neu)', ['anzahl' => $neu]) : __('Noten ansehen') }}
                 </a>
                 <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Drucken') }}</a>
+                   class="np-knopf np-knopf-sekundaer">{{ __('Drucken') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button type="button" aria-label="{{ __('Weitere Aktionen') }}"
-                                class="inline-flex h-9 w-9 items-center justify-center rounded-lg glass-btn text-text">
+                                class="np-knopf np-knopf-sekundaer np-knopf-rund">
                             <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M4 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm5 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"/></svg>
                         </button>
                     </x-slot>
@@ -42,7 +37,7 @@
         <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
             @if(session('startpasswort'))
-                <div class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center justify-between gap-4"
+                <div class="np-karte p-5 flex flex-wrap items-center justify-between gap-4"
                      x-data="{ kopiert: false }">
                     <div>
                         <div class="text-xs font-medium text-muted">{{ __('Startpasswort · wird nur einmal angezeigt') }}</div>
@@ -50,7 +45,7 @@
                     </div>
                     <button type="button"
                             @click="if (await np.kopieren($refs.pw.textContent.trim())) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
-                            class="px-4 h-10 rounded-xl glass-btn text-text text-sm">
+                            class="np-knopf np-knopf-sekundaer np-knopf-gross">
                         <span x-show="!kopiert">{{ __('Kopieren') }}</span>
                         <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
                     </button>

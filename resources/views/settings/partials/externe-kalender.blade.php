@@ -22,15 +22,15 @@
                             <div class="text-xs text-muted truncate">{{ $f->host() }}</div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Bearbeiten') }}</button>
+                            <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Bearbeiten') }}</button>
                             <form method="POST" action="{{ route('learner.calendar.feed.sync', $f->id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
-                                <button :disabled="loading" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text disabled:opacity-60">{{ __('Jetzt abgleichen') }}</button>
+                                <button :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Jetzt abgleichen') }}</button>
                             </form>
                             <form method="POST" action="{{ route('learner.calendar.feed.destroy', $f->id) }}" onsubmit="return confirm('{{ __('Kalender entfernen?') }}');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="loading" class="inline-flex items-center justify-center w-8 h-8 rounded-lg disabled:opacity-60 text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Entfernen') }}">×</button>
+                                <button :disabled="loading" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __('Entfernen') }}">×</button>
                             </form>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
     @if($feeds->count() < \App\Models\CalendarFeed::MAX_PRO_LERNENDEM)
         <div class="rounded-lg border border-border bg-bg/40 px-3 py-3" x-data="{ bearbeiten: {{ $feeds->isEmpty() || (old('feed_id') !== null && ! filled(old('feed_id'))) ? 'true' : 'false' }} }">
             @if($feeds->isNotEmpty())
-                <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="inline-flex items-center px-2.5 h-8 rounded-lg text-xs glass-btn text-text">{{ __('Kalender hinzufügen') }}</button>
+                <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Kalender hinzufügen') }}</button>
             @else
                 <h4 class="text-sm font-medium text-text mb-2">{{ __('Kalender hinzufügen') }}</h4>
             @endif

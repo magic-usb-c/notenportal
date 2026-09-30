@@ -1,7 +1,7 @@
 {{-- Abgabetermin erfassen/bearbeiten (Rückmeldung #14) – nur möglich, wenn ein einzelner Lernender gefiltert ist. --}}
 @php
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $feld = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
 @endphp
@@ -51,7 +51,7 @@
     </div>
 
     <div class="flex gap-2 mt-2">
-        <a href="{{ route($bereich.'.exams.index', $filter) }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">{{ __('Abbrechen') }}</a>
-        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Erfassen') }}</button>
+        <a href="{{ route($bereich.'.exams.index', $filter) }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
+        <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross flex-1">{{ $b ? __('Speichern') : __('Erfassen') }}</button>
     </div>
 </form>

@@ -4,7 +4,7 @@
     'fazit' => null, // Kurzfazit für aria-label, z. B. "3 von 20 ungenügend"
     'polster' => true,
 ])
-<section {{ $attributes->merge(['class' => 'rounded-xl border border-border bg-card flex flex-col']) }}>
+<section {{ $attributes->merge(['class' => 'np-karte flex flex-col']) }}>
     @if($titel || $frage)
         <header class="px-5 pt-4 pb-1">
             @if($titel)<h3 class="text-sm font-semibold text-text">{{ $titel }}</h3>@endif

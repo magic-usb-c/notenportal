@@ -1,5 +1,5 @@
 @php
-    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $feld = 'np-feld mt-1.5';
     $bezuege = collect($vorlagen)->map(fn ($v) => $v['bezug'])->all();
 @endphp
 <x-app-layout>
@@ -13,7 +13,7 @@
 
             @if($baeume->isNotEmpty())
                 {{-- Schmal stehen «Gilt für» und die Zahl der Noten unter dem Namen --}}
-                <div class="@container overflow-x-auto rounded-xl border border-border bg-card">
+                <div class="np-karte @container overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="bg-surface-2">
                             <tr>
@@ -74,7 +74,7 @@
                         </div>
                         <div>
                             <button type="submit" :disabled="loading"
-                                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Laden') }}
                             </button>
                         </div>
@@ -104,7 +104,7 @@
                         </div>
                         <div>
                             <button type="submit" :disabled="loading"
-                                    class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text disabled:opacity-50">
+                                    class="np-knopf np-knopf-sekundaer">
                                 {{ __('Importieren') }}
                             </button>
                         </div>

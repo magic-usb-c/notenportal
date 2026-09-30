@@ -9,11 +9,11 @@
         $gruppenTitel = ['BMS' => __('Berufsmaturität (BMS)'), 'ABU' => __('Allgemeinbildung (ABU)'), StammdatenVorlage::OHNE_TRACK => __('Berufsfachschule')];
         $baeume = collect($vorlage['lehrberufe'] ?? [])->pluck('notenbaum')->merge(collect($vorlage['notenbaeume'] ?? [])->pluck('vorlage'))
             ->filter()->unique()->map(fn ($k) => $baumNamen[$k] ?? null)->filter()->values();
-        $feld = 'h-10 rounded-lg border border-border bg-input text-text px-3 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld';
     @endphp
 
     @if(count($vorlagen) > 1)
-        <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3">
+        <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="np-karte p-6 flex flex-col gap-3">
             <label for="vorlage-wahl" class="text-sm font-semibold text-text">{{ __('Vorlage') }}</label>
             <div class="flex flex-wrap items-center gap-2">
                 <select id="vorlage-wahl" name="vorlage" onchange="this.form.submit()" class="{{ $feld }} min-w-0 flex-1 truncate pr-9 sm:flex-none sm:w-96">
@@ -21,7 +21,7 @@
                         <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
                     @endforeach
                 </select>
-                <noscript><button type="submit" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Übernehmen') }}</button></noscript>
+                <noscript><button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Übernehmen') }}</button></noscript>
             </div>
             @if(filled($vorlage['beschreibung'] ?? null))
                 <p class="text-xs text-muted">{{ $vorlage['beschreibung'] }}</p>
@@ -34,7 +34,7 @@
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
-        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
+        <section class="np-karte p-6 flex flex-col gap-4">
             <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($katalog as $l)
@@ -68,14 +68,14 @@
                                 class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
                     </div>
                 </template>
-                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="self-start inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weiterer Lehrberuf') }}</button>
+                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="np-knopf np-knopf-schlicht self-start">+ {{ __('Weiterer Lehrberuf') }}</button>
             </div>
         </section>
 
-        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-6">
+        <section class="np-karte p-6 flex flex-col gap-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <h3 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h3>
-                <a href="{{ route('admin.master-data.subjects.index') }}" class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Alle Fächer bearbeiten') }}</a>
+                <a href="{{ route('admin.master-data.subjects.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Alle Fächer bearbeiten') }}</a>
             </div>
             {{-- Spalten nach Breite des Inhalts: mit Seitenleiste wären drei Spalten zu schmal für «Stufe · zählt nicht» --}}
             <div class="@container"><div class="grid grid-cols-1 gap-6 @3xl:grid-cols-3">
@@ -109,10 +109,10 @@
         </section>
 
         @if($baeume->isNotEmpty())
-            <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3">
+            <section class="np-karte p-6 flex flex-col gap-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                     <h3 class="text-sm font-semibold text-text">{{ __('Notenbäume') }}</h3>
-                    <a href="{{ route('admin.master-data.grade-trees.index') }}" class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Notenbäume bearbeiten') }}</a>
+                    <a href="{{ route('admin.master-data.grade-trees.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Notenbäume bearbeiten') }}</a>
                 </div>
                 <label class="flex items-start gap-3 cursor-pointer">
                     <input type="hidden" name="notenbaeume" value="0">
@@ -126,7 +126,7 @@
         @endif
 
         @if($errors->any())
-            <ul class="rounded-2xl border border-border bg-card px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
+            <ul class="np-karte px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
                 @foreach(collect($errors->all())->unique() as $f)<li>{{ $f }}</li>@endforeach
             </ul>
         @endif

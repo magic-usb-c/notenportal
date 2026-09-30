@@ -15,7 +15,7 @@
 
         <form method="POST" action="{{ request()->fullUrl() }}" class="mt-6" x-data="{ loading: false }" @submit="loading = true">
             <button type="submit" :disabled="loading"
-                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60">
+                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                 {{ __('Abbestellen') }}
             </button>
         </form>

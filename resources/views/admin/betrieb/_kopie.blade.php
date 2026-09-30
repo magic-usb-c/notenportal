@@ -1,5 +1,5 @@
 @php
-    $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'np-feld mt-1';
     $label = 'text-sm font-medium text-text';
     $wert = fn (string $k) => old($k, $werte[$k]);
     $K = \App\Services\Betrieb\SicherungKopie::class;
@@ -65,7 +65,7 @@
                 <span class="{{ $label }}">{{ __('Öffentlicher Schlüssel für authorized_keys am Ziel') }}</span>
                 <div class="mt-1 flex items-start gap-2">
                     <code class="flex-1 min-w-0 break-all rounded-xl border border-border bg-input px-3 py-2 text-xs text-text">{{ $schluessel_oeffentlich }}</code>
-                    <button type="button" class="shrink-0 inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs"
+                    <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein shrink-0"
                             @click="if (await np.kopieren(@js($schluessel_oeffentlich))) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
                             x-text="kopiert ? @js(__('Kopiert')) : @js(__('Kopieren'))">{{ __('Kopieren') }}</button>
                 </div>
@@ -73,7 +73,7 @@
         @endif
 
         <div class="flex justify-end">
-            <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
         </div>
     </form>
 
@@ -82,8 +82,8 @@
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
             {{-- Erst nach dem Absenden sperren: ein schon gesperrter Knopf schickt name/value nicht mit – aus «testen» würde «kopieren». --}}
             @csrf
-            <button type="submit" name="aktion" value="testen" :disabled="loading" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verbindung testen') }}</button>
-            <button type="submit" name="aktion" value="kopieren" :disabled="loading" class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">
+            <button type="submit" name="aktion" value="testen" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Verbindung testen') }}</button>
+            <button type="submit" name="aktion" value="kopieren" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">
                 <span x-show="loading" x-cloak class="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" aria-hidden="true"></span>
                 {{ __('Jetzt kopieren') }}
             </button>

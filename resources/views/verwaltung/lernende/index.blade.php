@@ -4,14 +4,14 @@
         <x-seitenkopf :titel="__('Lernende')" :zaehler="$zeilen->count()">
             <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.grades.export_all") }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
+                   class="np-knopf np-knopf-sekundaer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
                     {{ __('Alle Noten (CSV)') }}
                 </a>
                 <a href="{{ route("{$bereich}.learners.create") }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     <span class="text-lg leading-none">+</span>
                     {{ __('Lernender erfassen') }}
                 </a>
@@ -34,7 +34,7 @@
         // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
         $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
 
-        $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40';
+        $auswahl = 'np-feld px-2.5 sm:w-40';
 
         $tageSeit = fn ($z) => $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) : null;
         $wann = fn (?int $tage) => match (true) {
@@ -135,7 +135,7 @@
                 </div>
             @endif
 
-            <div data-ansicht="karten" class="@4xl:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+            <div data-ansicht="karten" class="np-karte @4xl:hidden divide-y divide-border overflow-hidden">
                 @forelse($zeilen as $z)
                     @php
                         $l = $z->lernender;
@@ -184,7 +184,7 @@
                 @endforelse
             </div>
 
-            <div data-ansicht="tabelle" class="hidden @4xl:block rounded-xl border border-border bg-card overflow-hidden">
+            <div data-ansicht="tabelle" class="np-karte hidden @4xl:block overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
@@ -246,7 +246,7 @@
                                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
                                             {{-- Zum Profil führen schon Zeile und Name --}}
                                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                                               class="np-ziel inline-flex h-8 items-center rounded-lg glass-btn px-3 text-xs font-medium text-text whitespace-nowrap">{{ __('Noten') }}</a>
+                                               class="np-knopf np-knopf-sekundaer np-knopf-klein np-ziel">{{ __('Noten') }}</a>
                                         </div>
                                     </td>
                                 </tr>

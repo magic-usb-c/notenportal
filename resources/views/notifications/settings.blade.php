@@ -21,7 +21,7 @@
 
                 @foreach($gruppenLabels as $gruppeKey => $gruppeLabel)
                     @continue(empty($gruppen[$gruppeKey]))
-                    <div class="rounded-xl border border-border bg-card p-5">
+                    <div class="np-karte p-5">
                         <h3 class="font-semibold text-text text-sm mb-1">{{ __($gruppeLabel) }}</h3>
                         <div class="flex flex-col divide-y divide-border">
                             @foreach($gruppen[$gruppeKey] as $a)
@@ -42,17 +42,12 @@
                                         @endif
                                     </div>
 
-                                    <div class="inline-flex rounded-xl border border-border bg-input p-1 shrink-0" role="radiogroup" aria-label="{{ __('Häufigkeit für :label', ['label' => $a['label']]) }}">
+                                    <div class="np-segment shrink-0" role="radiogroup" aria-label="{{ __('Häufigkeit für :label', ['label' => $a['label']]) }}">
                                         @foreach($a['frequencies'] as $f)
                                             <label class="cursor-pointer">
                                                 <input type="radio" name="frequenz[{{ $a['type'] }}]" value="{{ $f }}" class="peer sr-only"
                                                        @checked($a['aktuell'] === $f) @disabled($a['mandatory'])>
-                                                <span class="block px-3 min-h-9 leading-9 rounded-lg text-xs sm:text-sm font-medium text-muted transition-colors
-                                                             peer-checked:bg-accent peer-checked:text-accent-contrast
-                                                             peer-disabled:cursor-not-allowed peer-disabled:opacity-70
-                                                             peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
-                                                    {{ __($frequenzen[$f]) }}
-                                                </span>
+                                                {{ __($frequenzen[$f]) }}
                                             </label>
                                         @endforeach
                                     </div>
@@ -64,7 +59,7 @@
 
                 <div>
                     <button type="submit" :disabled="loading"
-                            class="h-11 px-6 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+                            class="np-knopf np-knopf-primaer np-knopf-gross">
                         {{ __('Speichern') }}
                     </button>
                 </div>

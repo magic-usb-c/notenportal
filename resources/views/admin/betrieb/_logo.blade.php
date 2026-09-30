@@ -1,5 +1,5 @@
 {{-- Betriebslogo: PNG/JPG/WebP, max. 1 MB, max. 1024×1024 px. Erscheint in Navigation, Login-Seite, Mail-Kopf, Notenblatt. --}}
-<section class="rounded-xl border border-border bg-card p-6 mt-5">
+<section class="np-karte p-6 mt-5">
     <h3 class="text-sm font-semibold text-text">{{ __('Logo') }}</h3>
     <form method="POST" action="{{ route('admin.operations.logo.update') }}" enctype="multipart/form-data" class="mt-4 flex flex-col gap-5"
           x-data="{ loading: false, dateiname: '' }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
@@ -14,7 +14,7 @@
         <div>
             <label for="logo" class="text-sm font-medium text-text">{{ __('Bilddatei') }}</label>
             <div class="mt-1.5 flex items-center gap-3">
-                <label for="logo" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text cursor-pointer">
+                <label for="logo" class="np-knopf np-knopf-sekundaer">
                     {{ __('Datei wählen') }}
                 </label>
                 <span class="text-sm text-muted" x-text="dateiname || @js(__('Keine Datei gewählt'))"></span>
@@ -25,10 +25,10 @@
             @error('logo')<p id="logo-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </div>
         <div class="flex flex-row-reverse justify-start gap-3">
-            <button type="submit" :disabled="loading" class="inline-flex h-10 items-center rounded-lg bg-accent px-5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
             @if($logoVorhanden)
                 <button type="submit" name="logo_entfernen" value="1" formnovalidate :disabled="loading"
-                        class="inline-flex h-10 items-center rounded-lg glass-btn px-5 text-sm font-medium text-text disabled:opacity-50">{{ __('Logo entfernen') }}</button>
+                        class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Logo entfernen') }}</button>
             @endif
         </div>
     </form>

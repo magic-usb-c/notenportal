@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Feedback')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.feedback.export', request()->query()) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
+                   class="np-knopf np-knopf-sekundaer">
                     {{ __('CSV-Export') }}
                 </a>
             </x-slot:aktionen>
@@ -26,7 +26,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
+                        class="np-feld px-2.5 sm:w-40">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\Feedback::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -35,7 +35,7 @@
 
                 <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
                 <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44">
+                        class="np-feld px-2.5 sm:w-44">
                     <option value="" @selected($kategorie === '')>{{ __('Kategorie: alle') }}</option>
                     @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
                         <option value="{{ $value }}" @selected($kategorie === $value)>{{ __($label) }}</option>
@@ -44,7 +44,7 @@
 
                 <label for="rolle" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
+                        class="np-feld px-2.5 sm:w-40">
                     <option value="" @selected($rolle === '')>{{ __('Rolle: alle') }}</option>
                     <option value="Admin" @selected($rolle === 'Admin')>{{ __('Admin') }}</option>
                     <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>{{ __('Berufsbildner') }}</option>
@@ -82,7 +82,7 @@
                 };
                 $ariaSort = fn (string $spalte) => $sort === $spalte ? ($spalte === 'stimmen' || $dir === 'desc' ? 'descending' : 'ascending') : 'none';
             @endphp
-            <div class="rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-surface-2">
@@ -219,7 +219,7 @@
                                     <td class="hidden sm:table-cell px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
                                     <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open" :aria-expanded="open"
-                                                class="px-3 py-1.5 rounded-lg border border-border text-xs hover:bg-surface-2">
+                                                class="np-knopf np-knopf-sekundaer np-knopf-klein">
                                             <span x-text="open ? @js(__('Schliessen')) : @js(__('Details'))"></span>
                                         </button>
                                     </td>
@@ -316,7 +316,7 @@
                                                 <div>
                                                     <label for="status-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Status') }}</label>
                                                     <select id="status-{{ $m->feedback_id }}" x-model="status"
-                                                            class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                                                            class="np-feld mt-1">
                                                         @foreach(\App\Models\Feedback::STATUS as $value => $label)
                                                             <option value="{{ $value }}">{{ __($label) }}</option>
                                                         @endforeach
@@ -325,11 +325,11 @@
                                                 <div>
                                                     <label for="notiz-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Antwort an die meldende Person') }}</label>
                                                     <textarea id="notiz-{{ $m->feedback_id }}" x-model="notiz" rows="3"
-                                                              class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm"></textarea>
+                                                              class="np-feld mt-1"></textarea>
                                                 </div>
                                                 <div class="flex items-center gap-3">
                                                     <button type="button" @click="speichern()" :disabled="saving"
-                                                            class="px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary text-sm disabled:opacity-50">
+                                                            class="np-knopf np-knopf-primaer np-knopf-gross">
                                                         <span x-show="!saving">{{ __('Speichern') }}</span>
                                                         <span x-show="saving">…</span>
                                                     </button>
@@ -341,9 +341,9 @@
                                                         <div class="mt-1 flex items-center gap-2">
                                                             <input type="number" inputmode="numeric" id="duplikat-{{ $m->feedback_id }}"
                                                                    x-model="duplikatEingabe" :disabled="!!duplikatVon"
-                                                                   class="w-28 rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring text-sm disabled:opacity-50">
+                                                                   class="np-feld w-28 disabled:opacity-50">
                                                             <button type="button" @click="duplikatUmschalten()" :disabled="duplikatSaving"
-                                                                    class="px-3 py-2 h-10 rounded-xl border border-border text-sm hover:bg-surface-2 disabled:opacity-50">
+                                                                    class="np-knopf np-knopf-sekundaer np-knopf-gross">
                                                                 <span x-text="duplikatVon ? @js(__('Markierung aufheben')) : @js(__('Als Duplikat markieren'))"></span>
                                                             </button>
                                                         </div>

@@ -13,21 +13,21 @@
                             @endif
                         @endforeach
                         <button type="submit" :disabled="loading"
-                                class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-accent-text disabled:opacity-60">
+                                class="np-knopf np-knopf-sekundaer text-accent-text">
                             {{ __('Alle :anzahl als gesehen markieren', ['anzahl' => $neuCount]) }}
                         </button>
                     </form>
                 @endif
                 @can('noteAnlegen', $lernender)
                     <a href="{{ route("{$bereich}.learners.grades.create", $lernender->lernender_id) }}"
-                       class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">{{ __('+ Note erfassen') }}</a>
+                       class="np-knopf np-knopf-primaer">{{ __('+ Note erfassen') }}</a>
                 @endcan
                 <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Drucken') }}</a>
+                   class="np-knopf np-knopf-sekundaer">{{ __('Drucken') }}</a>
                 <a href="{{ route("{$bereich}.learners.grades.export", ['lernender_id' => $lernender->lernender_id, ...request()->only(['semester_id', 'kategorie_id'])]) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">CSV</a>
+                   class="np-knopf np-knopf-sekundaer">CSV</a>
                 <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Profil') }}</a>
+                   class="np-knopf np-knopf-sekundaer">{{ __('Profil') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -37,7 +37,7 @@
         $darfLoeschen = auth()->user()->can('noteLoeschen', $lernender);
         $viewerId = (int) auth()->user()->benutzer_id;
         $label = 'text-sm font-medium text-text';
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld mt-1';
         $gefiltert = request()->filled('kategorie_id') || request()->filled('semester_id');
     @endphp
 
@@ -58,7 +58,7 @@
             </div>
 
             @if($stand->gruende)
-                <div class="rounded-xl border border-border bg-card px-5 py-3 flex flex-wrap items-center gap-2">
+                <div class="np-karte px-5 py-3 flex flex-wrap items-center gap-2">
                     <x-status :status="$stand->status" />
                     @foreach($stand->gruende as $g)
                         <span class="px-2 py-0.5 rounded-md text-xs {{ $stand->status === 'rot' ? 'bg-note-ungenuegend/10 text-note-ungenuegend' : 'bg-note-knapp/14 text-note-knapp' }}">{{ $g }}</span>
@@ -67,7 +67,7 @@
             @endif
 
             {{-- Lernenden wechseln + Filter --}}
-            <div class="rounded-xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div class="np-karte p-4 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
                 <div>
                     <label for="lernenden_wechseln" class="{{ $label }}">{{ __('Lernender') }}</label>
                     <select id="lernenden_wechseln" class="{{ $feld }}" onchange="if (this.value) window.location.href = this.value">
@@ -98,12 +98,12 @@
                         </select>
                     </div>
                     <noscript>
-                        <button type="submit" class="inline-flex items-center px-4 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary">{{ __('Filtern') }}</button>
+                        <button type="submit" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Filtern') }}</button>
                     </noscript>
                     @if($gefiltert)
                         <div class="flex">
                             <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                               class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Zurücksetzen') }}</a>
+                               class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Zurücksetzen') }}</a>
                         </div>
                     @endif
                 </form>
@@ -122,7 +122,7 @@
                             ?? ($n->modulBelegung?->modul ? $n->modulBelegung->modul->modul_nummer.' – '.$n->modulBelegung->modul->titel : '–');
                     @endphp
 
-                    <details class="np-details rounded-xl border border-border bg-card overflow-hidden {{ $istNeu ? 'ring-1 ring-accent/40' : '' }}" data-note-id="{{ $n->note_id }}">
+                    <details class="np-details np-karte overflow-hidden {{ $istNeu ? 'ring-1 ring-accent/40' : '' }}" data-note-id="{{ $n->note_id }}">
                         <summary class="cursor-pointer select-none px-4 py-3 flex items-start justify-between gap-3 list-none hover:bg-accent/5 transition-colors duration-100">
                             <div class="flex items-start gap-3 min-w-0">
                                 <span class="np-chevron text-muted transition-transform duration-200 shrink-0 mt-0.5">
@@ -173,7 +173,7 @@
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         <button type="submit" :disabled="loading"
-                                                class="inline-flex items-center gap-2 px-4 h-10 rounded-xl glass-btn text-accent-text text-sm font-medium disabled:opacity-60">{{ __('Als gesehen markieren') }}</button>
+                                                class="np-knopf np-knopf-sekundaer np-knopf-gross text-accent-text">{{ __('Als gesehen markieren') }}</button>
                                     </form>
                                 @else
                                     <span class="text-xs text-muted">{{ __('Gesehen am :datum Uhr', ['datum' => $gesehen->gesehen_am->format('d.m.Y H:i')]) }}</span>
@@ -182,7 +182,7 @@
                                 <div class="flex items-center gap-2">
                                     @if($darfKorrigieren)
                                         <a href="{{ route("{$bereich}.learners.grades.edit", [$lernender->lernender_id, $n->note_id]) }}"
-                                           class="inline-flex items-center px-3 min-h-[36px] rounded-xl text-xs text-accent-text border border-accent/20 hover:bg-accent/10">{{ __('Korrigieren') }}</a>
+                                           class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Korrigieren') }}</a>
                                     @endif
                                     @if($darfLoeschen)
                                         <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
@@ -191,7 +191,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" :disabled="loading"
-                                                    class="inline-flex items-center px-3 min-h-[36px] rounded-xl text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Löschen') }}</button>
+                                                    class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Löschen') }}</button>
                                         </form>
                                     @endif
                                 </div>
@@ -212,7 +212,7 @@
                                                       onsubmit="return confirm('{{ __('Kommentar löschen?') }}');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button :disabled="loading" class="inline-flex items-center px-2 min-h-[32px] rounded-lg text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Löschen') }}</button>
+                                                    <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Löschen') }}</button>
                                                 </form>
                                             @endif
                                         </div>
@@ -230,25 +230,25 @@
                                 <textarea name="kommentar_text" rows="2" maxlength="2000" required
                                           placeholder="{{ __('Kommentar schreiben…') }}" aria-label="{{ __('Kommentar schreiben') }}"
                                           onkeydown="if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') this.form.requestSubmit()"
-                                          class="flex-1 rounded-xl border border-border bg-input text-text placeholder-muted text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring resize-y"></textarea>
+                                          class="np-feld flex-1 placeholder-muted resize-y"></textarea>
                                 <button type="submit" :disabled="loading"
-                                        class="px-4 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary whitespace-nowrap disabled:opacity-60">{{ __('Senden') }}</button>
+                                        class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Senden') }}</button>
                             </form>
                         </div>
                     </details>
                 @empty
-                    <div class="rounded-xl border border-border bg-card px-5 py-12 text-center">
+                    <div class="np-karte px-5 py-12 text-center">
                         <h3 class="font-semibold text-text">{{ $gefiltert ? __('Keine Noten im Filter') : __('Noch keine Noten') }}</h3>
                         @if($gefiltert)
                             <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                               class="mt-4 inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Filter zurücksetzen') }}</a>
+                               class="np-knopf np-knopf-sekundaer np-knopf-gross mt-4">{{ __('Filter zurücksetzen') }}</a>
                         @endif
                     </div>
                 @endforelse
             </div>
 
             @if($notes->hasPages())
-                <div class="rounded-xl border border-border bg-card p-3">{{ $notes->links() }}</div>
+                <div class="np-karte p-3">{{ $notes->links() }}</div>
             @endif
         </div>
     </div>

@@ -1,5 +1,5 @@
 {{-- Sprache der Oberfläche und der Mails (nur mit eingeschalteter Sprachwahl) --}}
-<div class="rounded-xl border border-border bg-card p-6">
+<div class="np-karte p-6">
     <form method="POST" action="{{ route('profile.locale') }}" class="flex flex-col gap-4"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
@@ -19,7 +19,7 @@
         </fieldset>
         <div>
             <button type="submit" :disabled="loading"
-                    class="inline-flex h-10 items-center rounded-xl glass-btn px-5 text-sm font-medium text-text disabled:opacity-60">
+                    class="np-knopf np-knopf-sekundaer np-knopf-gross">
                 {{ __('Sprache speichern') }}
             </button>
         </div>

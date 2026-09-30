@@ -40,22 +40,13 @@
 <x-app-layout>
     <x-slot name="title">{{ $name ? __('Abschluss').' · '.$name : __('Abschluss') }}</x-slot>
     <x-slot name="header">
-        @if($lernender)
-            <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="{{ __('Brotkrumen') }}">
-                <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">{{ __('Lernende') }}</a>
-                <span class="text-muted/40">›</span>
-                <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}" class="transition-colors hover:text-text">{{ $name }}</a>
-                <span class="text-muted/40">›</span>
-                <span class="text-text">{{ __('Abschluss') }}</span>
-            </nav>
-        @endif
-        <x-seitenkopf :titel="__('Abschluss')" :untertitel="$name" />
+        <x-seitenkopf :zurueck="$lernender ? route($bereich.'.learners.show', $lernender->lernender_id) : null" :titel="__('Abschluss')" :untertitel="$name" />
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             @if($ergebnisse === [])
-                <p class="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted">
+                <p class="np-karte flex flex-wrap items-center gap-3 px-5 py-4 text-sm text-muted">
                     {{ __('Für diese Ausbildung ist noch keine Gewichtung bis zur Gesamtnote hinterlegt.') }}
                     @if(auth()->user()->hasRole('Admin'))
                         <a href="{{ route('admin.master-data.grade-trees.index') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Notenbaum laden') }}</a>
@@ -72,7 +63,7 @@
                             $wurzel = $e->wurzel();
                             $definitiv = collect($e->gruende)->contains(fn ($g) => $g->definitiv);
                         @endphp
-                        <section class="rounded-xl border border-border bg-card" aria-labelledby="baum-{{ $e->baum->id }}">
+                        <section class="np-karte" aria-labelledby="baum-{{ $e->baum->id }}">
                             <header class="flex flex-wrap items-start justify-between gap-4 px-5 pt-5">
                                 <div class="min-w-0">
                                     <h2 id="baum-{{ $e->baum->id }}" class="text-sm font-semibold text-text">{{ $e->baum->name }}</h2>
@@ -145,7 +136,7 @@
                                                         <input id="wert-{{ $k->id }}" name="werte[{{ $k->id }}]" inputmode="decimal" autocomplete="off"
                                                                value="{{ old($feld, $position ? NotenSkala::format($position->note_wert) : '') }}"
                                                                @error($feld) aria-invalid="true" aria-describedby="wert-{{ $k->id }}-fehler" @enderror
-                                                               class="h-8 w-16 rounded-lg border border-border-strong/70 bg-input px-2 text-right text-sm tabular-nums text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30"
+                                                               class="np-feld np-feld-klein w-16 px-2 text-right tabular-nums"
                                                                placeholder="–">
                                                         @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                     @elseif($z['e']->note !== null)
@@ -165,7 +156,7 @@
                     @if($hatManuell)
                         <div @class(['flex justify-end', 'xl:col-span-2' => count($ergebnisse) > 1])>
                             <button type="submit" :disabled="loading"
-                                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Speichern') }}
                             </button>
                         </div>

@@ -29,7 +29,7 @@
                              :zurueck="route('admin.mail-log.index')" :aktive-filter="$aktiveFilter">
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40">
+                        class="np-feld px-2.5 sm:w-40">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\MailLog::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -38,7 +38,7 @@
 
                 <label for="type" class="sr-only">{{ __('Anlass') }}</label>
                 <select name="type" id="type" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48">
+                        class="np-feld px-2.5 sm:w-48">
                     <option value="" @selected($type === '')>{{ __('Anlass: alle') }}</option>
                     @foreach($anlaesse as $value => $label)
                         <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
@@ -46,7 +46,7 @@
                 </select>
             </x-filterleiste>
 
-            <div class="rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
@@ -109,7 +109,7 @@
                                                   class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-lg:opacity-100">
                                                 @csrf
                                                 <button type="submit" :disabled="loading" aria-label="{{ __('Erneut senden') }}" title="{{ __('Erneut senden') }}"
-                                                        class="np-ziel inline-flex size-8 items-center justify-center rounded-lg glass-btn text-text disabled:opacity-60">
+                                                        class="np-knopf np-knopf-sekundaer np-knopf-rund np-ziel">
                                                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
                                                 </button>
                                             </form>

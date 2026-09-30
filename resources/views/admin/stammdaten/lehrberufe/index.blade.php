@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Lehrberufe')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.professions.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     <span class="text-lg leading-none">+</span> {{ __('Neuer Lehrberuf') }}
                 </a>
             </x-slot:aktionen>
@@ -14,7 +14,7 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
 
-            <div class="@container rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte @container overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead class="sticky top-0 bg-surface-2">

@@ -50,7 +50,7 @@
                     <div class="flex items-center justify-between border-b border-border px-5 py-3.5">
                         <h2 id="tastenkuerzel-titel" class="text-sm font-semibold text-text">{{ __('Tastenkürzel') }}</h2>
                         <button type="button" x-ref="schliessenKnopf" @click="schliessen()" aria-label="{{ __('Schliessen') }}"
-                                class="-mr-1.5 inline-flex size-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text">
+                                class="np-knopf np-knopf-symbol -mr-1.5">
                             <svg class="size-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>

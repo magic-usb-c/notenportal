@@ -17,9 +17,7 @@
                 </span>
                 <input id="password" type="password" name="password" required autocomplete="current-password" autofocus
                        placeholder="••••••••"
-                       class="block w-full h-11 rounded-xl border border-border bg-input text-text pl-10 pr-3
-                              focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
-                              @error('password') border-note-ungenuegend @enderror">
+                       class="np-feld block h-11 pl-10 pr-3 @error('password') border-note-ungenuegend @enderror">
             </div>
             @error('password')
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
@@ -28,8 +26,7 @@
 
         <div class="pt-2">
             <button type="submit"
-                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary
-                           focus:outline-hidden focus:ring-2 focus:ring-accent/50">
+                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                 {{ __('Bestätigen') }}
             </button>
         </div>

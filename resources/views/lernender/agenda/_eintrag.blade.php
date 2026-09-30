@@ -39,7 +39,7 @@
                 </a>
             @else
                 <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}"
-                   class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm {{ $faellig ? 'bg-accent text-accent-contrast np-btn-primary' : 'text-accent-text hover:bg-accent/10' }}">{{ __('Note eintragen') }}</a>
+                   class="np-knopf {{ $faellig ? 'np-knopf-primaer' : 'np-knopf-schlicht' }}">{{ __('Note eintragen') }}</a>
             @endif
             <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}"
                class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-muted hover:text-text hover:bg-bg" aria-label="{{ __('Bearbeiten') }}">
@@ -48,14 +48,14 @@
             <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" onsubmit="return confirm('{{ __('Prüfung entfernen?') }}');" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('DELETE')
-                <button :disabled="loading" class="inline-flex items-center justify-center w-9 h-9 rounded-lg disabled:opacity-60 text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Entfernen') }}">×</button>
+                <button :disabled="loading" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __('Entfernen') }}">×</button>
             </form>
         @elseif($e['art'] === 'erkannt')
             <form method="POST" action="{{ route('learner.exams.adopt', $e['event']->id) }}" class="flex items-center gap-1.5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <label for="bezug-{{ $e['event']->id }}" class="sr-only">{{ __('Fach oder Modul') }}</label>
                 <select id="bezug-{{ $e['event']->id }}" name="bezug" required
-                        class="rounded-lg border border-border bg-input text-text text-xs px-2 py-1.5 min-h-9 max-w-[10rem]">
+                        class="np-feld text-xs px-2 min-h-9 max-w-[10rem]">
                     <option value="">{{ __('Zuordnen') }}</option>
                     @foreach($bezugOptionen as $gruppe => $optionen)
                         <optgroup label="{{ $gruppe }}">
@@ -65,7 +65,7 @@
                         </optgroup>
                     @endforeach
                 </select>
-                <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10 disabled:opacity-60">{{ __('Übernehmen') }}</button>
+                <button :disabled="loading" class="np-knopf np-knopf-schlicht">{{ __('Übernehmen') }}</button>
             </form>
         @endif
     </div>

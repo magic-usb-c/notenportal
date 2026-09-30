@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Module')" :untertitel="__('Gemeinsame Modulliste – alle sehen dieselben Angaben.')">
             <x-slot:aktionen>
                 <a href="{{ route('modules.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     <span class="text-lg leading-none">+</span> {{ __('Modul anlegen') }}
                 </a>
             </x-slot:aktionen>
@@ -17,14 +17,14 @@
             <form method="GET" action="{{ route('modules.index') }}" class="flex gap-2">
                 <label for="suche" class="sr-only">{{ __('Suche') }}</label>
                 <input type="search" id="suche" name="suche" value="{{ $suche }}" placeholder="{{ __('Nummer oder Titel') }}"
-                       class="h-10 w-full max-w-sm rounded-xl border border-border bg-input px-3 text-sm text-text focus:border-ring focus:ring-2 focus:ring-ring">
-                <button type="submit" class="h-10 rounded-xl border border-border px-4 text-sm font-medium text-text hover:bg-surface-2">{{ __('Suchen') }}</button>
+                       class="np-feld max-w-sm">
+                <button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Suchen') }}</button>
                 @if($suche !== '')
                     <a href="{{ route('modules.index') }}" class="inline-flex h-10 items-center px-3 text-sm text-muted hover:text-text">{{ __('Zurücksetzen') }}</a>
                 @endif
             </form>
 
-            <div class="rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">

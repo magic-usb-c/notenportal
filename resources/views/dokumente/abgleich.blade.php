@@ -7,22 +7,21 @@
     @endphp
 
     <x-slot name="header">
-        <x-seitenkopf titel="{{ __('Zeugnis-Abgleich') }}"
+        <x-seitenkopf :zurueck="$r('index')" titel="{{ __('Zeugnis-Abgleich') }}"
                       :untertitel="($bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname.' · ' : '').$dokument->titel">
             <x-slot:aktionen>
-                <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zeugnis öffnen') }}</a>
-                <a href="{{ $r('index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
+                <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="np-knopf np-knopf-sekundaer">{{ __('Zeugnis öffnen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
-            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="rounded-xl border border-border bg-card p-4 flex flex-wrap items-end gap-3">
+            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="np-karte p-4 flex flex-wrap items-end gap-3">
                 <div>
                     <label for="semester_id" class="block text-sm font-medium text-text">{{ __('Semester') }}</label>
                     <select id="semester_id" name="semester_id" onchange="this.form.submit()"
-                            class="mt-1 w-48 rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring">
+                            class="np-feld mt-1 w-48">
                         <option value="">–</option>
                         @foreach($semester as $s)
                             <option value="{{ $s->semester_id }}" @selected($semesterId === (int) $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>
@@ -37,15 +36,15 @@
             </form>
 
             @if(! $ergebnis['text'])
-                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">{{ __('Kein Text im PDF erkannt') }}</div>
+                <div class="np-karte px-5 py-12 text-center text-sm text-muted">{{ __('Kein Text im PDF erkannt') }}</div>
             @elseif($zeilen === [])
-                <div class="rounded-xl border border-border bg-card px-5 py-12 text-center text-sm text-muted">{{ __('Keine Fächer oder Module erkannt') }}</div>
+                <div class="np-karte px-5 py-12 text-center text-sm text-muted">{{ __('Keine Fächer oder Module erkannt') }}</div>
             @else
                 <form method="POST" action="{{ $r('reconcile.apply', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="semester_id" value="{{ $semesterId }}">
-                    <section class="rounded-xl border border-border bg-card overflow-hidden">
+                    <section class="np-karte overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-text">
                                 <thead class="text-xs text-muted">
@@ -96,7 +95,7 @@
                     </section>
                     @if($fehlend->isNotEmpty() && $darfUebernehmen && $semesterId)
                         <div class="flex justify-end">
-                            <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Zeugnisnoten übernehmen') }}</button>
+                            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Zeugnisnoten übernehmen') }}</button>
                         </div>
                     @endif
                 </form>

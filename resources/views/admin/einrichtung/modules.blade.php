@@ -1,6 +1,6 @@
 <x-einrichtung schritt="modules" :stand="$stand" :titel="__('Module')">
     @php
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld mt-1';
         $label = 'text-sm font-medium text-text';
         $beispiele = [
             'schule' => "901 Beispielmodul Planung\n902 Beispielmodul Auswertung",
@@ -9,9 +9,9 @@
     @endphp
 
     @if($lehrberufe->isEmpty())
-        <section class="rounded-2xl border border-border bg-card p-8 flex flex-col items-center gap-3 text-center">
+        <section class="np-karte p-8 flex flex-col items-center gap-3 text-center">
             <p class="text-sm text-muted">{{ __('Noch keine Lehrberufe') }}</p>
-            <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary">{{ __('Lehrberufe anlegen') }}</a>
+            <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Lehrberufe anlegen') }}</a>
         </section>
         @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
     @else
@@ -31,7 +31,7 @@
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="hidden" name="lehrberuf_id" value="{{ $aktiv->lehrberuf_id }}">
-            <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
+            <section class="np-karte p-6 flex flex-col gap-4">
                 <h3 class="text-sm font-semibold text-text">{{ $aktiv->name }}</h3>
                 <div class="grid md:grid-cols-2 gap-4">
                     @foreach(['schule' => __('Module Schule'), 'uek' => __('Module ÜK')] as $name => $text)
@@ -54,7 +54,7 @@
             </section>
 
             @if($zugeordnet->isNotEmpty())
-                <section class="rounded-2xl border border-border bg-card p-5">
+                <section class="np-karte p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold text-text">{{ __('Zugeordnet') }} · {{ $zugeordnet->count() }}</h3>
                         <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent-text hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>

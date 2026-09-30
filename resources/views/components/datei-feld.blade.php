@@ -6,7 +6,7 @@
 <div x-data="{ dateiname: '' }" class="{{ $rahmen }} flex min-w-0 items-center gap-3">
     <input id="{{ $id }}" type="file" @if($mehrere) multiple @endif {{ $attributes->merge(['class' => 'peer sr-only']) }}
            x-on:input="dateiname = [...$event.target.files].map(f => f.name).join(', ')">
-    <label for="{{ $id }}" class="inline-flex h-9 shrink-0 cursor-pointer items-center rounded-lg glass-btn px-3.5 text-sm font-medium text-text peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring">
+    <label for="{{ $id }}" class="np-knopf np-knopf-sekundaer shrink-0 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring">
         {{ $mehrere ? __('Dateien wählen') : __('Datei wählen') }}
     </label>
     @unless($ohneName)

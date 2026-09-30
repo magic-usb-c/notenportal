@@ -117,7 +117,7 @@
                 <textarea id="feedback-text" x-model="text" rows="4" maxlength="5000" required
                           placeholder="{{ __('Was ist passiert, was fehlt dir, was gefällt dir?') }}"
                           aria-describedby="feedback-fehler"
-                          class="mt-1.5 w-full rounded-lg border border-border-strong/70 bg-input px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30"></textarea>
+                          class="np-feld mt-1.5"></textarea>
 
                 <label class="mt-3 flex items-start gap-2 text-sm text-text">
                     <input type="checkbox" x-model="mitScreenshot"
@@ -174,11 +174,11 @@
 
                 <div class="mt-4 flex justify-end gap-2">
                     <button type="button" @click="schliessen()"
-                            class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">
+                            class="np-knopf np-knopf-sekundaer">
                         {{ __('Abbrechen') }}
                     </button>
                     <button type="button" @click="senden()" :disabled="loading || text.trim().length < 3"
-                            class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">
+                            class="np-knopf np-knopf-primaer">
                         <span x-show="!loading">{{ __('Senden') }}</span>
                         <span x-show="loading" x-text="ladeText"></span>
                     </button>

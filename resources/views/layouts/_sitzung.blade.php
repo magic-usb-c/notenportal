@@ -8,9 +8,9 @@
      class="fixed inset-0 z-[70] flex items-center justify-center glass-scrim p-4 print:hidden">
     <div class="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-e3">
         <h2 id="np-sitzung-titel" class="text-base font-semibold text-text">{{ __('Du wirst gleich wegen Inaktivität abgemeldet.') }}</h2>
-        <div class="mt-5 flex justify-end gap-3">
-            <button type="button" id="np-sitzung-bleiben" class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">{{ __('Angemeldet bleiben') }}</button>
-            <button type="button" id="np-sitzung-abmelden" class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">{{ __('Abmelden') }}</button>
+        <div class="mt-5 flex justify-end gap-2">
+            <button type="button" id="np-sitzung-abmelden" class="np-knopf np-knopf-sekundaer">{{ __('Abmelden') }}</button>
+            <button type="button" id="np-sitzung-bleiben" class="np-knopf np-knopf-primaer">{{ __('Angemeldet bleiben') }}</button>
         </div>
     </div>
 </div>

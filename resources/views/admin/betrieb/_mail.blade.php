@@ -1,5 +1,5 @@
 @php
-    $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'np-feld mt-1';
     $label = 'text-sm font-medium text-text';
     $wert = fn (string $k) => old($k, $werte[$k]);
 @endphp

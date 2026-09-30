@@ -1,6 +1,6 @@
 <x-einrichtung schritt="semesters" :stand="$stand" :titel="__('Semester')">
     @php
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
+        $feld = 'np-feld mt-1 tabular-nums';
         $label = 'text-sm font-medium text-text';
         $start = ['herbst' => old('herbst', $vorschlag['herbst']), 'fruehling' => old('fruehling', $vorschlag['fruehling']), 'bis' => (int) old('bis_jahr', $vorschlag['bis'])];
     @endphp
@@ -36,7 +36,7 @@
     <form method="POST" action="{{ route('admin.setup.semesters') }}" class="flex flex-col gap-5"
           x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')), @js(['neu' => __('neu'), 'vorhanden' => __('vorhanden')]))" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-5">
+        <section class="np-karte p-6 flex flex-col gap-5">
             <div class="grid sm:grid-cols-3 gap-4">
                 <div>
                     <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }} *</label>
@@ -72,7 +72,7 @@
         </section>
 
         @if($semester->isNotEmpty())
-            <section class="rounded-2xl border border-border bg-card p-5">
+            <section class="np-karte p-5">
                 <h3 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h3>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)

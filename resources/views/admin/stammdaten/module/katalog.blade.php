@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Modulkatalog einlesen')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.modules.index') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3.5 text-sm font-medium text-text hover:bg-surface-2">
+                   class="np-knopf np-knopf-sekundaer">
                     {{ __('Zur Modulliste') }}
                 </a>
             </x-slot:aktionen>
@@ -12,8 +12,8 @@
     </x-slot>
 
     @php
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
-        $karte = 'rounded-2xl border border-border bg-card p-6 flex flex-col gap-4';
+        $feld = 'np-feld mt-1';
+        $karte = 'np-karte p-6 flex flex-col gap-4';
     @endphp
 
     <div class="py-6">
@@ -65,7 +65,7 @@
 
                         <div>
                             <button type="submit" x-bind:disabled="laeuft"
-                                    class="inline-flex h-10 items-center rounded-xl bg-accent px-5 text-sm font-semibold text-accent-contrast np-btn-primary disabled:opacity-60">
+                                    class="np-knopf np-knopf-primaer np-knopf-gross">
                                 {{ __('Vorschau erstellen') }}
                             </button>
                         </div>
@@ -171,13 +171,13 @@
                             @csrf
                             <input type="hidden" name="token" value="{{ $vorschau['token'] }}">
                             <button type="submit" x-bind:disabled="laeuft"
-                                    class="inline-flex h-10 items-center rounded-xl bg-accent px-5 text-sm font-semibold text-accent-contrast np-btn-primary disabled:opacity-60">
+                                    class="np-knopf np-knopf-primaer np-knopf-gross">
                                 {{ __('Katalog übernehmen') }}
                             </button>
                         </form>
                         <form method="POST" action="{{ route('admin.master-data.modules.catalog.discard') }}">
                             @csrf
-                            <button type="submit" class="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm font-medium text-text hover:bg-surface-2">
+                            <button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-gross">
                                 {{ __('Verwerfen') }}
                             </button>
                         </form>
@@ -193,7 +193,7 @@
                     </p>
                     <div>
                         <a href="{{ route('admin.master-data.modules.catalog.export') }}"
-                           class="inline-flex h-10 items-center rounded-xl border border-border px-4 text-sm font-medium text-text hover:bg-surface-2">
+                           class="np-knopf np-knopf-sekundaer np-knopf-gross">
                             {{ __('Katalog herunterladen') }}
                         </a>
                     </div>

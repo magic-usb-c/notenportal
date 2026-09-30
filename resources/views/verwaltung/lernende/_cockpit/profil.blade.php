@@ -3,7 +3,7 @@
     $benutzer = $lernender->benutzer;
     $datum = fn ($d) => $d ? \Carbon\Carbon::parse($d)->format('d.m.Y') : '–';
     $label = 'text-xs font-medium text-muted';
-    $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'np-feld mt-1';
     $heute = today();
 @endphp
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
@@ -43,7 +43,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                           onsubmit="return confirm('{{ __('Neues Startpasswort erzeugen? Das bisherige Passwort wird ungültig.') }}');">
                         @csrf
-                        <button type="submit" :disabled="loading" class="px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Passwort zurücksetzen') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Passwort zurücksetzen') }}</button>
                     </form>
                     <form method="POST" action="{{ route("{$bereich}.learners.account.active", $lernender->lernender_id) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
@@ -60,7 +60,7 @@
     </x-karte>
 
     {{-- Betreuungen --}}
-    <div class="lg:col-span-6 rounded-xl border border-border bg-card overflow-hidden">
+    <div class="np-karte lg:col-span-6 overflow-hidden">
         <div class="px-5 py-4 border-b border-border"><h3 class="font-semibold text-text text-sm">{{ __('Betreuung') }}</h3></div>
         <div class="divide-y divide-border">
             @forelse($lernender->betreuungen as $bt)
@@ -79,7 +79,7 @@
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
                                 <button type="button" @click="$dispatch('open-modal', '{{ $betreuungBeendenModal }}')" :disabled="loading"
-                                        class="px-3 min-h-[36px] rounded-lg text-note-ungenuegend text-xs hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Beenden') }}</button>
+                                        class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Beenden') }}</button>
                             </form>
                             <x-modal :name="$betreuungBeendenModal" maxWidth="sm">
                                 <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="{{ $betreuungBeendenModal }}-titel">
@@ -87,7 +87,7 @@
                                     <p class="mt-2 text-sm text-muted">{{ __('Die Betreuung durch :name endet ab heute.', ['name' => $bt->berufsbildner?->benutzer?->vorname.' '.$bt->berufsbildner?->benutzer?->nachname]) }}</p>
                                     <div class="mt-5 flex justify-end gap-2">
                                         <button type="button" @click="$dispatch('close-modal', '{{ $betreuungBeendenModal }}')"
-                                                class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">{{ __('Abbrechen') }}</button>
+                                                class="np-knopf np-knopf-sekundaer">{{ __('Abbrechen') }}</button>
                                         <button type="button"
                                                 @click="document.getElementById('{{ $betreuungBeendenModal }}-form').requestSubmit(); $dispatch('close-modal', '{{ $betreuungBeendenModal }}')"
                                                 class="inline-flex h-9 items-center rounded-lg bg-note-ungenuegend px-3.5 text-sm font-medium text-accent-contrast">{{ __('Beenden') }}</button>
@@ -125,7 +125,7 @@
                     @error('gueltig_von')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading"
-                        class="sm:col-span-3 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary disabled:opacity-60">{{ __('Zuweisen') }}</button>
+                        class="np-knopf np-knopf-primaer np-knopf-gross sm:col-span-3">{{ __('Zuweisen') }}</button>
             </form>
             <x-modal name="betreuung-zuweisen" maxWidth="sm">
                 <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="betreuung-zuweisen-titel">
@@ -133,10 +133,10 @@
                     <p class="mt-2 text-sm text-muted">{{ __('Die bisherige Betreuung endet am Vortag.') }}</p>
                     <div class="mt-5 flex justify-end gap-2">
                         <button type="button" @click="$dispatch('close-modal', 'betreuung-zuweisen')"
-                                class="inline-flex h-9 items-center rounded-lg px-3.5 text-sm text-muted hover:bg-surface-2 hover:text-text">{{ __('Abbrechen') }}</button>
+                                class="np-knopf np-knopf-sekundaer">{{ __('Abbrechen') }}</button>
                         <button type="button"
                                 @click="const f = document.getElementById('betreuung-zuweisen-form'); f.dataset.bestaetigt = '1'; f.requestSubmit(); $dispatch('close-modal', 'betreuung-zuweisen')"
-                                class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">{{ __('Zuweisen') }}</button>
+                                class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
                     </div>
                 </div>
             </x-modal>
@@ -144,7 +144,7 @@
     </div>
 
     {{-- Tracks --}}
-    <div class="lg:col-span-6 rounded-xl border border-border bg-card overflow-hidden">
+    <div class="np-karte lg:col-span-6 overflow-hidden">
         <div class="px-5 py-4 border-b border-border"><h3 class="font-semibold text-text text-sm">{{ __('Schul-Tracks') }}</h3></div>
         <div class="divide-y divide-border">
             @forelse($lernender->tracks as $t)
@@ -166,13 +166,13 @@
                                 @csrf
                                 <label for="end_semester_{{ $t->lernender_track_id }}" class="sr-only">{{ __('Endsemester') }}</label>
                                 <select id="end_semester_{{ $t->lernender_track_id }}" name="end_semester_id" required
-                                        class="rounded-lg border border-border bg-input text-text text-xs pl-2 pr-6 py-1 min-h-[36px] min-w-[7rem] shrink-0 focus:ring-2 focus:ring-ring focus:border-ring">
+                                        class="np-feld text-xs pl-2 pr-6 min-h-[36px] min-w-[7rem] shrink-0">
                                     @foreach($semesterListe as $s)
                                         <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                     @endforeach
                                 </select>
                                 <button type="submit" :disabled="loading"
-                                        class="px-3 min-h-[36px] rounded-lg text-note-ungenuegend text-xs hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Beenden') }}</button>
+                                        class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Beenden') }}</button>
                             </form>
                         @endcan
                     @endif
@@ -209,7 +209,7 @@
                     @error('start_semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading"
-                        class="sm:col-span-3 h-10 rounded-xl bg-accent text-accent-contrast text-sm np-btn-primary disabled:opacity-60">{{ __('Track starten') }}</button>
+                        class="np-knopf np-knopf-primaer np-knopf-gross sm:col-span-3">{{ __('Track starten') }}</button>
             </form>
         @endcan
     </div>

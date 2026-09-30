@@ -2,7 +2,7 @@
      feed_id wird IMMER mitgeschickt – sonst legt feedStore() bei jedem Speichern einen neuen Kalender an. --}}
 @php
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 w-full rounded-lg border border-border bg-input text-text px-3 h-10 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $idSuffix = $feed?->id ?? 'neu';
 @endphp
@@ -40,5 +40,5 @@
             {{ __('Lektionen (Stundenplan)') }}
         </label>
     </fieldset>
-    <button :disabled="loading" class="h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
+    <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
 </form>

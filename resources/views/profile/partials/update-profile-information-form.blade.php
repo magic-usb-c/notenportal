@@ -18,8 +18,7 @@
                     <label for="vorname" class="text-sm font-medium text-text">{{ __('Vorname') }} *</label>
                     <input id="vorname" name="vorname" type="text"
                            value="{{ old('vorname', $user->vorname) }}" required autocomplete="given-name"
-                           class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                                  focus:ring-2 focus:ring-ring focus:border-ring @error('vorname') border-note-ungenuegend! @enderror">
+                           class="np-feld mt-1 block @error('vorname') border-note-ungenuegend! @enderror">
                     @error('vorname')
                         <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                     @enderror
@@ -28,8 +27,7 @@
                     <label for="nachname" class="text-sm font-medium text-text">{{ __('Nachname') }} *</label>
                     <input id="nachname" name="nachname" type="text"
                            value="{{ old('nachname', $user->nachname) }}" required autocomplete="family-name"
-                           class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                                  focus:ring-2 focus:ring-ring focus:border-ring @error('nachname') border-note-ungenuegend! @enderror">
+                           class="np-feld mt-1 block @error('nachname') border-note-ungenuegend! @enderror">
                     @error('nachname')
                         <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                     @enderror
@@ -40,8 +38,7 @@
         <div>
             <label for="email" class="text-sm font-medium text-text">{{ __('E-Mail') }} *</label>
             <input id="email" name="email" type="email" x-model="email" required autocomplete="email"
-                   class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                          focus:ring-2 focus:ring-ring focus:border-ring @error('email') border-note-ungenuegend! @enderror">
+                   class="np-feld mt-1 block @error('email') border-note-ungenuegend! @enderror">
             @error('email')
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
             @enderror
@@ -50,8 +47,7 @@
         <div x-show="email !== original" x-cloak>
             <label for="current_password" class="text-sm font-medium text-text">{{ __('Aktuelles Passwort') }} *</label>
             <input id="current_password" name="current_password" type="password" autocomplete="current-password"
-                   class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                          focus:ring-2 focus:ring-ring focus:border-ring @error('current_password') border-note-ungenuegend! @enderror">
+                   class="np-feld mt-1 block @error('current_password') border-note-ungenuegend! @enderror">
             @error('current_password')
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
             @enderror
@@ -63,8 +59,7 @@
                     <label for="klasse_schule" class="text-sm font-medium text-text">{{ __('Klasse Berufsfachschule') }}</label>
                     <input id="klasse_schule" name="klasse_schule" type="text" maxlength="30"
                            value="{{ old('klasse_schule', $lernender->klasse_schule) }}" placeholder="{{ __('z. B. INF24b') }}"
-                           class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                                  focus:ring-2 focus:ring-ring focus:border-ring @error('klasse_schule') border-note-ungenuegend! @enderror">
+                           class="np-feld mt-1 block @error('klasse_schule') border-note-ungenuegend! @enderror">
                     @error('klasse_schule')
                         <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                     @enderror
@@ -74,8 +69,7 @@
                         <label for="klasse_bms" class="text-sm font-medium text-text">{{ __('Klasse BMS') }}</label>
                         <input id="klasse_bms" name="klasse_bms" type="text" maxlength="30"
                                value="{{ old('klasse_bms', $lernender->klasse_bms) }}"
-                               class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                                      focus:ring-2 focus:ring-ring focus:border-ring @error('klasse_bms') border-note-ungenuegend! @enderror">
+                               class="np-feld mt-1 block @error('klasse_bms') border-note-ungenuegend! @enderror">
                         @error('klasse_bms')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -448,7 +442,7 @@
 
         <div class="pt-1">
             <button type="submit" :disabled="loading"
-                    class="px-5 py-2 h-10 rounded-xl bg-accent text-accent-contrast font-medium np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+                    class="np-knopf np-knopf-primaer np-knopf-gross">
                 {{ __('Speichern') }}
             </button>
         </div>
@@ -459,7 +453,7 @@
               onsubmit="return confirm(@js(__('Darstellung wirklich auf Standard zurücksetzen?')));">
             @csrf
             @method('delete')
-            <button type="submit" class="px-4 py-2 h-9 rounded-xl glass-btn text-sm text-text">
+            <button type="submit" class="np-knopf np-knopf-sekundaer">
                 {{ __('Auf Standard zurücksetzen') }}
             </button>
         </form>

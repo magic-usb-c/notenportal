@@ -5,11 +5,11 @@
             <x-slot:aktionen>
                 @if($abgabeMoeglich)
                     <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'abgabetermin')" @endunless
-                       class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
-                        <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Abgabetermin') }}
+                       class="np-knopf np-knopf-primaer">
+                        <x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}
                     </a>
                 @endif
-                <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">
+                <a href="{{ route('settings.calendar') }}" class="np-knopf np-knopf-sekundaer">
                     {{ __('Kalender-Abo') }}
                 </a>
             </x-slot:aktionen>
@@ -17,7 +17,7 @@
     </x-slot>
 
     @php
-        $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-48';
+        $auswahl = 'np-feld px-2.5 sm:w-48';
         $aktiveFilter = ($filter['lernender_id'] ? 1 : 0) + ($filter['zeitraum'] !== 'alle' ? 1 : 0);
         $pillBasis = 'inline-flex px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap';
     @endphp
@@ -47,7 +47,7 @@
             @endif
 
             @forelse($gruppen as $g)
-                <section class="rounded-xl border border-border bg-card overflow-hidden">
+                <section class="np-karte overflow-hidden">
                     <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">
                         {{ $g['label'] }} <span class="ml-1 text-sm text-muted tabular-nums">{{ $g['zeilen']->count() }}</span>
                     </h3>
@@ -156,7 +156,7 @@
                     </div>
                 </section>
             @empty
-                <div class="rounded-xl border border-border bg-card px-5 py-10 text-center text-sm text-muted">
+                <div class="np-karte px-5 py-10 text-center text-sm text-muted">
                     {{ __('Keine Prüfungstermine für die aktuelle Auswahl.') }}
                 </div>
             @endforelse

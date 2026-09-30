@@ -17,7 +17,7 @@
     «Filtern»-Button), No-JS-Fallback per <noscript>-Button. «Weitere Filter» als Disclosure.
     Mobil: Suche + Button «Filter (n)», der Primär- und Weitere Filter gemeinsam aufklappt.
 --}}
-<div x-data="{ offen: {{ $aktiveWeitere > 0 ? 'true' : 'false' }} }" class="rounded-xl border border-border bg-card p-3">
+<div x-data="{ offen: {{ $aktiveWeitere > 0 ? 'true' : 'false' }} }" class="np-karte p-3">
     <form method="{{ $method }}" action="{{ $action }}" class="flex flex-col gap-3">
         {{ $hidden ?? '' }}
 
@@ -30,7 +30,7 @@
                     <label for="{{ $sucheName }}" class="sr-only">{{ $suchePlatzhalter }}</label>
                     <input type="search" name="{{ $sucheName }}" id="{{ $sucheName }}" value="{{ $sucheWert }}"
                            placeholder="{{ $suchePlatzhalter }}" x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                           class="h-9 w-full rounded-lg border border-border-strong/70 bg-input pl-8 pr-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30">
+                           class="np-feld pl-8 pr-3">
                 </div>
             @endif
 
@@ -40,7 +40,7 @@
 
             @isset($weitere)
                 <button type="button" @click="offen = ! offen" :aria-expanded="offen"
-                        class="hidden h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted hover:bg-surface-2 hover:text-text md:inline-flex">
+                        class="np-knopf np-knopf-sekundaer shrink-0 max-md:hidden">
                     {{ $weitereLabel }}
                     @if($aktiveWeitere > 0)
                         <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-3xs font-semibold text-accent-contrast">{{ $aktiveWeitere }}</span>

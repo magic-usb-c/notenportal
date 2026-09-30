@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Benutzerverwaltung')" :zaehler="$benutzer->count()">
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">
+                   class="np-knopf np-knopf-primaer">
                     {{ __('Benutzer anlegen') }}
                 </a>
             </x-slot:aktionen>
@@ -21,7 +21,7 @@
                              :zurueck="route('admin.users.index')" :aktive-filter="$aktiveFilter">
                 <label for="rolle_id" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle_id" id="rolle_id" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44">
+                        class="np-feld px-2.5 sm:w-44">
                     <option value="">{{ __('Alle Rollen') }}</option>
                     @foreach($rollen as $r)
                         <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ __($r->name) }}</option>
@@ -30,7 +30,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-36">
+                        class="np-feld px-2.5 sm:w-36">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     <option value="aktiv" @selected($status === 'aktiv')>{{ __('Aktiv') }}</option>
                     <option value="inaktiv" @selected($status === 'inaktiv')>{{ __('Inaktiv') }}</option>
@@ -40,7 +40,7 @@
             {{-- Karten oder Tabelle je nach Breite des Inhalts, nicht des Fensters (Seitenleiste) --}}
             <div class="@container">
                 {{-- Kartenansicht mobil: Aktionen bleiben ohne seitliches Scrollen erreichbar --}}
-                <div class="@3xl:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte @3xl:hidden divide-y divide-border overflow-hidden">
                     @forelse($benutzer as $b)
                         @php
                             $initials = strtoupper(mb_substr($b->vorname ?? '', 0, 1) . mb_substr($b->nachname ?? '', 0, 1));
@@ -95,7 +95,7 @@
                 </div>
 
                 {{-- Tabelle --}}
-                <div class="hidden @3xl:block rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte hidden @3xl:block overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-text">
                             <thead class="sticky top-0 z-10 bg-surface-2">

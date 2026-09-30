@@ -1,23 +1,19 @@
 @php
     $neu = ! $modul->exists;
-    $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+    $feld = 'np-feld mt-1';
     $label = 'text-sm font-medium text-text';
 @endphp
 
 <x-app-layout>
     <x-slot name="title">{{ $neu ? __('Modul anlegen') : __('Modul bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="$neu ? __('Modul anlegen') : __('Modul bearbeiten')" schmal>
-            <x-slot:aktionen>
-                <a href="{{ $neu ? route('modules.index') : route('modules.show', $modul->modul_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="$neu ? route('modules.index') : route('modules.show', $modul->modul_id)" :titel="$neu ? __('Modul anlegen') : __('Modul bearbeiten')" schmal>
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl rounded-xl border border-border bg-card p-6">
+            <div class="np-karte max-w-3xl p-6">
                 <form method="POST" action="{{ $neu ? route('modules.store') : route('modules.update', $modul->modul_id) }}"
                       class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
@@ -79,7 +75,7 @@
 
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
-                                class="h-10 w-full rounded-xl bg-accent px-4 py-2 font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-60">
+                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                             {{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}
                         </button>
                     </div>

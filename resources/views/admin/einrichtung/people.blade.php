@@ -1,8 +1,8 @@
 <x-einrichtung schritt="people" :stand="$stand" :titel="__('Personen')">
     @php
-        $feld = 'h-10 w-full rounded-lg border border-border bg-input text-text px-2 text-sm normal-case tracking-normal focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld px-2 normal-case tracking-normal';
         $label = 'flex flex-col gap-1 text-sm font-medium text-text min-w-0';
-        $knopf = 'inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60';
+        $knopf = 'np-knopf np-knopf-primaer np-knopf-gross';
         $fehlerKeys = array_keys($errors->getMessages());
         $meldungen = fn (string $praefix) => collect($errors->getMessages())->filter(fn ($m, $k) => str_starts_with($k, $praefix))->flatten()->unique();
         $leerePerson = ['vorname' => '', 'nachname' => '', 'email' => '', 'rolle' => 'Berufsbildner'];
@@ -36,7 +36,7 @@
 
     @include('admin.einrichtung._zugaenge')
 
-    <form method="POST" action="{{ route('admin.setup.people') }}" class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4 print:hidden"
+    <form method="POST" action="{{ route('admin.setup.people') }}" class="np-karte p-6 flex flex-col gap-4 print:hidden"
           x-data="npZeilen({{ \Illuminate\Support\Js::from(old('personen', [])) }}, {{ \Illuminate\Support\Js::from($leerePerson) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'personen')"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
@@ -63,25 +63,25 @@
             <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('personen') as $m)<li>{{ $m }}</li>@endforeach</ul>
         @endif
         <div class="flex items-center justify-between gap-3">
-            <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weitere Person') }}</button>
+            <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht">+ {{ __('Weitere Person') }}</button>
             <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Konten anlegen') }}</button>
         </div>
     </form>
 
     @if($lehrberufe->isEmpty() || ! $semesterVorhanden)
-        <section class="rounded-2xl border border-border bg-card p-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <section class="np-karte p-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
             <h3 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h3>
             <div class="flex gap-2">
                 @unless($semesterVorhanden)
-                    <a href="{{ route('admin.setup', 'semesters') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Semester anlegen') }}</a>
+                    <a href="{{ route('admin.setup', 'semesters') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Semester anlegen') }}</a>
                 @endunless
                 @if($lehrberufe->isEmpty())
-                    <a href="{{ route('admin.setup', 'professions') }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Lehrberufe anlegen') }}</a>
+                    <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Lehrberufe anlegen') }}</a>
                 @endif
             </div>
         </section>
     @else
-        <form method="POST" action="{{ route('admin.setup.learners') }}" class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4 print:hidden"
+        <form method="POST" action="{{ route('admin.setup.learners') }}" class="np-karte p-6 flex flex-col gap-4 print:hidden"
               x-data="npZeilen({{ \Illuminate\Support\Js::from(old('lernende', [])) }}, {{ \Illuminate\Support\Js::from($leererLernender) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'lernende')"
               @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
@@ -121,7 +121,7 @@
                 <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('lernende') as $m)<li>{{ $m }}</li>@endforeach</ul>
             @endif
             <div class="flex items-center justify-between gap-3">
-                <button type="button" @click="neu()" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">+ {{ __('Weitere Lernende') }}</button>
+                <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht">+ {{ __('Weitere Lernende') }}</button>
                 <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Lernende anlegen') }}</button>
             </div>
         </form>

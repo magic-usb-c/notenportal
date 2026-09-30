@@ -1,12 +1,12 @@
 <x-einrichtung schritt="operations" :stand="$stand" :titel="__('Betrieb')">
     @php
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld mt-1';
         $label = 'text-sm font-medium text-text';
     @endphp
     <form method="POST" action="{{ route('admin.setup.operations') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="rounded-2xl border border-border bg-card p-6">
+        <section class="np-karte p-6">
             <h3 class="text-sm font-semibold text-text mb-4">{{ __('Dein Konto') }}</h3>
             <div class="grid sm:grid-cols-3 gap-4">
                 @foreach(['vorname' => [__('Vorname'), 'text', 'given-name'], 'nachname' => [__('Nachname'), 'text', 'family-name'], 'email' => [__('E-Mail'), 'email', 'email']] as $name => [$text, $typ, $auto])
@@ -20,7 +20,7 @@
             </div>
         </section>
 
-        <section class="rounded-2xl border border-border bg-card p-6">
+        <section class="np-karte p-6">
             <h3 class="text-sm font-semibold text-text mb-4">{{ __('Betrieb und Notengrenzen') }}</h3>
             @include('admin.betrieb._felder', ['werte' => $werte])
         </section>

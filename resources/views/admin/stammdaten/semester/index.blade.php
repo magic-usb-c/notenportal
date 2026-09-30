@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Semester')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.semesters.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     <span class="text-lg leading-none">+</span> {{ __('Neues Semester') }}
                 </a>
             </x-slot:aktionen>
@@ -14,7 +14,7 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
 
-            <div class="@container rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte @container overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm tabular-nums">
                     <thead class="sticky top-0 bg-surface-2">
@@ -48,12 +48,12 @@
                                 <td class="px-4 py-1 text-right">
                                     <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                         <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
-                                           class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Bearbeiten') }}</a>
+                                           class="np-knopf np-knopf-schlicht">{{ __('Bearbeiten') }}</a>
                                         <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
                                               onsubmit="return confirm(@js(__('Semester :bezeichnung löschen?', ['bezeichnung' => $s->bezeichnung])))"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                             @csrf @method('DELETE')
-                                            <button :disabled="loading" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-60">{{ __('Löschen') }}</button>
+                                            <button :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
                                         </form>
                                     </div>
                                 </td>

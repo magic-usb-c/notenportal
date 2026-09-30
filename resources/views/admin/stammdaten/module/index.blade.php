@@ -4,11 +4,11 @@
         <x-seitenkopf :titel="__('Module')">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.modules.catalog') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3.5 text-sm font-medium text-text hover:bg-surface-2">
+                   class="np-knopf np-knopf-sekundaer">
                     {{ __('Katalog einlesen') }}
                 </a>
                 <a href="{{ route('admin.master-data.modules.create') }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer">
                     <span class="text-lg leading-none">+</span> {{ __('Neues Modul') }}
                 </a>
             </x-slot:aktionen>
@@ -16,7 +16,7 @@
     </x-slot>
 
     @php
-        $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-44';
+        $auswahl = 'np-feld px-2.5 sm:w-44';
         $aktiveFilter = collect([$suche, $lehrberufId, $kategorieId])->filter()->count();
         $aktiveWeitere = $gruppieren !== '' ? 1 : 0;
 
@@ -84,7 +84,7 @@
 
             @if($gruppieren !== '')
                 @forelse($gruppen as $name => $zeilen)
-                    <div class="rounded-xl border border-border bg-card overflow-hidden">
+                    <div class="np-karte overflow-hidden">
                         <div class="px-4 py-2.5 border-b border-border bg-bg/40">
                             <h3 class="text-sm font-semibold text-text">{{ $name }}</h3>
                         </div>
@@ -108,10 +108,10 @@
                         </div>
                     </div>
                 @empty
-                    <div class="rounded-xl border border-border bg-card p-6 text-center text-muted">{{ __('Keine Module gefunden.') }}</div>
+                    <div class="np-karte p-6 text-center text-muted">{{ __('Keine Module gefunden.') }}</div>
                 @endforelse
             @else
-                <div class="rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte overflow-hidden">
                     <div class="@container overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">

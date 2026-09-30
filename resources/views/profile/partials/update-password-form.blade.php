@@ -9,8 +9,7 @@
         <div>
             <label for="current_password" class="block text-sm font-medium text-muted">{{ __('Aktuelles Passwort') }}</label>
             <input id="current_password" name="current_password" type="password" autocomplete="current-password"
-                   class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                          focus:ring-2 focus:ring-ring focus:border-ring @if($errors->updatePassword->get('current_password')) border-note-ungenuegend @endif">
+                   class="np-feld mt-1 block @if($errors->updatePassword->get('current_password')) border-note-ungenuegend @endif">
             @foreach($errors->updatePassword->get('current_password') as $msg)
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $msg }}</p>
             @endforeach
@@ -19,8 +18,7 @@
         <div>
             <label for="password" class="block text-sm font-medium text-muted">{{ __('Neues Passwort') }}</label>
             <input id="password" name="password" type="password" autocomplete="new-password"
-                   class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                          focus:ring-2 focus:ring-ring focus:border-ring @if($errors->updatePassword->get('password')) border-note-ungenuegend @endif">
+                   class="np-feld mt-1 block @if($errors->updatePassword->get('password')) border-note-ungenuegend @endif">
             @foreach($errors->updatePassword->get('password') as $msg)
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $msg }}</p>
             @endforeach
@@ -29,13 +27,12 @@
         <div>
             <label for="password_confirmation" class="block text-sm font-medium text-muted">{{ __('Passwort bestätigen') }}</label>
             <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password"
-                   class="mt-1 block w-full rounded-xl border border-border bg-input text-text px-3 py-2
-                          focus:ring-2 focus:ring-ring focus:border-ring">
+                   class="np-feld mt-1 block">
         </div>
 
         <div class="pt-1 flex items-center gap-4">
             <button type="submit" :disabled="loading"
-                    class="px-5 py-2 h-10 rounded-xl bg-accent text-accent-contrast font-medium np-btn-primary disabled:opacity-60 disabled:cursor-not-allowed">
+                    class="np-knopf np-knopf-primaer np-knopf-gross">
                 {{ __('Passwort ändern') }}
             </button>
         </div>

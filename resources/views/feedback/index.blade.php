@@ -4,7 +4,7 @@
         <x-seitenkopf :titel="__('Meine Meldungen')" schmal>
             <x-slot:aktionen>
                 <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
-                        class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
+                        class="np-knopf np-knopf-primaer">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     {{ __('Meldung erfassen') }}
                 </button>
@@ -14,7 +14,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl rounded-xl border border-border bg-card overflow-hidden">
+            <div class="np-karte max-w-3xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm text-text">
                         <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">

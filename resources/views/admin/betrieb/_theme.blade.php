@@ -1,5 +1,5 @@
 {{-- Farbthema des Betriebs: Auswahl zeigt die Seite sofort im gewählten Theme, gespeichert wird erst mit «Speichern» --}}
-<section class="rounded-xl border border-border bg-card p-6 mt-5">
+<section class="np-karte p-6 mt-5">
     <h3 class="text-sm font-semibold text-text">{{ __('Farbthema') }}</h3>
     <form method="POST" action="{{ route('admin.operations.theme.update') }}" class="mt-4 flex flex-col gap-5"
           x-data="{ loading: false, theme: @js($theme), dunkel: document.documentElement.classList.contains('dark') }"
@@ -24,7 +24,7 @@
             @error('theme')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </fieldset>
         <div class="flex justify-end">
-            <button type="submit" :disabled="loading" class="inline-flex h-10 items-center rounded-lg bg-accent px-5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
         </div>
     </form>
 </section>

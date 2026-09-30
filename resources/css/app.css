@@ -756,8 +756,6 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 }
 
 @utility np-knopf-symbol {
-  width: 2rem;
-  padding-inline: 0;
   color: rgb(var(--muted));
   background-color: transparent;
   &:hover {
@@ -770,6 +768,30 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   & > svg {
     width: 1.125rem;
     height: 1.125rem;
+  }
+  &.np-knopf {
+    aspect-ratio: 1 / 1;
+    padding-inline: 0;
+  }
+}
+
+/* Symbolknopf für Löschen/Entfernen: im Ruhezustand grau, beim Zeigen rot */
+@utility np-knopf-symbol-gefahr {
+  &.np-knopf-symbol:hover {
+    color: rgb(var(--note-ungenuegend));
+    background-color: rgb(var(--note-ungenuegend) / 0.1);
+  }
+  &.np-knopf-symbol:active {
+    background-color: rgb(var(--note-ungenuegend) / 0.16);
+  }
+}
+
+/* Quadratisch mit Kreisform für ein einzelnes Symbol mit Fläche (Stepper, Werkzeugknopf);
+   Höhe aus np-knopf bzw. -klein/-gross, Breite folgt über das Seitenverhältnis */
+@utility np-knopf-rund {
+  &.np-knopf {
+    aspect-ratio: 1 / 1;
+    padding-inline: 0;
   }
 }
 
@@ -841,6 +863,23 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   &:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  /* Mehrzeilig: Höhe aus rows, Innenabstand oben/unten */
+  &:is(textarea) {
+    height: auto;
+    min-height: 4.5rem;
+    padding-block: 0.5rem;
+  }
+  /* Auswahl als Pop-up-Button (macOS): Doppelpfeil statt Browserpfeil, Wert immer sichtbar */
+  &:is(select:not([multiple], [size])) {
+    appearance: none;
+    padding-right: 2rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2386868b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M5 6.25 8 3.5l3 2.75M5 9.75 8 12.5l3-2.75'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-size: 1rem 1rem;
+    background-repeat: no-repeat;
+    print-color-adjust: exact;
+    cursor: pointer;
   }
 }
 
@@ -950,13 +989,22 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   & > *:hover {
     color: rgb(var(--text));
   }
-  & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt) {
+  /* Radio-Variante: <label><input type=radio class=sr-only>Text</label> je Segment */
+  & > :has(> input:focus-visible) {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 1px;
+  }
+  & > :has(> input:disabled) {
+    opacity: 0.5;
+    cursor: default;
+  }
+  & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt, :has(> input:checked)) {
     background-color: rgb(var(--card));
     color: rgb(var(--text));
     box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 0 0 0.5px rgb(0 0 0 / 0.06);
   }
   @variant dark {
-    & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt) {
+    & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt, :has(> input:checked)) {
       background-color: rgb(var(--text) / 0.2);
       box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
     }

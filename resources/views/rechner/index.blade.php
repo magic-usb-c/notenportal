@@ -1,15 +1,12 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Rechner') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf titel="{{ __('Rechner') }}" :untertitel="$lernender ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null">
-            <x-slot:aktionen>
-                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="$zurueck" titel="{{ __('Rechner') }}" :untertitel="$lernender ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null">
         </x-seitenkopf>
     </x-slot>
 
     @php
-        $feld = 'w-full rounded-xl border border-border bg-input text-text text-sm px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld';
         $label = 'text-sm font-medium text-text';
         $ebenen = ['gesamt' => __('Gesamt'), 'kategorie' => __('Kategorie'), 'semester' => __('Semester'), 'fach' => __('Fach'), 'modul' => __('Modul')];
         // Ein Satz pro Tab, was er beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
@@ -68,7 +65,7 @@
 
                 {{-- Eingaben --}}
                 <div class="lg:col-span-5 flex flex-col gap-5">
-                    <section class="rounded-xl border border-border bg-card p-5 flex flex-col gap-4">
+                    <section class="np-karte p-5 flex flex-col gap-4">
                         <div role="tablist" aria-label="{{ __('Ebene') }}" class="flex flex-wrap gap-0.5 sm:gap-1 p-1 rounded-xl bg-bg/60 border border-border">
                             @foreach($ebenen as $wert => $name)
                                 <button type="button" role="tab" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')"
@@ -101,12 +98,12 @@
                         <div>
                             <label for="zielwert" class="{{ $label }}">{{ __('Mindestens') }}</label>
                             <div class="mt-1 flex items-center gap-2">
-                                <button type="button" class="w-10 h-10 rounded-xl glass-btn text-text text-lg" aria-label="{{ __('Zielwert senken') }}"
+                                <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-gross np-knopf-rund" aria-label="{{ __('Zielwert senken') }}"
                                         @click="zielwert = String(Math.max(1, Math.round((parseFloat(zielwert) - 0.1) * 10) / 10))">−</button>
                                 <input id="zielwert" type="number" min="1" max="6" step="0.05" x-model="zielwert"
-                                       class="w-24 h-12 text-2xl font-bold text-center tabular-nums rounded-xl border border-border bg-input focus:ring-2 focus:ring-ring focus:border-ring"
+                                       class="np-feld w-24 h-12 text-2xl font-bold text-center tabular-nums"
                                        :class="klasse(zielwert)">
-                                <button type="button" class="w-10 h-10 rounded-xl glass-btn text-text text-lg" aria-label="{{ __('Zielwert erhöhen') }}"
+                                <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-gross np-knopf-rund" aria-label="{{ __('Zielwert erhöhen') }}"
                                         @click="zielwert = String(Math.min(6, Math.round((parseFloat(zielwert) + 0.1) * 10) / 10))">+</button>
                                 <div class="flex flex-wrap gap-1 ml-1">
                                     @foreach(['4.0', '4.5', '5.0', '5.5'] as $v)
@@ -128,7 +125,7 @@
                                     @csrf
                                     <input type="hidden" name="ziel" :value="zielText">
                                     <input type="hidden" name="zielwert" :value="zielwert">
-                                    <button class="inline-flex items-center gap-1.5 px-3 min-h-9 rounded-xl glass-btn text-sm text-text"
+                                    <button class="np-knopf np-knopf-sekundaer"
                                             x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
                                             :disabled="gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert)"></button>
                                 </form>
@@ -136,12 +133,12 @@
                         </div>
                     </section>
 
-                    <section class="rounded-xl border border-border bg-card overflow-hidden">
+                    <section class="np-karte overflow-hidden">
                         <div class="px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-border/70">
                             <h3 class="whitespace-nowrap font-semibold text-text">{{ __('Offene Prüfungen') }} <span class="ml-1 text-sm text-muted tabular-nums" x-text="offene"></span></h3>
                             <div class="ms-auto flex gap-1.5">
-                                <button type="button" x-show="katalog.faecher.length" @click="neueZeile('fach')" class="px-3 min-h-9 whitespace-nowrap rounded-lg glass-btn text-xs text-text">+ {{ __('Fach') }}</button>
-                                <button type="button" x-show="katalog.module.length" @click="neueZeile('modul')" class="px-3 min-h-9 whitespace-nowrap rounded-lg glass-btn text-xs text-text">+ {{ __('Modul') }}</button>
+                                <button type="button" x-show="katalog.faecher.length" @click="neueZeile('fach')" class="np-knopf np-knopf-sekundaer np-knopf-klein">+ {{ __('Fach') }}</button>
+                                <button type="button" x-show="katalog.module.length" @click="neueZeile('modul')" class="np-knopf np-knopf-sekundaer np-knopf-klein">+ {{ __('Modul') }}</button>
                             </div>
                         </div>
 
@@ -155,7 +152,7 @@
                                                 <option :value="String(o.id)" x-text="o.name" :selected="String(o.id) === z.id"></option>
                                             </template>
                                         </select>
-                                        <button type="button" @click="entferne(z.nr)" class="w-9 h-9 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10" aria-label="{{ __('Prüfung entfernen') }}">×</button>
+                                        <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0" aria-label="{{ __('Prüfung entfernen') }}">×</button>
                                     </div>
                                     <div class="flex flex-wrap items-center gap-2">
                                         <select x-show="z.typ === 'fach'" x-model="z.semester" class="flex-1 min-w-0 {{ $feld }}" aria-label="{{ __('Semester') }}">
@@ -167,10 +164,10 @@
                                             <span class="truncate" x-text="z.titel ?? ''"></span>
                                         </div>
                                         <label class="ms-auto flex items-center gap-1 text-xs text-muted shrink-0">
-                                            <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="w-16 rounded-lg border border-border bg-input text-text text-sm px-2 py-1.5 text-right tabular-nums focus:ring-2 focus:ring-ring" aria-label="{{ __('Gewichtung in Prozent') }}">%
+                                            <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="np-feld w-16 px-2 text-right tabular-nums" aria-label="{{ __('Gewichtung in Prozent') }}">%
                                         </label>
                                         <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
-                                               class="w-16 shrink-0 rounded-lg border border-border bg-input text-sm px-2 py-1.5 text-center font-semibold tabular-nums focus:ring-2 focus:ring-ring placeholder:text-accent-text"
+                                               class="np-feld w-16 shrink-0 px-2 text-center font-semibold tabular-nums placeholder:text-accent-text"
                                                :class="z.wert === '' ? 'border-accent/40' : klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}">
                                     </div>
                                 </div>
@@ -183,7 +180,7 @@
 
                 {{-- Ergebnis --}}
                 <div class="lg:col-span-7 flex flex-col gap-5">
-                    <section class="rounded-xl border border-border bg-card p-6 sm:p-8 text-center transition-opacity" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
+                    <section class="np-karte p-6 sm:p-8 text-center transition-opacity" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
                         <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
 
                         <template x-if="ergebnis && !fehler">
@@ -202,14 +199,14 @@
                         </template>
                     </section>
 
-                    <section class="rounded-xl border border-border bg-card p-5" x-show="kurve" x-cloak>
+                    <section class="np-karte p-5" x-show="kurve" x-cloak>
                         <h3 class="text-sm font-semibold text-text mb-3">{{ __('Ergebnis je Note in den offenen Prüfungen') }}</h3>
                         <div class="h-56" x-data="npChart('kurve')" x-effect="zeichne(kurve)">
                             <canvas x-ref="canvas" role="img" aria-label="{{ __('Ergebnis in Abhängigkeit der Note') }}"></canvas>
                         </div>
                     </section>
 
-                    <section class="rounded-xl border border-border bg-card overflow-hidden" x-show="ergebnis?.vergleich?.length" x-cloak>
+                    <section class="np-karte overflow-hidden" x-show="ergebnis?.vergleich?.length" x-cloak>
                         <div class="px-5 py-3 border-b border-border/70 flex items-center justify-between">
                             <h3 class="text-sm font-semibold text-text">{{ __('Auswirkung') }}</h3>
                             <span class="text-xs text-muted tabular-nums" x-show="ergebnis?.loesung.status === 'benoetigt'" x-text="@js(__('mit ')) + fmt(ergebnis?.loesung.note, 2)"></span>
@@ -231,7 +228,7 @@
                         </div>
                     </section>
 
-                    <section class="rounded-xl border border-border bg-card p-5 flex flex-col gap-3" x-show="ergebnis?.promotion?.length" x-cloak>
+                    <section class="np-karte p-5 flex flex-col gap-3" x-show="ergebnis?.promotion?.length" x-cloak>
                         <h3 class="text-sm font-semibold text-text">{{ __('Promotion') }}</h3>
                         <template x-for="p in ergebnis?.promotion ?? []" :key="p.kategorie + p.semester">
                             <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-4 py-3"

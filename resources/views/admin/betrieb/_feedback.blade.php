@@ -1,5 +1,5 @@
 {{-- Schwebender Feedback-Knopf (Block G, Testphase): ein-/ausschaltbar, bis alles stabil läuft. --}}
-<section class="rounded-xl border border-border bg-card p-6 mt-5">
+<section class="np-karte p-6 mt-5">
     <h3 class="text-sm font-semibold text-text">{{ __('Feedback-Knopf') }}</h3>
     <p class="mt-1 text-sm text-muted">{{ __('Schwebender Knopf unten rechts, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden können.') }}</p>
     <form method="POST" action="{{ route('admin.operations.feedback-button.update') }}" class="mt-4 flex flex-col gap-4"
@@ -12,7 +12,7 @@
             {{ __('Feedback-Knopf einblenden') }}
         </label>
         <div class="flex justify-end">
-            <button type="submit" :disabled="loading" class="inline-flex h-10 items-center rounded-lg bg-accent px-5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
         </div>
     </form>
 </section>

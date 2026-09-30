@@ -40,12 +40,12 @@
         <div class="pt-2">
             @if($angemeldet)
                 <a href="{{ url('/') }}"
-                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer np-knopf-gross">
                     {{ __('Zum Dashboard') }}
                 </a>
             @else
                 <a href="{{ route('login') }}"
-                   class="inline-flex items-center px-5 py-2.5 rounded-xl bg-accent text-accent-contrast np-btn-primary">
+                   class="np-knopf np-knopf-primaer np-knopf-gross">
                     {{ __('Zur Anmeldung') }}
                 </a>
             @endif

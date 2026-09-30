@@ -6,7 +6,7 @@
         ? $n->kommentare->contains(fn ($k) => $k->erstellt_am > $eigeneSicht->gesehen_am)
         : $n->kommentare->isNotEmpty();
     $letzter = $n->kommentare->last();
-    $feld = 'h-9 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $feld = 'np-feld';
 @endphp
 <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
          x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
@@ -40,7 +40,7 @@
             <div class="flex items-center" onclick="event.stopPropagation()">
                 <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
                    @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
-                   class="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text">
+                   class="np-knopf np-knopf-symbol">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
                 </a>
                 <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
@@ -49,7 +49,7 @@
                     @csrf
                     @method('DELETE')
                     <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
-                            class="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-note-ungenuegend/10 hover:text-note-ungenuegend disabled:opacity-50">
+                            class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr">
                         <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>
                     </button>
                 </form>
@@ -72,8 +72,8 @@
                     <input type="text" x-model="titelDraft" maxlength="150" aria-label="{{ __('Notiz') }}"
                            @keydown.enter.prevent="saveTitel()" @keydown.escape.stop="editingTitel = false" x-init="$el.focus()"
                            class="flex-1 {{ $feld }}">
-                    <button type="button" @click="saveTitel()" :disabled="savingTitel" class="inline-flex h-9 items-center rounded-lg glass-btn px-3 text-sm font-medium text-text disabled:opacity-50">OK</button>
-                    <button type="button" @click="editingTitel = false" aria-label="{{ __('Abbrechen') }}" class="inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text">×</button>
+                    <button type="button" @click="saveTitel()" :disabled="savingTitel" class="np-knopf np-knopf-sekundaer">OK</button>
+                    <button type="button" @click="editingTitel = false" aria-label="{{ __('Abbrechen') }}" class="np-knopf np-knopf-symbol">×</button>
                     <span x-show="titelError" x-cloak class="shrink-0 text-xs text-note-ungenuegend">{{ __('Nicht gespeichert') }}</span>
                 </div>
             </template>
@@ -93,7 +93,7 @@
                                   onsubmit="return confirm(@js(__('Kommentar wirklich löschen?')));">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="loading" class="inline-flex h-8 items-center rounded-lg px-2 text-xs text-note-ungenuegend hover:bg-note-ungenuegend/10 disabled:opacity-50">{{ __('Löschen') }}</button>
+                                <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Löschen') }}</button>
                             </form>
                         @endif
                     </div>
@@ -109,7 +109,7 @@
             @csrf
             <input type="text" name="kommentar_text" placeholder="{{ __('Kommentar schreiben') }}" aria-label="{{ __('Kommentar schreiben') }}" maxlength="2000" required
                    class="min-w-0 flex-1 {{ $feld }}">
-            <button type="submit" :disabled="loading" class="inline-flex h-9 items-center rounded-lg glass-btn px-3.5 text-sm font-medium text-text disabled:opacity-50">{{ __('Senden') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
         </form>
     </div>
 </details>

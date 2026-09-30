@@ -1,21 +1,18 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Notenimport') }}</x-slot>
     @php
-        $feld = 'h-9 w-full rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld px-2';
     @endphp
 
     <x-slot name="header">
-        <x-seitenkopf titel="{{ __('Notenimport') }}" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null" :schmal="! $vorschau">
-            <x-slot:aktionen>
-                <a href="{{ $zurueck }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="$zurueck" titel="{{ __('Notenimport') }}" :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null" :schmal="! $vorschau">
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
             @if(! $vorschau)
-                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="rounded-xl border border-border bg-card p-6 flex flex-col gap-4 max-w-3xl w-full"
+                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="np-karte p-6 flex flex-col gap-4 max-w-3xl w-full"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-12 text-center cursor-pointer transition-colors"
@@ -30,8 +27,8 @@
                     </label>
                     @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
-                        <a href="{{ $r('template') }}" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text hover:bg-accent/10">{{ __('Vorlage (CSV)') }}</a>
-                        <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Datei lesen') }}</button>
+                        <a href="{{ $r('template') }}" class="np-knopf np-knopf-schlicht">{{ __('Vorlage (CSV)') }}</a>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Datei lesen') }}</button>
                     </div>
                 </form>
             @else
@@ -93,7 +90,7 @@
                     <input type="hidden" name="zeilen" :value="json">
                     <input type="hidden" name="token" value="{{ $vorschau['token'] ?? '' }}">
 
-                    <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-x-8 gap-y-3">
+                    <section class="np-karte p-5 flex flex-wrap items-center gap-x-8 gap-y-3">
                         <div class="min-w-0">
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
@@ -119,7 +116,7 @@
                         </dl>
                     </section>
 
-                    <section class="rounded-xl border border-border bg-card overflow-hidden">
+                    <section class="np-karte overflow-hidden">
                         <div class="overflow-x-auto">
                             <table class="min-w-full text-sm text-text">
                                 <thead class="text-xs text-muted">
@@ -178,13 +175,13 @@
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex flex-wrap items-center gap-3">
-                            <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60">{{ __('Verwerfen') }}</button>
+                            <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Verwerfen') }}</button>
                             <button type="button" :disabled="loading || pruefeLaedt" @click="erneutPruefen()"
-                                    class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm disabled:opacity-60"
+                                    class="np-knopf np-knopf-sekundaer np-knopf-gross"
                                     x-text="pruefeLaedt ? @js(__('Prüfe …')) : @js(__('Erneut prüfen'))"></button>
                         </div>
                         <button type="submit" :disabled="loading || pruefeLaedt || gewaehlt === 0"
-                                class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60"
+                                class="np-knopf np-knopf-primaer np-knopf-gross"
                                 x-text="gewaehlt === 1 ? @js(__('1 Note importieren')) : @js(__(':anzahl Noten importieren')).replace(':anzahl', gewaehlt)"></button>
                     </div>
                 </form>

@@ -14,7 +14,7 @@
                              zaehler-label="{{ __('Einträge') }}" :zurueck="route('admin.activity.index')" :aktive-filter="$aktiveFilter">
                 <label for="aktion" class="sr-only">{{ __('Aktion') }}</label>
                 <select name="aktion" id="aktion" x-on:change="$el.form.requestSubmit()"
-                        class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-56">
+                        class="np-feld px-2.5 sm:w-56">
                     <option value="" @selected($aktion === '')>{{ __('Aktion: alle') }}</option>
                     @foreach($aktionen as $wert => $label)
                         <option value="{{ $wert }}" @selected($aktion === $wert)>{{ __($label) }}</option>
@@ -24,17 +24,17 @@
                 <x-slot:weitere>
                     <label for="von" class="self-center text-xs text-muted">{{ __('Von') }}</label>
                     <input type="date" name="von" id="von" value="{{ $von }}" x-on:change="$el.form.requestSubmit()"
-                           class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">
+                           class="np-feld px-2.5">
                     <label for="bis" class="self-center text-xs text-muted">{{ __('Bis') }}</label>
                     <input type="date" name="bis" id="bis" value="{{ $bis }}" x-on:change="$el.form.requestSubmit()"
-                           class="h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">
+                           class="np-feld px-2.5">
                 </x-slot:weitere>
             </x-filterleiste>
 
             {{-- Karten oder Tabelle je nach Breite des Inhalts, nicht des Fensters (Seitenleiste) --}}
             <div class="@container">
                 {{-- Kartenansicht mobil --}}
-                <div class="@4xl:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte @4xl:hidden divide-y divide-border overflow-hidden">
                     @forelse($eintraege as $e)
                         <div class="p-4">
                             <div class="flex items-center justify-between gap-3">
@@ -66,7 +66,7 @@
                 </div>
 
                 {{-- Tabelle --}}
-                <div class="hidden @4xl:block rounded-xl border border-border bg-card overflow-hidden">
+                <div class="np-karte hidden @4xl:block overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead class="sticky top-0 z-10 bg-surface-2">
@@ -109,7 +109,7 @@
             </div>
 
             @if($eintraege->hasPages())
-                <div class="rounded-xl border border-border bg-card px-4 py-3">
+                <div class="np-karte px-4 py-3">
                     {{ $eintraege->links() }}
                 </div>
             @endif

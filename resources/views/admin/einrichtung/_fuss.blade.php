@@ -4,7 +4,7 @@
 @endphp
 <div class="flex flex-wrap items-center justify-between gap-3">
     @if($pos > 0)
-        <a href="{{ route('admin.setup', $schluessel[$pos - 1]) }}" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('← Zurück') }}</a>
+        <a href="{{ route('admin.setup', $schluessel[$pos - 1]) }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('← Zurück') }}</a>
     @else
         <span></span>
     @endif
@@ -14,7 +14,7 @@
         @endif
         @if($knopf ?? true)
             <button type="submit" :disabled="loading"
-                    class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ $knopf ?? __('Speichern und weiter') }}</button>
+                    class="np-knopf np-knopf-primaer np-knopf-gross">{{ $knopf ?? __('Speichern und weiter') }}</button>
         @endif
     </div>
 </div>

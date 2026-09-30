@@ -1,25 +1,12 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Lernender bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <nav class="mb-1 flex items-center gap-1 text-xs text-muted" aria-label="{{ __('Brotkrumen') }}">
-            <a href="{{ route("{$bereich}.learners.index") }}" class="transition-colors hover:text-text">{{ __('Lernende') }}</a>
-            <span class="text-muted/40">›</span>
-            <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}" class="transition-colors hover:text-text">
-                {{ $lernender->benutzer->nachname }} {{ $lernender->benutzer->vorname }}
-            </a>
-            <span class="text-muted/40">›</span>
-            <span class="text-text">{{ __('Bearbeiten') }}</span>
-        </nav>
-        <x-seitenkopf :titel="__('Lernender bearbeiten')" schmal>
-            <x-slot:aktionen>
-                <a href="{{ route("{$bereich}.learners.show", $lernender->lernender_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="route($bereich.'.learners.show', $lernender->lernender_id)" :titel="__('Lernender bearbeiten')" schmal>
         </x-seitenkopf>
     </x-slot>
 
     @php
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
+        $feld = 'np-feld mt-1';
         $label = 'text-xs font-medium text-muted';
         $benutzer = $lernender->benutzer;
     @endphp
@@ -28,7 +15,7 @@
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl">
             <form method="POST" action="{{ route("{$bereich}.learners.update", $lernender->lernender_id) }}"
-                  class="rounded-xl border border-border bg-card p-6 space-y-5"
+                  class="np-karte p-6 space-y-5"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('PUT')

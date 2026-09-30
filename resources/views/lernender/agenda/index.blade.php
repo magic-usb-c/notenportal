@@ -11,9 +11,9 @@
                    class="h-8 inline-flex items-center rounded-md px-3 {{ $ansicht === 'monat' ? 'bg-card text-accent-text shadow-xs' : 'text-muted' }}">{{ __('Monat') }}</a>
             </div>
             <x-slot:aktionen>
-                <a href="{{ route('settings.calendar') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Kalender-Abo') }}</a>
-                <a href="{{ route('learner.grades.calculator') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Was brauche ich?') }}</a>
-                <a href="{{ route('learner.exams.index') }}?planen=1" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" @endunless class="inline-flex h-9 items-center rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary whitespace-nowrap">{{ __('Prüfung planen') }}</a>
+                <a href="{{ route('settings.calendar') }}" class="np-knopf np-knopf-sekundaer">{{ __('Kalender-Abo') }}</a>
+                <a href="{{ route('learner.grades.calculator') }}" class="np-knopf np-knopf-sekundaer">{{ __('Was brauche ich?') }}</a>
+                <a href="{{ route('learner.exams.index') }}?planen=1" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" @endunless class="np-knopf np-knopf-primaer">{{ __('Prüfung planen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -34,7 +34,7 @@
             @if($ansicht === 'liste')
                 <div class="flex flex-col gap-5">
                     @if($gruppen['ueberfaellig']->isNotEmpty())
-                        <section class="rounded-xl border border-border bg-card overflow-hidden border-l-4 border-l-note-knapp">
+                        <section class="np-karte overflow-hidden border-l-4 border-l-note-knapp">
                             <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">{{ __('Note fehlt') }} <span class="ml-1 text-sm text-muted tabular-nums">{{ $gruppen['ueberfaellig']->count() }}</span></h3>
                             <div class="divide-y divide-border/70">
                                 @foreach($gruppen['ueberfaellig'] as $e)
@@ -44,7 +44,7 @@
                         </section>
                     @endif
 
-                    <section class="rounded-xl border border-border bg-card overflow-hidden">
+                    <section class="np-karte overflow-hidden">
                         <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">{{ __('Diese Woche') }} <span class="ml-1 text-sm text-muted tabular-nums">{{ $gruppen['diese_woche']->count() }}</span></h3>
                         <div class="divide-y divide-border/70">
                             @forelse($gruppen['diese_woche'] as $e)
@@ -56,7 +56,7 @@
                     </section>
 
                     @if($gruppen['naechste_woche']['eintraege']->isNotEmpty())
-                        <section class="rounded-xl border border-border bg-card overflow-hidden">
+                        <section class="np-karte overflow-hidden">
                             <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">{{ $gruppen['naechste_woche']['label'] }}</h3>
                             <div class="divide-y divide-border/70">
                                 @foreach($gruppen['naechste_woche']['eintraege'] as $e)
@@ -67,7 +67,7 @@
                     @endif
 
                     @if($gruppen['spaeter']->isNotEmpty())
-                        <section class="rounded-xl border border-border bg-card overflow-hidden">
+                        <section class="np-karte overflow-hidden">
                             <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">{{ __('Später') }} <span class="ml-1 text-sm text-muted tabular-nums">{{ $gruppen['spaeter']->count() }}</span></h3>
                             <div class="divide-y divide-border/70">
                                 @foreach($gruppen['spaeter'] as $e)
@@ -121,7 +121,7 @@
                 <div class="sm:hidden flex flex-col gap-5">
                     @foreach($monatsraster as $tag)
                         @continue($tag['eintraege']->isEmpty())
-                        <section class="rounded-xl border border-border bg-card overflow-hidden">
+                        <section class="np-karte overflow-hidden">
                             <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">{{ \App\Support\Format::datum($tag['datum'], 'D, d. M') }}</h3>
                             <div class="divide-y divide-border/70">
                                 @foreach($tag['eintraege'] as $e)
@@ -131,7 +131,7 @@
                         </section>
                     @endforeach
                     @if(collect($monatsraster)->every(fn ($tag) => $tag['eintraege']->isEmpty()))
-                        <p class="rounded-xl border border-border bg-card px-5 py-8 text-center text-sm text-muted">{{ __('Nichts geplant im :monat', ['monat' => \App\Support\Format::datum($monat, 'F')]) }}</p>
+                        <p class="np-karte px-5 py-8 text-center text-sm text-muted">{{ __('Nichts geplant im :monat', ['monat' => \App\Support\Format::datum($monat, 'F')]) }}</p>
                     @endif
                 </div>
             @endif

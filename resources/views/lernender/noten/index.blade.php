@@ -26,18 +26,18 @@
         }
         $chip = 'inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-100';
         $segment = 'h-8 whitespace-nowrap rounded-md px-3 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs';
-        $pfeil = 'inline-flex size-8 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-text';
+        $pfeil = 'np-knopf np-knopf-symbol';
     @endphp
 
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Noten') }}">
             <div class="flex flex-col items-center gap-0.5">
-                <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border-strong/60 bg-card p-0.5" role="group" aria-label="{{ __('Semester') }}">
+                <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}">
                     <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $prevSemesterId])
-                       href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}">‹</a>
+                       href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}"><x-symbol name="chevron-left" strich="2" /></a>
                     <x-semester :id="$selectedSemesterId ?: null" :lernender="$a->lernenderId" class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text" />
                     <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $nextSemesterId])
-                       href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}">›</a>
+                       href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}"><x-symbol name="chevron-right" strich="2" /></a>
                 </div>
                 @if($semesterRest)
                     <span class="text-2xs text-muted">{{ $semesterRest }}</span>
@@ -45,22 +45,22 @@
             </div>
             <x-slot:aktionen>
                 <a href="{{ route('learner.grades.index') }}?rechner=1" x-data @click.prevent="$dispatch('open-drawer', 'rechner')"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text whitespace-nowrap">{{ __('Notenrechner') }}</a>
-                <a href="{{ route('learner.grades.import.index') }}" class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Import') }}</a>
+                   class="np-knopf np-knopf-sekundaer">{{ __('Notenrechner') }}</a>
+                <a href="{{ route('learner.grades.import.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Import') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button type="button" aria-label="{{ __('Weitere Aktionen') }}" class="inline-flex size-9 items-center justify-center rounded-lg glass-btn text-text">
+                        <button type="button" aria-label="{{ __('Weitere Aktionen') }}" class="np-knopf np-knopf-sekundaer np-knopf-rund">
                             <svg class="size-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M3 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zM15.5 8.5a1.5 1.5 0 100 3 1.5 1.5 0 000-3z"/></svg>
                         </button>
                     </x-slot>
                     <x-slot name="content">
-                        <a href="{{ route('learner.grades.print') }}" target="_blank" rel="noopener noreferrer" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">{{ __('Drucken') }}</a>
-                        <a href="{{ route('learner.grades.export') }}" class="flex h-9 items-center rounded-lg px-3 text-sm text-text hover:bg-surface-2">{{ __('CSV exportieren') }}</a>
+                        <a href="{{ route('learner.grades.print') }}" target="_blank" rel="noopener noreferrer" class="np-menue-eintrag">{{ __('Drucken') }}</a>
+                        <a href="{{ route('learner.grades.export') }}" class="np-menue-eintrag">{{ __('CSV exportieren') }}</a>
                     </x-slot>
                 </x-dropdown>
                 <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary">
-                    <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Note') }}
+                   class="np-knopf np-knopf-primaer">
+                    <x-symbol name="plus" strich="2" />{{ __('Note') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -118,7 +118,7 @@
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto rounded-xl border border-border bg-card">
+                        <div class="np-karte overflow-x-auto">
                             <table class="w-full text-sm tabular-nums">
                                 <thead>
                                     <tr class="border-b border-border">
@@ -211,7 +211,7 @@
                                                                   @if($beleg['offen']) onsubmit="return confirm(@js(__('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')))" @endif
                                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                                 @csrf
-                                                                <button :disabled="loading" class="inline-flex h-8 items-center rounded-lg px-2.5 text-sm text-muted hover:bg-surface-2 hover:text-text disabled:opacity-50">
+                                                                <button :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">
                                                                     {{ $beleg['offen'] ? __('Modul wiederholen') : __('Wiederholung zurücknehmen') }}
                                                                 </button>
                                                             </form>
@@ -226,7 +226,7 @@
                         </div>
                     </section>
                 @empty
-                    <p class="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted">
+                    <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
                         {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                            class="text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
@@ -253,7 +253,7 @@
                 <template x-for="z in zeilen" :key="z.nr">
                     <div class="flex flex-col gap-2 rounded-xl border border-border bg-surface-2/40 p-3">
                         <div class="flex items-center gap-2">
-                            <select x-model="z.bezug" class="h-10 min-w-0 flex-1 rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30" aria-label="{{ __('Fach / Modul') }}">
+                            <select x-model="z.bezug" class="np-feld min-w-0 flex-1" aria-label="{{ __('Fach / Modul') }}">
                                 <option value="">{{ __('Bitte wählen') }}</option>
                                 @foreach($bezugOptionen as $gruppe => $optionen)
                                     <optgroup label="{{ $gruppe }}">
@@ -263,9 +263,9 @@
                                     </optgroup>
                                 @endforeach
                             </select>
-                            <button type="button" @click="entferne(z.nr)" class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-note-ungenuegend/10 hover:text-note-ungenuegend" aria-label="{{ __('Note entfernen') }}">×</button>
+                            <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0" aria-label="{{ __('Note entfernen') }}">×</button>
                         </div>
-                        <input type="date" x-model="z.datum" class="h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30" aria-label="{{ __('Prüfungsdatum') }}">
+                        <input type="date" x-model="z.datum" class="np-feld" aria-label="{{ __('Prüfungsdatum') }}">
                         <p class="text-xs" :class="semesterVon(z.datum) ? 'text-muted' : 'text-note-knapp'"
                            x-text="semesterVon(z.datum) ? @js(__('Semester ')) + semesterVon(z.datum).name : (z.datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
                         <div class="flex items-end gap-2">
@@ -273,7 +273,7 @@
                                 <span class="text-xs text-muted">{{ __('Gewichtung') }}</span>
                                 <span class="relative">
                                     <input type="number" min="0" max="100" step="1" x-model="z.gewicht"
-                                           class="h-10 w-full rounded-lg border border-border-strong/70 bg-input py-2 pl-2 pr-6 text-right text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30"
+                                           class="np-feld pl-2 pr-6 text-right tabular-nums"
                                            aria-label="{{ __('Gewichtung in Prozent') }}">
                                     <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                 </span>
@@ -281,7 +281,7 @@
                             <label class="flex flex-1 flex-col gap-1">
                                 <span class="text-xs text-muted">{{ __('Note') }}</span>
                                 <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="4.5"
-                                       class="h-10 w-full rounded-lg border-2 border-border-strong/70 bg-input text-center text-sm font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0"
+                                       class="np-feld border-2 text-center font-semibold tabular-nums"
                                        :class="klasse(z.wert)" aria-label="{{ __('Note') }}">
                             </label>
                         </div>
@@ -290,13 +290,13 @@
             </div>
 
             <button type="button" @click="neueZeile()" x-show="zeilen.length < 10"
-                    class="inline-flex h-9 items-center gap-1.5 self-start rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-                <span class="text-lg leading-none" aria-hidden="true">+</span> {{ __('Note hinzufügen') }}
+                    class="np-knopf np-knopf-sekundaer self-start">
+                <x-symbol name="plus" strich="2" />{{ __('Note hinzufügen') }}
             </button>
 
             <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
 
-            <section x-show="vergleich.length" x-cloak class="overflow-hidden rounded-xl border border-border bg-card transition-opacity" :class="laedt ? 'opacity-70' : ''">
+            <section x-show="vergleich.length" x-cloak class="np-karte overflow-hidden transition-opacity" :class="laedt ? 'opacity-70' : ''">
                 <div class="border-b border-border/70 px-4 py-2.5">
                     <h3 class="text-sm font-semibold text-text">{{ __('Auswirkung') }}</h3>
                 </div>

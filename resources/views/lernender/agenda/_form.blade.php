@@ -1,7 +1,7 @@
 @php
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
-    $textarea = 'mt-1.5 w-full rounded-lg border border-border-strong/70 bg-input px-3 py-2 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $feld = 'np-feld mt-1.5';
+    $textarea = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
 @endphp
@@ -45,7 +45,7 @@
                 @endforeach
             </ul>
             <div>
-                <button form="pruefung-entsperren" class="inline-flex items-center px-3 h-9 rounded-lg glass-btn text-text text-xs">{{ __('Wieder vom Kalender übernehmen') }}</button>
+                <button form="pruefung-entsperren" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Wieder vom Kalender übernehmen') }}</button>
             </div>
         </div>
     @endif
@@ -136,7 +136,7 @@
             <x-note :wert="$b->note->note_wert" :stufe="$b->note->note_stufe" variante="badge" />
         </div>
     @elseif($b)
-        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="inline-flex items-center justify-center h-10 rounded-lg glass-btn text-text text-sm">{{ __('Note eintragen') }}</a>
+        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Note eintragen') }}</a>
     @endif
 
     @if($b)
@@ -152,7 +152,7 @@
             @endforelse
             <div class="flex items-center gap-2">
                 <x-datei-feld id="anhang-datei" rahmen="flex-1" name="datei" form="anhang-hochladen" required :aria-label="__('Datei anhängen')" />
-                <button form="anhang-hochladen" class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">{{ __('Anhängen') }}</button>
+                <button form="anhang-hochladen" class="np-knopf np-knopf-sekundaer shrink-0">{{ __('Anhängen') }}</button>
             </div>
             @error('datei')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
@@ -161,8 +161,8 @@
     @endif
 
     <div class="flex gap-2 mt-2">
-        <a href="{{ route('learner.exams.index') }}" class="inline-flex items-center justify-center px-4 h-11 rounded-xl glass-btn text-text text-sm">{{ __('Abbrechen') }}</a>
-        <button :disabled="loading" class="flex-1 h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary disabled:opacity-60">{{ $b ? __('Speichern') : __('Planen') }}</button>
+        <a href="{{ route('learner.exams.index') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
+        <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross flex-1">{{ $b ? __('Speichern') : __('Planen') }}</button>
     </div>
 </form>
 

@@ -14,9 +14,7 @@
             <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
             <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
                    autocomplete="username" placeholder="{{ __('name@firma.ch') }}"
-                   class="block w-full h-11 rounded-xl border border-border bg-input text-text px-3
-                          focus:outline-hidden focus:ring-2 focus:ring-accent/50 focus:border-accent
-                          @error('email') border-note-ungenuegend @enderror">
+                   class="np-feld block h-11 @error('email') border-note-ungenuegend @enderror">
             @error('email')
                 <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
             @enderror
@@ -24,8 +22,7 @@
 
         <div class="pt-2">
             <button type="submit" :disabled="loading"
-                    class="w-full flex justify-center items-center h-11 rounded-xl bg-accent text-accent-contrast font-semibold np-btn-primary
-                           focus:outline-hidden focus:ring-2 focus:ring-accent/50 disabled:opacity-60">
+                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
                 {{ __('Link zusenden') }}
             </button>
         </div>

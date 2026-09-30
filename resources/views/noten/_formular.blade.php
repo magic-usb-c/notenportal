@@ -13,7 +13,7 @@
     $datum = old('pruefungsdatum', $note?->pruefungsdatum?->toDateString() ?? $pruefung?->datum?->toDateString() ?? now()->toDateString());
     $gewicht = (string) old('gewichtung_prozent', $note?->gewichtung_prozent ?? $pruefung?->gewichtung_prozent ?? 100);
     $label = 'text-sm font-medium text-text';
-    $feld = 'mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30';
+    $feld = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
 @endphp
 
@@ -49,17 +49,17 @@
         <label for="note_wert" class="{{ $label }}">{{ __('Note') }} <span class="text-note-ungenuegend">*</span></label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
                x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
-               class="h-20 w-36 rounded-xl border-2 border-border-strong/70 bg-input text-center text-4xl font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0">
+               class="np-feld h-20 w-36 border-2 text-center text-4xl font-semibold tabular-nums">
         @error('note_wert')<p id="note_wert-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak>
         <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }} <span class="text-note-ungenuegend">*</span></legend>
-        <div class="inline-flex rounded-xl border border-border-strong/70 bg-input p-1" role="radiogroup">
+        <div class="inline-flex gap-0.5 rounded-2xl bg-fill p-1" role="radiogroup">
             @foreach(\App\Services\Noten\NoteService::STUFEN as $s)
                 <label class="relative">
                     <input type="radio" name="note_stufe" value="{{ $s }}" x-model="stufe" :disabled="!istStufe" class="peer sr-only">
-                    <span class="flex h-14 min-w-14 cursor-pointer items-center justify-center rounded-lg px-4 text-2xl font-semibold text-muted transition-colors duration-100 peer-checked:bg-accent peer-checked:text-accent-contrast peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
+                    <span class="flex h-14 min-w-14 cursor-pointer items-center justify-center rounded-xl px-4 text-2xl font-semibold text-muted transition-colors duration-150 hover:text-text peer-checked:bg-accent peer-checked:text-accent-contrast peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring">
                         {{ \App\Support\NotenSkala::stufeKurz($s) }}
                     </span>
                 </label>
@@ -129,12 +129,12 @@
 
     <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
         @if($drawer)
-            <button type="button" @click="$dispatch('close-drawer', 'note')" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">{{ __('Abbrechen') }}</button>
+            <button type="button" @click="$dispatch('close-drawer', 'note')" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</button>
         @else
-            <a href="{{ $zurueck }}" class="inline-flex h-11 items-center justify-center rounded-lg glass-btn px-5 text-sm font-medium text-text">{{ __('Abbrechen') }}</a>
+            <a href="{{ $zurueck }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
         @endif
         <button type="submit" :disabled="loading"
-                class="inline-flex h-11 sm:flex-1 items-center justify-center gap-2 rounded-lg bg-accent text-sm font-medium text-accent-contrast np-btn-primary disabled:cursor-not-allowed disabled:opacity-50">
+                class="np-knopf np-knopf-primaer np-knopf-gross sm:flex-1">
             <svg x-show="loading" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>

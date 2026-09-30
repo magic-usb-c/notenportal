@@ -17,9 +17,9 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Notenbericht')" :untertitel="$semesterName">
             <x-slot:aktionen>
-                <button type="button" onclick="window.print()" class="inline-flex items-center px-4 h-9 rounded-lg glass-btn text-text text-sm print:hidden">{{ __('Drucken') }}</button>
+                <button type="button" onclick="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
                 <a href="{{ route('admin.reports.grades.export', request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id'])) }}"
-                   class="inline-flex items-center px-4 h-9 rounded-lg glass-btn text-text text-sm print:hidden">CSV</a>
+                   class="np-knopf np-knopf-sekundaer print:hidden">CSV</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -27,12 +27,12 @@
     <div class="py-6">
         <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
 
-            <form method="GET" action="{{ route('admin.reports.grades') }}" class="rounded-2xl border border-border bg-card p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
+            <form method="GET" action="{{ route('admin.reports.grades') }}" class="np-karte p-4 grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end print:hidden">
                 <input type="hidden" name="sort" value="{{ $sort }}">
                 <input type="hidden" name="dir" value="{{ $dir }}">
                 <div>
                     <label for="semester" class="text-sm font-medium text-text">{{ __('Zeitraum') }}</label>
-                    <select name="semester" id="semester" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                    <select name="semester" id="semester" onchange="this.form.submit()" class="np-feld mt-1">
                         <option value="alle" @selected($sid === null)>{{ __('Ganze Lehrzeit') }}</option>
                         @foreach($semester as $s)
                             <option value="{{ $s->semester_id }}" @selected($sid === (int) $s->semester_id)>{{ \App\Models\Semester::neutralerName($s->start_datum) ?? $s->bezeichnung }}</option>
@@ -41,7 +41,7 @@
                 </div>
                 <div>
                     <label for="lehrberuf_id" class="text-sm font-medium text-text">{{ __('Lehrberuf') }}</label>
-                    <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                    <select name="lehrberuf_id" id="lehrberuf_id" onchange="this.form.submit()" class="np-feld mt-1">
                         <option value="">{{ __('Alle Lehrberufe') }}</option>
                         @foreach($lehrberufe as $lb)
                             <option value="{{ $lb->lehrberuf_id }}" @selected($filter['lehrberuf_id'] === (int) $lb->lehrberuf_id)>{{ $lb->name }}</option>
@@ -50,7 +50,7 @@
                 </div>
                 <div>
                     <label for="berufsbildner_id" class="text-sm font-medium text-text">{{ __('Berufsbildner') }}</label>
-                    <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()" class="mt-1 w-full rounded-xl border border-border bg-input text-text focus:ring-2 focus:ring-ring focus:border-ring text-sm">
+                    <select name="berufsbildner_id" id="berufsbildner_id" onchange="this.form.submit()" class="np-feld mt-1">
                         <option value="">{{ __('Alle') }}</option>
                         @foreach($berufsbildner as $bb)
                             <option value="{{ $bb->berufsbildner_id }}" @selected($filter['berufsbildner_id'] === (int) $bb->berufsbildner_id)>{{ $bb->nachname }} {{ $bb->vorname }}</option>
@@ -58,7 +58,7 @@
                     </select>
                 </div>
                 @if($filterAktiv)
-                    <a href="{{ route('admin.reports.grades') }}" class="inline-flex items-center justify-center px-4 h-10 rounded-xl glass-btn text-text text-sm" aria-label="{{ __('Filter zurücksetzen') }}">×</a>
+                    <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross" aria-label="{{ __('Filter zurücksetzen') }}">×</a>
                 @endif
             </form>
 

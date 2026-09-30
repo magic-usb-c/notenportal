@@ -1,18 +1,14 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Note erfassen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Note erfassen')" :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal>
-            <x-slot:aktionen>
-                <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                   class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">{{ __('Zurück') }}</a>
-            </x-slot:aktionen>
+        <x-seitenkopf :zurueck="route($bereich.'.learners.grades.index', $lernender->lernender_id)" :titel="__('Note erfassen')" :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal>
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             <div class="max-w-3xl">
-            <div class="rounded-xl border border-border bg-card p-6 space-y-5">
+            <div class="np-karte p-6 space-y-5">
                 @if(empty($bezugOptionen))
                     <p class="text-sm text-note-knapp">{{ __('Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.') }}</p>
                 @endif

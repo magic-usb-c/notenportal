@@ -5,9 +5,8 @@
     </x-slot>
 
     @php
-        $toggle = 'inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border bg-input text-xs text-text cursor-pointer '
-            .'has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring has-disabled:opacity-60 has-disabled:cursor-not-allowed';
-        $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-2 py-1.5 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
+        $toggle = 'inline-flex items-center gap-2 text-sm text-text cursor-pointer has-disabled:cursor-default has-disabled:text-muted';
+        $feld = 'np-feld mt-1 px-2';
     @endphp
 
     <div class="py-6">
@@ -20,7 +19,7 @@
                 @foreach($gruppen as $gruppenKey => $gruppenLabel)
                     @php $anlaesseInGruppe = array_filter($anlaesse, fn ($a) => $a['group'] === $gruppenKey); @endphp
                     @continue(empty($anlaesseInGruppe))
-                    <section class="rounded-xl border border-border bg-card overflow-hidden">
+                    <section class="np-karte overflow-hidden">
                         <h3 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ __($gruppenLabel) }}</h3>
                         <div class="divide-y divide-border">
                             @foreach($anlaesseInGruppe as $type => $a)
@@ -41,13 +40,13 @@
                                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                                             <input type="hidden" name="policies[{{ $type }}][enabled]" value="0">
                                             <label class="{{ $toggle }}">
-                                                <input type="checkbox" name="policies[{{ $type }}][enabled]" value="1" class="sr-only"
+                                                <input type="checkbox" name="policies[{{ $type }}][enabled]" value="1" role="switch" class="np-schalter"
                                                        @checked($a['enabled']) @disabled($a['locked'] ?? false)>
                                                 {{ __('Aktiv') }}
                                             </label>
                                             <input type="hidden" name="policies[{{ $type }}][mandatory]" value="0">
                                             <label class="{{ $toggle }}">
-                                                <input type="checkbox" name="policies[{{ $type }}][mandatory]" value="1" class="sr-only"
+                                                <input type="checkbox" name="policies[{{ $type }}][mandatory]" value="1" role="switch" class="np-schalter"
                                                        @checked($a['mandatory']) @disabled($a['locked'] ?? false)>
                                                 {{ __('Verpflichtend') }}
                                             </label>
@@ -83,7 +82,7 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="inline-flex items-center px-5 h-10 rounded-xl bg-accent text-accent-contrast text-sm font-semibold np-btn-primary disabled:opacity-60">{{ __('Speichern') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
                 </div>
             </form>
         </div>

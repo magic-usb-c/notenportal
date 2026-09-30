@@ -6,7 +6,7 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
     <div class="lg:col-span-8 flex flex-col gap-5">
         {{-- Stand --}}
-        <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-6">
+        <section class="np-karte p-5 flex flex-wrap items-center gap-6">
             <div>
                 @if($qv = \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($stand->auswertung))
                     <a href="{{ route($bereich.'.learners.qualification', $stand->auswertung->lernenderId) }}" class="inline-flex min-h-6 items-center text-xs font-medium text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}</a>
