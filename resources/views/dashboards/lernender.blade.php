@@ -122,8 +122,8 @@
                                         </span>
                                     @endif
                                     <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-sm text-text">{{ $t['text'] }}</span>
-                                        @if($t['detail'])<span class="block truncate text-xs text-muted">{{ $t['detail'] }}</span>@endif
+                                        <span class="line-clamp-2 text-sm text-text">{{ $t['text'] }}</span>
+                                        @if($t['detail'])<span class="block truncate text-xs text-muted" title="{{ $t['detail'] }}">{{ $t['detail'] }}</span>@endif
                                     </span>
                                     @if($t['rechts'])<span class="shrink-0 text-xs tabular-nums text-muted">{{ $t['rechts'] }}</span>@endif
                                 </a>
@@ -151,7 +151,7 @@
                             <li>
                                 <a href="{{ $z['link'] }}" class="block px-5 py-3 transition-colors duration-100 hover:bg-surface-2/60">
                                     <span class="flex items-baseline justify-between gap-3 text-sm">
-                                        <span class="truncate text-text">{{ $z['label'] }} ≥ {{ $skala::format($z['zielwert'], 1) }}</span>
+                                        <span class="truncate text-text" title="{{ $z['label'] }}">{{ $z['label'] }} ≥ {{ $skala::format($z['zielwert'], 1) }}</span>
                                         <x-note :wert="$z['aktuell']" :stellen="1" class="shrink-0" />
                                     </span>
                                     <x-bullet class="mt-2" :wert="$z['aktuell']" :ziel="$z['zielwert']" :grenzen="$grenzen" :label="$z['label']" :skala="false" />
@@ -192,8 +192,8 @@
                             <li>
                                 <a href="{{ route('learner.grades.index', ['_open' => $n->note_id]) }}" class="flex min-h-12 items-center justify-between gap-3 px-5 py-2 transition-colors duration-100 hover:bg-surface-2/60">
                                     <span class="min-w-0">
-                                        <span class="block truncate text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</span>
-                                        <span class="block truncate text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}@if($n->titel) · {{ $n->titel }}@endif</span>
+                                        <span class="line-clamp-2 text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</span>
+                                        <span class="block truncate text-xs text-muted" @if($n->titel) title="{{ $n->titel }}" @endif>{{ $n->pruefungsdatum->format('d.m.Y') }}@if($n->titel) · {{ $n->titel }}@endif</span>
                                     </span>
                                     <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
                                 </a>
@@ -254,21 +254,22 @@
             {{-- Verlauf: mobil zugeklappt --}}
             @if($zeigen['verlauf'])
                 <details open x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }" x-init="$el.open = {{ $desktop }}"
-                         @class(['group relative min-w-0 rounded-xl border border-border bg-card', $spalteLinks])>
+                         @class(['@container group relative min-w-0 rounded-xl border border-border bg-card', $spalteLinks])>
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
                              @click="if ({{ $desktop }}) $event.preventDefault()">
                         <h2 class="text-sm font-semibold text-text">{{ __('Verlauf') }}</h2>
                         <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
                     </summary>
                     <div class="px-5 pb-5">
-                        <div class="mb-2 flex flex-wrap items-center justify-end gap-2 lg:absolute lg:right-5 lg:top-2 lg:mb-0">
+                        {{-- Neben dem Titel erst, wenn die Karte breit genug ist: mit Seitenleiste ist die linke Spalte bei 1024 px zu schmal --}}
+                        <div class="mb-2 flex flex-wrap items-center justify-end gap-2 lg:@lg:absolute lg:@lg:right-5 lg:@lg:top-2 lg:@lg:mb-0">
                             <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
                                 <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'"
                                         class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Kategorien') }}</button>
                                 <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length"
                                         class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Fach') }}</button>
                             </div>
-                            <select x-show="modus === 'fach'" x-model.number="fach" class="h-8 rounded-lg border border-border-strong/70 bg-input py-0 pl-2 pr-7 text-xs text-text" aria-label="{{ __('Fach') }}">
+                            <select x-show="modus === 'fach'" x-model.number="fach" class="h-8 min-w-0 max-w-44 truncate rounded-lg border border-border-strong/70 bg-input py-0 pl-2 pr-7 text-xs text-text" aria-label="{{ __('Fach') }}">
                                 <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
                             </select>
                         </div>

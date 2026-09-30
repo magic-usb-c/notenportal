@@ -419,6 +419,7 @@
    .glass-btn ist bereits deckend, das unbenutzte bare .glass hat keine CSS-Definition. */
 @layer utilities {
   [data-transparenz='reduziert'] .glass-bar,
+  [data-transparenz='reduziert'] .glass-seitenleiste,
   [data-transparenz='reduziert'] .glass-overlay {
     background-color: rgb(var(--card));
     backdrop-filter: none;

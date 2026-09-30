@@ -1,6 +1,6 @@
 # Notenlogik
 
-Stand 01.10.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
+Stand 30.09.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
 
 ## Begriffe
 

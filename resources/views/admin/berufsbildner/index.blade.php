@@ -48,7 +48,7 @@
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="font-medium text-text break-words sm:truncate">{{ $bb->nachname }} {{ $bb->vorname }}</div>
-                                                    <div class="text-xs text-muted break-all sm:truncate">{{ $bb->email }}</div>
+                                                    <div class="text-xs text-muted break-all sm:truncate" title="{{ $bb->email }}">{{ $bb->email }}</div>
                                                     <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted @3xl:hidden">
                                                         <span>{{ $st?->lernende ?? 0 }} {{ __('Lernende') }}</span>
                                                         @if($warnOhneNoten)

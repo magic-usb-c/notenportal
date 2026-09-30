@@ -271,7 +271,7 @@ Block AD: Drei neue Farbthemen Fjord (kühles Petrol/Türkis), Bernstein (warmes
 - Bewusst nicht quick-switchbar: «Notenanzeige» ist **nicht** in der Ctrl+K-Befehlspalette und **nicht** in der PATCH-`/profile/preferences`-Whitelist (anders als «Diagrammfarben», analog zu Dichte). Begründung: Notenanzeige wirkt ausschliesslich serverseitig beim Rendern von `<x-note>` (keine CSS-Variable, kein `data-*`-Attribut, keine clientseitige Live-Vorschau via `document.documentElement.dataset`) – ein „Schnellwechsel ohne Neuladen“ ist für diese Präferenz technisch nicht sinnvoll umsetzbar, anders als bei Theme/Schrift/Dichte/Diagrammfarben. Dasselbe Muster existiert bereits für `startseite` und `tastenkuerzel` (auch nicht in der PATCH-Whitelist).
 - Bewusst eingeschränkt: «Notenanzeige» wirkt nur beim bisherigen Standardfall von `<x-note :stellen="1">` (Notendurchschnitte auf interaktiven Seiten). Einzelne Noten (`:stellen` nicht gesetzt, z. B. Badges) und die bewusst abweichenden `:stellen="2"`-Stellen (Verwaltungslisten `verwaltung/lernende/index.blade.php`) bleiben unverändert – das ist der bestehende, gewollte Unterschied in der Anzeigepräzision und keine Baustelle dieses Auftrags. Notenblatt-Druck, Exporte und E-Mails rufen `NotenSkala::format()` direkt auf (nicht über `<x-note>`) und sind damit von der Präferenz architekturell unberührt – kein zusätzlicher Code nötig, um sie auszunehmen.
 - Bewusst nicht übersetzt: Die neuen Theme-Namen «Fjord», «Bernstein», «Schiefer» haben keinen eigenen Eintrag in `lang/en.json` – wie bei allen bestehenden Themes (z. B. «Gletscher») wird der Name als `:name`-Parameter in `__('Theme: :name', ...)` eingesetzt statt selbst übersetzt zu werden (Eigennamen bleiben deutsch, siehe `Navigation::darstellungsBefehle()`).
-- **Erledigt (01.10.2026):** `ProfileController::preferences()` übernimmt inzwischen alle Schlüssel aus `$aktuell` (`array_merge`); Regressionstest in `DarstellungProfilTest::seitenleiste_laesst_sich_im_profil_und_per_schalter_waehlen` (Schnellwechsel der Dichte lässt die Seitenleiste stehen). Ursprünglicher Befund: ~~Vorbestehender Fehler entdeckt, nicht behoben (ausserhalb des Rahmens dieses Auftrags): `ProfileController::preferences()` (PATCH-Schnellwechsel) baut `$user->praeferenzen` als komplett neues Array nur aus `theme`/`akzent`/`schrift`/`bewegung`/`dichte` (+ neu `diagramm`) auf; `akzent_eigen`, `schriftart`, `ecken`, `transparenz`, `tastenkuerzel`, `startseite` und `notenanzeige` werden dabei nicht aus `$aktuell` übernommen und fallen beim nächsten Lesen (`Darstellung::fuer`) still auf ihren Standard zurück – ein Schnellwechsel z. B. der Dichte über Ctrl+K löscht damit unbeabsichtigt eine zuvor im Profilformular gesetzte «Ecken: eckig» oder «Schriftart: Serif» (verifiziert per Tinker). Dieses Verhalten bestand bereits vor Block AD (für `schriftart`/`ecken`/`transparenz`/`tastenkuerzel`/`startseite`) und wurde für `diagramm` bewusst identisch fortgeführt, um den Fehler nicht zusätzlich zu vergrössern; `notenanzeige` wurde deshalb absichtlich **nicht** in diese Whitelist aufgenommen (siehe oben). Eine echte Behebung (`array_merge($aktuell, [...])` statt Neuaufbau) war nicht Teil dieses Auftrags und sollte in einem eigenen, fokussierten Block nachgezogen werden.~~
+- **Erledigt (30.09.2026):** `ProfileController::preferences()` übernimmt inzwischen alle Schlüssel aus `$aktuell` (`array_merge`); Regressionstest in `DarstellungProfilTest::seitenleiste_laesst_sich_im_profil_und_per_schalter_waehlen` (Schnellwechsel der Dichte lässt die Seitenleiste stehen). Ursprünglicher Befund: ~~Vorbestehender Fehler entdeckt, nicht behoben (ausserhalb des Rahmens dieses Auftrags): `ProfileController::preferences()` (PATCH-Schnellwechsel) baut `$user->praeferenzen` als komplett neues Array nur aus `theme`/`akzent`/`schrift`/`bewegung`/`dichte` (+ neu `diagramm`) auf; `akzent_eigen`, `schriftart`, `ecken`, `transparenz`, `tastenkuerzel`, `startseite` und `notenanzeige` werden dabei nicht aus `$aktuell` übernommen und fallen beim nächsten Lesen (`Darstellung::fuer`) still auf ihren Standard zurück – ein Schnellwechsel z. B. der Dichte über Ctrl+K löscht damit unbeabsichtigt eine zuvor im Profilformular gesetzte «Ecken: eckig» oder «Schriftart: Serif» (verifiziert per Tinker). Dieses Verhalten bestand bereits vor Block AD (für `schriftart`/`ecken`/`transparenz`/`tastenkuerzel`/`startseite`) und wurde für `diagramm` bewusst identisch fortgeführt, um den Fehler nicht zusätzlich zu vergrössern; `notenanzeige` wurde deshalb absichtlich **nicht** in diese Whitelist aufgenommen (siehe oben). Eine echte Behebung (`array_merge($aktuell, [...])` statt Neuaufbau) war nicht Teil dieses Auftrags und sollte in einem eigenen, fokussierten Block nachgezogen werden.~~
 
 ## Notenrechner (11.09.2026)
 
@@ -615,3 +615,23 @@ rohen Form einer Ernte (`987`). Der Import normalisiert beides gleich
 - **Löschen eines abgelösten Baums vergleicht keine Zeitstempel** (`verlorenePositionen`): zählt nur
   Codes, die im aktiven Baum fehlen. Eine neuere Note im abgelösten Baum entsteht seit dem Sperren beim
   Speichern (Abschluss) und beim Sammeln (BaumWechsel) nur noch aus dem Bestand oben.
+
+## Oberfläche nach Apple-HIG: bewusst gelassen (30.09.2026)
+
+Gemessen mit einer Überlaufmatrix über alle GET-Seiten je Rolle (320/390/640/768/1024/1280 px,
+dazu 1024/1280 mit Seitenleiste). Tabellen schalten ihre Spalten nach der Kartenbreite
+(Container-Queries), nicht nach dem Fenster; schmal zeigen sie Karten oder tragen die
+ausgeblendeten Werte in der Namenszelle nach.
+
+- **Zeugnisnoten-Heatmap scrollt auf dem Telefon seitlich** (Mindestbreite in der Demo 609 px,
+  die Namensspalte bleibt stehen). Ab 768 px mit Leiste oben passt sie. Karten je Fach
+  wären keine Heatmap mehr: der Vergleich über die Semester ist ihr Zweck. Mit Seitenleiste bei
+  1024 px scrollt sie ebenfalls (Cockpit-Spalte 471 px).
+- **Leiste heisst auch mit Seitenleiste «Hauptnavigation»**: ab lg enthält sie dann nur Suche,
+  Profil und den Schalter. Die Beschriftung hinge an Präferenz und Fensterbreite zugleich und
+  müsste beim Umschalten ohne Neuladen mitwechseln; der Gewinn für Screenreader ist klein, weil
+  die Seitenleiste als eigene Landmarke «Seitenleiste» erreichbar ist.
+- **Silbentrennung** (`hyphens-auto` in den Tabellenköpfen) wirkt nur, wo der Browser ein
+  deutsches Wörterbuch hat; der Prüfbrowser (Headless Chromium) hat keines, gemessen wurde
+  deshalb ohne Trennung.
+- **Standard der Navigation** (oben oder Seitenleiste) entscheidet David, siehe Übergabebrett.

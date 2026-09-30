@@ -232,7 +232,7 @@
                     <x-slot name="content">
                         <div class="px-3 pb-2 pt-1.5">
                             <div class="truncate text-sm font-medium text-text">{{ $name }}</div>
-                            <div class="truncate text-xs text-muted">{{ $u->email ?? '' }}</div>
+                            <div class="truncate text-xs text-muted" title="{{ $u->email ?? '' }}">{{ $u->email ?? '' }}</div>
                         </div>
                         <div class="my-1 border-t border-border"></div>
                         <div id="np-benutzermenue">

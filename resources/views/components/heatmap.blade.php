@@ -28,8 +28,9 @@
                         <td class="px-3 pt-3 pb-1 text-center @3xl:px-5"><span aria-hidden="true">{{ $marke($g['note']) }}</span><x-note :wert="$g['note']" :stellen="1" class="text-sm" /></td>
                     </tr>
                     @foreach($g['zeilen'] as $z)
-                        <tr class="hover:bg-surface-2/60">
-                            <td class="sticky left-0 bg-card px-3 py-0.5 text-text truncate max-w-36 @3xl:px-5 @3xl:max-w-64" title="{{ $z['label'] }}">
+                        {{-- Die feste Namenszelle braucht deckenden Grund; der Verlauf legt den Zeilen-Hover darüber, damit er mitläuft --}}
+                        <tr class="group hover:bg-surface-2/60">
+                            <td class="sticky left-0 bg-card group-hover:bg-linear-to-r group-hover:from-surface-2/60 group-hover:to-surface-2/60 px-3 py-0.5 text-text truncate max-w-36 @3xl:px-5 @3xl:max-w-64" title="{{ $z['label'] }}">
                                 {{ $z['label'] }}
                                 @if($z['offen'])<span class="ml-1 text-3xs text-accent-text font-semibold">{{ __('offen') }}</span>@endif
                             </td>

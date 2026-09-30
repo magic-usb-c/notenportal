@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="min-w-0 flex-1">
                                     <div class="font-medium text-text truncate">{{ $b->nachname }} {{ $b->vorname }}</div>
-                                    <div class="text-xs text-muted truncate">{{ $b->email }} · {{ $b->benutzername }}</div>
+                                    <div class="text-xs text-muted truncate" title="{{ $b->email }} · {{ $b->benutzername }}">{{ $b->email }} · {{ $b->benutzername }}</div>
                                 </div>
                                 @if($b->aktiv)
                                     <x-status status="gruen" :text="__('Aktiv')" class="shrink-0" />
@@ -120,7 +120,7 @@
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="font-medium text-text truncate">{{ $b->nachname }} {{ $b->vorname }}</div>
-                                                    <div class="text-xs text-muted truncate">{{ $b->email }}</div>
+                                                    <div class="text-xs text-muted truncate" title="{{ $b->email }}">{{ $b->email }}</div>
                                                 </div>
                                             </div>
                                         </td>
