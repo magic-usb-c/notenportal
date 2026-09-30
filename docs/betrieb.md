@@ -43,6 +43,21 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 - URL für die Lernenden: `https://notenportal` über das Lab-VPN. HTTP leitet um.
 - Nur aus dem geschlossenen Lab-Netz erreichbar. Der Name löst nur auf, solange das VPN verbunden ist – das ist beabsichtigt.
 
+## Testbetrieb auf srv-lab-dva-003 (ab 30.09.2026)
+
+Der Testbetrieb läuft auf einer eigenen VM, frisch mit `install.sh` aufgesetzt – nicht auf der
+Entwicklungsmaschine.
+
+- `srv-lab-dva-003`, Ubuntu 26.04.1 LTS, PHP 8.5, `https://172.26.14.100` (VLAN 14). Das Zertifikat
+  gilt auch für die IP, DNS ist darum noch nicht zwingend.
+- Der Name `notenportal.hamiltonlab.local` fehlt noch: A-Record und CNAME auf `srv-lab-mgmt-001`
+  (172.26.15.5), DNS-Übergabe im IPsec-Profil von 8.8.4.4 auf 172.26.15.5, Firewall-Policy
+  Servers→Servers und DHCP-Reservierung für .100 liegen beim Lab, nicht beim Portal.
+- Mail-Umleitung bleibt für die Dauer der Testphase gesetzt (Seite Betrieb), damit keine echte
+  Person angeschrieben wird. `notenportal:bereitschaft` meldet das als offenen Punkt – das ist so
+  gewollt und im Lab-OneNote unter «Bekannte Einschränkungen» vermerkt.
+- Ablauf der Einrichtung, Abnahme und OneNote-Dokumentation: Anleitung «Testphase starten».
+
 ## HTTPS (Lab-CA, kostenlos, ohne externe Stelle)
 
 Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's Encrypt. Stattdessen eine eigene Zertifizierungsstelle auf der Maschine. Seit 30.09. richtet `install.sh` das vollständig selbst ein – die folgenden Angaben beschreiben, was dabei entsteht, nicht Handarbeit.
@@ -66,7 +81,7 @@ Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's En
 7. Dateirechte-Befehle (siehe oben) ausführen, `/login` über die Lab-IP aufrufen, mit einem Lernenden-Konto Note erfassen und Feedback senden.
 8. Seite Betrieb: Ziel für «Kopie ausser Haus» eintragen, «Verbindung testen», «Jetzt kopieren»; am Folgetag prüfen, dass die Nachtsicherung kopiert wurde.
 9. Alte deutsche Lesezeichen (`/noten`, `/pruefungen` …) leiten automatisch weiter – nichts zu tun.
-10. Code-Freeze ab 25.09.: danach nur noch Fehlerbehebungen. Sprachumschalter bleibt ausgeblendet (`sprachwahl_aktiv` aus), Englisch-Umbenennungen von Klassen und DB erst nach dem Go-Live (`docs/i18n-plan.md`).
+10. Code-Freeze ab 30.09. (Beginn Testbetrieb, vorher 25.09. geplant): danach nur noch Fehlerbehebungen. Sprachumschalter bleibt ausgeblendet (`sprachwahl_aktiv` aus), Englisch-Umbenennungen von Klassen und DB erst nach dem Go-Live (`docs/i18n-plan.md`).
 11. Empfehlung (Entscheid David): Prod aus einer eigenen Arbeitskopie betreiben wie i2 (`git pull --ff-only` + `php artisan optimize`), Entwicklung und Agents nur noch in `/var/www/notenportal` bzw. einem Worktree. Grund: am 11.09. (20:46, 20:55) legten halbfertige Agent-Änderungen in der Live-Kopie kurz alle Seiten lahm. Umzug betrifft Apache-DocumentRoot, `.env`, `storage/` (Dokumente, Sicherungen), Cron/Queue-Worker-Pfade; Probe auf i2 vorhanden (`install.sh`).
 12. Vor der Freigabe: `php artisan notenportal:bereitschaft` (rein lesend, App\Support\Bereitschaft) – prüft APP_ENV/APP_DEBUG/APP_URL/session.secure, Mail-Umleitung, Kopie ausser Haus, letzte Sicherung, fehlgeschlagene Jobs/Mails, Kalenderabgleich-Fehler und offene Migrationen; Exit-Code 1, sobald mindestens ein Punkt «fehler» meldet (`--json` für eine maschinenlesbare Ausgabe).
 
