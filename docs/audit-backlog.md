@@ -647,3 +647,12 @@ ausgeblendeten Werte in der Namenszelle nach.
   deutsches Wörterbuch hat; der Prüfbrowser (Headless Chromium) hat keines, gemessen wurde
   deshalb ohne Trennung.
 - **Standard der Navigation** (oben oder Seitenleiste) entscheidet David, siehe Übergabebrett.
+- **Verlaufs-Sparkline in «Meine Lernenden» unter 42rem Kartenbreite**: ohne Ersatzgrafik; die
+  Veränderung zum Vorsemester steht als Zahl in der Semesterzelle, die Sortierung nach Verlauf in der
+  Auswahl (Prüferbefund 30.09.).
+- **Passen die Container-Stufen zueinander?** Geprüft per Test nur, wo es am meisten kostet: Auswahl
+  gegen Spaltenköpfe in «Meine Lernenden» (`UebersichtKompaktTest`) und jede schmal ausgeblendete
+  Spalte des Notenberichts gegen die Namenszelle (`BerichtTest`). Für die übrigen Tabellen belegt die
+  Überlaufmatrix nur «kein Querscrollen», nicht «kein Wert fehlt»; das hat der Prüfer im Code nachgelesen.
+- **Schwellenlabel in winzigen Diagrammen** (Zeichenfläche unter etwa 70 × 30 px) wird weggelassen statt
+  über die Achsen gezeichnet; die Linie selbst bleibt.

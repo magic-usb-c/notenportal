@@ -46,6 +46,25 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Startpasswort bei Abbruch nicht, setzt DB_TIMEZONE samt Zeitzonentabellen.
                   Gemessen in frischen Containern (Ubuntu 24.04 mit systemd, nicht 26.04), zweite
                   Instanz daneben auf Port 8082. Ablauf: docs/betrieb.md «Neuinstallation».
+[O] 30.09. 20:30  Block 3 Oberfläche nach Apple-HIG (efcfc5d 8551493 0e3f91a 9914e1f 6341f34 76c8573
+                  64fbfaf 6f8e1ee 8933e00 bda1608 872e615 5effc77 4d7b0a2 b0c6197 0d19dfc 3fdf3ff
+                  7c7ac01 c97ae3e 95e84ea faa42aa 708cac2 6ec839e 39b9e56 8a96715 1c358d1 0615045
+                  06fd5aa e326d82). Seitenleiste nach HIG je Person umschaltbar, Topbar bleibt und legt
+                  Überzähliges in «Mehr» (Priority+). Tabellen schalten Spalten nach Kartenbreite
+                  (Container-Queries) statt Fenster; schmal Karten oder Werte in der Namenszelle.
+                  Gemessen: alle GET-Seiten je Rolle bei 320–1280 px und mit Seitenleiste ohne
+                  Querscrollen, einzige Ausnahme die Zeugnisnoten-Heatmap auf dem Telefon (audit-backlog).
+                  Prüfer: 2 Befunde + Nebenbefunde, behoben mit Tests, die gegen den alten Stand fallen.
+                  Achtung: Commit-Text von bda1608 ist verdreht – die Tabelle war 1625 px breit in
+                  einem 1374 px breiten Container, nicht umgekehrt.
+[Q] 30.09. 20:30  Block 5 Aufräumen (835b08c 0204bd7 924496a 2a0ddac ea7e431 36dc9ea). Rückmeldungen
+                  12.09. alle erledigt (#15 Phase 2 bewusst nach Go-Live). i18n-Scan von 26 auf 0,
+                  Test hält die Views dort. Toter Code (Note-Scopes, Leistung::toArray) entfernt.
+                  Rollentrennung: jede Berufsbildner-Route mit Lernenden-/Prüfungsbezug und jedes
+                  fremde Objekt der Lernenden per Sweep mit Gegenprobe und Vollständigkeitsprüfung.
+                  Dabei gefunden und behoben: Abgabetermin ohne Gewichtung ergab 500 (ea7e431).
+                  «Backlog A» ist nirgends definiert; ausgelegt als die offenen Punkte in
+                  audit-backlog.md – erledigte mit Beleg markiert, Rest begründet gelassen.
 ```
 
 ---
