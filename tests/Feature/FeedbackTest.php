@@ -385,19 +385,18 @@ class FeedbackTest extends TestCase
     }
 
     #[Test]
-    public function login_hinweis_laesst_am_seitenende_platz_und_faellt_nach_dem_schliessen_weg(): void
+    public function login_hinweis_steht_im_seitenfluss_statt_ueber_dem_inhalt_zu_schweben(): void
     {
+        // Prüferbefund: schwebend (fixed) lag er bei 1024 px über «Speichern» in /admin/operations
         $user = User::factory()->lernender()->create();
+        $html = (string) $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->getContent();
 
-        // Solange der Hinweis schwebt, braucht das Seitenende mehr Platz, sonst verdeckt er die letzten Knöpfe
-        $this->actingAs($user)->get(route('learner.dashboard'))
-            ->assertSee('np-feedback-hinweis-weg.window', false)
-            ->assertSee("hinweis ? 'lg:pb-60' : ''", false);
+        $hinweis = mb_strpos($html, 'erreichst du uns jederzeit');
+        $this->assertNotFalse($hinweis);
+        $this->assertLessThan(mb_strpos($html, '<main'), $hinweis, 'Hinweis gehört vor den Inhalt, nicht in die schwebende Ebene');
 
-        $this->actingAs($user)->postJson(route('feedback.hint.dismiss'))->assertOk();
-
-        $this->actingAs($user)->get(route('learner.dashboard'))
-            ->assertDontSee('np-feedback-hinweis-weg.window', false);
+        $umgebung = mb_substr($html, max(0, $hinweis - 2500), 2500);
+        $this->assertStringNotContainsString('fixed', mb_substr($umgebung, (int) mb_strrpos($umgebung, 'x-data="{ zeigen: true }"')));
     }
 
     #[Test]

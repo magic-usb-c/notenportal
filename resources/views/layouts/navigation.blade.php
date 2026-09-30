@@ -75,7 +75,7 @@
                 :aria-label="seite ? @js(__('Seitenleiste ausblenden')) : @js(__('Seitenleiste einblenden'))"
                 :title="seite ? @js(__('Seitenleiste ausblenden')) : @js(__('Seitenleiste einblenden'))"
                 aria-label="{{ __('Seitenleiste einblenden') }}"
-                class="{{ $werkzeug }} -ml-1.5 hidden shrink-0 lg:inline-flex">
+                class="{{ $werkzeug }} -ml-1.5 shrink-0 max-lg:hidden">
             <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path stroke-linecap="round" d="M9.5 4.5v15"/></svg>
         </button>
         <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg seite:lg:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
@@ -192,10 +192,13 @@
                 </template>
             </div>
 
-            <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
-                    class="{{ $werkzeug }} hidden xl:inline-flex" aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
-                <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            </button>
+            {{-- Nur wenn der schwebende Knopf ausgeschaltet ist: sonst zwei Wege zum selben Dialog --}}
+            @if($u && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') === '0')
+                <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: 'feedback' }))"
+                        class="{{ $werkzeug }} max-xl:hidden" aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
+                    <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                </button>
+            @endif
 
             <button type="button" onclick="window.npToggleTheme()" class="{{ $werkzeug }}" aria-label="{{ __('Hell oder dunkel') }}">
                 <svg class="block size-5 dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364-.707.707M6.343 17.657l-.707.707m12.728 0-.707-.707M6.343 6.343l-.707-.707M12 7a5 5 0 1 1 0 10A5 5 0 0 1 12 7z"/></svg>

@@ -153,6 +153,14 @@
                 @include('layouts._systemhinweis')
             @endif
 
+            {{-- Unter dem schwebenden Feedback-Knopf lässt der Fuss Platz, damit er am Seitenende nichts verdeckt --}}
+            @php
+                $feedbackKnopfAktiv = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
+            @endphp
+            @if(\App\Http\Controllers\FeedbackController::hinweisOffen())
+                @include('layouts._feedback-tipp')
+            @endif
+
             <!-- Page Heading -->
             {{-- Seitenkopf im selben Container wie der Inhalt: eine bündige Achse --}}
             @isset($header)
@@ -166,15 +174,7 @@
                 {{ $slot }}
             </main>
 
-            {{-- Unter dem schwebenden Feedback-Knopf Platz lassen, damit er am Seitenende nichts verdeckt --}}
-            {{-- Der einmalige Hinweis darüber reicht höher: solange er schwebt, entsprechend mehr Platz --}}
-            @php
-                $platzFuerFeedback = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
-                $feedbackHinweis = \App\Http\Controllers\FeedbackController::hinweisOffen();
-            @endphp
-            <footer @class(['pt-4 text-center text-xs text-muted', $platzFuerFeedback ? 'pb-24' : 'pb-4'])
-                    @if($feedbackHinweis) x-data="{ hinweis: true }" @np-feedback-hinweis-weg.window="hinweis = false"
-                    :class="hinweis ? '{{ $platzFuerFeedback ? 'lg:pb-60' : 'lg:pb-32' }}' : ''" @endif>
+            <footer @class(['pt-4 text-center text-xs text-muted', $feedbackKnopfAktiv ? 'pb-24' : 'pb-4'])>
                 Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
             </footer>
         </div>
@@ -194,7 +194,7 @@
         {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...' } })) --}}
         <x-toast art="erfolg" />
 
-        <x-feedback-widget :hinweis="$feedbackHinweis" />
+        <x-feedback-widget />
 
         @auth
             @include('layouts._sitzung')

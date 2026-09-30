@@ -1,0 +1,60 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Models\User;
+use App\Support\Einstellungen;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+/**
+ * Tailwind ordnet .hidden im gebauten CSS vor .inline-flex, .flex usw. ein. Stehen beide ohne
+ * Breitenpräfix am selben Element, gewinnt die Display-Klasse: das Element ist auf jeder Breite
+ * sichtbar. So lagen Seitenleisten-Schalter und Feedback-Symbol auch mobil in der Leiste.
+ * Ausblenden unterhalb einer Breite deshalb mit max-lg:hidden usw.
+ */
+class SichtbarkeitsKlassenTest extends TestCase
+{
+    private const DISPLAY = ['block', 'inline-block', 'inline', 'flex', 'inline-flex', 'grid', 'inline-grid', 'table', 'table-cell', 'table-row', 'contents', 'flow-root', 'list-item'];
+
+    public static function seiten(): array
+    {
+        return [
+            'Admin' => ['admin', 'admin.dashboard'],
+            'Berufsbildner' => ['berufsbildner', 'trainer.dashboard'],
+            'Lernende' => ['lernender', 'learner.dashboard'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('seiten')]
+    public function kein_element_traegt_hidden_zusammen_mit_einer_display_klasse(string $rolle, string $route): void
+    {
+        $user = User::factory()->{$rolle}()->create();
+        $html = (string) $this->actingAs($user)->get(route($route))->assertOk()->getContent();
+
+        preg_match_all('/\sclass="([^"]*)"/', $html, $treffer);
+        $konflikte = collect($treffer[1])
+            ->map(fn (string $k) => preg_split('/\s+/', trim($k)))
+            ->filter(fn (array $k) => in_array('hidden', $k, true) && array_intersect($k, self::DISPLAY) !== [])
+            ->map(fn (array $k) => implode(' ', $k))
+            ->values()->all();
+
+        $this->assertSame([], $konflikte);
+    }
+
+    #[Test]
+    public function feedback_symbol_in_der_leiste_nur_ohne_schwebenden_knopf(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        Einstellungen::set(Einstellungen::FEEDBACK_KNOPF, '1');
+        $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->assertDontSee('title="'.__('Feedback melden').'"', false);
+
+        Einstellungen::set(Einstellungen::FEEDBACK_KNOPF, '0');
+        $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->assertSee('title="'.__('Feedback melden').'"', false);
+    }
+}
