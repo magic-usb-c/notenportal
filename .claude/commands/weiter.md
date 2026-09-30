@@ -11,13 +11,10 @@ Ohne Angabe nimmst du den nächsten offenen Punkt aus `docs/auftrag/LAGE.md` Abs
 ## Zuerst lesen
 
 1. `docs/auftrag/LAGE.md` — was gilt, was falsch ist, welche Quellen schon geprüft sind
-2. `docs/auftrag/UEBERGABE.md` — was andere Sitzungen gerade tun und was für dich daliegt
-3. `docs/auftrag/ARBEITSTEILUNG.md` — welche Verzeichnisse dir gehören
+2. `docs/auftrag/NACHTLAUF.md` — Vorgehen, Reihenfolge, was «fertig» heisst
+3. `docs/auftrag/UEBERGABE.md` — was bereits getan wurde und was offen ist
 4. `CLAUDE.md` — harte Regeln
-5. Den eigenen Auftrag, meist `docs/auftrag/NOTENBAUM.md`
-
-Prüf dabei, ob du wirklich in einem Worktree stehst und nicht in `/var/www/notenportal`. Wenn doch:
-sofort aufhören und es melden — diese Arbeitskopie ist Produktion.
+5. Den nächsten Auftrag: `docs/auftrag/NOTENBAUM.md` oder `docs/auftrag/GUI-APPLE.md`
 
 ## Dann arbeiten
 
@@ -28,8 +25,8 @@ sofort aufhören und es melden — diese Arbeitskopie ist Produktion.
 - Vor jedem Schema-Eingriff: Skill `notenportal-migration` (Dump und Tag), erst gegen
   `notenportal_probe` inklusive Rollback.
 - Vor Arbeit an Views oder CSS: Skill `notenportal-ui`.
-- Nach jedem lauffähigen Stand committen: Tests grün, Seite lädt. Push nur auf den eigenen
-  `claude/*`-Branch, nie auf `main`.
+- Nach jedem lauffähigen Stand committen und auf `main` pushen: Tests grün, Seite lädt.
+
 - Bevor du einen Block als erledigt meldest: Agent `pruefer` darauf ansetzen. Dessen Befunde
   abarbeiten, bevor du weitergehst.
 - Nach jedem Block: Skill `notenportal-blockabschluss`, Eintrag in `docs/auftrag/UEBERGABE.md`.

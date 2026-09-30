@@ -15,9 +15,10 @@ Notenverwaltung für Lernende in der Schweizer Berufslehre. Lernende erfassen No
 Zeugnisnoten, Promotion und Modulfortschritt; Berufsbildner begleiten; Admins verwalten.
 Laravel 13, MariaDB, Blade + Tailwind 4. Produkteigner: David von Allmen.
 
-Der Testbetrieb läuft seit 30.09.2026 auf `srv-lab-dva-003` (172.26.14.100, VLAN 14, Ubuntu 26.04.1,
-PHP 8.5). Die Entwicklungsmaschine ist `srv-lab-dva-001` (`/var/www/notenportal`, PHP 8.3) — **diese
-Arbeitskopie ist zugleich Produktion.** Siehe `docs/betrieb.md`.
+**Stand 30.09.2026 abends: nichts ist produktiv.** Es gibt keine schützenswerte Instanz und keine
+echten Daten; die Datenbank ist leer. David klont morgen früh frisch auf einen neuen Ubuntu-Server
+und führt `sudo ./install.sh` aus. Das ist das Abnahmekriterium für alles, was heute Nacht entsteht.
+Vorgehen: `docs/auftrag/NACHTLAUF.md` — **eine** Sitzung auf `main`, Parallelität über Subagenten.
 
 ---
 

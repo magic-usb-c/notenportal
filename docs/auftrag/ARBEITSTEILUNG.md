@@ -1,3 +1,8 @@
+> **Überholt seit 30.09.2026 abends.** Es wird nicht mehr in mehreren Sitzungen und Worktrees
+> gearbeitet, sondern in **einer** Sitzung auf `main` mit Subagenten — siehe
+> `docs/auftrag/NACHTLAUF.md`. Nichts ist produktiv. Die Verzeichnis-Zuordnung unten bleibt nur als
+> Hinweis stehen, welche Bereiche fachlich zusammengehören.
+
 # Arbeitsteilung für parallele Sitzungen
 
 Mehrere Claude-Code-Sitzungen am selben Repository funktionieren nur mit klarem Besitz. Diese Datei
