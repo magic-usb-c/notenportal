@@ -42,7 +42,7 @@
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
                         'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                         <input type="checkbox" name="berufe[]" value="{{ $l['kuerzel'] }}" @checked($da || in_array($l['kuerzel'], $gewaehlt, true)) @disabled($da)
-                               class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                               class="np-haken">
                         <span class="min-w-0 flex-1">
                             <span class="block text-sm text-text wrap-break-word">{{ $l['name'] }}</span>
                             <span class="text-xs text-muted">{{ $l['kuerzel'] }}</span>
@@ -52,7 +52,7 @@
                 @endforeach
                 @foreach($weitere as $lb)
                     <div class="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 opacity-60">
-                        <input type="checkbox" checked disabled aria-label="{{ $lb->name }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                        <input type="checkbox" checked disabled aria-label="{{ $lb->name }}" class="np-haken">
                         <span class="min-w-0 flex-1"><span class="block text-sm text-text wrap-break-word">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
                         <span class="text-xs text-muted">{{ __('vorhanden') }}</span>
                     </div>
@@ -97,7 +97,7 @@
                                 <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
                                     'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                                     <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
-                                           class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                           class="np-haken">
                                     <span class="min-w-0">{{ $f['name'] }}</span>
                                     @if($zusatz)<span class="shrink-0 whitespace-nowrap text-xs text-muted">{{ implode(' · ', $zusatz) }}</span>@endif
                                 </label>
@@ -116,7 +116,7 @@
                 </div>
                 <label class="flex items-start gap-3 cursor-pointer">
                     <input type="hidden" name="notenbaeume" value="0">
-                    <input type="checkbox" name="notenbaeume" value="1" @checked(old('notenbaeume', '1') === '1') class="mt-0.5 w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                    <input type="checkbox" name="notenbaeume" value="1" @checked(old('notenbaeume', '1') === '1') class="np-haken mt-0.5">
                     <span class="min-w-0">
                         <span class="block text-sm text-text">{{ __('Gewichtung bis zur Gesamtnote laden') }}</span>
                         <span class="block text-xs text-muted">{{ $baeume->implode(' · ') }}</span>

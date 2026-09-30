@@ -47,7 +47,7 @@
 
                         <label class="flex items-start gap-2.5 text-sm text-text">
                             <input type="checkbox" name="ohne_berufe" value="1" @checked(old('ohne_berufe'))
-                                   class="mt-0.5 rounded border-border text-accent focus:ring-ring">
+                                   class="np-haken mt-0.5">
                             <span>
                                 {{ __('Keine neuen Lehrberufe anlegen') }}
                                 <span class="block text-xs text-muted">{{ __('Module werden dann nur bestehenden Lehrberufen zugeordnet.') }}</span>
@@ -56,7 +56,7 @@
 
                         <label class="flex items-start gap-2.5 text-sm text-text">
                             <input type="checkbox" name="eigene_uebernehmen" value="1" @checked(old('eigene_uebernehmen'))
-                                   class="mt-0.5 rounded border-border text-accent focus:ring-ring">
+                                   class="np-haken mt-0.5">
                             <span>
                                 {{ __('Eigene Module überschreiben') }}
                                 <span class="block text-xs text-muted">{{ __('Sonst bleiben selbst erfasste Module mit derselben Nummer unberührt.') }}</span>
@@ -83,16 +83,16 @@
                         </p>
                     </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm tabular-nums">
+                    <div class="overflow-x-auto px-2 pb-2">
+                        <table class="np-tabelle text-sm">
                             <caption class="sr-only">{{ __('Was der Import schreiben würde') }}</caption>
-                            <thead class="bg-surface-2">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Was') }}</th>
-                                    <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Anzahl') }}</th>
+                                    <th scope="col">{{ __('Was') }}</th>
+                                    <th scope="col" class="text-right">{{ __('Anzahl') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody>
                                 @foreach([
                                     __('Module neu') => $zahlen['module_neu'],
                                     __('Module aktualisiert') => $zahlen['module_alt'],
@@ -103,9 +103,9 @@
                                     __('Zuordnungen Beruf zu Modul') => $zahlen['zuordnungen'],
                                     __('Eigene Module übersprungen') => $zahlen['konflikte'],
                                 ] as $was => $anzahl)
-                                    <tr class="h-10">
-                                        <td class="px-4 text-text">{{ $was }}</td>
-                                        <td class="px-4 text-right text-text">{{ $anzahl }}</td>
+                                    <tr>
+                                        <td class="text-text">{{ $was }}</td>
+                                        <td class="text-right text-text">{{ $anzahl }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

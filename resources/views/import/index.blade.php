@@ -117,37 +117,37 @@
                     </section>
 
                     <section class="np-karte overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm text-text">
-                                <thead class="text-xs text-muted">
-                                    <tr class="border-b border-border">
-                                        <th class="px-3 py-2 w-12">
+                        <div class="overflow-x-auto p-2">
+                            <table class="np-tabelle text-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="w-12">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                 <input type="checkbox" aria-label="{{ __('Alle auswählen') }}" :checked="gewaehlt === zeilen.length" @change="alle($event.target.checked)"
-                                                       class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                                       class="np-haken">
                                             </label>
                                         </th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Zeile') }}</th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Datum') }}</th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Fach/Modul') }}</th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Titel') }}</th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Note') }}</th>
-                                        <th class="text-left px-2 py-2 font-medium">{{ __('Gewicht %') }}</th>
-                                        <th class="text-left px-3 py-2 font-medium">{{ __('Status') }}</th>
+                                        <th>{{ __('Zeile') }}</th>
+                                        <th>{{ __('Datum') }}</th>
+                                        <th>{{ __('Fach/Modul') }}</th>
+                                        <th>{{ __('Titel') }}</th>
+                                        <th>{{ __('Note') }}</th>
+                                        <th>{{ __('Gewicht %') }}</th>
+                                        <th>{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-border">
+                                <tbody>
                                     <template x-for="z in zeilen" :key="z.nr">
                                         <tr :class="z.uebernehmen ? '' : 'opacity-60'">
-                                            <td class="px-3 py-1.5">
+                                            <td>
                                                 <label class="inline-flex items-center justify-center min-w-9 min-h-9">
                                                     <input type="checkbox" x-model="z.uebernehmen" :disabled="z.status === 'fehler'"
-                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="w-5 h-5 rounded border-border text-accent focus:ring-ring disabled:opacity-60">
+                                                           :aria-label="@js(__('Zeile :nr übernehmen')).replace(':nr', z.nr)" class="np-haken">
                                                 </label>
                                             </td>
-                                            <td class="px-2 py-1.5 text-xs text-muted tabular-nums" x-text="z.nr"></td>
-                                            <td class="px-2 py-1.5 min-w-36"><input type="date" x-model="z.datum" :aria-label="@js(__('Datum Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-note-ungenuegend!'"></td>
-                                            <td class="px-2 py-1.5 min-w-56">
+                                            <td class="text-xs text-muted" x-text="z.nr"></td>
+                                            <td class="min-w-36"><input type="date" x-model="z.datum" :aria-label="@js(__('Datum Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.datum && 'border-note-ungenuegend!'"></td>
+                                            <td class="min-w-56">
                                                 <select x-model="z.bezug" :aria-label="@js(__('Fach oder Modul Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}" :class="! z.bezug && 'border-note-ungenuegend!'">
                                                     <option value="">–</option>
                                                     @foreach($optionen as $gruppe => $liste)
@@ -160,10 +160,10 @@
                                                 </select>
                                                 <div class="mt-0.5 text-3xs text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
-                                            <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="@js(__('Titel Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
-                                            <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums"></td>
-                                            <td class="px-3 py-1.5 whitespace-nowrap">
+                                            <td class="min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="@js(__('Titel Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}"></td>
+                                            <td class="w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
+                                            <td class="w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums"></td>
+                                            <td class="whitespace-nowrap">
                                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-3xs font-semibold" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
                                             </td>
                                         </tr>

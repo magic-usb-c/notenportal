@@ -48,8 +48,8 @@
             </div>
         </div>
         <label for="hinweis_login" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
-            <input id="hinweis_login" name="hinweis_login" type="checkbox" value="1" @checked(old('hinweis_login', $hinweisWerte['login']))
-                   class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
+            <input id="hinweis_login" name="hinweis_login" type="checkbox" role="switch" value="1" @checked(old('hinweis_login', $hinweisWerte['login']))
+                   class="np-schalter">
             {{ __('Auch auf der Anmeldeseite zeigen') }}
         </label>
         {{-- «Speichern» steht im DOM zuerst: Enter in einem Feld löst den ersten Submit-Knopf aus und darf nie löschen. --}}

@@ -74,21 +74,21 @@
 
             @if(count($nachLehrjahr) > 1)
                 <x-karte :titel="__('Gesamtschnitt nach Lehrjahr')" :polster="false" class="max-w-md">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-text">
-                            <thead class="text-muted text-xs">
-                                <tr class="border-b border-border">
-                                    <th scope="col" class="text-left px-5 py-2 font-medium">{{ __('Lehrjahr') }}</th>
-                                    <th scope="col" class="text-right px-3 py-2 font-medium">Ø</th>
-                                    <th scope="col" class="text-right px-5 py-2 font-medium">{{ __('Lernende') }}</th>
+                    <div class="overflow-x-auto px-2 pb-2">
+                        <table class="np-tabelle text-sm">
+                            <thead>
+                                <tr>
+                                    <th scope="col">{{ __('Lehrjahr') }}</th>
+                                    <th scope="col" class="text-right">Ø</th>
+                                    <th scope="col" class="text-right">{{ __('Lernende') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody>
                                 @foreach($nachLehrjahr as $j)
                                     <tr>
-                                        <td class="px-5 py-2.5 whitespace-nowrap">{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}</td>
-                                        <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($j['schnitt']) }}">{{ \App\Support\NotenSkala::format($j['schnitt'], 1) }}</td>
-                                        <td class="px-5 py-2.5 text-right tabular-nums text-muted">{{ $j['anzahl'] }}</td>
+                                        <td class="whitespace-nowrap">{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}</td>
+                                        <td class="text-right font-semibold {{ \App\Support\NotenSkala::text($j['schnitt']) }}">{{ \App\Support\NotenSkala::format($j['schnitt'], 1) }}</td>
+                                        <td class="text-right text-muted">{{ $j['anzahl'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -102,16 +102,16 @@
                     <x-diagramm :titel="__('Verteilung der Zeugnisnoten')" :frage="__('Wie verteilen sich die Zeugnisnoten auf die Notenskala?')"
                                 :fazit="__(':ungenuegend von :gesamt Zeugnisnoten ungenügend, Durchschnitt :schnitt', ['ungenuegend' => $k['ungenuegend'], 'gesamt' => $k['zeugnisnoten'], 'schnitt' => \App\Support\NotenSkala::format($k['schnitt'], 2)])">
                         <x-slot:tabelle>
-                            <table class="w-full text-sm tabular-nums">
-                                <thead class="text-2xs text-muted">
-                                    <tr><th class="text-left px-2 sm:px-3 py-2 font-medium">{{ __('Note') }}</th><th class="text-right px-2 sm:px-3 py-2 font-medium">{{ __('Zeugnisnoten') }}</th><th class="text-right px-2 sm:px-3 py-2 font-medium">{{ __('Stufe') }}</th></tr>
+                            <table class="np-tabelle text-sm">
+                                <thead>
+                                    <tr><th>{{ __('Note') }}</th><th class="text-right">{{ __('Zeugnisnoten') }}</th><th class="text-right">{{ __('Stufe') }}</th></tr>
                                 </thead>
                                 <tbody>
                                     @foreach($verteilung['labels'] as $i => $label)
-                                        <tr class="border-t border-border">
-                                            <td class="px-2 sm:px-3 py-2">{{ $label }}</td>
-                                            <td class="px-2 sm:px-3 py-2 text-right">{{ $verteilung['werte'][$i] }}</td>
-                                            <td class="px-2 sm:px-3 py-2 text-right text-muted">{{ \App\Support\NotenSkala::stufeName((float) $label) }}</td>
+                                        <tr>
+                                            <td>{{ $label }}</td>
+                                            <td class="text-right">{{ $verteilung['werte'][$i] }}</td>
+                                            <td class="text-right text-muted">{{ \App\Support\NotenSkala::stufeName((float) $label) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -122,26 +122,26 @@
                     </x-diagramm>
 
                     <x-karte :titel="__('Kategorien')" :polster="false" class="@container">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm text-text">
-                                <thead class="text-muted text-xs">
-                                    <tr class="border-b border-border">
-                                        <th class="text-left px-3 @md:px-5 py-2 font-medium">{{ __('Kategorie') }}</th>
-                                        <th class="text-right px-3 py-2 font-medium">Ø</th>
-                                        <th class="hidden @xl:table-cell text-right px-3 py-2 font-medium whitespace-nowrap">{{ __('Min – Max') }}</th>
-                                        <th class="text-right px-3 py-2 font-medium">{{ __('Ungenügend') }}</th>
-                                        @if($sid)<th class="hidden @xl:table-cell text-right px-5 py-2 font-medium whitespace-nowrap">{{ __('Promotion gefährdet') }}</th>@endif
+                        <div class="overflow-x-auto px-2 pb-2">
+                            <table class="np-tabelle text-sm">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Kategorie') }}</th>
+                                        <th class="text-right">Ø</th>
+                                        <th class="hidden @xl:table-cell text-right whitespace-nowrap">{{ __('Min – Max') }}</th>
+                                        <th class="text-right">{{ __('Ungenügend') }}</th>
+                                        @if($sid)<th class="hidden @xl:table-cell text-right whitespace-nowrap">{{ __('Promotion gefährdet') }}</th>@endif
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-border">
+                                <tbody>
                                     @foreach($kategorien as $kat)
                                         <tr>
-                                            <td class="px-3 @md:px-5 py-2.5 font-medium">
+                                            <td class="font-medium">
                                                 {{ $kat['name'] }} <span class="text-xs text-muted font-normal">{{ $kat['anzahl'] }}</span>
                                                 <span class="block text-xs font-normal text-muted tabular-nums @xl:hidden">{{ __('Min – Max') }} {{ \App\Support\NotenSkala::format($kat['min'], 1) }} – {{ \App\Support\NotenSkala::format($kat['max'], 1) }}@if($sid && $kat['gefaehrdet']) · <span class="text-note-ungenuegend">{{ __('Promotion gefährdet') }} {{ $kat['gefaehrdet'] }}</span>@endif</span>
                                             </td>
-                                            <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($kat['schnitt']) }}">{{ \App\Support\NotenSkala::format($kat['schnitt'], 2) }}</td>
-                                            <td class="hidden @xl:table-cell px-3 py-2.5 text-right tabular-nums text-muted">{{ \App\Support\NotenSkala::format($kat['min'], 1) }} – {{ \App\Support\NotenSkala::format($kat['max'], 1) }}</td>
+                                            <td class="text-right font-semibold {{ \App\Support\NotenSkala::text($kat['schnitt']) }}">{{ \App\Support\NotenSkala::format($kat['schnitt'], 2) }}</td>
+                                            <td class="hidden @xl:table-cell text-right text-muted">{{ \App\Support\NotenSkala::format($kat['min'], 1) }} – {{ \App\Support\NotenSkala::format($kat['max'], 1) }}</td>
                                             <td @class(['px-3 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $kat['ungenuegend'], 'text-muted' => ! $kat['ungenuegend']])>{{ $kat['ungenuegend'] }}</td>
                                             @if($sid)
                                                 <td @class(['hidden @xl:table-cell px-5 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $kat['gefaehrdet'], 'text-muted' => ! $kat['gefaehrdet']])>{{ $kat['gefaehrdet'] }}</td>
@@ -175,11 +175,11 @@
             {{-- Spalten nach Breite der Karte (Seitenleiste). Was ausgeblendet ist, steht in der Zeile unter dem Namen,
                  die Sortierung der ausgeblendeten Spalten im Kopf der Namensspalte. --}}
             <x-karte :titel="__('Lernende')" :polster="false" class="@container">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="text-muted text-xs">
-                            <tr class="border-b border-border">
-                                <th scope="col" class="text-left px-3 @md:px-5 py-2 font-medium" aria-sort="{{ $ariaSort('name') }}">
+                <div class="overflow-x-auto px-2 pb-2">
+                    <table class="np-tabelle text-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col" aria-sort="{{ $ariaSort('name') }}">
                                     <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
                                         <a href="{{ $sortUrl('name') }}" class="hover:text-text">{{ __('Name') }} {{ $pfeil('name') }}</a>
                                         <a href="{{ $sortUrl('status') }}" class="hover:text-text @2xl:hidden">{{ __('Status') }} {{ $pfeil('status') }}</a>
@@ -189,21 +189,21 @@
                                         <a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text @5xl:hidden">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a>
                                     </span>
                                 </th>
-                                <th scope="col" class="hidden @2xl:table-cell text-left px-3 py-2 font-medium" aria-sort="{{ $ariaSort('status') }}"><a href="{{ $sortUrl('status') }}" class="hover:text-text">{{ __('Status') }} {{ $pfeil('status') }}</a></th>
-                                <th scope="col" class="text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('gesamt') }}"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="hover:text-text">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
+                                <th scope="col" class="hidden @2xl:table-cell" aria-sort="{{ $ariaSort('status') }}"><a href="{{ $sortUrl('status') }}" class="hover:text-text">{{ __('Status') }} {{ $pfeil('status') }}</a></th>
+                                <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('gesamt') }}"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="hover:text-text">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
                                 @if($sid)
-                                    <th scope="col" class="hidden @2xl:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('semester') }}"><a href="{{ $sortUrl('semester', 'desc') }}" class="hover:text-text">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
+                                    <th scope="col" class="hidden @2xl:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('semester') }}"><a href="{{ $sortUrl('semester', 'desc') }}" class="hover:text-text">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
                                 @endif
-                                <th scope="col" class="hidden @4xl:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('ungenuegend') }}"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="hover:text-text">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
-                                <th scope="col" class="hidden @5xl:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('pruefungen') }}"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="hover:text-text">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
-                                <th scope="col" class="hidden @5xl:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('letzte') }}"><a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
-                                <th class="px-3 @md:px-5 py-2 print:hidden"><span class="sr-only">{{ __('Noten') }}</span></th>
+                                <th scope="col" class="hidden @4xl:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('ungenuegend') }}"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="hover:text-text">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
+                                <th scope="col" class="hidden @5xl:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('pruefungen') }}"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="hover:text-text">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
+                                <th scope="col" class="hidden @5xl:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('letzte') }}"><a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
+                                <th class="print:hidden"><span class="sr-only">{{ __('Noten') }}</span></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border">
+                        <tbody>
                             @forelse($zeilen as $z)
-                                <tr class="hover:bg-surface-2/60">
-                                    <td class="px-3 @md:px-5 py-2.5">
+                                <tr>
+                                    <td>
                                         <a href="{{ route('admin.learners.show', $z->id) }}" class="font-medium hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
                                         @if($z->lehrberuf)<span class="ml-1 text-xs text-muted">{{ $z->lehrberuf }}</span>@endif
                                         <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted tabular-nums @5xl:hidden">
@@ -223,20 +223,20 @@
                                             <div class="mt-1 text-xs text-muted @2xl:hidden">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif
                                     </td>
-                                    <td class="hidden @2xl:table-cell px-3 py-2.5">
+                                    <td class="hidden @2xl:table-cell">
                                         <x-status :status="$z->stand->status" />
                                         @if($z->stand->gruende)
                                             <div class="mt-1 line-clamp-2 max-w-72 text-xs text-muted" title="{{ implode(' · ', $z->stand->gruende) }}">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($z->gesamt) }}">{{ \App\Support\NotenSkala::format($z->gesamt, 1) }}</td>
+                                    <td class="text-right font-semibold {{ \App\Support\NotenSkala::text($z->gesamt) }}">{{ \App\Support\NotenSkala::format($z->gesamt, 1) }}</td>
                                     @if($sid)
-                                        <td class="hidden @2xl:table-cell px-3 py-2.5 text-right font-semibold tabular-nums {{ \App\Support\NotenSkala::text($z->semester) }}">{{ \App\Support\NotenSkala::format($z->semester, 1) }}</td>
+                                        <td class="hidden @2xl:table-cell text-right font-semibold {{ \App\Support\NotenSkala::text($z->semester) }}">{{ \App\Support\NotenSkala::format($z->semester, 1) }}</td>
                                     @endif
                                     <td @class(['hidden @4xl:table-cell px-3 py-2.5 text-right tabular-nums', 'text-note-ungenuegend font-semibold' => $z->ungenuegend, 'text-muted' => ! $z->ungenuegend])>{{ $z->ungenuegend }}</td>
-                                    <td class="hidden @5xl:table-cell px-3 py-2.5 text-right tabular-nums text-muted">{{ $z->pruefungen }}</td>
-                                    <td class="hidden @5xl:table-cell px-3 py-2.5 text-right tabular-nums text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
-                                    <td class="px-3 @md:px-5 py-2.5 text-right print:hidden">
+                                    <td class="hidden @5xl:table-cell text-right text-muted">{{ $z->pruefungen }}</td>
+                                    <td class="hidden @5xl:table-cell text-right text-muted whitespace-nowrap">{{ $z->letzte ? \Illuminate\Support\Carbon::parse($z->letzte)->format('d.m.Y') : '–' }}</td>
+                                    <td class="text-right print:hidden">
                                         <a href="{{ route('admin.learners.grades.index', array_filter(['lernender_id' => $z->id, 'semester_id' => $sid])) }}" class="np-ziel inline-flex min-h-6 items-center text-xs text-accent-text hover:underline whitespace-nowrap">{{ __('Noten') }} →</a>
                                     </td>
                                 </tr>

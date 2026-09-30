@@ -83,8 +83,8 @@
                         </div>
                         <div class="flex items-end gap-3 pb-2">
                             <input type="hidden" name="zaehlt" value="0">
-                            <input type="checkbox" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', 1))
-                                   class="rounded-sm border-border text-accent-text focus:ring-ring">
+                            <input type="checkbox" role="switch" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', 1))
+                                   class="np-schalter">
                             <label for="zaehlt" class="text-sm text-text">{{ __('Zählt in Schnitt und Promotion') }}</label>
                         </div>
                     </div>

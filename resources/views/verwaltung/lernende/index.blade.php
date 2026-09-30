@@ -12,8 +12,7 @@
                 </a>
                 <a href="{{ route("{$bereich}.learners.create") }}"
                    class="np-knopf np-knopf-primaer">
-                    <span class="text-lg leading-none">+</span>
-                    {{ __('Lernender erfassen') }}
+                    <x-symbol name="plus" strich="2" />{{ __('Lernender erfassen') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -34,7 +33,7 @@
         // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
         $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
 
-        $auswahl = 'np-feld px-2.5 sm:w-40';
+        $auswahl = 'np-feld np-feld-klein sm:w-40';
 
         $tageSeit = fn ($z) => $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) : null;
         $wann = fn (?int $tage) => match (true) {
@@ -185,23 +184,23 @@
             </div>
 
             <div data-ansicht="tabelle" class="np-karte hidden @4xl:block overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
-                        <thead class="sticky top-0 z-10 bg-surface-2">
+                <div class="overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm">
+                        <thead>
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Name')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('lehrjahr') }}">{!! $sortLink('lehrjahr', __('Lehrberuf / Lj')) !!}</th>
+                                <th scope="col" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Name')) !!}</th>
+                                <th scope="col" class="whitespace-nowrap" aria-sort="{{ $ariaSort('lehrjahr') }}">{!! $sortLink('lehrjahr', __('Lehrberuf / Lj')) !!}</th>
                                 @if($bereich === 'admin')
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Berufsbildner') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Berufsbildner') }}</th>
                                 @endif
-                                <th scope="col" class="hidden h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap @6xl:table-cell">{{ __('Noten') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col" class="hidden text-right whitespace-nowrap @6xl:table-cell">{{ __('Noten') }}</th>
+                                <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
+                                <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
+                                <th scope="col">{{ __('Status') }}</th>
+                                <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border">
+                        <tbody>
                             @forelse($zeilen as $z)
                                 @php
                                     $l = $z->lernender;
@@ -209,9 +208,9 @@
                                     $tagSeit = $tageSeit($z);
                                     $zielUrl = route("{$bereich}.learners.show", $l->lernender_id);
                                 @endphp
-                                <tr class="group h-11 cursor-pointer border-b border-border last:border-0 hover:bg-surface-2/60 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}"
+                                <tr class="group cursor-pointer {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}"
                                     onclick="window.location='{{ $zielUrl }}'">
-                                    <td class="px-3">
+                                    <td>
                                         <div class="flex items-center gap-3 min-w-0">
                                             <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0" aria-hidden="true">
                                                 {{ $initialen ?: '?' }}
@@ -225,24 +224,24 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-3 text-left whitespace-nowrap">
+                                    <td class="text-left whitespace-nowrap">
                                         <span title="{{ $l->lehrberuf?->name }}">{{ $l->lehrberuf?->kuerzel ?? '–' }}</span>
                                         <span class="text-muted">· {{ $z->lehrjahr ?: '–' }}</span>
                                     </td>
                                     @if($bereich === 'admin')
-                                        <td class="px-3 text-left text-muted whitespace-nowrap">
+                                        <td class="text-left text-muted whitespace-nowrap">
                                             {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}
                                         </td>
                                     @endif
-                                    <td class="hidden px-3 text-right @6xl:table-cell">{{ $z->anzahl }}</td>
-                                    <td class="px-3 text-right text-muted whitespace-nowrap">{{ $wann($tagSeit) }}</td>
-                                    <td class="px-3 text-right">
+                                    <td class="hidden text-right @6xl:table-cell">{{ $z->anzahl }}</td>
+                                    <td class="text-right text-muted whitespace-nowrap">{{ $wann($tagSeit) }}</td>
+                                    <td class="text-right">
                                         <x-note :wert="$z->avg" :stellen="2" />
                                     </td>
-                                    <td class="px-3 text-left">
+                                    <td class="text-left">
                                         <div class="flex flex-wrap gap-1">@include('verwaltung.lernende._status')</div>
                                     </td>
-                                    <td class="px-3 text-right" onclick="event.stopPropagation()">
+                                    <td class="text-right" onclick="event.stopPropagation()">
                                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
                                             {{-- Zum Profil führen schon Zeile und Name --}}
                                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"

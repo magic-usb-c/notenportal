@@ -103,12 +103,12 @@
                             @endif
 
                             <div class="mt-4 overflow-x-auto border-t border-border">
-                                <table class="w-full text-sm tabular-nums">
-                                    <thead class="bg-surface-2">
+                                <table class="np-tabelle text-sm">
+                                    <thead>
                                         <tr>
-                                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted sm:px-5">{{ __('Teil') }}</th>
-                                            <th scope="col" class="hidden h-9 px-2 text-right text-2xs font-medium text-muted sm:table-cell sm:px-3">{{ __('Anteil') }}</th>
-                                            <th scope="col" class="h-9 w-20 pl-2 pr-3 text-right text-2xs font-medium text-muted sm:w-32 sm:px-5">{{ __('Note') }}</th>
+                                            <th scope="col">{{ __('Teil') }}</th>
+                                            <th scope="col" class="hidden text-right sm:table-cell">{{ __('Anteil') }}</th>
+                                            <th scope="col" class="w-20 text-right sm:w-32">{{ __('Note') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -121,14 +121,14 @@
                                                 $anteil = $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht'));
                                                 $r = $regeln($k);
                                             @endphp
-                                            <tr class="border-b border-border last:border-0">
-                                                <td class="py-2.5 pr-3 {{ $einzug[min($z['tiefe'], 4)] }}">
+                                            <tr>
+                                                <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
                                                     <div @class(['text-text wrap-break-word', 'font-medium' => $gruppe])>{{ $k->name }}</div>
                                                     {{-- Auf dem Handy steht der Anteil hier statt in einer eigenen Spalte --}}
                                                     <div class="text-xs text-muted wrap-break-word"><span class="sm:hidden">{{ $anteil }}@if($r) · @endif</span>{{ $r ? implode(' · ', $r) : '' }}</div>
                                                 </td>
-                                                <td class="hidden whitespace-nowrap px-2 text-right text-muted sm:table-cell sm:px-3">{{ $anteil }}</td>
-                                                <td class="py-1.5 pl-2 pr-3 text-right sm:px-5">
+                                                <td class="hidden whitespace-nowrap text-right text-muted sm:table-cell">{{ $anteil }}</td>
+                                                <td class="text-right">
                                                     @if($k->entfaellt)
                                                         <span class="text-muted">–</span>
                                                     @elseif($k->typ === Knoten::MANUELL)

@@ -73,15 +73,15 @@
                         </div>
                         <div class="flex items-end gap-3 pb-2">
                             <input type="hidden" name="zaehlt" value="0">
-                            <input type="checkbox" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', $fach?->zaehlt ?? 1))
-                                   class="rounded-sm border-border text-accent-text focus:ring-ring">
+                            <input type="checkbox" role="switch" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', $fach?->zaehlt ?? 1))
+                                   class="np-schalter">
                             <label for="zaehlt" class="text-sm text-text">{{ __('Zählt in Schnitt und Promotion') }}</label>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="aktiv" value="0">
-                        <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $fach->aktiv))
-                               class="rounded-sm border-border text-accent-text focus:ring-ring">
+                        <input type="checkbox" role="switch" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $fach->aktiv))
+                               class="np-schalter">
                         <label for="aktiv" class="text-sm text-text">{{ __('Fach aktiv') }}</label>
                     </div>
 

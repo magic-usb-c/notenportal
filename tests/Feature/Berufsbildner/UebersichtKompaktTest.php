@@ -114,7 +114,7 @@ class UebersichtKompaktTest extends TestCase
         $this->assertStringContainsString(__('Gesamt'), $namenszelle->textContent);
         // Der Status der ausgeblendeten Statusspalte steht als eigenes Etikett in der Namenszelle, schmal sichtbar
         $spalte = trim($xpath->query('//tbody/tr/td[1]')->item(0)->textContent);
-        $etikett = $xpath->query('.//span[contains(@class,"@xl:hidden") and contains(@class,"rounded-md")]', $namenszelle)->item(0);
+        $etikett = $xpath->query('.//span[contains(@class,"@xl:hidden") and span[@aria-hidden="true" and contains(@class,"rounded-full")]]', $namenszelle)->item(0);
         $this->assertNotSame('', $spalte);
         $this->assertNotNull($etikett, 'Statusetikett in der Namenszelle');
         $this->assertSame($spalte, trim($etikett->textContent));

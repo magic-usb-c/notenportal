@@ -248,7 +248,7 @@
             </div>
 
             @if($notes->hasPages())
-                <div class="np-karte p-3">{{ $notes->links() }}</div>
+                <div class="px-1">{{ $notes->links() }}</div>
             @endif
         </div>
     </div>

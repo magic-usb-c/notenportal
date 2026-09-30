@@ -13,62 +13,53 @@
 ])
 @php($aktiveWeitere ??= $aktiveFilter)
 {{--
-    Filterleiste (Katalog e): einzeilig über der Tabelle, sofort wirksam per Alpine (kein
-    «Filtern»-Button), No-JS-Fallback per <noscript>-Button. «Weitere Filter» als Disclosure.
-    Mobil: Suche + Button «Filter (n)», der Primär- und Weitere Filter gemeinsam aufklappt.
+    Filterleiste über der Tabelle als Symbolleiste ohne Karte (HIG «Toolbars»): Suchkapsel, Pop-up-Menüs, rechts
+    Trefferzahl und Zurücksetzen. Sofort wirksam per Alpine, ohne JS per <noscript>-Knopf. «Weitere Filter» als
+    Disclosure. Schmal: Suche + Knopf «Filter (n)», der Primär- und Weitere Filter gemeinsam aufklappt.
 --}}
-<div x-data="{ offen: {{ $aktiveWeitere > 0 ? 'true' : 'false' }} }" class="np-karte p-3">
-    <form method="{{ $method }}" action="{{ $action }}" class="flex flex-col gap-3">
+<div x-data="{ offen: {{ $aktiveWeitere > 0 ? 'true' : 'false' }} }">
+    <form method="{{ $method }}" action="{{ $action }}" class="flex flex-col gap-2">
         {{ $hidden ?? '' }}
 
-        <div class="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+        <div class="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
             @if($sucheName)
-                <div class="relative min-w-0 md:w-56">
-                    <svg class="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
-                    </svg>
-                    <label for="{{ $sucheName }}" class="sr-only">{{ $suchePlatzhalter }}</label>
-                    <input type="search" name="{{ $sucheName }}" id="{{ $sucheName }}" value="{{ $sucheWert }}"
-                           placeholder="{{ $suchePlatzhalter }}" x-on:input.debounce.400ms="$el.form.requestSubmit()"
-                           class="np-feld pl-8 pr-3">
-                </div>
+                <x-suchfeld :name="$sucheName" :id="$sucheName" :value="$sucheWert" :platzhalter="$suchePlatzhalter" :label="$suchePlatzhalter"
+                            x-on:input.debounce.400ms="$el.form.requestSubmit()" class="min-w-0 md:w-72" />
             @endif
 
-            <div :class="offen ? 'flex' : 'hidden md:flex'" class="flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-2">
+            <div :class="offen ? 'flex' : 'hidden md:flex'" class="flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 {{ $slot }}
             </div>
 
             @isset($weitere)
                 <button type="button" @click="offen = ! offen" :aria-expanded="offen"
-                        class="np-knopf np-knopf-sekundaer shrink-0 max-md:hidden">
+                        class="np-knopf np-knopf-schlicht shrink-0 max-md:hidden">
                     {{ $weitereLabel }}
                     @if($aktiveWeitere > 0)
-                        <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-3xs font-semibold text-accent-contrast">{{ $aktiveWeitere }}</span>
+                        <span class="np-marke h-4 min-w-4 justify-center bg-accent px-1 text-accent-contrast">{{ $aktiveWeitere }}</span>
                     @endif
-                    <svg class="size-3.5 transition-transform duration-200" :class="offen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
+                    <x-symbol name="chevron-down" strich="2" class="transition-transform duration-200" ::class="offen && 'rotate-180'" />
                 </button>
             @endisset
 
             <button type="button" @click="offen = ! offen" :aria-expanded="offen"
-                    class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text md:hidden">
-                {{ __('Filter') }}
+                    class="np-knopf np-knopf-sekundaer shrink-0 self-start md:hidden">
+                <x-symbol name="funnel" />{{ __('Filter') }}
                 @if($aktiveFilter > 0)
-                    <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-3xs font-semibold text-accent-contrast">{{ $aktiveFilter }}</span>
+                    <span class="np-marke h-4 min-w-4 justify-center bg-accent px-1 text-accent-contrast">{{ $aktiveFilter }}</span>
                 @endif
             </button>
 
             <div class="flex shrink-0 items-center gap-3 md:ml-auto">
                 @if($zurueck && $aktiveFilter > 0)
-                    <a href="{{ $zurueck }}" class="whitespace-nowrap text-sm text-accent-text hover:underline underline-offset-2">{{ __('Zurücksetzen') }}</a>
+                    <a href="{{ $zurueck }}" class="np-knopf np-knopf-schlicht">{{ __('Zurücksetzen') }}</a>
                 @endif
                 @if($zaehler !== null)
                     <span class="whitespace-nowrap text-sm tabular-nums text-muted">{{ $zaehler }} {{ $zaehlerLabel }}</span>
                 @endif
                 {{ $export ?? '' }}
                 <noscript>
-                    <button type="submit" class="inline-flex h-9 items-center rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text">{{ __('Filtern') }}</button>
+                    <button type="submit" class="np-knopf np-knopf-sekundaer">{{ __('Filtern') }}</button>
                 </noscript>
             </div>
         </div>
@@ -76,7 +67,7 @@
         @isset($weitere)
             {{-- kein x-cloak: ohne JS bleibt der Block sichtbar (bzw. bei aktiven Weitere-Filtern serverseitig offen) --}}
             <div x-show="offen" x-transition.opacity.duration.150ms
-                 class="flex flex-col gap-3 border-t border-border pt-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+                 class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 {{ $weitere }}
             </div>
         @endisset

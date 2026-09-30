@@ -15,18 +15,18 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             <div class="np-karte max-w-3xl overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="sticky top-0 z-10 bg-bg text-muted shadow-xs">
+                <div class="overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm">
+                        <thead class="bg-bg shadow-xs">
                             <tr>
-                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Datum') }}</th>
-                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
-                                <th class="text-left p-3">{{ __('Text') }}</th>
-                                <th class="hidden text-left p-3 whitespace-nowrap sm:table-cell">{{ __('Status') }}</th>
-                                <th class="hidden text-left p-3 sm:table-cell">{{ __('Antwort') }}</th>
+                                <th class="hidden p-3 whitespace-nowrap sm:table-cell">{{ __('Datum') }}</th>
+                                <th class="hidden p-3 whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
+                                <th class="p-3">{{ __('Text') }}</th>
+                                <th class="hidden p-3 whitespace-nowrap sm:table-cell">{{ __('Status') }}</th>
+                                <th class="hidden p-3 sm:table-cell">{{ __('Antwort') }}</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border">
+                        <tbody>
                             @forelse($meldungen as $m)
                                 @php
                                     $statusClasses = match ($m->status) {
@@ -95,13 +95,11 @@
                         </tbody>
                     </table>
                 </div>
-
-                @if($meldungen->hasPages())
-                    <div class="px-4 py-3 border-t border-border">
-                        {{ $meldungen->links() }}
-                    </div>
-                @endif
             </div>
+
+            @if($meldungen->hasPages())
+                <div class="px-1">{{ $meldungen->links() }}</div>
+            @endif
         </div>
     </div>
 </x-app-layout>

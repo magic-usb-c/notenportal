@@ -340,6 +340,7 @@
     "Module": "Modules",
     "Module aktualisiert": "Updated modules",
     "Module neu": "New modules",
+    "Module suchen": "Search modules",
     "Module werden dann nur bestehenden Lehrberufen zugeordnet.": "Modules are then only assigned to existing occupations.",
     "Modulkatalog einlesen": "Import module catalogue",
     "Modulstatus": "Module status",
@@ -493,7 +494,6 @@
     "Strg/Cmd K": "Ctrl/Cmd K",
     "Stufe": "Level",
     "Suchbegriff": "Search term",
-    "Suche": "Search",
     "Suche öffnen": "Open search",
     "Suchen": "Search",
     "Suchen…": "Search…",
@@ -572,5 +572,8 @@
     "Dateien wählen": "Choose files",
     "Seitennavigation": "Pagination",
     "Zum Inhalt springen": "Skip to content",
-    "Zurück": "Back"
+    "Zurück": "Back",
+    "Vorherige Seite": "Previous page",
+    "Nächste Seite": "Next page",
+    "Seite :seite": "Page :seite"
 }

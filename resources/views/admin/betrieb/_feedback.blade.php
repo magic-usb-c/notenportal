@@ -7,8 +7,8 @@
         @csrf
         @method('PUT')
         <label for="feedback_knopf" class="flex min-h-9 w-fit cursor-pointer items-center gap-2.5 text-sm text-text">
-            <input id="feedback_knopf" name="feedback_knopf" type="checkbox" value="1" @checked(old('feedback_knopf', $feedbackKnopfAktiv))
-                   class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
+            <input id="feedback_knopf" name="feedback_knopf" type="checkbox" role="switch" value="1" @checked(old('feedback_knopf', $feedbackKnopfAktiv))
+                   class="np-schalter">
             {{ __('Feedback-Knopf einblenden') }}
         </label>
         <div class="flex justify-end">

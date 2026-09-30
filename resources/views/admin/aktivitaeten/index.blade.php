@@ -14,7 +14,7 @@
                              zaehler-label="{{ __('Einträge') }}" :zurueck="route('admin.activity.index')" :aktive-filter="$aktiveFilter">
                 <label for="aktion" class="sr-only">{{ __('Aktion') }}</label>
                 <select name="aktion" id="aktion" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-56">
+                        class="np-feld np-feld-klein sm:w-56">
                     <option value="" @selected($aktion === '')>{{ __('Aktion: alle') }}</option>
                     @foreach($aktionen as $wert => $label)
                         <option value="{{ $wert }}" @selected($aktion === $wert)>{{ __($label) }}</option>
@@ -24,10 +24,10 @@
                 <x-slot:weitere>
                     <label for="von" class="self-center text-xs text-muted">{{ __('Von') }}</label>
                     <input type="date" name="von" id="von" value="{{ $von }}" x-on:change="$el.form.requestSubmit()"
-                           class="np-feld px-2.5">
+                           class="np-feld np-feld-klein w-auto">
                     <label for="bis" class="self-center text-xs text-muted">{{ __('Bis') }}</label>
                     <input type="date" name="bis" id="bis" value="{{ $bis }}" x-on:change="$el.form.requestSubmit()"
-                           class="np-feld px-2.5">
+                           class="np-feld np-feld-klein w-auto">
                 </x-slot:weitere>
             </x-filterleiste>
 
@@ -67,29 +67,29 @@
 
                 {{-- Tabelle --}}
                 <div class="np-karte hidden @4xl:block overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm tabular-nums">
-                            <thead class="sticky top-0 z-10 bg-surface-2">
+                    <div class="overflow-x-auto p-2">
+                        <table class="np-tabelle text-sm">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Zeit') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Person') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Aktion') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Ziel') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Details') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('IP-Adresse') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Zeit') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Person') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Aktion') }}</th>
+                                    <th scope="col">{{ __('Ziel') }}</th>
+                                    <th scope="col">{{ __('Details') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('IP-Adresse') }}</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody>
                                 @forelse($eintraege as $e)
-                                    <tr class="hover:bg-surface-2/60">
-                                        <td class="px-3 py-2.5 text-muted whitespace-nowrap align-top">{{ $e->erstellt_am?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
-                                        <td class="px-3 py-2.5 align-top whitespace-nowrap">{{ $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System') }}</td>
-                                        <td class="px-3 py-2.5 align-top whitespace-nowrap">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
-                                        <td class="px-3 py-2.5 align-top max-w-xs truncate">{{ $e->ziel_bezeichnung }}</td>
-                                        <td class="px-3 py-2.5 align-top max-w-xs truncate text-muted" @if($e->details) title="{{ json_encode($e->details, JSON_UNESCAPED_UNICODE) }}" @endif>
+                                    <tr>
+                                        <td class="text-muted whitespace-nowrap">{{ $e->erstellt_am?->timezone(config('app.timezone'))->format('d.m.Y H:i') }}</td>
+                                        <td class="whitespace-nowrap">{{ $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System') }}</td>
+                                        <td class="whitespace-nowrap">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
+                                        <td class="max-w-xs truncate">{{ $e->ziel_bezeichnung }}</td>
+                                        <td class="max-w-xs truncate text-muted" @if($e->details) title="{{ json_encode($e->details, JSON_UNESCAPED_UNICODE) }}" @endif>
                                             {{ $e->details ? json_encode($e->details, JSON_UNESCAPED_UNICODE) : '–' }}
                                         </td>
-                                        <td class="px-3 py-2.5 align-top font-mono text-xs whitespace-nowrap">{{ $e->ip }}</td>
+                                        <td class="whitespace-nowrap text-muted tabular-nums">{{ $e->ip }}</td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -109,9 +109,7 @@
             </div>
 
             @if($eintraege->hasPages())
-                <div class="np-karte px-4 py-3">
-                    {{ $eintraege->links() }}
-                </div>
+                <div class="px-1">{{ $eintraege->links() }}</div>
             @endif
 
         </div>

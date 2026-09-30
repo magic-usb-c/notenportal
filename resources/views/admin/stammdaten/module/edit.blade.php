@@ -70,8 +70,8 @@
 
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="aktiv" value="0">
-                        <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $modul->aktiv))
-                               class="rounded-sm border-border text-accent-text focus:ring-ring">
+                        <input type="checkbox" role="switch" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $modul->aktiv))
+                               class="np-schalter">
                         <label for="aktiv" class="text-sm text-text">{{ __('Modul aktiv') }}</label>
                     </div>
 

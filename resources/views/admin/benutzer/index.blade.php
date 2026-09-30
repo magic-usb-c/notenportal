@@ -21,7 +21,7 @@
                              :zurueck="route('admin.users.index')" :aktive-filter="$aktiveFilter">
                 <label for="rolle_id" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle_id" id="rolle_id" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-44">
+                        class="np-feld np-feld-klein sm:w-44">
                     <option value="">{{ __('Alle Rollen') }}</option>
                     @foreach($rollen as $r)
                         <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ __($r->name) }}</option>
@@ -30,7 +30,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-36">
+                        class="np-feld np-feld-klein sm:w-36">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     <option value="aktiv" @selected($status === 'aktiv')>{{ __('Aktiv') }}</option>
                     <option value="inaktiv" @selected($status === 'inaktiv')>{{ __('Inaktiv') }}</option>
@@ -47,7 +47,7 @@
                         @endphp
                         <div class="p-4">
                             <div class="flex items-center gap-3 min-w-0">
-                                <div class="w-9 h-9 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0">
+                                <div class="np-monogramm size-9 shrink-0 text-xs" aria-hidden="true">
                                     {{ $initials ?: '?' }}
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -61,21 +61,21 @@
                                 @endif
                             </div>
                             <div class="flex items-center justify-between gap-3 mt-3">
-                                <span class="text-xs bg-bg border border-border rounded-lg px-2 py-0.5">{{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}</span>
-                                <div class="flex items-center gap-3 flex-wrap">
+                                <span class="np-marke font-medium text-muted">{{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}</span>
+                                <div class="flex items-center gap-1 flex-wrap">
                                     @if($b->lernender_id)
                                         <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                           class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
+                                           class="np-knopf np-knopf-schlicht np-knopf-klein np-ziel">{{ __('Verwalten') }}</a>
                                     @else
                                         <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                           class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
+                                           class="np-knopf np-knopf-schlicht np-knopf-klein np-ziel">{{ __('Bearbeiten') }}</a>
                                         <form method="POST"
                                               action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                               class="inline"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                               onsubmit="return confirm(@js(__('Status wirklich ändern?')));">
                                             @csrf
-                                            <button :disabled="loading" class="np-ziel inline-flex min-h-6 items-center text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                            <button :disabled="loading" class="np-knopf np-knopf-klein np-ziel {{ $b->aktiv ? 'np-knopf-gefahr' : 'np-knopf-schlicht' }}">
                                                 {{ $b->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                                             </button>
                                         </form>
@@ -96,26 +96,26 @@
 
                 {{-- Tabelle --}}
                 <div class="np-karte hidden @3xl:block overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-text">
-                            <thead class="sticky top-0 z-10 bg-surface-2">
+                    <div class="overflow-x-auto p-2">
+                        <table class="np-tabelle text-sm">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Benutzer') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Benutzername') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Rollen') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col">{{ __('Benutzer') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Benutzername') }}</th>
+                                    <th scope="col">{{ __('Rollen') }}</th>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Status') }}</th>
+                                    <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody>
                                 @forelse($benutzer as $b)
                                     @php
                                         $initials = strtoupper(mb_substr($b->vorname ?? '', 0, 1) . mb_substr($b->nachname ?? '', 0, 1));
                                     @endphp
-                                    <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                                        <td class="px-3">
+                                    <tr class="group">
+                                        <td>
                                             <div class="flex items-center gap-3 min-w-0">
-                                                <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0">
+                                                <div class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">
                                                     {{ $initials ?: '?' }}
                                                 </div>
                                                 <div class="min-w-0">
@@ -124,34 +124,32 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-3 font-mono text-xs">{{ $b->benutzername }}</td>
-                                        <td class="px-3">
-                                            <span class="text-xs bg-surface-2 border border-border rounded-md px-2 py-0.5">
-                                                {{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}
-                                            </span>
+                                        <td class="text-xs">{{ $b->benutzername }}</td>
+                                        <td>
+                                            <span class="np-marke font-medium text-muted">{{ $b->rollen ? implode(', ', array_map('__', explode(', ', $b->rollen))) : '–' }}</span>
                                         </td>
-                                        <td class="px-3">
+                                        <td>
                                             @if($b->aktiv)
                                                 <x-status status="gruen" :text="__('Aktiv')" />
                                             @else
                                                 <x-status status="rot" :text="__('Inaktiv')" />
                                             @endif
                                         </td>
-                                        <td class="px-3 text-right">
-                                            <div class="flex items-center justify-end gap-3 flex-wrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                                        <td class="text-right">
+                                            <div class="flex items-center justify-end gap-1 flex-wrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 @if($b->lernender_id)
                                                     <a href="{{ route('admin.learners.show', $b->lernender_id) }}"
-                                                       class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Verwalten') }}</a>
+                                                       class="np-knopf np-knopf-schlicht np-knopf-klein np-ziel">{{ __('Verwalten') }}</a>
                                                 @else
                                                 <a href="{{ route('admin.users.edit', $b->benutzer_id) }}"
-                                                   class="np-ziel inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Bearbeiten') }}</a>
+                                                   class="np-knopf np-knopf-schlicht np-knopf-klein np-ziel">{{ __('Bearbeiten') }}</a>
                                                 <form method="POST"
                                                       action="{{ route('admin.users.toggle-active', $b->benutzer_id) }}"
                                                       class="inline"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                                                       onsubmit="return confirm(@js(__('Status wirklich ändern?')));">
                                                     @csrf
-                                                    <button :disabled="loading" class="np-ziel inline-flex min-h-6 items-center text-sm {{ $b->aktiv ? 'text-note-ungenuegend hover:underline' : 'text-accent-text hover:underline' }} disabled:opacity-60 disabled:cursor-not-allowed">
+                                                    <button :disabled="loading" class="np-knopf np-knopf-klein np-ziel {{ $b->aktiv ? 'np-knopf-gefahr' : 'np-knopf-schlicht' }}">
                                                         {{ $b->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                                                     </button>
                                                 </form>

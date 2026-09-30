@@ -21,18 +21,18 @@
             @else
                 {{-- Übersicht-Tabelle --}}
                 <div class="np-karte @container overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm tabular-nums">
-                            <thead class="sticky top-0 z-10 bg-surface-2">
+                    <div class="overflow-x-auto p-2">
+                        <table class="np-tabelle text-sm">
+                            <thead>
                                 <tr>
-                                    <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Berufsbildner') }}</th>
-                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
-                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
-                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
-                                    <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col">{{ __('Berufsbildner') }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell text-right whitespace-nowrap">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell text-right whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell text-right whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
+                                    <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody>
                                 @foreach($berufsbildner as $bb)
                                     @php
                                         $st = $stats->get((int) $bb->berufsbildner_id);
@@ -40,8 +40,8 @@
                                         $warnTiefAvg   = ($st?->tief_avg ?? 0) > 0;
                                     @endphp
                                     @php $bbInitials = strtoupper(mb_substr($bb->vorname ?? '', 0, 1) . mb_substr($bb->nachname ?? '', 0, 1)); @endphp
-                                    <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
-                                        <td class="px-3 text-left">
+                                    <tr class="group">
+                                        <td class="text-left">
                                             <div class="flex items-center gap-3 min-w-0">
                                                 <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold hidden sm:flex items-center justify-center shrink-0">
                                                     {{ $bbInitials ?: '?' }}
@@ -67,7 +67,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="hidden @3xl:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell text-right">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold bg-surface-2 hover:bg-accent hover:text-accent-contrast transition-colors">
@@ -77,7 +77,7 @@
                                                 <span class="text-muted">0</span>
                                             @endif
                                         </td>
-                                        <td class="hidden @3xl:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell text-right">
                                             @if($warnOhneNoten)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
@@ -88,7 +88,7 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="hidden @3xl:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell text-right">
                                             @if($warnTiefAvg)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
@@ -99,7 +99,7 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 py-1 text-right">
+                                        <td class="text-right">
                                             <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center sm:gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="np-knopf np-knopf-sekundaer np-knopf-klein">

@@ -45,21 +45,21 @@
                     @csrf
                     <input type="hidden" name="semester_id" value="{{ $semesterId }}">
                     <section class="np-karte overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm text-text">
-                                <thead class="text-xs text-muted">
-                                    <tr class="border-b border-border">
-                                        <th class="text-left px-5 py-2 font-medium">{{ __('Fach / Modul') }}</th>
-                                        <th class="text-right px-3 py-2 font-medium">{{ __('Zeugnis') }}</th>
-                                        <th class="text-right px-3 py-2 font-medium">{{ __('Portal') }}</th>
-                                        <th class="text-right px-3 py-2 font-medium">{{ __('Differenz') }}</th>
-                                        <th class="text-left px-5 py-2 font-medium">{{ __('Status') }}</th>
+                        <div class="overflow-x-auto p-2">
+                            <table class="np-tabelle text-sm">
+                                <thead>
+                                    <tr>
+                                        <th>{{ __('Fach / Modul') }}</th>
+                                        <th class="text-right">{{ __('Zeugnis') }}</th>
+                                        <th class="text-right">{{ __('Portal') }}</th>
+                                        <th class="text-right">{{ __('Differenz') }}</th>
+                                        <th>{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-border">
+                                <tbody>
                                     @foreach($zeilen as $i => $z)
                                         <tr>
-                                            <td class="px-5 py-2.5">
+                                            <td>
                                                 <div class="font-medium">{{ $z['name'] }}</div>
                                                 @if(! $z['sicher'] || $z['label'] !== $z['name'])
                                                     <div class="text-xs text-muted">{{ $z['label'] }}</div>
@@ -69,17 +69,17 @@
                                                     <input type="hidden" name="zeilen[{{ $i }}][note]" value="{{ $z['note'] }}">
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2.5 text-right font-bold tabular-nums {{ \App\Support\NotenSkala::text($z['note']) }}">{{ \App\Support\NotenSkala::format($z['note'], 1) }}</td>
-                                            <td class="px-3 py-2.5 text-right tabular-nums {{ \App\Support\NotenSkala::text($z['portal']) }}">{{ \App\Support\NotenSkala::format($z['portal'], 1) }}</td>
+                                            <td class="text-right font-semibold {{ \App\Support\NotenSkala::text($z['note']) }}">{{ \App\Support\NotenSkala::format($z['note'], 1) }}</td>
+                                            <td class="text-right {{ \App\Support\NotenSkala::text($z['portal']) }}">{{ \App\Support\NotenSkala::format($z['portal'], 1) }}</td>
                                             <td @class(['px-3 py-2.5 text-right tabular-nums',
                                                 'text-muted' => $z['status'] !== 'abweichung',
                                                 'text-note-knapp font-semibold' => $z['status'] === 'abweichung'])>
                                                 {{ $z['differenz'] !== null ? ($z['differenz'] > 0 ? '+' : '').\App\Support\NotenSkala::format($z['differenz'], 1) : '–' }}
                                             </td>
-                                            <td class="px-5 py-2.5">
+                                            <td>
                                                 @if($z['status'] === 'fehlt' && $darfUebernehmen && $semesterId)
                                                     <label class="inline-flex items-center gap-2 min-h-9 text-sm cursor-pointer">
-                                                        <input type="checkbox" name="zeilen[{{ $i }}][uebernehmen]" value="1" checked class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                                                        <input type="checkbox" name="zeilen[{{ $i }}][uebernehmen]" value="1" checked class="np-haken">
                                                         {{ __('übernehmen') }}
                                                     </label>
                                                 @else

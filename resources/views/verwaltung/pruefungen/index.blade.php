@@ -17,9 +17,9 @@
     </x-slot>
 
     @php
-        $auswahl = 'np-feld px-2.5 sm:w-48';
+        $auswahl = 'np-feld np-feld-klein sm:w-48';
         $aktiveFilter = ($filter['lernender_id'] ? 1 : 0) + ($filter['zeitraum'] !== 'alle' ? 1 : 0);
-        $pillBasis = 'inline-flex px-1.5 py-0.5 rounded-full text-xs whitespace-nowrap';
+        $pillBasis = 'np-marke';
     @endphp
 
     <div class="py-6">
@@ -47,9 +47,9 @@
             @endif
 
             @forelse($gruppen as $g)
-                <section class="np-karte overflow-hidden">
-                    <h3 class="px-5 py-3 font-semibold text-text border-b border-border/70">
-                        {{ $g['label'] }} <span class="ml-1 text-sm text-muted tabular-nums">{{ $g['zeilen']->count() }}</span>
+                <section class="np-karte">
+                    <h3 class="flex items-center gap-2 px-5 pt-4 pb-2 text-sm font-semibold text-text">
+                        {{ $g['label'] }} <span class="np-marke font-medium tabular-nums text-muted">{{ $g['zeilen']->count() }}</span>
                     </h3>
 
                     {{-- Mobil: Karten --}}
@@ -93,35 +93,35 @@
                     </div>
 
                     {{-- Desktop: Tabelle --}}
-                    <div class="hidden md:block overflow-x-auto">
-                        <table class="w-full text-sm tabular-nums">
+                    <div class="hidden overflow-x-auto px-2 pb-2 md:block">
+                        <table class="np-tabelle text-sm">
                             <thead>
-                                <tr class="border-b border-border">
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Datum') }}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Lernende/r') }}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Art') }}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Raum') }}</th>
-                                    <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                <tr>
+                                    <th scope="col" class="whitespace-nowrap">{{ __('Datum') }}</th>
+                                    <th scope="col">{{ __('Lernende/r') }}</th>
+                                    <th scope="col">{{ __('Fach / Modul') }}</th>
+                                    <th scope="col">{{ __('Art') }}</th>
+                                    <th scope="col">{{ __('Raum') }}</th>
+                                    <th scope="col">{{ __('Status') }}</th>
                                     @if($abgabeMoeglich)
-                                        <th scope="col" class="h-9 w-24 bg-surface-2"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                        <th scope="col" class="w-24"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     @endif
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($g['zeilen'] as $z)
                                     @php [$p, $status] = [$z['pruefung'], $z['status']]; @endphp
-                                    <tr class="border-b border-border last:border-0 hover:bg-surface-2/60">
-                                        <td class="h-11 px-3 whitespace-nowrap">
+                                    <tr>
+                                        <td class="whitespace-nowrap">
                                             {{ $p->datum->format('d.m.Y') }}
                                             @if($p->uhrzeit)<span class="block text-xs text-muted">{{ substr((string) $p->uhrzeit, 0, 5) }}</span>@endif
                                         </td>
-                                        <td class="h-11 px-3">
+                                        <td>
                                             <a href="{{ route($bereich.'.learners.show', $p->lernender_id) }}" class="text-text hover:text-accent-text">
                                                 {{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}
                                             </a>
                                         </td>
-                                        <td class="h-11 px-3">
+                                        <td>
                                             <div class="flex items-center gap-1.5">
                                                 <span class="truncate text-text">{{ $p->bezeichnung() }}</span>
                                                 @if($p->istAbgabe())
@@ -130,21 +130,22 @@
                                             </div>
                                             @if($p->titel)<div class="truncate text-xs text-muted">{{ $p->titel }}</div>@endif
                                         </td>
-                                        <td class="h-11 px-3">{{ $p->pruefungsart ?: '–' }}</td>
-                                        <td class="h-11 px-3">{{ $p->raum ?: '–' }}</td>
-                                        <td class="h-11 px-3">
+                                        <td>{{ $p->pruefungsart ?: '–' }}</td>
+                                        <td>{{ $p->raum ?: '–' }}</td>
+                                        <td>
                                             <span class="{{ $pillBasis }} {{ $status['klasse'] }}">{{ $status['label'] }}</span>
                                         </td>
                                         @if($abgabeMoeglich)
-                                            <td class="h-11 px-3 text-right text-xs whitespace-nowrap">
+                                            <td class="whitespace-nowrap text-right">
                                                 @if($p->istAbgabe())
                                                     <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
-                                                       class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
+                                                       class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Bearbeiten') }}</a>
                                                     <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}" class="inline"
                                                           onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                         @csrf @method('DELETE')
                                                         <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
-                                                        <button :disabled="loading" class="ml-2 text-muted hover:text-note-ungenuegend disabled:opacity-50">{{ __('Löschen') }}</button>
+                                                        <button :disabled="loading" aria-label="{{ __('Löschen') }}" title="{{ __('Löschen') }}"
+                                                                class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
                                                     </form>
                                                 @endif
                                             </td>

@@ -59,20 +59,20 @@
                     <p class="text-sm text-note-ungenuegend" role="alert">{{ $errors->first('knoten.*') }}</p>
                 @endif
 
-                <div class="np-karte @container overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums @max-5xl:block">
-                        <thead class="bg-surface-2 @max-5xl:hidden">
+                <div class="np-karte @container overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm @max-5xl:block">
+                        <thead class="@max-5xl:hidden">
                             <tr>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Teil') }}</th>
-                                <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Rechnet aus') }}</th>
-                                <th scope="col" class="h-9 px-2 text-right text-2xs font-medium text-muted">{{ __('Gewicht') }}</th>
-                                <th scope="col" class="h-9 px-2 text-right text-2xs font-medium text-muted">{{ __('Anteil') }}</th>
-                                <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Rundung') }}</th>
-                                <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Mindestnote') }}</th>
-                                <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Max. ungenügend') }}</th>
-                                <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Max. Minuspunkte') }}</th>
-                                <th scope="col" class="h-9 px-2 text-center text-2xs font-medium text-muted">{{ __('Zählt') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Entfällt mit') }}</th>
+                                <th scope="col">{{ __('Teil') }}</th>
+                                <th scope="col">{{ __('Rechnet aus') }}</th>
+                                <th scope="col" class="text-right">{{ __('Gewicht') }}</th>
+                                <th scope="col" class="text-right">{{ __('Anteil') }}</th>
+                                <th scope="col">{{ __('Rundung') }}</th>
+                                <th scope="col">{{ __('Mindestnote') }}</th>
+                                <th scope="col">{{ __('Max. ungenügend') }}</th>
+                                <th scope="col">{{ __('Max. Minuspunkte') }}</th>
+                                <th scope="col" class="text-center">{{ __('Zählt') }}</th>
+                                <th scope="col">{{ __('Entfällt mit') }}</th>
                             </tr>
                         </thead>
                         <tbody class="@max-5xl:block">
@@ -88,13 +88,13 @@
                                     };
                                     $rundung = $alt('rundung', $k->rundung === null ? '' : $zahl($k->rundung));
                                 @endphp
-                                <tr class="border-b border-border last:border-0 @max-5xl:grid @max-5xl:grid-cols-2 @max-5xl:gap-x-3 @max-5xl:gap-y-3 @max-5xl:py-4 @max-5xl:pr-4 @max-5xl:pl-4 @md:@max-5xl:grid-cols-4 {{ $einzugKarte[min($z['tiefe'], 4)] }}">
-                                    <td class="py-2 pr-2 {{ $einzug[min($z['tiefe'], 4)] }} @max-5xl:col-span-full {{ $karteZelle }}">
+                                <tr class="@max-5xl:grid @max-5xl:grid-cols-2 @max-5xl:gap-x-3 @max-5xl:gap-y-3 @max-5xl:py-4 @max-5xl:pr-4 @max-5xl:pl-4 @md:@max-5xl:grid-cols-4 {{ $einzugKarte[min($z['tiefe'], 4)] }}">
+                                    <td class="{{ $einzug[min($z['tiefe'], 4)] }} @max-5xl:col-span-full {{ $karteZelle }}">
                                         <label for="k{{ $id }}-name" class="sr-only">{{ __('Name') }}</label>
                                         <input id="k{{ $id }}-name" name="knoten[{{ $id }}][name]" value="{{ $alt('name', $k->name) }}" required maxlength="150"
                                                class="{{ $zelle }} w-full min-w-40 {{ $k->typ === 'gruppe' ? 'font-medium' : '' }}">
                                     </td>
-                                    <td class="max-w-56 px-2 text-xs text-muted @max-5xl:col-span-full @max-5xl:-mt-2 @max-5xl:max-w-none {{ $karteZelle }}">{{ $quelle }}</td>
+                                    <td class="max-w-56 text-xs text-muted @max-5xl:col-span-full @max-5xl:-mt-2 @max-5xl:max-w-none {{ $karteZelle }}">{{ $quelle }}</td>
                                     <td @class(['px-2 text-right', $karteZelle, '@max-5xl:hidden' => $z['tiefe'] === 0])>
                                         @if($z['tiefe'] > 0)
                                             <label for="k{{ $id }}-gewicht" class="{{ $feldname }}">{{ __('Gewicht') }}</label>
@@ -108,7 +108,7 @@
                                         <span class="hidden @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium">{{ __('Anteil') }}</span>
                                         <span class="@max-5xl:inline-flex @max-5xl:h-8 @max-5xl:items-center">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</span>
                                     </td>
-                                    <td class="px-2 {{ $karteZelle }}">
+                                    <td class="{{ $karteZelle }}">
                                         <label for="k{{ $id }}-rundung" class="{{ $feldname }}">{{ __('Rundung') }}</label>
                                         <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24 py-0 pr-8 @max-5xl:w-full">
                                             <option value="" @selected($rundung === '')>{{ __('keine') }}</option>
@@ -117,7 +117,7 @@
                                             <option value="1" @selected($rundung === '1')>1</option>
                                         </select>
                                     </td>
-                                    <td class="px-2 {{ $karteZelle }}">
+                                    <td class="{{ $karteZelle }}">
                                         <label for="k{{ $id }}-fallnote" class="{{ $feldname }}">{{ __('Mindestnote') }}</label>
                                         <input id="k{{ $id }}-fallnote" name="knoten[{{ $id }}][fallnote]" inputmode="decimal" value="{{ $alt('fallnote', $zahl($k->fallnote)) }}"
                                                class="{{ $zelle }} w-16 text-right @max-5xl:w-full" placeholder="–">
@@ -142,7 +142,7 @@
                                             <label for="k{{ $id }}-zaehlt" class="{{ $feldname }}">{{ __('Zählt') }}</label>
                                             <span class="@max-5xl:inline-flex @max-5xl:h-8 @max-5xl:items-center">
                                                 <input id="k{{ $id }}-zaehlt" type="checkbox" name="knoten[{{ $id }}][zaehlt]" value="1" @checked((bool) $alt('zaehlt', $k->zaehlt))
-                                                       class="size-4 rounded border-border-strong/70 text-accent focus:ring-ring/30">
+                                                       class="np-haken">
                                             </span>
                                         @else
                                             <input type="hidden" name="knoten[{{ $id }}][zaehlt]" value="1">

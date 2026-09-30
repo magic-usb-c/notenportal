@@ -28,15 +28,15 @@
     <fieldset class="flex flex-col gap-2">
         <legend class="{{ $label }}">{{ __('Übernehmen') }}</legend>
         <label class="inline-flex items-center gap-2 text-sm text-text">
-            <input type="checkbox" name="import_exams" value="1" @checked(old('import_exams', $feed?->import_exams ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
+            <input type="checkbox" role="switch" name="import_exams" value="1" @checked(old('import_exams', $feed?->import_exams ?? true)) class="np-schalter">
             {{ __('Prüfungen') }}
         </label>
         <label class="inline-flex items-center gap-2 text-sm text-text">
-            <input type="checkbox" name="import_appointments" value="1" @checked(old('import_appointments', $feed?->import_appointments ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
+            <input type="checkbox" role="switch" name="import_appointments" value="1" @checked(old('import_appointments', $feed?->import_appointments ?? true)) class="np-schalter">
             {{ __('Termine') }}
         </label>
         <label class="inline-flex items-center gap-2 text-sm text-text">
-            <input type="checkbox" name="import_lessons" value="1" @checked(old('import_lessons', $feed?->import_lessons ?? true)) class="rounded border-border-strong text-accent focus:ring-ring">
+            <input type="checkbox" role="switch" name="import_lessons" value="1" @checked(old('import_lessons', $feed?->import_lessons ?? true)) class="np-schalter">
             {{ __('Lektionen (Stundenplan)') }}
         </label>
     </fieldset>

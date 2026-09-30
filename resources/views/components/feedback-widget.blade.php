@@ -121,7 +121,7 @@
 
                 <label class="mt-3 flex items-start gap-2 text-sm text-text">
                     <input type="checkbox" x-model="mitScreenshot"
-                           class="mt-0.5 rounded border-border-strong/70 text-accent focus:ring-ring">
+                           class="np-haken mt-0.5">
                     <span>
                         {{ __('Screenshot der Seite mitschicken') }}
                         <span class="block text-xs text-muted">{{ __('Passwortfelder werden dabei ausgeblendet.') }}</span>
@@ -131,7 +131,7 @@
                 @if(\App\Models\Feedback::hatTechnikSpalte())
                     <label class="mt-3 flex items-start gap-2 text-sm text-text">
                         <input type="checkbox" x-model="mitTechnik"
-                               class="mt-0.5 rounded border-border-strong/70 text-accent focus:ring-ring">
+                               class="np-haken mt-0.5">
                         <span>{{ __('Technische Angaben mitsenden') }}</span>
                     </label>
                     <details class="mt-1 ms-6" x-show="mitTechnik" x-cloak>

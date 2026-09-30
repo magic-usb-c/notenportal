@@ -64,7 +64,7 @@
                             @foreach(['Admin', 'Berufsbildner'] as $rolle)
                                 <label class="inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10">
                                     <input type="checkbox" name="rollen[]" value="{{ $rolle }}" @checked(in_array($rolle, old('rollen', $rollen->all()), true))
-                                           class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                           class="np-haken">
                                     {{ __($rolle) }}
                                 </label>
                             @endforeach

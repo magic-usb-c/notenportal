@@ -13,27 +13,27 @@
 
             @if($baeume->isNotEmpty())
                 {{-- Schmal stehen «Gilt für» und die Zahl der Noten unter dem Namen --}}
-                <div class="np-karte @container overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
-                        <thead class="bg-surface-2">
+                <div class="np-karte @container overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm">
+                        <thead>
                             <tr>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                                <th scope="col" class="hidden h-9 px-4 text-left text-2xs font-medium text-muted @xl:table-cell">{{ __('Gilt für') }}</th>
-                                <th scope="col" class="hidden h-9 px-4 text-right text-2xs font-medium text-muted @xl:table-cell">{{ __('Erfasste Noten') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
+                                <th scope="col">{{ __('Name') }}</th>
+                                <th scope="col" class="hidden @xl:table-cell">{{ __('Gilt für') }}</th>
+                                <th scope="col" class="hidden text-right @xl:table-cell">{{ __('Erfasste Noten') }}</th>
+                                <th scope="col">{{ __('Status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($baeume as $b)
-                                <tr class="border-b border-border last:border-0 hover:bg-surface-2/60">
+                                <tr>
                                     @php($gilt = $b->bezug === 'lehrberuf' ? $b->lehrberuf : __('Bildungsgang :track', ['track' => $b->track_typ]))
-                                    <td class="h-11 px-4 py-2">
+                                    <td>
                                         <a href="{{ route('admin.master-data.grade-trees.show', $b->baum_id) }}" class="inline-flex min-h-6 items-center font-medium text-accent-text underline-offset-2 hover:underline">{{ $b->name }}</a>
                                         <div class="text-xs text-muted @xl:hidden">{{ $gilt }} · {{ __(':anzahl Noten', ['anzahl' => $b->positionen]) }}</div>
                                     </td>
-                                    <td class="hidden px-4 text-text @xl:table-cell">{{ $gilt }}</td>
-                                    <td class="hidden px-4 text-right text-muted @xl:table-cell">{{ $b->positionen }}</td>
-                                    <td class="px-4">
+                                    <td class="hidden text-text @xl:table-cell">{{ $gilt }}</td>
+                                    <td class="hidden text-right text-muted @xl:table-cell">{{ $b->positionen }}</td>
+                                    <td>
                                         @if($b->aktiv)
                                             <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
                                         @else

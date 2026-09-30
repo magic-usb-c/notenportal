@@ -29,7 +29,7 @@
                              :zurueck="route('admin.mail-log.index')" :aktive-filter="$aktiveFilter">
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-40">
+                        class="np-feld np-feld-klein sm:w-40">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\MailLog::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -38,7 +38,7 @@
 
                 <label for="type" class="sr-only">{{ __('Anlass') }}</label>
                 <select name="type" id="type" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-48">
+                        class="np-feld np-feld-klein sm:w-48">
                     <option value="" @selected($type === '')>{{ __('Anlass: alle') }}</option>
                     @foreach($anlaesse as $value => $label)
                         <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>
@@ -47,30 +47,30 @@
             </x-filterleiste>
 
             <div class="np-karte overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm tabular-nums">
-                        <thead class="sticky top-0 z-10 bg-surface-2">
+                <div class="overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm">
+                        <thead>
                             <tr>
-                                <th scope="col" class="hidden lg:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Zeit') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap lg:w-1/3">{{ __('Empfänger') }}</th>
-                                <th scope="col" class="hidden lg:table-cell h-9 px-3 text-left text-2xs font-medium text-muted lg:w-2/3">{{ __('Betreff') }}</th>
-                                <th scope="col" class="hidden lg:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktion') }}</span></th>
+                                <th scope="col" class="hidden lg:table-cell whitespace-nowrap">{{ __('Zeit') }}</th>
+                                <th scope="col" class="whitespace-nowrap lg:w-1/3">{{ __('Empfänger') }}</th>
+                                <th scope="col" class="hidden lg:table-cell lg:w-2/3">{{ __('Betreff') }}</th>
+                                <th scope="col" class="hidden lg:table-cell whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktion') }}</span></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border">
+                        <tbody>
                             @forelse($eintraege as $e)
                                 @php($zeitpunkt = $e->created_at?->timezone(config('app.timezone')))
                                 @php($zeit = $zeitpunkt?->format('d.m.Y H:i'))
                                 @php($anlass = $anlaesse[$e->type] ?? $e->type)
                                 @php($statusText = __(\App\Models\MailLog::STATUS[$e->status] ?? $e->status))
-                                <tr class="group hover:bg-surface-2/60">
-                                    <td class="hidden lg:table-cell px-3 py-2.5 text-muted whitespace-nowrap align-top">
+                                <tr class="group">
+                                    <td class="hidden lg:table-cell text-muted whitespace-nowrap align-top">
                                         <div>{{ $zeitpunkt?->format('d.m.Y') }}</div>
                                         <div class="text-xs">{{ $zeitpunkt?->format('H:i') }}</div>
                                     </td>
                                     {{-- max-w-0: Empfänger und Betreff teilen sich den Rest der Breite und kürzen statt die Tabelle zu verbreitern --}}
-                                    <td class="px-3 py-2.5 align-top text-left lg:max-w-0">
+                                    <td class="align-top text-left lg:max-w-0">
                                         <div class="hidden lg:block truncate" title="{{ $e->recipient }}">{{ $e->recipient }}</div>
                                         @if($e->redirected_to)
                                             <div class="hidden lg:block truncate text-xs text-muted">{{ __('→ umgeleitet an :ziel', ['ziel' => $e->redirected_to]) }}</div>
@@ -91,18 +91,18 @@
                                             @if($e->error)<span class="wrap-anywhere">{{ $e->error }}</span>@endif
                                         </div>
                                     </td>
-                                    <td class="hidden lg:table-cell max-w-0 px-3 py-2.5 align-top">
+                                    <td class="hidden lg:table-cell max-w-0 align-top">
                                         <div class="truncate" title="{{ $e->subject }}">{{ $e->subject }}</div>
                                         <div class="truncate text-xs text-muted">{{ $anlass }}</div>
                                         @if($e->error)
                                             <div class="line-clamp-2 break-words pt-0.5 text-xs text-muted" title="{{ $e->error }}">{{ $e->error }}</div>
                                         @endif
                                     </td>
-                                    <td class="hidden lg:table-cell px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="hidden lg:table-cell whitespace-nowrap align-top">
                                         <x-status :status="$statusMap[$e->status] ?? 'neutral'" :text="$statusText" />
                                         @if($e->attempts > 1)<div class="pt-1 text-xs text-muted">{{ __('Versuche') }} {{ $e->attempts }}</div>@endif
                                     </td>
-                                    <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
+                                    <td class="text-right align-top whitespace-nowrap">
                                         @if(in_array($e->status, [\App\Models\MailLog::FAILED, \App\Models\MailLog::SKIPPED], true))
                                             <form method="POST" action="{{ route('admin.mail-log.retry', $e->id) }}"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
@@ -124,13 +124,11 @@
                         </tbody>
                     </table>
                 </div>
-
-                @if($eintraege->hasPages())
-                    <div class="px-4 py-3 border-t border-border">
-                        {{ $eintraege->links() }}
-                    </div>
-                @endif
             </div>
+
+            @if($eintraege->hasPages())
+                <div class="px-1">{{ $eintraege->links() }}</div>
+            @endif
 
         </div>
     </div>

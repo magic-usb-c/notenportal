@@ -26,7 +26,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-40">
+                        class="np-feld np-feld-klein sm:w-40">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\Feedback::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -35,7 +35,7 @@
 
                 <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
                 <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-44">
+                        class="np-feld np-feld-klein sm:w-44">
                     <option value="" @selected($kategorie === '')>{{ __('Kategorie: alle') }}</option>
                     @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
                         <option value="{{ $value }}" @selected($kategorie === $value)>{{ __($label) }}</option>
@@ -44,7 +44,7 @@
 
                 <label for="rolle" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld px-2.5 sm:w-40">
+                        class="np-feld np-feld-klein sm:w-40">
                     <option value="" @selected($rolle === '')>{{ __('Rolle: alle') }}</option>
                     <option value="Admin" @selected($rolle === 'Admin')>{{ __('Admin') }}</option>
                     <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>{{ __('Berufsbildner') }}</option>
@@ -55,7 +55,7 @@
                     <x-slot:weitere>
                         <label class="flex h-9 items-center gap-2 px-1 text-sm text-text">
                             <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()"
-                                   class="rounded border-border-strong/70 text-accent focus:ring-ring">
+                                   class="np-haken">
                             {{ __('Duplikate anzeigen') }}
                         </label>
                     </x-slot:weitere>
@@ -83,19 +83,19 @@
                 $ariaSort = fn (string $spalte) => $sort === $spalte ? ($spalte === 'stimmen' || $dir === 'desc' ? 'descending' : 'ascending') : 'none';
             @endphp
             <div class="np-karte overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm text-text">
-                        <thead class="sticky top-0 z-10 bg-surface-2">
+                <div class="overflow-x-auto p-2">
+                    <table class="np-tabelle text-sm">
+                        <thead>
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">
+                                <th scope="col" class="whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">
                                     <span class="flex items-center gap-4">{!! $sortLink('datum', __('Datum')) !!}<span class="sm:hidden">{!! $sortLink('stimmen', __('Stimmen')) !!}</span></span>
                                 </th>
-                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Absender') }}</th>
-                                <th scope="col" class="hidden h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
-                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Text') }}</th>
-                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Aktionen') }}</th>
+                                <th scope="col" class="hidden sm:table-cell whitespace-nowrap">{{ __('Absender') }}</th>
+                                <th scope="col" class="hidden whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
+                                <th scope="col" class="hidden sm:table-cell">{{ __('Text') }}</th>
+                                <th scope="col" class="hidden sm:table-cell whitespace-nowrap">{{ __('Status') }}</th>
+                                <th scope="col" class="hidden sm:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
+                                <th scope="col" class="text-right whitespace-nowrap">{{ __('Aktionen') }}</th>
                             </tr>
                         </thead>
                         @forelse($meldungen as $m)
@@ -161,9 +161,9 @@
                                         }
                                     },
                                 }"
-                                class="divide-y divide-border">
-                                <tr id="meldung-{{ $m->feedback_id }}" class="hover:bg-surface-2/60">
-                                    <td class="px-3 py-2.5 align-top">
+                               >
+                                <tr id="meldung-{{ $m->feedback_id }}">
+                                    <td class="align-top">
                                         <div class="hidden sm:block text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</div>
                                         <div class="flex flex-col gap-1 sm:hidden">
                                             <div class="font-medium break-words">{{ $m->nachname }} {{ $m->vorname }}</div>
@@ -189,7 +189,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">
                                         <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
                                         <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
                                         @if($hatDuplikatSpalte && $m->duplikat_von)
@@ -204,11 +204,11 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 max-w-sm align-top">
+                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
+                                    <td class="hidden sm:table-cell max-w-sm align-top">
                                         <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
                                     </td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 whitespace-nowrap align-top">
+                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">
                                         <x-status :status="match ($m->status) {
                                                 \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
                                                 \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
@@ -216,8 +216,8 @@
                                             }"
                                             :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
                                     </td>
-                                    <td class="hidden sm:table-cell px-3 py-2.5 text-right align-top tabular-nums">{{ $m->stimmen_anzahl ?? 0 }}</td>
-                                    <td class="px-3 py-2.5 text-right align-top whitespace-nowrap">
+                                    <td class="hidden sm:table-cell text-right align-top">{{ $m->stimmen_anzahl ?? 0 }}</td>
+                                    <td class="text-right align-top whitespace-nowrap">
                                         <button type="button" @click="open = !open" :aria-expanded="open"
                                                 class="np-knopf np-knopf-sekundaer np-knopf-klein">
                                             <span x-text="open ? @js(__('Schliessen')) : @js(__('Details'))"></span>
@@ -376,13 +376,11 @@
                         @endforelse
                     </table>
                 </div>
-
-                @if($meldungen->hasPages())
-                    <div class="px-4 py-3 border-t border-border">
-                        {{ $meldungen->links() }}
-                    </div>
-                @endif
             </div>
+
+            @if($meldungen->hasPages())
+                <div class="px-1">{{ $meldungen->links() }}</div>
+            @endif
 
         </div>
     </div>
