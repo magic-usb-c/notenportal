@@ -1,27 +1,17 @@
-{{-- Sprache der Oberfläche und der Mails (nur mit eingeschalteter Sprachwahl) --}}
-<div class="np-karte p-6">
-    <form method="POST" action="{{ route('profile.locale') }}" class="flex flex-col gap-4"
-          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+{{-- Sprache der Oberfläche und der Mails (nur mit eingeschalteter Sprachwahl); wirkt sofort wie in den Systemeinstellungen --}}
+<section>
+    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Sprache') }}</h2>
+    <form method="POST" action="{{ route('profile.locale') }}" class="np-karte">
         @csrf
         @method('PUT')
-        <fieldset>
-            <legend class="font-semibold text-text text-sm">{{ __('Sprache') }}</legend>
-            <div class="mt-3 grid grid-cols-2 gap-2 sm:max-w-xs">
+        <x-einstellung :label="__('Sprache')" name="locale">
+            <div class="np-segment" role="radiogroup" aria-labelledby="locale-bez">
                 @foreach(['de' => 'Deutsch', 'en' => 'English'] as $wert => $name)
-                    <label lang="{{ $wert }}" class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
-                                  has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
-                        <input type="radio" name="locale" value="{{ $wert }}" class="sr-only" @checked(app()->getLocale() === $wert)>
-                        {{ $name }}
-                    </label>
+                    <label lang="{{ $wert }}"><input type="radio" name="locale" value="{{ $wert }}" class="sr-only" onchange="this.form.requestSubmit()"
+                                                     @checked(app()->getLocale() === $wert)>{{ $name }}</label>
                 @endforeach
             </div>
-            @error('locale')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </fieldset>
-        <div class="flex justify-end">
-            <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-sekundaer">
-                {{ __('Sprache speichern') }}
-            </button>
-        </div>
+            <noscript><button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Sprache speichern') }}</button></noscript>
+        </x-einstellung>
     </form>
-</div>
+</section>

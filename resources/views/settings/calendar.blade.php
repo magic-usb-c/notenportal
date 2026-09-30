@@ -1,29 +1,24 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Kalender') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Kalender')" schmal />
+        <x-seitenkopf :titel="__('Kalender')" schmal>
+            @include('settings._tabs')
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
-        <div class="max-w-3xl">
+        <div class="flex max-w-3xl flex-col gap-8">
 
-            @include('settings._tabs')
+            <section>
+                <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Kalender-Abo') }}</h2>
+                <x-kalender-abo :token="$exportToken" :reset-route="route('settings.calendar.token.reset')" />
+            </section>
 
-            <div class="mt-5 space-y-5">
+            @if($lernender && $user->hasRole('Lernender'))
+                @include('settings.partials.externe-kalender')
+            @endif
 
-                <div class="np-karte p-6">
-                    <h3 class="font-semibold text-text text-sm mb-3">{{ __('Kalender-Abo') }}</h3>
-                    <x-kalender-abo :token="$exportToken" :reset-route="route('settings.calendar.token.reset')" />
-                </div>
-
-                @if($lernender && $user->hasRole('Lernender'))
-                    <div class="np-karte p-6">
-                        @include('settings.partials.externe-kalender')
-                    </div>
-                @endif
-
-            </div>
         </div>
         </div>
     </div>

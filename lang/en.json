@@ -47,7 +47,6 @@
     "Alle Termine": "All dates",
     "Allgemein": "General",
     "Als Tabelle": "As a table",
-    "An": "On",
     "Anfrage nicht möglich": "Request not possible",
     "Angemeldet als :name": "Signed in as :name",
     "Angemeldet bleiben": "Stay signed in",
@@ -423,7 +422,6 @@
     "Pixelverhältnis:": "Pixel ratio:",
     "Profil": "Profile",
     "Profil gespeichert.": "Profile saved.",
-    "Profildaten": "Profile details",
     "Prognose": "Forecast",
     "Prüfung planen": "Plan exam",
     "Prüfungsart": "Exam type",
@@ -433,7 +431,6 @@
     "QV-Prognose": "Final exam forecast",
     "Raum": "Room",
     "Rechner": "Calculator",
-    "Reduziert": "Reduced",
     "Reset-Link geschickt": "Reset link sent",
     "Rollen geändert": "Roles changed",
     "Rot": "Red",
@@ -506,7 +503,6 @@
     "Teil": "Part",
     "Theme-Farbe": "Theme colour",
     "Theme: :name": "Theme: :name",
-    "Transparenz": "Transparency",
     "Treffer": "results",
     "um deine erste Meldung zu erfassen.": "to record your first report.",
     "Unbekanntes Format der Ernte (erwartet :n).": "Unknown harvest format (:n expected).",
@@ -579,5 +575,10 @@
     "Kommentar löschen": "Delete comment",
     "Semester: alle": "Semester: all",
     "Heute": "Today",
-    "Anwenden": "Apply"
+    "Anwenden": "Apply",
+    "Zur Bestätigung der neuen Adresse": "To confirm the new address",
+    "Erscheinungsbild": "Appearance",
+    "Bedienung": "Controls",
+    "Transparenz reduzieren": "Reduce transparency",
+    "Alle Daten dieses Kontos": "All data of this account"
 }

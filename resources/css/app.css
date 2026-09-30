@@ -1085,6 +1085,14 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   box-shadow: var(--elev-1);
 }
 
+@utility np-gruppe {
+  /* Gruppierte Liste (HIG «Lists and tables», inset grouped): Haarlinie über jeder Folgezeile. Linie oben statt
+     unten, damit eine ausgeblendete letzte Zeile (x-show) keine Linie am Kartenrand hinterlässt. */
+  & > * + * {
+    border-top: 1px solid rgb(var(--border));
+  }
+}
+
 @utility np-karte-klickbar {
   transition: background-color 120ms var(--ease-out), box-shadow 160ms var(--ease-out);
   &:hover {
@@ -1374,6 +1382,19 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
   details[open] > summary .np-chevron {
     rotate: 90deg;
+  }
+
+  /* Farbwähler als runder Farbpunkt wie die Akzentfarben der Systemeinstellungen */
+  input[type='color']::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  input[type='color']::-webkit-color-swatch {
+    border: none;
+    border-radius: 9999px;
+  }
+  input[type='color']::-moz-color-swatch {
+    border: none;
+    border-radius: 9999px;
   }
 
   /* Fortschritt beim Seitenwechsel (oben, 2 px, Akzent) */

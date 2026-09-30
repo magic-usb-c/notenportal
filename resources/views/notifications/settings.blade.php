@@ -1,71 +1,54 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Benachrichtigungen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Benachrichtigungen')" schmal />
+        <x-seitenkopf :titel="__('Benachrichtigungen')" schmal>
+            @include('settings._tabs')
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
         <div class="max-w-3xl">
 
-            @include('settings._tabs')
-
-            <div class="mt-5 space-y-5">
-
-            <p class="text-sm text-muted px-1">{{ __('Du erhältst diese Mails an') }} <span class="text-text font-medium">{{ auth()->user()->email }}</span>.</p>
-
-            <form method="POST" action="{{ route('notifications.settings.update') }}" class="space-y-5"
+            <form method="POST" action="{{ route('notifications.settings.update') }}" class="flex flex-col gap-8"
                   x-data="{ loading: false }" @submit="loading = true">
                 @csrf
                 @method('PUT')
 
                 @foreach($gruppenLabels as $gruppeKey => $gruppeLabel)
                     @continue(empty($gruppen[$gruppeKey]))
-                    <div class="np-karte p-5">
-                        <h3 class="font-semibold text-text text-sm mb-1">{{ __($gruppeLabel) }}</h3>
-                        <div class="flex flex-col divide-y divide-border">
+                    <section>
+                        <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __($gruppeLabel) }}</h2>
+                        <div class="np-karte np-gruppe">
                             @foreach($gruppen[$gruppeKey] as $a)
-                                <div class="py-4 first:pt-3 last:pb-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                    <div class="min-w-0">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-sm font-medium text-text">{{ $a['label'] }}</span>
-                                            @if($a['mandatory'])
-                                                <svg class="w-3.5 h-3.5 text-muted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                                    <title>{{ __('Vom Betrieb festgelegt') }}</title>
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                                                </svg>
-                                            @endif
+                                <x-einstellung :label="$a['label']" :name="'frequenz-'.$a['type']" :fehler="'frequenz.'.$a['type']"
+                                               :hinweis="$a['mandatory'] ? $a['description'].' '.__('Vom Betrieb festgelegt.') : $a['description']">
+                                    @if($a['mandatory'])
+                                        {{-- vom Betrieb festgelegt: keine Wahl, deshalb kein (deaktiviertes) Bedienelement --}}
+                                        <span class="inline-flex items-center gap-1.5 text-sm text-muted">
+                                            <x-symbol name="lock-closed" class="size-3.5" />{{ __($frequenzen[$a['aktuell']] ?? $a['aktuell']) }}
+                                        </span>
+                                    @else
+                                        <div class="np-segment" role="radiogroup" aria-labelledby="frequenz-{{ $a['type'] }}-bez">
+                                            @foreach($a['frequencies'] as $f)
+                                                <label><input type="radio" name="frequenz[{{ $a['type'] }}]" value="{{ $f }}" class="sr-only"
+                                                              @checked($a['aktuell'] === $f)>{{ __($frequenzen[$f]) }}</label>
+                                            @endforeach
                                         </div>
-                                        <p class="text-xs text-muted mt-0.5">{{ $a['description'] }}</p>
-                                        @if($a['mandatory'])
-                                            <p class="text-xs text-muted mt-0.5">{{ __('Vom Betrieb festgelegt.') }}</p>
-                                        @endif
-                                    </div>
-
-                                    <div class="np-segment shrink-0" role="radiogroup" aria-label="{{ __('Häufigkeit für :label', ['label' => $a['label']]) }}">
-                                        @foreach($a['frequencies'] as $f)
-                                            <label class="cursor-pointer">
-                                                <input type="radio" name="frequenz[{{ $a['type'] }}]" value="{{ $f }}" class="peer sr-only"
-                                                       @checked($a['aktuell'] === $f) @disabled($a['mandatory'])>
-                                                {{ __($frequenzen[$f]) }}
-                                            </label>
-                                        @endforeach
-                                    </div>
-                                </div>
+                                    @endif
+                                </x-einstellung>
                             @endforeach
                         </div>
-                    </div>
+                    </section>
                 @endforeach
 
+                <p class="-mt-6 px-1 text-xs text-muted">{{ __('Du erhältst diese Mails an') }} <span class="font-medium text-text">{{ auth()->user()->email }}</span>.</p>
+
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading"
-                            class="np-knopf np-knopf-primaer">
-                        {{ __('Speichern') }}
-                    </button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer min-w-24">{{ __('Speichern') }}</button>
                 </div>
             </form>
 
-            </div>
         </div>
         </div>
     </div>

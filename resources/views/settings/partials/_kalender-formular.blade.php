@@ -25,8 +25,8 @@
                placeholder="{{ $feed ? __('unverändert lassen oder neue Adresse eintragen') : 'https://…/kalender.ics' }}" class="{{ $feld }}">
         @error('url')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
-    <fieldset class="flex flex-col gap-2">
-        <legend class="{{ $label }}">{{ __('Übernehmen') }}</legend>
+    <fieldset class="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <legend class="{{ $label }} mb-2">{{ __('Übernehmen') }}</legend>
         <label class="inline-flex items-center gap-2 text-sm text-text">
             <input type="checkbox" role="switch" name="import_exams" value="1" @checked(old('import_exams', $feed?->import_exams ?? true)) class="np-schalter">
             {{ __('Prüfungen') }}
@@ -41,6 +41,6 @@
         </label>
     </fieldset>
     <div class="flex justify-end">
-        <button :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
+        <button :disabled="loading" class="np-knopf np-knopf-primaer min-w-24">{{ __('Speichern') }}</button>
     </div>
 </form>
