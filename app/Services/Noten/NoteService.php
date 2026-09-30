@@ -58,6 +58,18 @@ class NoteService
     /** @var array<int, Collection> kategorie_id je modul_id, Schlüssel lehrberuf_id */
     private array $modulKategorienCache = [];
 
+    /**
+     * Nur im Batch: Semester und Tracks einmal geladen und in PHP nach Datum gefiltert. Die Caches nach Datum
+     * allein trafen bei einer Notenliste kaum, denn fast jede Zeile hat ein anderes Datum.
+     */
+    private ?Collection $semesterListe = null;
+
+    /** @var array<int, Collection> Zeilen aus lernender_tracks je lernender_id */
+    private array $trackCache = [];
+
+    /** @var array<int, string> skala je fach_id */
+    private array $skalaCache = [];
+
     private bool $batch = false;
 
     /** Beginn eines Bulk-Vorgangs (Notenimport): Cache wird bis endBatch() über mehrere Zeilen hinweg wiederverwendet. */
@@ -80,6 +92,9 @@ class NoteService
         $this->semesterCache = [];
         $this->erlaubteFaecherKategorienCache = [];
         $this->modulKategorienCache = [];
+        $this->semesterListe = null;
+        $this->trackCache = [];
+        $this->skalaCache = [];
     }
 
     /**
@@ -344,7 +359,11 @@ class NoteService
      */
     private function wertFuer(array $data, ?int $fachId): array
     {
-        $skala = $fachId !== null ? DB::table('faecher')->where('fach_id', $fachId)->value('skala') : null;
+        $skala = match (true) {
+            $fachId === null => null,
+            $this->batch => $this->skalaCache[$fachId] ??= (string) DB::table('faecher')->where('fach_id', $fachId)->value('skala'),
+            default => DB::table('faecher')->where('fach_id', $fachId)->value('skala'),
+        };
 
         if ($skala === 'stufe') {
             $stufe = $data['note_stufe'] ?? null;
@@ -535,9 +554,24 @@ class NoteService
             ?? 0);
     }
 
-    /** kategorie_id je fach_id (erlaubteFaecher), pro Lernender+Stichtag einmal geladen statt pro Zeile. */
+    /**
+     * kategorie_id je fach_id (erlaubteFaecher), pro Lernender+Stichtag einmal geladen statt pro Zeile. Im Batch
+     * pro Kombination aktiver Tracks: dieselbe Regel wie activeTrackTypesForLernender, aber in PHP über die
+     * einmal geladenen Tracks.
+     */
     private function erlaubteFaecherKategorien(int $lernenderId, ?CarbonInterface $stichtag): Collection
     {
+        if ($this->batch) {
+            $tag = ($stichtag ?? now())->toDateString();
+            $tracks = ($this->trackCache[$lernenderId] ??= DB::table('lernender_tracks')->where('lernender_id', $lernenderId)
+                ->get(['track_typ', 'start_datum', 'end_datum']))
+                ->filter(fn ($t) => (string) $t->start_datum <= $tag && ($t->end_datum === null || (string) $t->end_datum >= $tag))
+                ->pluck('track_typ')->unique()->sort()->values()->all();
+
+            return $this->erlaubteFaecherKategorienCache['tracks:'.$lernenderId.'|'.implode(',', $tracks)]
+                ??= $this->faecherFuerTracks($lernenderId, $tracks)->pluck('kategorie_id', 'fach_id');
+        }
+
         $key = $lernenderId.'|'.($stichtag?->toDateString() ?? '');
 
         return $this->erlaubteFaecherKategorienCache[$key] ??= $this->erlaubteFaecher($lernenderId, $stichtag)->pluck('kategorie_id', 'fach_id');
@@ -713,10 +747,13 @@ class NoteService
     public function semesterForDate(string $date): ?Semester
     {
         if (! array_key_exists($date, $this->semesterCache)) {
-            $this->semesterCache[$date] = Semester::query()
-                ->where('start_datum', '<=', $date)
-                ->where('end_datum', '>=', $date)
-                ->first();
+            $this->semesterCache[$date] = $this->batch
+                ? ($this->semesterListe ??= Semester::query()->orderBy('semester_id')->get())
+                    ->first(fn (Semester $s) => $s->start_datum->toDateString() <= $date && $s->end_datum->toDateString() >= $date)
+                : Semester::query()
+                    ->where('start_datum', '<=', $date)
+                    ->where('end_datum', '>=', $date)
+                    ->first();
         }
 
         return $this->semesterCache[$date];

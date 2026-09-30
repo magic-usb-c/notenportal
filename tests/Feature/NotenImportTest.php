@@ -228,6 +228,43 @@ class NotenImportTest extends TestCase
     }
 
     #[Test]
+    public function vorschau_und_erneutes_pruefen_fragen_die_datenbank_nicht_pro_zeile(): void
+    {
+        $lernenderId = (int) $this->user->lernender->lernender_id;
+        $import = app(NotenImport::class);
+        $abfragen = function (int $anzahl) use ($import, $lernenderId): array {
+            $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n";
+            for ($i = 0; $i < $anzahl; $i++) {
+                $csv .= sprintf("%s;%s;Test %d;4.5;100\n", date('d.m.Y', strtotime("2026-02-02 +$i days")), $i % 2 ? 'M908' : 'SK', $i);
+            }
+            $pfad = tempnam(sys_get_temp_dir(), 'np').'.csv';
+            file_put_contents($pfad, $csv);
+            $tabelle = app(TabellenLeser::class)->lesen($pfad, 'csv');
+            unlink($pfad);
+
+            DB::flushQueryLog();
+            DB::enableQueryLog();
+            $zeilen = $import->vorschau($tabelle, $lernenderId)['zeilen'];
+            $vorschau = count(DB::getQueryLog());
+            DB::flushQueryLog();
+            $import->pruefeZeilen($zeilen, $lernenderId, $zeilen);
+            $pruefen = count(DB::getQueryLog());
+            DB::disableQueryLog();
+            $this->assertCount($anzahl, $zeilen);
+            $this->assertSame(['ok'], array_values(array_unique(array_column($zeilen, 'status'))));
+
+            return [$vorschau, $pruefen];
+        };
+
+        [$vorschauKlein, $pruefenKlein] = $abfragen(4);
+        [$vorschauGross, $pruefenGross] = $abfragen(60);
+        // Zehnmal mehr Zeilen dürfen kaum mehr Abfragen kosten: Lernender, Semester und erlaubte Fächer/Module
+        // lädt NoteService im Batch einmal, nicht pro Zeile.
+        $this->assertLessThanOrEqual($vorschauKlein + 3, $vorschauGross, "Vorschau: $vorschauKlein Abfragen bei 4 Zeilen, $vorschauGross bei 60");
+        $this->assertLessThanOrEqual($pruefenKlein + 3, $pruefenGross, "Erneut prüfen: $pruefenKlein Abfragen bei 4 Zeilen, $pruefenGross bei 60");
+    }
+
+    #[Test]
     public function pdf_text_und_werte_werden_sauber_zerlegt(): void
     {
         $zeilen = app(TabellenLeser::class)->textZeilen("Notenliste Nina\n02.03.2026 M908 Theta 4.5 50 %\n\nDatum    Fach    Note");
