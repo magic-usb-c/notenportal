@@ -645,5 +645,6 @@
     "– älter als zwei Tage": "– older than two days",
     "← Zurück": "← Back",
     "→ umgeleitet an :ziel": "→ redirected to :ziel",
-    ":anzahl ungesehen": ":anzahl unseen"
+    ":anzahl ungesehen": ":anzahl unseen",
+    ":anzahl ungenügend": ":anzahl failing"
 }

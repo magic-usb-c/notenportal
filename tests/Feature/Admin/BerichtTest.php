@@ -111,4 +111,30 @@ class BerichtTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    /**
+     * Schmal (Handy, Seitenleiste) blendet die Tabelle Status, Ungenügend, Prüfungen und Letzte Note aus. Die Werte
+     * bleiben in der Namenszelle stehen – vorher sah man dort nur den Status, die Gründe fehlten ganz.
+     */
+    #[Test]
+    public function namenszelle_nennt_die_werte_der_schmal_ausgeblendeten_spalten(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = User::factory()->lernender()->create(['nachname' => 'Schmalmann'])->lernender;
+        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 3.0]);
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades'))->assertOk()->getContent();
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
+        $xpath = new \DOMXPath($dom);
+        $zeile = $xpath->query('//tr[td/a[contains(., "Schmalmann")]]')->item(0);
+        $this->assertNotNull($zeile);
+        $namenszelle = $xpath->query('td[1]', $zeile)->item(0)->textContent;
+        $gruende = $xpath->query('td[2]//*[@title]', $zeile)->item(0)?->getAttribute('title');
+
+        $this->assertStringContainsString(__(':anzahl ungenügend', ['anzahl' => 1]), $namenszelle);
+        $this->assertStringContainsString(__('1 Prüfung'), $namenszelle);
+        $this->assertNotEmpty($gruende, 'Eine ungenügende Zeugnisnote hat einen Grund');
+        $this->assertStringContainsString($gruende, $namenszelle);
+    }
 }
