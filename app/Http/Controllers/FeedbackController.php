@@ -33,6 +33,23 @@ class FeedbackController extends Controller
     public const string HINWEIS_SCHLUESSEL = 'weggeklickt';
 
     /**
+     * Schwebt der einmalige Feedback-Hinweis für die angemeldete Person? Nicht während der Einrichtung:
+     * das ist ein geführter Ablauf, und der Hinweis lag dort über «Speichern und weiter».
+     */
+    public static function hinweisOffen(): bool
+    {
+        if (! auth()->check() || request()->routeIs('admin.setup')) {
+            return false;
+        }
+
+        return ! NotificationMark::query()
+            ->where('user_id', (int) auth()->id())
+            ->where('type', self::HINWEIS_TYP)
+            ->where('subject_key', self::HINWEIS_SCHLUESSEL)
+            ->exists();
+    }
+
+    /**
      * «Meine Meldungen»: nur die eigenen Feedback-Einträge, neueste zuerst.
      */
     public function index(Request $request): View

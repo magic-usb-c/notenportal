@@ -1,15 +1,12 @@
+@props(['hinweis' => false])
 @auth
     @php
-        $hinweisGesehen = \App\Models\NotificationMark::query()
-            ->where('user_id', (int) auth()->id())
-            ->where('type', \App\Http\Controllers\FeedbackController::HINWEIS_TYP)
-            ->where('subject_key', \App\Http\Controllers\FeedbackController::HINWEIS_SCHLUESSEL)
-            ->exists();
         $feedbackKnopfAktiv = \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
     @endphp
 
-    {{-- Einmaliger Hinweis nur auf Desktop; mobil erreichbar über das Menü, damit nichts Inhalt verdeckt --}}
-    @unless($hinweisGesehen)
+    {{-- Einmaliger Hinweis nur auf Desktop; mobil erreichbar über das Menü, damit nichts Inhalt verdeckt.
+         Das Layout lässt am Seitenende Platz, solange er schwebt (Ereignis np-feedback-hinweis-weg). --}}
+    @if($hinweis)
         <div x-data="{ zeigen: true }" x-show="zeigen" x-cloak
              x-transition:leave="transition-opacity ease-in duration-150"
              x-transition:leave-start="opacity-100"
@@ -27,7 +24,7 @@
                     @endif
                     <kbd class="rounded-md border border-border px-1 py-0.5 text-2xs">{{ __('Strg/Cmd K') }}</kbd> {{ __('→ «Feedback melden» erreichst du uns jederzeit.') }}
                 </p>
-                <button type="button" @click="zeigen = false; fetch('{{ route('feedback.hint.dismiss') }}', {
+                <button type="button" @click="zeigen = false; $dispatch('np-feedback-hinweis-weg'); fetch('{{ route('feedback.hint.dismiss') }}', {
                             method: 'POST',
                             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '', Accept: 'application/json' },
                         })"
@@ -37,7 +34,7 @@
                 </button>
             </div>
         </div>
-    @endunless
+    @endif
 
     {{-- Der x-data-Wrapper wird immer gerendert (unabhängig vom Schalter Einstellungen::FEEDBACK_KNOPF):
          nur so sind die open-modal/close-modal-Fensterlistener aus feedback.js init() immer aktiv und

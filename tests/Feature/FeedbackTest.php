@@ -383,4 +383,33 @@ class FeedbackTest extends TestCase
             NotificationMark::where('user_id', $user->benutzer_id)->where('type', FeedbackController::HINWEIS_TYP)->count(),
         );
     }
+
+    #[Test]
+    public function login_hinweis_laesst_am_seitenende_platz_und_faellt_nach_dem_schliessen_weg(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        // Solange der Hinweis schwebt, braucht das Seitenende mehr Platz, sonst verdeckt er die letzten Knöpfe
+        $this->actingAs($user)->get(route('learner.dashboard'))
+            ->assertSee('np-feedback-hinweis-weg.window', false)
+            ->assertSee("hinweis ? 'lg:pb-60' : ''", false);
+
+        $this->actingAs($user)->postJson(route('feedback.hint.dismiss'))->assertOk();
+
+        $this->actingAs($user)->get(route('learner.dashboard'))
+            ->assertDontSee('np-feedback-hinweis-weg.window', false);
+    }
+
+    #[Test]
+    public function login_hinweis_erscheint_nicht_waehrend_der_einrichtung(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        // Die Einrichtung ist ein geführter Ablauf; der Hinweis lag dort über «Speichern und weiter»
+        $this->actingAs($admin)->get(route('admin.setup'))
+            ->assertOk()
+            ->assertDontSee('erreichst du uns jederzeit');
+        $this->actingAs($admin)->get(route('admin.dashboard'))
+            ->assertSee('erreichst du uns jederzeit');
+    }
 }

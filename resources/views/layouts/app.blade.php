@@ -170,8 +170,14 @@
             </main>
 
             {{-- Unter dem schwebenden Feedback-Knopf Platz lassen, damit er am Seitenende nichts verdeckt --}}
-            @php $platzFuerFeedback = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0'; @endphp
-            <footer @class(['pt-4 text-center text-xs text-muted', $platzFuerFeedback ? 'pb-24' : 'pb-4'])>
+            {{-- Der einmalige Hinweis darüber reicht höher: solange er schwebt, entsprechend mehr Platz --}}
+            @php
+                $platzFuerFeedback = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
+                $feedbackHinweis = \App\Http\Controllers\FeedbackController::hinweisOffen();
+            @endphp
+            <footer @class(['pt-4 text-center text-xs text-muted', $platzFuerFeedback ? 'pb-24' : 'pb-4'])
+                    @if($feedbackHinweis) x-data="{ hinweis: true }" @np-feedback-hinweis-weg.window="hinweis = false"
+                    :class="hinweis ? '{{ $platzFuerFeedback ? 'lg:pb-60' : 'lg:pb-32' }}' : ''" @endif>
                 Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
             </footer>
         </div>
@@ -191,7 +197,7 @@
         {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...' } })) --}}
         <x-toast art="erfolg" />
 
-        <x-feedback-widget />
+        <x-feedback-widget :hinweis="$feedbackHinweis" />
 
         @auth
             @include('layouts._sitzung')
