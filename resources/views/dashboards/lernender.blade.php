@@ -22,6 +22,7 @@
         ];
         $links = $zeigen['stand'] || $zeigen['wo_stehe_ich'] || $zeigen['verlauf'];
         $rechts = $zeigen['als_naechstes'] || $zeigen['ziele'] || $zeigen['letzte_noten'];
+        $spalteLinks = $rechts ? 'lg:col-span-8 lg:col-start-1' : 'lg:col-span-12';
     @endphp
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Hallo :name', ['name' => auth()->user()->vorname]) }}" :untertitel="$meta">
@@ -36,14 +37,15 @@
     </x-slot>
 
     <div class="py-6">
-        {{-- Zwei unabhängige Spalten ab lg, damit keine Karte auf die Höhe ihrer Nachbarin gestreckt wird.
-             Darunter lösen sich die Spalten auf (contents) und «order» hält die Reihenfolge Stand, Als Nächstes, … --}}
-        <div class="np-raster mx-auto grid np-seite grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-12 lg:items-start lg:px-8">
-            <div @class(['contents lg:flex lg:flex-col lg:gap-4', 'lg:col-span-8' => $rechts, 'lg:col-span-12' => ! $rechts])>
+        {{-- Ab lg zwei Spalten: links Stand, Wo stehe ich, Verlauf; rechts eine Spalte, die über alle Zeilen reicht,
+             damit keine Karte auf die Höhe ihrer Nachbarin gestreckt wird (die letzte Zeile 1fr schluckt, was rechts
+             länger ist). Die DOM-Reihenfolge ist die mobile Anzeige: Stand, Als Nächstes, Ziele, Letzte Noten, Wo stehe
+             ich, Verlauf – ohne «order», sonst liefen Tab- und Vorlesereihenfolge an der Anzeige vorbei. --}}
+        <div class="np-raster mx-auto grid np-seite grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-12 lg:grid-rows-[auto_auto_1fr] lg:items-start lg:px-8">
 
             {{-- Stand: Heldenzahl, Bullet Graph, Semester, Kategorien --}}
             @if($zeigen['stand'])
-            <x-karte titel="{{ __('Stand') }}" class="order-1 lg:order-none">
+            <x-karte titel="{{ __('Stand') }}" @class(['min-w-0', $spalteLinks])>
                 @if($a->gesamtNote !== null)
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
                         <div class="flex items-baseline gap-3">
@@ -98,9 +100,113 @@
             </x-karte>
             @endif
 
+
+            <div @class(['flex min-w-0 flex-col gap-4', 'lg:col-span-4 lg:col-start-9 lg:row-span-3 lg:row-start-1' => $links, 'lg:col-span-12' => ! $links])>
+            {{-- Als Nächstes: Überfälliges oben, dann Hinweise, Prüfungen, fehlende Module --}}
+            @if($zeigen['als_naechstes'])
+            @php $spalte = collect($alsNaechstes)->contains(fn ($t) => $t['datum'] !== null) ? 'w-10' : 'w-2'; @endphp
+            <x-karte titel="{{ __('Als Nächstes') }}" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
+                @if($alsNaechstes)
+                    <x-slot:aktionen><span class="text-xs tabular-nums text-muted">{{ count($alsNaechstes) }}</span></x-slot:aktionen>
+                @endif
+                @if($alsNaechstes)
+                    <ul class="divide-y divide-border">
+                        @foreach($alsNaechstes as $t)
+                            <li>
+                                <a href="{{ $t['link'] }}" class="flex min-h-12 items-center gap-3 px-5 py-2 transition-colors duration-100 hover:bg-surface-2/60">
+                                    @if($t['datum'])
+                                        <span class="{{ $spalte }} shrink-0 text-xs tabular-nums text-muted">{{ $t['datum']->format('d.m.') }}</span>
+                                    @else
+                                        <span class="flex {{ $spalte }} shrink-0" aria-hidden="true">
+                                            <span @class(['size-2 rounded-full', 'bg-note-ungenuegend' => $t['ton'] === 'rot', 'bg-note-knapp' => $t['ton'] === 'gelb', 'bg-accent' => $t['ton'] === 'accent', 'bg-muted/40' => $t['ton'] === 'neutral'])></span>
+                                        </span>
+                                    @endif
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm text-text">{{ $t['text'] }}</span>
+                                        @if($t['detail'])<span class="block truncate text-xs text-muted">{{ $t['detail'] }}</span>@endif
+                                    </span>
+                                    @if($t['rechts'])<span class="shrink-0 text-xs tabular-nums text-muted">{{ $t['rechts'] }}</span>@endif
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="flex items-center gap-3 px-5 pb-4 text-sm text-muted">
+                        {{ __('Nichts offen') }}
+                        <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="text-accent-text underline-offset-2 hover:underline">{{ __('Prüfung planen') }}</a>
+                    </p>
+                @endif
+            </x-karte>
+            @endif
+
+            {{-- Ziele: nur wenn gesetzt --}}
+            @if($zeigen['ziele'])
+                <x-karte titel="{{ __('Ziele') }}" :link="route('learner.grades.calculator')" :link-text="__('Rechner')" :polster="false">
+                    <ul class="divide-y divide-border">
+                        @foreach($ziele as $z)
+                            @php
+                                $l = $z['loesung'];
+                                $erreicht = $z['aktuell'] !== null && $z['aktuell'] >= $z['zielwert'] - 1e-9;
+                            @endphp
+                            <li>
+                                <a href="{{ $z['link'] }}" class="block px-5 py-3 transition-colors duration-100 hover:bg-surface-2/60">
+                                    <span class="flex items-baseline justify-between gap-3 text-sm">
+                                        <span class="truncate text-text">{{ $z['label'] }} ≥ {{ $skala::format($z['zielwert'], 1) }}</span>
+                                        <x-note :wert="$z['aktuell']" :stellen="1" class="shrink-0" />
+                                    </span>
+                                    <x-bullet class="mt-2" :wert="$z['aktuell']" :ziel="$z['zielwert']" :grenzen="$grenzen" :label="$z['label']" :skala="false" />
+                                    <span class="mt-1.5 block text-xs text-muted">
+                                        @switch($l['status'])
+                                            @case('benoetigt')
+                                                {{ $l['unbekannte'] === 1 ? __('Nötig in der offenen Prüfung:') : __('Nötig in den :anzahl offenen Prüfungen:', ['anzahl' => $l['unbekannte']]) }}
+                                                <span class="font-semibold tabular-nums {{ $skala::bedarf($l['note']) }}">{{ $skala::format($l['note'], 2) }}</span>
+                                                @break
+                                            @case('erreicht')
+                                                {{ __('Gesichert') }}
+                                                @break
+                                            @case('unerreichbar')
+                                                {{ __('Mit den offenen Prüfungen höchstens :note', ['note' => $skala::format($l['maximum'], 1)]) }}
+                                                @break
+                                            @default
+                                                {{ $erreicht ? __('Erreicht') : __('Keine offenen Prüfungen geplant') }}
+                                        @endswitch
+                                    </span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </x-karte>
+            @endif
+
+            {{-- Letzte Noten: mobil zugeklappt --}}
+            @if($zeigen['letzte_noten'])
+                <details open x-init="$el.open = {{ $desktop }}" class="group relative rounded-xl border border-border bg-card">
+                    <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
+                             @click="if ({{ $desktop }}) $event.preventDefault()">
+                        <h2 class="text-sm font-semibold text-text">{{ __('Letzte Noten') }}</h2>
+                        <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
+                    </summary>
+                    <a href="{{ route('learner.grades.index') }}" class="hidden h-12 items-center whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:absolute lg:right-5 lg:top-0 lg:inline-flex">{{ __('Alle') }}</a>
+                    <ul class="divide-y divide-border border-t border-border">
+                        @foreach($letzteNoten as $n)
+                            <li>
+                                <a href="{{ route('learner.grades.index', ['_open' => $n->note_id]) }}" class="flex min-h-12 items-center justify-between gap-3 px-5 py-2 transition-colors duration-100 hover:bg-surface-2/60">
+                                    <span class="min-w-0">
+                                        <span class="block truncate text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</span>
+                                        <span class="block truncate text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}@if($n->titel) · {{ $n->titel }}@endif</span>
+                                    </span>
+                                    <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
+            @endif
+            </div>
+
             {{-- Wo stehe ich pro Fach und Modul --}}
             @if($zeigen['wo_stehe_ich'])
-                <x-karte titel="{{ __('Wo stehe ich') }}" class="order-3 lg:order-none"
+                <x-karte titel="{{ __('Wo stehe ich') }}" @class(['min-w-0', $spalteLinks])
                          x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
                     <x-slot:aktionen>
                         <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
@@ -148,7 +254,7 @@
             {{-- Verlauf: mobil zugeklappt --}}
             @if($zeigen['verlauf'])
                 <details open x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }" x-init="$el.open = {{ $desktop }}"
-                         class="group relative order-5 rounded-xl border border-border bg-card lg:order-none">
+                         @class(['group relative min-w-0 rounded-xl border border-border bg-card', $spalteLinks])>
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
                              @click="if ({{ $desktop }}) $event.preventDefault()">
                         <h2 class="text-sm font-semibold text-text">{{ __('Verlauf') }}</h2>
@@ -208,110 +314,6 @@
                 </details>
             @endif
 
-            </div>
-
-            <div @class(['contents lg:flex lg:flex-col lg:gap-4', 'lg:col-span-4' => $links, 'lg:col-span-12' => ! $links])>
-            {{-- Als Nächstes: Überfälliges oben, dann Hinweise, Prüfungen, fehlende Module --}}
-            @if($zeigen['als_naechstes'])
-            @php $spalte = collect($alsNaechstes)->contains(fn ($t) => $t['datum'] !== null) ? 'w-10' : 'w-2'; @endphp
-            <x-karte titel="{{ __('Als Nächstes') }}" class="order-2 lg:order-none" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
-                @if($alsNaechstes)
-                    <x-slot:aktionen><span class="text-xs tabular-nums text-muted">{{ count($alsNaechstes) }}</span></x-slot:aktionen>
-                @endif
-                @if($alsNaechstes)
-                    <ul class="divide-y divide-border">
-                        @foreach($alsNaechstes as $t)
-                            <li>
-                                <a href="{{ $t['link'] }}" class="flex min-h-12 items-center gap-3 px-5 py-2 transition-colors duration-100 hover:bg-surface-2/60">
-                                    @if($t['datum'])
-                                        <span class="{{ $spalte }} shrink-0 text-xs tabular-nums text-muted">{{ $t['datum']->format('d.m.') }}</span>
-                                    @else
-                                        <span class="flex {{ $spalte }} shrink-0" aria-hidden="true">
-                                            <span @class(['size-2 rounded-full', 'bg-note-ungenuegend' => $t['ton'] === 'rot', 'bg-note-knapp' => $t['ton'] === 'gelb', 'bg-accent' => $t['ton'] === 'accent', 'bg-muted/40' => $t['ton'] === 'neutral'])></span>
-                                        </span>
-                                    @endif
-                                    <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-sm text-text">{{ $t['text'] }}</span>
-                                        @if($t['detail'])<span class="block truncate text-xs text-muted">{{ $t['detail'] }}</span>@endif
-                                    </span>
-                                    @if($t['rechts'])<span class="shrink-0 text-xs tabular-nums text-muted">{{ $t['rechts'] }}</span>@endif
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p class="flex items-center gap-3 px-5 pb-4 text-sm text-muted">
-                        {{ __('Nichts offen') }}
-                        <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="text-accent-text underline-offset-2 hover:underline">{{ __('Prüfung planen') }}</a>
-                    </p>
-                @endif
-            </x-karte>
-            @endif
-
-            {{-- Ziele: nur wenn gesetzt --}}
-            @if($zeigen['ziele'])
-                <x-karte titel="{{ __('Ziele') }}" class="order-4 lg:order-none" :link="route('learner.grades.calculator')" :link-text="__('Rechner')" :polster="false">
-                    <ul class="divide-y divide-border">
-                        @foreach($ziele as $z)
-                            @php
-                                $l = $z['loesung'];
-                                $erreicht = $z['aktuell'] !== null && $z['aktuell'] >= $z['zielwert'] - 1e-9;
-                            @endphp
-                            <li>
-                                <a href="{{ $z['link'] }}" class="block px-5 py-3 transition-colors duration-100 hover:bg-surface-2/60">
-                                    <span class="flex items-baseline justify-between gap-3 text-sm">
-                                        <span class="truncate text-text">{{ $z['label'] }} ≥ {{ $skala::format($z['zielwert'], 1) }}</span>
-                                        <x-note :wert="$z['aktuell']" :stellen="1" class="shrink-0" />
-                                    </span>
-                                    <x-bullet class="mt-2" :wert="$z['aktuell']" :ziel="$z['zielwert']" :grenzen="$grenzen" :label="$z['label']" :skala="false" />
-                                    <span class="mt-1.5 block text-xs text-muted">
-                                        @switch($l['status'])
-                                            @case('benoetigt')
-                                                {{ $l['unbekannte'] === 1 ? __('Nötig in der offenen Prüfung:') : __('Nötig in den :anzahl offenen Prüfungen:', ['anzahl' => $l['unbekannte']]) }}
-                                                <span class="font-semibold tabular-nums {{ $skala::bedarf($l['note']) }}">{{ $skala::format($l['note'], 2) }}</span>
-                                                @break
-                                            @case('erreicht')
-                                                {{ __('Gesichert') }}
-                                                @break
-                                            @case('unerreichbar')
-                                                {{ __('Mit den offenen Prüfungen höchstens :note', ['note' => $skala::format($l['maximum'], 1)]) }}
-                                                @break
-                                            @default
-                                                {{ $erreicht ? __('Erreicht') : __('Keine offenen Prüfungen geplant') }}
-                                        @endswitch
-                                    </span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </x-karte>
-            @endif
-
-            {{-- Letzte Noten: mobil zugeklappt --}}
-            @if($zeigen['letzte_noten'])
-                <details open x-init="$el.open = {{ $desktop }}" class="group relative order-6 rounded-xl border border-border bg-card lg:order-none">
-                    <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
-                             @click="if ({{ $desktop }}) $event.preventDefault()">
-                        <h2 class="text-sm font-semibold text-text">{{ __('Letzte Noten') }}</h2>
-                        <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
-                    </summary>
-                    <a href="{{ route('learner.grades.index') }}" class="hidden h-12 items-center whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:absolute lg:right-5 lg:top-0 lg:inline-flex">{{ __('Alle') }}</a>
-                    <ul class="divide-y divide-border border-t border-border">
-                        @foreach($letzteNoten as $n)
-                            <li>
-                                <a href="{{ route('learner.grades.index', ['_open' => $n->note_id]) }}" class="flex min-h-12 items-center justify-between gap-3 px-5 py-2 transition-colors duration-100 hover:bg-surface-2/60">
-                                    <span class="min-w-0">
-                                        <span class="block truncate text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</span>
-                                        <span class="block truncate text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}@if($n->titel) · {{ $n->titel }}@endif</span>
-                                    </span>
-                                    <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </details>
-            @endif
-            </div>
         </div>
     </div>
 

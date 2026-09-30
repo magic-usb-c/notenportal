@@ -47,6 +47,26 @@ class SichtbarkeitsKlassenTest extends TestCase
     }
 
     /**
+     * «order-*» ordnet nur die Anzeige um: Tabulator und Screenreader folgen weiter dem DOM (WCAG 2.4.3).
+     * Die Reihenfolge der Karten steht deshalb im DOM, nicht im CSS.
+     */
+    #[Test]
+    #[DataProvider('seiten')]
+    public function dashboard_ordnet_karten_nicht_per_css_um(string $rolle, string $route): void
+    {
+        $user = User::factory()->{$rolle}()->create();
+        $html = (string) $this->actingAs($user)->get(route($route))->assertOk()->getContent();
+
+        preg_match_all('/\sclass="([^"]*)"/', $html, $treffer);
+        $umordnend = collect($treffer[1])
+            ->flatMap(fn (string $k) => preg_split('/\s+/', trim($k)))
+            ->filter(fn (string $k) => preg_match('/^([a-z0-9-]+:)*-?order-/', $k) === 1)
+            ->unique()->values()->all();
+
+        $this->assertSame([], $umordnend);
+    }
+
+    /**
      * Priority+: die Leiste legt, was nicht passt, in «Mehr». Das geht nur, wenn «Mehr» jedes Ziel der Leiste
      * kennt – sonst wäre ein ausgelagerter Eintrag bei grosser Schrift oder schmalem Fenster unerreichbar.
      */
