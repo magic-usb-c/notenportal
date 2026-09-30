@@ -315,14 +315,19 @@ if ! www_data_kommt_durch "$VERZ"; then
         echo "Der Webserver-Benutzer www-data kann $VERZ nicht betreten – Apache würde 403 liefern."
         echo "Unter $ZIEL liegt schon etwas. Ist es dieses Portal, dort aktualisieren und installieren:"
         echo "  cd $ZIEL && git pull && sudo ./install.sh"
-        echo "Sonst diesen Klon unter anderem Namen nach /var/www verschieben und dort starten."
+        echo "Soll es eine zweite Instanz daneben werden: unter anderem Namen nach /var/www verschieben und"
+        echo "dort mit eigener Datenbank und eigenem Port starten, z. B."
+        echo "  sudo ./install.sh --db ${DB}_2 --port 8082"
         exit 1
     fi
     echo "  $VERZ liegt im Home-Verzeichnis – Apache darf dort nicht lesen."
     echo "  Das Portal zieht nach $ZIEL um und die Installation läuft dort weiter."
     mkdir -p /var/www
     mv "$VERZ" "$ZIEL"
-    exec "$ZIEL/install.sh" "${ARGUMENTE[@]}"
+    # Über bash statt direkt: ein Klon aus einem ZIP oder einer Kopie hat oft kein Ausführungsbit.
+    # cd vorher: beim Umzug über eine Dateisystemgrenze ist das alte Arbeitsverzeichnis danach weg.
+    cd "$ZIEL"
+    NP_UMGEZOGEN_VON="$VERZ" exec bash "$ZIEL/install.sh" "${ARGUMENTE[@]}"
 fi
 
 # composer und npm laufen als $BESITZER, nicht als root (sonst gehörten vendor/ und node_modules/
@@ -342,7 +347,7 @@ apt-get update -qq
 # Ubuntu-Ausgabe. Eine feste Nummer hier würde das Portal an genau eine Ubuntu-Ausgabe nageln –
 # auf der nächsten gäbe es die Pakete schlicht nicht.
 apt-get install -y -qq apache2 mariadb-server libapache2-mod-php php-cli php-mysql php-mbstring \
-    php-xml php-curl php-zip php-intl php-gd php-bcmath unzip git curl openssl >/dev/null
+    php-xml php-curl php-zip php-intl php-gd php-bcmath unzip git curl openssl iproute2 >/dev/null
 if ! php -r 'exit(PHP_VERSION_ID >= 80300 ? 0 : 1);' 2>/dev/null; then
     echo "PHP $(php -r 'echo PHP_VERSION;' 2>/dev/null || echo '?') ist zu alt – das Notenportal braucht mindestens 8.3."
     exit 1
@@ -388,19 +393,77 @@ if ! node_ok; then
     echo "Von Hand nachholen und erneut starten: https://github.com/nodesource/distributions"
     exit 1
 fi
-systemctl enable --now mariadb apache2 >/dev/null 2>&1 || true
 # Startet ein Dienst nicht, schlug die Installation früher erst beim ersten mysql-Aufruf fehl – mit einer
 # Socket-Meldung, die auf die falsche Spur führt. Die häufigste Ursache ist ein belegter Port.
+# Nur Meldungen ab dem eigenen Startversuch zeigen: ältere Zeilen im Journal führen sonst auf eine
+# Ursache, die gar nicht mehr besteht (etwa ein längst freier Port, während der Dienst maskiert ist).
+dienst_klemmt() {
+    local dienst="$1" seit="$2" ports="$3"
+    echo "Der Dienst $dienst startet nicht."
+    if [[ "$(systemctl is-enabled "$dienst" 2>/dev/null || true)" == masked ]]; then
+        echo "Er ist maskiert und darf darum nicht starten. Freigeben mit: sudo systemctl unmask $dienst"
+        return
+    fi
+    echo "Seine Meldungen seit dem Startversuch:"
+    journalctl -u "$dienst" --since "$seit" -n 12 --no-pager 2>/dev/null | sed 's/^/    /' || true
+    echo "Häufigste Ursache: Port $ports ist belegt – nachsehen mit: sudo ss -ltnp | grep -E ':(${ports// oder /|}) '"
+}
+# Die Ports, auf denen Apache lauschen will, stehen in ports.conf (80, mit mod_ssl auch 443,
+# nach einer früheren Installation mit --port auch dieser).
+apache_ports() {
+    local p
+    p="$(awk '$1 == "Listen" {n = split($2, t, ":"); print t[n]}' /etc/apache2/ports.conf 2>/dev/null | sort -un | paste -sd' ')"
+    p="${p:-$PORT}"
+    echo "${p// / oder }"
+}
+DIENST_START="$(date '+%Y-%m-%d %H:%M:%S')"
+systemctl enable --now mariadb apache2 2>&1 | grep -v -e '^Synchronizing' -e '^Executing' -e 'Created symlink' | sed 's/^/  /' || true
 for DIENST in mariadb apache2; do
     systemctl is-active --quiet "$DIENST" && continue
-    echo "Der Dienst $DIENST startet nicht. Seine letzten Meldungen:"
-    journalctl -u "$DIENST" -n 12 --no-pager 2>/dev/null | sed 's/^/    /' || true
     case "$DIENST" in
-        mariadb) echo "Häufigste Ursache: Port 3306 ist belegt (eine andere MySQL/MariaDB?) – nachsehen mit: ss -ltnp | grep 3306" ;;
-        apache2) echo "Häufigste Ursache: Port 80 ist belegt (nginx o. ä.?) – nachsehen mit: ss -ltnp | grep ':80 '" ;;
+        mariadb) dienst_klemmt mariadb "$DIENST_START" 3306 ;;
+        apache2) dienst_klemmt apache2 "$DIENST_START" "$(apache_ports)" ;;
     esac
     exit 1
 done
+
+# Ein fremdes Programm auf dem HTTPS-Port (oder auf --port) fiel früher erst beim Neustart von Apache
+# ganz am Schluss auf: Apache blieb danach aus, und das Startpasswort war bereits vergeben, aber nie
+# gezeigt. Jetzt wird vorab geprüft, bevor etwas angelegt ist. Apache selbst darf den Port halten.
+port_fremd_belegt() {
+    local zeile
+    zeile="$(ss -ltnpH "sport = :$1" 2>/dev/null || true)"
+    [[ -n "$zeile" && "$zeile" != *'"apache2"'* ]]
+}
+for P in "$PORT" $( (( ! HTTPS )) || echo "$HTTPS_PORT"); do
+    port_fremd_belegt "$P" || continue
+    echo "Port $P ist von einem anderen Programm belegt – Apache könnte danach nicht mehr starten:"
+    ss -ltnpH "sport = :$P" 2>/dev/null | sed 's/^/    /' || true
+    echo "Das Programm beenden oder das Portal auf einen anderen Port legen (--port, --https-port)."
+    exit 1
+done
+
+# Derselbe Name auf demselben Port in einem fremden vhost: Apache nimmt den alphabetisch ersten,
+# eine neue Instanz «notenportal-b» würde der bestehenden «notenportal» still den Namen wegnehmen.
+# Nur bei der ersten Installation dieser Instanz prüfen – ein Update ändert an den Namen nichts.
+if [[ ! -e "/etc/apache2/sites-available/$NAME.conf" ]]; then
+    EIGENE_PORTS="$PORT"; (( ! HTTPS )) || EIGENE_PORTS="$PORT $HTTPS_PORT"
+    for KONF in /etc/apache2/sites-enabled/*.conf; do
+        [[ -e "$KONF" ]] || continue
+        if awk -v h="$HOST" -v ports=" $EIGENE_PORTS " '
+            /<VirtualHost/ { port = $0; sub(/.*:/, "", port); sub(/>.*/, "", port) }
+            tolower($1) == "servername" || tolower($1) == "serveralias" {
+                for (i = 2; i <= NF; i++) if (tolower($i) == tolower(h) && index(ports, " " port " ")) treffer = 1
+            }
+            END { exit !treffer }' "$KONF"; then
+            echo "Der Name $HOST ist auf Port ${EIGENE_PORTS// / bzw. } schon vergeben: $KONF"
+            echo "Eine zweite Instanz braucht einen eigenen Port oder Namen, z. B."
+            echo "  sudo ./install.sh --db ${DB}_2 --port 8082        (nur HTTP, lokal)"
+            echo "  sudo ./install.sh --db ${DB}_2 --host np2.lab.local"
+            exit 1
+        fi
+    done
+fi
 
 schritt "Datenbank"
 FRISCH=0
@@ -411,6 +474,17 @@ if [[ -f "$VERZ/.env" ]]; then
     echo "  .env vorhanden – Datenbank $DB bleibt unverändert"
     mysql -e "CREATE DATABASE IF NOT EXISTS \`$DB\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 else
+    # Ohne .env, aber mit gefüllter Datenbank: das ist fast immer ein zweiter Klon neben einer laufenden
+    # Instanz. Weiterzumachen hiesse, deren Datenbank-Passwörter neu zu setzen – sie antwortete danach
+    # mit 500, während dieser Lauf grün endet. Darum hier anhalten, bevor irgendetwas geändert ist.
+    TABELLEN="$(mysql -N -B -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB'" 2>/dev/null || echo 0)"
+    if (( TABELLEN > 0 )); then
+        echo "Die Datenbank $DB gibt es schon ($TABELLEN Tabellen), aber $VERZ hat keine .env."
+        echo "Gehört sie zu einer anderen Instanz, würde diese Installation deren Zugang überschreiben."
+        echo "  Zweite Instanz daneben:  sudo ./install.sh --db ${DB}_2 --port 8082"
+        echo "  Ist es die Datenbank dieses Portals: die .env aus der Sicherung zurücklegen und erneut starten."
+        exit 1
+    fi
     # Least Privilege: Web-Benutzer nur Datenrechte, Migrations-Benutzer mit DDL (php artisan notenportal:migrate)
     DB_BENUTZER="${DB}_web"
     DB_PASSWORT="$(openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | head -c 32)"
@@ -498,6 +572,19 @@ als "php artisan config:clear --quiet && php artisan notenportal:migrate"
 als "php artisan db:seed --force --quiet"
 [[ -z "$ADMIN_MAIL" ]] || ADMIN_OPTION="$ADMIN_OPTION --email=$ADMIN_MAIL"
 ZUGANG="$(als "php artisan notenportal:erstes-admin-konto $ADMIN_OPTION")"
+# Ab hier existiert das Admin-Konto. Bricht ein späterer Schritt ab (etwa Apache wegen eines belegten
+# Ports 443), darf das Startpasswort nicht mit untergehen: es wird nirgends gespeichert und ein
+# zweiter Lauf meldet nur noch «Admin-Konto vorhanden».
+ZUGANG_GEZEIGT=0
+zeige_zugang() { echo "$ZUGANG" | sed 's/^/  /'; ZUGANG_GEZEIGT=1; }
+zugang_bei_abbruch() {
+    local rc=$?
+    (( rc != 0 && ! ZUGANG_GEZEIGT )) || return 0
+    echo
+    echo "  Das Admin-Konto ist schon angelegt. Diese Angaben gelten auch nach dem Abbruch:"
+    zeige_zugang
+}
+trap zugang_bei_abbruch EXIT
 als "php artisan optimize --quiet"
 
 ALIASE=()
@@ -654,7 +741,7 @@ schreibe_vhost() {
 
 ALIAS_ZEILE=""
 [[ ${#ALIASE[@]} -eq 0 ]] || ALIAS_ZEILE="    ServerAlias ${ALIASE[*]}"
-VERZEICHNIS_BLOCK="    <Directory $VERZ/public>
+VERZEICHNIS_BLOCK="    <Directory \"$VERZ/public\">
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
@@ -673,7 +760,7 @@ if (( HTTPS )); then
     $MARKE
     ServerName $HOST
 $ALIAS_ZEILE
-    DocumentRoot $VERZ/public
+    DocumentRoot "$VERZ/public"
 $VERZEICHNIS_BLOCK
     RewriteEngine On
     RewriteCond %{REQUEST_URI} !^/lab-ca\.crt\$
@@ -687,7 +774,7 @@ CONF
     $MARKE
     ServerName $HOST
 $ALIAS_ZEILE
-    DocumentRoot $VERZ/public
+    DocumentRoot "$VERZ/public"
 $VERZEICHNIS_BLOCK
     SSLEngine on
     SSLCertificateFile $SSL_VERZ/server.crt
@@ -707,7 +794,7 @@ else
     $MARKE
     ServerName $HOST
 $ALIAS_ZEILE
-    DocumentRoot $VERZ/public
+    DocumentRoot "$VERZ/public"
 $VERZEICHNIS_BLOCK
     ErrorLog \${APACHE_LOG_DIR}/$NAME-error.log
     CustomLog \${APACHE_LOG_DIR}/$NAME-access.log combined
@@ -723,10 +810,11 @@ if ! APACHE_PRUEFUNG="$(apachectl -t 2>&1)"; then
 fi
 # Ein reload übernimmt geänderte PHP-Einstellungen nicht: mod_php liest die php.ini beim Start des
 # Moduls, nicht bei jeder Anfrage. Nach einer Änderung an 99-notenportal.ini also wirklich neu starten.
+NEUSTART="$(date '+%Y-%m-%d %H:%M:%S')"
 if (( PHP_INI_NEU )); then
-    systemctl restart apache2
+    systemctl restart apache2 || { dienst_klemmt apache2 "$NEUSTART" "$(apache_ports)"; exit 1; }
 else
-    systemctl reload apache2 2>/dev/null || systemctl restart apache2
+    systemctl reload apache2 2>/dev/null || systemctl restart apache2 || { dienst_klemmt apache2 "$NEUSTART" "$(apache_ports)"; exit 1; }
 fi
 if (( FIREWALL )) && command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
     ufw allow "$PORT/tcp" >/dev/null
@@ -735,7 +823,7 @@ fi
 
 schritt "Zeitplan (tägliche Sicherung)"
 CRON="/etc/cron.d/${NAME//[^A-Za-z0-9_-]/_}"
-echo "* * * * * www-data cd $VERZ && $(command -v php) artisan schedule:run >> /dev/null 2>&1" > "$CRON"
+echo "* * * * * www-data cd \"$VERZ\" && $(command -v php) artisan schedule:run >> /dev/null 2>&1" > "$CRON"
 chmod 644 "$CRON"
 echo "  $CRON"
 
@@ -837,7 +925,7 @@ if [[ "$STATUS" != "200" ]]; then
             # ausgibt – und sie über genau den Weg abrufen, der eben mit 500 geantwortet hat.
             SONDE="np-diagnose-$(openssl rand -hex 8).php"
             aufraeumen_sonde() { rm -f "$VERZ/public/$SONDE"; }
-            trap aufraeumen_sonde EXIT
+            trap 'rc=$?; aufraeumen_sonde; (exit $rc); zugang_bei_abbruch' EXIT
             schreibe_sonde "$VERZ/public/$SONDE"
             chown "$BESITZER":www-data "$VERZ/public/$SONDE" 2>/dev/null || true
             echo "  Ausnahme im Klartext, abgerufen durch Apache:"
@@ -848,7 +936,7 @@ if [[ "$STATUS" != "200" ]]; then
                 SONDEN_AUSGABE="$(curl -s --max-time 30 "http://127.0.0.1:$PORT/$SONDE" -H "Host: $HOST" 2>&1 || true)"
             fi
             aufraeumen_sonde
-            trap - EXIT
+            trap zugang_bei_abbruch EXIT
             if [[ -n "$SONDEN_AUSGABE" ]]; then
                 echo "$SONDEN_AUSGABE" | head -n 24 | sed 's/^/  /'
             else
@@ -865,13 +953,18 @@ if [[ "$STATUS" != "200" ]]; then
         000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
         *) echo "  Fehlerprotokoll: tail -30 /var/log/apache2/$NAME-error.log" ;;
     esac
-    echo "$ZUGANG" | sed 's/^/  /'
+    zeige_zugang
     exit 1
 fi
 printf '\n\033[1;32m✔ Notenportal läuft: %s\033[0m  (HTTP %s)\n' "$URL" "$STATUS"
-echo "$ZUGANG" | sed 's/^/  /'
+zeige_zugang
 if [[ "$ZUGANG" == *Startpasswort* ]]; then
     echo "  Nach dem ersten Anmelden neues Passwort setzen – danach führt die Einrichtung durch alle Schritte."
+else
+    echo "  Zugang verloren? Neues Startpasswort: sudo ./install.sh --neues-admin-passwort"
+fi
+if [[ -n "${NP_UMGEZOGEN_VON:-}" ]]; then
+    echo "  Das Portal liegt jetzt in $VERZ (vorher $NP_UMGEZOGEN_VON) – weiter mit: cd $VERZ"
 fi
 
 if (( HTTPS )); then

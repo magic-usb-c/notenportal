@@ -68,10 +68,19 @@ Ubuntu-24.04-Container mit systemd: Klonen im Home-Verzeichnis, Installation, Se
 Was der Installer dabei selbst abfängt:
 
 - **Klon im Home-Verzeichnis:** Apache (www-data) darf dort nicht lesen. Der Installer verschiebt das
-  Verzeichnis nach `/var/www/<name>` und läuft dort mit denselben Argumenten weiter. Liegt dort schon
-  etwas, bricht er ab und nennt den Befehl für ein Update.
-- **Dienste starten nicht** (Port 80 oder 3306 belegt, kaputte Konfiguration): Abbruch direkt nach dem
-  Start mit dem Auszug aus `journalctl` statt später mit Folgefehlern.
+  Verzeichnis nach `/var/www/<name>` und läuft dort mit denselben Argumenten weiter (über `bash`, also
+  auch ohne Ausführungsbit, etwa aus einem ZIP). Liegt dort schon etwas, bricht er ab und nennt den
+  Befehl für ein Update bzw. für eine zweite Instanz.
+- **Dienste starten nicht** (Port 80 oder 3306 belegt, Dienst maskiert, kaputte Konfiguration): Abbruch
+  direkt nach dem Start mit den `journalctl`-Zeilen ab diesem Startversuch statt später mit Folgefehlern.
+- **Fremdes Programm auf dem HTTPS-Port oder auf `--port`:** erkannt vor jeder Änderung (`ss`), Apache
+  läuft unverändert weiter. Früher fiel es erst beim Neustart am Schluss auf – Apache blieb aus.
+- **Zweiter Klon neben einer laufenden Instanz:** Ist der Name auf demselben Port schon in einem
+  anderen vhost vergeben oder existiert die Datenbank schon ohne `.env` in diesem Verzeichnis, hält
+  der Installer an. Früher setzte er die Passwörter der fremden Datenbank neu (Instanz 1: HTTP 500)
+  und übernahm ihren Namen auf Port 443. Zweite Instanz: `--db <name> --port 8082` (gemessen: beide 200).
+- **Abbruch nach dem Anlegen des Admin-Kontos:** Die Zugangsdaten werden beim Abbruch trotzdem
+  ausgegeben; ein Wiederholungslauf nennt `--neues-admin-passwort`.
 - **Firmen-Proxy, der TLS aufbricht:** apt und composer vertrauen dem Zertifikatsspeicher des Systems,
   npm nur seinen eigenen CAs. Der Installer gibt npm den Systemspeicher mit (`NODE_EXTRA_CA_CERTS`).
   Die Firmen-CA muss dafür im System liegen (`/usr/local/share/ca-certificates/` +

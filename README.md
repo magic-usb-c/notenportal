@@ -26,12 +26,16 @@ sudo ./install.sh
 Das Portal gehört nach `/var/www`, nicht ins Home-Verzeichnis: Ubuntu legt Home-Verzeichnisse so
 an, dass der Webserver sie nicht betreten darf – Apache würde jede Seite mit «403 Forbidden»
 beantworten. Die erste Zeile legt das Verzeichnis darum vorab auf dich als Eigentümer an; so kann
-das Skript später ohne `sudo` bauen. Liegt das Portal trotzdem falsch, bricht `install.sh` gleich am
-Anfang ab und nennt den Befehl zum Verschieben.
+das Skript später ohne `sudo` bauen. Liegt das Portal trotzdem im Home-Verzeichnis, zieht
+`install.sh` es selbst nach `/var/www/<name>` um und läuft dort weiter.
 
 Am Ende nennt das Skript die Adresse, die E-Mail des ersten Admin-Kontos und ein
-Startpasswort. Dieses Passwort erscheint genau einmal – notiere es, bevor du das Fenster
-schliesst.
+Startpasswort. Dieses Passwort erscheint genau einmal – auch wenn ein späterer Schritt abbricht –,
+notiere es, bevor du das Fenster schliesst. Ist es weg: `sudo ./install.sh --neues-admin-passwort`.
+
+Ein zweiter Klon neben einer laufenden Instanz braucht eine eigene Datenbank und einen eigenen Port
+oder Namen (`--db`, `--port` bzw. `--host`, siehe unten). Ohne diese Angaben hält das Skript an,
+bevor es etwas ändert, statt der bestehenden Instanz Datenbank oder Namen wegzunehmen.
 
 Die Adresse ist standardmässig `https://notenportal`. Damit andere Geräte diesen Namen auflösen,
 braucht es einen A-Record auf dem zuständigen DNS-Server; das Skript nennt am Schluss den nötigen
