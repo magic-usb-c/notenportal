@@ -261,5 +261,12 @@
     "Älteste Note zuerst": "Oldest grade first",
     "Tiefster Ø zuerst": "Lowest avg. first",
     "Höchster Ø zuerst": "Highest avg. first",
-    "Letzte Note :wann": "Last grade :wann"
+    "Letzte Note :wann": "Last grade :wann",
+    "Prüfung am :datum": "Exam on :datum",
+    "Kritische zuerst": "Critical first",
+    "Tiefste Semesternote zuerst": "Lowest semester grade first",
+    "Höchste Semesternote zuerst": "Highest semester grade first",
+    "Tiefste Gesamtnote zuerst": "Lowest overall grade first",
+    "Höchste Gesamtnote zuerst": "Highest overall grade first",
+    "Stärkster Rückgang zuerst": "Largest drop first"
 }

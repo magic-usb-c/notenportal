@@ -37,7 +37,8 @@
 
             {{-- Meine Lernenden --}}
             @if($sichtbar['lernende'] ?? true)
-            <x-karte :titel="__('Meine Lernenden')" :polster="false"
+            {{-- Spalten nach Breite der Karte, nicht des Fensters: mit Seitenleiste ist die Karte 256 px schmaler --}}
+            <x-karte :titel="__('Meine Lernenden')" :polster="false" class="@container"
                      x-data="{
                         filter: 'alle',
                         suche: '',
@@ -57,6 +58,29 @@
                             <button type="button" role="radio" :aria-checked="filter === 'gelb'" @click="filter = 'gelb'" class="h-8 flex-auto shrink-0 whitespace-nowrap rounded-md px-1.5 sm:px-2.5" :class="filter === 'gelb' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Beobachten').' ') + zaehlBeobachten"></button>
                             <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 flex-auto shrink-0 whitespace-nowrap rounded-md px-1.5 sm:px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Neue Noten').' ') + zaehlNeu"></button>
                         </div>
+                        @if($zeilen->count() > 1)
+                            {{-- Schmal fehlen die Spaltenköpfe Status, Gesamt und Verlauf: dieselben Sortierungen als Auswahl --}}
+                            @php
+                                $sortierungen = array_filter([
+                                    ['status', 'asc', __('Kritische zuerst')],
+                                    ['name', 'asc', __('Name A–Z')],
+                                    ['name', 'desc', __('Name Z–A')],
+                                    ['semester', 'asc', __('Tiefste Semesternote zuerst')],
+                                    ['semester', 'desc', __('Höchste Semesternote zuerst')],
+                                    ['gesamt', 'asc', __('Tiefste Gesamtnote zuerst')],
+                                    ['gesamt', 'desc', __('Höchste Gesamtnote zuerst')],
+                                    $zeilen->contains(fn ($z) => $z->stand->delta() !== null) ? ['trend', 'asc', __('Stärkster Rückgang zuerst')] : null,
+                                ]);
+                                $gewaehlt = ($filter['sort'] ?? 'status').':'.($filter['sort'] === null ? 'asc' : $filter['dir']);
+                            @endphp
+                            <label for="sortierung" class="sr-only">{{ __('Sortieren') }}</label>
+                            <select id="sortierung" x-on:change="window.location.href = $el.value"
+                                    class="h-8 w-full rounded-lg border border-border-strong/60 bg-input px-2.5 py-0 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 @xl:hidden">
+                                @foreach($sortierungen as [$sort, $dir, $label])
+                                    <option value="{{ request()->fullUrlWithQuery(['sort' => $sort, 'dir' => $dir]) }}" @selected($gewaehlt === "{$sort}:{$dir}")>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                     </div>
                 </x-slot:aktionen>
 
@@ -81,14 +105,14 @@
                         <table class="w-full text-sm tabular-nums">
                             <thead>
                                 <tr class="border-y border-border">
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted @xl:table-cell" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lj') }}</th>
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted @xl:table-cell">{{ __('Lj') }}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted @2xl:table-cell" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('semester') }}">{!! $sortLink('semester', __('Semester')) !!}</th>
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('gesamt') }}">{!! $sortLink('gesamt', __('Gesamt')) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted @xl:table-cell" aria-sort="{{ $ariaSort('gesamt') }}">{!! $sortLink('gesamt', __('Gesamt')) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Neue Noten') }}</th>
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted lg:table-cell">{{ __('Nächste Prüfung') }}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-5 text-left text-2xs font-medium text-muted @4xl:table-cell">{{ __('Nächste Prüfung') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,25 +124,32 @@
                                     @endphp
                                     <tr class="border-b border-border last:border-0 hover:bg-surface-2/60"
                                         x-show="(filter === 'alle' || filter === '{{ $s->status }}' || (filter === 'neu' && {{ $z->neu }} > 0)) && (suche === '' || @js(mb_strtolower($b->vorname.' '.$b->nachname)).includes(suche.toLowerCase()))">
-                                        <td class="hidden h-11 px-3 sm:table-cell"><x-status :status="$s->status" /></td>
+                                        <td class="hidden h-11 px-3 @xl:table-cell"><x-status :status="$s->status" /></td>
                                         <td class="h-11 px-3">
                                             <a href="{{ route('trainer.learners.show', $z->lernender->lernender_id) }}" class="font-medium text-text hover:text-accent-text">{{ $b->vorname }} {{ $b->nachname }}</a>
-                                            <div class="truncate text-xs text-muted" title="{{ $z->lernender->lehrberuf?->name }}">{{ $z->lernender->lehrberuf?->kuerzel }}</div>
-                                            <x-status :status="$s->status" class="mt-1 mb-1.5 sm:hidden" />
+                                            {{-- Schmal stehen die ausgeblendeten Spalten hier: Lehrjahr, Gesamt, nächste Prüfung --}}
+                                            <div class="text-xs text-muted">
+                                                <span title="{{ $z->lernender->lehrberuf?->name }}">{{ $z->lernender->lehrberuf?->kuerzel }}</span>
+                                                <span class="@xl:hidden">@if($z->lehrjahr) · {{ __(':jahr. Lehrjahr', ['jahr' => $z->lehrjahr]) }}@endif · <span class="whitespace-nowrap">{{ __('Gesamt') }} <x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></span></span>
+                                            </div>
+                                            @if($z->naechstePruefung)
+                                                <div class="text-xs text-muted @4xl:hidden">{{ __('Prüfung am :datum', ['datum' => $z->naechstePruefung->datum->format('d.m.Y')]) }} · {{ $z->naechstePruefung->bezeichnung() }}</div>
+                                            @endif
+                                            <x-status :status="$s->status" class="mt-1 mb-1.5 @xl:hidden" />
                                         </td>
-                                        <td class="hidden h-11 px-2 text-right sm:table-cell">{{ $z->lehrjahr ?? '–' }}</td>
-                                        <td class="hidden h-11 px-3 md:table-cell"><x-sparkline :werte="$s->verlauf" :zahl="false" /></td>
+                                        <td class="hidden h-11 px-2 text-right @xl:table-cell">{{ $z->lehrjahr ?? '–' }}</td>
+                                        <td class="hidden h-11 px-3 @2xl:table-cell"><x-sparkline :werte="$s->verlauf" :zahl="false" /></td>
                                         <td class="h-11 px-3 text-right whitespace-nowrap">
                                             <x-note :wert="$s->semesterNote" :stellen="1" />
                                             @if($d !== null && $d != 0)
                                                 <span class="block text-2xs {{ $d > 0 ? 'text-text' : 'text-note-knapp' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format(abs($d), 1) }}</span>
                                             @endif
                                         </td>
-                                        <td class="hidden h-11 px-3 text-right sm:table-cell"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
+                                        <td class="hidden h-11 px-3 text-right @xl:table-cell"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
                                         <td class="h-11 px-3 text-right">
                                             <a href="{{ route('trainer.learners.grades.index', $z->lernender->lernender_id) }}" class="{{ $z->neu ? 'font-semibold text-accent-text' : 'text-muted' }} hover:underline underline-offset-2">{{ $z->neu }}</a>
                                         </td>
-                                        <td class="hidden h-11 px-5 lg:table-cell">
+                                        <td class="hidden h-11 px-5 @4xl:table-cell">
                                             @if($z->naechstePruefung)
                                                 <div class="truncate text-text">{{ $z->naechstePruefung->bezeichnung() }}</div>
                                                 <div class="text-xs text-muted">{{ $z->naechstePruefung->datum->format('d.m.Y') }}</div>
