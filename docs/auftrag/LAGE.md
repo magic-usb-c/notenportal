@@ -24,6 +24,14 @@ Vorgehen: `docs/auftrag/NACHTLAUF.md` — **eine** Sitzung auf `main`, Paralleli
 
 ## 2. Der zentrale Befund: die Notenrechnung ist falsch
 
+> **Behoben mit Block 1 (30.09., 3458e6c a6946be b12a955 90e6cf2, Prüfer-Fixes 7b229e5 a9a6274).**
+> Der Notenbaum rechnet je Knoten mit Gewicht, Rundung, Fallnote, max. ungenügend und Minuspunkten;
+> die Abnahmefälle aus `NOTENBAUM.md` stehen in `tests/Unit/Auswertung/NotenbaumAbnahmeTest.php`.
+> Hat der Lehrberuf einen Baum, ist dessen Wurzel die Gesamtnote; ohne Baum rechnet das Portal wie
+> unten beschrieben weiter (`Rechenkern.php:74`). Prod braucht `notenportal:migrate`
+> (`2026_10_01_000001` bis `_000003`) und einen zugeordneten Baum. Der Befund unten bleibt als
+> Begründung stehen.
+
 Am 30.09.2026 belegt: Das Portal rechnet die Vornote anders, als es die Bildungsverordnung
 vorschreibt. **Jede Gesamtnote, die es heute anzeigt, ist unzutreffend.**
 
@@ -78,6 +86,11 @@ Erhoben am 30.09.2026 gegen den Code, jede Zeile belegt.
 | 6 | Kein Feld für Lektionen je Fach/Semester | — | Lektionentafel nicht abbildbar |
 | 7 | Kein `destroy` für Fächer, nur `aktiv`-Schalter | `routes/web.php:293-302` | Fehleingaben bleiben stehen |
 | 8 | Einrichtungsschritt «Lehrberufe & Fächer» bietet nur Ankreuzen | `resources/views/admin/einrichtung/professions.blade.php` | Nutzer glaubt, Fächer seien gar nicht pflegbar. Die echte Pflege liegt unter Admin → Stammdaten → Fächer (`/admin/master-data/subjects`, `app/Support/Navigation.php:55`) — der Assistent verlinkt sie nicht |
+
+**Stand 30.09. abends:** erledigt sind 1 (Stufen für Sport, «zählt nicht» je Fach: a6946be),
+2 (Notenbaum, siehe Abschnitt 2), 7 (Fächer löschbar: a6946be) und 8 (Einrichtung verlinkt Fächer- und
+Baumpflege, lädt Vorlagen: a3f664c). 3–6 bleiben bewusst offen, Begründung in `docs/audit-backlog.md`
+«Notenbaum und Stammdaten: bewusst gelassen».
 
 Nicht-Lücken, ausdrücklich geprüft: Fächer sind freier Text und frei anlegbar/umbenennbar/
 deaktivierbar; «Französisch» ist **nirgends** fest verdrahtet, es steht nur als Vorschlag in
@@ -246,6 +259,11 @@ Nicht raten — als offen markieren und David fragen:
 ---
 
 ## 7. Woran gearbeitet wird
+
+> **Stand 30.09. abends: alle sechs Punkte bearbeitet**, Details und Commits im Übergabebrett
+> (`UEBERGABE.md`). Offen sind nur die Entscheide unter «Offen für David» dort, darunter der Standard
+> der Navigation (Seitenleiste ist gebaut und je Person umschaltbar), und das Bewusst-Gelassene in
+> `docs/audit-backlog.md`.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 
