@@ -112,9 +112,8 @@ class UebersichtUndNotenTest extends TestCase
         $antwort = $this->get(route('learner.dashboard'))->assertOk()
             ->assertSee('>Ziele<', false)
             ->assertSee('Ziel 5.5', false)
-            ->assertSee('erreichbar')
             ->assertDontSee('Nicht mehr erreichbar');
-        $this->assertMatchesRegularExpression('/text-muted">\s*höchstens [\d.]+ erreichbar/', $antwort->getContent());
+        $this->assertMatchesRegularExpression('/text-muted">\s*Mit den offenen Prüfungen höchstens [\d.]+\s*</', $antwort->getContent());
     }
 
     #[Test]
