@@ -15,7 +15,7 @@
             <h1 class="flex items-baseline gap-2 text-xl font-semibold text-text">
                 <span class="min-w-0 break-words">{{ $titel }}</span>
                 @if($zaehler !== null)
-                    <span class="text-base font-normal tabular-nums text-muted">{{ $zaehler }}</span>
+                    <span class="whitespace-nowrap text-base font-normal tabular-nums text-muted">{{ $zaehler }}</span>
                 @endif
             </h1>
             @if($untertitel)

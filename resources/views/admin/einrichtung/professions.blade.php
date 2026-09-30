@@ -19,7 +19,7 @@
         <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3">
             <label for="vorlage-wahl" class="text-sm font-semibold text-text">{{ __('Vorlage') }}</label>
             <div class="flex flex-wrap items-center gap-2">
-                <select id="vorlage-wahl" name="vorlage" onchange="this.form.submit()" class="{{ $feld }} min-w-0 flex-1 sm:flex-none sm:w-96">
+                <select id="vorlage-wahl" name="vorlage" onchange="this.form.submit()" class="{{ $feld }} min-w-0 flex-1 truncate pr-9 sm:flex-none sm:w-96">
                     @foreach($vorlagen as $schluessel => $v)
                         <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
                     @endforeach
@@ -55,7 +55,7 @@
                 @endforeach
                 @foreach($weitere as $lb)
                     <div class="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 opacity-60">
-                        <span class="w-5 h-5 rounded bg-accent/15" aria-hidden="true"></span>
+                        <input type="checkbox" checked disabled aria-label="{{ $lb->name }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                         <span class="min-w-0 flex-1"><span class="block text-sm text-text">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
                         <span class="text-xs text-muted">{{ __('vorhanden') }}</span>
                     </div>
@@ -92,12 +92,12 @@
                                     $da = in_array($track.':'.mb_strtolower($f['name']), $faecherDa, true);
                                     $zusatz = array_filter([($f['skala'] ?? 'note') === 'stufe' ? __('Stufe') : null, ($f['zaehlt'] ?? true) ? null : __('zählt nicht')]);
                                 @endphp
-                                <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
+                                <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
                                     'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                                     <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
                                            class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
-                                    {{ $f['name'] }}
-                                    @if($zusatz)<span class="text-xs text-muted">{{ implode(' · ', $zusatz) }}</span>@endif
+                                    <span class="min-w-0">{{ $f['name'] }}</span>
+                                    @if($zusatz)<span class="shrink-0 whitespace-nowrap text-xs text-muted">{{ implode(' · ', $zusatz) }}</span>@endif
                                 </label>
                             @endforeach
                         </div>

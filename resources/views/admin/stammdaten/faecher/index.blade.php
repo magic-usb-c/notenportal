@@ -32,7 +32,11 @@
                         @forelse($faecher as $f)
                             <tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
                                 <td class="px-4 font-mono font-semibold text-text">{{ $f->kurzname }}</td>
-                                <td class="px-4 text-text">{{ $f->name }}</td>
+                                <td class="px-4 text-text">
+                                    {{ $f->name }}
+                                    @if($f->skala === 'stufe')<span class="ml-1.5 rounded-md bg-surface-2 px-1.5 py-0.5 text-xs text-muted">{{ __('Stufe') }}</span>@endif
+                                    @unless($f->zaehlt)<span class="ml-1.5 text-xs text-muted">{{ __('zählt nicht') }}</span>@endunless
+                                </td>
                                 <td class="px-4 text-muted">{{ $f->kategorie_name }}</td>
                                 <td class="px-4">
                                     @if($f->track_typ)
