@@ -45,7 +45,7 @@ class DemoSeeder extends Seeder
     private const array UEK_THEMEN = ['Arbeitsplatz einrichten', 'Hardware in Betrieb nehmen', 'Kundensupport leisten', 'Web-Applikation umsetzen', 'Server betreiben'];
 
     private const array FAECHER = [
-        'BMS' => ['Deutsch' => 'D', 'Englisch' => 'E', 'Französisch' => 'F', 'Mathematik' => 'M', 'Wirtschaft und Recht' => 'WR', 'Naturwissenschaften' => 'NW'],
+        'BMS' => ['Deutsch' => 'D', 'Englisch' => 'E', 'Italienisch' => 'I', 'Mathematik' => 'M', 'Wirtschaft und Recht' => 'WR', 'Naturwissenschaften' => 'NW'],
         'ABU' => ['Sprache und Kommunikation' => 'SK', 'Gesellschaft' => 'G'],
     ];
 

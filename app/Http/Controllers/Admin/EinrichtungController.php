@@ -9,10 +9,12 @@ use App\Models\Berufsbildner;
 use App\Models\Lernender;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
 use App\Services\Notifications\AccountMails;
 use App\Services\Notifications\MailSettings;
+use App\Services\Stammdaten\StammdatenVorlage;
 use App\Support\Betrieb;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
@@ -159,54 +161,39 @@ class EinrichtungController extends Controller
         return $this->weiter('semesters', $text);
     }
 
-    public function lehrberufe(Request $request): RedirectResponse
+    public function lehrberufe(Request $request, StammdatenVorlage $vorlagen): RedirectResponse
     {
+        $request->validate(['vorlage' => ['nullable', 'string', Rule::in(array_keys(StammdatenVorlage::mitgeliefert()))]]);
+        $vorlage = StammdatenVorlage::laden($request->input('vorlage'));
+
         $daten = $request->validate([
             'berufe' => ['array'],
-            'berufe.*' => ['string', Rule::in(array_keys(Einrichtung::LEHRBERUFE))],
+            'berufe.*' => ['string', Rule::in(array_column($vorlage['lehrberufe'] ?? [], 'kuerzel'))],
             'eigene' => ['array'],
             'eigene.*.kuerzel' => ['nullable', 'string', 'max:10', 'alpha_num', 'distinct', 'required_with:eigene.*.name'],
             'eigene.*.name' => ['nullable', 'string', 'max:200', 'distinct', 'required_with:eigene.*.kuerzel'],
             'faecher' => ['array'],
-            'faecher.*' => ['string', 'regex:/^(BMS|ABU):[A-Z]+$/'],
+            'faecher.*' => ['string', Rule::in(array_map([StammdatenVorlage::class, 'fachSchluessel'], $vorlage['faecher'] ?? []))],
+            'notenbaeume' => ['sometimes', 'boolean'],
         ], [], self::attribute());
 
-        $berufe = collect($daten['berufe'] ?? [])->mapWithKeys(fn ($k) => [$k => Einrichtung::LEHRBERUFE[$k]]);
+        $eigene = [];
         foreach ($daten['eigene'] ?? [] as $e) {
             if (filled($e['kuerzel'] ?? null)) {
-                $berufe[strtoupper(trim($e['kuerzel']))] = trim($e['name']);
+                $eigene[strtoupper(trim($e['kuerzel']))] = trim($e['name']);
             }
         }
 
-        $kategorien = DB::table('kategorien')->pluck('kategorie_id', 'code');
-        [$neuBerufe, $neuFaecher] = DB::transaction(function () use ($berufe, $daten, $kategorien) {
-            $neuBerufe = 0;
-            foreach ($berufe as $kuerzel => $name) {
-                if (! DB::table('lehrberufe')->where('kuerzel', $kuerzel)->orWhere('name', $name)->exists()) {
-                    DB::table('lehrberufe')->insert(['kuerzel' => $kuerzel, 'name' => $name, 'aktiv' => 1]);
-                    $neuBerufe++;
-                }
-            }
+        $neu = $vorlagen->anwenden($vorlage, $daten['berufe'] ?? [], $eigene, $daten['faecher'] ?? [], $request->boolean('notenbaeume', true));
 
-            $neuFaecher = 0;
-            foreach ($daten['faecher'] ?? [] as $schluessel) {
-                [$track, $kurz] = explode(':', $schluessel);
-                $name = Einrichtung::FAECHER[$track][$kurz] ?? null;
-                if ($name && isset($kategorien[$track]) && ! DB::table('faecher')->where('name', $name)->where('track_typ', $track)->exists()) {
-                    DB::table('faecher')->insert(['kategorie_id' => $kategorien[$track], 'track_typ' => $track, 'name' => $name, 'kurzname' => $kurz]);
-                    $neuFaecher++;
-                }
-            }
+        $berufeText = $neu['berufe'] === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neu['berufe']]);
+        $faecherText = $neu['faecher'] === 1 ? __('1 Fach') : __(':anzahl Fächer', ['anzahl' => $neu['faecher']]);
+        $meldung = __(':berufe und :faecher angelegt.', ['berufe' => $berufeText, 'faecher' => $faecherText]);
+        if ($neu['baeume'] > 0) {
+            $meldung .= ' '.($neu['baeume'] === 1 ? __('1 Notenbaum geladen.') : __(':anzahl Notenbäume geladen.', ['anzahl' => $neu['baeume']]));
+        }
 
-            return [$neuBerufe, $neuFaecher];
-        });
-        Konfiguration::vergessen();
-        Lehrsemester::vergessen();
-
-        $berufeText = $neuBerufe === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neuBerufe]);
-        $faecherText = $neuFaecher === 1 ? __('1 Fach') : __(':anzahl Fächer', ['anzahl' => $neuFaecher]);
-
-        return $this->weiter('professions', __(':berufe und :faecher angelegt.', ['berufe' => $berufeText, 'faecher' => $faecherText]));
+        return $this->weiter('professions', $meldung);
     }
 
     public function module(Request $request): RedirectResponse
@@ -418,6 +405,12 @@ class EinrichtungController extends Controller
             'professions' => [
                 'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['kuerzel', 'name']),
                 'faecher' => DB::table('faecher')->get(['name', 'track_typ']),
+                'vorlagen' => StammdatenVorlage::mitgeliefert(),
+                'vorlageSchluessel' => $vorlageSchluessel = (array_key_exists((string) $request->query('vorlage'), StammdatenVorlage::mitgeliefert())
+                    ? (string) $request->query('vorlage') : StammdatenVorlage::standard()),
+                'vorlage' => $vorlageSchluessel !== null ? StammdatenVorlage::laden($vorlageSchluessel) : ['lehrberufe' => [], 'faecher' => []],
+                'baumNamen' => collect(BaumVorlage::mitgeliefert())->map(fn ($v) => $v['name'])->all(),
+                'baeumeAktiv' => DB::table('notenbaeume')->where('aktiv', true)->exists(),
             ],
             'modules' => $this->moduleDaten($request),
             'people' => [

@@ -7,10 +7,11 @@
     "quellen": [
         "BiVo Informatikerin/Informatiker EFZ, SR 412.101.220.10, Art. 18/19 (Stand 1.1.2026)",
         "BBV SR 412.101 Art. 34 Abs. 2: Gesamtnote auf eine Dezimalstelle",
+        "Teilmittel Berufsfachschule und üK auf ganze oder halbe Noten, Erfahrungsnote Informatikkompetenzen auf eine Dezimalstelle (docs/auftrag/LAGE.md 2; Schulmerkblätter gibb, bbzbl)",
         "VMAB SR 412.101.241 Art. 6: Allgemeinbildung je 1/3 Erfahrungsnote, Schlussarbeit, Schlussprüfung"
     ],
     "offen": [
-        "Rundung der Erfahrungsnote Informatikkompetenzen: hier eine Dezimalstelle (Abnahmefall NOTENBAUM.md 3.1). Verlangt die BiVo ganze oder halbe Noten, im Knoten «ik» die Rundung auf 0.5 setzen.",
+        "Berufsmaturität: Laut Schulmerkblättern entfallen für BM-Lernende die Allgemeinbildung (VMAB) und die erweiterten Grundkompetenzen; die Gewichtung danach ist in den Quellen widersprüchlich (40:30 hochgerechnet oder 50:50). Nicht an der Primärquelle geprüft, deshalb nicht voreingestellt. Bei Bedarf in den Stammdaten je Teil «Entfällt mit BMS» setzen.",
         "Rundung der Note Allgemeinbildung und der IPA-Note nicht an der Primärquelle geprüft."
     ],
     "wurzel": {
@@ -58,8 +59,8 @@
                 "rundung": 0.1,
                 "fallnote": 4.0,
                 "kinder": [
-                    { "code": "ik_bfs", "name": "Module Berufsfachschule", "typ": "kategorie", "kategorie": "FACH", "elementtyp": "modul", "gewicht": 80 },
-                    { "code": "ik_uek", "name": "Module überbetriebliche Kurse", "typ": "kategorie", "kategorie": "UEK", "elementtyp": "modul", "gewicht": 20 }
+                    { "code": "ik_bfs", "name": "Module Berufsfachschule", "typ": "kategorie", "kategorie": "FACH", "elementtyp": "modul", "gewicht": 80, "rundung": 0.5 },
+                    { "code": "ik_uek", "name": "Module überbetriebliche Kurse", "typ": "kategorie", "kategorie": "UEK", "elementtyp": "modul", "gewicht": 20, "rundung": 0.5 }
                 ]
             }
         ]

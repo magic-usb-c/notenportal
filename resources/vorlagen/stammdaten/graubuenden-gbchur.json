@@ -1,0 +1,36 @@
+{
+    "format": "notenportal-stammdaten",
+    "version": 1,
+    "name": "Graubünden · Gewerbliche Berufsschule Chur",
+    "beschreibung": "Informatik-Lehrberufe der gbchur, Berufsmaturität TALS1 mit Italienisch, Allgemeinbildung und Sport nach den Lektionentafeln der gbchur.",
+    "standard": true,
+    "quellen": [
+        "Lektionentafeln gbchur 2026 (docs/auftrag/LAGE.md 4.2, 4.3)",
+        "Sport-Qualifizierung gbchur ab August 2022: A/B/C, d = dispensiert, keine Promotionswirkung (LAGE.md 4.5)",
+        "BMV 2025 Art. 16 Abs. 3: IDAF zählt nicht zur Promotion"
+    ],
+    "lehrberufe": [
+        { "kuerzel": "INAP", "name": "Informatiker/in EFZ Applikationsentwicklung", "vorauswahl": true, "notenbaum": "informatiker-efz-bivo2020" },
+        { "kuerzel": "INPE", "name": "Informatiker/in EFZ Plattformentwicklung", "vorauswahl": true, "notenbaum": "informatiker-efz-bivo2020" },
+        { "kuerzel": "INBE", "name": "Betriebsinformatiker/in EFZ" }
+    ],
+    "faecher": [
+        { "name": "Deutsch", "kurzname": "D", "track": "BMS", "vorauswahl": true },
+        { "name": "Italienisch", "kurzname": "I", "track": "BMS", "vorauswahl": true },
+        { "name": "Englisch", "kurzname": "E", "track": "BMS", "vorauswahl": true },
+        { "name": "Mathematik", "kurzname": "M", "track": "BMS", "vorauswahl": true },
+        { "name": "Mathematik erweitert", "kurzname": "ME", "track": "BMS", "vorauswahl": true },
+        { "name": "Naturwissenschaften", "kurzname": "NW", "track": "BMS", "vorauswahl": true },
+        { "name": "Geschichte und Politik", "kurzname": "GP", "track": "BMS", "vorauswahl": true },
+        { "name": "Wirtschaft und Recht", "kurzname": "WR", "track": "BMS", "vorauswahl": true },
+        { "name": "Interdisziplinäres Arbeiten in den Fächern", "kurzname": "IDAF", "track": "BMS", "zaehlt": false, "vorauswahl": true },
+        { "name": "Gesellschaft", "kurzname": "GES", "track": "ABU", "vorauswahl": true },
+        { "name": "Sprache und Kommunikation", "kurzname": "SK", "track": "ABU", "vorauswahl": true },
+        { "name": "Englisch", "kurzname": "EN", "vorauswahl": true },
+        { "name": "Mathematik", "kurzname": "MA", "vorauswahl": true },
+        { "name": "Sport", "kurzname": "SP", "skala": "stufe", "zaehlt": false, "vorauswahl": true }
+    ],
+    "notenbaeume": [
+        { "vorlage": "bm-tals1-bmv2025", "track": "BMS" }
+    ]
+}

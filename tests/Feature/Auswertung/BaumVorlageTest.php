@@ -151,27 +151,8 @@ class BaumVorlageTest extends TestCase
     #[Test]
     public function fall_a_ueber_den_importierten_efz_baum(): void
     {
-        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $this->lehrberuf);
-        $schule = DB::table('module')->insertGetId(['modul_nummer' => '901', 'titel' => 'Testmodul Schule']);
-        $uek = DB::table('module')->insertGetId(['modul_nummer' => '991', 'titel' => 'Testmodul ÜK']);
-        DB::table('lehrberuf_module')->insert([
-            ['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $schule, 'kategorie_id' => $this->kat('FACH')],
-            ['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $uek, 'kategorie_id' => $this->kat('UEK')],
-        ]);
-        $abu = DB::table('faecher')->insertGetId(['name' => 'Allgemeinbildung', 'kurzname' => 'ABU', 'kategorie_id' => $this->kat('ABU'), 'aktiv' => 1]);
-        DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $this->lehrberuf, 'fach_id' => $abu]);
-        DB::table('semester')->insert(['bezeichnung' => 'VL-1', 'start_datum' => '2024-08-01', 'end_datum' => now()->addYears(3)->toDateString(), 'sortierung' => 1]);
-        Konfiguration::vergessen();
-
-        $user = User::factory()->lernender(['lehrberuf_id' => $this->lehrberuf])->create();
-        $id = (int) $user->lernender->lernender_id;
-        $this->actingAs($user);
-        $englisch = (int) DB::table('faecher')->where('name', 'Englisch')->value('fach_id');
-        foreach ([['modul', $schule, 5.0], ['modul', $uek, 4.0], ['fach', $englisch, 4.5], ['fach', $abu, 4.5]] as [$typ, $bezug, $wert]) {
-            $this->post(route('learner.grades.store'), [
-                'typ' => $typ, $typ.'_id' => $bezug, 'pruefungsdatum' => now()->toDateString(), 'note_wert' => (string) $wert,
-            ])->assertSessionHasNoErrors();
-        }
+        [$user, $id, $m] = $this->efzLernender();
+        $this->noten($user, [['modul', $m['schule'], 5.0], ['modul', $m['uek'], 4.0], ['fach', $m['englisch'], 4.5], ['fach', $m['abu'], 4.5]]);
         foreach (['ipa' => 5.0, 'ab_schlussarbeit' => 5.0, 'ab_schlusspruefung' => 4.0] as $code => $wert) {
             NotenbaumPosition::create([
                 'lernender_id' => $id,
@@ -189,6 +170,22 @@ class BaumVorlageTest extends TestCase
         $this->assertEqualsWithDelta(4.5, $baum->knoten('ab')->note, 1e-9);
         $this->assertEqualsWithDelta(4.8, $a->gesamtNote, 1e-9);
         $this->assertSame(BaumErgebnis::BESTANDEN, $baum->status);
+    }
+
+    #[Test]
+    public function efz_vorlage_rundet_die_teilmittel_der_informatikkompetenzen_auf_halbe_noten(): void
+    {
+        [$user, $id, $m] = $this->efzLernender();
+        $zweites = DB::table('module')->insertGetId(['modul_nummer' => '902', 'titel' => 'Testmodul Schule 2']);
+        DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $zweites, 'kategorie_id' => $this->kat('FACH')]);
+        Konfiguration::vergessen();
+        $this->noten($user, [['modul', $m['schule'], 4.5], ['modul', $zweites, 5.0], ['modul', $m['uek'], 4.0]]);
+
+        $baum = array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0];
+
+        // Schulmodule 4.75 → 5.0 (LAGE §2: Teilmittel auf ganze/halbe Note); ungerundet wäre IK 4.6
+        $this->assertEqualsWithDelta(5.0, $baum->knoten('ik_bfs')->note, 1e-9);
+        $this->assertEqualsWithDelta(4.8, $baum->knoten('ik')->note, 1e-9);
     }
 
     #[Test]
@@ -258,6 +255,38 @@ class BaumVorlageTest extends TestCase
         @unlink($datei);
         $this->assertSame(2, DB::table('notenbaeume')->where('lehrberuf_id', $this->lehrberuf)->count());
         $this->assertSame(1, DB::table('notenbaeume')->where('lehrberuf_id', $this->lehrberuf)->where('aktiv', true)->count());
+    }
+
+    /** @return array{0: User, 1: int, 2: array{schule: int, uek: int, englisch: int, abu: int}} Lernender mit importiertem EFZ-Baum */
+    private function efzLernender(): array
+    {
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $this->lehrberuf);
+        $schule = DB::table('module')->insertGetId(['modul_nummer' => '901', 'titel' => 'Testmodul Schule']);
+        $uek = DB::table('module')->insertGetId(['modul_nummer' => '991', 'titel' => 'Testmodul ÜK']);
+        DB::table('lehrberuf_module')->insert([
+            ['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $schule, 'kategorie_id' => $this->kat('FACH')],
+            ['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $uek, 'kategorie_id' => $this->kat('UEK')],
+        ]);
+        $abu = DB::table('faecher')->insertGetId(['name' => 'Allgemeinbildung', 'kurzname' => 'ABU', 'kategorie_id' => $this->kat('ABU'), 'aktiv' => 1]);
+        DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $this->lehrberuf, 'fach_id' => $abu]);
+        DB::table('semester')->insert(['bezeichnung' => 'VL-1', 'start_datum' => '2024-08-01', 'end_datum' => now()->addYears(3)->toDateString(), 'sortierung' => 1]);
+        Konfiguration::vergessen();
+
+        $user = User::factory()->lernender(['lehrberuf_id' => $this->lehrberuf])->create();
+        $englisch = (int) DB::table('faecher')->where('name', 'Englisch')->value('fach_id');
+
+        return [$user, (int) $user->lernender->lernender_id, ['schule' => $schule, 'uek' => $uek, 'englisch' => $englisch, 'abu' => $abu]];
+    }
+
+    /** @param  list<array{0: string, 1: int, 2: float}>  $noten */
+    private function noten(User $user, array $noten): void
+    {
+        $this->actingAs($user);
+        foreach ($noten as [$typ, $bezug, $wert]) {
+            $this->post(route('learner.grades.store'), [
+                'typ' => $typ, $typ.'_id' => $bezug, 'pruefungsdatum' => now()->toDateString(), 'note_wert' => (string) $wert,
+            ])->assertSessionHasNoErrors();
+        }
     }
 
     private function kat(string $code): int

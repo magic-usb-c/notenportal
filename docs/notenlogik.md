@@ -1,6 +1,6 @@
 # Notenlogik
 
-Stand 10.09.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
+Stand 01.10.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
 
 ## Begriffe
 
@@ -9,7 +9,7 @@ Stand 10.09.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechne
 | Prüfung | eine Note (`noten`), Gewicht `gewichtung_prozent` (leer = 100) | – |
 | **Element** | Fach × Semester (Semesterzeugnisnote) **oder** Modul (Modulnote über die aktuelle Belegung) | `kategorien.rundung_element` (0.5) |
 | **Kategorie** | Mittel der Elementnoten (ungewichtet, gerundete Elementnoten) | `kategorien.rundung_schnitt` (0.1) |
-| **Gesamt** | Mittel der Kategorie-Schnitte, gewichtet mit `kategorien.gewicht_gesamt` | Einstellung `rundung_gesamt` (0.1) |
+| **Gesamt** | mit Notenbaum: Wurzel des Baums des Lehrberufs (siehe unten); ohne: Mittel der Kategorie-Schnitte, gewichtet mit `kategorien.gewicht_gesamt` | Baum: je Knoten; ohne: Einstellung `rundung_gesamt` (0.1) |
 | Fach über die Lehrzeit | Mittel der Semesterzeugnisnoten dieses Fachs | wie Kategorie |
 | Semesterschnitt | Mittel aller Elementnoten eines Semesters (Module zählen im Semester ihrer letzten Prüfung) | wie Kategorie |
 
@@ -22,6 +22,25 @@ Rundung: kaufmännisch auf den Schritt (`Rundung::auf(4.25, 0.5) = 4.5`), Schrit
 Die Kategorie einer Note ist nicht mehr frei wählbar, sie folgt aus dem Fach bzw. Modul:
 - `faecher.kategorie_id` (Pflicht). `faecher.track_typ` (BMS/ABU, nullable) ist nur noch Voraussetzung: Fach sichtbar, wenn der Lernende den Track aktiv hat. Fächer ohne Track sind berufsspezifisch und über `lehrberuf_faecher` freigegeben.
 - `lehrberuf_module.kategorie_id` = Lernort des Moduls in diesem Beruf (Fachunterricht oder ÜK).
+
+## Skala und «zählt nicht» je Fach
+
+- `faecher.skala`: `note` (1–6) oder `stufe` (A/B/C, d = dispensiert; Sport nach Hausregel gbchur, LAGE §4.5). Stufen stehen in `noten.note_stufe` bei `note_wert` NULL (DB-CHECK: genau eines von beiden), werden angezeigt und **nie gerechnet**.
+- `faecher.zaehlt = 0` (IDAF, Sport): Element bleibt sichtbar, zählt aber in keinem Kategorie-, Semester- oder Gesamtschnitt und in keiner Promotion. Ein Fächerknoten im Notenbaum, der das Fach ausdrücklich nennt, nimmt es trotzdem (Erfahrungsnote IDAF → IDPA).
+
+## Notenbaum (QV und Berufsmaturität)
+
+Gewichtete Rechnung bis zur Gesamtnote als Daten, nicht als Code (`docs/auftrag/NOTENBAUM.md`, Abnahmefälle §3 als Tests in `tests/Unit/Auswertung/NotenbaumAbnahmeTest.php`).
+
+- Tabellen `notenbaeume` (Bezug `lehrberuf` oder `bildungsgang` mit `track_typ`), `notenbaum_knoten`, `notenbaum_knoten_faecher`, `notenbaum_positionen`. Je Lehrberuf bzw. Track ist höchstens ein Baum aktiv.
+- Knotentypen: **Gruppe** (gewichtetes Mittel der zählenden Kinder), **Kategorie** (Mittel der Zeugnisnoten der zählenden Elemente einer Kategorie, wahlweise nur Module oder nur Fächer), **Fächer** (alle Semesterzeugnisnoten der genannten Fächer gemeinsam), **von Hand** (Position je Lernender: IPA, Schlussarbeit, Abschlussprüfung).
+- Je Knoten: `gewicht`, `rundung` (0.1/0.5/1, leer = ungerundet; eine Gruppe rechnet mit den gerundeten Noten ihrer Kinder), `fallnote` (Note darunter → nicht bestanden), bei Gruppen `max_ungenuegend` und `max_minuspunkte` über die Kinder, `zaehlt`, `entfaellt_mit_track`.
+- Fehlende Teile werden übersprungen und die Gewichte der übrigen hochgerechnet; das Ergebnis heisst dann **Prognose**, der Status bleibt «offen». Vollständig und ohne Grund → «bestanden», sonst «nicht bestanden». Ein Grund auf einer Position von Hand (z. B. IPA unter 4) ist endgültig und macht schon vorher «nicht bestanden».
+- Nicht zählende Teile entscheiden nicht über das Bestehen (ihre Regeln werden nicht geprüft).
+- `entfaellt_mit_track`: Der Teil entfällt für Lernende, deren **zuletzt begonnener** Track dieser ist (z. B. Allgemeinbildung bei BMS); wer aus der BM ins ABU wechselt, hat danach ABU.
+- Mit aktivem Lehrberuf-Baum ist die Gesamtnote in allen Ansichten die Wurzel dieses Baums («QV-Prognose» bzw. «QV-Gesamtnote»); ohne Baum rechnet der Bestand wie bisher. Bildungsgang-Bäume (BM) erscheinen zusätzlich auf der Seite «Abschluss».
+- Vorlagen: `resources/vorlagen/notenbaeume/*.json` (Format `notenportal-notenbaum`, Version 1). Laden, importieren, exportieren und Gewichte anpassen unter Stammdaten → Notenbäume oder `php artisan notenportal:notenbaum liste|laden|import|export`. Die Struktur ändert man über Export → Datei bearbeiten → Import; `BaumVorlage::pruefen()` prüft jede Datei vollständig. Fächer werden per Name im selben Track gefunden oder angelegt.
+- Der Rechner simuliert Noten, nicht Positionen von Hand: eine fehlende IPA bleibt im Szenario fehlend.
 
 ## Modulabschluss und offene Gewichtung
 

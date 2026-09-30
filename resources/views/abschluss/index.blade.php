@@ -5,7 +5,7 @@
 @php
     $name = $lernender ? trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname) : null;
     $einzug = ['pl-5', 'pl-9', 'pl-13', 'pl-17', 'pl-21'];
-    $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.').' %';
+    $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.')."\u{00A0}%";
 
     // Baum flach in Anzeige-Reihenfolge, mit Tiefe und Anteil am Elternknoten
     $zeilen = function ($ergebnis) {
@@ -115,8 +115,8 @@
                                     <thead class="bg-surface-2">
                                         <tr>
                                             <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">{{ __('Teil') }}</th>
-                                            <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted">{{ __('Anteil') }}</th>
-                                            <th scope="col" class="h-9 w-32 px-5 text-right text-2xs font-medium text-muted">{{ __('Note') }}</th>
+                                            <th scope="col" class="h-9 px-2 text-right text-2xs font-medium text-muted sm:px-3">{{ __('Anteil') }}</th>
+                                            <th scope="col" class="h-9 w-24 pl-2 pr-4 text-right text-2xs font-medium text-muted sm:w-32 sm:px-5">{{ __('Note') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -134,10 +134,10 @@
                                                         <div class="text-xs text-muted">{{ implode(' · ', $r) }}</div>
                                                     @endif
                                                 </td>
-                                                <td class="px-3 text-right text-muted">
+                                                <td class="whitespace-nowrap px-2 text-right text-muted sm:px-3">
                                                     {{ $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht')) }}
                                                 </td>
-                                                <td class="px-5 py-1.5 text-right">
+                                                <td class="py-1.5 pl-2 pr-4 text-right sm:px-5">
                                                     @if($k->entfaellt)
                                                         <span class="text-muted">–</span>
                                                     @elseif($k->typ === Knoten::MANUELL)
@@ -145,7 +145,7 @@
                                                         <input id="wert-{{ $k->id }}" name="werte[{{ $k->id }}]" inputmode="decimal" autocomplete="off"
                                                                value="{{ old($feld, $position ? NotenSkala::format($position->note_wert) : '') }}"
                                                                @error($feld) aria-invalid="true" aria-describedby="wert-{{ $k->id }}-fehler" @enderror
-                                                               class="h-8 w-20 rounded-lg border border-border-strong/70 bg-input px-2 text-right text-sm tabular-nums text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30"
+                                                               class="h-8 w-16 rounded-lg border border-border-strong/70 bg-input px-2 text-right text-sm tabular-nums text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30"
                                                                placeholder="–">
                                                         @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                     @elseif($z['e']->note !== null)

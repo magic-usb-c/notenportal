@@ -11,6 +11,8 @@ use App\Models\Feedback;
 use App\Models\FeedbackStimme;
 use App\Models\Note;
 use App\Models\User;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
+use App\Services\Stammdaten\StammdatenVorlage;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
 use Database\Seeders\DemoSeeder;
@@ -354,9 +356,18 @@ class EnglischeSeitenTest extends TestCase
             $werte = [...$werte, ...DB::table($tabelle)->whereNotNull($spalte)->distinct()->pluck($spalte)->all()];
         }
 
-        $werte = [...$werte, ...array_keys(Einrichtung::LEHRBERUFE), ...array_values(Einrichtung::LEHRBERUFE)];
-        foreach (Einrichtung::FAECHER as $liste) {
-            $werte = [...$werte, ...array_values($liste)];
+        // Namen aus den Stammdaten-Vorlagen sind Daten, keine Oberflächentexte
+        foreach (StammdatenVorlage::mitgeliefert() as $vorlage) {
+            $werte = [...$werte, $vorlage['name'], $vorlage['beschreibung'] ?? ''];
+            foreach ($vorlage['lehrberufe'] ?? [] as $l) {
+                $werte = [...$werte, $l['kuerzel'], $l['name']];
+            }
+            foreach ($vorlage['faecher'] ?? [] as $f) {
+                $werte[] = $f['name'];
+            }
+        }
+        foreach (BaumVorlage::mitgeliefert() as $baum) {
+            $werte[] = $baum['name'];
         }
         $werte[] = "431 Aufträge im IT-Umfeld selbstständig durchführen\n162 Daten analysieren und modellieren";
         $werte[] = "106 Datenbanken abfragen, bearbeiten und warten\n187 ICT-Arbeitsplatz in Betrieb nehmen";

@@ -51,7 +51,7 @@
                     </div>
                     <div class="sm:col-span-2">
                         <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }}</label>
-                        <textarea id="beschreibung" name="beschreibung" rows="2" maxlength="500"
+                        <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="500"
                                   class="mt-1.5 w-full rounded-lg border border-border-strong/70 bg-input px-3 py-2 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30">{{ old('beschreibung', $baum->beschreibung) }}</textarea>
                     </div>
                 </div>
@@ -108,7 +108,7 @@
                                     <td class="px-2 text-right text-muted">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</td>
                                     <td class="px-2">
                                         <label for="k{{ $id }}-rundung" class="sr-only">{{ __('Rundung') }}</label>
-                                        <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24">
+                                        <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24 py-0 pr-8">
                                             <option value="" @selected($rundung === '')>{{ __('keine') }}</option>
                                             <option value="0.1" @selected($rundung === '0.1')>0.1</option>
                                             <option value="0.5" @selected($rundung === '0.5')>0.5</option>
@@ -147,7 +147,7 @@
                                         @if($z['tiefe'] > 0)
                                             @php($track = $alt('entfaellt_mit_track', $k->entfaellt_mit_track))
                                             <label for="k{{ $id }}-track" class="sr-only">{{ __('Entfällt mit') }}</label>
-                                            <select id="k{{ $id }}-track" name="knoten[{{ $id }}][entfaellt_mit_track]" class="{{ $zelle }} w-24">
+                                            <select id="k{{ $id }}-track" name="knoten[{{ $id }}][entfaellt_mit_track]" class="{{ $zelle }} w-24 py-0 pr-8">
                                                 <option value="" @selected(! $track)>–</option>
                                                 <option value="BMS" @selected($track === 'BMS')>BMS</option>
                                                 <option value="ABU" @selected($track === 'ABU')>ABU</option>

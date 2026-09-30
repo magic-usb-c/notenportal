@@ -1,0 +1,36 @@
+{
+    "format": "notenportal-stammdaten",
+    "version": 1,
+    "name": "Schweiz · ICT-Berufe",
+    "beschreibung": "Alle ICT-Lehrberufe zur Auswahl, Berufsmaturität mit Französisch oder Italienisch als zweiter Landessprache.",
+    "lehrberufe": [
+        { "kuerzel": "INAP", "name": "Informatiker/in EFZ Applikationsentwicklung", "vorauswahl": true, "notenbaum": "informatiker-efz-bivo2020" },
+        { "kuerzel": "INPE", "name": "Informatiker/in EFZ Plattformentwicklung", "vorauswahl": true, "notenbaum": "informatiker-efz-bivo2020" },
+        { "kuerzel": "EDB", "name": "Entwickler/in digitales Business EFZ" },
+        { "kuerzel": "INBE", "name": "Betriebsinformatiker/in EFZ" },
+        { "kuerzel": "ICTF", "name": "ICT-Fachmann/-frau EFZ" },
+        { "kuerzel": "IPRA", "name": "Informatikpraktiker/in EBA" },
+        { "kuerzel": "MEDI", "name": "Mediamatiker/in EFZ" },
+        { "kuerzel": "GIGA", "name": "Gebäudeinformatiker/in EFZ Gebäudeautomation" },
+        { "kuerzel": "GIKM", "name": "Gebäudeinformatiker/in EFZ Kommunikation und Multimedia" },
+        { "kuerzel": "GIPL", "name": "Gebäudeinformatiker/in EFZ Planung" },
+        { "kuerzel": "KFM", "name": "Kaufmann/-frau EFZ" }
+    ],
+    "faecher": [
+        { "name": "Deutsch", "kurzname": "D", "track": "BMS", "vorauswahl": true },
+        { "name": "Französisch", "kurzname": "F", "track": "BMS" },
+        { "name": "Italienisch", "kurzname": "I", "track": "BMS" },
+        { "name": "Englisch", "kurzname": "E", "track": "BMS", "vorauswahl": true },
+        { "name": "Mathematik", "kurzname": "M", "track": "BMS", "vorauswahl": true },
+        { "name": "Naturwissenschaften", "kurzname": "NW", "track": "BMS", "vorauswahl": true },
+        { "name": "Wirtschaft und Recht", "kurzname": "WR", "track": "BMS", "vorauswahl": true },
+        { "name": "Geschichte und Politik", "kurzname": "GP", "track": "BMS", "vorauswahl": true },
+        { "name": "Technik und Umwelt", "kurzname": "TU", "track": "BMS" },
+        { "name": "Interdisziplinäres Arbeiten in den Fächern", "kurzname": "IDAF", "track": "BMS", "zaehlt": false },
+        { "name": "Gesellschaft", "kurzname": "GES", "track": "ABU", "vorauswahl": true },
+        { "name": "Sprache und Kommunikation", "kurzname": "SK", "track": "ABU", "vorauswahl": true },
+        { "name": "Englisch", "kurzname": "EN" },
+        { "name": "Mathematik", "kurzname": "MA" }
+    ],
+    "notenbaeume": []
+}

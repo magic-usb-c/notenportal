@@ -30,32 +30,6 @@ final class Einrichtung
         'finish' => 'Abschluss',
     ];
 
-    /** Kürzel => Name; Vorauswahl über VORAUSWAHL_BERUFE */
-    public const array LEHRBERUFE = [
-        'INAP' => 'Informatiker/in EFZ Applikationsentwicklung',
-        'INPE' => 'Informatiker/in EFZ Plattformentwicklung',
-        'EDB' => 'Entwickler/in digitales Business EFZ',
-        'INBE' => 'Betriebsinformatiker/in EFZ',
-        'ICTF' => 'ICT-Fachmann/-frau EFZ',
-        'IPRA' => 'Informatikpraktiker/in EBA',
-        'MEDI' => 'Mediamatiker/in EFZ',
-        'GIGA' => 'Gebäudeinformatiker/in EFZ Gebäudeautomation',
-        'GIKM' => 'Gebäudeinformatiker/in EFZ Kommunikation und Multimedia',
-        'GIPL' => 'Gebäudeinformatiker/in EFZ Planung',
-        'KFM' => 'Kaufmann/-frau EFZ',
-    ];
-
-    public const array VORAUSWAHL_BERUFE = ['INAP', 'INPE'];
-
-    /** Track => [Kürzel => Name] */
-    public const array FAECHER = [
-        'BMS' => ['D' => 'Deutsch', 'F' => 'Französisch', 'E' => 'Englisch', 'M' => 'Mathematik', 'NW' => 'Naturwissenschaften',
-            'WR' => 'Wirtschaft und Recht', 'GP' => 'Geschichte und Politik', 'TU' => 'Technik und Umwelt'],
-        'ABU' => ['SK' => 'Sprache und Kommunikation', 'GES' => 'Gesellschaft', 'VA' => 'Vertiefungsarbeit'],
-    ];
-
-    public const array VORAUSWAHL_FAECHER = ['BMS:D', 'BMS:F', 'BMS:E', 'BMS:M', 'BMS:NW', 'BMS:WR', 'BMS:GP', 'ABU:SK', 'ABU:GES'];
-
     public static function offen(): bool
     {
         return Einstellungen::get(self::OFFEN) === '1';

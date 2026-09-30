@@ -551,7 +551,7 @@ Sprung auf eine Seite. Oben rechts: Feedback melden (Sprechblase), Hell/Dunkel, 
 - **Ampel auf der Übersicht:** *kritisch* = Promotion gefährdet, Semesterschnitt zu tief oder
   mehrere ungenügende Zeugnisnoten. *beobachten* = Einbruch, Rückgang, fehlende Noten oder
   längere Inaktivität. Ohne Markierung = im Rahmen. Die Gründe stehen als Text daneben, etwa
-  «Semesterschnitt 3.9 · 2 ungenügende Noten · Französisch 4.0 → 3.5 · 3 Noten fehlen». Die
+  «Semesterschnitt 3.9 · 2 ungenügende Noten · Italienisch 4.0 → 3.5 · 3 Noten fehlen». Die
   Spalte «Neue Noten» zählt, was seit dem letzten Blick dazukam.
 - **Cockpit einer Person:** Stand, Verlauf, Zeugnisraster, Ziele, Prüfungen auf einer Seite.
 - **Noten korrigieren und kommentieren:** Bearbeiten lässt «geändert von» sichtbar. Der

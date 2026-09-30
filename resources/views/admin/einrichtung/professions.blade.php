@@ -1,30 +1,54 @@
+@use('App\Services\Stammdaten\StammdatenVorlage')
 <x-einrichtung schritt="professions" :stand="$stand" :titel="__('Lehrberufe & Fächer')">
     @php
-        $vorlagen = \App\Support\Einrichtung::LEHRBERUFE;
         $vorhandenKuerzel = $lehrberufe->pluck('kuerzel')->map(fn ($k) => strtoupper($k))->all();
         $vorhandenNamen = $lehrberufe->pluck('name')->all();
-        $gewaehlt = old('berufe', $lehrberufe->isEmpty() ? \App\Support\Einrichtung::VORAUSWAHL_BERUFE : []);
-        $weitere = $lehrberufe->reject(fn ($lb) => isset($vorlagen[strtoupper($lb->kuerzel)]) || in_array($lb->name, $vorlagen, true));
-        $faecherDa = $faecher->map(fn ($f) => $f->track_typ.':'.$f->name)->all();
-        $faecherGewaehlt = old('faecher', $faecher->isEmpty() ? \App\Support\Einrichtung::VORAUSWAHL_FAECHER : []);
+        $katalog = collect($vorlage['lehrberufe'] ?? []);
+        $gewaehlt = old('berufe', $lehrberufe->isEmpty() ? $katalog->where('vorauswahl', true)->pluck('kuerzel')->all() : []);
+        $weitere = $lehrberufe->reject(fn ($lb) => $katalog->contains(fn ($l) => $l['kuerzel'] === strtoupper($lb->kuerzel) || $l['name'] === $lb->name));
+        $faecherDa = $faecher->map(fn ($f) => ($f->track_typ ?? StammdatenVorlage::OHNE_TRACK).':'.mb_strtolower($f->name))->all();
+        $faecherGewaehlt = old('faecher', collect($vorlage['faecher'] ?? [])->where('vorauswahl', true)->map(fn ($f) => StammdatenVorlage::fachSchluessel($f))->all());
+        $gruppen = collect($vorlage['faecher'] ?? [])->groupBy(fn ($f) => $f['track'] ?? StammdatenVorlage::OHNE_TRACK);
+        $gruppenTitel = ['BMS' => __('Berufsmaturität (BMS)'), 'ABU' => __('Allgemeinbildung (ABU)'), StammdatenVorlage::OHNE_TRACK => __('Berufsfachschule')];
+        $baeume = collect($vorlage['lehrberufe'] ?? [])->pluck('notenbaum')->merge(collect($vorlage['notenbaeume'] ?? [])->pluck('vorlage'))
+            ->filter()->unique()->map(fn ($k) => $baumNamen[$k] ?? null)->filter()->values();
         $feld = 'h-10 rounded-lg border border-border bg-input text-text px-3 text-sm focus:ring-2 focus:ring-ring focus:border-ring';
     @endphp
+
+    @if(count($vorlagen) > 1)
+        <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3">
+            <label for="vorlage-wahl" class="text-sm font-semibold text-text">{{ __('Vorlage') }}</label>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="vorlage-wahl" name="vorlage" onchange="this.form.submit()" class="{{ $feld }} min-w-0 flex-1 sm:flex-none sm:w-96">
+                    @foreach($vorlagen as $schluessel => $v)
+                        <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
+                    @endforeach
+                </select>
+                <noscript><button type="submit" class="inline-flex items-center px-4 h-10 rounded-xl glass-btn text-text text-sm">{{ __('Übernehmen') }}</button></noscript>
+            </div>
+            @if(filled($vorlage['beschreibung'] ?? null))
+                <p class="text-xs text-muted">{{ $vorlage['beschreibung'] }}</p>
+            @endif
+        </form>
+    @endif
+
     <form method="POST" action="{{ route('admin.setup.professions') }}" class="flex flex-col gap-5"
           x-data="{ loading: false, eigene: {{ \Illuminate\Support\Js::from(old('eigene', [['kuerzel' => '', 'name' => '']])) }} }"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
+        <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
         <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
             <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
             <div class="grid sm:grid-cols-2 gap-2">
-                @foreach($vorlagen as $kuerzel => $name)
-                    @php $da = in_array($kuerzel, $vorhandenKuerzel, true) || in_array($name, $vorhandenNamen, true); @endphp
+                @foreach($katalog as $l)
+                    @php $da = in_array($l['kuerzel'], $vorhandenKuerzel, true) || in_array($l['name'], $vorhandenNamen, true); @endphp
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
                         'cursor-pointer' => ! $da, 'opacity-60' => $da])>
-                        <input type="checkbox" name="berufe[]" value="{{ $kuerzel }}" @checked($da || in_array($kuerzel, $gewaehlt, true)) @disabled($da)
+                        <input type="checkbox" name="berufe[]" value="{{ $l['kuerzel'] }}" @checked($da || in_array($l['kuerzel'], $gewaehlt, true)) @disabled($da)
                                class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                         <span class="min-w-0 flex-1">
-                            <span class="block text-sm text-text">{{ $name }}</span>
-                            <span class="text-xs text-muted">{{ $kuerzel }}</span>
+                            <span class="block text-sm text-text">{{ $l['name'] }}</span>
+                            <span class="text-xs text-muted">{{ $l['kuerzel'] }}</span>
                         </span>
                         @if($da)<span class="text-xs text-muted">{{ __('vorhanden') }}</span>@endif
                     </label>
@@ -51,27 +75,53 @@
             </div>
         </section>
 
-        <section class="rounded-2xl border border-border bg-card p-6 grid md:grid-cols-2 gap-6">
-            @foreach(\App\Support\Einrichtung::FAECHER as $track => $liste)
-                <div>
-                    <h3 class="text-sm font-semibold text-text mb-3">{{ __('Fächer :track', ['track' => $track]) }}</h3>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach($liste as $kurz => $name)
-                            @php
-                                $schluessel = $track.':'.$kurz;
-                                $da = in_array($track.':'.$name, $faecherDa, true);
-                            @endphp
-                            <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
-                                'cursor-pointer' => ! $da, 'opacity-60' => $da])>
-                                <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
-                                       class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
-                                {{ $name }}
-                            </label>
-                        @endforeach
+        <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-6">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h3>
+                <a href="{{ route('admin.master-data.subjects.index') }}" class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Alle Fächer bearbeiten') }}</a>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                @foreach(['BMS', 'ABU', StammdatenVorlage::OHNE_TRACK] as $track)
+                    @continue(! $gruppen->has($track))
+                    <div>
+                        <h4 class="text-xs font-medium text-muted mb-3">{{ $gruppenTitel[$track] }}</h4>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($gruppen[$track] as $f)
+                                @php
+                                    $schluessel = StammdatenVorlage::fachSchluessel($f);
+                                    $da = in_array($track.':'.mb_strtolower($f['name']), $faecherDa, true);
+                                    $zusatz = array_filter([($f['skala'] ?? 'note') === 'stufe' ? __('Stufe') : null, ($f['zaehlt'] ?? true) ? null : __('zählt nicht')]);
+                                @endphp
+                                <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
+                                    'cursor-pointer' => ! $da, 'opacity-60' => $da])>
+                                    <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
+                                           class="w-4 h-4 rounded border-border text-accent focus:ring-ring">
+                                    {{ $f['name'] }}
+                                    @if($zusatz)<span class="text-xs text-muted">{{ implode(' · ', $zusatz) }}</span>@endif
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </section>
+
+        @if($baeume->isNotEmpty())
+            <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h3 class="text-sm font-semibold text-text">{{ __('Notenbäume') }}</h3>
+                    <a href="{{ route('admin.master-data.grade-trees.index') }}" class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Notenbäume bearbeiten') }}</a>
+                </div>
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="hidden" name="notenbaeume" value="0">
+                    <input type="checkbox" name="notenbaeume" value="1" @checked(old('notenbaeume', '1') === '1') class="mt-0.5 w-5 h-5 rounded border-border text-accent focus:ring-ring">
+                    <span class="min-w-0">
+                        <span class="block text-sm text-text">{{ __('Gewichtung bis zur Gesamtnote laden') }}</span>
+                        <span class="block text-xs text-muted">{{ $baeume->implode(' · ') }}</span>
+                    </span>
+                </label>
+            </section>
+        @endif
 
         @if($errors->any())
             <ul class="rounded-2xl border border-border bg-card px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
