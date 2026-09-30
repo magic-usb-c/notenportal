@@ -274,7 +274,7 @@
                                                 {{ __('Gesichert') }}
                                                 @break
                                             @case('unerreichbar')
-                                                {{ __('höchstens :note erreichbar', ['note' => $skala::format($l['maximum'], 1)]) }}
+                                                {{ __('Mit den offenen Prüfungen höchstens :note', ['note' => $skala::format($l['maximum'], 1)]) }}
                                                 @break
                                             @default
                                                 {{ $erreicht ? __('Erreicht') : __('Keine offenen Prüfungen geplant') }}

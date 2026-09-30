@@ -295,7 +295,7 @@
     "gestern": "yesterday",
     "gut": "good",
     "heute": "today",
-    "höchstens :note erreichbar": "at most :note achievable",
+    "Mit den offenen Prüfungen höchstens :note": "At most :note with the open exams",
     "iCal-Adresse": "iCal address",
     "in :anzahl Tagen": "in :anzahl days",
     "knapp": "borderline",
