@@ -1,12 +1,9 @@
 @use('App\Services\Stammdaten\StammdatenVorlage')
 <x-einrichtung schritt="professions" :stand="$stand" :titel="__('Lehrberufe & Fächer')">
     @php
-        $vorhandenKuerzel = $lehrberufe->pluck('kuerzel')->map(fn ($k) => strtoupper($k))->all();
-        $vorhandenNamen = $lehrberufe->pluck('name')->all();
         $katalog = collect($vorlage['lehrberufe'] ?? []);
         $gewaehlt = old('berufe', $lehrberufe->isEmpty() ? $katalog->where('vorauswahl', true)->pluck('kuerzel')->all() : []);
-        $weitere = $lehrberufe->reject(fn ($lb) => $katalog->contains(fn ($l) => $l['kuerzel'] === strtoupper($lb->kuerzel) || $l['name'] === $lb->name));
-        $faecherDa = $faecher->map(fn ($f) => ($f->track_typ ?? StammdatenVorlage::OHNE_TRACK).':'.mb_strtolower($f->name))->all();
+        $weitere = $lehrberufe->reject(fn ($lb) => in_array((int) $lb->lehrberuf_id, $vorhandeneBerufe, true));
         $faecherGewaehlt = old('faecher', collect($vorlage['faecher'] ?? [])->where('vorauswahl', true)->map(fn ($f) => StammdatenVorlage::fachSchluessel($f))->all());
         $gruppen = collect($vorlage['faecher'] ?? [])->groupBy(fn ($f) => $f['track'] ?? StammdatenVorlage::OHNE_TRACK);
         $gruppenTitel = ['BMS' => __('Berufsmaturität (BMS)'), 'ABU' => __('Allgemeinbildung (ABU)'), StammdatenVorlage::OHNE_TRACK => __('Berufsfachschule')];
@@ -41,7 +38,7 @@
             <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
             <div class="grid sm:grid-cols-2 gap-2">
                 @foreach($katalog as $l)
-                    @php $da = in_array($l['kuerzel'], $vorhandenKuerzel, true) || in_array($l['name'], $vorhandenNamen, true); @endphp
+                    @php $da = isset($vorhandeneBerufe[$l['kuerzel']]); @endphp
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
                         'cursor-pointer' => ! $da, 'opacity-60' => $da])>
                         <input type="checkbox" name="berufe[]" value="{{ $l['kuerzel'] }}" @checked($da || in_array($l['kuerzel'], $gewaehlt, true)) @disabled($da)
@@ -89,8 +86,12 @@
                             @foreach($gruppen[$track] as $f)
                                 @php
                                     $schluessel = StammdatenVorlage::fachSchluessel($f);
-                                    $da = in_array($track.':'.mb_strtolower($f['name']), $faecherDa, true);
-                                    $zusatz = array_filter([($f['skala'] ?? 'note') === 'stufe' ? __('Stufe') : null, ($f['zaehlt'] ?? true) ? null : __('zählt nicht')]);
+                                    $db = $vorhandeneFaecher[$schluessel] ?? null;
+                                    $da = $db !== null;
+                                    // Vorhandene Fächer zeigen, was in der Datenbank steht, nicht die Angabe der Vorlage
+                                    $skala = $da ? $db->skala : ($f['skala'] ?? 'note');
+                                    $zaehlt = $da ? (bool) $db->zaehlt : ($f['zaehlt'] ?? true);
+                                    $zusatz = array_filter([$skala === 'stufe' ? __('Stufe') : null, $zaehlt ? null : __('zählt nicht')]);
                                 @endphp
                                 <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
                                     'cursor-pointer' => ! $da, 'opacity-60' => $da])>

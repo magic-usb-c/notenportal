@@ -15,4 +15,7 @@ return [
     // Kalender-Abgleich: Abruf interner Adressen (SSRF-Schutz). Nur für Tests oder ein Schulnetz im eigenen Netz.
     'calendar_allow_private' => (bool) env('CALENDAR_ALLOW_PRIVATE', false),
 
+    // Ablage der Stammdaten-Vorlagen (Einrichtung, Schritt «Lehrberufe & Fächer»); Tests zeigen auf ein eigenes Verzeichnis.
+    'stammdaten_verzeichnis' => resource_path('vorlagen/stammdaten'),
+
 ];

@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use RuntimeException;
 
 /**
  * Geführte Ersteinrichtung. Jeder Schritt speichert für sich und bleibt später erreichbar;
@@ -163,28 +164,54 @@ class EinrichtungController extends Controller
 
     public function lehrberufe(Request $request, StammdatenVorlage $vorlagen): RedirectResponse
     {
-        $request->validate(['vorlage' => ['nullable', 'string', Rule::in(array_keys(StammdatenVorlage::mitgeliefert()))]]);
-        $vorlage = StammdatenVorlage::laden($request->input('vorlage'));
+        $verfuegbar = StammdatenVorlage::mitgeliefert();
+        if ($verfuegbar === []) {
+            throw ValidationException::withMessages(['vorlage' => __('Keine gültige Vorlage vorhanden.')]);
+        }
+        $request->validate(['vorlage' => ['nullable', 'string', Rule::in(array_keys($verfuegbar))]]);
+        $standard = array_key_first($verfuegbar);
+        $schluessel = $request->input('vorlage') ?? $standard;
+        $vorlage = $verfuegbar[$schluessel];
 
         $daten = $request->validate([
             'berufe' => ['array'],
             'berufe.*' => ['string', Rule::in(array_column($vorlage['lehrberufe'] ?? [], 'kuerzel'))],
             'eigene' => ['array'],
-            'eigene.*.kuerzel' => ['nullable', 'string', 'max:10', 'alpha_num', 'distinct', 'required_with:eigene.*.name'],
-            'eigene.*.name' => ['nullable', 'string', 'max:200', 'distinct', 'required_with:eigene.*.kuerzel'],
+            'eigene.*.kuerzel' => ['nullable', 'string', 'max:10', 'alpha_num', 'distinct:ignore_case', 'required_with:eigene.*.name'],
+            'eigene.*.name' => ['nullable', 'string', 'max:200', 'distinct:ignore_case', 'required_with:eigene.*.kuerzel'],
             'faecher' => ['array'],
             'faecher.*' => ['string', Rule::in(array_map([StammdatenVorlage::class, 'fachSchluessel'], $vorlage['faecher'] ?? []))],
             'notenbaeume' => ['sometimes', 'boolean'],
         ], [], self::attribute());
 
+        // Das Kürzel eines Lehrberufs der Vorlage gehört diesem; unter fremdem Namen würde er falsch angelegt
+        $vorlageBerufe = collect($vorlage['lehrberufe'] ?? [])->mapWithKeys(fn ($l) => [$l['kuerzel'] => mb_strtolower(trim($l['name']))]);
         $eigene = [];
-        foreach ($daten['eigene'] ?? [] as $e) {
-            if (filled($e['kuerzel'] ?? null)) {
-                $eigene[strtoupper(trim($e['kuerzel']))] = trim($e['name']);
+        $fehler = [];
+        foreach ($daten['eigene'] ?? [] as $i => $e) {
+            if (! filled($e['kuerzel'] ?? null)) {
+                continue;
             }
+            $kuerzel = mb_strtoupper(trim($e['kuerzel']));
+            $name = trim($e['name']);
+            if ($vorlageBerufe->has($kuerzel) && $vorlageBerufe[$kuerzel] !== mb_strtolower($name)) {
+                $fehler["eigene.$i.kuerzel"] = __('Kürzel gehört zu einem Lehrberuf der Vorlage');
+
+                continue;
+            }
+            $eigene[$kuerzel] = $name;
+        }
+        if ($fehler !== []) {
+            throw ValidationException::withMessages($fehler);
         }
 
-        $neu = $vorlagen->anwenden($vorlage, $daten['berufe'] ?? [], $eigene, $daten['faecher'] ?? [], $request->boolean('notenbaeume', true));
+        try {
+            $neu = $vorlagen->anwenden($vorlage, $daten['berufe'] ?? [], $eigene, $daten['faecher'] ?? [], $request->boolean('notenbaeume', true));
+        } catch (RuntimeException $e) {
+            // Nichts gespeichert: zurück in den Schritt, Eingaben bleiben
+            return redirect()->route('admin.setup', array_filter(['schritt' => 'professions', 'vorlage' => (string) $schluessel === (string) $standard ? null : $schluessel]))
+                ->withInput()->with('error', $e->getMessage());
+        }
 
         $berufeText = $neu['berufe'] === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neu['berufe']]);
         $faecherText = $neu['faecher'] === 1 ? __('1 Fach') : __(':anzahl Fächer', ['anzahl' => $neu['faecher']]);
@@ -402,16 +429,7 @@ class EinrichtungController extends Controller
                 'semester' => DB::table('semester')->orderBy('sortierung')->get(['bezeichnung', 'start_datum', 'end_datum']),
                 'vorschlag' => ['herbst' => ($schuljahr - 3).'-08-01', 'fruehling' => ($schuljahr - 2).'-02-01', 'bis' => $schuljahr + 4],
             ],
-            'professions' => [
-                'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['kuerzel', 'name']),
-                'faecher' => DB::table('faecher')->get(['name', 'track_typ']),
-                'vorlagen' => StammdatenVorlage::mitgeliefert(),
-                'vorlageSchluessel' => $vorlageSchluessel = (array_key_exists((string) $request->query('vorlage'), StammdatenVorlage::mitgeliefert())
-                    ? (string) $request->query('vorlage') : StammdatenVorlage::standard()),
-                'vorlage' => $vorlageSchluessel !== null ? StammdatenVorlage::laden($vorlageSchluessel) : ['lehrberufe' => [], 'faecher' => []],
-                'baumNamen' => collect(BaumVorlage::mitgeliefert())->map(fn ($v) => $v['name'])->all(),
-                'baeumeAktiv' => DB::table('notenbaeume')->where('aktiv', true)->exists(),
-            ],
+            'professions' => $this->berufeDaten($request),
             'modules' => $this->moduleDaten($request),
             'people' => [
                 'lehrberufe' => DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get(['lehrberuf_id', 'kuerzel', 'name']),
@@ -427,6 +445,26 @@ class EinrichtungController extends Controller
             'mail' => ['werte' => MailSettings::values(), 'testTo' => MailSettings::values()[MailSettings::REDIRECT_TO] ?: (string) $request->user()->email],
             default => [],
         };
+    }
+
+    /** @return array<string, mixed> */
+    private function berufeDaten(Request $request): array
+    {
+        $vorlagen = StammdatenVorlage::mitgeliefert();
+        $wahl = $request->query('vorlage');
+        $schluessel = is_string($wahl) && array_key_exists($wahl, $vorlagen) ? $wahl : array_key_first($vorlagen);
+        $vorlage = $schluessel !== null ? $vorlagen[$schluessel] : ['lehrberufe' => [], 'faecher' => []];
+
+        return [
+            'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['lehrberuf_id', 'kuerzel', 'name']),
+            'vorhandeneBerufe' => StammdatenVorlage::vorhandeneBerufe($vorlage),
+            'vorhandeneFaecher' => StammdatenVorlage::vorhandeneFaecher($vorlage),
+            'vorlagen' => $vorlagen,
+            'vorlageSchluessel' => $schluessel,
+            'vorlage' => $vorlage,
+            'baumNamen' => collect(BaumVorlage::mitgeliefert())->map(fn ($v) => $v['name'])->all(),
+            'baeumeAktiv' => DB::table('notenbaeume')->where('aktiv', true)->exists(),
+        ];
     }
 
     /** @return array<string, mixed> */
