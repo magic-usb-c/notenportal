@@ -94,7 +94,7 @@ class ProfileController extends Controller
             'ecken' => Darstellung::ECKEN_RUND,
             'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
             'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
-            'navigation' => Darstellung::NAVIGATION_OBEN,
+            'navigation' => Darstellung::NAVIGATION_SEITE,
             'startseite' => 'dashboard',
             'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
         ];

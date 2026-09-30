@@ -158,7 +158,7 @@ class DarstellungProfilTest extends TestCase
             'bewegung' => Darstellung::BEWEGUNG_NORMAL, 'dichte' => Darstellung::DICHTE_NORMAL,
             'diagramm' => Darstellung::DIAGRAMM_STANDARD, 'notenanzeige' => Darstellung::NOTENANZEIGE_1,
             'ecken' => Darstellung::ECKEN_RUND, 'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
-            'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN, 'navigation' => Darstellung::NAVIGATION_OBEN, 'startseite' => 'dashboard',
+            'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN, 'navigation' => Darstellung::NAVIGATION_SEITE, 'startseite' => 'dashboard',
             'karten_ausgeblendet' => ['ziele'],
         ], $user->praeferenzen);
     }
@@ -169,30 +169,32 @@ class DarstellungProfilTest extends TestCase
         $user = User::factory()->admin()->create();
         $profil = fn (array $mehr) => ['vorname' => $user->vorname, 'nachname' => $user->nachname, 'email' => $user->email, 'darstellung' => 'hell'] + $mehr;
 
-        // Standard: Navigation oben, Seitenleiste nur als ausgeblendetes Markup
-        $this->actingAs($user)->get(route('admin.dashboard'))->assertOk()->assertDontSee('data-navigation="seite"', false)
-            ->assertSee(__('Seitenleiste einblenden'));
-
-        $this->patch(route('profile.update'), $profil(['navigation' => 'seite']))->assertSessionHasNoErrors();
-        $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
-        $this->get(route('admin.master-data.subjects.index'))->assertOk()->assertSee('data-navigation="seite"', false)
+        // Standard: Seitenleiste (HIG «Sidebars»: nicht standardmässig ausblenden) mit beiden Schaltern
+        $this->actingAs($user)->get(route('admin.master-data.subjects.index'))->assertOk()
+            ->assertSee('data-navigation="seite"', false)->assertDontSee('data-navigation="oben"', false)
+            ->assertSee(__('Seitenleiste ausblenden'))->assertSee(__('Seitenleiste einblenden'))
             ->assertSeeInOrder([__('Stammdaten'), __('Fächer'), __('Betrieb'), __('Allgemein')]);
 
+        $this->patch(route('profile.update'), $profil(['navigation' => 'oben']))->assertSessionHasNoErrors();
+        $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
+        $this->get(route('admin.dashboard'))->assertOk()
+            ->assertSee('data-navigation="oben"', false)->assertDontSee('data-navigation="seite"', false);
+
         // Schalter in der Leiste (PATCH /profile/preferences) ändert nur diesen Schlüssel
-        $this->patchJson(route('profile.preferences'), ['navigation' => 'oben'])->assertOk();
+        $this->patchJson(route('profile.preferences'), ['navigation' => 'seite'])->assertOk();
         $user->refresh();
-        $this->assertSame('oben', $user->praeferenzen['navigation']);
+        $this->assertSame('seite', $user->praeferenzen['navigation']);
         $this->patchJson(route('profile.preferences'), ['navigation' => 'links'])->assertUnprocessable();
         $this->patch(route('profile.update'), $profil(['navigation' => 'unten']))->assertSessionHasErrors('navigation');
 
         // Profil speichern ohne das Feld lässt die Wahl stehen
-        $this->patchJson(route('profile.preferences'), ['navigation' => 'seite'])->assertOk();
+        $this->patchJson(route('profile.preferences'), ['navigation' => 'oben'])->assertOk();
         $this->patch(route('profile.update'), $profil([]))->assertSessionHasNoErrors();
-        $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
+        $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
 
         // Ein Schnellwechsel einer anderen Einstellung (Befehlspalette) lässt sie ebenfalls stehen
         $this->patchJson(route('profile.preferences'), ['dichte' => Darstellung::DICHTEN[0]])->assertOk();
-        $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
+        $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
     }
 
     #[Test]

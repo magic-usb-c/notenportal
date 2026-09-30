@@ -247,7 +247,6 @@
     "Handlungsziele und Handlungskompetenzen": "Performance objectives and competencies",
     "Hauptnavigation": "Main navigation",
     "Hell": "Light",
-    "Hell oder dunkel": "Light or dark",
     "Hinweis schliessen": "Close notice",
     "Hochgeladene Dokumente.": "Uploaded documents.",
     "Hoher Kontrast": "High contrast",
@@ -322,7 +321,6 @@
     "Meine Meldungen": "My feedback",
     "Meldung erfassen": "New report",
     "Meldung konnte nicht gesendet werden.": "Your message could not be sent.",
-    "Menü": "Menu",
     "Metadaten zu den hochgeladenen Dokumenten.": "Metadata for the uploaded documents.",
     "mindestens :note": "at least :note",
     "Mindestnote": "Minimum grade",
@@ -572,5 +570,7 @@
     "→ «Feedback melden» erreichst du uns jederzeit.": "→ “Send feedback” to reach us at any time.",
     "Der Abschluss wurde eben umgestellt. Bitte die Seite neu laden und nochmals speichern.": "The final grades were just rearranged. Please reload the page and save again.",
     "Dateien wählen": "Choose files",
-    "Seitennavigation": "Pagination"
+    "Seitennavigation": "Pagination",
+    "Zum Inhalt springen": "Skip to content",
+    "Zurück": "Back"
 }

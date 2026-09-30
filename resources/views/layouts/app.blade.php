@@ -11,7 +11,7 @@
       @if(($npDiagramm ?? 'standard') !== 'standard') data-diagramm="{{ $npDiagramm }}" @endif
       @if(($npEcken ?? 'rund') !== 'rund') data-ecken="{{ $npEcken }}" @endif
       @if(($npTransparenz ?? 'normal') !== 'normal') data-transparenz="{{ $npTransparenz }}" @endif
-      @if(($npNavigation ?? 'oben') !== 'oben') data-navigation="{{ $npNavigation }}" @endif>
+      data-navigation="{{ $npNavigation ?? 'seite' }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,7 +31,7 @@
                 document.documentElement.classList.toggle('dark', dunkel);
             })();
 
-            {{-- Meldung im vorhandenen Toast (unten rechts, siehe <x-toast> weiter unten),
+            {{-- Meldung im vorhandenen Toast (siehe <x-toast> weiter unten),
                  wenn ein optimistisch übernommener Schnellwechsel nicht gespeichert werden konnte. --}}
             function npFehlermeldung() {
                 window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Änderung konnte nicht gespeichert werden.')) } }));
@@ -71,7 +71,8 @@
                 const [, art, wert] = treffer;
                 const root = document.documentElement;
                 // Neutraler Wert je Attribut: ohne Präferenz wird kein data-* gesetzt (siehe layouts/app.blade.php Kopf).
-                const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard', navigation: 'oben' };
+                // data-navigation steht immer, denn Seitenleiste und Tableiste sind beide eigene Zustände.
+                const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard' };
 
                 const vorher = {
                     dunkel: root.classList.contains('dark'),
@@ -104,10 +105,12 @@
                     } catch (e) {}
                 } else if (art === 'theme') {
                     root.dataset.theme = wert;
-                } else if (art === 'schrift' || art === 'dichte' || art === 'diagramm' || art === 'navigation') {
+                } else if (art === 'navigation') {
+                    root.dataset.navigation = wert;
+                    window.dispatchEvent(new CustomEvent('np-navigation'));
+                } else if (art === 'schrift' || art === 'dichte' || art === 'diagramm') {
                     if (wert === neutral[art]) delete root.dataset[art];
                     else root.dataset[art] = wert;
-                    if (art === 'navigation') window.dispatchEvent(new CustomEvent('np-navigation'));
                 }
 
                 fetch(@js(route('profile.preferences')), {
@@ -143,17 +146,20 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
+        <a href="#inhalt" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[90] focus:inline-flex focus:h-9 focus:items-center focus:rounded-lg focus:px-3.5 focus:text-sm focus:font-medium focus:text-text glass-overlay">{{ __('Zum Inhalt springen') }}</a>
+
         {{-- Page-Progress-Bar (accent, 2px, oben) --}}
         <div id="np-progress"></div>
 
-        <div class="min-h-screen flex flex-col seite:lg:pl-60">
+        {{-- Fenster: schwebende Seitenleiste (fixed) und rechts davon die Hauptspalte mit Symbolleiste, grossem Titel und Inhalt --}}
+        <div class="np-hauptspalte">
             @include('layouts.navigation')
 
             @if(Route::has('system-notice.dismiss') && ($systemhinweis ?? null))
                 @include('layouts._systemhinweis')
             @endif
 
-            {{-- Unter dem schwebenden Feedback-Knopf lässt der Fuss Platz, damit er am Seitenende nichts verdeckt --}}
+            {{-- Der Tipp zeigt auf den schwebenden Feedback-Knopf; unten bleibt Platz, damit der Knopf am Seitenende nichts verdeckt --}}
             @php
                 $feedbackKnopfAktiv = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
             @endphp
@@ -161,22 +167,16 @@
                 @include('layouts._feedback-tipp')
             @endif
 
-            <!-- Page Heading -->
-            {{-- Seitenkopf im selben Container wie der Inhalt: eine bündige Achse --}}
+            {{-- Grosser Titel im selben Container wie der Inhalt: eine bündige Achse --}}
             @isset($header)
-                <header class="mx-auto w-full np-seite px-4 pt-6 sm:px-6 sm:pt-8 lg:px-8">
+                <div class="mx-auto w-full np-seite px-4 pt-2 sm:px-6 lg:px-8">
                     {{ $header }}
-                </header>
+                </div>
             @endisset
 
-            <!-- Page Content -->
-            <main class="flex-1">
+            <main id="inhalt" tabindex="-1" @class(['flex-1 focus:outline-none', $feedbackKnopfAktiv ? 'pb-20' : 'pb-10'])>
                 {{ $slot }}
             </main>
-
-            <footer @class(['pt-4 text-center text-xs text-muted', $feedbackKnopfAktiv ? 'pb-24' : 'pb-4'])>
-                Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
-            </footer>
         </div>
 
         {{-- Globale Flash-Messages (Toast unten rechts) --}}

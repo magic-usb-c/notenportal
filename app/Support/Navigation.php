@@ -8,24 +8,27 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Einzige Definition der Navigation je Rolle – Menü, Mobilmenü und Befehlspalette lesen von hier.
+ * Einzige Definition der Navigation je Rolle – Seitenleiste, Tableiste und Befehlspalette lesen von hier.
  */
 final class Navigation
 {
-    private const array ICONS = [
-        'start' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6',
-        'noten' => 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-        'kalender' => 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
-        'dokument' => 'M7 21h10a2 2 0 002-2V9.4a1 1 0 00-.3-.7l-5.4-5.4a1 1 0 00-.7-.3H7a2 2 0 00-2 2v14a2 2 0 002 2zm5-17v5a1 1 0 001 1h5',
-        'rechner' => 'M9 7h6m-6 4h6m-6 4h4m5 4H5a2 2 0 01-2-2V5a2 2 0 012-2h10l4 4v11a2 2 0 01-2 2z',
-        'personen' => 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-5.13a4 4 0 11-8 0 4 4 0 018 0zm6 3a3 3 0 11-6 0 3 3 0 016 0z',
-        'daten' => 'M4 7v10c0 2 3.6 3 8 3s8-1 8-3V7M4 7c0 2 3.6 3 8 3s8-1 8-3M4 7c0-2 3.6-3 8-3s8 1 8 3m0 5c0 2-3.6 3-8 3s-8-1-8-3',
-        'bericht' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
-        'feedback' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.4-4 8-9 8a9.9 9.9 0 01-4.3-.9L3 20l1.4-3.7A7.7 7.7 0 013 12c0-4.4 4-8 9-8s9 3.6 9 8z',
-        'abschluss' => 'M12 14l9-5-9-5-9 5 9 5zm0 0v6m-6.2-8.4V16c0 1.3 2.8 3 6.2 3s6.2-1.7 6.2-3v-4.4',
-        'plus' => 'M12 4v16m8-8H4',
-        'profil' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
-        'einstellungen' => 'M10.3 4.3c.4-1.8 3-1.8 3.4 0a1.7 1.7 0 002.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 001 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 00-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 00-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 00-2.6-1c-1.5.9-3.3-.9-2.4-2.4a1.7 1.7 0 00-1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 001-2.5c-.9-1.6.9-3.3 2.4-2.4 1 .6 2.3.1 2.6-1.1zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
+    /**
+     * Rolle des Eintrags (Tastenkürzel «g d», «g n» … suchen danach) => Symbol aus App\Support\Symbole.
+     * Symbole im Akzent zeigen in der Seitenleiste, wo man ist (HIG «Sidebars»).
+     */
+    private const array SYMBOLE = [
+        'start' => 'home',
+        'noten' => 'clipboard-document-check',
+        'kalender' => 'calendar-days',
+        'dokument' => 'document-text',
+        'rechner' => 'calculator',
+        'personen' => 'users',
+        'daten' => 'rectangle-stack',
+        'bericht' => 'chart-bar',
+        'feedback' => 'chat-bubble-left-ellipsis',
+        'abschluss' => 'academic-cap',
+        'stammdaten' => 'circle-stack',
+        'betrieb' => 'building-office-2',
     ];
 
     /** Gibt es für diesen Lernenden einen aktiven Notenbaum (Lehrberuf oder laufender Bildungsgang)? */
@@ -46,7 +49,7 @@ final class Navigation
     }
 
     /**
-     * @return list<array{label: string, url: string, aktiv: bool, icon: string, badge?: int, mehr?: bool, kinder?: list<array{label: string, url: string, aktiv: bool}>}>
+     * @return list<array{label: string, url: string, aktiv: bool, icon: string, symbol: string, badge?: int, mehr?: bool, kinder?: list<array{label: string, url: string, aktiv: bool, icon: string, symbol: string}>}>
      */
     public static function fuer(?User $user, int $feedbackOffen = 0): array
     {
@@ -60,24 +63,24 @@ final class Navigation
                 self::link(__('Lernende'), 'admin.learners.index', ['admin.learners.*', 'admin.grades.*'], 'personen'),
                 self::link(__('Prüfungstermine'), 'admin.exams.index', ['admin.exams.*'], 'kalender'),
                 self::gruppe(__('Personen'), 'personen', [
-                    self::link(__('Berufsbildner'), 'admin.trainers.index', ['admin.trainers.*']),
-                    self::link(__('Benutzerkonten'), 'admin.users.index', ['admin.users.*']),
+                    self::link(__('Berufsbildner'), 'admin.trainers.index', ['admin.trainers.*'], symbol: 'identification'),
+                    self::link(__('Benutzerkonten'), 'admin.users.index', ['admin.users.*'], symbol: 'user-circle'),
                 ]),
-                self::gruppe(__('Stammdaten'), 'daten', [
-                    self::link(__('Lehrberufe'), 'admin.master-data.professions.index', ['admin.master-data.professions.*']),
-                    self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*']),
-                    self::link(__('Fächer'), 'admin.master-data.subjects.index', ['admin.master-data.subjects.*']),
-                    self::link(__('Kategorien'), 'admin.master-data.categories.index', ['admin.master-data.categories.*']),
-                    self::link(__('Notenbäume'), 'admin.master-data.grade-trees.index', ['admin.master-data.grade-trees.*']),
-                    self::link(__('Semester'), 'admin.master-data.semesters.index', ['admin.master-data.semesters.*']),
+                self::gruppe(__('Stammdaten'), 'stammdaten', [
+                    self::link(__('Lehrberufe'), 'admin.master-data.professions.index', ['admin.master-data.professions.*'], symbol: 'briefcase'),
+                    self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*'], symbol: 'rectangle-stack'),
+                    self::link(__('Fächer'), 'admin.master-data.subjects.index', ['admin.master-data.subjects.*'], symbol: 'book-open'),
+                    self::link(__('Kategorien'), 'admin.master-data.categories.index', ['admin.master-data.categories.*'], symbol: 'tag'),
+                    self::link(__('Notenbäume'), 'admin.master-data.grade-trees.index', ['admin.master-data.grade-trees.*'], symbol: 'queue-list'),
+                    self::link(__('Semester'), 'admin.master-data.semesters.index', ['admin.master-data.semesters.*'], symbol: 'calendar'),
                 ]),
                 // Betrieb und Protokolle getrennt von den Stammdaten: andere Aufgabe, anderer Rhythmus
-                self::gruppe(__('Betrieb'), 'einstellungen', [
-                    self::link(__('Allgemein'), 'admin.operations.edit', ['admin.operations.*']),
-                    self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*']),
-                    self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*']),
-                    self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*']),
-                    self::link(__('Aktivitätsprotokoll'), 'admin.activity.index', ['admin.activity.*']),
+                self::gruppe(__('Betrieb'), 'betrieb', [
+                    self::link(__('Allgemein'), 'admin.operations.edit', ['admin.operations.*'], symbol: 'building-office-2'),
+                    self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*'], symbol: 'wrench-screwdriver'),
+                    self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*'], symbol: 'bell'),
+                    self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*'], symbol: 'envelope'),
+                    self::link(__('Aktivitätsprotokoll'), 'admin.activity.index', ['admin.activity.*'], symbol: 'clock'),
                 ]),
                 // «mehr»: in der Leiste oben unter 1536 px im Menü «Mehr» (HIG: Überlauf statt Umbruch)
                 self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht') + ['mehr' => true],
@@ -180,18 +183,13 @@ final class Navigation
         return $befehle;
     }
 
-    public static function icon(string $name): string
+    private static function link(string $label, string $route, array $muster, string $icon = 'start', ?string $symbol = null): array
     {
-        return self::ICONS[$name] ?? self::ICONS['start'];
-    }
-
-    private static function link(string $label, string $route, array $muster, string $icon = 'start'): array
-    {
-        return ['label' => $label, 'url' => route($route), 'aktiv' => request()->routeIs(...$muster), 'icon' => $icon];
+        return ['label' => $label, 'url' => route($route), 'aktiv' => request()->routeIs(...$muster), 'icon' => $icon, 'symbol' => $symbol ?? self::SYMBOLE[$icon]];
     }
 
     private static function gruppe(string $label, string $icon, array $kinder): array
     {
-        return ['label' => $label, 'url' => $kinder[0]['url'], 'aktiv' => collect($kinder)->contains('aktiv', true), 'icon' => $icon, 'kinder' => $kinder];
+        return ['label' => $label, 'url' => $kinder[0]['url'], 'aktiv' => collect($kinder)->contains('aktiv', true), 'icon' => $icon, 'symbol' => self::SYMBOLE[$icon], 'kinder' => $kinder];
     }
 }

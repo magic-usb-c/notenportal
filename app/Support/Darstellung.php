@@ -87,7 +87,7 @@ final class Darstellung
 
     public const array TASTENKUERZEL = [self::TASTENKUERZEL_AN, self::TASTENKUERZEL_AUS];
 
-    /** Hauptnavigation oben (Leiste) oder als Seitenleiste ab 1024 px; darunter immer das Menü. */
+    /** Hauptnavigation als Seitenleiste (Standard, HIG «Sidebars») oder als Tableiste oben; unter 1024 px ist die Seitenleiste eine Schublade. */
     public const string NAVIGATION_OBEN = 'oben';
 
     public const string NAVIGATION_SEITE = 'seite';
@@ -222,9 +222,9 @@ final class Darstellung
             $tastenkuerzel = self::TASTENKUERZEL_AN;
         }
 
-        $navigation = $rohdaten['navigation'] ?? self::NAVIGATION_OBEN;
+        $navigation = $rohdaten['navigation'] ?? self::NAVIGATION_SEITE;
         if (! in_array($navigation, self::NAVIGATIONEN, true)) {
-            $navigation = self::NAVIGATION_OBEN;
+            $navigation = self::NAVIGATION_SEITE;
         }
 
         // «dashboard» (Standard) ist für jede Rolle gültig – DashboardKarten::rolleFuer (Rollen-

@@ -11,9 +11,9 @@ use Tests\TestCase;
 
 /**
  * Schlankes Benutzermenü (Rückmeldung #4 des Product Owners): je Rolle genau 3 Einträge -
- * Einstellungen, Feedback, Abmelden - im Desktop-Dropdown (#np-benutzermenue) und im Mobilmenü
- * (#np-benutzermenue-mobil). Die separaten Hell/Dunkel- und Feedback-Knöpfe in der Werkzeugleiste
- * gehören nicht zum Benutzermenü und zählen hier nicht mit.
+ * Einstellungen, Feedback, Abmelden - im Kontomenü der Symbolleiste (#np-benutzermenue). Ein eigenes
+ * Mobilmenü gibt es nicht mehr: unter 1024 px öffnet die Seitenleiste als Schublade, das Kontomenü
+ * bleibt dasselbe. Der Darstellungs-Umschalter darüber gehört nicht zum Benutzermenü und zählt nicht mit.
  */
 class BenutzermenueTest extends TestCase
 {
@@ -35,7 +35,9 @@ class BenutzermenueTest extends TestCase
         // route('dashboard') leitet auf das Rollen-Dashboard um (302); Inhalt erst nach dem Redirect.
         $html = $this->actingAs($benutzer)->followingRedirects()->get(route('dashboard'))->getContent();
 
-        foreach (['np-benutzermenue', 'np-benutzermenue-mobil'] as $containerId) {
+        $this->assertStringNotContainsString('id="np-benutzermenue-mobil"', $html);
+
+        foreach (['np-benutzermenue'] as $containerId) {
             $container = $this->container($html, $containerId);
 
             $this->assertStringContainsString(__('Einstellungen'), $container, "Container #{$containerId} ohne «Einstellungen».");

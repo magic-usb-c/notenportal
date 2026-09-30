@@ -9,14 +9,12 @@
          können den Dialog öffnen, auch wenn der schwebende Knopf selbst ausgeschaltet ist. Nur der
          sichtbare Auslöser (der Knopf) hängt am Schalter. --}}
     <div x-data="feedbackDialog({ url: @js(route('feedback.store')), routeName: @js(request()->route()?->getName()), pfad: @js(request()->getRequestUri()) })"
-         class="fixed bottom-20 right-4 z-40 print:hidden">
+         class="fixed bottom-5 right-5 z-40 print:hidden">
         @if($feedbackKnopfAktiv)
             <button type="button" @click="open ? schliessen() : $dispatch('open-modal', 'feedback')" :aria-expanded="open" aria-haspopup="dialog"
                     aria-label="{{ __('Feedback / Fehler melden') }}"
-                    class="group peer inline-flex h-12 max-w-12 items-center gap-2 overflow-hidden rounded-full bg-accent pl-3.5 pr-3.5 text-accent-contrast shadow-e2 transition-[max-width] duration-200 ease-out hover:max-w-xs focus-visible:max-w-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50">
-                <svg class="size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+                    class="group peer np-glas inline-flex h-11 max-w-11 items-center gap-2 overflow-hidden rounded-full pl-3 pr-3 text-text transition-[max-width] duration-200 ease-out hover:max-w-xs focus-visible:max-w-xs">
+                <x-symbol name="chat-bubble-left-ellipsis" class="size-5 text-accent-text" />
                 <span class="whitespace-nowrap text-sm font-medium opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('Feedback / Fehler melden') }}</span>
             </button>
         @endif
@@ -29,12 +27,11 @@
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0 translate-y-2"
                  role="dialog" aria-modal="false" aria-labelledby="feedback-panel-titel"
-                 class="absolute bottom-14 right-0 max-h-[75vh] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border-strong/30 bg-card p-5 text-text shadow-e3">
+                 class="absolute bottom-13 right-0 max-h-[75vh] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-5 text-text shadow-e3">
                 <div class="mb-1 flex items-center justify-between">
                     <h2 id="feedback-panel-titel" class="text-lg font-semibold text-text">{{ __('Feedback melden') }}</h2>
-                    <button type="button" @click="schliessen()" aria-label="{{ __('Schliessen') }}"
-                            class="-mr-2 inline-flex size-9 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-text">
-                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="schliessen()" aria-label="{{ __('Schliessen') }}" class="np-knopf np-knopf-symbol -mr-1.5">
+                        <x-symbol name="x-mark" strich="2" />
                     </button>
                 </div>
                 <p class="mb-4 text-sm text-muted">{{ __('Fehler, Ideen, Fragen oder sonst etwas – alles ist willkommen.') }}</p>

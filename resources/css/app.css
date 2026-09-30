@@ -9,6 +9,7 @@
 /* Klassen, die nur per Alpine :class gesetzt werden */
 @source inline('rotate-90 rotate-180');
 @source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-6 fill-muted/30');
+@source inline('bg-accent text-accent-contrast text-accent-contrast/80 text-text text-muted');
 
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -148,7 +149,7 @@
     text-rendering: optimizeLegibility;
     -webkit-text-size-adjust: 100%;
     /* Sprungziele (#anker, ?_open=, scrollIntoView) nicht unter der Symbolleiste */
-    scroll-padding-top: 5rem;
+    scroll-padding-top: calc(var(--np-symbolleiste-hoehe) + 1rem);
     /* Dezente Rollbalken wie unter macOS; die Farbe folgt dem Theme */
     scrollbar-width: thin;
     scrollbar-color: rgb(var(--text) / 0.22) transparent;
@@ -207,7 +208,7 @@
 
   :target,
   details[data-note-id] {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 0.5rem; /* addiert sich zu scroll-padding-top von html */
   }
 
   button:not(:disabled),
@@ -222,9 +223,10 @@
 /* ==========================================================================
    Seitenwechsel. Dokumentübergreifende View Transitions: die alte Seite bleibt
    stehen, bis die neue gezeichnet ist, und blendet dann weich über – kein weisser
-   Blitz, keine springende Leiste. Seitenleiste und Tableiste tragen eigene Namen
-   und bleiben dadurch ruhig stehen, nur der Inhalt wechselt. Browser ohne
-   Unterstützung laden wie bisher.
+   Blitz, keine springende Leiste. Seitenleiste und Symbolleiste sind auf beiden
+   Seiten deckungsgleich und bleiben dadurch stehen; eigene Namen bekommen sie
+   nicht, denn ein view-transition-name macht sein Element zur Backdrop Root und
+   nähme dem Glas darin den Hintergrund. Browser ohne Unterstützung laden wie bisher.
    ========================================================================== */
 
 @view-transition {
@@ -373,28 +375,249 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 }
 
 @utility np-glas-gruppe {
-  /* Gruppe von Symbolknöpfen in der Symbolleiste: eine Glaskapsel (HIG: Elemente in Gruppen) */
+  /* Glaskapsel der Symbolleiste (Suchfeld, Tableiste). Das Glas liegt auf ::before und nicht auf dem
+     Element selbst: ein backdrop-filter macht sein Element zur «Backdrop Root» (Filter Effects 2) – ein
+     Menü darin sähe dann nur noch die Kapsel statt der Seite dahinter und verlöre sein eigenes Glas. */
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   height: 2.25rem;
   padding-inline: 0.1875rem;
   border-radius: 9999px;
-  background-color: rgb(var(--card-rgb) / 0.8);
-  backdrop-filter: blur(24px) saturate(1.8);
-  box-shadow:
-    inset 0 0.5px 0 rgb(255 255 255 / 0.6),
-    0 0 0 0.5px rgb(0 0 0 / 0.08),
-    0 2px 10px -2px rgb(0 0 0 / 0.1);
-  @variant dark {
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background-color: rgb(var(--card-rgb) / 0.78);
+    backdrop-filter: blur(24px) saturate(1.8);
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.6),
+      0 0 0 0.5px rgb(0 0 0 / 0.08),
+      0 2px 12px -2px rgb(0 0 0 / 0.1);
+  }
+  :where(.dark) &::before {
+    background-color: rgb(var(--card-rgb) / 0.74);
     box-shadow:
       inset 0 0.5px 0 rgb(255 255 255 / 0.12),
       0 0 0 0.5px rgb(0 0 0 / 0.5),
-      0 2px 10px -2px rgb(0 0 0 / 0.4);
+      0 2px 12px -2px rgb(0 0 0 / 0.4);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    &::before { background-color: rgb(var(--card)); }
   }
   @media (prefers-reduced-transparency: reduce) {
-    background-color: rgb(var(--card));
-    backdrop-filter: none;
+    &::before {
+      background-color: rgb(var(--card));
+      backdrop-filter: none;
+    }
   }
+}
+
+/* ==========================================================================
+   Fensterstruktur (HIG «Sidebars», «Toolbars», «Tab bars», «Layout»).
+   Links schwebt die Seitenleiste als Glasfläche mit Abstand zum Fensterrand;
+   rechts davon die Hauptspalte mit durchsichtiger Symbolleiste (Scroll Edge,
+   siehe oben), grossem Titel im Inhalt und kleinem Titel in der Leiste, sobald
+   der grosse unter ihr verschwindet. Navigation «oben» blendet die Seitenleiste
+   aus und zeigt stattdessen eine Tableiste als Glaskapsel in der Mitte der
+   Symbolleiste – das «sidebarAdaptable»-Muster aus iPadOS. Unter 1024 px ist
+   die Seitenleiste eine Schublade, die der Knopf in der Symbolleiste öffnet.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --np-leiste-breite: 16.25rem;
+    --np-leiste-rand: 0.5rem;
+    --np-symbolleiste-hoehe: 3.5rem;
+  }
+}
+
+@utility np-seitenleiste {
+  position: fixed;
+  z-index: 30;
+  top: var(--np-leiste-rand);
+  bottom: var(--np-leiste-rand);
+  left: var(--np-leiste-rand);
+  width: var(--np-leiste-breite);
+  max-width: calc(100vw - 3rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  /* Schublade (zu): ausserhalb des Fensters und unsichtbar für Tastatur und Screenreader */
+  translate: calc(-100% - 2 * var(--np-leiste-rand)) 0;
+  visibility: hidden;
+  transition:
+    translate 260ms var(--ease-out),
+    visibility 0s linear 260ms;
+  :where(html[data-schublade]) & {
+    z-index: 60;
+    translate: 0 0;
+    visibility: visible;
+    transition: translate 260ms var(--ease-out);
+  }
+  @media (width >= 64rem) {
+    :where(html[data-navigation='seite']) & {
+      translate: 0 0;
+      visibility: visible;
+      transition: none;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+@utility np-schublade-scrim {
+  /* hinter der Schublade (unter 1024 px): ein Tipp daneben schliesst sie */
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 200ms var(--ease-out),
+    visibility 0s linear 200ms;
+  :where(html[data-schublade]) & {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 200ms var(--ease-out);
+  }
+  @media print {
+    display: none;
+  }
+}
+
+@utility np-hauptspalte {
+  display: flex;
+  min-height: 100dvh;
+  min-width: 0;
+  flex-direction: column;
+  @media (width >= 64rem) {
+    :where(html[data-navigation='seite']) & {
+      padding-left: calc(var(--np-leiste-breite) + var(--np-leiste-rand));
+    }
+  }
+  @media print {
+    padding-left: 0 !important;
+  }
+}
+
+@utility np-leistenzeile {
+  /* Zeile der Seitenleiste wie in einer macOS-Quellliste: Symbol im Akzent, Auswahl als ruhige Fläche,
+     die Schriftstärke bleibt – sonst verschöbe sich der Text beim Wechsel. */
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: rgb(var(--text));
+  transition: background-color 100ms var(--ease-out);
+  & > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    color: rgb(var(--accent-text));
+  }
+  &:hover {
+    background-color: rgb(var(--text) / 0.05);
+  }
+  &:active {
+    background-color: rgb(var(--text) / 0.1);
+  }
+  &[aria-current='page'] {
+    background-color: rgb(var(--text) / 0.085);
+  }
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+@utility np-leistenabschnitt {
+  /* Abschnittstitel der Seitenleiste (Disclosure): klein, halbfett, sekundär; der Pfeil erscheint beim Überfahren */
+  display: flex;
+  width: 100%;
+  align-items: center;
+  min-height: 1.75rem;
+  padding-inline: 0.625rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  color: rgb(var(--muted));
+  & > svg {
+    margin-left: auto;
+    width: 0.875rem;
+    height: 0.875rem;
+    opacity: 0;
+    transition:
+      opacity 120ms var(--ease-out),
+      rotate 160ms var(--ease-out);
+  }
+  &[aria-expanded='true'] > svg {
+    rotate: 90deg;
+  }
+  &:hover > svg,
+  &:focus-visible > svg,
+  &[aria-expanded='false'] > svg {
+    opacity: 1;
+  }
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+@utility np-tab {
+  /* Eintrag der Tableiste (Navigation «oben») */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 1.875rem;
+  padding-inline: 0.875rem;
+  border-radius: 9999px;
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgb(var(--text));
+  transition:
+    background-color 120ms var(--ease-out),
+    color 120ms var(--ease-out);
+  & > svg {
+    width: 0.75rem;
+    height: 0.75rem;
+    color: rgb(var(--muted));
+  }
+  &:hover {
+    background-color: rgb(var(--text) / 0.06);
+  }
+  &[aria-current='page'],
+  &[data-aktiv] {
+    color: rgb(var(--accent-text));
+    background-color: rgb(var(--text) / 0.08);
+  }
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+@utility np-monogramm {
+  /* Kontobild ohne Foto: Initialen auf grauem Verlauf wie in den Apple-Apps */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgb(var(--card));
+  background-image: linear-gradient(to bottom, rgb(var(--text) / 0.5), rgb(var(--text) / 0.66));
 }
 
 @utility np-scroll-edge {
@@ -953,7 +1176,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 /* Persönlich reduzierte Transparenz (Profil «Darstellung»): wie prefers-reduced-transparency,
    aber per Schalter – deckende Fläche statt Glas. */
 @layer utilities {
-  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas, .np-glas-gruppe) {
+  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas, .np-glas-gruppe::before) {
     background-color: rgb(var(--card));
     backdrop-filter: none;
   }

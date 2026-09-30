@@ -215,32 +215,58 @@ export function registriereSeitenleiste(Alpine) {
         },
     }));
 
-    // Priority+ der Leiste: was nicht passt, wandert von hinten in «Mehr». Löst die feste Aufteilung ab
-    // (Blade: max-2xl:hidden / 2xl:hidden), die nur für die Grundschrift stimmte.
+    // Priority+ der Tableiste (Navigation «oben»): was nicht passt, wandert von hinten in «Mehr». Die Tableiste steht
+    // in der Mitte der Symbolleiste; vorne und hinten sind gleich breit (flex-1 basis-0), damit sie mittig bleibt. Ihr
+    // Platz ist deshalb die Zeile minus zweimal die breitere Seite – der kleine Titel vorne kürzt sich und zählt nicht.
     Alpine.data('npLeistenUeberlauf', () => ({
         init() {
             this.eintraege = [...this.$root.querySelectorAll(':scope > [data-ueberlauf]')];
             this.mehr = this.$root.querySelector(':scope > [data-mehr-menue]');
-            if (!this.mehr) return;
-            this.eintraege.forEach((el) => el.classList.remove('max-2xl:hidden'));
-            this.mehr.classList.remove('2xl:hidden');
-            const neu = () => requestAnimationFrame(() => this.einpassen());
-            new ResizeObserver(neu).observe(this.$root);
-            // Schrift aus dem Profil (auch die Vorschau) ändert die Breite der Einträge, nicht die der Leiste
-            new MutationObserver(neu).observe(document.documentElement, { attributes: true, attributeFilter: ['data-schrift', 'data-schriftart', 'lang'] });
+            this.zeile = this.$root.closest('[data-symbolleiste-zeile]');
+            if (!this.mehr || !this.zeile) return;
+            let geplant = false;
+            const neu = () => {
+                if (geplant) return;
+                geplant = true;
+                requestAnimationFrame(() => {
+                    geplant = false;
+                    this.einpassen();
+                });
+            };
+            const beobachter = new ResizeObserver(neu);
+            beobachter.observe(this.zeile);
+            this.zeile.querySelectorAll('[data-symbolleiste-anfang], [data-symbolleiste-ende]').forEach((el) => beobachter.observe(el));
+            // Schrift aus dem Profil (auch die Vorschau) ändert die Breite der Einträge, nicht die der Zeile
+            new MutationObserver(neu).observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['data-schrift', 'data-schriftart', 'data-navigation', 'lang'],
+            });
             document.fonts?.ready.then(neu);
             this.einpassen();
         },
         einpassen() {
-            const platz = this.$root.clientWidth;
-            if (platz === 0) return; // Seitenleiste aktiv oder unter lg
-            const belegt = () => [...this.$root.children].reduce((summe, el) => summe + (el.hidden ? 0 : el.getBoundingClientRect().width), 0);
+            if (this.$root.offsetParent === null) return; // Seitenleiste gewählt oder unter 1024 px
+            const px = (wert) => parseFloat(wert) || 0;
+            const inhalt = (el, ohne = null) => {
+                const kinder = [...el.children].filter((k) => !k.hidden && (!ohne || !k.matches(ohne)) && k.getClientRects().length > 0);
+                const luecke = px(getComputedStyle(el).columnGap);
+                return kinder.reduce((summe, k) => summe + k.getBoundingClientRect().width, 0) + luecke * Math.max(0, kinder.length - 1);
+            };
+            const stil = getComputedStyle(this.zeile);
+            const anfang = this.zeile.querySelector('[data-symbolleiste-anfang]');
+            const ende = this.zeile.querySelector('[data-symbolleiste-ende]');
+            const seite = Math.max(anfang ? inhalt(anfang, '[data-kuerzbar]') : 0, ende ? inhalt(ende) : 0);
+            const platz = this.zeile.clientWidth - px(stil.paddingLeft) - px(stil.paddingRight) - 2 * seite - 2 * px(stil.columnGap);
+            const kapsel = getComputedStyle(this.$root);
+            const belegt = () => inhalt(this.$root) + px(kapsel.paddingLeft) + px(kapsel.paddingRight);
+
             this.eintraege.forEach((el) => { el.hidden = false; });
             this.mehr.hidden = true;
             if (belegt() > platz) {
                 this.mehr.hidden = false;
                 for (let i = this.eintraege.length - 1; i >= 0 && belegt() > platz; i--) this.eintraege[i].hidden = true;
             }
+
             let badge = 0;
             let aktiv = false;
             for (const el of this.eintraege) {
@@ -251,26 +277,96 @@ export function registriereSeitenleiste(Alpine) {
                     aktiv ||= 'aktiv' in el.dataset;
                 }
             }
-            const knopf = this.mehr.querySelector('button');
-            const an = knopf.dataset.aktivKlassen.split(' ');
-            const aus = knopf.dataset.inaktivKlassen.split(' ');
-            knopf.classList.remove(...(aktiv ? aus : an));
-            knopf.classList.add(...(aktiv ? an : aus));
+            this.mehr.querySelector('button').toggleAttribute('data-aktiv', aktiv);
             const zahl = this.mehr.querySelector('[data-mehr-badge]');
             zahl.textContent = String(badge);
             zahl.hidden = badge === 0;
         },
     }));
 
-    Alpine.data('npSeitenleisteSchalter', () => ({
-        seite: document.documentElement.dataset.navigation === 'seite',
+    // Seitenleiste. Ab 1024 px blendet «ausblenden» sie ganz aus und zeigt die Tableiste (Präferenz «navigation»,
+    // wie das «sidebarAdaptable»-Muster); darunter ist sie eine Schublade über dem Inhalt, die den Fokus hält,
+    // bis Escape, ein Tipp daneben oder der Knopf sie schliesst.
+    Alpine.data('npSeitenleiste', () => ({
+        ausloeser: null,
         init() {
-            window.addEventListener('np-navigation', () => {
-                this.seite = document.documentElement.dataset.navigation === 'seite';
+            this.breit = window.matchMedia('(min-width: 64rem)');
+            window.addEventListener('np-seitenleiste-zeigen', () => this.zeigen());
+            window.addEventListener('np-schublade-zu', () => this.zu());
+            this.breit.addEventListener('change', () => this.zu(false));
+            // Aus dem Back/Forward-Cache zurück: nicht mit offener Schublade weitermachen
+            window.addEventListener('pageshow', () => this.zu(false));
+            this.$root.addEventListener('keydown', (e) => this.fokusHalten(e));
+        },
+        offen() {
+            return document.documentElement.hasAttribute('data-schublade');
+        },
+        zeigen() {
+            if (this.breit.matches) {
+                window.npBefehl('#navigation:seite');
+                return;
+            }
+            this.ausloeser = document.activeElement;
+            document.documentElement.setAttribute('data-schublade', '');
+            this.$nextTick(() => {
+                const ziel = this.$root.querySelector('nav [aria-current="page"]') ?? this.$root.querySelector('nav a');
+                ziel?.focus({ preventScroll: true });
             });
         },
-        umschalten() {
-            window.npBefehl('#navigation:' + (this.seite ? 'oben' : 'seite'));
+        ausblenden() {
+            if (this.offen()) {
+                this.zu();
+                return;
+            }
+            window.npBefehl('#navigation:oben');
+            // Der Knopf verschwindet mit der Leiste: der Fokus geht an den Knopf, der sie wieder einblendet
+            requestAnimationFrame(() => document.querySelector('[data-seitenleiste-zeigen]')?.focus({ preventScroll: true }));
+        },
+        zu(fokus = true) {
+            if (!this.offen()) return;
+            document.documentElement.removeAttribute('data-schublade');
+            if (fokus) this.ausloeser?.focus?.({ preventScroll: true });
+            this.ausloeser = null;
+        },
+        fokusHalten(e) {
+            if (e.key !== 'Tab' || !this.offen()) return;
+            const ziele = [...this.$root.querySelectorAll('a[href], button:not([disabled])')].filter((el) => el.getClientRects().length > 0);
+            if (!ziele.length) return;
+            const erstes = ziele[0];
+            const letztes = ziele[ziele.length - 1];
+            if (e.shiftKey && document.activeElement === erstes) {
+                e.preventDefault();
+                letztes.focus();
+            } else if (!e.shiftKey && document.activeElement === letztes) {
+                e.preventDefault();
+                erstes.focus();
+            }
+        },
+    }));
+
+    // Symbolleiste: der weiche Rand (Scroll Edge) erscheint, sobald Inhalt unter der Leiste liegt, und der kleine
+    // Titel, sobald der grosse Titel der Seite unter ihr verschwunden ist (HIG «Toolbars»: large title).
+    Alpine.data('npSymbolleiste', () => ({
+        titelKlein: false,
+        init() {
+            let geplant = false;
+            const kante = () => {
+                geplant = false;
+                this.$root.style.setProperty('--np-kante', Math.min(1, Math.max(0, window.scrollY / 16)).toFixed(3));
+            };
+            window.addEventListener('scroll', () => {
+                if (geplant) return;
+                geplant = true;
+                requestAnimationFrame(kante);
+            }, { passive: true });
+            kante();
+
+            const titel = document.querySelector('[data-np-titel]');
+            if (!titel || !('IntersectionObserver' in window)) return;
+            const hoehe = Math.round(this.$root.getBoundingClientRect().height);
+            new IntersectionObserver(([eintrag]) => {
+                this.titelKlein = !eintrag.isIntersecting && eintrag.boundingClientRect.top < hoehe;
+            }, { rootMargin: `-${hoehe}px 0px 0px 0px` }).observe(titel);
         },
     }));
 }

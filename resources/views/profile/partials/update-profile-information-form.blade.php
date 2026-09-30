@@ -123,8 +123,8 @@
                     $altTransparenz = in_array($altTransparenz, \App\Support\Darstellung::TRANSPARENZEN, true) ? $altTransparenz : ($praeferenzen['transparenz'] ?? 'normal');
                     $altTastenkuerzel = old('tastenkuerzel', $praeferenzen['tastenkuerzel'] ?? 'an');
                     $altTastenkuerzel = in_array($altTastenkuerzel, \App\Support\Darstellung::TASTENKUERZEL, true) ? $altTastenkuerzel : ($praeferenzen['tastenkuerzel'] ?? 'an');
-                    $altNavigation = old('navigation', $praeferenzen['navigation'] ?? 'oben');
-                    $altNavigation = in_array($altNavigation, \App\Support\Darstellung::NAVIGATIONEN, true) ? $altNavigation : ($praeferenzen['navigation'] ?? 'oben');
+                    $altNavigation = old('navigation', $praeferenzen['navigation'] ?? 'seite');
+                    $altNavigation = in_array($altNavigation, \App\Support\Darstellung::NAVIGATIONEN, true) ? $altNavigation : ($praeferenzen['navigation'] ?? 'seite');
                     $startseitenOptionen = \App\Support\Darstellung::STARTSEITEN[$dashboardRolle ?? null] ?? null;
                     $altStartseite = old('startseite', $praeferenzen['startseite'] ?? 'dashboard');
                     $altStartseite = $startseitenOptionen && array_key_exists($altStartseite, $startseitenOptionen) ? $altStartseite : ($praeferenzen['startseite'] ?? 'dashboard');
@@ -344,11 +344,11 @@
                         {{ __('Bewegungen reduzieren') }}
                     </label>
 
-                    {{-- Navigation: Leiste oben oder Seitenleiste (ab 1024 px; darunter immer das Menü) --}}
+                    {{-- Navigation: Seitenleiste (Standard) oder Tableiste oben; unter 1024 px ist die Seitenleiste eine Schublade --}}
                     <fieldset>
                         <legend class="text-sm font-medium text-text">{{ __('Navigation') }}</legend>
                         <div class="mt-2 grid grid-cols-2 gap-2">
-                            @foreach(['oben' => __('Oben'), 'seite' => __('Seitenleiste')] as $wert => $label)
+                            @foreach(['seite' => __('Seitenleiste'), 'oben' => __('Oben')] as $wert => $label)
                                 <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
                                               has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
                                     <input type="radio" name="navigation" value="{{ $wert }}" class="sr-only" @checked($altNavigation === $wert)>
