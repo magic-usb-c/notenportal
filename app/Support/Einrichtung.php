@@ -98,7 +98,7 @@ final class Einrichtung
     }
 
     /**
-     * Eine Zeile pro Modul: «431 Aufträge durchführen», «ÜK-106: Datenbanken abfragen», «M319 – Applikationen entwerfen».
+     * Eine Zeile pro Modul: «901 Beispielmodul Planung», «ÜK-951: Beispielkurs Grundlagen», «M902 – Beispielmodul Auswertung».
      *
      * @return array{module: list<array{nummer: string, titel: string}>, fehler: list<string>}
      */

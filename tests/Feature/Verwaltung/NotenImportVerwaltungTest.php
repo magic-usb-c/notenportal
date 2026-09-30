@@ -26,7 +26,7 @@ class NotenImportVerwaltungTest extends TestCase
         $this->seed(BasisSeeder::class);
         $kategorie = DB::table('kategorien')->pluck('kategorie_id', 'code');
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '431', 'titel' => 'Aufträge durchführen']);
+        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $this->modul, 'kategorie_id' => $kategorie['FACH']]);
         DB::table('semester')->insert(['bezeichnung' => '25/26-2', 'start_datum' => '2026-02-01', 'end_datum' => '2026-07-31', 'sortierung' => 10]);
         Konfiguration::vergessen();
@@ -38,7 +38,7 @@ class NotenImportVerwaltungTest extends TestCase
     {
         $lernenderId = (int) $this->lernenderUser->lernender->lernender_id;
         $admin = User::factory()->admin()->create();
-        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n";
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M908;LB1;4,5;50%\n";
 
         $this->actingAs($admin)
             ->post(route('admin.learners.grades.import.read', $lernenderId), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)])
@@ -86,7 +86,7 @@ class NotenImportVerwaltungTest extends TestCase
     {
         $lernenderId = (int) $this->lernenderUser->lernender->lernender_id;
         $admin = User::factory()->admin()->create();
-        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n";
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M908;LB1;4,5;50%\n";
 
         $this->actingAs($admin)->post(route('admin.learners.grades.import.read', $lernenderId), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
         $this->assertNotNull(session('notenimport.'.$lernenderId));

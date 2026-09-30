@@ -30,7 +30,7 @@ class CalendarExportTest extends TestCase
     {
         parent::setUp();
         $this->lernender = User::factory()->lernender()->create(['vorname' => 'Lea', 'nachname' => 'Muster']);
-        $modul = Modul::factory()->create(['modul_nummer' => '159', 'titel' => 'Directory Services']);
+        $modul = Modul::factory()->create(['modul_nummer' => '902', 'titel' => 'Testmodul Beta']);
         DB::table('lehrberuf_module')->insert([
             'lehrberuf_id' => $this->lernender->lernender->lehrberuf_id,
             'modul_id' => $modul->modul_id,
@@ -49,7 +49,7 @@ class CalendarExportTest extends TestCase
         $ics = app(CalendarExport::class)->forUser($this->lernender);
         $event = Reader::read($ics)->VEVENT;
 
-        $this->assertStringContainsString('Prüfung 159 Directory Services – LB1', (string) $event->SUMMARY);
+        $this->assertStringContainsString('Prüfung 902 Testmodul Beta – LB1', (string) $event->SUMMARY);
         $this->assertStringContainsString('Dauer: 45 Minuten', (string) $event->DESCRIPTION);
         $this->assertStringContainsString('- DHCP', (string) $event->DESCRIPTION);
         $this->assertSame('13:15', $event->DTSTART->getDateTime()->setTimezone(new \DateTimeZone('Europe/Zurich'))->format('H:i'));

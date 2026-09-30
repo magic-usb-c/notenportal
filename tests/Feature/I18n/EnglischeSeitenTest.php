@@ -369,8 +369,8 @@ class EnglischeSeitenTest extends TestCase
         foreach (BaumVorlage::mitgeliefert() as $baum) {
             $werte[] = $baum['name'];
         }
-        $werte[] = "431 Aufträge im IT-Umfeld selbstständig durchführen\n162 Daten analysieren und modellieren";
-        $werte[] = "106 Datenbanken abfragen, bearbeiten und warten\n187 ICT-Arbeitsplatz in Betrieb nehmen";
+        $werte[] = "901 Beispielmodul Planung\n902 Beispielmodul Auswertung";
+        $werte[] = "951 Beispielkurs Grundlagen\n952 Beispielkurs Vertiefung";
 
         $werte = array_values(array_unique(array_filter($werte, fn ($w) => $w !== '')));
         usort($werte, fn (string $a, string $b) => mb_strlen($b) <=> mb_strlen($a));

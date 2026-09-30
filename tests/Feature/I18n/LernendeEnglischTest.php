@@ -24,7 +24,7 @@ class LernendeEnglischTest extends TestCase
     {
         $this->seed(BasisSeeder::class);
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $modul = DB::table('module')->insertGetId(['modul_nummer' => '431', 'titel' => 'Auftraege durchfuehren']);
+        $modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchfuehren']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $modul,
             'kategorie_id' => DB::table('kategorien')->where('code', 'FACH')->value('kategorie_id')]);
         DB::table('semester')->insert(['bezeichnung' => 'T-1', 'start_datum' => now()->subMonths(8)->toDateString(), 'end_datum' => now()->subMonths(2)->toDateString(), 'sortierung' => 10]);

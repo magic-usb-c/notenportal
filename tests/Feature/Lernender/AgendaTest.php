@@ -33,7 +33,7 @@ class AgendaTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->lernender()->create();
-        $this->modul = Modul::factory()->create(['modul_nummer' => '159', 'titel' => 'Directory Services']);
+        $this->modul = Modul::factory()->create(['modul_nummer' => '902', 'titel' => 'Testmodul Beta']);
         DB::table('lehrberuf_module')->insert([
             'lehrberuf_id' => $this->user->lernender->lehrberuf_id,
             'modul_id' => $this->modul->modul_id,
@@ -87,15 +87,15 @@ class AgendaTest extends TestCase
         ]);
         CalendarEvent::create([
             'lernender_id' => $this->user->lernender->lernender_id, 'calendar_feed_id' => $feedId, 'kind' => CalendarEvent::LESSON,
-            'uid' => 'lektion-1', 'summary' => '159-INPE 24 B', 'starts_at' => now()->addDay(), 'all_day' => false,
+            'uid' => 'lektion-1', 'summary' => '902-INXX 99 B', 'starts_at' => now()->addDay(), 'all_day' => false,
         ]);
 
         $response = $this->actingAs($this->user)->get(route('learner.exams.index'));
         $response->assertOk()->assertSee('LB2')->assertSee('Elterngespräch')->assertSee('Unbekannte Prüfung');
-        $response->assertDontSee('159-INPE 24 B');
+        $response->assertDontSee('902-INXX 99 B');
 
         $mitLektionen = $this->actingAs($this->user)->get(route('learner.exams.index', ['lektionen' => 1]));
-        $mitLektionen->assertOk()->assertSee('159-INPE 24 B');
+        $mitLektionen->assertOk()->assertSee('902-INXX 99 B');
     }
 
     #[Test]

@@ -3,15 +3,15 @@ INXX 99
 Klasse INXX 99 A INXX 99 A INXX 99 A INXX 99 A
     
 Fächer
-114 (r)	4.5
-117 (r)	5.0
-162 (r) 4.0
+904 (r)	4.5
+905 (r)	5.0
+906 (r) 4.0
 ENG (r) d	d	d	4.5
 calDSB (K) d	d	d	4.5000
 MAT (r) d	d	d	5.0
 ABU (r) d	d	d	4.0
 calDSA (K) d	d	d	4.0000
-187 (r) 5.5
+907 (r) 5.5
 SPO (r) b	B	b	B
 INFO (r) NP	NP	NP	NP
     

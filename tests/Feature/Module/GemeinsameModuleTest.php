@@ -160,7 +160,7 @@ class GemeinsameModuleTest extends TestCase
         // dieses Lernenden steht aber noch auf V4. Der Verweis muss seiner Version folgen, sonst
         // landet er auf der Modulseite des neueren Jahrgangs.
         $modulId = DB::table('module')->insertGetId([
-            'modul_nummer' => 'M117', 'titel' => 'Zwei Jahrgänge', 'version' => '5',
+            'modul_nummer' => 'M905', 'titel' => 'Zwei Jahrgänge', 'version' => '5',
         ]);
         DB::table('lehrberuf_module')->insert([
             'lehrberuf_id' => $this->lehrberuf, 'modul_id' => $modulId, 'version' => '4',
@@ -169,8 +169,8 @@ class GemeinsameModuleTest extends TestCase
         $this->actingAs($this->lernender())
             ->get(route('modules.show', $modulId))
             ->assertOk()
-            ->assertSee('modulbaukasten.ch/module/117/4/de-DE', false)
-            ->assertDontSee('modulbaukasten.ch/module/117/5/de-DE', false);
+            ->assertSee('modulbaukasten.ch/module/905/4/de-DE', false)
+            ->assertDontSee('modulbaukasten.ch/module/905/5/de-DE', false);
     }
 
     #[Test]

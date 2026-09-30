@@ -3,8 +3,8 @@
         $feld = 'mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring';
         $label = 'text-sm font-medium text-text';
         $beispiele = [
-            'schule' => "431 Aufträge im IT-Umfeld selbstständig durchführen\n162 Daten analysieren und modellieren",
-            'uek' => "106 Datenbanken abfragen, bearbeiten und warten\n187 ICT-Arbeitsplatz in Betrieb nehmen",
+            'schule' => "901 Beispielmodul Planung\n902 Beispielmodul Auswertung",
+            'uek' => "951 Beispielkurs Grundlagen\n952 Beispielkurs Vertiefung",
         ];
     @endphp
 

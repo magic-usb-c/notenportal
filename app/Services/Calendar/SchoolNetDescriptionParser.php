@@ -11,7 +11,7 @@ use Carbon\CarbonImmutable;
  *
  * Beispiel DESCRIPTION:
  *   Prüfung
- *   159-INPE 24 B-diemar LB1: Verzeichnisdienste und DNS
+ *   902-INXX 99 B-musmax LB1: Beta-Grundlagen und Begriffe
  *   Prüfungsstoff
  *   Prüfungsart: Onlineprüfung in Microsoft Teams
  *   Dauer: 45 Minuten
@@ -118,8 +118,8 @@ final class SchoolNetDescriptionParser
     }
 
     /**
-     * «159-INPE 24 B-diemar LB1: Verzeichnisdienste und DNS»,
-     * «ABU-INAP 24 A,INPE 24 B-spedeb», «SPO-INAP 24 A,INPE 24 B-wieand (hunjef)».
+     * «902-INXX 99 B-musmax LB1: Beta-Grundlagen und Begriffe»,
+     * «ABU-INXX 99 A,INXX 99 B-musmia», «SPO-INXX 99 A,INXX 99 B-musmoe (muslea)».
      *
      * @return array{course_code: ?string, module_number: ?string, class_name: ?string, teacher: ?string, label: ?string, title: ?string}
      */

@@ -33,7 +33,7 @@ class ModulVerweisTest extends TestCase
         parent::setUp();
         $this->seed(BasisSeeder::class);
         $this->lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => 'M987', 'titel' => 'Aufträge durchführen']);
+        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => 'M987', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $this->modul,
             'kategorie_id' => DB::table('kategorien')->where('code', 'FACH')->value('kategorie_id')]);
         $this->semester = DB::table('semester')->insertGetId(['bezeichnung' => '25/26-2',

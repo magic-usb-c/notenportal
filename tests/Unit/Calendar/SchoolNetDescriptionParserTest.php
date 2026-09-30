@@ -8,19 +8,19 @@ use Tests\TestCase;
 
 class SchoolNetDescriptionParserTest extends TestCase
 {
-    private const string BEISPIEL = "Prüfung\n159-INPE 24 B-diemar LB1: Verzeichnisdienste und DNS\nPrüfungsstoff\nPrüfungsart: Onlineprüfung in Microsoft Teams\nDauer: 45 Minuten\nHilfsmittel: Keine Unterlagen erlaubt\nSie können:\n- die Grundlagen und Vorteile von Verzeichnisdiensten erklären.\n- zentrale Begriffe und Bestandteile von Active Directory beschreiben.\nGewichtung\n0.33333333\nPrüfungsdatum festgelegt am\n01.09.2026 13:54";
+    private const string BEISPIEL = "Prüfung\n902-INXX 99 B-musmax LB1: Beta-Grundlagen und Begriffe\nPrüfungsstoff\nPrüfungsart: Onlineprüfung in Microsoft Teams\nDauer: 45 Minuten\nHilfsmittel: Keine Unterlagen erlaubt\nSie können:\n- die Grundlagen und Vorteile von Beta-Systemen erklären.\n- zentrale Begriffe und Bestandteile des Beta-Verfahrens beschreiben.\nGewichtung\n0.33333333\nPrüfungsdatum festgelegt am\n01.09.2026 13:54";
 
     #[Test]
     public function zerlegt_schulnetz_pruefung_in_felder(): void
     {
-        $r = (new SchoolNetDescriptionParser)->parse('159-INPE 24 B-diemar', self::BEISPIEL);
+        $r = (new SchoolNetDescriptionParser)->parse('902-INXX 99 B-musmax', self::BEISPIEL);
 
         $this->assertTrue($r['is_exam']);
-        $this->assertSame('159', $r['module_number']);
-        $this->assertSame('INPE 24 B', $r['class_name']);
-        $this->assertSame('diemar', $r['teacher']);
+        $this->assertSame('902', $r['module_number']);
+        $this->assertSame('INXX 99 B', $r['class_name']);
+        $this->assertSame('musmax', $r['teacher']);
         $this->assertSame('LB1', $r['label']);
-        $this->assertSame('Verzeichnisdienste und DNS', $r['title']);
+        $this->assertSame('Beta-Grundlagen und Begriffe', $r['title']);
         $this->assertSame('Onlineprüfung in Microsoft Teams', $r['exam_type']);
         $this->assertSame(45, $r['duration_minutes']);
         $this->assertSame('Keine Unterlagen erlaubt', $r['aids']);
@@ -34,7 +34,7 @@ class SchoolNetDescriptionParserTest extends TestCase
     #[Test]
     public function unbekannte_abschnitte_landen_im_stoff_und_nichts_wirft(): void
     {
-        $text = "Prüfung\n159-INPE 24 B-diemar LB2: DHCP\nBemerkung\nBitte Laptop mitnehmen\nGewichtung\nunbekannt";
+        $text = "Prüfung\n902-INXX 99 B-musmax LB2: DHCP\nBemerkung\nBitte Laptop mitnehmen\nGewichtung\nunbekannt";
         $r = (new SchoolNetDescriptionParser)->parse(null, $text);
 
         $this->assertSame('DHCP', $r['title']);
@@ -48,14 +48,14 @@ class SchoolNetDescriptionParserTest extends TestCase
     {
         $p = new SchoolNetDescriptionParser;
 
-        $abu = $p->header('ABU-INAP 24 A,INPE 24 B-spedeb');
+        $abu = $p->header('ABU-INXX 99 A,INXX 99 B-musmia');
         $this->assertSame('ABU', $abu['course_code']);
         $this->assertNull($abu['module_number']);
-        $this->assertSame('INAP 24 A, INPE 24 B', $abu['class_name']);
-        $this->assertSame('spedeb', $abu['teacher']);
+        $this->assertSame('INXX 99 A, INXX 99 B', $abu['class_name']);
+        $this->assertSame('musmia', $abu['teacher']);
 
-        $spo = $p->header('SPO-INAP 24 A,INPE 24 B-wieand (hunjef)');
-        $this->assertSame('wieand (hunjef)', $spo['teacher']);
+        $spo = $p->header('SPO-INXX 99 A,INXX 99 B-musmoe (muslea)');
+        $this->assertSame('musmoe (muslea)', $spo['teacher']);
 
         $this->assertNull($p->header('Elternabend')['course_code']);
     }
@@ -81,9 +81,9 @@ class SchoolNetDescriptionParserTest extends TestCase
     #[Test]
     public function html_und_ical_escapes_werden_bereinigt(): void
     {
-        $r = (new SchoolNetDescriptionParser)->parse('x', 'Prüfung<br>117-INPE 24 B-abcdef LB1: Netzwerk\\, Grundlagen<br>Dauer: 30 Minuten');
+        $r = (new SchoolNetDescriptionParser)->parse('x', 'Prüfung<br>905-INXX 99 B-abcdef LB1: Netzwerk\\, Grundlagen<br>Dauer: 30 Minuten');
 
-        $this->assertSame('117', $r['module_number']);
+        $this->assertSame('905', $r['module_number']);
         $this->assertSame('Netzwerk, Grundlagen', $r['title']);
         $this->assertSame(30, $r['duration_minutes']);
     }
@@ -92,9 +92,9 @@ class SchoolNetDescriptionParserTest extends TestCase
     public function kopfzeile_ohne_kurscode_faellt_auf_summary_zurueck_und_absaetze_bleiben(): void
     {
         $text = "Prüfung\nLB3 Netzwerktechnik\nPrüfungsstoff\nTeil A\n\nTeil B\nGewichtung: 25 %\nDauer: 90\nPrüfungsdatum festgelegt am\nnoch offen";
-        $r = (new SchoolNetDescriptionParser)->parse('117-INPE 24 B-abcdef', $text);
+        $r = (new SchoolNetDescriptionParser)->parse('905-INXX 99 B-abcdef', $text);
 
-        $this->assertSame('117', $r['module_number']);
+        $this->assertSame('905', $r['module_number']);
         $this->assertSame('abcdef', $r['teacher']);
         $this->assertSame("Teil A\n\nTeil B", $r['material']);
         $this->assertSame(25.0, $r['weight_percent']);

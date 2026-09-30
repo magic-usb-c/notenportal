@@ -32,7 +32,7 @@ class CalendarSyncTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->lernender()->create();
-        $this->modul = Modul::factory()->create(['modul_nummer' => '159', 'titel' => 'Directory Services konfigurieren']);
+        $this->modul = Modul::factory()->create(['modul_nummer' => '902', 'titel' => 'Testmodul Beta betreiben']);
         DB::table('lehrberuf_module')->insert([
             'lehrberuf_id' => $this->user->lernender->lehrberuf_id,
             'modul_id' => $this->modul->modul_id,
@@ -58,17 +58,17 @@ class CalendarSyncTest extends TestCase
 
     private function pruefungsEvent(string $uid = 'exam-1', ?CarbonImmutable $start = null): string
     {
-        return $this->pruefungsEventVariante($uid, $start ?? CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15), 'A5', 'Verzeichnisdienste erklären.');
+        return $this->pruefungsEventVariante($uid, $start ?? CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15), 'A5', 'Beta-Begriffe erklären.');
     }
 
     /** Wie pruefungsEvent(), aber mit wählbarem Raum/Stoff – zum Simulieren eines geänderten Quellzustands. */
     private function pruefungsEventVariante(string $uid, CarbonImmutable $start, string $ort, string $stoffZeile): string
     {
-        $text = "Prüfung\n159-INPE 24 B-diemar LB1: Verzeichnisdienste und DNS\nPrüfungsstoff\nPrüfungsart: Onlineprüfung in Microsoft Teams\n"
+        $text = "Prüfung\n902-INXX 99 B-musmax LB1: Beta-Grundlagen und Begriffe\nPrüfungsstoff\nPrüfungsart: Onlineprüfung in Microsoft Teams\n"
             ."Dauer: 45 Minuten\nHilfsmittel: Keine Unterlagen erlaubt\nSie können:\n- {$stoffZeile}\nGewichtung\n0.33333333\n"
             ."Prüfungsdatum festgelegt am\n01.09.2026 13:54";
 
-        return $this->event($uid, $start, '159-INPE 24 B-diemar', $text, $ort);
+        return $this->event($uid, $start, '902-INXX 99 B-musmax', $text, $ort);
     }
 
     #[Test]
@@ -77,21 +77,21 @@ class CalendarSyncTest extends TestCase
         $morgen = CarbonImmutable::now('Europe/Zurich')->addDay()->setTime(8, 50);
         $stats = app(CalendarSync::class)->apply($this->feed, $this->ics([
             $this->pruefungsEvent(),
-            $this->event('lesson-1', $morgen, '159-INPE 24 B-diemar', '', 'A5'),
+            $this->event('lesson-1', $morgen, '902-INXX 99 B-musmax', '', 'A5'),
             $this->event('termin-1', $morgen->addDays(3)->setTime(19, 0), 'Elternabend'),
-            $this->event('exam-x', $morgen->addDays(5), 'Prüfung 999-INPE 24 B-abcdef LB1', "Prüfung\n999-INPE 24 B-abcdef LB1: Unbekannt"),
+            $this->event('exam-x', $morgen->addDays(5), 'Prüfung 999-INXX 99 B-abcdef LB1', "Prüfung\n999-INXX 99 B-abcdef LB1: Unbekannt"),
         ]));
 
         $this->assertSame(['events' => 4, 'exams' => 1, 'unmatched' => 1, 'removed' => 0], $stats);
         $p = Pruefung::sole();
         $this->assertSame($this->modul->modul_id, $p->modul_id);
-        $this->assertSame('LB1: Verzeichnisdienste und DNS', $p->titel);
+        $this->assertSame('LB1: Beta-Grundlagen und Begriffe', $p->titel);
         $this->assertSame('13:15:00', $p->uhrzeit);
         $this->assertSame(45, $p->dauer_minuten);
         $this->assertSame('Onlineprüfung in Microsoft Teams', $p->pruefungsart);
         $this->assertSame('Keine Unterlagen erlaubt', $p->hilfsmittel);
         $this->assertSame(33.33, $p->gewichtung_prozent);
-        $this->assertStringContainsString('- Verzeichnisdienste erklären.', $p->stoff);
+        $this->assertStringContainsString('- Beta-Begriffe erklären.', $p->stoff);
         $this->assertSame('ical', $p->quelle);
         $this->assertSame('A5', $p->raum);
         $this->assertSame(['appointment' => 1, 'exam' => 2, 'lesson' => 1],
@@ -128,7 +128,7 @@ class CalendarSyncTest extends TestCase
     {
         $this->feed->update(['import_lessons' => false]);
         app(CalendarSync::class)->apply($this->feed, $this->ics([
-            $this->event('lesson-1', CarbonImmutable::now('Europe/Zurich')->addDay()->setTime(8, 50), '159-INPE 24 B-diemar'),
+            $this->event('lesson-1', CarbonImmutable::now('Europe/Zurich')->addDay()->setTime(8, 50), '902-INXX 99 B-musmax'),
             $this->pruefungsEvent(),
         ]));
 
@@ -226,7 +226,7 @@ class CalendarSyncTest extends TestCase
         $start = CarbonImmutable::now('Europe/Zurich')->addDays(10)->setTime(10, 0);
 
         $stats = app(CalendarSync::class)->apply($this->feed, $this->ics([
-            $this->event('exam-math', $start, 'MATH-INPE 24 B-diemar', "Prüfung\nMATH-INPE 24 B-diemar LB2: Algebra"),
+            $this->event('exam-math', $start, 'MATH-INXX 99 B-musmax', "Prüfung\nMATH-INXX 99 B-musmax LB2: Algebra"),
         ]));
 
         $this->assertSame(1, $stats['exams']);
@@ -252,7 +252,7 @@ class CalendarSyncTest extends TestCase
     {
         $sync = app(CalendarSync::class);
         $altesDatum = CarbonImmutable::now('Europe/Zurich')->addDays(14)->setTime(13, 15);
-        $sync->apply($this->feed, $this->ics([$this->pruefungsEventVariante('exam-1', $altesDatum, 'A5', 'Verzeichnisdienste erklären.')]));
+        $sync->apply($this->feed, $this->ics([$this->pruefungsEventVariante('exam-1', $altesDatum, 'A5', 'Beta-Begriffe erklären.')]));
 
         $p = Pruefung::where('extern_uid', 'exam-1')->sole();
         $eigenesDatum = $p->datum->toDateString();

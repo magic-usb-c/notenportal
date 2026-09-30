@@ -33,7 +33,7 @@ class ZeugnisAbgleichTest extends TestCase
         $this->seed(BasisSeeder::class);
         $kategorie = DB::table('kategorien')->pluck('kategorie_id', 'code');
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '431', 'titel' => 'Aufträge durchführen']);
+        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $this->modul, 'kategorie_id' => $kategorie['FACH']]);
         $this->fach = DB::table('faecher')->insertGetId(['kategorie_id' => $kategorie['ABU'], 'name' => 'Sprache und Kommunikation', 'kurzname' => 'SK']);
         DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $lehrberuf, 'fach_id' => $this->fach]);
@@ -45,7 +45,7 @@ class ZeugnisAbgleichTest extends TestCase
     #[Test]
     public function zeugniszeilen_werden_erkannt_und_zugeordnet(): void
     {
-        $text = "Zeugnis Frühlingssemester 2026\nKlasse INA3a\nSprache und Kommunikation ........ 4,5\n431 Aufträge durchführen   5.0   5.5\nSemester 2\nTotal 26";
+        $text = "Zeugnis Frühlingssemester 2026\nKlasse INA3a\nSprache und Kommunikation ........ 4,5\n908 Testmodul Theta durchführen   5.0   5.5\nSemester 2\nTotal 26";
         $zeilen = app(ZeugnisAbgleich::class)->zeilen($text, (int) $this->user->lernender->lernender_id);
 
         $this->assertSame(['fach:'.$this->fach, 'modul:'.$this->modul], array_column($zeilen, 'bezug'));

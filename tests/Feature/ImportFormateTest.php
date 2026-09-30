@@ -46,7 +46,7 @@ class ImportFormateTest extends TestCase
         $this->seed(BasisSeeder::class);
         $k = DB::table('kategorien')->pluck('kategorie_id', 'code');
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        foreach (['114' => 'FACH', '158' => 'FACH', '159' => 'FACH', '162' => 'FACH', '431' => 'FACH', '187' => 'UEK'] as $nr => $ort) {
+        foreach (['904' => 'FACH', '901' => 'FACH', '902' => 'FACH', '906' => 'FACH', '908' => 'FACH', '907' => 'UEK'] as $nr => $ort) {
             $this->modul[$nr] = DB::table('module')->insertGetId(['modul_nummer' => (string) $nr, 'titel' => 'Modul '.$nr]);
             DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $this->modul[$nr], 'kategorie_id' => $k[$ort]]);
         }
@@ -75,16 +75,16 @@ class ImportFormateTest extends TestCase
         $z = collect($vorschau['zeilen'])->keyBy('titel');
 
         $this->assertSame(Schulnetz::AKTUELLE_NOTEN, $vorschau['format']);
-        $this->assertSame(['LB1: Verzeichnisdienste und DNS', 'LB2: Gruppenrichtlinien', 'LB3: Replikation', 'Presentation Module 158', 'Vocabulary Test 2'], $z->keys()->all());
+        $this->assertSame(['LB1: Beta-Grundlagen und Begriffe', 'LB2: Beta-Einstellungen', 'LB3: Beta-Abgleich', 'Presentation Module 901', 'Vocabulary Test 2'], $z->keys()->all());
         $werte = fn (string $titel) => [$z[$titel]['bezug'], $z[$titel]['datum'], $z[$titel]['note'], $z[$titel]['gewicht'], $z[$titel]['status']];
-        $this->assertSame(['modul:'.$this->modul['159'], '2026-09-02', 4.5, 33.33, 'ok'], $werte('LB1: Verzeichnisdienste und DNS'));
-        $this->assertSame(['modul:'.$this->modul['159'], '2026-09-09', 5.0, 33.34, 'ok'], $werte('LB2: Gruppenrichtlinien'));
-        $this->assertSame(['modul:'.$this->modul['159'], '2026-09-16', null, 33.33, 'fehler'], $werte('LB3: Replikation'));
+        $this->assertSame(['modul:'.$this->modul['902'], '2026-09-02', 4.5, 33.33, 'ok'], $werte('LB1: Beta-Grundlagen und Begriffe'));
+        $this->assertSame(['modul:'.$this->modul['902'], '2026-09-09', 5.0, 33.34, 'ok'], $werte('LB2: Beta-Einstellungen'));
+        $this->assertSame(['modul:'.$this->modul['902'], '2026-09-16', null, 33.33, 'fehler'], $werte('LB3: Beta-Abgleich'));
         // Kurs ENG bestimmt das Fach (Berufsfachschule, nicht BM), nicht die Modulnummer im Thema
-        $this->assertSame(['fach:'.$this->fach['Englisch'], '2026-08-21', 4.5, 100.0, 'ok'], $werte('Presentation Module 158'));
+        $this->assertSame(['fach:'.$this->fach['Englisch'], '2026-08-21', 4.5, 100.0, 'ok'], $werte('Presentation Module 901'));
         // «2» gehört zum Thema: Kursschnitt 4.5 passt nur ohne diese Bewertung
         $this->assertSame(['fach:'.$this->fach['Englisch'], '2026-08-28', null, 50.0, 'fehler'], $werte('Vocabulary Test 2'));
-        $this->assertSame('Note fehlt', $z['LB3: Replikation']['meldung']);
+        $this->assertSame('Note fehlt', $z['LB3: Beta-Abgleich']['meldung']);
 
         $ergebnis = app(NotenImport::class)->importieren($vorschau['zeilen'], $this->lernenderId, (int) $this->user->benutzer_id);
         $this->assertSame(3, $ergebnis['neu']);
@@ -100,8 +100,8 @@ class ImportFormateTest extends TestCase
         $bezug = array_column($vorschau['zeilen'], 'bezug', 'bezug_roh');
 
         $this->assertSame(Schulnetz::ZEUGNISNOTEN, $vorschau['format']);
-        $this->assertSame(['114 (r)', '117 (r)', '162 (r)', 'ENG (r)', 'MAT (r)', 'ABU (r)', '187 (r)'], array_keys($bezug));
-        $this->assertSame(['modul:'.$this->modul['114'], null, 'modul:'.$this->modul['162'], 'fach:'.$this->fach['Englisch'], 'fach:'.$this->fach['Mathematik'], null, 'modul:'.$this->modul['187']], array_values($bezug));
+        $this->assertSame(['904 (r)', '905 (r)', '906 (r)', 'ENG (r)', 'MAT (r)', 'ABU (r)', '907 (r)'], array_keys($bezug));
+        $this->assertSame(['modul:'.$this->modul['904'], null, 'modul:'.$this->modul['906'], 'fach:'.$this->fach['Englisch'], 'fach:'.$this->fach['Mathematik'], null, 'modul:'.$this->modul['907']], array_values($bezug));
         $this->assertSame([4.5, 5.0, 4.0, 4.5, 5.0, 4.0, 5.5], array_column($vorschau['zeilen'], 'note'));
         $this->assertSame(['Datum fehlt'], array_values(array_unique(array_column($vorschau['zeilen'], 'meldung'))));
 
@@ -167,10 +167,10 @@ class ImportFormateTest extends TestCase
     public function mehrteiliges_zeugnis_mit_notenportfolio_und_getrennten_ocr_zeilen(): void
     {
         $this->assertSame([
-            ['162 Datenanalysierenundmodellieren', 'modul:'.$this->modul['162'], 4.5, true],
-            ['114 Codierungs-,Kompressions-undVerschlüsselungsverfahreneinsetzen', 'modul:'.$this->modul['114'], 5.0, true],
-            ['431 AufträgeimIT-Umfeldselbständigdurchführen', 'modul:'.$this->modul['431'], 4.0, true],
-            ['187 ICT-ArbeitsplatzmitBetriebssysteminBetriebnehmen', 'modul:'.$this->modul['187'], 5.0, true],
+            ['906 TestmodulZetaplanenundauswerten', 'modul:'.$this->modul['906'], 4.5, true],
+            ['904 TestmodulDelta-,Prüf-undKontrollverfahrenanwenden', 'modul:'.$this->modul['904'], 5.0, true],
+            ['908 TestmodulThetaimMuster-Umfeldbegleiten', 'modul:'.$this->modul['908'], 4.0, true],
+            ['907 TestmodulEta-GerätmitMustersystemeinrichten', 'modul:'.$this->modul['907'], 5.0, true],
             ['Deutsch', 'fach:'.$this->fach['BMS Deutsch'], 4.5, true],
             ['Mathematik', 'fach:'.$this->fach['BMS Mathematik'], 3.0, true],
             ['Englisch', 'fach:'.$this->fach['BMS Englisch'], 5.5, true],
@@ -182,13 +182,13 @@ class ImportFormateTest extends TestCase
     public function schulnetz_zeugnisnoten_im_abgleich_und_notenliste_ohne_zeugnis(): void
     {
         $this->assertSame([
-            ['114 (r)', 'modul:'.$this->modul['114'], 4.5, true],
-            ['117 (r)', null, 5.0, false],
-            ['162 (r)', 'modul:'.$this->modul['162'], 4.0, true],
+            ['904 (r)', 'modul:'.$this->modul['904'], 4.5, true],
+            ['905 (r)', null, 5.0, false],
+            ['906 (r)', 'modul:'.$this->modul['906'], 4.0, true],
             ['ENG (r)', 'fach:'.$this->fach['Englisch'], 4.5, true],
             ['MAT (r)', 'fach:'.$this->fach['Mathematik'], 5.0, true],
             ['ABU (r)', null, 4.0, false],
-            ['187 (r)', 'modul:'.$this->modul['187'], 5.5, true],
+            ['907 (r)', 'modul:'.$this->modul['907'], 5.5, true],
         ], $this->zeugnis('schulnetz-zeugnisnoten.txt'));
         $this->assertSame([], $this->zeugnis('schulnetz-aktuelle-noten.txt'));
     }

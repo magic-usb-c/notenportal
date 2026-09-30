@@ -22,12 +22,12 @@ Musterweg1
 7000Musterstadt
 Semester
 ModulInformatikkompetenzinderBerufsfachschule	1 2 3 4 5 6 7 8 O0
-162 Datenanalysierenundmodellieren	4.5
-114 Codierungs-,Kompressions-undVerschlüsselungsverfahreneinsetzen	5.0
-431 AufträgeimIT-Umfeldselbständigdurchführen	4.0
+906 TestmodulZetaplanenundauswerten	4.5
+904 TestmodulDelta-,Prüf-undKontrollverfahrenanwenden	5.0
+908 TestmodulThetaimMuster-Umfeldbegleiten	4.0
 DurchschnittsnoteInformatikkompetenzinderBerufsfachschule(Gewichtung80%/IKBS)	4.5
 ModulInformatikkompetenzüberbetrieblicheKurse
-187 ICT-ArbeitsplatzmitBetriebssysteminBetriebnehmen	5.0
+907 TestmodulEta-GerätmitMustersystemeinrichten	5.0
 DurchschnittsnoteInformatikkompetenzüberbetrieblicheKurse(Gewichtung:20%IIKÜK)	5.0
 GesamtDurchschnittInformatikkompetenz	4.6
 DieNotendereinzelnenModulekönnenaufgrundderNotengebung(Modulabschlüsse,

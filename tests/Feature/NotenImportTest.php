@@ -32,7 +32,7 @@ class NotenImportTest extends TestCase
         $this->seed(BasisSeeder::class);
         $kategorie = DB::table('kategorien')->pluck('kategorie_id', 'code');
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '431', 'titel' => 'Aufträge durchführen']);
+        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $this->modul, 'kategorie_id' => $kategorie['FACH']]);
         $this->fach = DB::table('faecher')->insertGetId(['kategorie_id' => $kategorie['ABU'], 'name' => 'Sprache und Kommunikation', 'kurzname' => 'SK']);
         DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $lehrberuf, 'fach_id' => $this->fach]);
@@ -44,7 +44,7 @@ class NotenImportTest extends TestCase
     #[Test]
     public function csv_wird_erkannt_zugeordnet_und_nach_pruefung_importiert(): void
     {
-        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n09.03.2026;Sprache;Vortrag;5.0;\n10.03.2026;Turnen;X;4;100\n";
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M908;LB1;4,5;50%\n09.03.2026;Sprache;Vortrag;5.0;\n10.03.2026;Turnen;X;4;100\n";
         $this->actingAs($this->user)
             ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)])
             ->assertRedirect(route('learner.grades.import.index'));
@@ -211,7 +211,7 @@ class NotenImportTest extends TestCase
     {
         $blatt = new Spreadsheet;
         $blatt->getActiveSheet()->fromArray([
-            [Date::PHPToExcel(new \DateTime('2026-04-14')), 'Modul 431 Aufträge', 'Projekt', 5.5],
+            [Date::PHPToExcel(new \DateTime('2026-04-14')), 'Modul 908 Theta', 'Projekt', 5.5],
             [Date::PHPToExcel(new \DateTime('2026-05-05')), 'SK', 'Aufsatz', 4.25],
             [Date::PHPToExcel(new \DateTime('2026-06-02')), 'SK', 'Formel', '=4+1'],
         ]);
@@ -230,8 +230,8 @@ class NotenImportTest extends TestCase
     #[Test]
     public function pdf_text_und_werte_werden_sauber_zerlegt(): void
     {
-        $zeilen = app(TabellenLeser::class)->textZeilen("Notenliste Nina\n02.03.2026 M431 Aufträge 4.5 50 %\n\nDatum    Fach    Note");
-        $this->assertSame(['02.03.2026', 'M431 Aufträge', '', '4.5', '50'], $zeilen[1]);
+        $zeilen = app(TabellenLeser::class)->textZeilen("Notenliste Nina\n02.03.2026 M908 Theta 4.5 50 %\n\nDatum    Fach    Note");
+        $this->assertSame(['02.03.2026', 'M908 Theta', '', '4.5', '50'], $zeilen[1]);
 
         $import = app(NotenImport::class);
         $this->assertSame('2026-03-02', $import->datum('2.3.2026'));
@@ -247,7 +247,7 @@ class NotenImportTest extends TestCase
             ->get(route('learner.grades.import.template'))
             ->assertOk()->assertSee('Datum;Fach/Modul;Titel;Note;Gewicht', false);
 
-        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M431;LB1;4,5;50%\n";
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M908;LB1;4,5;50%\n";
         $this->actingAs($this->user)
             ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
         $this->assertNotNull(session('notenimport.'.$this->user->lernender->lernender_id));

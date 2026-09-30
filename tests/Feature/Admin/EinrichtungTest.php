@@ -73,13 +73,13 @@ class EinrichtungTest extends TestCase
             ->assertSessionHasErrors('schule');
         $this->post(route('admin.setup.modules'), [
             'lehrberuf_id' => $lehrberuf,
-            'schule' => "431 Aufträge durchführen\nM162 – Daten modellieren",
-            'uek' => 'ÜK-106: Datenbanken abfragen',
+            'schule' => "908 Testmodul Theta durchführen\nM906 – Testmodul Zeta auswerten",
+            'uek' => 'ÜK-909: Testmodul Iota abfragen',
             'ziel' => 100,
         ])->assertSessionHasNoErrors();
         $this->assertSame(3, DB::table('lehrberuf_module')->where('lehrberuf_id', $lehrberuf)->count());
         $this->assertSame('UEK', DB::table('lehrberuf_module as lbm')->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
-            ->join('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')->where('m.modul_nummer', '106')->value('k.code'));
+            ->join('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')->where('m.modul_nummer', '909')->value('k.code'));
 
         $this->post(route('admin.setup.people'), ['personen' => [
             ['vorname' => 'Michael', 'nachname' => 'Baumann', 'email' => 'mb@betrieb.ch', 'rolle' => 'Berufsbildner'],
@@ -141,10 +141,10 @@ class EinrichtungTest extends TestCase
     #[Test]
     public function modulzeilen_werden_in_ueblichen_schreibweisen_erkannt(): void
     {
-        $ergebnis = Einrichtung::moduleAusText("431 Aufträge durchführen\n\nÜK 106 - Datenbanken\nM319: Applikationen entwerfen\nkeine Nummer");
+        $ergebnis = Einrichtung::moduleAusText("908 Testmodul Theta durchführen\n\nÜK 909 - Testmodul Iota\nM910: Testmodul Kappa entwerfen\nkeine Nummer");
 
-        $this->assertSame(['431', '106', '319'], array_column($ergebnis['module'], 'nummer'));
-        $this->assertSame('Datenbanken', $ergebnis['module'][1]['titel']);
+        $this->assertSame(['908', '909', '910'], array_column($ergebnis['module'], 'nummer'));
+        $this->assertSame('Testmodul Iota', $ergebnis['module'][1]['titel']);
         $this->assertSame(['keine Nummer'], $ergebnis['fehler']);
     }
 

@@ -30,7 +30,7 @@ class UebersichtUndNotenTest extends TestCase
         parent::setUp();
         $this->seed(BasisSeeder::class);
         $this->lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
-        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '431', 'titel' => 'Aufträge durchführen']);
+        $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $this->lehrberuf, 'modul_id' => $this->modul,
             'kategorie_id' => DB::table('kategorien')->where('code', 'FACH')->value('kategorie_id')]);
         $this->semesterAlt = DB::table('semester')->insertGetId(['bezeichnung' => 'T-1', 'start_datum' => now()->subMonths(8)->toDateString(), 'end_datum' => now()->subMonths(2)->toDateString(), 'sortierung' => 10]);
@@ -75,7 +75,7 @@ class UebersichtUndNotenTest extends TestCase
             ->assertSee('scope="row"', false);
 
         $response->assertSeeInOrder([
-            'Wo stehe ich', 'Als Tabelle', 'Aufträge durchführen', '5.0',
+            'Wo stehe ich', 'Als Tabelle', 'Testmodul Theta durchführen', '5.0',
             'Verlauf', 'Als Tabelle', 'Semesterschnitt',
         ], false);
     }
@@ -88,7 +88,7 @@ class UebersichtUndNotenTest extends TestCase
         $response = $this->get(route('learner.dashboard'))->assertOk();
 
         $response->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
-        $response->assertSeeInOrder(['Wo stehe ich', 'Als Tabelle', 'Fach / Modul', 'Stufe', 'Aufträge durchführen', '5.0', 'gut'], false);
+        $response->assertSeeInOrder(['Wo stehe ich', 'Als Tabelle', 'Fach / Modul', 'Stufe', 'Testmodul Theta durchführen', '5.0', 'gut'], false);
     }
 
     #[Test]
@@ -130,7 +130,7 @@ class UebersichtUndNotenTest extends TestCase
 
         $this->get(route('learner.grades.index', ['semester_id' => $this->semesterAlt]))->assertOk()
             ->assertSee('Fach / Modul')
-            ->assertSee('Aufträge durchführen')
+            ->assertSee('Testmodul Theta durchführen')
             ->assertSee('aria-controls="noten-', false);
     }
 
