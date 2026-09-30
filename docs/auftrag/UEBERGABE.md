@@ -33,14 +33,28 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Französisch, Sport als Stufe, IDAF zählt nicht; zweite Vorlage «Schweiz ICT»), lädt
                   passende Notenbäume mit und verlinkt Fächer- und Baumpflege. Lücken 7/8 aus LAGE
                   geschlossen; 3–6 bewusst gelassen (audit-backlog).
+[K] 30.09. 18:55  Nachträge Notenbaum/Stammdaten nach Prüfer: Wechsel verschiebt Positionen statt
+                  sie zu löschen (0b655d1), holt sie aus allen Bäumen, zuletzt erfasste gewinnt
+                  (8a0429a); Wechsel ohne Deadlock, liest Positionen sperrend, Speichern während
+                  eines Wechsels bricht mit Meldung ab statt im alten Baum zu landen (5aad6ed, mit
+                  zwei Prozessen gegen MariaDB nachgemessen). Einrichtung Schritt 4 ganz oder gar
+                  nicht (31a8638); Vorlage meldet unbekannte Baumverweise (6f7a272). Demo hat den
+                  QV-Baum (20805e1). Notenimport: 60 Zeilen 17 statt 163 Abfragen (5f0d8ab), #16 erledigt.
+[Q] 30.09. 18:55  Block 4 install.sh (8e8af07 6341f34 7955478 a6c6047). Zieht aus dem Home-Verzeichnis
+                  nach /var/www um, prüft den Dienststart statt «fertig» zu melden, npm vertraut der
+                  System-CA, hält vor fremder DB/belegtem vhost-Namen/fremdem Port an, verliert das
+                  Startpasswort bei Abbruch nicht, setzt DB_TIMEZONE samt Zeitzonentabellen.
+                  Gemessen in frischen Containern (Ubuntu 24.04 mit systemd, nicht 26.04), zweite
+                  Instanz daneben auf Port 8082. Ablauf: docs/betrieb.md «Neuinstallation».
 ```
 
 ---
 
 ## Offen für David
 
-- **Seitenleiste statt Topbar?** Apple-HIG-Umbau der Navigation ist vorgeschlagen, aber nicht
-  entschieden. Nicht eigenmächtig umbauen.
+- **Standard der Navigation**: Seitenleiste nach HIG ist gebaut und je Person umschaltbar
+  (Einstellungen → Darstellung), die Topbar bleibt. Standard ist «Oben»; ob neue Konten mit der
+  Seitenleiste starten sollen, entscheidest du.
 - **Gewichte nach BM-Dispens von der Allgemeinbildung**: Quellen widersprechen sich (hochrechnen
   57,14/42,86 vs. 50/50). Nicht voreingestellt; im Baum lässt sich «Entfällt mit BMS» je Knoten setzen.
 - **Rundung der Allgemeinbildung und der IPA im QV**: nur aus Sekundärquellen, Primärquelle
