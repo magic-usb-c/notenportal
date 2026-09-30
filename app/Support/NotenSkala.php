@@ -157,6 +157,22 @@ final class NotenSkala
         };
     }
 
+    /** Stufe (Sport) so, wie sie im Zeugnis steht: A/B/C, «d» ausgeschrieben als dispensiert. */
+    public static function stufeText(?string $stufe): string
+    {
+        return match ($stufe) {
+            null, '' => '–',
+            'd' => __('dispensiert'),
+            default => $stufe,
+        };
+    }
+
+    /** Stufe als Kurzzeichen für enge Stellen (Knöpfe, Tabellenzellen). */
+    public static function stufeKurz(?string $stufe): string
+    {
+        return $stufe === null || $stufe === '' ? '–' : ($stufe === 'd' ? __('disp.') : $stufe);
+    }
+
     /** Balkenbreite in Prozent: Note 1 = 0 %, Note 6 = 100 %. */
     public static function breite(float|string|null $wert): float
     {

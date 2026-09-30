@@ -21,10 +21,10 @@ final class GradeAdded
         return new MailContent(
             subject: __('Neue Note von :name: :bezug', ['name' => $name, 'bezug' => $bezug]),
             lines: [__(':name hat eine neue Note erfasst.', ['name' => $name])],
-            facts: [__('Fach / Modul') => $bezug, __('Note') => (string) $note->note_wert, __('Datum') => self::datum($note)],
+            facts: [__('Fach / Modul') => $bezug, __('Note') => $note->anzeige(), __('Datum') => self::datum($note)],
             actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: __('Neue Note von :name: :bezug – :note', ['name' => $name, 'bezug' => $bezug, 'note' => $note->note_wert]),
+            digestTitle: __('Neue Note von :name: :bezug – :note', ['name' => $name, 'bezug' => $bezug, 'note' => $note->anzeige()]),
         );
     }
 

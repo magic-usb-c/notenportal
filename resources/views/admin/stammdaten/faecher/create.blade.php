@@ -74,6 +74,26 @@
                         </div>
                     </div>
 
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="skala" class="text-sm font-medium text-text">{{ __('Bewertung') }}</label>
+                            <select id="skala" name="skala"
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('skala') border-note-ungenuegend @enderror">
+                                <option value="note" @selected(old('skala', 'note') === 'note')>{{ __('Note 1–6') }}</option>
+                                <option value="stufe" @selected(old('skala', 'note') === 'stufe')>{{ __('Stufe A/B/C') }}</option>
+                            </select>
+                            @error('skala')
+                                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex items-end gap-3 pb-2">
+                            <input type="hidden" name="zaehlt" value="0">
+                            <input type="checkbox" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', 1))
+                                   class="rounded-sm border-border text-accent-text focus:ring-ring">
+                            <label for="zaehlt" class="text-sm text-text">{{ __('Zählt in Schnitt und Promotion') }}</label>
+                        </div>
+                    </div>
                     <div class="pt-2">
                         <button type="submit" :disabled="loading"
                                 class="w-full px-4 py-2 h-10 rounded-xl bg-accent text-accent-contrast np-btn-primary font-medium disabled:opacity-60 disabled:cursor-not-allowed">

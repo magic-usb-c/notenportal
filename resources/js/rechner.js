@@ -193,12 +193,18 @@ export function registriereRechner(Alpine) {
         datum: cfg.datum,
         gewicht: String(cfg.gewicht ?? 100),
         wert: cfg.wert ?? '',
+        stufe: cfg.stufe ?? '',
         vorschau: [],
         timer: null,
 
         init() {
             this.$watch(() => [this.bezug, this.datum, this.gewicht, this.wert].join('|'), () => this.planen());
             this.planen();
+        },
+
+        // Fach mit Stufen (Sport A/B/C/d): statt der Zahl eine Stufe wählen; Stufen rechnen nie.
+        get istStufe() {
+            return (cfg.stufen ?? []).includes(this.bezug);
         },
 
         get typ() {
@@ -222,7 +228,7 @@ export function registriereRechner(Alpine) {
             const w = parseFloat(this.wert);
             const g = parseFloat(this.gewicht);
             const element = this.typ === 'fach' ? (this.semester ? `fach:${this.id}@semester:${this.semester.id}` : null) : (this.id ? `modul:${this.id}` : null);
-            if (!cfg.vorschauUrl || !element || !Number.isFinite(w) || w < 1 || w > 6) {
+            if (!cfg.vorschauUrl || !element || this.istStufe || !Number.isFinite(w) || w < 1 || w > 6) {
                 this.vorschau = [];
                 return;
             }

@@ -36,7 +36,7 @@
         </div>
         <div class="flex shrink-0 items-center gap-2">
             <span class="hidden text-xs tabular-nums text-muted sm:inline">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
-            <x-note :wert="$n->note_wert" variante="badge" />
+            <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
             <div class="flex items-center" onclick="event.stopPropagation()">
                 <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
                    @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"

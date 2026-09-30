@@ -112,7 +112,7 @@
                                 <div class="truncate text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</div>
                                 <div class="text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}</div>
                             </div>
-                            <x-note :wert="$n->note_wert" variante="badge" />
+                            <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
                         </div>
                     @endforeach
                 </div>

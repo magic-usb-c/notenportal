@@ -22,7 +22,8 @@ return new class extends Migration
         });
         DB::statement("ALTER TABLE faecher ADD CONSTRAINT chk_faecher_skala CHECK (skala IN ('note', 'stufe'))");
 
-        // Stufen (A/B/C, d = dispensiert) statt Zahl: genau eines von beiden ist gesetzt.
+        // Stufen (A/B/C, d = dispensiert) statt Zahl: genau eines von beiden ist gesetzt. «IS NOT NULL» ist
+        // nötig, weil «NULL IN (…)» NULL ergibt und ein CHECK mit NULL-Ergebnis als erfüllt gilt.
         DB::statement('ALTER TABLE noten DROP CONSTRAINT IF EXISTS chk_noten_note_wert');
         Schema::table('noten', function (Blueprint $table) {
             $table->decimal('note_wert', 4, 2)->nullable()->change();
@@ -30,7 +31,7 @@ return new class extends Migration
         });
         DB::statement("ALTER TABLE noten ADD CONSTRAINT chk_noten_note_wert CHECK (
             (note_wert IS NOT NULL AND note_stufe IS NULL AND note_wert >= 1.0 AND note_wert <= 6.0) OR
-            (note_wert IS NULL AND note_stufe IN ('A', 'B', 'C', 'd'))
+            (note_wert IS NULL AND note_stufe IS NOT NULL AND note_stufe IN ('A', 'B', 'C', 'd'))
         )");
 
         Schema::create('notenbaeume', function (Blueprint $table) {

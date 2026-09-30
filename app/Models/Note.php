@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Casts\Notenwert;
+use App\Support\NotenSkala;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'titel',
     'pruefungsdatum',
     'note_wert',
+    'note_stufe',
     'gewichtung_prozent',
     'erfasst_von_benutzer_id',
     'aktualisiert_von_benutzer_id',
@@ -191,5 +193,13 @@ class Note extends Model
             'aktualisiert_am' => 'datetime',
             'geloescht_am' => 'datetime',
         ];
+    }
+
+    /** Wert, wie er gelesen wird: Zahl ohne überflüssige Null oder Stufe (A/B/C, dispensiert). */
+    public function anzeige(): string
+    {
+        return $this->note_stufe !== null
+            ? NotenSkala::stufeText($this->note_stufe)
+            : NotenSkala::format($this->note_wert);
     }
 }

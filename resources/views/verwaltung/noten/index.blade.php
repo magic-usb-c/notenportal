@@ -120,7 +120,6 @@
                         $letzterKommentar = $n->kommentare->last();
                         $thema = $n->fach?->name
                             ?? ($n->modulBelegung?->modul ? $n->modulBelegung->modul->modul_nummer.' – '.$n->modulBelegung->modul->titel : '–');
-                        $wert = (float) $n->note_wert;
                     @endphp
 
                     <details class="np-details rounded-xl border border-border bg-card overflow-hidden {{ $istNeu ? 'ring-1 ring-accent/40' : '' }}" data-note-id="{{ $n->note_id }}">
@@ -156,7 +155,7 @@
                                 </div>
                             </div>
                             <div class="shrink-0 flex flex-col items-end gap-0.5">
-                                <span class="text-2xl font-bold tabular-nums leading-none {{ \App\Support\NotenSkala::text($wert) }}">{{ \App\Support\NotenSkala::format($wert) }}</span>
+                                <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" class="text-2xl font-bold leading-none" />
                                 <span class="text-xs text-muted tabular-nums">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
                             </div>
                         </summary>

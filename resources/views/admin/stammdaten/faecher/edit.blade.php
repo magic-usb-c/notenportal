@@ -64,6 +64,26 @@
                         </div>
                     </div>
 
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label for="skala" class="text-sm font-medium text-text">{{ __('Bewertung') }}</label>
+                            <select id="skala" name="skala"
+                                    class="mt-1 w-full rounded-xl border border-border bg-input text-text px-3 py-2 focus:ring-2 focus:ring-ring focus:border-ring @error('skala') border-note-ungenuegend @enderror">
+                                <option value="note" @selected(old('skala', $fach?->skala ?? 'note') === 'note')>{{ __('Note 1–6') }}</option>
+                                <option value="stufe" @selected(old('skala', $fach?->skala ?? 'note') === 'stufe')>{{ __('Stufe A/B/C') }}</option>
+                            </select>
+                            @error('skala')
+                                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="flex items-end gap-3 pb-2">
+                            <input type="hidden" name="zaehlt" value="0">
+                            <input type="checkbox" id="zaehlt" name="zaehlt" value="1" @checked(old('zaehlt', $fach?->zaehlt ?? 1))
+                                   class="rounded-sm border-border text-accent-text focus:ring-ring">
+                            <label for="zaehlt" class="text-sm text-text">{{ __('Zählt in Schnitt und Promotion') }}</label>
+                        </div>
+                    </div>
                     <div class="flex items-center gap-3">
                         <input type="hidden" name="aktiv" value="0">
                         <input type="checkbox" id="aktiv" name="aktiv" value="1" @checked(old('aktiv', $fach->aktiv))
@@ -78,6 +98,21 @@
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <div class="mt-6 max-w-3xl rounded-xl border border-border bg-card p-6">
+                @if($notenAnzahl > 0)
+                    <p class="text-sm text-muted">{{ __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.') }}</p>
+                @else
+                    <form method="POST" action="{{ route('admin.master-data.subjects.destroy', $fach->fach_id) }}"
+                          onsubmit="return confirm(@js(__('Fach «:name» endgültig löschen?', ['name' => $fach->name])));">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="inline-flex h-10 items-center rounded-xl border border-note-ungenuegend/40 px-4 text-sm font-medium text-note-ungenuegend hover:bg-note-ungenuegend/10">
+                            {{ __('Fach löschen') }}
+                        </button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>

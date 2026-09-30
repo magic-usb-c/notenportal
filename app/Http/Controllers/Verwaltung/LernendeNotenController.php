@@ -144,7 +144,7 @@ class LernendeNotenController extends VerwaltungController
         $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
         $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id);
 
-        $alterWert = (string) $note->note_wert;
+        $alterWert = $note->anzeige();
         $vorher = $this->gradeWatcher->schnappschuss($lernender_id);
         $note->update([
             ...$this->notenfelder($daten),
@@ -153,7 +153,7 @@ class LernendeNotenController extends VerwaltungController
         $this->gradeWatcher->pruefen($lernender_id, $vorher);
 
         $lernender->loadMissing('benutzer');
-        if ($lernender->benutzer && $alterWert !== (string) $note->note_wert) {
+        if ($lernender->benutzer && $alterWert !== $note->anzeige()) {
             Notifier::send($lernender->benutzer, NotificationCatalog::GRADE_CORRECTED, fn () => GradeCorrected::content(
                 $note, $alterWert, route('learner.grades.index', ['_open' => $note->note_id])
             ));
@@ -186,7 +186,7 @@ class LernendeNotenController extends VerwaltungController
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
-            'note_wert' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
+            ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
     }
@@ -201,6 +201,7 @@ class LernendeNotenController extends VerwaltungController
             'titel' => $daten['titel'],
             'pruefungsdatum' => $daten['pruefungsdatum'],
             'note_wert' => $daten['note_wert'],
+            'note_stufe' => $daten['note_stufe'],
             'gewichtung_prozent' => $daten['gewichtung_prozent'],
         ];
     }

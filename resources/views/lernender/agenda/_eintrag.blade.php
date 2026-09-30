@@ -35,7 +35,7 @@
         @if($e['art'] === 'pruefung')
             @if($p->note)
                 <a href="{{ route('learner.grades.index') }}" class="inline-flex items-center gap-1.5">
-                    <x-note :wert="$p->note->note_wert" variante="badge" />
+                    <x-note :wert="$p->note->note_wert" :stufe="$p->note->note_stufe" variante="badge" />
                 </a>
             @else
                 <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}"

@@ -31,20 +31,23 @@ final readonly class Grund
     public function text(): string
     {
         $z = fn (float $x) => number_format($x, 1, ',', '');
+        $werte = ['name' => $this->name, 'wert' => $z($this->wert), 'grenze' => $z($this->grenze),
+            'anzahl' => (string) (int) $this->wert, 'max' => (string) (int) $this->grenze];
 
-        $text = match ($this->regel) {
-            self::FALLNOTE => ':name :wert liegt unter :grenze',
-            self::UNGENUEGEND => ':name: :anzahl ungenügende Noten, erlaubt sind :max',
-            self::MINUSPUNKTE => ':name: :wert Minuspunkte, erlaubt sind :grenze',
-        };
-        $ersatz = [':name' => $this->name, ':wert' => $z($this->wert), ':grenze' => $z($this->grenze),
-            ':anzahl' => (string) (int) $this->wert, ':max' => (string) (int) $this->grenze];
-
-        if (function_exists('app') && app()->bound('translator')) {
-            return __($text, array_combine(array_map(fn ($k) => ltrim($k, ':'), array_keys($ersatz)), $ersatz));
+        // Rechenkern-Tests laufen ohne Laravel-App: dort der deutsche Text mit eingesetzten Werten.
+        if (! function_exists('app') || ! app()->bound('translator')) {
+            return strtr(match ($this->regel) {
+                self::FALLNOTE => ':name :wert liegt unter :grenze',
+                self::UNGENUEGEND => ':name: :anzahl ungenügende Noten, erlaubt sind :max',
+                self::MINUSPUNKTE => ':name: :wert Minuspunkte, erlaubt sind :grenze',
+            }, array_combine(array_map(fn ($k) => ':'.$k, array_keys($werte)), $werte));
         }
 
-        return strtr($text, $ersatz);
+        return match ($this->regel) {
+            self::FALLNOTE => __(':name :wert liegt unter :grenze', $werte),
+            self::UNGENUEGEND => __(':name: :anzahl ungenügende Noten, erlaubt sind :max', $werte),
+            self::MINUSPUNKTE => __(':name: :wert Minuspunkte, erlaubt sind :grenze', $werte),
+        };
     }
 
     /** @return array<string, mixed> */

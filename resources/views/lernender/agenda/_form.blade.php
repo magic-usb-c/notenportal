@@ -133,7 +133,7 @@
     @if($b?->note)
         <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 flex items-center justify-between gap-3">
             <span class="text-sm text-text">{{ __('Note') }}</span>
-            <x-note :wert="$b->note->note_wert" variante="badge" />
+            <x-note :wert="$b->note->note_wert" :stufe="$b->note->note_stufe" variante="badge" />
         </div>
     @elseif($b)
         <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="inline-flex items-center justify-center h-10 rounded-lg glass-btn text-text text-sm">{{ __('Note eintragen') }}</a>

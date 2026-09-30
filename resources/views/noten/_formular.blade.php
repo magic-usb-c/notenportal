@@ -23,6 +23,8 @@
           'datum' => $datum,
           'gewicht' => $gewicht,
           'wert' => (string) old('note_wert', $note?->note_wert ?? ''),
+          'stufe' => (string) old('note_stufe', $note?->note_stufe ?? ''),
+          'stufen' => collect($bezugOptionen)->flatten(1)->where('skala', 'stufe')->pluck('wert')->values()->all(),
           'semester' => $semesterListe,
           'vorschauUrl' => $vorschauUrl,
           'ersetzt' => $note?->note_id,
@@ -43,13 +45,28 @@
     <input type="hidden" name="fach_id" :value="typ === 'fach' ? id : ''">
     <input type="hidden" name="modul_id" :value="typ === 'modul' ? id : ''">
 
-    <div class="flex flex-col items-center gap-2">
+    <div class="flex flex-col items-center gap-2" x-show="!istStufe">
         <label for="note_wert" class="{{ $label }}">{{ __('Note') }} <span class="text-note-ungenuegend">*</span></label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
-               x-model="wert" :class="klasse(wert)" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
+               x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
                class="h-20 w-36 rounded-xl border-2 border-border-strong/70 bg-input text-center text-4xl font-semibold tabular-nums focus:border-accent focus:outline-hidden focus:ring-0">
         @error('note_wert')<p id="note_wert-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
+
+    <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak>
+        <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }} <span class="text-note-ungenuegend">*</span></legend>
+        <div class="inline-flex rounded-xl border border-border-strong/70 bg-input p-1" role="radiogroup">
+            @foreach(\App\Services\Noten\NoteService::STUFEN as $s)
+                <label class="relative">
+                    <input type="radio" name="note_stufe" value="{{ $s }}" x-model="stufe" :disabled="!istStufe" class="peer sr-only">
+                    <span class="flex h-14 min-w-14 cursor-pointer items-center justify-center rounded-lg px-4 text-2xl font-semibold text-muted transition-colors duration-100 peer-checked:bg-accent peer-checked:text-accent-contrast peer-focus-visible:ring-2 peer-focus-visible:ring-ring">
+                        {{ \App\Support\NotenSkala::stufeKurz($s) }}
+                    </span>
+                </label>
+            @endforeach
+        </div>
+        @error('note_stufe')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+    </fieldset>
 
     <div>
         <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>

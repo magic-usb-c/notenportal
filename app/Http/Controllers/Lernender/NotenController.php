@@ -207,7 +207,7 @@ class NotenController extends Controller
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
-            'note_wert' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
+            ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
@@ -223,6 +223,7 @@ class NotenController extends Controller
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
+            'note_stufe' => $data['note_stufe'],
             'gewichtung_prozent' => $data['gewichtung_prozent'],
             'erfasst_von_benutzer_id' => (int) $user->benutzer_id,
             'aktualisiert_von_benutzer_id' => null,
@@ -298,7 +299,7 @@ class NotenController extends Controller
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel' => ['nullable', 'string', 'max:150'],
             'pruefungsdatum' => ['required', 'date'],
-            'note_wert' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
+            ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
@@ -313,6 +314,7 @@ class NotenController extends Controller
             'titel' => $data['titel'],
             'pruefungsdatum' => $data['pruefungsdatum'],
             'note_wert' => $data['note_wert'],
+            'note_stufe' => $data['note_stufe'],
             'gewichtung_prozent' => $data['gewichtung_prozent'],
             'aktualisiert_von_benutzer_id' => (int) $user->benutzer_id,
         ]);

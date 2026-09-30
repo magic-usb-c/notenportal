@@ -300,6 +300,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('master-data.subjects.edit');
         Route::put('/master-data/subjects/{fach_id}', [StammdatenFaecherController::class, 'update'])
             ->name('master-data.subjects.update');
+        Route::delete('/master-data/subjects/{fach_id}', [StammdatenFaecherController::class, 'destroy'])
+            ->name('master-data.subjects.destroy');
 
         // Stammdaten: Semester
         Route::get('/master-data/semesters', [StammdatenSemesterController::class, 'index'])

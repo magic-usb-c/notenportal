@@ -101,6 +101,8 @@ final class Konfiguration
     {
         self::$ausDb = null;
         Notenbaum\BaumLader::vergessen();
+        // Lehrsemester rechnet mit denselben Semestern und merkt sich Zwischenergebnisse statisch.
+        Lehrsemester::vergessen();
     }
 
     public function semesterFuerDatum(string $datum): ?int

@@ -242,7 +242,11 @@ class DatenauskunftTest extends TestCase
     #[Test]
     public function fehler_beim_zip_bau_fuehrt_zurueck_mit_meldung_statt_500(): void
     {
-        // Eine unlesbare Datei besteht is_file(), lässt aber $zip->close() scheitern.
+        // Eine unlesbare Datei besteht is_file(), lässt aber $zip->close() scheitern. Als root gibt es keine
+        // unlesbare Datei – dort lässt sich der Fehler auf diesem Weg nicht herbeiführen.
+        if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+            $this->markTestSkipped('Als root sind auch Dateien mit Modus 0 lesbar.');
+        }
         Storage::fake('local');
         $user = User::factory()->lernender()->create();
         $pfad = 'lernende/'.$user->lernender->lernender_id.'/dokumente/gesperrt.pdf';

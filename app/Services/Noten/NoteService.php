@@ -320,6 +320,49 @@ class NoteService
      * modul_belegung_id ist hier immer null: die offene Belegung zu finden/anzulegen schreibt (siehe
      * normalizeForSave), eine reine Prüfung darf das nicht.
      */
+    /** Stufen für Fächer mit Skala «stufe» (Sport): A/B/C, d = dispensiert. Werden erfasst, nie gerechnet. */
+    public const array STUFEN = ['A', 'B', 'C', 'd'];
+
+    /**
+     * Validierungsregeln für den Wert einer Note, gleich für alle Rollen. Ob Zahl oder Stufe verlangt ist,
+     * entscheidet pruefeZeile() anhand der Skala des Fachs.
+     *
+     * @return array<string, list<string>>
+     */
+    public static function wertRegeln(): array
+    {
+        return [
+            'note_wert' => ['nullable', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
+            'note_stufe' => ['nullable', 'string', 'in:'.implode(',', self::STUFEN)],
+        ];
+    }
+
+    /**
+     * Zahl oder Stufe je nach Skala des Fachs; genau eines von beiden ist gesetzt.
+     *
+     * @return array{note_wert: mixed, note_stufe: ?string}
+     */
+    private function wertFuer(array $data, ?int $fachId): array
+    {
+        $skala = $fachId !== null ? DB::table('faecher')->where('fach_id', $fachId)->value('skala') : null;
+
+        if ($skala === 'stufe') {
+            $stufe = $data['note_stufe'] ?? null;
+            if (! in_array($stufe, self::STUFEN, true)) {
+                throw ValidationException::withMessages(['note_stufe' => __('Bitte eine Stufe wählen.')]);
+            }
+
+            return ['note_wert' => null, 'note_stufe' => $stufe];
+        }
+
+        $wert = $data['note_wert'] ?? null;
+        if ($wert === null || $wert === '' || ! is_numeric($wert)) {
+            throw ValidationException::withMessages(['note_wert' => __('Bitte eine Note zwischen 1 und 6 eingeben.')]);
+        }
+
+        return ['note_wert' => $wert, 'note_stufe' => null];
+    }
+
     public function pruefeZeile(array $data, int $lernenderId): array
     {
         if (! $this->batch) {
@@ -380,7 +423,7 @@ class NoteService
                 'modul_belegung_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
-                'note_wert' => $data['note_wert'],
+                ...$this->wertFuer($data, $fachId),
                 'gewichtung_prozent' => (float) $gewicht,
             ];
         }
@@ -403,7 +446,7 @@ class NoteService
                 'modul_belegung_id' => null,
                 'titel' => $data['titel'] ?? null,
                 'pruefungsdatum' => $date,
-                'note_wert' => $data['note_wert'],
+                ...$this->wertFuer($data, null),
                 'gewichtung_prozent' => (float) $gewicht,
             ];
         }
@@ -582,8 +625,10 @@ class NoteService
         foreach ($optionen['module'] as $m) {
             $gruppen[$namen[$m->kategorie_id] ?? 'Module'][] = ['wert' => 'modul:'.$m->modul_id, 'label' => trim($m->modul_nummer.' '.$m->titel)];
         }
+        $stufen = DB::table('faecher')->where('skala', 'stufe')->pluck('fach_id')->map(fn ($id) => (int) $id)->all();
         foreach ($optionen['faecher'] as $f) {
-            $gruppen[$namen[$f->kategorie_id] ?? 'Fächer'][] = ['wert' => 'fach:'.$f->fach_id, 'label' => $f->name];
+            $gruppen[$namen[$f->kategorie_id] ?? 'Fächer'][] = ['wert' => 'fach:'.$f->fach_id, 'label' => $f->name,
+                'skala' => in_array((int) $f->fach_id, $stufen, true) ? 'stufe' : 'note'];
         }
 
         $reihenfolge = Kategorie::query()->orderBy('sortierung')->pluck('name')->all();
