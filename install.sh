@@ -6,6 +6,7 @@
 #   sudo ./install.sh --port 8082 --db notenportal_i2   zweite Instanz neben einer bestehenden (nur HTTP)
 # Optionen: --host <Name|IP>  --admin-mail <adresse>  --ohne-https  --https-port <n>
 #           --ohne-firewall  --neues-admin-passwort
+#   sudo ./install.sh --pruefen                          nur nachsehen, warum das Portal mit 500 antwortet
 #   sudo ./install.sh --entfernen                       alles wieder abräumen (mit Sicherung und Rückfrage)
 # Erneut ausführen = Update (Pakete, Abhängigkeiten, Build, Migrationen); .env, Webserver-Konfiguration und Konten bleiben.
 set -euo pipefail
@@ -21,11 +22,13 @@ FIREWALL=1
 ADMIN_OPTION=""
 ADMIN_MAIL=""
 ENTFERNEN=0
+PRUEFEN=0
 RUECKFRAGE=1
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --entfernen) ENTFERNEN=1; shift ;;
+        --pruefen) PRUEFEN=1; shift ;;
         --ohne-rueckfrage) RUECKFRAGE=0; shift ;;
         --port) PORT="$2"; shift 2 ;;
         --db) DB="$2"; shift 2 ;;
@@ -36,7 +39,7 @@ while [[ $# -gt 0 ]]; do
         --ohne-https) HTTPS=0; shift ;;
         --ohne-firewall) FIREWALL=0; shift ;;
         --neues-admin-passwort) ADMIN_OPTION="--zuruecksetzen"; shift ;;
-        -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
         *) echo "Unbekannte Option: $1 (siehe --help)"; exit 1 ;;
     esac
 done
@@ -76,6 +79,47 @@ schritt() { printf '\n\033[1;34m▸ %s\033[0m\n' "$*"; }
 # gehört es damit der Gruppe www-data – sonst legt der Installer Dateien an, die der Webserver
 # später nicht mehr überschreiben kann.
 als() { sudo -u "$BESITZER" -H bash -c "umask 002; cd '$VERZ' && $*"; }
+
+# Eine Sonde, die die Anwendung wie eine Webanfrage startet, dabei aber Laravels Fehlerseite durch
+# eine ersetzt, die die Ausnahme im Klartext ausgibt. Ohne das ersetzt Laravel eine Ausnahme durch
+# seine eigene Fehlerseite, scheitert dabei ein zweites Mal und protokolliert nur noch die
+# Folgemeldung «A facade root has not been set» – die Ursache bleibt unsichtbar.
+# Gelingt der Start, kommt die Anmeldeseite; misslingt er, kommt Klasse, Meldung, Datei und Zeile.
+schreibe_sonde() {
+    cat > "$1" <<'SONDENENDE'
+<?php
+$wurzel = getenv('NP_WURZEL') ?: dirname(__DIR__);
+require $wurzel . '/vendor/autoload.php';
+$app = require_once $wurzel . '/bootstrap/app.php';
+$app->singleton(Illuminate\Contracts\Debug\ExceptionHandler::class, function () {
+    return new class implements Illuminate\Contracts\Debug\ExceptionHandler {
+        public function report(Throwable $e): void {}
+        public function shouldReport(Throwable $e): bool { return false; }
+        public function renderForConsole($output, Throwable $e): void {}
+        public function render($request, Throwable $e)
+        {
+            $text = "SONDE-FEHLER\n";
+            for ($f = $e; $f !== null; $f = $f->getPrevious()) {
+                $text .= get_class($f) . ': ' . $f->getMessage() . "\n";
+                $text .= '  in ' . $f->getFile() . ':' . $f->getLine() . "\n";
+                foreach (array_slice($f->getTrace(), 0, 8) as $s) {
+                    $text .= '    ' . ($s['file'] ?? '?') . ':' . ($s['line'] ?? '?')
+                          . '  ' . ($s['class'] ?? '') . ($s['type'] ?? '') . ($s['function'] ?? '') . "\n";
+                }
+                $text .= "\n";
+            }
+            return new Symfony\Component\HttpFoundation\Response(
+                $text, 500, ['Content-Type' => 'text/plain; charset=utf-8']
+            );
+        }
+    };
+});
+$app->handleRequest(Illuminate\Http\Request::createFromBase(
+    Symfony\Component\HttpFoundation\Request::create('/login', 'GET', [], $_COOKIE ?? [], [], $_SERVER)
+));
+SONDENENDE
+    chmod 644 "$1"
+}
 
 # Rechte so setzen, dass $BESITZER arbeiten und www-data lesen und in storage/ schreiben kann.
 # Wird zweimal aufgerufen: einmal vor den artisan-Läufen, damit deren Dateien richtig entstehen,
@@ -173,6 +217,54 @@ SQL
     printf '\n\033[1;32m✔ Abgeräumt.\033[0m Neu aufsetzen mit: sudo ./install.sh\n'
     echo "  Die Sicherung der Datenbank liegt unter /root/ – erst löschen, wenn sie nicht mehr gebraucht wird."
     echo "  Soll auch das Verzeichnis weg: cd .. && sudo rm -rf \"$VERZ\""
+    exit 0
+fi
+
+# Nur nachsehen, nichts verändern: startet die Anwendung einmal auf der Kommandozeile und einmal
+# durch Apache und zeigt die Ausnahme im Klartext. Dauert Sekunden – im Gegensatz zu einer
+# vollständigen Neuinstallation, die an einem Fehler im Webserver ohnehin nichts ändert.
+if (( PRUEFEN )); then
+    [[ -f "$VERZ/.env" && -d "$VERZ/vendor" ]] || { echo "Keine Installation in $VERZ – erst sudo ./install.sh"; exit 1; }
+    P_URL="$({ grep -E '^APP_URL=' "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"')"
+    P_HOST="${P_URL#*://}"; P_HOST="${P_HOST%%/*}"
+    P_PORT="${P_HOST##*:}"; [[ "$P_PORT" != "$P_HOST" ]] || P_PORT=443
+    P_HOST="${P_HOST%%:*}"
+
+    schritt "1. Kommandozeile (als www-data, mit der php.ini von Apache)"
+    APACHE_INI="$(dirname "$(ls -d /etc/php/*/apache2/conf.d 2>/dev/null | tail -n 1)" 2>/dev/null || true)"
+    P_DATEI="$(mktemp /tmp/notenportal-pruefung-XXXXXX.php)"
+    schreibe_sonde "$P_DATEI"
+    P_CLI="$(sudo -u www-data env "NP_WURZEL=$VERZ" php ${APACHE_INI:+-c "$APACHE_INI"} \
+        -d display_errors=1 -d error_reporting=-1 "$P_DATEI" 2>&1 || true)"
+    rm -f "$P_DATEI"
+    if [[ "$P_CLI" == *"<!DOCTYPE"* && "$P_CLI" != *"SONDE-FEHLER"* ]]; then
+        echo "  Die Anwendung startet – die Anmeldeseite wird gerendert."
+    else
+        echo "$P_CLI" | grep -av 'facade root' | head -n 20 | sed 's/^/  /'
+    fi
+
+    schritt "2. Durch Apache hindurch"
+    SONDE="np-diagnose-$(openssl rand -hex 8).php"
+    trap 'rm -f "$VERZ/public/$SONDE"' EXIT
+    schreibe_sonde "$VERZ/public/$SONDE"
+    chown "$BESITZER":www-data "$VERZ/public/$SONDE" 2>/dev/null || true
+    P_WEB="$(curl -sk --max-time 30 --resolve "$P_HOST:$P_PORT:127.0.0.1" \
+        "https://$P_HOST:$P_PORT/$SONDE" 2>&1 || true)"
+    rm -f "$VERZ/public/$SONDE"; trap - EXIT
+    if [[ "$P_WEB" == *"<!DOCTYPE"* && "$P_WEB" != *"SONDE-FEHLER"* ]]; then
+        echo "  Die Anwendung startet auch durch Apache – der 500 kommt von woanders."
+    elif [[ -z "$P_WEB" ]]; then
+        echo "  Keine Antwort von https://$P_HOST:$P_PORT – Apache prüfen."
+    else
+        echo "$P_WEB" | grep -av 'facade root' | head -n 24 | sed 's/^/  /'
+    fi
+
+    schritt "3. Umgebung"
+    echo "  PHP Kommandozeile : $(php -r 'echo PHP_VERSION;')"
+    echo "  PHP unter Apache  : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo PHP_VERSION;' 2>/dev/null || echo '?')"
+    echo "  Apache-PHP-Modul  : $(apachectl -M 2>/dev/null | grep -o 'php[0-9_]*module' | head -1 || echo '?')"
+    echo "  opcache (Apache)  : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo ini_get("opcache.enable") ? "an" : "aus";' 2>/dev/null || echo '?')"
+    echo "  JIT (Apache)      : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo ini_get("opcache.jit") ?: "nicht gesetzt";' 2>/dev/null || echo '?')"
     exit 0
 fi
 
@@ -610,21 +702,16 @@ schritt "Selbstprüfung"
 APACHE_INI="$(dirname "$(ls -d /etc/php/*/apache2/conf.d 2>/dev/null | tail -n 1)" 2>/dev/null || true)"
 if [[ -d "$APACHE_INI" ]]; then
     PRUEFDATEI="$(mktemp /tmp/notenportal-webpruefung-XXXXXX.php)"
-    {
-        echo '<?php'
-        printf '$_SERVER["HTTP_HOST"] = %s;\n' "\"$HOST\""
-        echo '$_SERVER["REQUEST_METHOD"] = "GET";'
-        echo '$_SERVER["REQUEST_URI"] = "/login";'
-        echo '$_SERVER["SCRIPT_NAME"] = "/index.php";'
-        printf 'require %s;\n' "\"$VERZ/public/index.php\""
-    } > "$PRUEFDATEI"
-    chmod 644 "$PRUEFDATEI"
-    WEB_AUSGABE="$(sudo -u www-data php -c "$APACHE_INI" -d display_errors=1 -d error_reporting=-1 \
-        "$PRUEFDATEI" 2>&1 || true)"
+    schreibe_sonde "$PRUEFDATEI"
+    WEB_AUSGABE="$(sudo -u www-data env "NP_WURZEL=$VERZ" php -c "$APACHE_INI" \
+        -d display_errors=1 -d error_reporting=-1 "$PRUEFDATEI" 2>&1 || true)"
     rm -f "$PRUEFDATEI"
-    if [[ "$WEB_AUSGABE" == *"Fatal error"* || "$WEB_AUSGABE" == *"Uncaught"* || "$WEB_AUSGABE" != *"<!DOCTYPE"* ]]; then
+    # Auch die eigene Fehlerseite gilt als Fehlschlag: sie ist gültiges HTML und käme sonst als
+    # Erfolg durch, obwohl die Anwendung in Wahrheit mit einer Ausnahme geantwortet hat.
+    if [[ "$WEB_AUSGABE" == *"SONDE-FEHLER"* || "$WEB_AUSGABE" == *"Fatal error"* \
+       || "$WEB_AUSGABE" == *"Uncaught"* || "$WEB_AUSGABE" != *"<!DOCTYPE"* ]]; then
         printf '\n\033[1;31m✖ Die Anwendung startet unter dem Webserver-Benutzer nicht.\033[0m\n'
-        echo "$WEB_AUSGABE" | grep -av 'facade root' | head -n 15 | sed 's/^/  /'
+        echo "$WEB_AUSGABE" | grep -av 'facade root' | head -n 18 | sed 's/^/  /'
         echo "  PHP unter Apache: $(php -c "$APACHE_INI" -r 'echo PHP_VERSION;' 2>/dev/null || echo '?'), Kommandozeile: $(php -r 'echo PHP_VERSION;')"
         echo "  Sauber neu beginnen: sudo ./install.sh --entfernen && sudo ./install.sh"
         exit 1
@@ -673,28 +760,38 @@ if [[ "$STATUS" != "200" ]]; then
                 [[ -n "$URSACHE" ]] || continue
                 echo "  --- $LOGDATEI"; echo "$URSACHE" | sed 's/^/  /'; GEFUNDEN=1
             done
-            if (( ! GEFUNDEN )); then
-                # Im Protokoll steht nur die Hülle. Also den Webeinstieg auf der Kommandozeile
-                # nachspielen – mit der php.ini von Apache, damit Speicherlimit und Erweiterungen
-                # dieselben sind. Dort erscheint die ursprüngliche Meldung ungefiltert.
-                APACHE_INI="$(dirname "$(ls -d /etc/php/*/apache2/conf.d 2>/dev/null | tail -n 1)" 2>/dev/null || true)"
-                if [[ -d "$APACHE_INI" ]]; then
-                    PRUEFDATEI="$(mktemp /tmp/notenportal-webpruefung-XXXXXX.php)"
-                    {
-                        echo '<?php'
-                        printf '$_SERVER["HTTP_HOST"] = %s;\n' "\"$HOST\""
-                        echo '$_SERVER["REQUEST_METHOD"] = "GET";'
-                        echo '$_SERVER["REQUEST_URI"] = "/login";'
-                        echo '$_SERVER["SCRIPT_NAME"] = "/index.php";'
-                        printf 'require %s;\n' "\"$VERZ/public/index.php\""
-                    } > "$PRUEFDATEI"
-                    chmod 644 "$PRUEFDATEI"
-                    echo "  Gegenprobe über den Webeinstieg mit den Apache-Werten:"
-                    sudo -u www-data php -c "$APACHE_INI" -d display_errors=1 -d error_reporting=-1 \
-                        "$PRUEFDATEI" 2>&1 | grep -av 'facade root' | head -n 15 | sed 's/^/  /' || true
-                    rm -f "$PRUEFDATEI"
-                fi
+            (( GEFUNDEN )) || echo "  Im Protokoll steht nur die Hülle."
+            # Läuft die Anwendung auf der Kommandozeile, aber nicht durch Apache, hilft kein
+            # Protokoll weiter: Laravel ersetzt die ursprüngliche Ausnahme durch seine eigene
+            # Fehlerseite und scheitert dabei ein zweites Mal. Also eine Sonde in public/ legen,
+            # die Laravels Fehlerbehandlung durch eine ersetzt, die die Ausnahme im Klartext
+            # ausgibt – und sie über genau den Weg abrufen, der eben mit 500 geantwortet hat.
+            SONDE="np-diagnose-$(openssl rand -hex 8).php"
+            aufraeumen_sonde() { rm -f "$VERZ/public/$SONDE"; }
+            trap aufraeumen_sonde EXIT
+            schreibe_sonde "$VERZ/public/$SONDE"
+            chown "$BESITZER":www-data "$VERZ/public/$SONDE" 2>/dev/null || true
+            echo "  Ausnahme im Klartext, abgerufen durch Apache:"
+            if (( HTTPS )); then
+                SONDEN_AUSGABE="$(curl -s --max-time 30 --cacert "$SSL_VERZ/ca.crt" \
+                    --resolve "$HOST:$HTTPS_PORT:127.0.0.1" "https://$HOST$HTTPS_SUFFIX/$SONDE" 2>&1 || true)"
+            else
+                SONDEN_AUSGABE="$(curl -s --max-time 30 "http://127.0.0.1:$PORT/$SONDE" -H "Host: $HOST" 2>&1 || true)"
             fi
+            aufraeumen_sonde
+            trap - EXIT
+            if [[ -n "$SONDEN_AUSGABE" ]]; then
+                echo "$SONDEN_AUSGABE" | head -n 24 | sed 's/^/  /'
+            else
+                echo "  (keine Ausgabe – der Fehler tritt auf, bevor die Anwendung überhaupt startet)"
+            fi
+            # Die Anwendung läuft auf der Kommandozeile, aber nicht unter Apache: dann liegt es an
+            # dem, was nur Apache mitbringt. Häufigster Fall auf einer frischen PHP-Fassung: opcache.
+            echo
+            echo "  Läuft sie auf der Kommandozeile und nur unter Apache nicht, zuerst opcache ausschliessen:"
+            echo "    echo 'opcache.enable=0' | sudo tee /etc/php/$PHP_ZWEIG/apache2/conf.d/99-ohne-opcache.ini"
+            echo "    sudo systemctl restart apache2   # danach erneut aufrufen"
+            echo "  Antwortet das Portal dann mit 200, ist es opcache – Datei behalten und hier melden."
             echo "  Ergänzend: tail -30 $VERZ/storage/logs/laravel-*.log"
             ;;
         000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
