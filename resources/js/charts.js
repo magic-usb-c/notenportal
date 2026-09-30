@@ -172,8 +172,8 @@ const linienPunkte = (chart) => {
     return punkte;
 };
 
-// Text-Label neben einer Schwellenlinie (z. B. «genügend 4.0»): links oberhalb, sonst die erste Ecke,
-// an der keine Datenlinie durch den Text läuft (vorher lag es auf den ersten Punkten, wenn diese nahe der Schwelle lagen)
+// Text-Label neben einer Schwellenlinie (z. B. «genügend 4.0»): links oberhalb, sonst die erste Stelle (Ecken, dann
+// entlang der Linie), an der keine Datenlinie durch den Text läuft; ist keine frei, die mit den wenigsten Punkten darunter
 const schwellenLabelPlugin = {
     id: 'npSchwellenLabel',
     afterDatasetsDraw(chart) {
@@ -187,14 +187,18 @@ const schwellenLabelPlugin = {
             const breite = ctx.measureText(ds.npSchwelleLabel).width;
             const hoehe = 12;
             const daten = linienPunkte(chart);
-            const kandidaten = [
-                { x: chartArea.left + 2, y: punkt.y - 3 - hoehe },
-                { x: chartArea.left + 2, y: punkt.y + 3 },
-                { x: chartArea.right - 2 - breite, y: punkt.y - 3 - hoehe },
-                { x: chartArea.right - 2 - breite, y: punkt.y + 3 },
-            ].filter((k) => k.y >= chartArea.top && k.y + hoehe <= chartArea.bottom);
-            const frei = kandidaten.find((k) => !daten.some(([x, y]) => x > k.x - 5 && x < k.x + breite + 5 && y > k.y - 5 && y < k.y + hoehe + 5));
-            const ort = frei ?? kandidaten[0] ?? { x: chartArea.left + 2, y: punkt.y - 3 - hoehe };
+            // Ecken zuerst, dann Zwischenstellen entlang der Linie; je Stelle oberhalb und unterhalb
+            const links = chartArea.left + 2;
+            const rechts = chartArea.right - 2 - breite;
+            const stellen = [links, rechts, ...[0.25, 0.5, 0.75].map((f) => links + (rechts - links) * f)];
+            const kandidaten = stellen
+                .flatMap((x) => [{ x, y: punkt.y - 3 - hoehe }, { x, y: punkt.y + 3 }])
+                .filter((k) => k.y >= chartArea.top && k.y + hoehe <= chartArea.bottom);
+            const ueberdeckt = (k) => daten.filter(([x, y]) => x > k.x - 5 && x < k.x + breite + 5 && y > k.y - 5 && y < k.y + hoehe + 5).length;
+            // Kein freier Platz: die Stelle mit den wenigsten verdeckten Punkten statt blind der ersten
+            const ort = kandidaten.find((k) => ueberdeckt(k) === 0)
+                ?? kandidaten.reduce((best, k) => (best === null || ueberdeckt(k) < ueberdeckt(best) ? k : best), null)
+                ?? { x: links, y: punkt.y - 3 - hoehe };
             ctx.fillStyle = tokenFarbe('--muted');
             ctx.textBaseline = 'top';
             ctx.textAlign = 'left';

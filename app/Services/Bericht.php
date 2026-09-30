@@ -143,8 +143,10 @@ final class Bericht
         for ($b = 10; $b <= 60; $b += 5) {
             $buckets[number_format($b / 10, 1)] = 0;
         }
+        // Klasse = Untergrenze [x, x+0.5): so färbt das Diagramm (charts.js histogramm). Mit round() fiel 3.8
+        // (Rundung 0.1) in die Klasse 4.0 und stand im genügenden Bereich. 1e-9 fängt 4.0 als 3.9999… ab.
         foreach ($alle as $note) {
-            $buckets[number_format(round($note * 2) / 2, 1)]++;
+            $buckets[number_format(floor($note * 2 + 1e-9) / 2, 1)]++;
         }
 
         $gesamt = $zeilen->pluck('gesamt')->filter(fn ($v) => $v !== null)->values()->all();

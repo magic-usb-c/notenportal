@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Admin;
 
 use App\Models\Fach;
+use App\Models\Kategorie;
 use App\Models\Note;
 use App\Models\User;
 use App\Services\Bericht;
@@ -67,6 +68,25 @@ class BerichtTest extends TestCase
             ->get(route('admin.reports.grades', ['semester' => 'alle']))
             ->assertOk()
             ->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
+    }
+
+    /**
+     * Das Histogramm färbt jede Klasse nach ihrer Untergrenze (charts.js). Mit Rundung 0.1 fiel 3.8 vorher per
+     * round() in die Klasse 4.0 und stand damit neutral im genügenden Bereich, obwohl das Fazit sie als ungenügend zählt.
+     */
+    #[Test]
+    public function histogramm_legt_eine_zeugnisnote_in_die_klasse_ihrer_untergrenze(): void
+    {
+        $lernender = User::factory()->lernender()->create()->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 3.8]);
+        Kategorie::query()->whereKey($note->fach->kategorie_id)->update(['rundung_element' => 0.1]);
+
+        $verteilung = app(Bericht::class)->noten(['semester_id' => null, 'lehrberuf_id' => null, 'berufsbildner_id' => null])['verteilung'];
+        $klassen = array_combine($verteilung['labels'], $verteilung['werte']);
+
+        $this->assertSame(1, $klassen['3.5']);
+        $this->assertSame(0, $klassen['4.0']);
+        $this->assertSame(10, count($klassen) - 1, 'Klassen 1.0 bis 6.0 in Halbnotenschritten');
     }
 
     #[Test]

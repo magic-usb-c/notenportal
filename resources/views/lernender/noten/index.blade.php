@@ -98,6 +98,9 @@
 
             {{-- Zeugnisübersicht --}}
             <x-karte titel="{{ __('Zeugnisnoten über die Lehrzeit') }}" :polster="false" x-show="ansicht === 'alle'" x-cloak>
+                @if($heatmap['gruppen'])
+                    <div class="px-5 pb-2 pt-1"><x-noten-legende art="zellen" /></div>
+                @endif
                 <x-heatmap :daten="$heatmap" />
             </x-karte>
 

@@ -34,7 +34,7 @@
         {{-- Zeugnisnoten --}}
         <x-karte :titel="__('Zeugnisnoten')" :polster="false" class="flex-1">
             @if($heatmap['gruppen'])
-                <div class="px-5 pb-2 pt-1"><x-noten-legende /></div>
+                <div class="px-5 pb-2 pt-1"><x-noten-legende art="zellen" /></div>
             @endif
             <x-heatmap :daten="$heatmap" />
         </x-karte>
