@@ -1,14 +1,16 @@
 <x-einrichtung schritt="categories" :stand="$stand" :titel="__('Kategorien')">
     @php
-        $feld = 'h-10 rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
+        $feld = 'h-10 rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring tabular-nums @max-5xl:w-full';
+        // Ab 64rem Container eine Tabelle, darunter je Kategorie eine Karte mit sichtbaren Feldnamen
+        $feldname = 'hidden @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium @max-5xl:text-muted';
     @endphp
     <form method="POST" action="{{ route('admin.setup.categories') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="rounded-2xl border border-border bg-card overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-text">
-                    <thead class="text-xs text-muted">
+            <div class="@container overflow-x-auto">
+                <table class="min-w-full text-sm text-text @max-5xl:block">
+                    <thead class="text-xs text-muted @max-5xl:hidden">
                         <tr class="border-b border-border">
                             <th class="text-left px-4 py-3 font-medium">{{ __('Kategorie') }}</th>
                             <th class="px-2 py-3 font-medium">{{ __('Aktiv') }}</th>
@@ -20,19 +22,20 @@
                             <th class="px-4 py-3 font-medium whitespace-nowrap">{{ __('max. Minuspunkte') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border">
+                    <tbody class="divide-y divide-border @max-5xl:block">
                         @foreach($kategorien as $k)
                             @php
                                 $id = $k->kategorie_id;
                                 $alt = fn (string $f) => old('kategorien.'.$id.'.'.$f, $k->$f);
                                 $name = fn (string $f) => 'kategorien['.$id.']['.$f.']';
                             @endphp
-                            <tr>
-                                <td class="px-4 py-2">
-                                    <label for="k{{ $id }}-name" class="sr-only">{{ __('Name :code', ['code' => $k->code]) }}</label>
+                            <tr class="@max-5xl:grid @max-5xl:grid-cols-2 @max-5xl:gap-x-3 @max-5xl:gap-y-3 @max-5xl:p-4 @md:@max-5xl:grid-cols-3">
+                                <td class="px-4 py-2 @max-5xl:col-span-full @max-5xl:p-0 @md:@max-5xl:col-span-2">
+                                    <label for="k{{ $id }}-name" class="sr-only @max-5xl:not-sr-only @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium @max-5xl:text-muted">{{ __('Name') }}<span class="sr-only"> {{ $k->code }}</span></label>
                                     <input id="k{{ $id }}-name" name="{{ $name('name') }}" value="{{ $alt('name') }}" required maxlength="50" class="{{ $feld }} w-40">
                                 </td>
-                                <td class="px-2 py-2 text-center">
+                                <td class="px-2 py-2 text-center @max-5xl:p-0 @max-5xl:text-left">
+                                    <span class="{{ $feldname }}" aria-hidden="true">{{ __('Aktiv') }}</span>
                                     <input type="hidden" name="{{ $name('aktiv') }}" value="0">
                                     <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer">
                                         <input type="checkbox" name="{{ $name('aktiv') }}" value="1" @checked($alt('aktiv')) aria-label="{{ $k->name }} {{ __('aktiv') }}"
@@ -40,7 +43,8 @@
                                     </label>
                                 </td>
                                 @foreach(['rundung_element', 'rundung_schnitt'] as $f)
-                                    <td class="px-2 py-2">
+                                    <td class="px-2 py-2 @max-5xl:p-0">
+                                        <span class="{{ $feldname }}" aria-hidden="true">{{ $f === 'rundung_element' ? __('Rundung Note') : __('Rundung Schnitt') }}</span>
                                         <select name="{{ $name($f) }}" aria-label="{{ $k->name }} {{ $f === 'rundung_element' ? __('Rundung Note') : __('Rundung Schnitt') }}" class="{{ $feld }} w-24">
                                             @foreach(\App\Support\KategorieRegeln::RUNDUNGEN as $r)
                                                 <option value="{{ $r }}" @selected(abs((float) $alt($f) - (float) $r) < 0.0001)>{{ $r }}</option>
@@ -48,10 +52,10 @@
                                         </select>
                                     </td>
                                 @endforeach
-                                <td class="px-2 py-2"><input type="number" name="{{ $name('gewicht_gesamt') }}" value="{{ $alt('gewicht_gesamt') }}" min="0" step="0.1" required aria-label="{{ $k->name }} {{ __('Gewicht') }}" class="{{ $feld }} w-20"></td>
-                                <td class="px-2 py-2"><input type="number" name="{{ $name('promotion_min_schnitt') }}" value="{{ $alt('promotion_min_schnitt') }}" min="1" max="6" step="0.1" placeholder="–" aria-label="{{ $k->name }} {{ __('Promotion Ø min.') }}" class="{{ $feld }} w-20"></td>
-                                <td class="px-2 py-2"><input type="number" name="{{ $name('promotion_max_ungenuegend') }}" value="{{ $alt('promotion_max_ungenuegend') }}" min="0" max="20" step="1" placeholder="–" aria-label="{{ $k->name }} {{ __('max. ungenügend') }}" class="{{ $feld }} w-20"></td>
-                                <td class="px-4 py-2"><input type="number" name="{{ $name('promotion_max_minuspunkte') }}" value="{{ $alt('promotion_max_minuspunkte') }}" min="0" max="20" step="0.5" placeholder="–" aria-label="{{ $k->name }} {{ __('max. Minuspunkte') }}" class="{{ $feld }} w-20"></td>
+                                <td class="px-2 py-2 @max-5xl:p-0"><span class="{{ $feldname }}" aria-hidden="true">{{ __('Gewicht Gesamt') }}</span><input type="number" name="{{ $name('gewicht_gesamt') }}" value="{{ $alt('gewicht_gesamt') }}" min="0" step="0.1" required aria-label="{{ $k->name }} {{ __('Gewicht') }}" class="{{ $feld }} w-20"></td>
+                                <td class="px-2 py-2 @max-5xl:p-0"><span class="{{ $feldname }}" aria-hidden="true">{{ __('Promotion Ø min.') }}</span><input type="number" name="{{ $name('promotion_min_schnitt') }}" value="{{ $alt('promotion_min_schnitt') }}" min="1" max="6" step="0.1" placeholder="–" aria-label="{{ $k->name }} {{ __('Promotion Ø min.') }}" class="{{ $feld }} w-20"></td>
+                                <td class="px-2 py-2 @max-5xl:p-0"><span class="{{ $feldname }}" aria-hidden="true">{{ __('max. ungenügend') }}</span><input type="number" name="{{ $name('promotion_max_ungenuegend') }}" value="{{ $alt('promotion_max_ungenuegend') }}" min="0" max="20" step="1" placeholder="–" aria-label="{{ $k->name }} {{ __('max. ungenügend') }}" class="{{ $feld }} w-20"></td>
+                                <td class="px-4 py-2 @max-5xl:p-0"><span class="{{ $feldname }}" aria-hidden="true">{{ __('max. Minuspunkte') }}</span><input type="number" name="{{ $name('promotion_max_minuspunkte') }}" value="{{ $alt('promotion_max_minuspunkte') }}" min="0" max="20" step="0.5" placeholder="–" aria-label="{{ $k->name }} {{ __('max. Minuspunkte') }}" class="{{ $feld }} w-20"></td>
                             </tr>
                         @endforeach
                     </tbody>
