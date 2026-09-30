@@ -580,3 +580,21 @@ der Import bevorzugt es; die Download-Route prüft die Katalogspalten und ist ge
 Bewusst gelassen: Der Export schreibt die Modulnummern in der internen Form (`M987`), nicht in der
 rohen Form einer Ernte (`987`). Der Import normalisiert beides gleich
 (`Modulbaukasten::nummerNormalisieren`), ein Umschreiben brächte nur Kosmetik und ein zweites Format.
+
+## Notenbaum und Stammdaten: bewusst gelassen (30.09.2026)
+
+- **LAGE Lücken 3–6** (Track als ENUM statt Bildungsgänge, Unterrichtsbereich, Solldauer, Lektionen):
+  jede davon ist eine Schemaänderung quer durch Noten, Tracks und Einrichtung. Der Notenbaum löst das
+  Rechenproblem ohne sie; umgebaut wird erst mit einem Abnahmetest, der ohne Bildungsgänge nicht geht.
+- **Baumstruktur nur über Export → Datei → Import**: Gewichte, Rundung, Grenzen und «entfällt mit»
+  sind in der Oberfläche editierbar, Knoten anlegen oder verschieben nicht. Ein Baumeditor ist viel
+  Oberfläche für eine Handvoll Bäume pro Betrieb; `BaumVorlage::pruefen()` fängt Fehler in der Datei ab,
+  Positionen wandern über den Code mit.
+- **Rechner simuliert keine Positionen von Hand**: eine fehlende IPA bleibt im Szenario fehlend.
+- **Mittel über Lernende mischen QV-Prognose und flache Gesamtnote** (Übersicht, Bericht nach Lehrjahr):
+  die Gesamtnote einer Person ist mit Baum dessen Wurzel. Ein Mittel über Personen mit und ohne Baum
+  ist gewollt «Gesamtnote», aber nicht dieselbe Rechenart; getrennt ausweisen erst, wenn beides im
+  selben Betrieb vorkommt.
+- **Rundung der Promotions-Schnitte auf Zehntel** (4,25 → 4,3): so seit der Notenlogik vom 10.09.;
+  ob die BMV ungerundet vergleicht, ist nicht an der Primärquelle belegt.
+

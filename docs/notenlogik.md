@@ -26,7 +26,8 @@ Die Kategorie einer Note ist nicht mehr frei wählbar, sie folgt aus dem Fach bz
 ## Skala und «zählt nicht» je Fach
 
 - `faecher.skala`: `note` (1–6) oder `stufe` (A/B/C, d = dispensiert; Sport nach Hausregel gbchur, LAGE §4.5). Stufen stehen in `noten.note_stufe` bei `note_wert` NULL (DB-CHECK: genau eines von beiden), werden angezeigt und **nie gerechnet**.
-- `faecher.zaehlt = 0` (IDAF, Sport): Element bleibt sichtbar, zählt aber in keinem Kategorie-, Semester- oder Gesamtschnitt und in keiner Promotion. Ein Fächerknoten im Notenbaum, der das Fach ausdrücklich nennt, nimmt es trotzdem (Erfahrungsnote IDAF → IDPA).
+- `faecher.zaehlt = 0` (IDAF, Sport): Element bleibt sichtbar, zählt aber in keinem Kategorie-, Semester- oder Gesamtschnitt und in keiner Promotion. Ein Fächerknoten im Notenbaum, der das Fach ausdrücklich nennt, nimmt es trotzdem (Erfahrungsnote IDAF → IDPA). Im Bericht zählen solche Fächer nicht als ungenügend.
+- Notenblatt und CSV-Exporte zeigen Stufen als Stufe (im Notenblatt die zuletzt erfasste je Semester und Fach), nie als Zahl.
 
 ## Notenbaum (QV und Berufsmaturität)
 
@@ -36,10 +37,11 @@ Gewichtete Rechnung bis zur Gesamtnote als Daten, nicht als Code (`docs/auftrag/
 - Knotentypen: **Gruppe** (gewichtetes Mittel der zählenden Kinder), **Kategorie** (Mittel der Zeugnisnoten der zählenden Elemente einer Kategorie, wahlweise nur Module oder nur Fächer), **Fächer** (alle Semesterzeugnisnoten der genannten Fächer gemeinsam), **von Hand** (Position je Lernender: IPA, Schlussarbeit, Abschlussprüfung).
 - Je Knoten: `gewicht`, `rundung` (0.1/0.5/1, leer = ungerundet; eine Gruppe rechnet mit den gerundeten Noten ihrer Kinder), `fallnote` (Note darunter → nicht bestanden), bei Gruppen `max_ungenuegend` und `max_minuspunkte` über die Kinder, `zaehlt`, `entfaellt_mit_track`.
 - Fehlende Teile werden übersprungen und die Gewichte der übrigen hochgerechnet; das Ergebnis heisst dann **Prognose**, der Status bleibt «offen». Vollständig und ohne Grund → «bestanden», sonst «nicht bestanden». Ein Grund auf einer Position von Hand (z. B. IPA unter 4) ist endgültig und macht schon vorher «nicht bestanden».
-- Nicht zählende Teile entscheiden nicht über das Bestehen (ihre Regeln werden nicht geprüft).
+- Nicht zählende Teile entscheiden nicht über das Bestehen (ihre Regeln werden nicht geprüft). Ein Teil mit Gewicht 0 und eine Gruppe ohne zählenden Teil mit Gewicht halten das Ergebnis nicht offen; zählt im ganzen Baum nichts, bleibt er «offen».
+- Die Statusampel übernimmt die Gründe des Baums: endgültige (Position von Hand) rot, Gefährdungen aus Zwischenständen gelb.
 - `entfaellt_mit_track`: Der Teil entfällt für Lernende, deren **zuletzt begonnener** Track dieser ist (z. B. Allgemeinbildung bei BMS); wer aus der BM ins ABU wechselt, hat danach ABU.
 - Mit aktivem Lehrberuf-Baum ist die Gesamtnote in allen Ansichten die Wurzel dieses Baums («QV-Prognose» bzw. «QV-Gesamtnote»); ohne Baum rechnet der Bestand wie bisher. Bildungsgang-Bäume (BM) erscheinen zusätzlich auf der Seite «Abschluss».
-- Vorlagen: `resources/vorlagen/notenbaeume/*.json` (Format `notenportal-notenbaum`, Version 1). Laden, importieren, exportieren und Gewichte anpassen unter Stammdaten → Notenbäume oder `php artisan notenportal:notenbaum liste|laden|import|export`. Die Struktur ändert man über Export → Datei bearbeiten → Import; `BaumVorlage::pruefen()` prüft jede Datei vollständig. Fächer werden per Name im selben Track gefunden oder angelegt.
+- Vorlagen: `resources/vorlagen/notenbaeume/*.json` (Format `notenportal-notenbaum`, Version 1). Laden, importieren, exportieren und Gewichte anpassen unter Stammdaten → Notenbäume oder `php artisan notenportal:notenbaum liste|laden|import|export`. Die Struktur ändert man über Export → Datei bearbeiten → Import; `BaumVorlage::pruefen()` prüft jede Datei vollständig (Typen, Grenzen der Spalten). Wird ein Baum aktiv (Import oder Aktivieren), übernimmt er die Positionen des bisher aktiven Baums über den Knoten-Code (`BaumWechsel`); der bisher aktive Baum ist dabei die Wahrheit. Ein inaktiver Baum lässt sich löschen, sobald er keine Position mehr hält, die der aktive nicht hat. Fächer werden per Name im selben Track gefunden oder angelegt.
 - Der Rechner simuliert Noten, nicht Positionen von Hand: eine fehlende IPA bleibt im Szenario fehlend.
 
 ## Modulabschluss und offene Gewichtung
