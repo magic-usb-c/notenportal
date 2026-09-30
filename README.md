@@ -64,8 +64,16 @@ sudo ./install.sh --host notenportal.example.ch       Servername im vhost und im
 sudo ./install.sh --ohne-https                        nur HTTP, ohne Zertifikat
 sudo ./install.sh --https-port 8443                   HTTPS auf einem anderen Port
 sudo ./install.sh --ohne-firewall                     keine ufw-Freigabe
+sudo ./install.sh --admin-mail adresse@example.ch     E-Mail des ersten Admin-Kontos
 sudo ./install.sh --neues-admin-passwort              neues Startpasswort, wenn der Zugang weg ist
+sudo ./install.sh --entfernen                         alles wieder abräumen und von vorne beginnen
 ```
+
+`--entfernen` nimmt zurück, was das Skript am System hinterlassen hat: Apache-Sites, Zertifikate,
+Zeitplan, `hosts`-Eintrag, Datenbank und Datenbankkonten sowie `.env`, `vendor/`, `node_modules/`
+und die Zwischenspeicher im Verzeichnis. Die Datenbank wird vorher nach `/root` gesichert, und es
+braucht eine getippte Bestätigung. Läuft auf dem Server noch eine zweite Instanz, bleibt sie
+unberührt. Das Verzeichnis selbst und die installierten Pakete bleiben stehen.
 
 ### Was das Skript erledigt
 
