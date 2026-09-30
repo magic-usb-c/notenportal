@@ -1,5 +1,7 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
+/* Inter mit optischer Grössenachse (opsz 14–32): der Browser wählt sie über font-optical-sizing
+   selbst nach der Schriftgrösse – kleine Grade offener, Titel enger, wie SF Text/SF Display. */
+@import '@fontsource-variable/inter/opsz.css';
 @import './theme.css' layer(base);
 
 @plugin '@tailwindcss/forms';
@@ -11,8 +13,10 @@
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Hauptnavigation als Seitenleiste (Präferenz «navigation», data-navigation auf <html>); wirkt nur mit lg: */
+/* Hauptnavigation als Seitenleiste (Standard) oder als schwebende Tableiste oben (Präferenz «navigation»).
+   `seite:` gilt, solange die Seitenleiste gewählt ist, `oben:` für die Tableiste. */
 @custom-variant seite (&:where([data-navigation='seite'], [data-navigation='seite'] *));
+@custom-variant oben (&:where([data-navigation='oben'], [data-navigation='oben'] *));
 
 /* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
    Wechsel der Variablen (Modus, Theme) auch bei /alpha-Modifiern greift */
@@ -32,24 +36,16 @@
 
   /* Textebenen nach den Human Interface Guidelines (Label, Secondary, Tertiary,
      Quaternary): abgestufter Kontrast derselben Textfarbe statt eigener Werte.
-     `text` und `muted` sind Ebene 1 und 2 (Bestand), `faint` und `ghost`
-     ergänzen Ebene 3 und 4. Abgeleitet per Alpha, damit alle zwölf Themes und
-     beide Modi ohne eigene Werte mitkommen.
-     Diese zwei Ebenen sind ausdrücklich NICHT für lesbaren Text. Gemessen mit
-     ~/tools/kontrast/alpha.mjs: unterhalb von `muted` (5.0:1 im schlechtesten
-     Theme) lässt sich keine Stufe mehr einziehen, die 4.5:1 noch hält und von
-     `muted` unterscheidbar bleibt. Auch bei Apple unterschreiten Tertiary und
-     Quaternary die Textschwelle – WCAG 1.4.3 nimmt inaktive Bedienelemente
-     davon aus. Also: `faint` für inaktive/deaktivierte Bedienelemente, `ghost`
-     für Dekoration ohne Informationswert (Trennpunkte, Wasserzeichen).
-     Platzhalter und Sekundärtext bleiben bei `muted`. */
+     `text` und `muted` sind Ebene 1 und 2, `faint` und `ghost` Ebene 3 und 4 –
+     per Alpha abgeleitet, damit alle Themes ohne eigene Werte mitkommen.
+     `faint` und `ghost` sind NICHT für lesbaren Text (unter 4.5:1; WCAG 1.4.3
+     nimmt inaktive Bedienelemente aus): `faint` für Deaktiviertes, `ghost` für
+     Dekoration ohne Informationswert. Platzhalter und Sekundärtext: `muted`. */
   --color-faint: rgb(var(--text) / 0.45);
   --color-ghost: rgb(var(--text) / 0.25);
 
-  /* Füllebenen (HIG: Fill, Secondary fill, Tertiary fill) für Flächen, die
-     keine Karte sind: Spur eines Fortschrittsbalkens, Segmentgrund, Platzhalter
-     beim Laden. Ebenfalls aus der Textfarbe abgeleitet, damit sie in jedem
-     Theme zur Fläche darunter passt. */
+  /* Füllebenen (HIG: Fill, Secondary fill): Flächen, die keine Karte sind –
+     Spur eines Fortschrittsbalkens, Segmentgrund, Sekundärknopf, Ladeplatzhalter. */
   --color-fill: rgb(var(--text) / 0.08);
   --color-fill-2: rgb(var(--text) / 0.05);
 
@@ -72,64 +68,66 @@
 
 /* Schrift, Typo-Skala, Radien, Motion
    --------------------------------------------------------------------------
-   Die Skala folgt den Text Styles der Apple Human Interface Guidelines
-   (Abschnitt «Specifications», iOS/iPadOS Dynamic Type, Stufe «Large»):
-   Caption 1 12/16 · Footnote 13/18 · Subhead 15/20 · Body 17/22 ·
-   Title 3 20/25 · Title 2 22/28 · Title 1 28/34. Grösse und Zeilenhöhe sind
-   von dort übernommen, die Klassennamen bleiben, damit keine View umgeschrieben
-   werden muss.
-   Zwei bewusste Abweichungen, beide dokumentiert:
-   - `text-base` trägt Apples Body-Grösse (17 px), aber 26 px Zeilenhöhe statt
-     22 px. 17/22 ist auf Apple-Geräten für kurze Zeilen gedacht; im Browser
-     laufen Absätze über die volle Kartenbreite, wo eine engere Zeilenhöhe die
-     Zeilenführung erschwert.
-   - Das Tracking stammt aus Apples macOS-Tabelle (Werte in 1/1000 em), gilt
-     dort aber für SF Pro mit optischen Graden. Inter hat andere Metriken, und
-     Apples positive Werte ab 24 px würden es locker wirken lassen – die
-     negativen Werte bis 22 px sind übernommen, darüber eigene.
+   Die Skala folgt den macOS-Textstilen der Human Interface Guidelines
+   (Typography → Specifications → macOS built-in text styles), denn das Portal
+   ist eine Desktop-Anwendung: Body 13 pt ist die Grundschrift, 10 pt das
+   Minimum. Grösse und Zeilenhöhe sind von dort übernommen; die Klassennamen
+   bleiben die von Tailwind.
+     text-3xs  10/13  Footnote, Caption 1/2
+     text-2xs  11/14  Subheadline
+     text-xs   12/16  Callout
+     text-sm   13/18  Body, Headline (fett) – Grundschrift aller Bedienelemente
+     text-base 15/20  Title 3
+     text-lg   17/22  Title 2
+     text-xl   22/26  Title 1
+     text-2xl  26/32  Large Title
+   Zwei Abweichungen: Body und Callout tragen 18 bzw. 16 px Zeilenhöhe statt 16
+   bzw. 15 – macOS setzt kurze Zeilen, im Browser laufen Absätze über ganze
+   Kartenbreiten. Kein eigenes Tracking: Apples Tabelle gilt für SF Pro; Inter
+   bringt die Sperrung über die optische Grössenachse selbst mit.
+   Alle Werte in rem, damit die persönliche Schriftgrösse alles mitskaliert.
    ========================================================================== */
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-  --text-3xs: 0.6875rem;            /* 11 px Caption 2 – Zähler-Badge, Kalenderzelle, Skalenmarken */
+  --text-3xs: 0.625rem;
   --text-3xs--line-height: 0.8125rem;
-  --text-2xs: 0.75rem;              /* 12 px Caption 1 – Tabellenkopf, Achsen, Meta */
-  --text-2xs--line-height: 1rem;
-  --text-xs: 0.8125rem;             /* 13 px Footnote – Hilfetext, Sekundärzeile */
-  --text-xs--line-height: 1.125rem;
-  --text-xs--letter-spacing: -0.006em;
-  --text-sm: 0.9375rem;             /* 15 px Subhead – UI-Grundschrift */
-  --text-sm--line-height: 1.25rem;
-  --text-sm--letter-spacing: -0.016em;
-  --text-base: 1.0625rem;           /* 17 px Body – Fliesstext, Formulare mobil */
-  --text-base--line-height: 1.625rem;
-  --text-base--letter-spacing: -0.026em;
-  --text-lg: 1.25rem;               /* 20 px Title 3 – Kartentitel gross, Drawer-Titel */
-  --text-lg--line-height: 1.5625rem;
-  --text-lg--letter-spacing: -0.023em;
-  --text-xl: 1.375rem;              /* 22 px Title 2 – Seitentitel (h1) */
-  --text-xl--line-height: 1.75rem;
-  --text-xl--letter-spacing: -0.012em;
-  --text-2xl: 1.75rem;              /* 28 px Title 1 – Kennzahl in Statuszeile */
-  --text-2xl--line-height: 2.125rem;
-  --text-2xl--letter-spacing: -0.01em;
-  --text-display: 3rem;             /* 48 px eine Heldenzahl pro Seite */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.125rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.25rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.375rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.625rem;
+  --text-2xl: 1.625rem;
+  --text-2xl--line-height: 2rem;
+  --text-display: 3rem;             /* eine Heldenzahl pro Seite */
   --text-display--line-height: 1;
-  --text-display--letter-spacing: -0.02em;
-  --text-display--font-weight: 600;
+  --text-display--font-weight: 650;
 
-  /* Übergang bis zum Umbau der Views: Versalien-Sperrung und extrabold gedämpft */
+  /* Versalien-Sperrung und extrabold bleiben gedämpft (Satzschreibung, keine Versalienlabels) */
   --tracking-widest: 0.04em;
   --font-weight-extrabold: 700;
 
-  /* rounded-3xl entfällt: Alias auf 16 px (= rounded-2xl) */
-  --radius-3xl: 1rem;
+  /* Radien nach dem Prinzip konzentrischer Ecken (HIG «Layout»): Knöpfe Kapsel, Felder 8,
+     Zeilen 8, Karten 14, Blätter/Popover 18, schwebende Leisten 22 */
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+  --radius-3xl: 1.375rem;
 
-  --ease-in: cubic-bezier(0.3, 0, 1, 1);
-  --ease-out: cubic-bezier(0.2, 0, 0, 1);
-  --default-transition-duration: 150ms;
-  --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  /* Bewegung: Apples Standardkurve (schneller Anlauf, weiches Auslaufen) */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -146,10 +144,31 @@
   }
 
   html {
-    font-feature-settings: 'cv11';   /* Inter: einstöckiges a, ruhigeres Schriftbild */
+    font-optical-sizing: auto;
     text-rendering: optimizeLegibility;
-    /* Sprungziele (#anker, ?_open=, scrollIntoView) nicht unter der Sticky-Navigation (h-16) */
+    -webkit-text-size-adjust: 100%;
+    /* Sprungziele (#anker, ?_open=, scrollIntoView) nicht unter der Symbolleiste */
     scroll-padding-top: 5rem;
+    /* Dezente Rollbalken wie unter macOS; die Farbe folgt dem Theme */
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--text) / 0.22) transparent;
+  }
+
+  body {
+    background-color: rgb(var(--bg));
+    color: rgb(var(--text));
+    font-size: var(--text-sm);
+    line-height: var(--text-sm--line-height);
+  }
+
+  ::selection {
+    background-color: rgb(var(--accent) / 0.22);
+  }
+
+  /* Tastaturfokus: ein Ring im Akzent, der der Form des Elements folgt (HIG «Focus and selection») */
+  :where(a, button, summary, [role='button'], [role='tab'], [role='menuitem'], [role='option'], [tabindex]):focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
   }
 
   /* Persönliche Schriftgrösse (Profil «Darstellung»): skaliert die ganze rem-Skala */
@@ -201,14 +220,71 @@
 }
 
 /* ==========================================================================
-   Flächen und Glas (Konzept c: G0 Inhalt, G1 Leiste, G2 Overlay, Scrim)
-   Deckung ≥ 0.78, damit Text die Token-Kontraste hält.
+   Seitenwechsel. Dokumentübergreifende View Transitions: die alte Seite bleibt
+   stehen, bis die neue gezeichnet ist, und blendet dann weich über – kein weisser
+   Blitz, keine springende Leiste. Seitenleiste und Tableiste tragen eigene Namen
+   und bleiben dadurch ruhig stehen, nur der Inhalt wechselt. Browser ohne
+   Unterstützung laden wie bisher.
    ========================================================================== */
 
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 180ms;
+  animation-timing-function: var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+html[data-bewegung='reduziert']::view-transition-group(*),
+html[data-bewegung='reduziert']::view-transition-old(*),
+html[data-bewegung='reduziert']::view-transition-new(*) {
+  animation: none;
+}
+
+/* ==========================================================================
+   Materialien. Die Human Interface Guidelines trennen zwei Ebenen: Liquid Glass
+   gehört ausschliesslich der schwebenden Ebene aus Navigation und Bedienelementen
+   (Seitenleiste, Symbolleiste, Tableiste, Menüs, Popover), nie dem Inhalt. Der
+   Inhalt liegt auf festen Flächen (Karte). Glas hier: getönte Fläche aus --card,
+   Weichzeichner mit Sättigung, eine helle Lichtkante oben und ein Haarstrich
+   aussen. Deckung ≥ 0.78, damit Text die Token-Kontraste hält.
+   ========================================================================== */
+
+@utility np-glas {
+  background-color: rgb(var(--card-rgb) / 0.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.6),
+    0 0 0 0.5px rgb(0 0 0 / 0.08),
+    0 8px 28px -8px rgb(0 0 0 / 0.14);
+  @variant dark {
+    background-color: rgb(var(--card-rgb) / 0.78);
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
+      0 0 0 0.5px rgb(0 0 0 / 0.6),
+      0 12px 32px -8px rgb(0 0 0 / 0.5);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: rgb(var(--card));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
+  }
+}
+
 @utility glass-bar {
-  /* G1 Leiste: Hauptnavigation, Sticky-Toolbar */
-  background-color: rgb(var(--card-rgb) / 0.78);
-  backdrop-filter: blur(16px) saturate(140%);
+  /* Bestand: Leiste mit Glas */
+  background-color: rgb(var(--card-rgb) / 0.8);
+  backdrop-filter: blur(24px) saturate(1.8);
   border-bottom: 1px solid rgb(var(--border));
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
@@ -217,18 +293,15 @@
     background-color: rgb(var(--card));
     backdrop-filter: none;
   }
-  /* Menüs und Palette in der Leiste: Mit ihrem backdrop-filter ist die Leiste die Backdrop Root, ein Menü
-     darin zeichnet den Seiteninhalt darunter nicht weich. 88 % Deckkraft über scharfem Text liest sich schlecht. */
   & .glass-overlay {
     background-color: rgb(var(--card));
   }
 }
 
 @utility glass-seitenleiste {
-  /* G1 wie glass-bar, Kante rechts statt unten: Seitenleiste der Hauptnavigation */
-  background-color: rgb(var(--card-rgb) / 0.78);
-  backdrop-filter: blur(16px) saturate(140%);
-  border-right: 1px solid rgb(var(--border));
+  /* Bestand: wie np-glas */
+  background-color: rgb(var(--card-rgb) / 0.8);
+  backdrop-filter: blur(24px) saturate(1.8);
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
   }
@@ -239,11 +312,13 @@
 }
 
 @utility glass-overlay {
-  /* G2 Overlay: Befehlspalette, Menüs, Toasts, Popover */
-  background-color: rgb(var(--card-rgb) / 0.88);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgb(var(--border-strong) / 0.3);
-  box-shadow: var(--elev-2);
+  /* Menüs, Befehlspalette, Toasts, Popover: Glas der schwebenden Ebene mit weichem Schatten */
+  background-color: rgb(var(--card-rgb) / 0.86);
+  backdrop-filter: blur(28px) saturate(1.8);
+  box-shadow: var(--elev-2), inset 0 0.5px 0 rgb(255 255 255 / 0.5);
+  @variant dark {
+    box-shadow: var(--elev-2), inset 0 0.5px 0 rgb(255 255 255 / 0.1);
+  }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
   }
@@ -254,77 +329,553 @@
 }
 
 @utility glass-scrim {
-  /* hinter Drawer und Modal */
-  background-color: rgb(var(--bg-rgb) / 0.6);
-  backdrop-filter: blur(2px);
-}
-
-@utility glass-btn {
-  /* Bestandsklasse = Sekundärbutton: feste Fläche, kräftiger Rand */
-  background-color: rgb(var(--card));
-  border: 1px solid rgb(var(--border-strong) / 0.6);
-  transition-property: background-color, border-color, color;
-  transition-duration: 100ms;
-  transition-timing-function: var(--ease-out);
-  &:hover:not(:disabled) {
-    background-color: rgb(var(--surface-2));
-    border-color: rgb(var(--border-strong));
-  }
-  &:focus-visible {
-    outline: 2px solid rgb(var(--ring));
-    outline-offset: 2px;
-  }
-}
-
-@utility np-btn-primary {
-  /* Primärbutton (mit bg-accent): Text immer accent-contrast, kein Scale, kein Glow */
-  color: rgb(var(--accent-contrast));
-  transition-property: background-color, color, opacity;
-  transition-duration: 100ms;
-  transition-timing-function: var(--ease-out);
-  &:hover:not(:disabled) {
-    background-color: rgb(var(--accent) / 0.9);
-  }
-  &:focus-visible {
-    outline: 2px solid rgb(var(--ring));
-    outline-offset: 2px;
+  /* hinter Blatt (Sheet) und Befehlspalette: dimmt, ohne den Inhalt auszulöschen */
+  background-color: rgb(0 0 0 / 0.18);
+  @variant dark {
+    background-color: rgb(0 0 0 / 0.45);
   }
 }
 
 /* ==========================================================================
-   Scroll-Edge-Effekt (Human Interface Guidelines, «Layout» → Visual hierarchy:
-   «Instead of applying a solid or semi-opaque background color beneath
-   controls, use a scroll edge effect to visually elevate controls above
-   content.») Der Inhalt läuft unter die Leiste und verblasst dort, statt an
-   einer harten Kante abzuschneiden. Kommt auf das Element unter der Leiste;
-   die Leiste selbst bleibt `glass-bar`.
+   Symbolleiste mit Scroll-Edge-Effekt (HIG «Toolbars», «Layout»: «use a scroll
+   edge effect to visually elevate controls above content» statt einer festen
+   Fläche). Die Leiste selbst ist durchsichtig; darunter läuft der Inhalt in
+   einen weichen, zunehmend unscharfen Rand aus. Die Bedienelemente darauf
+   tragen eigenes Glas (np-glas-gruppe).
    ========================================================================== */
 
-@utility np-scroll-edge {
-  position: relative;
+@utility np-symbolleiste {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  isolation: isolate;
   &::before {
     content: '';
     position: absolute;
-    inset-inline: 0;
+    inset: 0 0 -1.25rem 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgb(var(--bg-rgb) / 0.92) 0%, rgb(var(--bg-rgb) / 0.72) 55%, rgb(var(--bg-rgb) / 0) 100%);
+    backdrop-filter: blur(10px);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    opacity: var(--np-kante, 0);
+    transition: opacity 200ms var(--ease-out);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    &::before {
+      background: rgb(var(--bg));
+      backdrop-filter: none;
+      mask-image: none;
+      inset: 0;
+      border-bottom: 1px solid rgb(var(--border));
+    }
+  }
+}
+
+@utility np-glas-gruppe {
+  /* Gruppe von Symbolknöpfen in der Symbolleiste: eine Glaskapsel (HIG: Elemente in Gruppen) */
+  display: inline-flex;
+  align-items: center;
+  height: 2.25rem;
+  padding-inline: 0.1875rem;
+  border-radius: 9999px;
+  background-color: rgb(var(--card-rgb) / 0.8);
+  backdrop-filter: blur(24px) saturate(1.8);
+  box-shadow:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.6),
+    0 0 0 0.5px rgb(0 0 0 / 0.08),
+    0 2px 10px -2px rgb(0 0 0 / 0.1);
+  @variant dark {
+    box-shadow:
+      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
+      0 0 0 0.5px rgb(0 0 0 / 0.5),
+      0 2px 10px -2px rgb(0 0 0 / 0.4);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
+  }
+}
+
+@utility np-scroll-edge {
+  /* eigener Scrollbereich (Seitenleiste, Listen): Inhalt verblasst am oberen Rand */
+  position: relative;
+  &::before {
+    content: '';
+    position: sticky;
+    display: block;
     top: 0;
-    height: 1.5rem;
-    background: linear-gradient(to bottom, rgb(var(--bg-rgb) / 0.95), rgb(var(--bg-rgb) / 0));
+    height: 0.75rem;
+    margin-bottom: -0.75rem;
+    background: linear-gradient(to bottom, rgb(var(--card-rgb) / 0.9), rgb(var(--card-rgb) / 0));
     pointer-events: none;
     z-index: 20;
   }
-  /* Ohne Transparenz gibt es nichts zu verblassen: dort wirkt die Kante der Leiste. */
   @media (prefers-reduced-transparency: reduce) {
     &::before { display: none; }
   }
 }
 
 /* ==========================================================================
-   Trefferfläche. Die Human Interface Guidelines verlangen für Bedienelemente
-   «a hit region of at least 44x44 pt». Am Zeigegerät wäre das in dichten
-   Notentabellen verschwendeter Platz – und überlappende Flächen liessen
-   Klicks auf dem falschen Knopf landen. Darum greift die Vergrösserung nur
-   bei grober Zeigegenauigkeit (Finger); am Desktop bleibt die WCAG-Schwelle
-   von 24 px, die ~/tools/visual/zielgroesse.mjs prüft.
+   Knöpfe (HIG «Buttons»). Kapselform wie unter macOS 26. Eine Grundklasse
+   `np-knopf` plus genau eine Rolle:
+     np-knopf-primaer   Akzentfläche – höchstens einer pro Ansicht, nie destruktiv
+     np-knopf-sekundaer graue Füllung – alles Übrige
+     np-knopf-schlicht  ohne Fläche, Akzentschrift – Nebenaktionen, Links als Aktion
+     np-knopf-gefahr    destruktiv, rote Schrift; np-knopf-gefahr-voll nur im Bestätigungsdialog
+     np-knopf-symbol    nur Symbol, rund (aria-label Pflicht)
+   Grössen über np-knopf-klein (28 px, Tabellen) und np-knopf-gross (40 px, Formularabschluss).
+   Gedrückt wird die Fläche dunkler (Press-State ist Pflicht), kein Skalieren.
+   ========================================================================== */
+
+@utility np-knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2rem;
+  padding-inline: 0.875rem;
+  border-radius: var(--np-knopf-radius, 9999px);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  font-weight: 500;
+  white-space: nowrap;
+  user-select: none;
+  transition-property: background-color, color, box-shadow, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: var(--ease-out);
+  & > svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+  &:disabled,
+  &[aria-disabled='true'] {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+}
+
+@utility np-knopf-klein {
+  height: 1.75rem;
+  padding-inline: 0.625rem;
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  & > svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+@utility np-knopf-gross {
+  height: 2.5rem;
+  padding-inline: 1.25rem;
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+}
+
+@utility np-knopf-primaer {
+  background-color: rgb(var(--accent));
+  color: rgb(var(--accent-contrast));
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(0 0 0 / 0.12);
+  &:hover {
+    background-color: color-mix(in srgb, rgb(var(--accent)) 90%, black);
+  }
+  &:active {
+    background-color: color-mix(in srgb, rgb(var(--accent)) 80%, black);
+  }
+}
+
+@utility np-knopf-sekundaer {
+  background-color: rgb(var(--text) / 0.07);
+  color: rgb(var(--text));
+  &:hover {
+    background-color: rgb(var(--text) / 0.11);
+  }
+  &:active {
+    background-color: rgb(var(--text) / 0.16);
+  }
+}
+
+@utility np-knopf-schlicht {
+  background-color: transparent;
+  color: rgb(var(--accent-text));
+  &:hover {
+    background-color: rgb(var(--accent) / 0.09);
+  }
+  &:active {
+    background-color: rgb(var(--accent) / 0.15);
+  }
+}
+
+@utility np-knopf-gefahr {
+  background-color: rgb(var(--note-ungenuegend) / 0.1);
+  color: rgb(var(--note-ungenuegend));
+  &:hover {
+    background-color: rgb(var(--note-ungenuegend) / 0.15);
+  }
+  &:active {
+    background-color: rgb(var(--note-ungenuegend) / 0.22);
+  }
+}
+
+@utility np-knopf-gefahr-voll {
+  /* Schrift in der Kartenfarbe: Weiss auf Rot hell, Dunkelgrau auf Hellrot dunkel – beide ≥ 4.5:1 */
+  background-color: rgb(var(--note-ungenuegend));
+  color: rgb(var(--card));
+  &:hover {
+    background-color: color-mix(in srgb, rgb(var(--note-ungenuegend)) 90%, black);
+  }
+  &:active {
+    background-color: color-mix(in srgb, rgb(var(--note-ungenuegend)) 80%, black);
+  }
+}
+
+@utility np-knopf-symbol {
+  width: 2rem;
+  padding-inline: 0;
+  color: rgb(var(--muted));
+  background-color: transparent;
+  &:hover {
+    color: rgb(var(--text));
+    background-color: rgb(var(--text) / 0.07);
+  }
+  &:active {
+    background-color: rgb(var(--text) / 0.12);
+  }
+  & > svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
+/* Bestandsklassen, bis jede View umgebaut ist: gleiche Rollen, neue Optik */
+@utility glass-btn {
+  background-color: rgb(var(--text) / 0.07);
+  border: 1px solid transparent;
+  transition-property: background-color, color;
+  transition-duration: 120ms;
+  transition-timing-function: var(--ease-out);
+  &:hover:not(:disabled) {
+    background-color: rgb(var(--text) / 0.11);
+  }
+  &:active:not(:disabled) {
+    background-color: rgb(var(--text) / 0.16);
+  }
+}
+
+@utility np-btn-primary {
+  color: rgb(var(--accent-contrast));
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(0 0 0 / 0.12);
+  transition-property: background-color, color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: var(--ease-out);
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, rgb(var(--accent)) 90%, black);
+  }
+  &:active:not(:disabled) {
+    background-color: color-mix(in srgb, rgb(var(--accent)) 80%, black);
+  }
+}
+
+/* ==========================================================================
+   Eingabe (HIG «Text fields», «Pop-up buttons», «Toggles», «Segmented controls»).
+   Feldrand --border-strong (≥ 3:1, WCAG 1.4.11), Fokus als Akzentring wie unter
+   macOS, ungültig über aria-invalid in Rot – nie nur Farbe: das Feld nennt den
+   Fehler zusätzlich im Text darunter.
+   ========================================================================== */
+
+@utility np-feld {
+  display: block;
+  width: 100%;
+  height: 2.25rem;
+  padding-inline: 0.75rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--border-strong));
+  background-color: rgb(var(--input));
+  color: rgb(var(--text));
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.03);
+  transition: border-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out);
+  &::placeholder {
+    color: rgb(var(--muted));
+    opacity: 1;
+  }
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    border-color: rgb(var(--accent));
+    box-shadow: 0 0 0 3.5px rgb(var(--accent) / 0.28);
+  }
+  &[aria-invalid='true'] {
+    border-color: rgb(var(--note-ungenuegend));
+  }
+  &[aria-invalid='true']:focus {
+    box-shadow: 0 0 0 3.5px rgb(var(--note-ungenuegend) / 0.25);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+@utility np-feld-klein {
+  height: 2rem;
+  padding-inline: 0.625rem;
+}
+
+@utility np-textfeld {
+  /* mehrzeilig: Höhe aus rows */
+  height: auto;
+  padding-block: 0.5rem;
+  resize: vertical;
+}
+
+@utility np-auswahl {
+  /* Pop-up-Button: Feld mit Doppelpfeil (macOS), Wert immer sichtbar */
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2386868b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M5 6.25 8 3.5l3 2.75M5 9.75 8 12.5l3-2.75'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-size: 1rem 1rem;
+  background-repeat: no-repeat;
+  print-color-adjust: exact;
+  cursor: pointer;
+}
+
+@utility np-schalter {
+  /* Schalter (checkbox role=switch): Ein/Aus einer Einstellung, wirkt sofort */
+  appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 2.375rem;
+  height: 1.375rem;
+  border-radius: 9999px;
+  border: 0;
+  background-color: rgb(var(--text) / 0.16);
+  background-image: none;
+  cursor: pointer;
+  transition: background-color 180ms var(--ease-out);
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0.125rem;
+    left: 0.125rem;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 9999px;
+    background-color: white;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25), 0 0 0 0.5px rgb(0 0 0 / 0.06);
+    transition: translate 200ms var(--ease-out);
+  }
+  &:checked {
+    background-color: rgb(var(--accent));
+  }
+  &:checked::after {
+    translate: 1rem 0;
+  }
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+  &:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+}
+
+@utility np-segment {
+  /* Segmentierte Steuerung: Spur als Füllung, gewähltes Segment als erhabene Fläche */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  height: 2rem;
+  padding: 0.125rem;
+  border-radius: 9999px;
+  background-color: rgb(var(--text) / 0.07);
+  & > * {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    height: 100%;
+    padding-inline: 0.875rem;
+    border-radius: 9999px;
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: rgb(var(--muted));
+    white-space: nowrap;
+    transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
+  }
+  & > *:hover {
+    color: rgb(var(--text));
+  }
+  & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt) {
+    background-color: rgb(var(--card));
+    color: rgb(var(--text));
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 0 0 0.5px rgb(0 0 0 / 0.06);
+  }
+  @variant dark {
+    & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt) {
+      background-color: rgb(var(--text) / 0.2);
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+    }
+  }
+}
+
+/* ==========================================================================
+   Inhalt. Karten sind feste Flächen (keine Transparenz), hell mit Haarstrich und
+   kaum sichtbarem Schatten, dunkel mit Lichtkante – der Grund trennt sie.
+   ========================================================================== */
+
+@utility np-karte {
+  background-color: rgb(var(--card));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-1);
+}
+
+@utility np-karte-klickbar {
+  transition: background-color 120ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  &:hover {
+    background-color: color-mix(in srgb, rgb(var(--card)) 96%, rgb(var(--text)));
+  }
+  &:active {
+    background-color: color-mix(in srgb, rgb(var(--card)) 92%, rgb(var(--text)));
+  }
+}
+
+@utility np-tabelle {
+  /* macOS-Tabelle: Kopf ohne Fläche, Zeilen im Wechsel hinterlegt statt Linien (HIG «Lists and tables»),
+     Hover und Auswahl mit gerundeten Enden. Zahlen rechtsbündig über text-right + tabular-nums. */
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  & :where(thead th) {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: var(--text-xs);
+    line-height: var(--text-xs--line-height);
+    font-weight: 500;
+    color: rgb(var(--muted));
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid rgb(var(--border));
+  }
+  & :where(tbody td, tbody th) {
+    height: 2.25rem;
+    padding-inline: 0.75rem;
+    vertical-align: middle;
+  }
+  & :where(tbody tr:nth-child(even)) > * {
+    background-color: rgb(var(--text) / 0.03);
+  }
+  & :where(tbody tr:hover) > * {
+    background-color: rgb(var(--text) / 0.06);
+  }
+  & :where(tbody tr) > :first-child {
+    border-start-start-radius: var(--radius-lg);
+    border-end-start-radius: var(--radius-lg);
+  }
+  & :where(tbody tr) > :last-child {
+    border-start-end-radius: var(--radius-lg);
+    border-end-end-radius: var(--radius-lg);
+  }
+}
+
+@utility np-liste {
+  /* Gruppierte Liste in einer Karte: Zeilen mit eingerückter Trennlinie */
+  display: flex;
+  flex-direction: column;
+  & > * + * {
+    border-top: 1px solid rgb(var(--border));
+  }
+}
+
+@utility np-zeile {
+  /* klickbare Listenzeile: Hover hinterlegt, gerundet innerhalb der Karte */
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-lg);
+  transition: background-color 120ms var(--ease-out);
+  &:hover {
+    background-color: rgb(var(--text) / 0.05);
+  }
+  &:active {
+    background-color: rgb(var(--text) / 0.09);
+  }
+}
+
+@utility np-marke {
+  /* Marke (Badge): kurzer Status oder Zähler */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  height: 1.25rem;
+  padding-inline: 0.4375rem;
+  border-radius: 9999px;
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: rgb(var(--text) / 0.07);
+  color: rgb(var(--text));
+}
+
+@utility np-taste {
+  /* Tastenkürzel-Hinweis */
+  display: inline-flex;
+  align-items: center;
+  height: 1.125rem;
+  padding-inline: 0.3125rem;
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-3xs);
+  line-height: 1;
+  font-weight: 500;
+  color: rgb(var(--muted));
+  background-color: rgb(var(--text) / 0.06);
+  box-shadow: inset 0 -0.5px 0 rgb(var(--text) / 0.12);
+}
+
+@utility np-menue-eintrag {
+  /* Menüzeile wie unter macOS: Hervorhebung in Akzentfläche mit Kontrastschrift */
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  line-height: var(--text-sm--line-height);
+  color: rgb(var(--text));
+  text-align: start;
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background-color: rgb(var(--accent));
+    color: rgb(var(--accent-contrast));
+  }
+  &:hover *,
+  &:focus-visible * {
+    color: inherit;
+  }
+}
+
+/* ==========================================================================
+   Trefferfläche. Die Human Interface Guidelines verlangen «a hit region of at
+   least 44x44 pt» für Touch. Am Zeigegerät gilt die WCAG-Schwelle von 24 px –
+   überlappende 44er legten in dichten Tabellen Klicks auf den falschen Knopf.
    ========================================================================== */
 
 @utility np-ziel {
@@ -344,27 +895,12 @@
   }
 }
 
-/* ==========================================================================
-   Seitencontainer (#13). Ersetzt `max-w-7xl` in allen Views: Navigation,
-   Seitenkopf und Inhalt tragen dieselbe Klasse und bleiben so bündig.
-   Vorher endete jede Seite fix bei 1280 px – auf einem 2560-px-Schirm blieb
-   die Hälfte ungenutzt. Lese- und Formularseiten behalten bewusst `max-w-3xl`
-   links bündig (Befund D6), hier geht es nur um den äusseren Rahmen.
-   Die Seite füllt jetzt das Fenster – so, wie sie es unterhalb von 1280 px
-   immer schon tat – und ist bei 2048 px gedeckelt, damit Tabellenzeilen nicht
-   ins Uferlose laufen. Bewusst ohne Zwischenstufen: eine Stufenleiter wäre
-   beim Ziehen des Fensters ein sichtbarer Sprung, und eine Messung zeigte,
-   dass die erste Stufe ausgerechnet die häufigste Desktopbreite (1440 px)
-   verfehlt. Die max-width skaliert mit der persönlichen Schriftgrösse – genau
-   wie zuvor `max-w-7xl`, also kein Verhaltenswechsel für data-schrift.
-   ========================================================================== */
-
+/* Seitencontainer: füllt das Fenster neben der Seitenleiste, Deckel 2048 px, skaliert mit der Schriftgrösse */
 @utility np-seite {
-  max-width: 128rem;   /* 2048 px Deckel; darunter Fensterbreite, Ränder aus px-4/sm:px-6/lg:px-8 */
+  max-width: 128rem;
 }
 
-/* Weisser Text auf Accent (Bestand text-white) → accent-contrast, damit der
-   Dunkelmodus (heller Accent) lesbar bleibt. Specificity 0,2,0 schlägt text-white. */
+/* Weisser Text auf Accent (Bestand text-white) → accent-contrast. Specificity 0,2,0 schlägt text-white. */
 @layer utilities {
   .bg-accent.text-white,
   .bg-accent .text-white,
@@ -374,36 +910,32 @@
   }
 }
 
-/* Persönliche Dichte (Profil «Dichte»): niedrigere Tabellenzeilen, weniger Karten-Padding/
-   -Abstand. Tabellen-Höhenklassen (td/th) bleiben global, da sie nur Tabellenzellen treffen.
-   Padding/Gap dagegen NUR innerhalb .np-raster (Marker-Klasse auf dem Dashboard-Grid,
-   resources/views/dashboards/*.blade.php) – .p-4/.p-5/.gap-4/.gap-5 und .bg-card werden
-   auch ausserhalb der Dashboards verwendet (Formulare, Listen, Berichte, Profil) und dürfen dort
-   nicht mitgetroffen werden. Nur für Bildschirm – beim Drucken keine Wirkung. Höhere Spezifität
-   statt @utility, damit die Tailwind-Klassen überschrieben werden (gleiche Layer-Reihenfolge wie
-   oben). */
+/* Persönliche Dichte (Profil «Dichte»): niedrigere Tabellenzeilen, weniger Karten-Polster und -Abstand.
+   Polster/Abstand nur innerhalb .np-raster (Dashboard-Raster), Tabellenzeilen global. Nur Bildschirm. */
 @media screen {
   @layer utilities {
     [data-dichte='kompakt'] td.h-11,
-    [data-dichte='kompakt'] tr.h-11 { height: 2.125rem; }   /* 44px -> 34px */
-    [data-dichte='kompakt'] th.h-9 { height: 2rem; }        /* 36px -> 32px */
-    [data-dichte='kompakt'] .np-raster .bg-card .px-5 { padding-left: 1rem; padding-right: 1rem; }  /* 20px -> 16px */
-    [data-dichte='kompakt'] .np-raster .bg-card .pb-5 { padding-bottom: 0.75rem; }                  /* 20px -> 12px */
+    [data-dichte='kompakt'] tr.h-11 { height: 2.125rem; }
+    [data-dichte='kompakt'] th.h-9 { height: 2rem; }
+    [data-dichte='kompakt'] .np-tabelle :where(tbody td, tbody th) { height: 1.75rem; }
+    [data-dichte='kompakt'] .np-zeile { min-height: 2.25rem; padding-block: 0.25rem; }
+    [data-dichte='kompakt'] .np-raster .bg-card .px-5 { padding-left: 1rem; padding-right: 1rem; }
+    [data-dichte='kompakt'] .np-raster .bg-card .pb-5 { padding-bottom: 0.75rem; }
     [data-dichte='kompakt'] .np-raster .bg-card .py-2 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     [data-dichte='kompakt'] .np-raster.p-5,
-    [data-dichte='kompakt'] .np-raster .p-5 { padding: 0.75rem; }   /* 20px -> 12px */
+    [data-dichte='kompakt'] .np-raster .p-5 { padding: 0.75rem; }
     [data-dichte='kompakt'] .np-raster.p-4,
-    [data-dichte='kompakt'] .np-raster .p-4 { padding: 0.625rem; }  /* 16px -> 10px */
+    [data-dichte='kompakt'] .np-raster .p-4 { padding: 0.625rem; }
     [data-dichte='kompakt'] .np-raster.gap-4,
-    [data-dichte='kompakt'] .np-raster .gap-4 { gap: 0.75rem; }     /* 16px -> 12px, zwischen Karten */
+    [data-dichte='kompakt'] .np-raster .gap-4 { gap: 0.75rem; }
     [data-dichte='kompakt'] .np-raster.gap-5,
-    [data-dichte='kompakt'] .np-raster .gap-5 { gap: 1rem; }        /* 20px -> 16px, zwischen Karten */
+    [data-dichte='kompakt'] .np-raster .gap-5 { gap: 1rem; }
   }
 }
 
-/* Persönliche Ecken (Profil «Darstellung»): stark reduzierte Radien über dieselben
-   Variablen, die Tailwinds rounded-md/lg/xl/2xl/3xl referenzieren. rounded-full
-   (Avatar, Status-Punkt) ist nicht Token-basiert und bleibt bewusst unverändert. */
+/* Persönliche Ecken (Profil «Darstellung»): stark reduzierte Radien über dieselben Variablen,
+   die rounded-md…3xl und die eigenen Komponenten lesen; Knöpfe verlieren die Kapselform.
+   rounded-full (Avatar, Punkt) bleibt bewusst rund. */
 @layer utilities {
   [data-ecken='eckig'] {
     --radius-md: 0.1875rem;
@@ -411,23 +943,31 @@
     --radius-xl: 0.375rem;
     --radius-2xl: 0.5rem;
     --radius-3xl: 0.5rem;
+    --np-knopf-radius: 0.25rem;
+  }
+  [data-ecken='eckig'] :is(.np-segment, .np-segment > *, .np-glas-gruppe, .np-marke) {
+    border-radius: 0.25rem;
   }
 }
 
 /* Persönlich reduzierte Transparenz (Profil «Darstellung»): wie prefers-reduced-transparency,
-   aber per Schalter – deckende Fläche statt Liquid-Glass/Blur auf Leiste und Overlay.
-   .glass-btn ist bereits deckend, das unbenutzte bare .glass hat keine CSS-Definition. */
+   aber per Schalter – deckende Fläche statt Glas. */
 @layer utilities {
-  [data-transparenz='reduziert'] .glass-bar,
-  [data-transparenz='reduziert'] .glass-seitenleiste,
-  [data-transparenz='reduziert'] .glass-overlay {
+  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas, .np-glas-gruppe) {
     background-color: rgb(var(--card));
     backdrop-filter: none;
+  }
+  [data-transparenz='reduziert'] .np-symbolleiste::before {
+    background: rgb(var(--bg));
+    backdrop-filter: none;
+    mask-image: none;
+    inset: 0;
+    border-bottom: 1px solid rgb(var(--border));
   }
 }
 
 /* ==========================================================================
-   Motion: nur pro Komponente, keine globale Transition (Konzept c)
+   Motion: nur pro Komponente, keine globale Transition
    ========================================================================== */
 
 @utility np-loading {
@@ -454,10 +994,10 @@
 @layer components {
   /* Akkordeon (für <details>-Inhalte) */
   details[open] > summary ~ * {
-    animation: np-slide-down 200ms var(--ease-out);
+    animation: np-slide-down 220ms var(--ease-out);
   }
 
-  /* Page-Progress-Bar (oben, 2px, accent) */
+  /* Fortschritt beim Seitenwechsel (oben, 2 px, Akzent) */
   #np-progress {
     position: fixed;
     top: 0;
@@ -493,11 +1033,12 @@
 }
 
 /* Gesetzte Checkboxen/Radios: `bg-input` (Feldgrund) überdeckte die Checked-Farbe des Forms-Plugins –
-   im hellen Modus weisses Häkchen auf Weiss, also unsichtbar. Selektor ist spezifischer als die Utility. */
+   im hellen Modus weisses Häkchen auf Weiss, also unsichtbar. Selektor ist spezifischer als die Utility.
+   Der Schalter (np-schalter) zeichnet selbst und ist ausgenommen. */
 @layer utilities {
-  input[type='checkbox']:checked,
+  input[type='checkbox']:not(.np-schalter):checked,
   input[type='radio']:checked,
-  input[type='checkbox']:indeterminate {
+  input[type='checkbox']:not(.np-schalter):indeterminate {
     background-color: currentColor;
     border-color: transparent;
   }

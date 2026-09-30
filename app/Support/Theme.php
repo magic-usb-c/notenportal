@@ -38,7 +38,7 @@ final class Theme
      * Für Manifest (background_color/theme_color, nur hell) und <meta name="theme-color"> (hell+dunkel).
      */
     private const array HINTERGRUND = [
-        'gletscher' => ['hell' => '#F5F7F9', 'dunkel' => '#0C0F16'],
+        'gletscher' => ['hell' => '#F2F2F7', 'dunkel' => '#1C1C1E'],
         'sandstein' => ['hell' => '#F8F5EF', 'dunkel' => '#14110E'],
         'pflaume' => ['hell' => '#F7F6FA', 'dunkel' => '#110D17'],
         'graphit' => ['hell' => '#FAFAFA', 'dunkel' => '#0D0D0D'],

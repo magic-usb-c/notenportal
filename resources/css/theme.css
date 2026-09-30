@@ -13,77 +13,84 @@
      240, klar von gut unterscheidbar, auch bei Deuteranopie).
    ========================================================================== */
 
-/* Theme Gletscher – hell */
+/* Theme Gletscher – hell. Standard. Werte aus den Systemfarben der Human Interface Guidelines
+   (developer.apple.com/design/human-interface-guidelines/color, Stand Juni 2025): Flächen aus
+   systemGray6/5 (gruppierter Grund, weisse Karten), Sekundärtext und Akzent aus der Variante
+   «Increased contrast», weil die Standardvarianten auf Weiss unter 4.5:1 bleiben. Wo die HIG
+   keinen Wert nennt (Text, Link), gilt apple.com. Nachgerechnet: Text ≥ 4.5:1, UI/Grafik ≥ 3:1. */
 :root,
 [data-theme='gletscher'] {
   color-scheme: light;
 
-  --bg: 245 247 249;               /* oklch(0.975 0.004 255) */
-  --card: 255 255 255;             /* oklch(1 0 0) */
-  --surface-2: 238 241 246;        /* oklch(0.957 0.007 255) */
-  --input: 255 255 255;            /* oklch(1 0 0) */
-  --text: 17 24 38;                /* oklch(0.21 0.03 262) */
-  --muted: 88 97 111;              /* oklch(0.49 0.025 258) */
-  --border: 223 227 232;           /* oklch(0.915 0.008 255) */
-  --border-strong: 137 144 152;    /* oklch(0.65 0.015 255) */
+  --bg: 242 242 247;               /* systemGray6 – gruppierter Grund */
+  --card: 255 255 255;             /* secondarySystemGroupedBackground */
+  --surface-2: 242 242 247;        /* tertiärer Grund in Karten: Zeilen-Hover, Spur */
+  --input: 255 255 255;
+  --text: 29 29 31;                /* apple.com #1d1d1f – 16.8:1 auf Karte */
+  --muted: 108 108 112;            /* systemGray, Increased contrast – 4.7:1 auf Grund */
+  --border: 229 229 234;           /* systemGray5 – Trennlinie */
+  --border-strong: 134 134 139;    /* Feldrand: ≥ 3:1 auf Grund und Karte (systemGray wäre 2.9:1) */
 
-  --accent: 40 96 221;             /* oklch(0.53 0.2 263) */
-  --accent-contrast: 255 255 255;  /* oklch(1 0 0) */
-  --accent-text: 31 87 211;        /* oklch(0.5 0.2 263) */
-  --ring: 51 122 239;              /* oklch(0.6 0.19 260) */
+  --accent: 30 110 244;            /* systemBlue, Increased contrast – Weiss darauf 4.6:1 */
+  --accent-contrast: 255 255 255;
+  --accent-text: 0 102 204;        /* Link apple.com #0066cc – 5.0:1 auf Grund */
+  --ring: 30 110 244;              /* Fokusring = Akzent, 4.1:1 auf Grund */
 
   --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
   --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
   --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
   --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
 
-  --chart-1: 40 96 221;            /* oklch(0.53 0.2 263) */
-  --chart-2: 214 105 25;           /* oklch(0.64 0.16 50) */
-  --chart-3: 11 148 136;           /* oklch(0.6 0.104 185) */
-  --chart-4: 109 71 184;           /* oklch(0.5 0.17 295) */
-  --chart-5: 198 60 138;           /* oklch(0.58 0.19 350) */
-  --chart-6: 120 129 140;          /* oklch(0.6 0.02 255) */
+  /* Diagramme: Systemfarben (Increased contrast), jede ≥ 4.5:1 auf der Karte */
+  --chart-1: 30 110 244;           /* Blue */
+  --chart-2: 197 83 0;             /* Orange */
+  --chart-3: 0 129 152;            /* Teal */
+  --chart-4: 176 47 194;           /* Purple */
+  --chart-5: 231 18 77;            /* Pink */
+  --chart-6: 134 134 139;          /* Gray, 3.6:1 */
 
-  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
-  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
-  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
+  --elev-1: 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 0.5px rgb(0 0 0 / 0.04);
+  --elev-2: 0 12px 32px -4px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.05), 0 0 0 0.5px rgb(0 0 0 / 0.08);
+  --elev-3: 0 32px 80px -12px rgb(0 0 0 / 0.28), 0 8px 24px rgb(0 0 0 / 0.08), 0 0 0 0.5px rgb(0 0 0 / 0.1);
   --elev-hover-bg: var(--card);
 }
 
-/* Theme Gletscher – dunkel */
+/* Theme Gletscher – dunkel. Flächen aus systemGray6/5/4 (dunkel), Akzentfläche bleibt das
+   kontrastreiche Blau, weil Weiss auf dem hellen Dunkelblau (0 145 255) nur 3.2:1 erreicht. */
 .dark,
 [data-theme='gletscher'].dark {
   color-scheme: dark;
 
-  --bg: 12 15 22;                  /* oklch(0.17 0.015 262) */
-  --card: 21 26 34;                /* oklch(0.215 0.018 262) */
-  --surface-2: 31 36 46;           /* oklch(0.26 0.02 262) */
-  --input: 16 20 27;               /* oklch(0.19 0.016 262) */
-  --text: 232 235 241;             /* oklch(0.94 0.008 255) */
-  --muted: 156 165 177;            /* oklch(0.72 0.02 255) */
-  --border: 43 49 59;              /* oklch(0.31 0.02 262) */
-  --border-strong: 96 102 114;     /* oklch(0.51 0.02 262) */
+  --bg: 28 28 30;                  /* systemGray6 dunkel */
+  --card: 44 44 46;                /* systemGray5 dunkel */
+  --surface-2: 58 58 60;           /* systemGray4 dunkel */
+  --input: 28 28 30;               /* Feld liegt tiefer als die Karte */
+  --text: 245 245 247;             /* apple.com #f5f5f7 */
+  --muted: 174 174 178;            /* systemGray dunkel, Increased contrast – 5.1:1 auf surface-2 */
+  --border: 72 72 74;              /* systemGray3 dunkel */
+  --border-strong: 124 124 128;    /* systemGray2 dunkel, Increased contrast – 3.4:1 auf Karte */
 
-  --accent: 89 160 249;            /* oklch(0.7 0.15 255) */
-  --accent-contrast: 12 15 22;     /* oklch(0.17 0.015 262) */
-  --accent-text: 109 173 255;      /* oklch(0.74 0.136 255) */
-  --ring: 96 167 255;              /* oklch(0.72 0.148 255) */
+  --accent: 30 110 244;            /* Weiss darauf 4.6:1, 3.7:1 auf Grund */
+  --accent-contrast: 255 255 255;
+  --accent-text: 92 184 255;       /* systemBlue dunkel, Increased contrast – 5.3:1 auf surface-2 */
+  --ring: 92 184 255;
 
   --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
   --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
   --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
   --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
 
-  --chart-1: 70 147 241;           /* oklch(0.66 0.16 255) */
-  --chart-2: 221 111 35;           /* oklch(0.66 0.16 50) */
-  --chart-3: 32 168 155;           /* oklch(0.66 0.11 185) */
-  --chart-4: 143 110 219;          /* oklch(0.62 0.16 295) */
-  --chart-5: 216 85 155;           /* oklch(0.64 0.18 350) */
-  --chart-6: 126 135 146;          /* oklch(0.62 0.02 255) */
+  /* Diagramme: Systemfarben dunkel (Standard), jede ≥ 3.8:1 auf der Karte */
+  --chart-1: 0 145 255;            /* Blue */
+  --chart-2: 255 146 48;           /* Orange */
+  --chart-3: 0 210 224;            /* Teal */
+  --chart-4: 219 52 242;           /* Purple */
+  --chart-5: 255 55 95;            /* Pink */
+  --chart-6: 142 142 147;          /* Gray */
 
-  --elev-1: none;
-  --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
-  --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
+  --elev-1: 0 0 0 0.5px rgb(255 255 255 / 0.06);
+  --elev-2: 0 16px 40px -4px rgb(0 0 0 / 0.55), 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  --elev-3: 0 32px 80px -12px rgb(0 0 0 / 0.7), 0 0 0 0.5px rgb(255 255 255 / 0.12);
   --elev-hover-bg: var(--surface-2);
 }
 
