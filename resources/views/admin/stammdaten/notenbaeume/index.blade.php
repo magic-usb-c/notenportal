@@ -12,24 +12,27 @@
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-8">
 
             @if($baeume->isNotEmpty())
-                <div class="overflow-x-auto rounded-xl border border-border bg-card">
+                {{-- Schmal stehen «Gilt für» und die Zahl der Noten unter dem Namen --}}
+                <div class="@container overflow-x-auto rounded-xl border border-border bg-card">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="bg-surface-2">
                             <tr>
                                 <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                                <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Gilt für') }}</th>
-                                <th scope="col" class="h-9 px-4 text-right text-2xs font-medium text-muted">{{ __('Erfasste Noten') }}</th>
+                                <th scope="col" class="hidden h-9 px-4 text-left text-2xs font-medium text-muted @xl:table-cell">{{ __('Gilt für') }}</th>
+                                <th scope="col" class="hidden h-9 px-4 text-right text-2xs font-medium text-muted @xl:table-cell">{{ __('Erfasste Noten') }}</th>
                                 <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($baeume as $b)
                                 <tr class="border-b border-border last:border-0 hover:bg-surface-2/60">
-                                    <td class="h-11 px-4">
+                                    @php($gilt = $b->bezug === 'lehrberuf' ? $b->lehrberuf : __('Bildungsgang :track', ['track' => $b->track_typ]))
+                                    <td class="h-11 px-4 py-2">
                                         <a href="{{ route('admin.master-data.grade-trees.show', $b->baum_id) }}" class="inline-flex min-h-6 items-center font-medium text-accent-text underline-offset-2 hover:underline">{{ $b->name }}</a>
+                                        <div class="text-xs text-muted @xl:hidden">{{ $gilt }} · {{ __(':anzahl Noten', ['anzahl' => $b->positionen]) }}</div>
                                     </td>
-                                    <td class="px-4 text-text">{{ $b->bezug === 'lehrberuf' ? $b->lehrberuf : __('Bildungsgang :track', ['track' => $b->track_typ]) }}</td>
-                                    <td class="px-4 text-right text-muted">{{ $b->positionen }}</td>
+                                    <td class="hidden px-4 text-text @xl:table-cell">{{ $gilt }}</td>
+                                    <td class="hidden px-4 text-right text-muted @xl:table-cell">{{ $b->positionen }}</td>
                                     <td class="px-4">
                                         @if($b->aktiv)
                                             <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>

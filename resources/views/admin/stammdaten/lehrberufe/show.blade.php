@@ -21,11 +21,11 @@
                     <span class="text-xs text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneModule->count()]) }}</span>
                 </div>
 
-                {{-- Zugewiesene Module --}}
+                {{-- Zugewiesene Module: ab 48rem Container eine Tabelle, darunter je Modul eine Karte mit sichtbaren Feldnamen --}}
                 @if($zugewieseneModule->isNotEmpty())
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead class="text-muted border-b border-border">
+                    <div class="@container overflow-x-auto">
+                        <table class="w-full text-sm @max-3xl:block">
+                            <thead class="text-muted border-b border-border @max-3xl:hidden">
                                 <tr>
                                     <th class="py-2 pr-4 text-left font-medium">{{ __('Nummer') }}</th>
                                     <th class="py-2 pr-4 text-left font-medium">{{ __('Titel') }}</th>
@@ -36,38 +36,42 @@
                                     <th class="py-2"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-border">
+                            <tbody class="divide-y divide-border @max-3xl:block">
                                 @foreach($zugewieseneModule as $m)
                                     @php $formular = 'lbm-'.$m->modul_id; @endphp
-                                    <tr @class(['opacity-60' => ! $m->aktiv])>
-                                        <td class="py-2 pr-4 font-mono text-text">{{ $m->modul_nummer }}</td>
-                                        <td class="py-2 pr-4 text-text">{{ $m->titel }}</td>
-                                        <td class="py-2 pr-4">
+                                    <tr @class(['opacity-60' => ! $m->aktiv, '@max-3xl:grid @max-3xl:grid-cols-3 @max-3xl:gap-x-3 @max-3xl:gap-y-2 @max-3xl:py-3'])>
+                                        <td class="py-2 pr-4 font-mono text-text @max-3xl:col-span-full @max-3xl:p-0 @max-3xl:text-xs @max-3xl:text-muted">{{ $m->modul_nummer }}</td>
+                                        <td class="py-2 pr-4 text-text @max-3xl:col-span-full @max-3xl:-mt-2 @max-3xl:p-0 @max-3xl:font-medium">{{ $m->titel }}</td>
+                                        <td class="py-2 pr-4 @max-3xl:col-span-full @max-3xl:p-0">
+                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Lernort') }}</span>
                                             <label for="lernort_{{ $m->modul_id }}" class="sr-only">{{ __('Lernort für :titel', ['titel' => $m->titel]) }}</label>
                                             <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
                                                     onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                    class="h-9 min-w-40 rounded-lg border border-border bg-input text-text pl-2 pr-8 text-xs focus:ring-2 focus:ring-ring">
+                                                    class="h-9 min-w-40 rounded-lg border border-border bg-input text-text pl-2 pr-8 text-xs focus:ring-2 focus:ring-ring @max-3xl:w-full">
                                                 @foreach($kategorien as $k)
                                                     <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td class="py-2 pr-4 text-center">
+                                        <td class="py-2 pr-4 text-center @max-3xl:p-0 @max-3xl:text-left">
+                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Pflicht') }}</span>
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
                                                    aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
-                                        <td class="py-2 pr-4">
+                                        <td class="py-2 pr-4 @max-3xl:p-0">
+                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Semester') }}</span>
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
                                                    onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())" placeholder="–" aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
                                                    class="h-9 w-16 rounded-lg border border-border bg-input text-text px-2 text-xs tabular-nums focus:ring-2 focus:ring-ring">
                                         </td>
-                                        <td class="py-2 pr-4 text-center">
+                                        <td class="py-2 pr-4 text-center @max-3xl:p-0 @max-3xl:text-left">
+                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Aktiv') }}</span>
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
                                             <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
                                                    aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring"></label>
                                         </td>
-                                        <td class="py-2 text-right">
+                                        <td class="py-2 text-right @max-3xl:col-span-full @max-3xl:-ml-3 @max-3xl:p-0 @max-3xl:text-left">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
                                                   action="{{ route('admin.master-data.professions.modules.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
                                                 @csrf @method('PATCH')
@@ -145,11 +149,11 @@
                 </div>
 
                 @if($zugewieseneFaecher->isNotEmpty())
-                    <div class="overflow-x-auto">
+                    <div class="@container overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="text-muted border-b border-border">
                                 <tr>
-                                    <th class="py-2 pr-4 text-left font-medium">{{ __('Kürzel') }}</th>
+                                    <th class="hidden py-2 pr-4 text-left font-medium @sm:table-cell">{{ __('Kürzel') }}</th>
                                     <th class="py-2 pr-4 text-left font-medium">{{ __('Name') }}</th>
                                     <th class="py-2 pr-4 text-left font-medium">{{ __('Track') }}</th>
                                     <th class="py-2"></th>
@@ -158,8 +162,11 @@
                             <tbody class="divide-y divide-border">
                                 @foreach($zugewieseneFaecher as $f)
                                     <tr>
-                                        <td class="py-2 pr-4 font-mono text-text">{{ $f->kurzname }}</td>
-                                        <td class="py-2 pr-4 text-text">{{ $f->name }}</td>
+                                        <td class="hidden py-2 pr-4 font-mono text-text @sm:table-cell">{{ $f->kurzname }}</td>
+                                        <td class="py-2 pr-4 text-text">
+                                            <span class="block font-mono text-xs text-muted @sm:hidden">{{ $f->kurzname }}</span>
+                                            {{ $f->name }}
+                                        </td>
                                         <td class="py-2 pr-4">
                                             @if($f->track_typ)
                                                 <span class="px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent-text">
