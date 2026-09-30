@@ -178,22 +178,25 @@
                                 {{ __('Als Tabelle') }}
                             </summary>
                             <div class="overflow-x-auto pb-2 pt-1">
-                                <table class="w-full text-sm tabular-nums">
+                                <table class="w-full text-xs tabular-nums sm:text-sm">
                                     <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
                                     <thead class="text-2xs text-muted">
                                         <tr>
-                                            <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Semester') }}</th>
+                                            <th scope="col" class="py-1.5 pr-2 text-left font-medium sm:pr-3">{{ __('Semester') }}</th>
                                             @foreach($verlauf['serien'] as $s)
-                                                <th scope="col" class="py-1.5 pl-3 text-right font-medium">{{ $s['name'] }}</th>
+                                                <th scope="col" class="hyphens-auto py-1.5 pl-2 text-right font-medium sm:pl-3">{{ $s['name'] }}</th>
                                             @endforeach
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @foreach($verlauf['labels'] as $i => $label)
                                             <tr class="border-t border-border">
-                                                <th scope="row" class="py-1.5 pr-3 text-left font-normal text-text">{{ $label }}</th>
+                                                {{-- Spaltenkopf heisst schon «Semester»: mobil reicht die Nummer, sonst scrollt die Tabelle quer --}}
+                                                <th scope="row" class="py-1.5 pr-2 text-left font-normal text-text sm:pr-3">
+                                                    @if(str_ends_with($label, ' '.__('Semester')))<span class="sm:hidden">{{ \Illuminate\Support\Str::beforeLast($label, ' ') }}</span><span class="hidden sm:inline">{{ $label }}</span>@else{{ $label }}@endif
+                                                </th>
                                                 @foreach($verlauf['serien'] as $s)
-                                                    <td class="py-1.5 pl-3 text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
+                                                    <td class="py-1.5 pl-2 text-right sm:pl-3 {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
                                                 @endforeach
                                             </tr>
                                         @endforeach
