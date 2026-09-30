@@ -58,6 +58,30 @@ Entwicklungsmaschine.
   gewollt und im Lab-OneNote unter «Bekannte Einschränkungen» vermerkt.
 - Ablauf der Einrichtung, Abnahme und OneNote-Dokumentation: Anleitung «Testphase starten».
 
+## Neuinstallation mit install.sh
+
+`git clone https://github.com/magic-usb-c/notenportal.git && cd notenportal && sudo ./install.sh` auf
+einem frischen Ubuntu ergibt ein laufendes Portal. Abgenommen am 30.09.2026 in einem frischen
+Ubuntu-24.04-Container mit systemd: Klonen im Home-Verzeichnis, Installation, Selbstprüfung (HTTPS
+200), Einrichtung 1–8 nur per Klick, eine Lernende erfasst Noten und sieht den Schnitt.
+
+Was der Installer dabei selbst abfängt:
+
+- **Klon im Home-Verzeichnis:** Apache (www-data) darf dort nicht lesen. Der Installer verschiebt das
+  Verzeichnis nach `/var/www/<name>` und läuft dort mit denselben Argumenten weiter. Liegt dort schon
+  etwas, bricht er ab und nennt den Befehl für ein Update.
+- **Dienste starten nicht** (Port 80 oder 3306 belegt, kaputte Konfiguration): Abbruch direkt nach dem
+  Start mit dem Auszug aus `journalctl` statt später mit Folgefehlern.
+- **Firmen-Proxy, der TLS aufbricht:** apt und composer vertrauen dem Zertifikatsspeicher des Systems,
+  npm nur seinen eigenen CAs. Der Installer gibt npm den Systemspeicher mit (`NODE_EXTRA_CA_CERTS`).
+  Die Firmen-CA muss dafür im System liegen (`/usr/local/share/ca-certificates/` +
+  `update-ca-certificates`). Scheitert `npm ci` trotzdem, nennt die Meldung die üblichen Ursachen.
+
+Abweichungen des Prüfstands von einer echten VM: Ubuntu 24.04 statt 26.04 (26.04 bootet im Container
+kein systemd, der Host kennt nur cgroup v1) und Node 22 vom Host kopiert, weil NodeSource hinter dem
+Proxy der Prüfumgebung gesperrt ist. Auf srv-lab-dva-003 (26.04, PHP 8.5) lief `install.sh` bereits
+am 30.09. durch.
+
 ## HTTPS (Lab-CA, kostenlos, ohne externe Stelle)
 
 Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's Encrypt. Stattdessen eine eigene Zertifizierungsstelle auf der Maschine. Seit 30.09. richtet `install.sh` das vollständig selbst ein – die folgenden Angaben beschreiben, was dabei entsteht, nicht Handarbeit.
