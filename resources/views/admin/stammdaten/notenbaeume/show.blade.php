@@ -1,6 +1,10 @@
 @use('App\Http\Controllers\Admin\StammdatenNotenbaeumeController')
 @php
-    $einzug = ['pl-4', 'pl-8', 'pl-12', 'pl-16', 'pl-20'];
+    // Ab 64rem Container eine Tabelle, darunter je Teil eine Formularkarte mit sichtbaren Feldnamen
+    $einzug = ['@5xl:pl-4', '@5xl:pl-8', '@5xl:pl-12', '@5xl:pl-16', '@5xl:pl-20'];
+    $einzugKarte = ['', '@max-5xl:ml-4', '@max-5xl:ml-8', '@max-5xl:ml-12', '@max-5xl:ml-16'];
+    $feldname = 'sr-only @max-5xl:not-sr-only @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium @max-5xl:text-muted';
+    $karteZelle = '@max-5xl:p-0 @max-5xl:text-left';
     $zelle = 'h-8 rounded-lg border border-border-strong/70 bg-input px-2 text-sm tabular-nums text-text focus:border-accent focus:ring-2 focus:ring-ring/30';
     $zahl = fn ($v) => $v === null ? '' : (string) (float) $v;
     $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.').' %';
@@ -60,9 +64,9 @@
                     <p class="text-sm text-note-ungenuegend" role="alert">{{ $errors->first('knoten.*') }}</p>
                 @endif
 
-                <div class="overflow-x-auto rounded-xl border border-border bg-card">
-                    <table class="w-full min-w-[62rem] text-sm tabular-nums">
-                        <thead class="bg-surface-2">
+                <div class="@container overflow-x-auto rounded-xl border border-border bg-card">
+                    <table class="w-full text-sm tabular-nums @max-5xl:block">
+                        <thead class="bg-surface-2 @max-5xl:hidden">
                             <tr>
                                 <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Teil') }}</th>
                                 <th scope="col" class="h-9 px-2 text-left text-2xs font-medium text-muted">{{ __('Rechnet aus') }}</th>
@@ -76,7 +80,7 @@
                                 <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted">{{ __('Entfällt mit') }}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="@max-5xl:block">
                             @foreach($zeilen as $z)
                                 @php
                                     $k = $z['k'];
@@ -89,65 +93,71 @@
                                     };
                                     $rundung = $alt('rundung', $k->rundung === null ? '' : $zahl($k->rundung));
                                 @endphp
-                                <tr class="border-b border-border last:border-0">
-                                    <td class="py-2 pr-2 {{ $einzug[min($z['tiefe'], 4)] }}">
+                                <tr class="border-b border-border last:border-0 @max-5xl:grid @max-5xl:grid-cols-2 @max-5xl:gap-x-3 @max-5xl:gap-y-3 @max-5xl:py-4 @max-5xl:pr-4 @max-5xl:pl-4 @md:@max-5xl:grid-cols-4 {{ $einzugKarte[min($z['tiefe'], 4)] }}">
+                                    <td class="py-2 pr-2 {{ $einzug[min($z['tiefe'], 4)] }} @max-5xl:col-span-full {{ $karteZelle }}">
                                         <label for="k{{ $id }}-name" class="sr-only">{{ __('Name') }}</label>
                                         <input id="k{{ $id }}-name" name="knoten[{{ $id }}][name]" value="{{ $alt('name', $k->name) }}" required maxlength="150"
                                                class="{{ $zelle }} w-full min-w-40 {{ $k->typ === 'gruppe' ? 'font-medium' : '' }}">
                                     </td>
-                                    <td class="max-w-56 px-2 text-xs text-muted">{{ $quelle }}</td>
-                                    <td class="px-2 text-right">
+                                    <td class="max-w-56 px-2 text-xs text-muted @max-5xl:col-span-full @max-5xl:-mt-2 @max-5xl:max-w-none {{ $karteZelle }}">{{ $quelle }}</td>
+                                    <td @class(['px-2 text-right', $karteZelle, '@max-5xl:hidden' => $z['tiefe'] === 0])>
                                         @if($z['tiefe'] > 0)
-                                            <label for="k{{ $id }}-gewicht" class="sr-only">{{ __('Gewicht') }}</label>
+                                            <label for="k{{ $id }}-gewicht" class="{{ $feldname }}">{{ __('Gewicht') }}</label>
                                             <input id="k{{ $id }}-gewicht" name="knoten[{{ $id }}][gewicht]" inputmode="decimal" value="{{ $alt('gewicht', $zahl($k->gewicht)) }}"
-                                                   class="{{ $zelle }} w-16 text-right">
+                                                   class="{{ $zelle }} w-16 text-right @max-5xl:w-full">
                                         @else
                                             <input type="hidden" name="knoten[{{ $id }}][gewicht]" value="{{ $zahl($k->gewicht) }}">
                                         @endif
                                     </td>
-                                    <td class="px-2 text-right text-muted">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</td>
-                                    <td class="px-2">
-                                        <label for="k{{ $id }}-rundung" class="sr-only">{{ __('Rundung') }}</label>
-                                        <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24 py-0 pr-8">
+                                    <td @class(['px-2 text-right text-muted', $karteZelle, '@max-5xl:hidden' => $z['anteil'] === null])>
+                                        <span class="hidden @max-5xl:mb-1 @max-5xl:block @max-5xl:text-2xs @max-5xl:font-medium">{{ __('Anteil') }}</span>
+                                        <span class="@max-5xl:inline-flex @max-5xl:h-8 @max-5xl:items-center">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</span>
+                                    </td>
+                                    <td class="px-2 {{ $karteZelle }}">
+                                        <label for="k{{ $id }}-rundung" class="{{ $feldname }}">{{ __('Rundung') }}</label>
+                                        <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24 py-0 pr-8 @max-5xl:w-full">
                                             <option value="" @selected($rundung === '')>{{ __('keine') }}</option>
                                             <option value="0.1" @selected($rundung === '0.1')>0.1</option>
                                             <option value="0.5" @selected($rundung === '0.5')>0.5</option>
                                             <option value="1" @selected($rundung === '1')>1</option>
                                         </select>
                                     </td>
-                                    <td class="px-2">
-                                        <label for="k{{ $id }}-fallnote" class="sr-only">{{ __('Mindestnote') }}</label>
+                                    <td class="px-2 {{ $karteZelle }}">
+                                        <label for="k{{ $id }}-fallnote" class="{{ $feldname }}">{{ __('Mindestnote') }}</label>
                                         <input id="k{{ $id }}-fallnote" name="knoten[{{ $id }}][fallnote]" inputmode="decimal" value="{{ $alt('fallnote', $zahl($k->fallnote)) }}"
-                                               class="{{ $zelle }} w-16 text-right" placeholder="–">
+                                               class="{{ $zelle }} w-16 text-right @max-5xl:w-full" placeholder="–">
                                     </td>
-                                    <td class="px-2">
+                                    <td @class(['px-2', $karteZelle, '@max-5xl:hidden' => $k->typ !== 'gruppe'])>
                                         @if($k->typ === 'gruppe')
-                                            <label for="k{{ $id }}-mu" class="sr-only">{{ __('Max. ungenügend') }}</label>
+                                            <label for="k{{ $id }}-mu" class="{{ $feldname }}">{{ __('Max. ungenügend') }}</label>
                                             <input id="k{{ $id }}-mu" name="knoten[{{ $id }}][max_ungenuegend]" inputmode="numeric" value="{{ $alt('max_ungenuegend', $k->max_ungenuegend) }}"
-                                                   class="{{ $zelle }} w-16 text-right" placeholder="–">
+                                                   class="{{ $zelle }} w-16 text-right @max-5xl:w-full" placeholder="–">
                                         @endif
                                     </td>
-                                    <td class="px-2">
+                                    <td @class(['px-2', $karteZelle, '@max-5xl:hidden' => $k->typ !== 'gruppe'])>
                                         @if($k->typ === 'gruppe')
-                                            <label for="k{{ $id }}-mp" class="sr-only">{{ __('Max. Minuspunkte') }}</label>
+                                            <label for="k{{ $id }}-mp" class="{{ $feldname }}">{{ __('Max. Minuspunkte') }}</label>
                                             <input id="k{{ $id }}-mp" name="knoten[{{ $id }}][max_minuspunkte]" inputmode="decimal" value="{{ $alt('max_minuspunkte', $zahl($k->max_minuspunkte)) }}"
-                                                   class="{{ $zelle }} w-16 text-right" placeholder="–">
+                                                   class="{{ $zelle }} w-16 text-right @max-5xl:w-full" placeholder="–">
                                         @endif
                                     </td>
-                                    <td class="px-2 text-center">
+                                    <td @class(['px-2 text-center', $karteZelle, '@max-5xl:hidden' => $z['tiefe'] === 0])>
                                         @if($z['tiefe'] > 0)
                                             <input type="hidden" name="knoten[{{ $id }}][zaehlt]" value="0">
-                                            <input id="k{{ $id }}-zaehlt" type="checkbox" name="knoten[{{ $id }}][zaehlt]" value="1" @checked((bool) $alt('zaehlt', $k->zaehlt))
-                                                   aria-label="{{ __('Zählt') }}" class="size-4 rounded border-border-strong/70 text-accent focus:ring-ring/30">
+                                            <label for="k{{ $id }}-zaehlt" class="{{ $feldname }}">{{ __('Zählt') }}</label>
+                                            <span class="@max-5xl:inline-flex @max-5xl:h-8 @max-5xl:items-center">
+                                                <input id="k{{ $id }}-zaehlt" type="checkbox" name="knoten[{{ $id }}][zaehlt]" value="1" @checked((bool) $alt('zaehlt', $k->zaehlt))
+                                                       class="size-4 rounded border-border-strong/70 text-accent focus:ring-ring/30">
+                                            </span>
                                         @else
                                             <input type="hidden" name="knoten[{{ $id }}][zaehlt]" value="1">
                                         @endif
                                     </td>
-                                    <td class="px-4">
+                                    <td @class(['px-4', $karteZelle, '@max-5xl:hidden' => $z['tiefe'] === 0])>
                                         @if($z['tiefe'] > 0)
                                             @php($track = $alt('entfaellt_mit_track', $k->entfaellt_mit_track))
-                                            <label for="k{{ $id }}-track" class="sr-only">{{ __('Entfällt mit') }}</label>
-                                            <select id="k{{ $id }}-track" name="knoten[{{ $id }}][entfaellt_mit_track]" class="{{ $zelle }} w-24 py-0 pr-8">
+                                            <label for="k{{ $id }}-track" class="{{ $feldname }}">{{ __('Entfällt mit') }}</label>
+                                            <select id="k{{ $id }}-track" name="knoten[{{ $id }}][entfaellt_mit_track]" class="{{ $zelle }} w-24 py-0 pr-8 @max-5xl:w-full">
                                                 <option value="" @selected(! $track)>–</option>
                                                 <option value="BMS" @selected($track === 'BMS')>BMS</option>
                                                 <option value="ABU" @selected($track === 'ABU')>ABU</option>
