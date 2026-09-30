@@ -10,6 +10,7 @@ use App\Services\Auswertung\Leistung;
 use App\Services\Auswertung\Notenbaum\Baum;
 use App\Services\Auswertung\Notenbaum\BaumErgebnis;
 use App\Services\Auswertung\Rechenkern;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -380,6 +381,34 @@ class NotenbaumAbnahmeTest extends TestCase
         $this->assertEqualsWithDelta(4.8, $bestanden->wurzel()->note, 1e-9, 'Ohne Gewicht bewegt die IPA die Note weiterhin nicht');
 
         $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $rechne([...$l, $this->position('ipa', 3.0)])->status);
+    }
+
+    /** @return array<string, array{array<string, array<string, mixed>>, float, float}> Zusatz, ungenügender Wert, genügender Wert */
+    public static function regelnUeberTeileOhneGewicht(): array
+    {
+        return [
+            // Die Gruppe zählt ungenügende Teile: auch der ohne Gewicht zählt mit
+            'max. ungenügend an der Gruppe' => [['ab' => ['max_ungenuegend' => 0], 'ab_schlussarbeit' => ['gewicht' => 0]], 3.5, 4.5],
+            'max. Minuspunkte an der Gruppe' => [['ab' => ['max_minuspunkte' => 0.5], 'ab_schlussarbeit' => ['gewicht' => 0]], 3.0, 3.5],
+            // Die Gruppe selbst hat kein Gewicht und keine Regel, aber ein Teil darunter eine Mindestnote
+            'Mindestnote unter einer Gruppe ohne Gewicht' => [['ab' => ['gewicht' => 0], 'ab_schlussarbeit' => ['fallnote' => 4.0]], 3.5, 4.5],
+        ];
+    }
+
+    /** @param  array<string, array<string, mixed>>  $zusatz */
+    #[Test]
+    #[DataProvider('regelnUeberTeileOhneGewicht')]
+    public function ein_teil_ohne_gewicht_unter_einer_regel_haelt_das_ergebnis_offen(array $zusatz, float $ungenuegend, float $genuegend): void
+    {
+        // Prüferbefund: nur die eigene Mindestnote war getestet – ohne diese Zweige stand «bestanden», bevor die Schlussarbeit erfasst war
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], $zusatz);
+        $l = [$this->position('ipa', 5.0), $this->position('ab_schlusspruefung', 5.0), $this->fach(self::ABU_FACH, 1, 5.0, self::ABU),
+            $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+        $rechne = fn (array $l) => (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1];
+
+        $this->assertSame(BaumErgebnis::OFFEN, $rechne($l)->status, 'Schlussarbeit fehlt');
+        $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $rechne([...$l, $this->position('ab_schlussarbeit', $ungenuegend)])->status);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $rechne([...$l, $this->position('ab_schlussarbeit', $genuegend)])->status);
     }
 
     #[Test]

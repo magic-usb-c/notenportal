@@ -11,6 +11,7 @@ use App\Services\Auswertung\Notenbaum\BaumErgebnis;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Auswertung\NotenQuelle;
 use Database\Seeders\BasisSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -105,6 +106,17 @@ class BaumVorlageTest extends TestCase
 
                 return $d;
             }, 'kein Text'],
+            // Das Bearbeiten-Formular verlangt den Namen: ein leerer Name im Import liesse sich nie unverändert speichern
+            'Knotenname leer' => [function ($d) {
+                $d['wurzel']['kinder'][0]['name'] = '';
+
+                return $d;
+            }, 'Name darf nicht leer'],
+            'Knotenname nur Leerzeichen' => [function ($d) {
+                $d['wurzel']['kinder'][0]['name'] = '   ';
+
+                return $d;
+            }, 'Name darf nicht leer'],
             'max_ungenuegend 300' => [function ($d) {
                 $d['wurzel']['max_ungenuegend'] = 300;
 
@@ -162,6 +174,47 @@ class BaumVorlageTest extends TestCase
 
         $this->assertNotSame([], $fehler);
         $this->assertStringContainsString($erwartet, implode(' | ', $fehler));
+    }
+
+    #[Test]
+    public function leerer_knotenname_im_import_nennt_den_knoten_und_legt_keinen_baum_an(): void
+    {
+        // Prüferbefund: «   » als Knotenname wurde importiert; das Bearbeiten verlangt den Namen, der Baum war unveränderbar.
+        $d = BaumVorlage::laden('informatiker-efz-bivo2020');
+        $d['wurzel']['kinder'][0]['name'] = '   ';
+
+        $this->assertThrows(
+            fn () => BaumVorlage::lesen((string) json_encode($d)),
+            RuntimeException::class,
+            'Knoten «'.$d['wurzel']['code'].' › ipa»',
+        );
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.import'), [
+            'datei' => UploadedFile::fake()->createWithContent('baum.json', (string) json_encode($d)),
+            'datei_lehrberuf_id' => $this->lehrberuf,
+        ])->assertSessionHasErrors('datei');
+        $this->assertSame(0, DB::table('notenbaeume')->count());
+    }
+
+    #[Test]
+    public function fehlermeldung_beim_bearbeiten_nennt_den_knoten(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $baum = app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $this->lehrberuf, 'informatiker-efz-bivo2020');
+        $knoten = DB::table('notenbaum_knoten')->where('baum_id', $baum)->get();
+        $payload = $knoten->mapWithKeys(fn ($k) => [$k->knoten_id => [
+            'name' => $k->name, 'gewicht' => (string) (float) $k->gewicht, 'zaehlt' => '1',
+        ]])->all();
+        $ipa = (int) $knoten->firstWhere('code', 'ipa')->knoten_id;
+        $payload[$ipa]['name'] = '';
+        $payload[$ipa]['gewicht'] = '2000';
+
+        $this->actingAs($admin)->put(route('admin.master-data.grade-trees.update', $baum), ['name' => 'Baum', 'knoten' => $payload])
+            ->assertSessionHasErrors([
+                "knoten.$ipa.name" => 'Das Feld Name (Knoten ipa) ist erforderlich.',
+                "knoten.$ipa.gewicht" => 'Das Feld Gewicht (Knoten ipa) darf nicht grösser als 1000 sein.',
+            ]);
     }
 
     #[Test]

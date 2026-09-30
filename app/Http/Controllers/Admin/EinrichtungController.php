@@ -21,6 +21,7 @@ use App\Support\Einstellungen;
 use App\Support\KategorieRegeln;
 use App\Support\Lehrsemester;
 use App\Support\Protokoll;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -36,6 +37,9 @@ use RuntimeException;
  */
 class EinrichtungController extends Controller
 {
+    /** Länge der Spalte lehrberufe.kuerzel; geprüft wird das grossgeschriebene Kürzel («ß» wird zu «SS»). */
+    private const int KUERZEL_MAX = 10;
+
     private const array ATTRIBUTE = [
         'kategorien.*.name' => 'Name', 'kategorien.*.gewicht_gesamt' => 'Gewicht',
         'kategorien.*.promotion_min_schnitt' => 'Promotion Ø', 'kategorien.*.promotion_max_ungenuegend' => 'max. ungenügend',
@@ -177,7 +181,7 @@ class EinrichtungController extends Controller
             'berufe' => ['array'],
             'berufe.*' => ['string', Rule::in(array_column($vorlage['lehrberufe'] ?? [], 'kuerzel'))],
             'eigene' => ['array'],
-            'eigene.*.kuerzel' => ['nullable', 'string', 'max:10', 'alpha_num', 'distinct:ignore_case', 'required_with:eigene.*.name'],
+            'eigene.*.kuerzel' => ['nullable', 'string', 'max:'.self::KUERZEL_MAX, 'alpha_num', 'distinct:ignore_case', 'required_with:eigene.*.name'],
             'eigene.*.name' => ['nullable', 'string', 'max:200', 'distinct:ignore_case', 'required_with:eigene.*.kuerzel'],
             'faecher' => ['array'],
             'faecher.*' => ['string', Rule::in(array_map([StammdatenVorlage::class, 'fachSchluessel'], $vorlage['faecher'] ?? []))],
@@ -194,8 +198,13 @@ class EinrichtungController extends Controller
             }
             $kuerzel = mb_strtoupper(trim($e['kuerzel']));
             $name = trim($e['name']);
-            if ($vorlageBerufe->has($kuerzel) && $vorlageBerufe[$kuerzel] !== mb_strtolower($name)) {
-                $fehler["eigene.$i.kuerzel"] = __('Kürzel gehört zu einem Lehrberuf der Vorlage');
+            if (mb_strlen($kuerzel) > self::KUERZEL_MAX) {
+                $fehler["eigene.$i.kuerzel"] = __('validation.max.string', ['attribute' => __('Kürzel'), 'max' => self::KUERZEL_MAX]);
+
+                continue;
+            }
+            if (($vorlageBerufe->has($kuerzel) && $vorlageBerufe[$kuerzel] !== mb_strtolower($name)) || StammdatenVorlage::kuerzelFremdvergeben($kuerzel, $name)) {
+                $fehler["eigene.$i.kuerzel"] = __('Kürzel gehört schon zu einem anderen Lehrberuf');
 
                 continue;
             }
@@ -205,12 +214,20 @@ class EinrichtungController extends Controller
             throw ValidationException::withMessages($fehler);
         }
 
+        $fehlertext = null;
         try {
             $neu = $vorlagen->anwenden($vorlage, $daten['berufe'] ?? [], $eigene, $daten['faecher'] ?? [], $request->boolean('notenbaeume', true));
+        } catch (QueryException $e) {
+            // Die Meldung der Datenbank enthält SQL, Socket und Datenbankname: ins Protokoll, nicht in die Oberfläche
+            report($e);
+            $fehlertext = __('Speichern fehlgeschlagen. Details stehen im Protokoll.');
         } catch (RuntimeException $e) {
+            $fehlertext = $e->getMessage();
+        }
+        if ($fehlertext !== null) {
             // Nichts gespeichert: zurück in den Schritt, Eingaben bleiben
             return redirect()->route('admin.setup', array_filter(['schritt' => 'professions', 'vorlage' => (string) $schluessel === (string) $standard ? null : $schluessel]))
-                ->withInput()->with('error', $e->getMessage());
+                ->withInput()->with('error', $fehlertext);
         }
 
         $berufeText = $neu['berufe'] === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => $neu['berufe']]);

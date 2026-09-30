@@ -115,7 +115,8 @@ class StammdatenNotenbaeumeController extends Controller
     public function update(Request $request, int $baum_id): RedirectResponse
     {
         $baum = DB::table('notenbaeume')->where('baum_id', $baum_id)->first() ?? abort(404);
-        $ids = DB::table('notenbaum_knoten')->where('baum_id', $baum_id)->pluck('knoten_id')->map(fn ($v) => (int) $v)->all();
+        $codes = DB::table('notenbaum_knoten')->where('baum_id', $baum_id)->pluck('code', 'knoten_id');
+        $ids = $codes->keys()->map(fn ($v) => (int) $v)->all();
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
@@ -129,15 +130,7 @@ class StammdatenNotenbaeumeController extends Controller
             'knoten.*.max_minuspunkte' => ['nullable', 'numeric', 'min:0', 'max:'.Knoten::MAX_MINUSPUNKTE_MAX],
             'knoten.*.zaehlt' => ['sometimes', 'boolean'],
             'knoten.*.entfaellt_mit_track' => ['nullable', Rule::in(['BMS', 'ABU'])],
-        ], [], [
-            'knoten.*.name' => __('Name'),
-            'knoten.*.gewicht' => __('Gewicht'),
-            'knoten.*.fallnote' => __('Mindestnote'),
-            'knoten.*.rundung' => __('Rundung'),
-            'knoten.*.max_ungenuegend' => __('Max. ungenügend'),
-            'knoten.*.max_minuspunkte' => __('Max. Minuspunkte'),
-            'knoten.*.entfaellt_mit_track' => __('Entfällt mit'),
-        ]);
+        ], [], $this->knotenAttribute($codes->all()));
 
         $fremd = array_diff(array_map('intval', array_keys($data['knoten'])), $ids);
         abort_if($fremd !== [], 422);
@@ -163,6 +156,36 @@ class StammdatenNotenbaeumeController extends Controller
         Protokoll::schreiben(Protokoll::ADMIN_NOTENBAUM_GEAENDERT, null, ['baum' => $baum->name]);
 
         return redirect()->route('admin.master-data.grade-trees.show', $baum_id)->with('success', __('Notenbaum gespeichert.'));
+    }
+
+    /**
+     * Attributnamen der Knotenfelder für die Validierungsmeldungen, je Knoten mit dem Code – sonst steht
+     * «Das Feld Name ist erforderlich.» da, ohne dass man erfährt, welcher Knoten gemeint ist.
+     *
+     * @param  array<int|string, string>  $codes  Code je Knoten-ID
+     * @return array<string, string>
+     */
+    private function knotenAttribute(array $codes): array
+    {
+        $felder = [
+            'name' => __('Name'),
+            'gewicht' => __('Gewicht'),
+            'fallnote' => __('Mindestnote'),
+            'rundung' => __('Rundung'),
+            'max_ungenuegend' => __('Max. ungenügend'),
+            'max_minuspunkte' => __('Max. Minuspunkte'),
+            'entfaellt_mit_track' => __('Entfällt mit'),
+        ];
+
+        $attribute = [];
+        foreach ($felder as $feld => $bezeichnung) {
+            $attribute["knoten.*.$feld"] = $bezeichnung;
+            foreach ($codes as $id => $code) {
+                $attribute["knoten.$id.$feld"] = __(':feld (Knoten :code)', ['feld' => $bezeichnung, 'code' => $code]);
+            }
+        }
+
+        return $attribute;
     }
 
     /** Aktivieren löst den bisher aktiven Baum desselben Lehrberufs bzw. Bildungsgangs ab. */

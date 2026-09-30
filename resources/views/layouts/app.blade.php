@@ -128,12 +128,9 @@
 
         @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif
         @php
-            // Der Titel kommt als Slot, oft über eine zweite Komponente gereicht und dabei schon maskiert:
-            // auf Klartext zurückführen und genau einmal maskieren (sonst zeigt der Tab «&amp;amp;»).
-            $seitentitel = isset($title) ? trim(strip_tags((string) $title)) : '';
-            while ($seitentitel !== ($klartext = html_entity_decode($seitentitel, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) {
-                $seitentitel = $klartext;
-            }
+            // Der Titel kommt als Slot, also als HTML, das {{ }} genau einmal maskiert hat: Tags weg, einmal
+            // dekodieren, unten einmal maskieren. Nicht öfter dekodieren – ein Name wie «QV &amp; B» ist Text.
+            $seitentitel = isset($title) ? trim(html_entity_decode(strip_tags((string) $title), ENT_QUOTES | ENT_HTML5, 'UTF-8')) : '';
         @endphp
         <title>{{ $seitentitel !== '' ? $seitentitel.' – '.config('app.name', 'Notenportal') : config('app.name', 'Notenportal') }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">

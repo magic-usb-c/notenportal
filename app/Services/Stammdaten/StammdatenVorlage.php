@@ -191,7 +191,7 @@ final class StammdatenVorlage
      * @param  list<string>  $faecher  Fachschlüssel aus der Vorlage
      * @return array{berufe: int, faecher: int, baeume: int}
      *
-     * @throws RuntimeException wenn die Vorlage nicht zu den Stammdaten passt (unbekannte Kategorie, fehlerhafter Notenbaum)
+     * @throws RuntimeException wenn die Vorlage nicht zu den Stammdaten passt (unbekannte Kategorie, fehlerhafter Notenbaum, vergebenes Kürzel)
      */
     public function anwenden(array $vorlage, array $berufe, array $eigene, array $faecher, bool $baeume = true): array
     {
@@ -231,6 +231,10 @@ final class StammdatenVorlage
             }
         }
         foreach ($eigene as $k => $name) {
+            // Ein vergebenes Kürzel unter fremdem Namen würde unten stillschweigend auf den vorhandenen Lehrberuf fallen
+            if (self::kuerzelFremdvergeben((string) $k, $name)) {
+                throw new RuntimeException(__('Kürzel «:kuerzel» gehört zu einem anderen Lehrberuf.', ['kuerzel' => (string) $k]));
+            }
             $wunsch[(string) $k] = $name;
         }
         foreach ($wunsch as $kuerzel => $name) {
@@ -338,6 +342,20 @@ final class StammdatenVorlage
         }
 
         return $anzahl;
+    }
+
+    /**
+     * Trägt schon ein Lehrberuf dieses Kürzel (ohne Gross-/Kleinschreibung) unter einem anderen Namen? Dann darf es
+     * nicht für einen weiteren Lehrberuf gelten. Mit demselben Namen (ebenfalls ohne Gross-/Kleinschreibung) ist es derselbe.
+     */
+    public static function kuerzelFremdvergeben(string $kuerzel, string $name): bool
+    {
+        $kuerzel = mb_strtoupper(trim($kuerzel));
+        $name = mb_strtolower(trim($name));
+
+        return DB::table('lehrberufe')->get(['kuerzel', 'name'])->contains(
+            fn ($l) => mb_strtoupper(trim((string) $l->kuerzel)) === $kuerzel && mb_strtolower(trim((string) $l->name)) !== $name
+        );
     }
 
     /** Lehrberuf über Kürzel, sonst über Name; ohne Gross-/Kleinschreibung und ohne Leerraum am Rand. */

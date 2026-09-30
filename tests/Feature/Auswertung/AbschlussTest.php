@@ -349,6 +349,79 @@ class AbschlussTest extends TestCase
     }
 
     #[Test]
+    public function neuer_baum_holt_noten_auch_aus_aelteren_baeumen_und_aus_und_einschalten_verliert_nichts(): void
+    {
+        // Prüferbefunde: A (IPA 5.0) → B ohne IPA → C. C holte die IPA nicht aus A; nach Aus- und Einschalten
+        // überschrieb die alte 5.0 aus A die in C erfasste 4.0.
+        $admin = User::factory()->admin()->create();
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $ipa = fn () => array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0]->knoten('ipa')->note;
+        $a = $this->efzBaum();
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '5.0']])
+            ->assertSessionHas('success');
+        $erfasst = (string) NotenbaumPosition::query()->value('aktualisiert_am');
+
+        $this->travel(1)->minutes();
+        $this->baumMitUmbenannterIpa();
+        $this->assertSame(1, BaumWechsel::verlorenePositionen($a), 'B kennt die IPA nicht, sie bleibt in A');
+
+        $this->travel(1)->minutes();
+        $c = $this->efzBaum();
+        Konfiguration::vergessen();
+        $this->assertEqualsWithDelta(5.0, $ipa(), 1e-9, 'C holt die IPA aus A, auch wenn B dazwischen lag');
+        $this->assertSame(0, BaumWechsel::verlorenePositionen($a));
+        $this->assertSame($erfasst, (string) NotenbaumPosition::query()->value('aktualisiert_am'), 'Umziehen ist kein Erfassen');
+
+        $this->travel(1)->minutes();
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '4.0']])
+            ->assertSessionHas('success');
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.activate', $c), ['aktiv' => 0])->assertSessionHas('success');
+        $this->post(route('admin.master-data.grade-trees.activate', $c), ['aktiv' => 1])->assertSessionHas('success');
+        Konfiguration::vergessen();
+        $this->assertEqualsWithDelta(4.0, $ipa(), 1e-9);
+        $this->assertSame(1, NotenbaumPosition::count());
+
+        // Geleert bleibt geleert, auch nach Aus- und Einschalten
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '']])
+            ->assertSessionHas('success');
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.activate', $c), ['aktiv' => 0]);
+        $this->post(route('admin.master-data.grade-trees.activate', $c), ['aktiv' => 1]);
+        Konfiguration::vergessen();
+        $this->assertNull($ipa());
+    }
+
+    #[Test]
+    public function bei_doppelten_positionen_gewinnt_die_zuletzt_erfasste_nicht_der_zuletzt_bearbeitete_baum(): void
+    {
+        // Bestand aus der Zeit vor dem Umziehen: dieselbe IPA in zwei abgeschalteten Bäumen. Dass A danach
+        // bearbeitet wurde (aktualisiert_am), sagt nichts über das Alter der Note.
+        $admin = User::factory()->admin()->create();
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $a = $this->efzBaum();
+        $c = $this->efzBaum();
+        DB::table('notenbaeume')->update(['aktiv' => false]);
+        $position = fn (int $baum, float $wert, string $zeit) => DB::table('notenbaum_positionen')->insert([
+            'lernender_id' => $id, 'note_wert' => $wert, 'erfasst_von_benutzer_id' => $lernender->benutzer->benutzer_id,
+            'knoten_id' => DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('code', 'ipa')->value('knoten_id'),
+            'erstellt_am' => $zeit, 'aktualisiert_am' => $zeit,
+        ]);
+        $position($a, 5.0, '2027-01-10 08:00:00');
+        $position($c, 4.0, '2027-02-10 08:00:00');
+        DB::table('notenbaeume')->where('baum_id', $a)->update(['aktualisiert_am' => now()->addDay()]);
+
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.template'), ['vorlage' => 'informatiker-efz-bivo2020', 'lehrberuf_id' => $this->lehrberuf])
+            ->assertSessionHas('success');
+        Konfiguration::vergessen();
+
+        $this->assertEqualsWithDelta(4.0, array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0]->knoten('ipa')->note, 1e-9);
+        $this->assertSame(1, NotenbaumPosition::count(), 'Die überholte 5.0 fällt weg, statt beim nächsten Wechsel wieder aufzutauchen');
+        $this->assertSame(0, BaumWechsel::verlorenePositionen($a));
+        $this->assertSame(0, BaumWechsel::verlorenePositionen($c));
+    }
+
+    #[Test]
     public function vollstaendig_nicht_bestandenes_qv_faerbt_die_ampel_rot(): void
     {
         // Prüferbefund: Grund an einer berechneten Gruppe (nicht von Hand erfasst) – bei vollständigem Baum
@@ -461,6 +534,21 @@ class AbschlussTest extends TestCase
     private function efzBaum(): int
     {
         return app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $this->lehrberuf);
+    }
+
+    /** EFZ-Baum, in dem die IPA einen anderen Code trägt (Strukturänderung per Import). */
+    private function baumMitUmbenannterIpa(): int
+    {
+        $d = BaumVorlage::laden('informatiker-efz-bivo2020');
+        $umbenennen = function (array $k) use (&$umbenennen): array {
+            $k['code'] = $k['code'] === 'ipa' ? 'ipa_neu' : $k['code'];
+            $k['kinder'] = array_map($umbenennen, $k['kinder'] ?? []);
+
+            return $k;
+        };
+        $d['wurzel'] = $umbenennen($d['wurzel']);
+
+        return app(BaumVorlage::class)->importieren($d, $this->lehrberuf);
     }
 
     /** Knoten des aktiven EFZ-Baums. */

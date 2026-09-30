@@ -186,6 +186,29 @@ class NotenbaumDbTest extends TestCase
     }
 
     #[Test]
+    public function rollback_im_selben_batch_bricht_schon_vor_der_spalte_entfaellt_mit_ab(): void
+    {
+        // Prüferbefund: migrate:rollback nimmt 000002 vor 000001 zurück. Ohne eigene Vorprüfung war die
+        // Spalte schon weg, wenn 000001 wegen erfasster Abschlussnoten abbrach – Einstellung verloren.
+        $migration = require database_path('migrations/2026_10_01_000002_notenbaum_entfaellt_mit_track.php');
+        [$user, $id] = $this->lernender();
+        $baum = $this->baumAnlegen();
+        $knoten = (int) DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('typ', 'manuell')->value('knoten_id');
+        DB::table('notenbaum_positionen')->insert(['lernender_id' => $id, 'knoten_id' => $knoten, 'note_wert' => 5.0, 'erfasst_von_benutzer_id' => $user->benutzer_id, 'erstellt_am' => now(), 'aktualisiert_am' => now()]);
+
+        $this->assertThrows(fn () => $migration->down(), \RuntimeException::class, 'Abschlussnote');
+        $this->assertTrue(Schema::hasColumn('notenbaum_knoten', 'entfaellt_mit_track'));
+        DB::table('notenbaum_positionen')->delete();
+
+        $sport = $this->fachAnlegen('Sport', 'SP', $this->fach, skala: 'stufe', zaehlt: false);
+        $this->actingAs($user)->post(route('learner.grades.store'), [
+            'typ' => 'fach', 'fach_id' => $sport, 'pruefungsdatum' => now()->toDateString(), 'note_stufe' => 'B',
+        ])->assertSessionHasNoErrors();
+        $this->assertThrows(fn () => $migration->down(), \RuntimeException::class, 'Stufe');
+        $this->assertTrue(Schema::hasColumn('notenbaum_knoten', 'entfaellt_mit_track'));
+    }
+
+    #[Test]
     public function bestehende_installation_ohne_bm_promotionsregel_bekommt_sie_per_migration(): void
     {
         $migration = require database_path('migrations/2026_10_01_000003_bms_promotionsregel.php');

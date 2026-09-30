@@ -397,7 +397,7 @@ final class Datenauskunft
                 Csv::safe($p->bezeichnung()),
                 Csv::safe($p->titel ?? ''),
                 (string) ($p->gewichtung_prozent ?? 100),
-                $p->note?->note_wert ?? '',
+                $p->note === null ? '' : ($p->note->note_wert !== null ? (string) $p->note->note_wert : NotenSkala::stufeText($p->note->note_stufe)),
                 optional($p->abgesagt_am)->format('d.m.Y') ?? '',
                 Csv::safe($p->pruefungsart ?? ''),
                 Csv::safe($p->raum ?? ''),

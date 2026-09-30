@@ -109,6 +109,9 @@ final class BaumVorlage
             }
             if (isset($k['name']) && ! is_string($k['name'])) {
                 $fehler[] = __('Knoten «:wo»: Der Name ist kein Text.', ['wo' => $wo]);
+            } elseif (isset($k['name']) && trim($k['name']) === '') {
+                // Fehlt der Name, gilt der Code. Ein leerer liesse sich im Formular nicht speichern (Pflichtfeld).
+                $fehler[] = __('Knoten «:wo»: Der Name darf nicht leer sein.', ['wo' => $wo]);
             }
             if (isset($codes[$code])) {
                 $fehler[] = __('Code «:code» kommt mehrfach vor.', ['code' => $code]);

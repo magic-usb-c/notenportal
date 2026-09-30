@@ -1,4 +1,4 @@
-<x-einrichtung schritt="categories" :stand="$stand" titel="{{ __('Kategorien') }}">
+<x-einrichtung schritt="categories" :stand="$stand" :titel="__('Kategorien')">
     @php
         $feld = 'h-10 rounded-lg border border-border bg-input text-text px-2 text-sm focus:ring-2 focus:ring-ring focus:border-ring tabular-nums';
     @endphp

@@ -8,9 +8,12 @@ use App\Models\User;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Stammdaten\StammdatenVorlage;
 use Database\Seeders\BasisSeeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -412,7 +415,7 @@ class EinrichtungVorlagenTest extends TestCase
     {
         $this->actingAs($this->admin)->post(route('admin.setup.professions'), [
             'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'inap', 'name' => 'Laborant/in EFZ']], 'notenbaeume' => '1',
-        ])->assertSessionHasErrors(['eigene.0.kuerzel' => 'Kürzel gehört zu einem Lehrberuf der Vorlage']);
+        ])->assertSessionHasErrors(['eigene.0.kuerzel' => 'Kürzel gehört schon zu einem anderen Lehrberuf']);
 
         $this->assertSame(0, DB::table('lehrberufe')->count());
         $this->assertSame(0, DB::table('notenbaeume')->count());
@@ -422,6 +425,85 @@ class EinrichtungVorlagenTest extends TestCase
             'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'inap', 'name' => 'Informatiker/in EFZ Applikationsentwicklung']],
         ])->assertSessionHasNoErrors();
         $this->assertSame(['INAP'], DB::table('lehrberufe')->pluck('kuerzel')->all());
+    }
+
+    #[Test]
+    public function weiterer_lehrberuf_darf_kein_vorhandenes_datenbankkuerzel_unter_fremdem_namen_anlegen(): void
+    {
+        // Prüferbefund: «lab» / «Logistiker/in EFZ» gab keinen Fehler, sondern «0 Lehrberufe und 0 Fächer angelegt.»
+        DB::table('lehrberufe')->insert(['kuerzel' => 'LAB', 'name' => 'Laborant/in EFZ', 'aktiv' => 1]);
+
+        $this->actingAs($this->admin)->post(route('admin.setup.professions'), [
+            'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'lab', 'name' => 'Logistiker/in EFZ']],
+        ])->assertSessionHasErrors(['eigene.0.kuerzel' => 'Kürzel gehört schon zu einem anderen Lehrberuf'])
+            ->assertSessionMissing('success');
+
+        $this->assertSame(['LAB'], DB::table('lehrberufe')->pluck('kuerzel')->all());
+        $this->assertSame(0, DB::table('lehrberufe')->where('name', 'Logistiker/in EFZ')->count());
+
+        // Mit dem vorhandenen Namen (Gross-/Kleinschreibung egal) ist es derselbe Lehrberuf und damit unschädlich
+        $this->post(route('admin.setup.professions'), [
+            'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'lab', 'name' => 'laborant/in efz']],
+        ])->assertSessionHasNoErrors();
+        $this->assertSame(['LAB'], DB::table('lehrberufe')->pluck('kuerzel')->all());
+    }
+
+    #[Test]
+    public function anwenden_legt_ein_eigenes_kuerzel_nie_stillschweigend_auf_einen_fremden_lehrberuf_um(): void
+    {
+        DB::table('lehrberufe')->insert(['kuerzel' => 'LAB', 'name' => 'Laborant/in EFZ', 'aktiv' => 1]);
+        $vorlage = StammdatenVorlage::mitgeliefert()[self::STANDARD];
+
+        try {
+            app(StammdatenVorlage::class)->anwenden($vorlage, [], ['LAB' => 'Logistiker/in EFZ'], [], false);
+            $this->fail('Ein vergebenes Kürzel unter fremdem Namen muss abgelehnt werden.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('LAB', $e->getMessage());
+        }
+        $this->assertSame(1, DB::table('lehrberufe')->count());
+    }
+
+    #[Test]
+    public function weiterer_lehrberuf_kuerzel_wird_nach_dem_grossschreiben_auf_die_laenge_geprueft(): void
+    {
+        // Prüferbefund: «ßßßßßß» besteht max:10, ist als «SSSSSSSSSSSS» aber 12 Zeichen lang und landete als rohes SQL in der Meldung.
+        $this->actingAs($this->admin)->post(route('admin.setup.professions'), [
+            'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'ßßßßßß', 'name' => 'Sonderberuf']],
+        ])->assertSessionHasErrors(['eigene.0.kuerzel' => 'Das Feld Kürzel darf nicht länger als 10 Zeichen sein.'])
+            ->assertSessionMissing('error')
+            ->assertSessionMissing('success');
+
+        $this->assertSame(0, DB::table('lehrberufe')->count());
+        // Fünf ß ergeben genau zehn Zeichen und sind erlaubt
+        $this->post(route('admin.setup.professions'), [
+            'vorlage' => self::STANDARD, 'eigene' => [['kuerzel' => 'ßßßßß', 'name' => 'Sonderberuf']],
+        ])->assertSessionHasNoErrors();
+        $this->assertSame(['SSSSSSSSSS'], DB::table('lehrberufe')->pluck('kuerzel')->all());
+    }
+
+    #[Test]
+    public function datenbankfehler_im_schritt_zeigen_eine_allgemeine_meldung_ohne_sql_und_landen_im_protokoll(): void
+    {
+        Exceptions::fake();
+        // «Français» und «Francais» sind für die Sortierung der Tabelle (unicode_ci) dasselbe Fach: der Unique-Index schlägt an
+        $kat = (int) DB::table('kategorien')->where('code', 'BMS')->value('kategorie_id');
+        DB::table('faecher')->insert(['name' => 'Francais', 'kurzname' => 'FRX', 'track_typ' => 'BMS', 'kategorie_id' => $kat]);
+        $this->vorlagenverzeichnis(['muster' => [
+            'format' => StammdatenVorlage::FORMAT, 'version' => StammdatenVorlage::VERSION, 'name' => 'Muster',
+            'lehrberufe' => [['kuerzel' => 'AB', 'name' => 'Alpha']],
+            'faecher' => [['name' => 'Français', 'kurzname' => 'FR', 'track' => 'BMS']],
+            'notenbaeume' => [],
+        ]]);
+
+        $this->actingAs($this->admin)->post(route('admin.setup.professions'), [
+            'vorlage' => 'muster', 'berufe' => ['AB'], 'faecher' => ['BMS:FR'], 'notenbaeume' => '0',
+        ])->assertRedirect(route('admin.setup', 'professions'))
+            ->assertSessionHas('error', 'Speichern fehlgeschlagen. Details stehen im Protokoll.');
+
+        $this->assertStringNotContainsString('SQLSTATE', (string) session('error'));
+        // Laravel wirft bei verletztem Unique-Index die Unterklasse von QueryException
+        Exceptions::assertReported(UniqueConstraintViolationException::class);
+        $this->assertSame(0, DB::table('lehrberufe')->count(), 'Nichts gespeichert');
     }
 
     #[Test]

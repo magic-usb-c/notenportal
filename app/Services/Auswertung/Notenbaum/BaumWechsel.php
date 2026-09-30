@@ -13,11 +13,15 @@ use RuntimeException;
  * hängen an Knoten-IDs; beim Wechsel ziehen sie über den Knoten-Code in den neuen Baum um, damit ein
  * Reimport oder das Zurückschalten auf einen alten Stand keine Noten verliert.
  *
- * Umziehen statt kopieren: Eine Position liegt immer nur in einem Baum. So gilt der zuletzt aktive Stand
- * (eine dort geleerte Note taucht beim Zurückschalten nicht wieder auf), und ein Baum, der nie Noten
- * bekommen hat, kann beim Zurückschalten keine löschen. Liegen im Zielbaum Positionen, die die Quelle
- * nicht kennt, bleiben sie. Codes, die es im Zielbaum nicht gibt, bleiben im alten Baum und sperren
- * dessen Löschen (verlorenePositionen).
+ * Beim Aktivieren sammelt der Baum für jeden seiner Codes die Positionen aus allen Bäumen desselben
+ * Ziels ein, nicht nur aus dem Vorgänger: Kannte ein Zwischenstand einen Code nicht, liegt die Note noch
+ * im Baum davor. Gibt es für eine Lernende denselben Code mehrfach, gilt der zuletzt erfasste Wert
+ * (aktualisiert_am der Position – nicht des Baums, das ändert auch das Umbenennen); die überholten
+ * fallen weg, sonst tauchten sie beim nächsten Wechsel wieder auf.
+ *
+ * Umziehen statt kopieren: Eine Position liegt danach nur im aktiven Baum. Eine dort geleerte Note
+ * bleibt beim Zurückschalten leer. Codes, die es im aktiven Baum nicht gibt, bleiben im alten Baum und
+ * sperren dessen Löschen (verlorenePositionen).
  */
 final class BaumWechsel
 {
@@ -31,18 +35,13 @@ final class BaumWechsel
         return DB::transaction(function () use ($baumId) {
             $baum = DB::table('notenbaeume')->where('baum_id', $baumId)->lockForUpdate()->first()
                 ?? throw new RuntimeException('Notenbaum '.$baumId.' fehlt.');
-            $vorher = self::gleichesZiel($baum)->where('aktiv', true)->where('baum_id', '!=', $baumId)->pluck('baum_id')->map(fn ($id) => (int) $id);
-            // Ist gerade keiner aktiv (von Hand abgeschaltet), ziehen die Noten aus den abgeschalteten
-            // Bäumen um, ältester zuerst, damit der zuletzt abgeschaltete gewinnt.
-            $quellen = $vorher->isNotEmpty() ? $vorher : self::gleichesZiel($baum)->where('baum_id', '!=', $baumId)
-                ->whereExists(fn ($q) => $q->from('notenbaum_positionen as p')->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
-                    ->whereColumn('k.baum_id', 'notenbaeume.baum_id'))
-                ->orderBy('aktualisiert_am')->orderBy('baum_id')->pluck('baum_id')->map(fn ($id) => (int) $id);
+            $baeume = self::gleichesZiel($baum)->lockForUpdate()->get(['baum_id', 'aktiv']);
+            $vorher = $baeume->where('aktiv', true)->where('baum_id', '!=', $baumId)->pluck('baum_id')->map(fn ($id) => (int) $id);
 
             DB::table('notenbaeume')->whereIn('baum_id', $vorher->all())->update(['aktiv' => false, 'aktualisiert_am' => now()]);
             DB::table('notenbaeume')->where('baum_id', $baumId)->update(['aktiv' => true, 'aktualisiert_am' => now()]);
 
-            return $quellen->sum(fn (int $von) => self::positionenUmziehen($von, $baumId));
+            return self::positionenSammeln($baumId, $baeume->pluck('baum_id')->map(fn ($id) => (int) $id)->all(), $vorher->all());
         });
     }
 
@@ -78,25 +77,36 @@ final class BaumWechsel
     }
 
     /**
-     * Manuelle Knoten mit gleichem Code: Positionen des alten Baums in den neuen verschieben. Je Lernende/r
-     * ersetzt eine Position der Quelle die des Ziels; was die Quelle nicht hat, bleibt im Ziel stehen.
+     * Für jeden manuellen Code des Zielbaums je Lernende/r die zuletzt erfasste Position aus allen Bäumen
+     * des Ziels in den Zielbaum holen und die überholten löschen. Gleichstand (gleiche Sekunde): der bisher
+     * aktive Baum vor dem Zielbaum vor den übrigen, dann die jüngere Position.
+     *
+     * @param  list<int>  $baeume  alle Bäume desselben Ziels, der Zielbaum eingeschlossen
+     * @param  list<int>  $vorher  bisher aktive Bäume
      */
-    private static function positionenUmziehen(int $von, int $nach): int
+    private static function positionenSammeln(int $nach, array $baeume, array $vorher): int
     {
-        $quelle = DB::table('notenbaum_knoten')->where('baum_id', $von)->where('typ', Knoten::MANUELL)->pluck('knoten_id', 'code');
         $ziel = DB::table('notenbaum_knoten')->where('baum_id', $nach)->where('typ', Knoten::MANUELL)->pluck('knoten_id', 'code');
+        if ($ziel->isEmpty()) {
+            return 0;
+        }
+        $positionen = DB::table('notenbaum_positionen as p')->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
+            ->whereIn('k.baum_id', $baeume)->where('k.typ', Knoten::MANUELL)->whereIn('k.code', $ziel->keys()->all())
+            ->get(['p.position_id', 'p.lernender_id', 'p.knoten_id', 'p.aktualisiert_am', 'k.baum_id', 'k.code']);
+        $rang = fn (object $p) => in_array((int) $p->baum_id, $vorher, true) ? 2 : ((int) $p->baum_id === $nach ? 1 : 0);
         $anzahl = 0;
 
-        foreach ($ziel as $code => $zielId) {
-            if (! isset($quelle[$code])) {
-                continue;
+        foreach ($positionen->groupBy(fn ($p) => $p->lernender_id.'|'.$p->code) as $gruppe) {
+            $sieger = $gruppe->sort(fn ($x, $y) => [$y->aktualisiert_am, $rang($y), $y->position_id] <=> [$x->aktualisiert_am, $rang($x), $x->position_id])->first();
+            $ueberholt = $gruppe->pluck('position_id')->reject(fn ($id) => $id === $sieger->position_id)->all();
+            // Zuerst die überholten, sonst verletzt der Umzug den Schlüssel (Lernende, Knoten)
+            DB::table('notenbaum_positionen')->whereIn('position_id', $ueberholt)->delete();
+            $zielId = (int) $ziel[$sieger->code];
+            if ((int) $sieger->knoten_id !== $zielId) {
+                // aktualisiert_am ausdrücklich behalten: Umziehen ist kein Erfassen, und es entscheidet den nächsten Wechsel
+                $anzahl += DB::table('notenbaum_positionen')->where('position_id', $sieger->position_id)
+                    ->update(['knoten_id' => $zielId, 'aktualisiert_am' => DB::raw('aktualisiert_am')]);
             }
-            $lernende = DB::table('notenbaum_positionen')->where('knoten_id', $quelle[$code])->pluck('lernender_id')->all();
-            if ($lernende === []) {
-                continue;
-            }
-            DB::table('notenbaum_positionen')->where('knoten_id', $zielId)->whereIn('lernender_id', $lernende)->delete();
-            $anzahl += DB::table('notenbaum_positionen')->where('knoten_id', $quelle[$code])->update(['knoten_id' => (int) $zielId]);
         }
 
         return $anzahl;

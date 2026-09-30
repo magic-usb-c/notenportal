@@ -17,6 +17,7 @@ use App\Models\Pruefung;
 use App\Models\User;
 use App\Support\Datenauskunft;
 use App\Support\Einstellungen;
+use App\Support\NotenSkala;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
@@ -155,6 +156,40 @@ class DatenauskunftTest extends TestCase
         $this->assertNull($json[0]['note']);
         $this->assertSame('C', $json[0]['stufe']);
         $zip->close();
+    }
+
+    #[Test]
+    public function pruefungen_csv_zeigt_bei_verknuepfter_stufennote_die_stufe_und_bei_zahlennote_die_zahl(): void
+    {
+        // Prüferbefund: Eine Prüfung mit verknüpfter Stufennote (note_wert null) ergab eine leere Notenspalte.
+        $a = User::factory()->lernender()->create();
+        $lernenderId = $a->lernender->lernender_id;
+        $fach = Fach::factory()->create();
+
+        $stufe = Note::factory()->create(['lernender_id' => $lernenderId, 'titel' => 'Sporttag', 'note_wert' => null, 'note_stufe' => 'A']);
+        $zahl = Note::factory()->create(['lernender_id' => $lernenderId, 'titel' => 'Mathe', 'note_wert' => 5.5, 'note_stufe' => null]);
+
+        Pruefung::create(['lernender_id' => $lernenderId, 'fach_id' => $fach->fach_id, 'titel' => 'Sportprüfung', 'datum' => '2026-05-02', 'note_id' => $stufe->note_id]);
+        Pruefung::create(['lernender_id' => $lernenderId, 'fach_id' => $fach->fach_id, 'titel' => 'Matheprüfung', 'datum' => '2026-05-01', 'note_id' => $zahl->note_id]);
+
+        $zip = $this->oeffnen($a);
+        $zeilen = array_map(
+            fn (string $zeile) => str_getcsv($zeile, ';', '"', ''),
+            array_values(array_filter(preg_split('/\R/', (string) $zip->getFromName('pruefungen.csv')))),
+        );
+        $zip->close();
+
+        $kopf = $zeilen[0];
+        $notenSpalte = array_search(__('Note'), $kopf, true);
+        $this->assertNotFalse($notenSpalte);
+        $nachTitel = [];
+        foreach (array_slice($zeilen, 1) as $zeile) {
+            $nachTitel[$zeile[array_search(__('Titel'), $kopf, true)]] = $zeile[$notenSpalte];
+        }
+
+        $this->assertSame(NotenSkala::stufeText('A'), $nachTitel['Sportprüfung']);
+        $this->assertNotSame('', $nachTitel['Sportprüfung']);
+        $this->assertSame('5.50', number_format((float) $nachTitel['Matheprüfung'], 2, '.', ''));
     }
 
     #[Test]
