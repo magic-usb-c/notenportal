@@ -194,11 +194,15 @@ const schwellenLabelPlugin = {
             const kandidaten = stellen
                 .flatMap((x) => [{ x, y: punkt.y - 3 - hoehe }, { x, y: punkt.y + 3 }])
                 .filter((k) => k.y >= chartArea.top && k.y + hoehe <= chartArea.bottom);
+            // Passt das Label in keiner Stelle in die Zeichenfläche (winziges Diagramm), bleibt es weg statt über Achsen zu ragen
+            if (rechts < links || kandidaten.length === 0) {
+                ctx.restore();
+                return;
+            }
             const ueberdeckt = (k) => daten.filter(([x, y]) => x > k.x - 5 && x < k.x + breite + 5 && y > k.y - 5 && y < k.y + hoehe + 5).length;
             // Kein freier Platz: die Stelle mit den wenigsten verdeckten Punkten statt blind der ersten
             const ort = kandidaten.find((k) => ueberdeckt(k) === 0)
-                ?? kandidaten.reduce((best, k) => (best === null || ueberdeckt(k) < ueberdeckt(best) ? k : best), null)
-                ?? { x: links, y: punkt.y - 3 - hoehe };
+                ?? kandidaten.reduce((best, k) => (ueberdeckt(k) < ueberdeckt(best) ? k : best));
             ctx.fillStyle = tokenFarbe('--muted');
             ctx.textBaseline = 'top';
             ctx.textAlign = 'left';

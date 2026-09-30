@@ -53,6 +53,22 @@ class LernendeListeTest extends TestCase
     }
 
     #[Test]
+    public function karten_zeigen_bei_einer_suche_die_adresse_wie_die_tabelle(): void
+    {
+        $lernender = $this->neuerLernender();
+        $email = $lernender->benutzer->email;
+        $admin = User::factory()->admin()->create();
+        $inAnsicht = fn (\DOMXPath $x, string $ansicht) => str_contains((string) $x->query('//*[@data-ansicht="'.$ansicht.'"]')->item(0)?->textContent, $email);
+
+        $mitSuche = $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index', ['suche' => $lernender->benutzer->nachname]))->assertOk()->getContent());
+        $this->assertTrue($inAnsicht($mitSuche, 'tabelle'));
+        $this->assertTrue($inAnsicht($mitSuche, 'karten'), 'Die Karten verschweigen, warum die Person trifft');
+
+        $ohneSuche = $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index'))->assertOk()->getContent());
+        $this->assertFalse($inAnsicht($ohneSuche, 'karten'));
+    }
+
+    #[Test]
     public function karten_zeigen_dieselben_statusmarken_wie_die_tabelle(): void
     {
         // Ohne Noten und ohne Berufsbildner: zwei Marken, die es nur in der Statusspalte gab

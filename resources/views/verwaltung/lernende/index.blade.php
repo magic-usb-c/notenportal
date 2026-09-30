@@ -149,6 +149,10 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="font-medium text-text">{{ $z->nachname }} {{ $z->vorname }}</div>
+                                {{-- Wie die Tabelle: bei einer Suche zeigt die Adresse, warum die Person trifft --}}
+                                @if($filter['suche'] !== '')
+                                    <div class="text-xs text-muted break-all">{{ $l->benutzer->email }}</div>
+                                @endif
                                 <div class="text-xs text-muted">{{ $l->lehrberuf?->name ?? '–' }}{{ $z->lehrjahr ? ' · '.__(':jahr. Lehrjahr', ['jahr' => $z->lehrjahr]) : '' }}</div>
                                 @if($bereich === 'admin')
                                     <div class="text-xs text-muted mt-0.5">{{ __('Berufsbildner: :name', ['name' => $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–']) }}</div>
