@@ -34,6 +34,8 @@ final class Element
         public ?int $semesterId,
         public readonly string $label,
         public readonly ?float $zielGewicht = null,
+        /** false: erfasst und angezeigt, aber in keinem Schnitt und keiner Promotion (IDAF, Sport). */
+        public readonly bool $zaehlt = true,
     ) {}
 
     public function offenGewicht(): ?float
@@ -82,6 +84,7 @@ final class Element
             'offen_gewicht' => $this->offenGewicht(),
             'abgeschlossen' => $this->abgeschlossen(),
             'anzahl' => $this->anzahlBewertet(),
+            'zaehlt' => $this->zaehlt,
         ];
     }
 }

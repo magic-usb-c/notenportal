@@ -79,6 +79,7 @@ class LeistungTest extends TestCase
             'titel' => 'LB2',
             'wert' => 5.25,
             'gewicht' => 75.0,
+            'knoten_id' => null,
         ], $leistung->toArray());
     }
 }

@@ -264,7 +264,7 @@ final class Rechner
     /** @param  array{ziel: string, zielwert: float|string, ersetzt?: ?int, zeilen: list<array<string, mixed>>}  $eingabe */
     public function berechne(Lernender $lernender, array $eingabe): array
     {
-        $k = Konfiguration::ausDb();
+        $k = $this->quelle->konfiguration((int) $lernender->lernender_id);
         $ziel = $this->parse($eingabe['ziel'], 'ziel');
         $katalog = $this->katalog($lernender);
 

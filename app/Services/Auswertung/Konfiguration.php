@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Auswertung;
 
 use App\Models\Semester;
+use App\Services\Auswertung\Notenbaum\Baum;
 use App\Support\Einstellungen;
 use App\Support\Lehrsemester;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,8 @@ final class Konfiguration
      * @param  array<int, array{bezeichnung: string, sortierung: int, start: string, ende: string}>  $semester
      * @param  array<int, string>  $faecher
      * @param  array<int, array{nummer: string, titel: string, ziel: ?float}>  $module
+     * @param  list<int>  $nichtZaehlend  Fächer, die erfasst und angezeigt, aber nicht gerechnet werden (IDAF, Sport)
+     * @param  list<Baum>  $baeume  Notenbäume des ausgewerteten Lernenden (Lehrberuf zuerst)
      */
     public function __construct(
         public readonly array $kategorien,
@@ -33,7 +36,33 @@ final class Konfiguration
         public readonly array $module = [],
         public readonly float $genuegend = 4.0,
         public readonly float $rundungGesamt = 0.1,
+        public readonly array $nichtZaehlend = [],
+        public readonly array $baeume = [],
     ) {}
+
+    /** Dieselben Regeln, ausgewertet mit den Notenbäumen eines bestimmten Lernenden. */
+    public function mitBaeumen(array $baeume): self
+    {
+        return new self($this->kategorien, $this->semester, $this->faecher, $this->module, $this->genuegend,
+            $this->rundungGesamt, $this->nichtZaehlend, array_values($baeume));
+    }
+
+    public function fachZaehlt(?int $fachId): bool
+    {
+        return $fachId === null || ! in_array($fachId, $this->nichtZaehlend, true);
+    }
+
+    /** Baum, dessen Wurzel die Gesamtnote stellt: der erste Baum des Lehrberufs. */
+    public function hauptbaum(): ?Baum
+    {
+        foreach ($this->baeume as $b) {
+            if ($b->bezug === Baum::LEHRBERUF) {
+                return $b;
+            }
+        }
+
+        return null;
+    }
 
     public static function ausDb(): self
     {
@@ -63,6 +92,7 @@ final class Konfiguration
             ]])->all(),
             genuegend: (float) Einstellungen::get(Einstellungen::NOTE_GENUEGEND, '4.0'),
             rundungGesamt: (float) Einstellungen::get(Einstellungen::RUNDUNG_GESAMT, '0.1'),
+            nichtZaehlend: DB::table('faecher')->where('zaehlt', false)->pluck('fach_id')->map(fn ($id) => (int) $id)->all(),
         );
     }
 
@@ -70,6 +100,7 @@ final class Konfiguration
     public static function vergessen(): void
     {
         self::$ausDb = null;
+        Notenbaum\BaumLader::vergessen();
     }
 
     public function semesterFuerDatum(string $datum): ?int

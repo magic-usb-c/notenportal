@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use App\Services\Auswertung\Konfiguration;
 use App\Support\Einstellungen;
 use Database\Seeders\BasisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -39,5 +40,7 @@ abstract class TestCase extends BaseTestCase
         // automatisch geleert – ohne diesen Reset sähe ein Test die von einem vorigen Test über
         // set() gesetzten, danach per Transaktions-Rollback wieder verworfenen Werte.
         Einstellungen::vergessen();
+        // Dasselbe gilt für Stammdaten und Notenbäume, die der Rechenkern statisch zwischenspeichert.
+        Konfiguration::vergessen();
     }
 }

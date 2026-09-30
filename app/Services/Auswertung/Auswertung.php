@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumErgebnis;
+
 /**
  * Ergebnis des Rechenkerns für einen Lernenden (oder ein Szenario im Rechner).
  * Alle Durchschnitte folgen docs/notenlogik.md.
@@ -19,6 +21,12 @@ final class Auswertung
     public ?float $gesamtSchnitt = null;
 
     public ?float $gesamtNote = null;
+
+    /** @var array<int, BaumErgebnis> Notenbäume nach Baum-ID (leer ohne hinterlegten Baum) */
+    public array $baeume = [];
+
+    /** @var list<Leistung> von Hand erfasste Positionen der Notenbäume (auch offene) */
+    public array $positionen = [];
 
     /** Gesetzt, wenn die Auswertung genau einen Lernenden betrifft (relative Semesternummern). */
     public ?int $lernenderId = null;
@@ -56,7 +64,7 @@ final class Auswertung
     {
         $elemente = array_values(array_filter(
             $this->elemente,
-            fn (Element $e) => $e->semesterId === $semesterId && $e->note !== null
+            fn (Element $e) => $e->semesterId === $semesterId && $e->note !== null && $e->zaehlt
                 && ($kategorieId === null || $e->kategorieId === $kategorieId)
         ));
         $schnitt = Rundung::mittel(array_map(fn (Element $e) => $e->note, $elemente));
@@ -201,6 +209,7 @@ final class Auswertung
 
         return [
             'gesamt' => ['schnitt' => $this->gesamtSchnitt !== null ? round($this->gesamtSchnitt, 3) : null, 'note' => $this->gesamtNote],
+            'baeume' => array_values(array_map(fn (BaumErgebnis $b) => $b->toArray(), $this->baeume)),
             'kategorien' => $kategorien,
             'semester' => $semester,
             'elemente' => array_map(fn (Element $e) => $e->toArray($k, $this->lernenderId), array_values($this->elemente)),

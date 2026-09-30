@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumRechner;
+
 /**
  * Baut aus Leistungen die hierarchische Auswertung: Prüfung → Element (Fach×Semester | Modul)
- * → Kategorie → Gesamt. Rein rechnerisch, ohne DB – siehe docs/notenlogik.md.
+ * → Kategorie → Gesamt, und darüber die Notenbäume des Lernenden (QV, Berufsmaturität).
+ * Rein rechnerisch, ohne DB – siehe docs/notenlogik.md.
  */
 final class Rechenkern
 {
@@ -14,8 +17,17 @@ final class Rechenkern
     public function auswerten(iterable $leistungen, Konfiguration $k): Auswertung
     {
         $a = new Auswertung($k);
+        $positionen = [];
 
         foreach ($leistungen as $l) {
+            if ($l->istPosition()) {
+                if (! $l->istUnbekannt()) {
+                    $positionen[(int) $l->knotenId] = (float) $l->wert;
+                }
+                $a->positionen[] = $l;
+
+                continue;
+            }
             $semesterId = $l->semesterId ?? ($l->datum !== null ? $k->semesterFuerDatum($l->datum) : null);
             $schluessel = $l->schluessel($semesterId);
             if ($schluessel === null) {
@@ -24,7 +36,7 @@ final class Rechenkern
 
             $a->elemente[$schluessel] ??= $l->fachId !== null
                 ? new Element($schluessel, Element::FACH, $l->kategorieId, $l->fachId, null, $semesterId,
-                    $k->fachName($l->fachId))
+                    $k->fachName($l->fachId), zaehlt: $k->fachZaehlt($l->fachId))
                 : new Element($schluessel, Element::MODUL, $l->kategorieId, null, $l->modulId, $semesterId,
                     $k->modulName((int) $l->modulId), $k->module[$l->modulId]['ziel'] ?? null);
 
@@ -42,8 +54,30 @@ final class Rechenkern
         }
 
         $this->kategorienBerechnen($a, $k);
+        $this->baeumeBerechnen($a, $k, $positionen);
 
         return $a;
+    }
+
+    /** @param  array<int, float>  $positionen */
+    private function baeumeBerechnen(Auswertung $a, Konfiguration $k, array $positionen): void
+    {
+        if ($k->baeume === []) {
+            return;
+        }
+
+        $rechner = new BaumRechner($a->elemente, $positionen, $k->genuegend);
+        foreach ($k->baeume as $baum) {
+            $a->baeume[$baum->id] = $rechner->rechnen($baum);
+        }
+
+        // Mit Baum des Lehrberufs ist dessen Wurzel die Gesamtnote; ohne Baum bleibt die Kategorie-Gewichtung.
+        $haupt = $k->hauptbaum();
+        if ($haupt !== null) {
+            $wurzel = $a->baeume[$haupt->id]->wurzel();
+            $a->gesamtSchnitt = $wurzel->schnitt;
+            $a->gesamtNote = $wurzel->note;
+        }
     }
 
     private function elementBerechnen(Element $e, Konfiguration $k): void
@@ -69,6 +103,7 @@ final class Rechenkern
         foreach ($a->elemente as $schluessel => $e) {
             $proKategorie[$e->kategorieId][] = $schluessel;
         }
+        // Nicht zählende Fächer (IDAF, Sport) bleiben als Element sichtbar, gehen aber in keinen Schnitt ein.
         uksort($proKategorie, fn (int $x, int $y) => ($k->kategorien[$x]['sortierung'] ?? 0) <=> ($k->kategorien[$y]['sortierung'] ?? 0));
 
         $gewichtSumme = 0.0;
@@ -77,7 +112,7 @@ final class Rechenkern
         foreach ($proKategorie as $kid => $schluessel) {
             $noten = [];
             foreach ($schluessel as $s) {
-                if ($a->elemente[$s]->note !== null) {
+                if ($a->elemente[$s]->note !== null && $a->elemente[$s]->zaehlt) {
                     $noten[] = $a->elemente[$s]->note;
                 }
             }

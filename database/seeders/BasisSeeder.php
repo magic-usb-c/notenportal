@@ -27,6 +27,13 @@ class BasisSeeder extends Seeder
         foreach ($kategorien as $kategorie) {
             $this->einfuegenFallsFehlend('kategorien', ['code' => $kategorie['code']], $kategorie + ['aktiv' => 1]);
         }
+
+        // Promotionsregel der Berufsmaturität (BMV 2025 Art. 16 Abs. 4, docs/auftrag/LAGE.md §4.1): Gesamtnote
+        // ≥ 4,0, Minuspunkte ≤ 2,0, höchstens zwei Noten unter 4. Die Migration «notenlogik» setzte sie nur auf
+        // bestehende Zeilen – auf einer frischen Installation war die Tabelle da noch leer und die Regel fehlte.
+        DB::table('kategorien')->where('code', 'BMS')
+            ->whereNull('promotion_min_schnitt')->whereNull('promotion_max_ungenuegend')->whereNull('promotion_max_minuspunkte')
+            ->update(['promotion_min_schnitt' => 4.0, 'promotion_max_ungenuegend' => 2, 'promotion_max_minuspunkte' => 2.0]);
     }
 
     private function einfuegenFallsFehlend(string $tabelle, array $schluessel, array $werte = []): void

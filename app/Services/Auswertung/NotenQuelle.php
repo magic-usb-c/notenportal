@@ -4,22 +4,33 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumLader;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Lädt Leistungen aus der DB: erfasste Noten (Module nur aus der jüngsten Belegung) und optional geplante Prüfungen.
- * Für viele Lernende gebündelt, damit Dashboards mit wenigen Queries auskommen.
+ * Lädt Leistungen aus der DB: erfasste Noten (Module nur aus der jüngsten Belegung), von Hand erfasste
+ * Positionen der Notenbäume und optional geplante Prüfungen. Für viele Lernende gebündelt, damit
+ * Dashboards mit wenigen Queries auskommen. Stufen (A/B/C/d) sind keine Leistungen – sie rechnen nie.
  */
 final class NotenQuelle
 {
-    public function __construct(private readonly Rechenkern $kern = new Rechenkern) {}
+    public function __construct(
+        private readonly Rechenkern $kern = new Rechenkern,
+        private readonly BaumLader $lader = new BaumLader,
+    ) {}
 
     public function auswertung(int $lernenderId, bool $mitGeplanten = false): Auswertung
     {
-        $a = $this->kern->auswerten($this->fuerLernenden($lernenderId, $mitGeplanten), Konfiguration::ausDb());
+        $a = $this->kern->auswerten($this->fuerLernenden($lernenderId, $mitGeplanten), $this->konfiguration($lernenderId));
         $a->lernenderId = $lernenderId;
 
         return $a;
+    }
+
+    /** Rechenregeln samt den Notenbäumen genau dieses Lernenden (Lehrberuf, laufende Bildungsgänge). */
+    public function konfiguration(int $lernenderId): Konfiguration
+    {
+        return Konfiguration::ausDb()->mitBaeumen($this->lader->fuerLernende([$lernenderId])[$lernenderId] ?? []);
     }
 
     /**
@@ -30,10 +41,11 @@ final class NotenQuelle
     {
         $k = Konfiguration::ausDb();
         $leistungen = $this->fuerLernende($lernenderIds);
+        $baeume = $this->lader->fuerLernende($lernenderIds);
 
         $out = [];
         foreach ($lernenderIds as $id) {
-            $out[$id] = $this->kern->auswerten($leistungen[$id] ?? [], $k);
+            $out[$id] = $this->kern->auswerten($leistungen[$id] ?? [], isset($baeume[$id]) ? $k->mitBaeumen($baeume[$id]) : $k);
         }
 
         return $out;
@@ -59,6 +71,7 @@ final class NotenQuelle
             ->leftJoin('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
             ->whereIn('n.lernender_id', $lernenderIds)
             ->whereNull('n.geloescht_am')
+            ->whereNotNull('n.note_wert')
             ->orderBy('n.pruefungsdatum')
             ->orderBy('n.note_id')
             ->get(['n.note_id', 'n.lernender_id', 'n.kategorie_id', 'n.fach_id', 'mb.modul_id', 'mb.modul_belegung_id',
@@ -94,6 +107,11 @@ final class NotenQuelle
                 id: (int) $n->note_id,
                 titel: $n->titel,
             );
+        }
+
+        foreach ($this->lader->positionen($lernenderIds) as $lernenderId => $liste) {
+            $out[$lernenderId] ??= [];
+            array_push($out[$lernenderId], ...$liste);
         }
 
         if ($mitGeplanten) {

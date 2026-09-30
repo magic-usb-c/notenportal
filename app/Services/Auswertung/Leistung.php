@@ -26,12 +26,24 @@ final readonly class Leistung
         public string $quelle = self::NOTE,
         public ?int $id = null,
         public ?string $titel = null,
+        public ?int $knotenId = null,
     ) {}
+
+    /** Von Hand erfasste Position eines Notenbaums (IPA, Schlussprüfung …); wert null = noch offen. */
+    public static function position(int $knotenId, ?float $wert, string $quelle = self::NOTE): self
+    {
+        return new self(0, null, null, null, null, $wert, 100.0, $quelle, knotenId: $knotenId);
+    }
+
+    public function istPosition(): bool
+    {
+        return $this->knotenId !== null;
+    }
 
     public function mitWert(float $wert): self
     {
         return new self($this->kategorieId, $this->fachId, $this->modulId, $this->semesterId, $this->datum,
-            $wert, $this->gewicht, $this->quelle, $this->id, $this->titel);
+            $wert, $this->gewicht, $this->quelle, $this->id, $this->titel, $this->knotenId);
     }
 
     public function istUnbekannt(): bool
@@ -41,6 +53,9 @@ final readonly class Leistung
 
     public function schluessel(?int $semesterId): ?string
     {
+        if ($this->knotenId !== null) {
+            return null;
+        }
         if ($this->fachId !== null) {
             return $semesterId !== null ? "f{$this->fachId}s{$semesterId}" : null;
         }
@@ -58,6 +73,7 @@ final readonly class Leistung
             'titel' => $this->titel,
             'wert' => $this->wert,
             'gewicht' => $this->gewicht,
+            'knoten_id' => $this->knotenId,
         ];
     }
 }
