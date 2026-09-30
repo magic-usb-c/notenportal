@@ -35,6 +35,24 @@
         $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
 
         $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40';
+
+        $tageSeit = fn ($z) => $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) : null;
+        $wann = fn (?int $tage) => match (true) {
+            $tage === null => '–',
+            $tage === 0 => __('heute'),
+            default => __('vor :tage', ['tage' => $tage.'d']),
+        };
+        // Die Karten haben keine Spaltenköpfe: dieselben Sortierungen als Auswahl
+        $sortierungen = [
+            ['name', 'asc', __('Name A–Z')],
+            ['name', 'desc', __('Name Z–A')],
+            ['lehrjahr', 'asc', __('Lehrjahr aufsteigend')],
+            ['lehrjahr', 'desc', __('Lehrjahr absteigend')],
+            ['last_note', 'desc', __('Neueste Note zuerst')],
+            ['last_note', 'asc', __('Älteste Note zuerst')],
+            ['avg', 'asc', __('Tiefster Ø zuerst')],
+            ['avg', 'desc', __('Höchster Ø zuerst')],
+        ];
     @endphp
 
     <div class="py-6">
@@ -103,12 +121,26 @@
                 </x-slot:weitere>
             </x-filterleiste>
 
-            {{-- Kartenansicht mobil: Tabelle mit rechtsbündigen Aktionen liesse sie ausserhalb des Sichtbereichs --}}
-            <div class="md:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+            {{-- Karten oder Tabelle je nach Breite des Inhalts, nicht des Fensters (Seitenleiste). Die Tabelle
+                 braucht mit Aktionen rund 900 px, darunter lägen die Aktionen ausserhalb des Sichtbereichs. --}}
+            <div class="@container flex flex-col gap-3">
+            @if($zeilen->count() > 1)
+                <div class="flex items-center justify-end gap-2 @4xl:hidden">
+                    <label for="sortierung" class="text-sm text-muted">{{ __('Sortieren') }}</label>
+                    <select id="sortierung" x-data x-on:change="window.location.href = $el.value" class="{{ $auswahl }} min-w-0">
+                        @foreach($sortierungen as [$sort, $dir, $label])
+                            <option value="{{ request()->fullUrlWithQuery(['sort' => $sort, 'dir' => $dir]) }}" @selected($filter['sort'] === $sort && $filter['dir'] === $dir)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            <div data-ansicht="karten" class="@4xl:hidden divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
                 @forelse($zeilen as $z)
                     @php
                         $l = $z->lernender;
                         $initialen = strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1));
+                        $tagSeit = $tageSeit($z);
                     @endphp
                     <div class="p-4 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}">
                         <div class="flex items-start gap-3 min-w-0">
@@ -121,13 +153,19 @@
                                 @if($bereich === 'admin')
                                     <div class="text-xs text-muted mt-0.5">{{ __('Berufsbildner: :name', ['name' => $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–']) }}</div>
                                 @endif
-                                <div class="flex items-center gap-3 mt-1.5 text-xs text-muted tabular-nums">
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted tabular-nums">
                                     <span>{{ __(':anzahl Noten', ['anzahl' => $z->anzahl]) }}</span>
                                     <span class="font-semibold">Ø <x-note :wert="$z->avg" :stellen="2" /></span>
-                                    @if($z->ungelesen > 0)
-                                        <span class="inline-flex px-1.5 py-0.5 rounded-full font-semibold bg-accent text-accent-contrast">{{ __(':anzahl neu', ['anzahl' => $z->ungelesen]) }}</span>
+                                    @if($tagSeit !== null)
+                                        <span>{{ __('Letzte Note :wann', ['wann' => $wann($tagSeit)]) }}</span>
                                     @endif
                                 </div>
+                                @php
+                                    $status = trim(view('verwaltung.lernende._status', compact('l', 'z', 'tagSeit', 'grenze', 'bereich'))->render());
+                                @endphp
+                                @if($status !== '')
+                                    <div class="flex flex-wrap gap-1 mt-2">{!! $status !!}</div>
+                                @endif
                             </div>
                         </div>
                         <div class="flex items-center gap-2 mt-3">
@@ -142,7 +180,7 @@
                 @endforelse
             </div>
 
-            <div class="hidden md:block rounded-xl border border-border bg-card overflow-hidden">
+            <div data-ansicht="tabelle" class="hidden @4xl:block rounded-xl border border-border bg-card overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
@@ -152,7 +190,7 @@
                                 @if($bereich === 'admin')
                                     <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Berufsbildner') }}</th>
                                 @endif
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Noten') }}</th>
+                                <th scope="col" class="hidden h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap @6xl:table-cell">{{ __('Noten') }}</th>
                                 <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
@@ -164,7 +202,7 @@
                                 @php
                                     $l = $z->lernender;
                                     $initialen = strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1));
-                                    $tagSeit = $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) : null;
+                                    $tagSeit = $tageSeit($z);
                                     $zielUrl = route("{$bereich}.learners.show", $l->lernender_id);
                                 @endphp
                                 <tr class="group h-11 cursor-pointer border-b border-border last:border-0 hover:bg-surface-2/60 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}"
@@ -179,6 +217,7 @@
                                                 @if($filter['suche'] !== '')
                                                     <div class="text-xs text-muted truncate">{{ $l->benutzer->email }}</div>
                                                 @endif
+                                                <div class="text-xs text-muted tabular-nums @6xl:hidden">{{ __(':anzahl Noten', ['anzahl' => $z->anzahl]) }}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -191,43 +230,19 @@
                                             {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}
                                         </td>
                                     @endif
-                                    <td class="px-3 text-right">{{ $z->anzahl }}</td>
-                                    <td class="px-3 text-right text-muted whitespace-nowrap">
-                                        {{ $z->lastNote ? ((int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) === 0 ? __('heute') : __('vor :tage', ['tage' => $tagSeit.'d'])) : '–' }}
-                                    </td>
+                                    <td class="hidden px-3 text-right @6xl:table-cell">{{ $z->anzahl }}</td>
+                                    <td class="px-3 text-right text-muted whitespace-nowrap">{{ $wann($tagSeit) }}</td>
                                     <td class="px-3 text-right">
                                         <x-note :wert="$z->avg" :stellen="2" />
                                     </td>
                                     <td class="px-3 text-left">
-                                        <div class="flex flex-wrap gap-1">
-                                            @if(! $l->benutzer->aktiv)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-surface-2 text-muted border border-border">{{ __('Inaktiv') }}</span>
-                                            @endif
-                                            @if($z->bms)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-accent/10 text-accent-text">BMS</span>
-                                            @endif
-                                            @if($bereich === 'admin' && ! $z->betreuer && $l->benutzer->aktiv)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-knapp/14 text-note-knapp">{{ __('Ohne BB') }}</span>
-                                            @endif
-                                            @if($tagSeit === null || $tagSeit > 30)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-knapp/14 text-note-knapp">
-                                                    {{ $tagSeit === null ? __('Keine Noten') : __(':tage kein Eintrag', ['tage' => $tagSeit.'d']) }}
-                                                </span>
-                                            @endif
-                                            @if($z->avg !== null && $z->avg < $grenze)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs bg-note-ungenuegend/10 text-note-ungenuegend">{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</span>
-                                            @endif
-                                            @if($z->ungelesen > 0)
-                                                <span class="inline-flex px-1.5 py-0.5 rounded-full text-xs font-semibold bg-accent text-accent-contrast">{{ __(':anzahl neu', ['anzahl' => $z->ungelesen]) }}</span>
-                                            @endif
-                                        </div>
+                                        <div class="flex flex-wrap gap-1">@include('verwaltung.lernende._status')</div>
                                     </td>
                                     <td class="px-3 text-right" onclick="event.stopPropagation()">
-                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
-                                            <a href="{{ $zielUrl }}"
-                                               class="inline-flex items-center px-3 min-h-9 rounded-lg border border-border text-xs hover:bg-surface-2 whitespace-nowrap">{{ __('Profil') }}</a>
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
+                                            {{-- Zum Profil führen schon Zeile und Name --}}
                                             <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                                               class="inline-flex items-center px-3 min-h-9 rounded-lg bg-accent text-accent-contrast text-xs np-btn-primary whitespace-nowrap">{{ __('Noten') }}</a>
+                                               class="np-ziel inline-flex h-8 items-center rounded-lg glass-btn px-3 text-xs font-medium text-text whitespace-nowrap">{{ __('Noten') }}</a>
                                         </div>
                                     </td>
                                 </tr>
@@ -241,6 +256,7 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
             </div>
 
         </div>

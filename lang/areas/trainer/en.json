@@ -251,5 +251,15 @@
     "vor :tage": ":tage ago",
     "Ø gesamt": "Overall avg.",
     "Übersicht": "Overview",
-    "Ø unter :grenze": "Avg. below :grenze"
+    "Ø unter :grenze": "Avg. below :grenze",
+    "Sortieren": "Sort",
+    "Name A–Z": "Name A–Z",
+    "Name Z–A": "Name Z–A",
+    "Lehrjahr aufsteigend": "Year ascending",
+    "Lehrjahr absteigend": "Year descending",
+    "Neueste Note zuerst": "Newest grade first",
+    "Älteste Note zuerst": "Oldest grade first",
+    "Tiefster Ø zuerst": "Lowest avg. first",
+    "Höchster Ø zuerst": "Highest avg. first",
+    "Letzte Note :wann": "Last grade :wann"
 }
