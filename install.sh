@@ -564,10 +564,11 @@ fi
 # npm vertraut nur seinen eingebauten Zertifizierungsstellen, nicht dem Systemspeicher. Hinter einem
 # Firmen-Proxy, der TLS aufbricht, scheitert npm ci sonst mit SELF_SIGNED_CERT_IN_CHAIN, obwohl apt
 # und composer (die dem System vertrauen) durchkommen.
+# Ohne Update-Hinweis von npm und ohne Vites Dateiliste: Fehler und Warnungen kommen trotzdem durch.
 SYSTEM_CA=/etc/ssl/certs/ca-certificates.crt
-NPM_UMGEBUNG=""
-[[ -r "$SYSTEM_CA" ]] && NPM_UMGEBUNG="NODE_EXTRA_CA_CERTS=$SYSTEM_CA "
-if ! als "${NPM_UMGEBUNG}npm ci --no-audit --no-fund --loglevel=error && npm run build --silent"; then
+NPM_UMGEBUNG="npm_config_update_notifier=false "
+[[ -r "$SYSTEM_CA" ]] && NPM_UMGEBUNG+="NODE_EXTRA_CA_CERTS=$SYSTEM_CA "
+if ! als "${NPM_UMGEBUNG}npm ci --no-audit --no-fund --loglevel=error && ${NPM_UMGEBUNG}npm run build --silent -- --logLevel warn"; then
     echo
     echo "npm ci oder der Build der Oberfläche ist fehlgeschlagen. Häufige Ursachen:"
     echo "  - kein Zugang zu registry.npmjs.org (Proxy: in /etc/environment eintragen, dann neu anmelden)"
