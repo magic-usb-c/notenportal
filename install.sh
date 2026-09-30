@@ -264,7 +264,10 @@ if (( PRUEFEN )); then
     echo "  PHP unter Apache  : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo PHP_VERSION;' 2>/dev/null || echo '?')"
     echo "  Apache-PHP-Modul  : $(apachectl -M 2>/dev/null | grep -o 'php[0-9_]*module' | head -1 || echo '?')"
     echo "  opcache (Apache)  : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo ini_get("opcache.enable") ? "an" : "aus";' 2>/dev/null || echo '?')"
-    echo "  JIT (Apache)      : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo ini_get("opcache.jit") ?: "nicht gesetzt";' 2>/dev/null || echo '?')"
+    echo "  PCRE-JIT (Apache) : $(php ${APACHE_INI:+-c "$APACHE_INI"} -r 'echo ini_get("pcre.jit") ? "an" : "aus";' 2>/dev/null || echo '?')"
+    # PCRE-JIT braucht beschreibbaren und ausführbaren Speicher. Verbietet die Härtung des Dienstes
+    # das, scheitert jedes preg_match – aber nur im Apache-Prozess, nie auf der Kommandozeile.
+    echo "  Apache-Härtung    : MemoryDenyWriteExecute=$(systemctl show apache2 -p MemoryDenyWriteExecute --value 2>/dev/null || echo '?')"
     exit 0
 fi
 
@@ -559,11 +562,29 @@ else
 fi
 # Uploads: 2 MB Standard reichen für eine Modulkatalog-Ernte oder eine lange Notenliste nicht.
 # memory_limit: die Kommandozeile läuft unter Ubuntu ohne Limit, Apache mit 128M. Ein Import oder
-# eine Sicherung stösst dort an – und ein Speicherabbruch erscheint im Laravel-Log nur als
-# «A facade root has not been set», also als Folgefehler, der die Ursache verdeckt.
+# eine Sicherung stösst dort an.
+#
+# pcre.jit = 0: PCRE übersetzt reguläre Ausdrücke bei Bedarf in Maschinencode und braucht dafür
+# Speicher, der zugleich beschreibbar und ausführbar ist. Ubuntu 26.04 härtet den Apache-Dienst so,
+# dass genau das verboten ist (systemd MemoryDenyWriteExecute beziehungsweise das AppArmor-Profil).
+# PHP meldet dann bei jedem preg_match eine Warnung – und weil Laravel Warnungen in Ausnahmen
+# umwandelt, fliegt sie schon in HandleExceptions::bootstrap(), also bevor der Container steht.
+# Die Fehlerseite lässt sich ohne Container nicht rendern, und übrig bleibt im Protokoll nur die
+# Folgemeldung «A facade root has not been set» – auf der Kommandozeile läuft alles, über Apache
+# antwortet dasselbe Portal mit 500. Die Härtung ist richtig und bleibt; PCRE-JIT ist reine
+# Geschwindigkeitsoptimierung für reguläre Ausdrücke und hier nicht messbar. Das ist auch genau
+# der Weg, den die PHP-Meldung selbst vorschlägt.
+PHP_INI_INHALT='upload_max_filesize = 16M
+post_max_size = 16M
+memory_limit = 256M
+pcre.jit = 0
+'
+PHP_INI_NEU=0
 for CONFD in /etc/php/*/apache2/conf.d; do
-    if [[ -d "$CONFD" ]]; then
-        printf 'upload_max_filesize = 16M\npost_max_size = 16M\nmemory_limit = 256M\n' > "$CONFD/99-notenportal.ini"
+    [[ -d "$CONFD" ]] || continue
+    if [[ "$(cat "$CONFD/99-notenportal.ini" 2>/dev/null)" != "$PHP_INI_INHALT" ]]; then
+        printf '%s' "$PHP_INI_INHALT" > "$CONFD/99-notenportal.ini"
+        PHP_INI_NEU=1
     fi
 done
 grep -qE "^\s*Listen\s+$PORT\s*$" /etc/apache2/ports.conf || echo "Listen $PORT" >> /etc/apache2/ports.conf
@@ -658,7 +679,13 @@ if ! APACHE_PRUEFUNG="$(apachectl -t 2>&1)"; then
     echo "Die Apache-Konfiguration ist fehlerhaft – nichts neu geladen, der alte Stand läuft weiter."
     exit 1
 fi
-systemctl reload apache2 2>/dev/null || systemctl restart apache2
+# Ein reload übernimmt geänderte PHP-Einstellungen nicht: mod_php liest die php.ini beim Start des
+# Moduls, nicht bei jeder Anfrage. Nach einer Änderung an 99-notenportal.ini also wirklich neu starten.
+if (( PHP_INI_NEU )); then
+    systemctl restart apache2
+else
+    systemctl reload apache2 2>/dev/null || systemctl restart apache2
+fi
 if (( FIREWALL )) && command -v ufw >/dev/null && ufw status | grep -q "Status: active"; then
     ufw allow "$PORT/tcp" >/dev/null
     if (( HTTPS )); then ufw allow "$HTTPS_PORT/tcp" >/dev/null; fi
@@ -785,13 +812,12 @@ if [[ "$STATUS" != "200" ]]; then
             else
                 echo "  (keine Ausgabe – der Fehler tritt auf, bevor die Anwendung überhaupt startet)"
             fi
-            # Die Anwendung läuft auf der Kommandozeile, aber nicht unter Apache: dann liegt es an
-            # dem, was nur Apache mitbringt. Häufigster Fall auf einer frischen PHP-Fassung: opcache.
             echo
-            echo "  Läuft sie auf der Kommandozeile und nur unter Apache nicht, zuerst opcache ausschliessen:"
-            echo "    echo 'opcache.enable=0' | sudo tee /etc/php/$PHP_ZWEIG/apache2/conf.d/99-ohne-opcache.ini"
-            echo "    sudo systemctl restart apache2   # danach erneut aufrufen"
-            echo "  Antwortet das Portal dann mit 200, ist es opcache – Datei behalten und hier melden."
+            echo "  Läuft sie auf der Kommandozeile und nur unter Apache nicht, liegt es an dem, was"
+            echo "  allein der Apache-Prozess mitbringt – Härtung, Speicherschutz, Erweiterungen:"
+            echo "    systemctl show apache2 -p MemoryDenyWriteExecute -p PrivateTmp"
+            echo "    sudo aa-status | grep -i apache"
+            echo "  Ganze Lage auf einen Blick: sudo ./install.sh --pruefen"
             echo "  Ergänzend: tail -30 $VERZ/storage/logs/laravel-*.log"
             ;;
         000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
