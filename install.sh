@@ -175,6 +175,7 @@ fi
 systemctl enable --now mariadb apache2 >/dev/null 2>&1
 
 schritt "Datenbank"
+FRISCH=0
 if [[ -f "$VERZ/.env" ]]; then
     lies() { { grep -E "^$1=" "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"'; }
     DB="$(lies DB_DATABASE)"
@@ -228,6 +229,7 @@ ENV
     chown "$BESITZER":www-data "$VERZ/.env"
     chmod 640 "$VERZ/.env"
     echo "  Datenbank $DB und Benutzer $DB_BENUTZER angelegt"
+    FRISCH=1
 fi
 
 schritt "Abhängigkeiten und Oberfläche"
@@ -373,6 +375,8 @@ VERZEICHNIS_BLOCK="    <Directory $VERZ/public>
     </Directory>"
 HTTPS_SUFFIX=""
 [[ "$HTTPS_PORT" == "443" ]] || HTTPS_SUFFIX=":$HTTPS_PORT"
+HTTP_SUFFIX=""
+[[ "$PORT" == "80" ]] || HTTP_SUFFIX=":$PORT"
 
 if (( HTTPS )); then
     # HTTP leitet auf HTTPS um – mit einer Ausnahme: das CA-Zertifikat. Wer es noch nicht importiert
@@ -443,6 +447,17 @@ echo "* * * * * www-data cd $VERZ && $(command -v php) artisan schedule:run >> /
 chmod 644 "$CRON"
 echo "  $CRON"
 
+if (( FRISCH )); then
+    schritt "Erste Sicherung"
+    # Einmal jetzt statt erst in der Nacht: damit ist bewiesen, dass der Sicherungsweg funktioniert,
+    # und die Bereitschaftsprüfung meldet nicht am ersten Tag «keine Sicherung in den letzten 2 Tagen».
+    if als "php artisan notenportal:sicherung" >/dev/null 2>&1; then
+        echo "  storage/app/private/sicherungen/ – täglich 02:30 automatisch, 14 Stände"
+    else
+        echo "  Die erste Sicherung ist fehlgeschlagen – auf der Seite Betrieb «Jetzt sichern» versuchen."
+    fi
+fi
+
 schritt "Dateirechte"
 chgrp -R www-data "$VERZ"
 find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune -o -type d -exec chmod u+rwx,g+rxs,o-rwx {} +
@@ -471,7 +486,7 @@ if (( HTTPS )); then
     [[ "$UMLEITUNG" == "301" ]] && echo "  HTTP leitet um (301 → $URL)" \
         || echo "  Achtung: HTTP antwortet mit $UMLEITUNG statt 301 – Umleitung prüfen"
     CA_STATUS="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/lab-ca.crt" -H "Host: $HOST" || true)"
-    [[ "$CA_STATUS" == "200" ]] && echo "  CA-Zertifikat zum Herunterladen: $URL/lab-ca.crt (auch über http)" \
+    [[ "$CA_STATUS" == "200" ]] && echo "  CA-Zertifikat zum Herunterladen: $URL/lab-ca.crt (auch über http://$HOST$HTTP_SUFFIX/lab-ca.crt)" \
         || echo "  Achtung: /lab-ca.crt antwortet mit $CA_STATUS – die Lernenden können die CA nicht laden"
 else
     STATUS="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$PORT/login" -H "Host: $HOST" || true)"
@@ -509,7 +524,7 @@ if (( HTTPS )); then
      Zur Probe von einem verbundenen Client: nslookup ${HOST%%.*}
 
   2. Lab-CA auf jedem Gerät einmal importieren, sonst warnt der Browser:
-     Herunterladen: http://$HOST/lab-ca.crt
+     Herunterladen: http://$HOST$HTTP_SUFFIX/lab-ca.crt
      Windows  Doppelklick → Zertifikat installieren → Lokaler Computer →
               «Vertrauenswürdige Stammzertifizierungsstellen»
      macOS    Doppelklick → Schlüsselbund «System» → Zertifikat öffnen → «Immer vertrauen»
