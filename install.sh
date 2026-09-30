@@ -4,7 +4,8 @@
 #   sudo ./install.sh                                   https://notenportal, Datenbank «notenportal»
 #   sudo ./install.sh --host notenportal.lab.local      eigener Name im Zertifikat und im vhost
 #   sudo ./install.sh --port 8082 --db notenportal_i2   zweite Instanz neben einer bestehenden (nur HTTP)
-# Optionen: --host <Name|IP>  --ohne-https  --https-port <n>  --ohne-firewall  --neues-admin-passwort
+# Optionen: --host <Name|IP>  --admin-mail <adresse>  --ohne-https  --https-port <n>
+#           --ohne-firewall  --neues-admin-passwort
 # Erneut ausführen = Update (Pakete, Abhängigkeiten, Build, Migrationen); .env, Webserver-Konfiguration und Konten bleiben.
 set -euo pipefail
 
@@ -17,18 +18,20 @@ HTTPS_PORT=443
 HTTPS=-1                  # -1 = noch nicht entschieden: an, sobald die Instanz auf Port 80 läuft
 FIREWALL=1
 ADMIN_OPTION=""
+ADMIN_MAIL=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --port) PORT="$2"; shift 2 ;;
         --db) DB="$2"; shift 2 ;;
         --host) HOST="$2"; shift 2 ;;
+        --admin-mail) ADMIN_MAIL="$2"; shift 2 ;;
         --https-port) HTTPS_PORT="$2"; HTTPS=1; shift 2 ;;
         --https) HTTPS=1; shift ;;
         --ohne-https) HTTPS=0; shift ;;
         --ohne-firewall) FIREWALL=0; shift ;;
         --neues-admin-passwort) ADMIN_OPTION="--zuruecksetzen"; shift ;;
-        -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
         *) echo "Unbekannte Option: $1 (siehe --help)"; exit 1 ;;
     esac
 done
@@ -38,10 +41,16 @@ done
 [[ "$PORT" =~ ^[0-9]{2,5}$ ]] || { echo "Ungültiger Port: $PORT"; exit 1; }
 [[ "$HTTPS_PORT" =~ ^[0-9]{2,5}$ ]] || { echo "Ungültiger HTTPS-Port: $HTTPS_PORT"; exit 1; }
 [[ -z "$HOST" || "$HOST" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || { echo "Ungültiger Host: $HOST"; exit 1; }
+[[ -z "$ADMIN_MAIL" || "$ADMIN_MAIL" =~ ^[^[:space:]@]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || { echo "Ungültige Admin-Adresse: $ADMIN_MAIL"; exit 1; }
 
 # Alle IPv4-Adressen der Maschine: sie gehören als Ersatzname ins Zertifikat, damit der Aufruf über
 # die IP keine zusätzliche Warnung auslöst, wenn der DNS-Name noch nicht eingetragen ist.
-mapfile -t ADRESSEN < <(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9.]+$' || true)
+# Nur Adressen echter Netzwerkkarten. Docker- und Bridge-Adressen (172.17.0.1 …) gehören nicht ins
+# Zertifikat: sie sind auf jedem Host dieselben und sagen über die Echtheit dieses Servers nichts aus.
+mapfile -t ADRESSEN < <(ip -4 -o addr show scope global 2>/dev/null \
+    | awk '$2 !~ /^(docker|br-|veth|virbr|lxcbr|lxdbr|tailscale|wg|tun|zt)/ {split($4, a, "/"); print a[1]}' \
+    | awk '!gesehen[$0]++' || true)
+(( ${#ADRESSEN[@]} )) || mapfile -t ADRESSEN < <(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9.]+$' || true)
 # Ohne --host ist der Name «notenportal»: kurz, im Lab über DNS oder hosts-Eintrag erreichbar und
 # damit als Adresse für die Lernenden brauchbar. Früher stand hier die IP – die wechselt mit der VM.
 [[ -n "$HOST" ]] || HOST="notenportal"
@@ -249,6 +258,7 @@ schritt "Anwendung"
 grep -q '^APP_KEY=base64' "$VERZ/.env" || als "php artisan key:generate --force --quiet"
 als "php artisan config:clear --quiet && php artisan notenportal:migrate"
 als "php artisan db:seed --force --quiet"
+[[ -z "$ADMIN_MAIL" ]] || ADMIN_OPTION="$ADMIN_OPTION --email=$ADMIN_MAIL"
 ZUGANG="$(als "php artisan notenportal:erstes-admin-konto $ADMIN_OPTION")"
 als "php artisan optimize --quiet"
 
@@ -338,9 +348,12 @@ for MODUL in /etc/apache2/mods-available/php*.load; do
     [[ -e "$MODUL" ]] && a2enmod -q "$(basename "$MODUL" .load)" >/dev/null 2>&1 || true
 done
 # Uploads: 2 MB Standard reichen für eine Modulkatalog-Ernte oder eine lange Notenliste nicht.
+# memory_limit: die Kommandozeile läuft unter Ubuntu ohne Limit, Apache mit 128M. Ein Import oder
+# eine Sicherung stösst dort an – und ein Speicherabbruch erscheint im Laravel-Log nur als
+# «A facade root has not been set», also als Folgefehler, der die Ursache verdeckt.
 for CONFD in /etc/php/*/apache2/conf.d; do
     if [[ -d "$CONFD" ]]; then
-        printf 'upload_max_filesize = 16M\npost_max_size = 16M\n' > "$CONFD/99-notenportal.ini"
+        printf 'upload_max_filesize = 16M\npost_max_size = 16M\nmemory_limit = 256M\n' > "$CONFD/99-notenportal.ini"
     fi
 done
 grep -qE "^\s*Listen\s+$PORT\s*$" /etc/apache2/ports.conf || echo "Listen $PORT" >> /etc/apache2/ports.conf
@@ -498,7 +511,19 @@ if [[ "$STATUS" != "200" ]]; then
     echo "  Adresse:      $URL"
     case "$STATUS" in
         403) echo "  403 heisst meist: www-data darf das Verzeichnis nicht lesen – Portal nach /var/www verschieben." ;;
-        500) echo "  500 heisst meist: .env oder Dateirechte – letzte Zeilen ansehen: tail -30 $VERZ/storage/logs/laravel-*.log" ;;
+        500)
+            # Ein PHP-Fataler landet im Apache-Protokoll, nicht im Laravel-Log. Im Laravel-Log steht
+            # dann nur die Folgemeldung «A facade root has not been set» – sie verdeckt die Ursache.
+            echo "  Die eigentliche Ursache steht im Apache-Protokoll:"
+            for LOGDATEI in "/var/log/apache2/$NAME-ssl-error.log" "/var/log/apache2/$NAME-error.log"; do
+                if [[ -s "$LOGDATEI" ]]; then
+                    echo "  --- $LOGDATEI"
+                    tail -n 8 "$LOGDATEI" | sed 's/^/  /'
+                    break
+                fi
+            done
+            echo "  Danach erst: tail -30 $VERZ/storage/logs/laravel-*.log"
+            ;;
         000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
         *) echo "  Fehlerprotokoll: tail -30 /var/log/apache2/$NAME-error.log" ;;
     esac
