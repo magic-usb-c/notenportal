@@ -165,6 +165,7 @@ Drei zusätzliche Befunde aus dem Review, im Rahmen derselben Session behoben:
 - Übersetzungen sind portalweit flach (ein Wert pro deutschem Schlüssel, 26 Kollisionen beim Zusammenführen nach Glossar vereinheitlicht). Mehrdeutige Wörter («Semester», «Berufsbildner», «Fehler») bei Bedarf mit Kontext-Schlüsseln lösen.
 - ~~`Dokument::ARTEN`-Labels, Einrichtungs-Info-Texte, Import-Meldungen, Konto-/Passwort-Mails unübersetzt~~ erledigt (11.09.): `Dokument::label()`, `Einrichtung::stand()`, `NotenImport` (Status über internen Code), `AccountMails`/Auth-Controller mit `__()`; `i18n-scan` 26 → 21 Textknoten.
 - Rest laut `notenportal:i18n-scan` (bewusst offen): CSV-Vorlage `NotenImport::vorlage()` (Kopfzeilen bleiben deutsch, der Import erkennt beide), Beispielwerte in Platzhaltern, Kürzel BMS/ABU.
+  Nachtrag 30.09.: Der Scan steht auf 0. Beispielwerte (Hostname, Pfad, URL), `<?php ?>`, `<code>` und die Kürzel BMS/ABU/OK zählen nicht mehr, «}}@endif» gilt wie in Blade als Direktive; `SchluesselTest::views_enthalten_keine_texte_ausserhalb_von_uebersetzungen` hält die Views bei null. Die CSV-Kopfzeilen bleiben deutsch (Code, kein View).
 - ~~Pint-Altlasten: `KommentarController`, `routes/web.php`~~ erledigt (11.09.).
 - Nach dem Go-Live: Umbenennungen Code/Model/DB gemäss `docs/i18n-plan.md`.
 

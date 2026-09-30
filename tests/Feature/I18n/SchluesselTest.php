@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\I18n;
 
+use App\Console\Commands\I18nScan;
 use App\Support\JsTexte;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Statische Prüfung der Übersetzungsschlüssel (docs/i18n-plan.md): Jeder literale Schlüssel
@@ -96,5 +98,21 @@ class SchluesselTest extends TestCase
         sort($geliefert);
 
         $this->assertSame($imJs, $geliefert, 'JsTexte::SCHLUESSEL muss den t()-Aufrufen in resources/js entsprechen');
+    }
+
+    #[Test]
+    public function views_enthalten_keine_texte_ausserhalb_von_uebersetzungen(): void
+    {
+        // Hält notenportal:i18n-scan bei null: jeder sichtbare Text einer View läuft über __()
+        $funde = [];
+        $views = (string) realpath(dirname(__DIR__, 3).'/resources/views');
+        foreach ((new Finder)->files()->in($views)->name('*.blade.php')->sortByName() as $datei) {
+            [$knoten, $attribute] = I18nScan::funde($datei->getContents());
+            foreach ([...$knoten, ...$attribute] as $text) {
+                $funde[] = $datei->getRelativePathname().': '.$text;
+            }
+        }
+
+        $this->assertSame([], $funde, implode("\n", $funde));
     }
 }

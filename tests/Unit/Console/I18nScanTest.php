@@ -54,6 +54,27 @@ class I18nScanTest extends TestCase
     }
 
     #[Test]
+    public function direktive_direkt_nach_einer_ausgabe_ist_eine_direktive(): void
+    {
+        // Blade kompiliert @endif nach «}}» als Direktive, nach einem Buchstaben (E-Mail) nicht
+        [$knoten] = I18nScan::funde('<th>@if($a)<span>{{ $x }}</span>@else{{ $y }}@endif</th><p>Mail an info@example.ch</p>');
+
+        $this->assertSame(['Mail an info@example.ch'], $knoten);
+    }
+
+    #[Test]
+    public function php_code_und_technische_beispielwerte_zaehlen_nicht(): void
+    {
+        $blade = '<?php $n = collect([$a])->count(); ?><code>php artisan migrate</code>'
+            .'<input placeholder="backup.example.ch"><input placeholder="/mnt/sicherungen"><input placeholder="https://">'
+            .'<input placeholder="Server im Netz"><button>OK</button><span>BMS</span>';
+        [$knoten, $attribute] = I18nScan::funde($blade);
+
+        $this->assertSame([], $knoten);
+        $this->assertSame(['[Server im Netz]'], $attribute);
+    }
+
+    #[Test]
     public function relevante_attribute_werden_erfasst_andere_nicht(): void
     {
         $blade = '<input placeholder="Suchbegriff eingeben" data-info="Nicht erfasst" title="Weitere Erklärung">';
