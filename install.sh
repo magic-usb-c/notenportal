@@ -533,6 +533,22 @@ ENV
     echo "  Datenbank $DB und Benutzer $DB_BENUTZER angelegt"
     FRISCH=1
 fi
+# Sitzungszeitzone der DB-Verbindung = Zeitzone der Anwendung. Sonst stempelt MariaDB Standardwerte
+# (CURRENT_TIMESTAMP) in Serverzeit, meist UTC, Laravel dagegen in Zürcher Zeit – in derselben Tabelle
+# zwei Stunden auseinander, und «zuletzt erfasst» wird falsch entschieden. Benannte Zeitzonen brauchen
+# die Zeitzonentabellen von MariaDB, die Ubuntu leer ausliefert. Prod: siehe docs/betrieb.md (10.09.).
+if ! grep -q '^DB_TIMEZONE=' "$VERZ/.env"; then
+    APP_TZ="$({ grep -E '^APP_TIMEZONE=' "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"')"
+    [[ "$APP_TZ" =~ ^[A-Za-z_]+(/[A-Za-z_+-]+)*$ ]] || APP_TZ="Europe/Zurich"
+    tz_ok() { [[ "$(mysql -N -B -e "SELECT CONVERT_TZ('2026-01-01 12:00:00', 'UTC', '$APP_TZ') IS NOT NULL" 2>/dev/null)" == 1 ]]; }
+    tz_ok || { mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | mysql mysql 2>/dev/null || true; }
+    if tz_ok; then
+        echo "DB_TIMEZONE=$APP_TZ" >> "$VERZ/.env"
+        echo "  Zeitzone der Datenbankverbindung: $APP_TZ"
+    else
+        echo "  Zeitzonentabellen von MariaDB fehlen – DB_TIMEZONE bleibt leer (DB-Zeitstempel in Serverzeit)."
+    fi
+fi
 
 schritt "Abhängigkeiten und Oberfläche"
 # Auf einer neuen Ubuntu-Ausgabe ist die häufigste Abbruchursache eine PHP-Version, die
