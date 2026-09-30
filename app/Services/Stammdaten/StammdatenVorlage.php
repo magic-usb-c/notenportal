@@ -63,7 +63,7 @@ final class StammdatenVorlage
     }
 
     /**
-     * Prüft Format und Typen der ganzen Datei; falsche Typen werden als Fehler gemeldet, nie geworfen –
+     * Prüft Format, Typen und Verweise auf Baumvorlagen der ganzen Datei; Fehler werden gemeldet, nie geworfen –
      * eine kaputte Vorlage fehlt dann nur in der Auswahl.
      *
      * @param  array<string, mixed>  $d
@@ -96,10 +96,20 @@ final class StammdatenVorlage
             }
         }
 
+        // Verweise auf Baumvorlagen samt Bezug: ein Tippfehler liess den Baum beim Anwenden sonst still weg,
+        // ein Bildungsgang-Baum unter einem Lehrberuf (oder umgekehrt) landete falsch zugeordnet.
+        $baeume = null;
+        $baum = function (mixed $v, string $bezug) use (&$baeume): bool {
+            $baeume ??= BaumVorlage::mitgeliefert();
+
+            return is_string($v) && ($baeume[$v]['bezug'] ?? null) === $bezug;
+        };
+
         $kuerzel = [];
         foreach ($d['lehrberufe'] ?? [] as $i => $l) {
             if (! is_array($l) || ! $kurz($l['kuerzel'] ?? null) || ! $text($l['name'] ?? null) || isset($kuerzel[$l['kuerzel']])
-                || ! $optText($l['notenbaum'] ?? null) || ! $optBool($l['vorauswahl'] ?? null)) {
+                || ! $optText($l['notenbaum'] ?? null) || ! $optBool($l['vorauswahl'] ?? null)
+                || (isset($l['notenbaum']) && ! $baum($l['notenbaum'], Baum::LEHRBERUF))) {
                 $fehler[] = "lehrberufe.$i";
             }
             if (is_array($l) && is_string($l['kuerzel'] ?? null)) {
@@ -124,7 +134,8 @@ final class StammdatenVorlage
         }
 
         foreach ($d['notenbaeume'] ?? [] as $i => $b) {
-            if (! is_array($b) || ! $text($b['vorlage'] ?? null) || ! in_array($b['track'] ?? null, ['BMS', 'ABU'], true)) {
+            if (! is_array($b) || ! $text($b['vorlage'] ?? null) || ! in_array($b['track'] ?? null, ['BMS', 'ABU'], true)
+                || ! $baum($b['vorlage'], Baum::BILDUNGSGANG)) {
                 $fehler[] = "notenbaeume.$i";
             }
         }

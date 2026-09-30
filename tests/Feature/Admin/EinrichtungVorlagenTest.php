@@ -297,9 +297,9 @@ class EinrichtungVorlagenTest extends TestCase
     {
         $basis = [
             'format' => StammdatenVorlage::FORMAT, 'version' => StammdatenVorlage::VERSION, 'name' => 'Muster',
-            'lehrberufe' => [['kuerzel' => 'AB', 'name' => 'Alpha']],
+            'lehrberufe' => [['kuerzel' => 'AB', 'name' => 'Alpha', 'notenbaum' => 'informatiker-efz-bivo2020']],
             'faecher' => [['name' => 'Deutsch', 'kurzname' => 'D']],
-            'notenbaeume' => [['vorlage' => 'x', 'track' => 'BMS']],
+            'notenbaeume' => [['vorlage' => 'bm-tals1-bmv2025', 'track' => 'BMS']],
         ];
         $mit = fn (array $ersatz) => [[...$basis, ...$ersatz]];
         $lehrberuf = fn (array $ersatz) => $mit(['lehrberufe' => [[...$basis['lehrberufe'][0], ...$ersatz]]]);
@@ -329,7 +329,12 @@ class EinrichtungVorlagenTest extends TestCase
             'Notenbäume als Text' => $mit(['notenbaeume' => 'x']),
             'Notenbaum als Text' => $mit(['notenbaeume' => ['x']]),
             'Notenbaum-Vorlage als Liste' => $mit(['notenbaeume' => [['vorlage' => ['x'], 'track' => 'BMS']]]),
-            'Notenbaum-Track unbekannt' => $mit(['notenbaeume' => [['vorlage' => 'x', 'track' => 'XYZ']]]),
+            'Notenbaum-Track unbekannt' => $mit(['notenbaeume' => [['vorlage' => 'bm-tals1-bmv2025', 'track' => 'XYZ']]]),
+            // Verweise auf Baumvorlagen: ein Tippfehler liess den Baum beim Anwenden sonst still weg.
+            'Lehrberuf-Notenbaum unbekannt' => $lehrberuf(['notenbaum' => 'gibt-es-nicht']),
+            'Lehrberuf-Notenbaum ist ein Bildungsgang' => $lehrberuf(['notenbaum' => 'bm-tals1-bmv2025']),
+            'Notenbaum-Vorlage unbekannt' => $mit(['notenbaeume' => [['vorlage' => 'gibt-es-nicht', 'track' => 'BMS']]]),
+            'Notenbaum-Vorlage ist ein Lehrberuf' => $mit(['notenbaeume' => [['vorlage' => 'informatiker-efz-bivo2020', 'track' => 'BMS']]]),
         ];
     }
 
