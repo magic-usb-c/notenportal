@@ -10,6 +10,7 @@ use App\Models\Note;
 use App\Models\User;
 use App\Services\Bericht;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -89,6 +90,28 @@ class BerichtTest extends TestCase
         $this->assertSame(10, count($klassen) - 1, 'Klassen 1.0 bis 6.0 in Halbnotenschritten');
     }
 
+    /** @return array<string, array{0: float, 1: string}> */
+    public static function klassen(): array
+    {
+        return [
+            'Untergrenze 1.0' => [1.0, '1.0'],
+            '3.8 als 38 × 0.1' => [38 * 0.1, '3.5'],
+            'genau 4.0' => [4.0, '4.0'],
+            '4.0 knapp darunter wie NotenSkala::stufe' => [3.9999999993, '4.0'],
+            '4.49999 aus einem Schnitt' => [4.49999, '4.0'],
+            '4.5 knapp darunter' => [4.4999999996, '4.5'],
+            'genau 6.0' => [6.0, '6.0'],
+            '6.0 als 60 × 0.1' => [60 * 0.1, '6.0'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('klassen')]
+    public function histogrammklasse_ist_die_untergrenze_mit_derselben_toleranz_wie_die_notenstufe(float $note, string $klasse): void
+    {
+        $this->assertSame($klasse, Bericht::klasse($note));
+    }
+
     #[Test]
     public function nicht_zaehlendes_fach_gilt_im_bericht_nicht_als_ungenuegend(): void
     {
@@ -141,20 +164,31 @@ class BerichtTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
         $lernender = User::factory()->lernender()->create(['nachname' => 'Schmalmann'])->lernender;
-        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 3.0]);
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 3.0]);
 
-        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades'))->assertOk()->getContent();
+        // Mit Semesterfilter, damit auch die Semesterspalte vorkommt
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester_id' => $note->semester_id]))->assertOk()->getContent();
         $dom = new \DOMDocument;
         @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
         $xpath = new \DOMXPath($dom);
         $zeile = $xpath->query('//tr[td/a[contains(., "Schmalmann")]]')->item(0);
         $this->assertNotNull($zeile);
-        $namenszelle = $xpath->query('td[1]', $zeile)->item(0)->textContent;
-        $gruende = $xpath->query('td[2]//*[@title]', $zeile)->item(0)?->getAttribute('title');
+        $text = fn (\DOMNode $n) => trim((string) preg_replace('/\s+/u', ' ', $n->textContent));
+        $namenszelle = $text($xpath->query('td[1]', $zeile)->item(0));
 
         $this->assertStringContainsString(__(':anzahl ungenügend', ['anzahl' => 1]), $namenszelle);
         $this->assertStringContainsString(__('1 Prüfung'), $namenszelle);
-        $this->assertNotEmpty($gruende, 'Eine ungenügende Zeugnisnote hat einen Grund');
-        $this->assertStringContainsString($gruende, $namenszelle);
+
+        // Jede schmal ausgeblendete Spalte: jeder ihrer Werte (Status, Gründe, Semester, Ungenügend, Prüfungen, letzte Note) steht in der Namenszelle
+        $spalten = $xpath->query('td[contains(@class, "hidden") and contains(@class, ":table-cell")]', $zeile);
+        $this->assertSame(5, $spalten->length, 'Status, Semester, Ungenügend, Prüfungen, letzte Note');
+        foreach ($spalten as $td) {
+            $teile = $xpath->query('*', $td)->length ? iterator_to_array($xpath->query('*', $td)) : [$td];
+            foreach ($teile as $teil) {
+                $wert = $text($teil);
+                $this->assertNotSame('', $wert);
+                $this->assertStringContainsString($wert, $namenszelle, "Schmal fehlt «{$wert}»");
+            }
+        }
     }
 }

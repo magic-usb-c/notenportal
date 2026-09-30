@@ -59,10 +59,12 @@
                             <button type="button" role="radio" :aria-checked="filter === 'neu'" @click="filter = 'neu'" class="h-8 flex-auto shrink-0 whitespace-nowrap rounded-md px-1.5 sm:px-2.5" :class="filter === 'neu' ? 'bg-card text-text shadow-xs' : 'text-muted'" x-text="@js(__('Neue Noten').' ') + zaehlNeu"></button>
                         </div>
                         @if($zeilen->count() > 1)
-                            {{-- Schmal fehlen die Spaltenköpfe Status, Gesamt und Verlauf: dieselben Sortierungen als Auswahl --}}
+                            {{-- Schmal fehlen die Spaltenköpfe Status, Gesamt und Verlauf: dieselben Sortierungen in beiden Richtungen als Auswahl,
+                                 sichtbar bis der letzte davon (Verlauf, @2xl) erscheint --}}
                             @php
                                 $sortierungen = array_filter([
                                     ['status', 'asc', __('Kritische zuerst')],
+                                    ['status', 'desc', __('Unauffällige zuerst')],
                                     ['name', 'asc', __('Name A–Z')],
                                     ['name', 'desc', __('Name Z–A')],
                                     ['semester', 'asc', __('Tiefste Semesternote zuerst')],
@@ -70,12 +72,13 @@
                                     ['gesamt', 'asc', __('Tiefste Gesamtnote zuerst')],
                                     ['gesamt', 'desc', __('Höchste Gesamtnote zuerst')],
                                     $zeilen->contains(fn ($z) => $z->stand->delta() !== null) ? ['trend', 'asc', __('Stärkster Rückgang zuerst')] : null,
+                                    $zeilen->contains(fn ($z) => $z->stand->delta() !== null) ? ['trend', 'desc', __('Stärkster Anstieg zuerst')] : null,
                                 ]);
                                 $gewaehlt = ($filter['sort'] ?? 'status').':'.($filter['sort'] === null ? 'asc' : $filter['dir']);
                             @endphp
                             <label for="sortierung" class="sr-only">{{ __('Sortieren') }}</label>
                             <select id="sortierung" x-on:change="window.location.href = $el.value"
-                                    class="h-8 w-full rounded-lg border border-border-strong/60 bg-input px-2.5 py-0 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 @xl:hidden">
+                                    class="h-8 w-full rounded-lg border border-border-strong/60 bg-input px-2.5 py-0 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 @2xl:hidden">
                                 @foreach($sortierungen as [$sort, $dir, $label])
                                     <option value="{{ request()->fullUrlWithQuery(['sort' => $sort, 'dir' => $dir]) }}" @selected($gewaehlt === "{$sort}:{$dir}")>{{ $label }}</option>
                                 @endforeach

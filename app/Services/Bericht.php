@@ -143,10 +143,8 @@ final class Bericht
         for ($b = 10; $b <= 60; $b += 5) {
             $buckets[number_format($b / 10, 1)] = 0;
         }
-        // Klasse = Untergrenze [x, x+0.5): so färbt das Diagramm (charts.js histogramm). Mit round() fiel 3.8
-        // (Rundung 0.1) in die Klasse 4.0 und stand im genügenden Bereich. 1e-9 fängt 4.0 als 3.9999… ab.
         foreach ($alle as $note) {
-            $buckets[number_format(floor($note * 2 + 1e-9) / 2, 1)]++;
+            $buckets[self::klasse($note)]++;
         }
 
         $gesamt = $zeilen->pluck('gesamt')->filter(fn ($v) => $v !== null)->values()->all();
@@ -224,5 +222,15 @@ final class Bericht
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')
             ->get(['l.lernender_id', 'l.lehrbeginn', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf', 'lb.kuerzel']);
+    }
+
+    /**
+     * Histogrammklasse einer Note = Untergrenze [x, x+0.5): so färbt das Diagramm (charts.js histogramm). Mit
+     * round() fiel 3.8 (Rundung 0.1) in die Klasse 4.0 und stand im genügenden Bereich. 1e-9 auf der
+     * Notenskala wie bei «ungenügend» und NotenSkala::stufe: was dort als 4.0 gilt, liegt hier in der Klasse 4.0.
+     */
+    public static function klasse(float $note): string
+    {
+        return number_format(floor(($note + 1e-9) * 2) / 2, 1);
     }
 }

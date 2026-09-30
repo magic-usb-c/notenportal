@@ -30,9 +30,12 @@
                     @foreach($g['zeilen'] as $z)
                         {{-- Die feste Namenszelle braucht deckenden Grund; der Verlauf legt den Zeilen-Hover darüber, damit er mitläuft --}}
                         <tr class="group hover:bg-surface-2/60">
-                            <td class="sticky left-0 bg-card group-hover:bg-linear-to-r group-hover:from-surface-2/60 group-hover:to-surface-2/60 px-3 py-0.5 text-text truncate max-w-36 @3xl:px-5 @3xl:max-w-64" title="{{ $z['label'] }}">
-                                {{ $z['label'] }}
-                                @if($z['offen'])<span class="ml-1 text-3xs text-accent-text font-semibold">{{ __('offen') }}</span>@endif
+                            <td class="sticky left-0 bg-card group-hover:bg-linear-to-r group-hover:from-surface-2/60 group-hover:to-surface-2/60 px-3 py-0.5 text-text @3xl:px-5">
+                                {{-- Kürzen im Block statt in der Zelle, «offen» bleibt stehen. Breite = frühere Zellbreite (144/256 px) ohne Innenabstand --}}
+                                <div class="flex max-w-30 items-baseline gap-1 @3xl:max-w-54">
+                                    <span class="min-w-0 truncate" title="{{ $z['label'] }}">{{ $z['label'] }}</span>
+                                    @if($z['offen'])<span class="shrink-0 text-3xs font-semibold text-accent-text">{{ __('offen') }}</span>@endif
+                                </div>
                             </td>
                             @foreach($daten['semester'] as $s)
                                 <td class="px-0.5 py-0.5 text-center @3xl:px-1">

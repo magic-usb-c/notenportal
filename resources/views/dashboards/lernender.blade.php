@@ -151,7 +151,7 @@
                             <li>
                                 <a href="{{ $z['link'] }}" class="block px-5 py-3 transition-colors duration-100 hover:bg-surface-2/60">
                                     <span class="flex items-baseline justify-between gap-3 text-sm">
-                                        <span class="truncate text-text" title="{{ $z['label'] }}">{{ $z['label'] }} ≥ {{ $skala::format($z['zielwert'], 1) }}</span>
+                                        <span class="flex min-w-0 gap-1 text-text"><span class="truncate" title="{{ $z['label'] }}">{{ $z['label'] }}</span><span class="shrink-0 whitespace-nowrap">≥ {{ $skala::format($z['zielwert'], 1) }}</span></span>
                                         <x-note :wert="$z['aktuell']" :stellen="1" class="shrink-0" />
                                     </span>
                                     <x-bullet class="mt-2" :wert="$z['aktuell']" :ziel="$z['zielwert']" :grenzen="$grenzen" :label="$z['label']" :skala="false" />
