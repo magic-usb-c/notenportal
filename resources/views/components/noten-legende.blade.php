@@ -1,7 +1,7 @@
 @props(['art' => 'punkte'])
 {{-- Legende zu Diagrammen und Heatmaps, damit Farbe nie die einzige Information ist (WCAG 1.4.1).
-     Farbig sind nur knapp und ungenügend (NotenSkala::TEXT/BALKEN); genügend und gut stehen neutral
-     und teilen sich deshalb einen Eintrag, sonst verspräche die Legende Farben, die nirgends vorkommen.
+     Knapp und ungenügend tragen ihre Notenfarbe (NotenSkala::TEXT/BALKEN); genügend und gut stehen in der
+     Diagrammfarbe und teilen sich deshalb einen Eintrag, sonst verspräche die Legende Farben, die nirgends vorkommen.
      art="zellen" zeigt Muster wie die Heatmap-Zellen (NotenSkala::badge), sonst Punkte in Balkenfarbe. --}}
 @php
     $namen = \App\Support\NotenSkala::stufenNamen();
@@ -14,7 +14,7 @@
         : [
             'ungenuegend' => 'size-1.5 rounded-full bg-note-ungenuegend',
             'knapp' => 'size-1.5 rounded-full bg-note-knapp',
-            'neutral' => 'size-1.5 rounded-full bg-chart-6',
+            'neutral' => 'size-1.5 rounded-full bg-chart-1',
         ];
 @endphp
 <ul {{ $attributes->class(['flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs text-muted']) }} data-legende="{{ $art }}">

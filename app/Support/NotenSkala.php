@@ -38,10 +38,10 @@ final class NotenSkala
         self::UNGENUEGEND => 'text-note-ungenuegend',
     ];
 
-    /** Balken neutral, nur knapp und ungenügend farbig. */
+    /** Balken in der ersten Diagrammfarbe (Systemblau), nur knapp und ungenügend in Notenfarbe. */
     private const array BALKEN = [
-        self::GUT => 'bg-chart-6',
-        self::GENUEGEND => 'bg-chart-6',
+        self::GUT => 'bg-chart-1',
+        self::GENUEGEND => 'bg-chart-1',
         self::KNAPP => 'bg-note-knapp',
         self::UNGENUEGEND => 'bg-note-ungenuegend',
     ];

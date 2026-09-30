@@ -163,7 +163,8 @@
             </div>
         </nav>
 
-        <div data-symbolleiste-ende class="flex flex-1 basis-0 items-center justify-end gap-2">
+        {{-- Alle Elemente der Symbolleiste in einer Höhe wie Suchfeld und Konto (36 px) --}}
+        <div data-symbolleiste-ende class="flex flex-1 basis-0 items-center justify-end gap-2 [&_.np-knopf]:h-9 [&_.np-knopf-symbol]:w-9">
             @if($aktionen !== '')
                 <div class="flex items-center gap-2">{!! $aktionen !!}</div>
             @endif

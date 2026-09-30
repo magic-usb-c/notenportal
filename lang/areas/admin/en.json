@@ -82,7 +82,6 @@
     "Aus – Sicherungen liegen nur auf diesem Server": "Off – backups are stored only on this server",
     "Bearbeiten": "Edit",
     "Beginn": "Start",
-    "Beheben ›": "Resolve ›",
     "Bei :name ist ein Schnitt bzw. mehrere Schnitte unter die Grenze «genügend» gefallen.": "For :name, one or more averages have dropped below the «pass» threshold.",
     "Bei :name ist ein Schnitt unter die Grenze «genügend» gefallen.": "For :name, an average has dropped below the «pass» threshold.",
     "Benachrichtigungen": "Notifications",
@@ -307,7 +306,6 @@
     "Kopieren": "Copy",
     "Kopiert": "Copied",
     "Kritisch": "Critical",
-    "kritisch · :gelb beobachten": "critical · :gelb to watch",
     "Kürzel": "Abbreviation",
     "Kürzel *": "Abbreviation *",
     "Kürzel «:kuerzel» gehört zu einem anderen Lehrberuf.": "Abbreviation «:kuerzel» belongs to a different occupation.",
@@ -457,7 +455,6 @@
     "offen": "open",
     "offen: :prozent %": "open: :prozent %",
     "Offene geplante Prüfungen": "Outstanding scheduled exams",
-    "offene Meldungen": "open reports",
     "Offene Prüfungen und unvollständige Module kurz vor Semesterende.": "Outstanding exams and incomplete modules shortly before the end of the semester.",
     "Ohne neue Note nach (Tage)": "Without a new grade after (days)",
     "Ohne Noteneintrag": "Without a grade entry",
@@ -644,6 +641,10 @@
     "– älter als zwei Tage": "– older than two days",
     "← Zurück": "← Back",
     "→ umgeleitet an :ziel": "→ redirected to :ziel",
-    ":anzahl ungesehen": ":anzahl unseen",
-    ":anzahl ungenügend": ":anzahl failing"
+    ":anzahl ungenügend": ":anzahl failing",
+    "Offene Meldungen": "Open reports",
+    "Kein Handlungsbedarf": "Nothing to do",
+    "Noten in :anzahl Wochen": "grades in :anzahl weeks",
+    "KW :nr": "Wk :nr",
+    "Kennzahlen": "Key figures"
 }

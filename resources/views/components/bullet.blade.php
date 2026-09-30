@@ -6,8 +6,9 @@
     'skala' => true,       // Grenzwerte unter dem Balken
 ])
 {{--
-    Bullet Graph 1–6 (Few): Bänder ungenügend/knapp/genügend/gut in Grautönen, Messbalken neutral
-    (knapp/ungenügend in Notenfarbe), Zielmarke als senkrechter Strich. Beschreibung als Satz im aria-label.
+    Bullet Graph 1–6 (Few) als Kapsel: Spur mit den Bändern ungenügend/knapp/genügend/gut in Grautönen, Messbalken
+    in der Diagrammfarbe (knapp/ungenügend in Notenfarbe), Zielmarke als Strich über die Spur hinaus.
+    Beschreibung als Satz im aria-label.
 --}}
 @php
     $skalaKlasse = \App\Support\NotenSkala::class;
@@ -17,28 +18,30 @@
     $balken = match ($skalaKlasse::stufe($wert)) {
         $skalaKlasse::KNAPP => 'bg-note-knapp',
         $skalaKlasse::UNGENUEGEND => 'bg-note-ungenuegend',
-        default => 'bg-text',
+        default => 'bg-chart-1',
     };
     $satz = $label.' '.$f($wert)
         .($ziel !== null ? ', '.__('Ziel :wert', ['wert' => $f($ziel)]) : '')
         .', '.__('genügend ab :wert', ['wert' => $f($g['genuegend'])]).', '.__('gut ab :wert', ['wert' => $f($g['gut'])]);
     $baender = [
-        [1, $g['kritisch'], 'bg-muted/40'],
-        [$g['kritisch'], $g['genuegend'], 'bg-muted/28'],
-        [$g['genuegend'], $g['gut'], 'bg-muted/16'],
+        [1, $g['kritisch'], 'bg-muted/30'],
+        [$g['kritisch'], $g['genuegend'], 'bg-muted/22'],
+        [$g['genuegend'], $g['gut'], 'bg-muted/14'],
         [$g['gut'], 6, 'bg-muted/8'],
     ];
 @endphp
 <div {{ $attributes->class(['w-full']) }}>
-    <div class="relative h-4 overflow-hidden rounded-xs" role="img" aria-label="{{ $satz }}">
-        @foreach($baender as [$von, $bis, $klasse])
-            <div class="absolute inset-y-0 {{ $klasse }}" style="left: {{ $pos($von) }}%; width: {{ $pos($bis) - $pos($von) }}%"></div>
-        @endforeach
-        @if($wert !== null)
-            <div class="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 {{ $balken }}" style="width: {{ $pos($wert) }}%"></div>
-        @endif
+    <div class="relative py-1" role="img" aria-label="{{ $satz }}">
+        <div class="relative h-2.5 overflow-hidden rounded-full">
+            @foreach($baender as [$von, $bis, $klasse])
+                <div class="absolute inset-y-0 {{ $klasse }}" style="left: {{ $pos($von) }}%; width: {{ $pos($bis) - $pos($von) }}%"></div>
+            @endforeach
+            @if($wert !== null)
+                <div class="absolute inset-y-0 left-0 rounded-full {{ $balken }}" style="width: {{ $pos($wert) }}%"></div>
+            @endif
+        </div>
         @if($ziel !== null)
-            <div class="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-text" style="left: {{ $pos($ziel) }}%"></div>
+            <div class="absolute inset-y-0 w-0.5 -translate-x-1/2 rounded-full bg-text" style="left: {{ $pos($ziel) }}%"></div>
         @endif
     </div>
     @if($skala)

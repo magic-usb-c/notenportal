@@ -8,6 +8,17 @@ import { format, notenFarbe, stufe, t, tokenFarbe } from './np';
 Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
 const serie = (i, alpha = 1) => tokenFarbe(`--chart-${(i % 6) + 1}`, alpha);
+const serienToken = (i) => `--chart-${(i % 6) + 1}`;
+
+// Fläche unter einer Linie als senkrechter Verlauf von 22 % zu 0 % (Swift Charts: AreaMark mit Gradient)
+const verlaufFlaeche = (token) => ({ chart }) => {
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return tokenFarbe(token, 0.1);
+    const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+    g.addColorStop(0, tokenFarbe(token, 0.22));
+    g.addColorStop(1, tokenFarbe(token, 0));
+    return g;
+};
 
 // Bewegung reduziert: persönliche Einstellung (data-bewegung) oder Systemeinstellung
 function bewegungReduziert() {
@@ -31,8 +42,12 @@ function basis() {
                 bodyColor: tokenFarbe('--text'),
                 borderColor: tokenFarbe('--border'),
                 borderWidth: 1,
-                padding: 10,
-                cornerRadius: 10,
+                padding: { x: 12, y: 10 },
+                cornerRadius: 12,
+                caretSize: 0,
+                usePointStyle: true,
+                boxPadding: 4,
+                titleFont: { weight: '600' },
                 filter: (item) => !item.dataset.label?.startsWith('_'),
                 callbacks: { label: (c) => ` ${c.dataset.label}: ${format(c.parsed.y ?? c.parsed.x, 2)}` },
             },
@@ -42,8 +57,8 @@ function basis() {
 
 const notenAchse = (extra = {}) => ({
     min: 1, max: 6,
-    ticks: { stepSize: 1 },
-    grid: { color: tokenFarbe('--border', 0.7) },
+    ticks: { stepSize: 1, padding: 6 },
+    grid: { color: tokenFarbe('--text', 0.07), drawTicks: false },
     border: { display: false },
     ...extra,
 });
@@ -220,14 +235,17 @@ const BAUER = {
         const hervorgehoben = d.serien.some((s) => s.dick);
         const datasets = d.serien.map((s, i) => {
             const gedaempft = hervorgehoben && !s.dick;
-            const farbe = gedaempft ? tokenFarbe('--muted', 0.55) : (s.farbe ? tokenFarbe(s.farbe) : serie(i));
-            const flaeche = gedaempft ? tokenFarbe('--muted', 0.06) : (s.farbe ? tokenFarbe(s.farbe, 0.12) : serie(i, 0.12));
+            const token = s.farbe ?? serienToken(i);
+            const farbe = gedaempft ? tokenFarbe('--muted', 0.5) : tokenFarbe(token);
+            // Fläche nur unter der hervorgehobenen bzw. einzigen Linie, sonst überlagern sich die Verläufe
+            const flaeche = !gedaempft && (s.dick || d.serien.length === 1);
             return {
-                label: s.name, data: s.werte, spanGaps: true, tension: 0.3,
-                borderColor: farbe, backgroundColor: flaeche,
-                borderWidth: s.dick ? 3 : (gedaempft ? 1.25 : 2),
-                pointRadius: gedaempft ? 0 : 3.5, pointHoverRadius: gedaempft ? 3 : 6,
-                fill: d.serien.length === 1 ? 'origin' : false, order: s.dick ? 1 : 2,
+                label: s.name, data: s.werte, spanGaps: true, tension: 0.35, cubicInterpolationMode: 'monotone',
+                borderColor: farbe, backgroundColor: flaeche ? verlaufFlaeche(token) : 'transparent',
+                borderWidth: s.dick ? 3 : (gedaempft ? 1.25 : 2), borderCapStyle: 'round', borderJoinStyle: 'round',
+                pointRadius: gedaempft ? 0 : 3.5, pointHoverRadius: gedaempft ? 3 : 5.5,
+                pointBackgroundColor: farbe, pointBorderColor: tokenFarbe('--card'), pointBorderWidth: 1.5, pointHoverBorderWidth: 2,
+                fill: flaeche ? 'start' : false, order: s.dick ? 1 : 2,
             };
         });
         if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, t('genügend :wert', { wert: format(d.grenze, 1) })));
@@ -238,7 +256,13 @@ const BAUER = {
             type: 'line', data: { labels: d.labels, datasets },
             options: {
                 ...basis(), layout: { padding: { right: padRechts } },
-                scales: { y: notenAchse(), x: { grid: { display: false }, border: { display: false } } },
+                // Achse nie schräg: wird es eng, kürzt «1. Semester» zu «1. Sem.»
+                scales: { y: notenAchse(), x: { grid: { display: false }, border: { display: false },
+                    ticks: { maxRotation: 0, autoSkip: true, callback(v) {
+                        const l = String(this.getLabelForValue(v));
+                        const platz = (this.chart.chartArea?.width ?? this.chart.width) / Math.max(1, this.chart.data.labels.length);
+                        return platz < 84 ? l.replace(/\p{L}{6,}/u, (w) => `${w.slice(0, 3)}.`) : l;
+                    } } } },
                 plugins: { ...basis().plugins, npDirektlabel: { aktiv: direkt },
                     legend: { ...basis().plugins.legend, display: !direkt && d.serien.length > 1 && o.legende !== false } },
             },
@@ -275,11 +299,11 @@ const BAUER = {
         const g = d.grenzen ?? {};
         const zeilen = d.labels.map((label, i) => ({ label, wert: d.werte[i] ?? null }))
             .sort((a, b) => (a.wert ?? Infinity) - (b.wert ?? Infinity));
-        const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.85) : tokenFarbe('--chart-6', 0.55));
+        const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.9) : tokenFarbe('--chart-1', 0.9));
         return {
             type: 'bar',
             data: { labels: zeilen.map((z) => z.label), datasets: [{ label: t('Note'), data: zeilen.map((z) => (z.wert === null ? null : [1, z.wert])),
-                backgroundColor: zeilen.map((z) => farbe(z.wert)), borderRadius: 4, borderSkipped: false, barThickness: 14 }] },
+                backgroundColor: zeilen.map((z) => farbe(z.wert)), borderRadius: 8, borderSkipped: false, barThickness: 16 }] },
             options: {
                 ...basis(), indexAxis: 'y', layout: { padding: { right: 36, bottom: g.genuegend ? 18 : 0 } },
                 plugins: { ...basis().plugins, legend: { display: false },
@@ -320,7 +344,7 @@ const BAUER = {
                 ...basis(),
                 plugins: { ...basis().plugins, legend: { display: false },
                     tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${c.parsed.y}` } } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: tokenFarbe('--border', 0.7) }, border: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: tokenFarbe('--text', 0.07), drawTicks: false }, border: { display: false } },
                     // nur jede 4. Beschriftung (z. B. KW), nie schräg
                     x: { grid: { display: false }, border: { display: false },
                         // von rechts (aktuellste Woche) her jede 4. beschriften, nie schräg
@@ -337,13 +361,13 @@ const BAUER = {
         return {
             type: 'bar',
             data: { labels: d.labels, datasets: [{ label: d.name ?? t('Anzahl'), data: d.werte,
-                backgroundColor: d.labels.map((l) => (['knapp', 'ungenuegend'].includes(stufe(parseFloat(l), g)) ? notenFarbe(parseFloat(l), g, 0.75) : tokenFarbe('--chart-6', 0.6))),
+                backgroundColor: d.labels.map((l) => (['knapp', 'ungenuegend'].includes(stufe(parseFloat(l), g)) ? notenFarbe(parseFloat(l), g, 0.85) : tokenFarbe('--chart-1', 0.85))),
                 borderRadius: 6 }] },
             options: {
                 ...basis(),
                 plugins: { ...basis().plugins, legend: { display: false },
                     tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${c.parsed.y}` } } },
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: tokenFarbe('--border', 0.7) }, border: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: tokenFarbe('--text', 0.07), drawTicks: false }, border: { display: false } },
                     x: { grid: { display: false }, border: { display: false } } },
             },
         };

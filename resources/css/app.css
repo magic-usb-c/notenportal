@@ -8,7 +8,7 @@
 
 /* Klassen, die nur per Alpine :class gesetzt werden */
 @source inline('rotate-90 rotate-180');
-@source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-6 fill-muted/30');
+@source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-{1,6} fill-muted/30');
 @source inline('bg-accent text-accent-contrast text-accent-contrast/80 text-text text-muted');
 
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
@@ -849,6 +849,17 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   padding-inline: 0.625rem;
 }
 
+@utility np-suchfeld {
+  /* Suchfeld als Kapsel mit Lupe davor (HIG «Search fields»), nur zusammen mit np-feld */
+  &.np-feld {
+    border-radius: 9999px;
+    padding-left: 2rem;
+  }
+  &::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
+}
+
 @utility np-textfeld {
   /* mehrzeilig: Höhe aus rows */
   height: auto;
@@ -952,6 +963,15 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
+@utility np-segment-klein {
+  /* kleinere Segmentsteuerung für Kartenköpfe */
+  height: 1.75rem;
+  &.np-segment > * {
+    padding-inline: 0.625rem;
+    font-size: var(--text-xs);
+  }
+}
+
 /* ==========================================================================
    Inhalt. Karten sind feste Flächen (keine Transparenz), hell mit Haarstrich und
    kaum sichtbarem Schatten, dunkel mit Lichtkante – der Grund trennt sie.
@@ -996,7 +1016,8 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     padding-inline: 0.75rem;
     vertical-align: middle;
   }
-  & :where(tbody tr:nth-child(even)) > * {
+  /* Streifen zählen nur sichtbare Zeilen: ein Filter per x-show bricht sonst das Muster */
+  & :where(tbody tr:nth-child(even of :not([hidden], [style*='display: none']))) > * {
     background-color: rgb(var(--text) / 0.03);
   }
   & :where(tbody tr:hover) > * {
@@ -1018,6 +1039,32 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   flex-direction: column;
   & > * + * {
     border-top: 1px solid rgb(var(--border));
+  }
+}
+
+@utility np-liste-eingerueckt {
+  /* Liste in einer Karte mit eingerückter Trennlinie ab dem Text (HIG «Lists and tables», inset grouped).
+     Einzug über --np-einzug (Standard: nach einer 36-px-Kachel); um die Zeile unter dem Zeiger verschwinden
+     die Linien wie unter macOS, damit die Hover-Fläche ungebrochen steht. */
+  display: flex;
+  flex-direction: column;
+  & > * {
+    position: relative;
+  }
+  & > * + *::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: var(--np-einzug, 3.75rem);
+    right: 0.75rem;
+    height: 1px;
+    background-color: rgb(var(--border));
+    pointer-events: none;
+    transition: opacity 120ms var(--ease-out);
+  }
+  & > *:hover::before,
+  & > *:hover + *::before {
+    opacity: 0;
   }
 }
 
@@ -1142,9 +1189,9 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     [data-dichte='kompakt'] th.h-9 { height: 2rem; }
     [data-dichte='kompakt'] .np-tabelle :where(tbody td, tbody th) { height: 1.75rem; }
     [data-dichte='kompakt'] .np-zeile { min-height: 2.25rem; padding-block: 0.25rem; }
-    [data-dichte='kompakt'] .np-raster .bg-card .px-5 { padding-left: 1rem; padding-right: 1rem; }
-    [data-dichte='kompakt'] .np-raster .bg-card .pb-5 { padding-bottom: 0.75rem; }
-    [data-dichte='kompakt'] .np-raster .bg-card .py-2 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    [data-dichte='kompakt'] .np-raster :is(.bg-card, .np-karte) .px-5 { padding-left: 1rem; padding-right: 1rem; }
+    [data-dichte='kompakt'] .np-raster :is(.bg-card, .np-karte) .pb-5 { padding-bottom: 0.75rem; }
+    [data-dichte='kompakt'] .np-raster :is(.bg-card, .np-karte) :is(.py-2, .py-2\.5) { padding-top: 0.375rem; padding-bottom: 0.375rem; }
     [data-dichte='kompakt'] .np-raster.p-5,
     [data-dichte='kompakt'] .np-raster .p-5 { padding: 0.75rem; }
     [data-dichte='kompakt'] .np-raster.p-4,

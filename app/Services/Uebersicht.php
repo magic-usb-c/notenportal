@@ -116,9 +116,11 @@ final class Uebersicht
         if ($stand->ungenuegend) {
             $anzahl = count($stand->ungenuegend);
             $ungenuegend[] = [
-                'text' => $anzahl === 1 ? 'Ungenügend: '.$stand->ungenuegend[0]->label : $anzahl.' ungenügende Zeugnisnoten',
+                'text' => $anzahl === 1
+                    ? __('Ungenügend: :name', ['name' => $stand->ungenuegend[0]->label])
+                    : __(':anzahl ungenügende Zeugnisnoten', ['anzahl' => $anzahl]),
                 'detail' => $anzahl === 1
-                    ? 'Zeugnisnote '.NotenSkala::format($stand->ungenuegend[0]->note)
+                    ? __('Zeugnisnote :note', ['note' => NotenSkala::format($stand->ungenuegend[0]->note)])
                     : implode(', ', array_map(fn (Element $e) => $e->label, $stand->ungenuegend)),
                 'link' => route('learner.grades.index', ['semester_id' => $stand->semesterId]),
                 'ton' => 'rot',
@@ -131,9 +133,9 @@ final class Uebersicht
             return [
                 'text' => $p->bezeichnung(),
                 'detail' => match (true) {
-                    $tage <= 0 => 'heute',
-                    $tage === 1 => 'morgen',
-                    default => 'in '.$tage.' Tagen',
+                    $tage <= 0 => __('heute'),
+                    $tage === 1 => __('morgen'),
+                    default => __('in :anzahl Tagen', ['anzahl' => $tage]),
                 },
                 'link' => route('learner.exams.index'),
                 'ton' => 'termin',
@@ -253,14 +255,14 @@ final class Uebersicht
      * Fehler, kritische Lernende), statt vier Karten. Dieselben Prüfpunkte, feiner, liefert
      * `php artisan notenportal:bereitschaft` (App\Support\Bereitschaft).
      *
-     * @return list<array{text: string, meta: ?string, badge: ?int, note: ?float, ton: string, link: string}>
+     * @return list<array{text: string, meta: ?string, badge: ?int, note: ?float, ton: string, symbol: string, link: string}>
      */
     private function adminHandlungsbedarf(array $einrichtung, Collection $kritisch, int $feedbackOffen): array
     {
         $eintraege = [];
 
         foreach ($einrichtung as $e) {
-            $eintraege[] = ['text' => $e['text'], 'meta' => null, 'badge' => $e['anzahl'], 'note' => null, 'ton' => 'gelb', 'link' => $e['link']];
+            $eintraege[] = ['text' => $e['text'], 'meta' => null, 'badge' => $e['anzahl'], 'note' => null, 'ton' => 'gelb', 'symbol' => 'wrench-screwdriver', 'link' => $e['link']];
         }
 
         $letzteSicherung = app(Sicherung::class)->letzte();
@@ -272,6 +274,7 @@ final class Uebersicht
                 'badge' => $tage,
                 'note' => null,
                 'ton' => $tage !== null ? 'gelb' : 'rot',
+                'symbol' => 'circle-stack',
                 'link' => route('admin.operations.edit'),
             ];
         }
@@ -283,6 +286,7 @@ final class Uebersicht
                 'badge' => $feedbackOffen,
                 'note' => null,
                 'ton' => 'accent',
+                'symbol' => 'chat-bubble-left-ellipsis',
                 'link' => route('admin.feedback.index'),
             ];
         }
@@ -295,6 +299,7 @@ final class Uebersicht
                 'badge' => $failedJobs,
                 'note' => null,
                 'ton' => 'rot',
+                'symbol' => 'exclamation-triangle',
                 'link' => route('admin.mail-log.index'),
             ];
         }
@@ -309,6 +314,7 @@ final class Uebersicht
                 'badge' => $fehlgeschlageneMails,
                 'note' => null,
                 'ton' => 'gelb',
+                'symbol' => 'envelope',
                 'link' => route('admin.mail-log.index'),
             ];
         }
@@ -326,6 +332,7 @@ final class Uebersicht
                 'badge' => $anzahl,
                 'note' => null,
                 'ton' => 'gelb',
+                'symbol' => 'calendar',
                 'link' => route('admin.learners.show', $lernender->lernender_id),
             ];
         }
@@ -337,6 +344,7 @@ final class Uebersicht
                 'badge' => null,
                 'note' => $kr->stand->semesterNote,
                 'ton' => 'rot',
+                'symbol' => 'user-circle',
                 'link' => route('admin.learners.show', $kr->lernender->lernender_id),
             ];
         }
@@ -684,7 +692,7 @@ final class Uebersicht
         $werte = [];
         for ($i = 0; $i < 12; $i++) {
             $w = $start->copy()->addWeeks($i);
-            $labels[] = 'KW '.$w->isoWeek();
+            $labels[] = __('KW :nr', ['nr' => $w->isoWeek()]);
             $werte[] = (int) ($roh[(int) $w->format('oW')] ?? 0);
         }
 
