@@ -500,6 +500,13 @@ bestehenden Formularraster und je einen Textlink in einer bereits umbruchfähige
 
 ## Die Installationsanleitung ist geprüft, aber nie auf einer leeren Maschine gelaufen
 
+**Erledigt (30.09.2026):** die README-Befehle wörtlich in frischen Ubuntu-24.04-Containern mit systemd
+(Klon aus GitHub, Home-Verzeichnis, `sudo ./install.sh`): Selbstprüfung HTTPS 200, Einrichtung 1–8 per
+Klick, Lernende erfasst Noten. Dazu gemessen: zweiter Lauf, zweiter Klon, belegte Ports 80/443/3306,
+maskierter Dienst, fehlendes Ausführungsbit, Abbruch nach dem Admin-Konto (`docs/betrieb.md`,
+«Neuinstallation mit install.sh»). Offen bleibt nur 26.04 auf echter VM im Container-Prüfstand
+(bootet dort kein systemd); srv-lab-dva-003 lief am 30.09. mit 26.04 durch. Historischer Stand:
+
 `README.md`, `.env.example` und `CONTRIBUTING.md` wurden Aussage für Aussage gegen `install.sh`,
 `config/notenportal.php`, `app/Support/Einrichtung.php`, `database/seeders/BasisSeeder.php`,
 `phpunit.xml` und `tests/TestCase.php` geprüft: Befehlsfolge, alle fünf Optionen, das Verhalten
@@ -597,4 +604,13 @@ rohen Form einer Ernte (`987`). Der Import normalisiert beides gleich
   selben Betrieb vorkommt.
 - **Rundung der Promotions-Schnitte auf Zehntel** (4,25 → 4,3): so seit der Notenlogik vom 10.09.;
   ob die BMV ungerundet vergleicht, ist nicht an der Primärquelle belegt.
-
+- **Positionen aus dem Zwischenstand 0b655d1** (30.09., 17:15–18:01 auf `main`): Das damalige Umziehen
+  setzte `aktualisiert_am` neu (und bei fehlender `DB_TIMEZONE` in DB-Zeit). Solche Positionen können
+  beim nächsten Wechsel als «zuletzt erfasst» gewinnen, obwohl sie älter sind. Gemessen vom Prüfer mit
+  nachgebautem Altcode; ob auf Prod oder dem Testserver solcher Bestand liegt, ist nicht geprüft (aus
+  dieser Umgebung nicht erreichbar); die Demo-DB wird neu gesät. Kein Reparaturskript: es
+  bräuchte eine Quelle für das echte Erfassungsdatum, und die gibt es nicht. Neue Installationen
+  setzen `DB_TIMEZONE` (install.sh), neue Positionen stempelt nur noch Eloquent.
+- **Löschen eines abgelösten Baums vergleicht keine Zeitstempel** (`verlorenePositionen`): zählt nur
+  Codes, die im aktiven Baum fehlen. Eine neuere Note im abgelösten Baum entsteht seit dem Sperren beim
+  Speichern (Abschluss) und beim Sammeln (BaumWechsel) nur noch aus dem Bestand oben.

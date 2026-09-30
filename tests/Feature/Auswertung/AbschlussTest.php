@@ -391,11 +391,18 @@ class AbschlussTest extends TestCase
         $this->assertNull($ipa());
     }
 
+    public static function einfuegeReihenfolgen(): array
+    {
+        return ['ältere zuerst angelegt' => [true], 'neuere zuerst angelegt' => [false]];
+    }
+
     #[Test]
-    public function bei_doppelten_positionen_gewinnt_die_zuletzt_erfasste_nicht_der_zuletzt_bearbeitete_baum(): void
+    #[DataProvider('einfuegeReihenfolgen')]
+    public function bei_doppelten_positionen_gewinnt_die_zuletzt_erfasste_nicht_der_zuletzt_bearbeitete_baum(bool $aeltereZuerst): void
     {
         // Bestand aus der Zeit vor dem Umziehen: dieselbe IPA in zwei abgeschalteten Bäumen. Dass A danach
-        // bearbeitet wurde (aktualisiert_am), sagt nichts über das Alter der Note.
+        // bearbeitet wurde (aktualisiert_am), sagt nichts über das Alter der Note. Beide Reihenfolgen, weil
+        // «höhere position_id gewinnt» sonst zufällig dasselbe Ergebnis liefert (Prüferbefund).
         $admin = User::factory()->admin()->create();
         $lernender = $this->lernenderMitBeruf();
         $id = (int) $lernender->lernender_id;
@@ -407,8 +414,11 @@ class AbschlussTest extends TestCase
             'knoten_id' => DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('code', 'ipa')->value('knoten_id'),
             'erstellt_am' => $zeit, 'aktualisiert_am' => $zeit,
         ]);
-        $position($a, 5.0, '2027-01-10 08:00:00');
-        $position($c, 4.0, '2027-02-10 08:00:00');
+        $aeltere = fn () => $position($a, 5.0, '2027-01-10 08:00:00');
+        $neuere = fn () => $position($c, 4.0, '2027-02-10 08:00:00');
+        foreach ($aeltereZuerst ? [$aeltere, $neuere] : [$neuere, $aeltere] as $anlegen) {
+            $anlegen();
+        }
         DB::table('notenbaeume')->where('baum_id', $a)->update(['aktualisiert_am' => now()->addDay()]);
 
         $this->actingAs($admin)->post(route('admin.master-data.grade-trees.template'), ['vorlage' => 'informatiker-efz-bivo2020', 'lehrberuf_id' => $this->lehrberuf])
@@ -419,6 +429,81 @@ class AbschlussTest extends TestCase
         $this->assertSame(1, NotenbaumPosition::count(), 'Die überholte 5.0 fällt weg, statt beim nächsten Wechsel wieder aufzutauchen');
         $this->assertSame(0, BaumWechsel::verlorenePositionen($a));
         $this->assertSame(0, BaumWechsel::verlorenePositionen($c));
+    }
+
+    #[Test]
+    public function wechsel_behaelt_die_noten_jeder_lernenden_und_greift_nicht_in_einen_anderen_lehrberuf(): void
+    {
+        // Prüferbefund: «nur nach Code gruppieren» und «über alle Bäume sammeln» überlebten die ganze Suite
+        $erste = $this->lernenderMitBeruf();
+        $zweite = $this->lernenderMitBeruf();
+        $andererBeruf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'ABF', 'name' => 'Anderer Beruf EFZ']);
+        $fremde = $this->neuerLernender([], ['lehrberuf_id' => $andererBeruf]);
+        $fremderBaum = app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $andererBeruf);
+        $alt = $this->efzBaum();
+        $ipa = fn (int $baum) => (int) DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('code', 'ipa')->value('knoten_id');
+        foreach ([[$erste, $alt, 5.0], [$zweite, $alt, 4.0], [$fremde, $fremderBaum, 3.5]] as [$l, $baum, $wert]) {
+            NotenbaumPosition::create(['lernender_id' => $l->lernender_id, 'knoten_id' => $ipa($baum), 'note_wert' => $wert, 'erfasst_von_benutzer_id' => $l->benutzer_id]);
+        }
+        $this->travel(1)->minutes();
+
+        $neu = $this->efzBaum();
+
+        $ort = fn (Lernender $l) => array_map('floatval', (array) DB::table('notenbaum_positionen as p')
+            ->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
+            ->where('p.lernender_id', $l->lernender_id)->where('k.code', 'ipa')->first(['k.baum_id', 'p.note_wert']));
+        $this->assertSame(['baum_id' => (float) $neu, 'note_wert' => 5.0], $ort($erste));
+        $this->assertSame(['baum_id' => (float) $neu, 'note_wert' => 4.0], $ort($zweite));
+        $this->assertSame(['baum_id' => (float) $fremderBaum, 'note_wert' => 3.5], $ort($fremde));
+        $this->assertTrue((bool) DB::table('notenbaeume')->where('baum_id', $fremderBaum)->value('aktiv'));
+        $this->assertSame(3, NotenbaumPosition::count());
+    }
+
+    #[Test]
+    public function wechsel_zwischen_formular_und_speichern_verliert_die_eingabe_nicht_im_alten_baum(): void
+    {
+        // Prüferbefund: «Abschlussnoten gespeichert.», der Wert lag aber unsichtbar im eben abgelösten Baum
+        $lernender = $this->lernenderMitBeruf();
+        $alt = $this->efzBaum();
+        $this->travel(1)->minutes();
+        $neu = $this->efzBaum();
+        BaumWechsel::aktivieren($alt);
+        Konfiguration::vergessen();
+        $ipaAlt = $this->knoten('ipa');
+        $umgeschaltet = false;
+        DB::listen(function ($q) use (&$umgeschaltet, $neu) {
+            if (! $umgeschaltet && str_contains($q->sql, 'from `notenbaum_knoten` where `knoten_id` in')) {
+                $umgeschaltet = true;
+                BaumWechsel::aktivieren($neu); // Admin schaltet um, während das Speichern läuft
+            }
+        });
+
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$ipaAlt => '5.0']])
+            ->assertRedirect(route('learner.qualification.index'))
+            ->assertSessionHas('error', __('Der Abschluss wurde eben umgestellt. Bitte die Seite neu laden und nochmals speichern.'));
+
+        $this->assertTrue($umgeschaltet);
+        $this->assertSame(0, NotenbaumPosition::count());
+    }
+
+    #[Test]
+    public function neuer_bm_baum_laesst_den_abu_baum_und_seine_noten_in_ruhe(): void
+    {
+        // Prüferbefund: ohne Track-Filter schaltete ein BMS-Baum den ABU-Baum ab und zog dessen Noten ab
+        $lernender = $this->lernenderMitBeruf();
+        DB::table('lernender_tracks')->insert(['lernender_id' => $lernender->lernender_id, 'track_typ' => 'ABU',
+            'start_datum' => '2024-08-01', 'start_semester_id' => (int) DB::table('semester')->value('semester_id')]);
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('bm-tals1-bmv2025'));
+        $abuBaum = app(BaumVorlage::class)->importieren(['track_typ' => 'ABU', 'name' => 'ABU-Abschluss'] + BaumVorlage::laden('bm-tals1-bmv2025'));
+        $this->assertSame('ABU', DB::table('notenbaeume')->where('baum_id', $abuBaum)->value('track_typ'));
+        $knoten = (int) DB::table('notenbaum_knoten')->where('baum_id', $abuBaum)->where('code', 'deutsch_pruefung')->value('knoten_id');
+        NotenbaumPosition::create(['lernender_id' => $lernender->lernender_id, 'knoten_id' => $knoten, 'note_wert' => 4.5, 'erfasst_von_benutzer_id' => $lernender->benutzer_id]);
+        $this->travel(1)->minutes();
+
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('bm-tals1-bmv2025'));
+
+        $this->assertTrue((bool) DB::table('notenbaeume')->where('baum_id', $abuBaum)->value('aktiv'));
+        $this->assertSame($knoten, (int) NotenbaumPosition::query()->value('knoten_id'));
     }
 
     #[Test]

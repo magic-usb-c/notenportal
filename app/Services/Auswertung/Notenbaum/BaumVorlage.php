@@ -208,7 +208,7 @@ final class BaumVorlage
             BaumWechsel::aktivieren($baumId);
 
             return $baumId;
-        });
+        }, 3);
         Konfiguration::vergessen();
 
         return $id;

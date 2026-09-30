@@ -32,17 +32,20 @@ final class BaumWechsel
      */
     public static function aktivieren(int $baumId): int
     {
+        // Alle Bäume des Ziels in einem Zug und nach baum_id sperren: erst den Zielbaum und dann den Rest
+        // zu sperren, liess zwei gleichzeitige Wechsel über Kreuz aufeinander warten (Deadlock). Was dann
+        // noch kollidiert, etwa zwei Importe, wiederholt DB::transaction.
         return DB::transaction(function () use ($baumId) {
-            $baum = DB::table('notenbaeume')->where('baum_id', $baumId)->lockForUpdate()->first()
+            $baum = DB::table('notenbaeume')->where('baum_id', $baumId)->first()
                 ?? throw new RuntimeException('Notenbaum '.$baumId.' fehlt.');
-            $baeume = self::gleichesZiel($baum)->lockForUpdate()->get(['baum_id', 'aktiv']);
+            $baeume = self::gleichesZiel($baum)->orderBy('baum_id')->lockForUpdate()->get(['baum_id', 'aktiv']);
             $vorher = $baeume->where('aktiv', true)->where('baum_id', '!=', $baumId)->pluck('baum_id')->map(fn ($id) => (int) $id);
 
             DB::table('notenbaeume')->whereIn('baum_id', $vorher->all())->update(['aktiv' => false, 'aktualisiert_am' => now()]);
             DB::table('notenbaeume')->where('baum_id', $baumId)->update(['aktiv' => true, 'aktualisiert_am' => now()]);
 
             return self::positionenSammeln($baumId, $baeume->pluck('baum_id')->map(fn ($id) => (int) $id)->all(), $vorher->all());
-        });
+        }, 3);
     }
 
     /**
@@ -90,9 +93,12 @@ final class BaumWechsel
         if ($ziel->isEmpty()) {
             return 0;
         }
+        // Sperrend lesen: eine gewöhnliche Abfrage sähe den Stand vom Beginn der Transaktion (REPEATABLE READ),
+        // beim Import also vor dessen erster Abfrage. Eine Note, die eine Lernende inzwischen gespeichert hat,
+        // bliebe dann im abgelösten Baum liegen. Die sperrende Abfrage liest den neuesten bestätigten Stand.
         $positionen = DB::table('notenbaum_positionen as p')->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
             ->whereIn('k.baum_id', $baeume)->where('k.typ', Knoten::MANUELL)->whereIn('k.code', $ziel->keys()->all())
-            ->get(['p.position_id', 'p.lernender_id', 'p.knoten_id', 'p.aktualisiert_am', 'k.baum_id', 'k.code']);
+            ->lockForUpdate()->get(['p.position_id', 'p.lernender_id', 'p.knoten_id', 'p.aktualisiert_am', 'k.baum_id', 'k.code']);
         $rang = fn (object $p) => in_array((int) $p->baum_id, $vorher, true) ? 2 : ((int) $p->baum_id === $nach ? 1 : 0);
         $anzahl = 0;
 

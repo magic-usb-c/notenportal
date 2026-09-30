@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Lernender;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auswertung\Notenbaum\Abschluss;
+use App\Services\Auswertung\Notenbaum\AbschlussVeraltet;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -30,7 +31,11 @@ class AbschlussController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $request->validate(['werte' => ['required', 'array']]);
 
-        $anzahl = $this->abschluss->speichern((int) $lernender->lernender_id, (array) $request->input('werte'), (int) $request->user()->benutzer_id);
+        try {
+            $anzahl = $this->abschluss->speichern((int) $lernender->lernender_id, (array) $request->input('werte'), (int) $request->user()->benutzer_id);
+        } catch (AbschlussVeraltet $e) {
+            return redirect()->route('learner.qualification.index')->with('error', $e->getMessage());
+        }
 
         return redirect()->route('learner.qualification.index')
             ->with('success', $anzahl > 0 ? __('Abschlussnoten gespeichert.') : __('Keine Änderungen.'));

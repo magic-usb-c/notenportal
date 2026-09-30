@@ -122,9 +122,17 @@ final class Abschluss
             throw ValidationException::withMessages($fehler);
         }
 
-        $bestehend = $this->positionen($lernenderId);
         $geaendert = [];
-        DB::transaction(function () use ($sauber, $bestehend, $lernenderId, $benutzerId, &$geaendert) {
+        DB::transaction(function () use ($sauber, $lernenderId, $benutzerId, &$geaendert) {
+            // Die Bäume der Knoten sperren (geteilt) und prüfen, ob sie noch aktiv sind: schaltet ein Admin
+            // zwischen Formular und Speichern um, landete der Wert sonst unsichtbar im abgelösten Baum.
+            // Ein Wechsel, der erst jetzt kommt, wartet auf dieses Speichern und nimmt den Wert mit.
+            $baeume = DB::table('notenbaum_knoten')->whereIn('knoten_id', array_keys($sauber))->distinct()->pluck('baum_id')->all();
+            $aktiv = DB::table('notenbaeume')->whereIn('baum_id', $baeume)->orderBy('baum_id')->sharedLock()->pluck('aktiv');
+            if ($aktiv->contains(fn ($a) => ! $a)) {
+                throw new AbschlussVeraltet;
+            }
+            $bestehend = $this->positionen($lernenderId);
             foreach ($sauber as $knotenId => $wert) {
                 $alt = $bestehend[$knotenId] ?? null;
                 $vorher = $alt?->note_wert;
