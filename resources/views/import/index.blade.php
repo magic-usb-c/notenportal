@@ -98,10 +98,10 @@
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
                                 @if($vorschau['format'] ?? null)
-                                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-accent/10 border border-border text-accent-text">{{ $vorschau['format'] }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-3xs bg-accent/10 border border-border text-accent-text">{{ $vorschau['format'] }}</span>
                                 @endif
                                 @foreach($vorschau['erkannt'] as $art => $index)
-                                    <span class="px-2 py-0.5 rounded-full text-[11px] bg-bg/60 border border-border text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-3xs bg-bg/60 border border-border text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
                                 @endforeach
                             </div>
                         </div>
@@ -161,13 +161,13 @@
                                                         </optgroup>
                                                     @endforeach
                                                 </select>
-                                                <div class="mt-0.5 text-[11px] text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
+                                                <div class="mt-0.5 text-3xs text-muted truncate max-w-56" x-show="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
                                             <td class="px-2 py-1.5 min-w-40"><input type="text" x-model="z.titel" maxlength="150" :aria-label="@js(__('Titel Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}"></td>
                                             <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
                                             <td class="px-2 py-1.5 w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums"></td>
                                             <td class="px-3 py-1.5 whitespace-nowrap">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-3xs font-semibold" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
                                             </td>
                                         </tr>
                                     </template>

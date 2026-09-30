@@ -133,7 +133,7 @@
                                     </svg>
                                     <div class="font-semibold text-sm"
                                          :class="rolle == '{{ $r->rolle_id }}' ? 'text-accent-text' : 'text-text'">{{ __($r->name) }}</div>
-                                    <div class="text-[11px] text-muted mt-0.5">{{ $rolleMeta['desc'] }}</div>
+                                    <div class="text-3xs text-muted mt-0.5">{{ $rolleMeta['desc'] }}</div>
                                 </label>
                             @endforeach
                         </div>

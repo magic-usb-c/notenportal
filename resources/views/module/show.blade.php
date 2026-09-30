@@ -103,7 +103,7 @@
                     <ul class="divide-y divide-border rounded-xl border border-border overflow-hidden">
                         @foreach($modul->dokumente as $d)
                             <li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:flex-nowrap">
-                                <span class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-[10px] font-bold text-accent-text">{{ strtoupper($d->endung()) }}</span>
+                                <span class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-3xs font-semibold text-accent-text">{{ strtoupper($d->endung()) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate text-sm font-medium text-text">{{ $d->titel }}</div>
                                     <div class="truncate text-xs text-muted">

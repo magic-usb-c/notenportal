@@ -135,7 +135,7 @@
                                         <span class="font-medium text-text">{{ $n->pruefungsdatum?->format('d.m.Y') }}</span>
                                         <span class="text-xs text-muted">{{ $n->kategorie?->name ?? '–' }}</span>
                                         @if($n->kommentare->isNotEmpty())
-                                            <span class="inline-flex px-1.5 py-0.5 rounded-full text-[11px] bg-bg border border-border text-muted">{{ $n->kommentare->count() }} {{ $n->kommentare->count() === 1 ? __('Kommentar') : __('Kommentare') }}</span>
+                                            <span class="inline-flex px-1.5 py-0.5 rounded-full text-3xs bg-bg border border-border text-muted">{{ $n->kommentare->count() }} {{ $n->kommentare->count() === 1 ? __('Kommentar') : __('Kommentare') }}</span>
                                         @endif
                                         @if($istNeu)
                                             <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold bg-accent text-accent-contrast">{{ __('Neu') }}</span>

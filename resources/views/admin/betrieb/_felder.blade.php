@@ -27,7 +27,7 @@
             <div class="bg-note-genuegend transition-all" :style="`width: ${Math.max(0, b(gut) - b(gen))}%`"></div>
             <div class="bg-note-gut flex-1"></div>
         </div>
-        <div class="mt-1 flex justify-between text-[11px] text-muted tabular-nums" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+        <div class="mt-1 flex justify-between text-3xs text-muted tabular-nums" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
     </div>
 
     <div class="grid sm:grid-cols-3 gap-4">

@@ -88,7 +88,7 @@
                         <ul class="rounded-xl border border-border bg-card divide-y divide-border overflow-hidden">
                             @foreach($gruppen[$art] as $d)
                                 <li class="flex flex-wrap sm:flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">
-                                    <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent-text text-[10px] font-bold inline-flex items-center justify-center">{{ $typ($d) }}</span>
+                                    <span class="w-11 h-11 shrink-0 rounded-xl bg-accent/10 text-accent-text text-3xs font-semibold inline-flex items-center justify-center">{{ $typ($d) }}</span>
                                     <div class="min-w-0 flex-1">
                                         <div class="text-sm font-medium text-text truncate">{{ $d->titel }}</div>
                                         <div class="text-xs text-muted truncate">

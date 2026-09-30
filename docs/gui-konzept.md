@@ -47,6 +47,7 @@ unverändert geblieben, es musste keine View umgeschrieben werden.
 
 | Token | px / Zeile | Apple Text Style | Gewicht | Einsatz |
 |---|---|---|---|---|
+| `text-3xs` | 11 / 13 | Caption 2 | 500 | Zähler-Badge, Kalenderzelle, Skalenmarken |
 | `text-2xs` | 12 / 16 | Caption 1 | 500 | Tabellenkopf, Achsen, Meta |
 | `text-xs` | 13 / 18 | Footnote | 400/500 | Hilfetext, Sekundärzeile |
 | `text-sm` | 15 / 20 | Subhead | 400 | **UI-Grundschrift**, Tabellen, Buttons (500) |

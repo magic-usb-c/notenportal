@@ -189,6 +189,10 @@ class DarstellungProfilTest extends TestCase
         $this->patchJson(route('profile.preferences'), ['navigation' => 'seite'])->assertOk();
         $this->patch(route('profile.update'), $profil([]))->assertSessionHasNoErrors();
         $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
+
+        // Ein Schnellwechsel einer anderen Einstellung (Befehlspalette) lässt sie ebenfalls stehen
+        $this->patchJson(route('profile.preferences'), ['dichte' => Darstellung::DICHTEN[0]])->assertOk();
+        $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
     }
 
     #[Test]

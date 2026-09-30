@@ -22,7 +22,7 @@
                    @class(['inline-flex items-center gap-2 px-3 min-h-9 rounded-full text-sm border transition-colors',
                        'border-accent/50 bg-accent/10 text-accent-text' => $ist, 'border-border text-muted hover:text-text' => ! $ist])>
                     {{ $lb->kuerzel }}
-                    <span @class(['text-[11px] tabular-nums px-1.5 rounded-full', 'bg-accent/15' => $lb->anzahl, 'bg-bg' => ! $lb->anzahl])>{{ $lb->anzahl }}</span>
+                    <span @class(['text-3xs tabular-nums px-1.5 rounded-full', 'bg-accent/15' => $lb->anzahl, 'bg-bg' => ! $lb->anzahl])>{{ $lb->anzahl }}</span>
                 </a>
             @endforeach
         </div>

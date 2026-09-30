@@ -21,7 +21,7 @@
                     <tr>
                         <th class="sticky left-0 bg-card text-left px-5 pt-3 pb-1 text-xs font-semibold text-text">{{ $g['name'] }}</th>
                         @foreach($daten['semester'] as $s)
-                            <td class="px-1 pt-3 pb-1 text-center"><span class="text-[11px] font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
+                            <td class="px-1 pt-3 pb-1 text-center"><span class="text-3xs font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
                         @endforeach
                         <td class="px-5 pt-3 pb-1 text-center"><span aria-hidden="true">{{ $marke($g['note']) }}</span><x-note :wert="$g['note']" :stellen="1" class="text-sm" /></td>
                     </tr>
@@ -29,7 +29,7 @@
                         <tr class="hover:bg-accent/5">
                             <td class="sticky left-0 bg-card px-5 py-0.5 text-text truncate max-w-64" title="{{ $z['label'] }}">
                                 {{ $z['label'] }}
-                                @if($z['offen'])<span class="ml-1 text-[10px] text-accent-text font-semibold">{{ __('offen') }}</span>@endif
+                                @if($z['offen'])<span class="ml-1 text-3xs text-accent-text font-semibold">{{ __('offen') }}</span>@endif
                             </td>
                             @foreach($daten['semester'] as $s)
                                 <td class="px-1 py-0.5 text-center">

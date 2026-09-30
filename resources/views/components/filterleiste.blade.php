@@ -43,7 +43,7 @@
                         class="hidden h-9 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-sm text-muted hover:bg-surface-2 hover:text-text md:inline-flex">
                     {{ $weitereLabel }}
                     @if($aktiveWeitere > 0)
-                        <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-contrast">{{ $aktiveWeitere }}</span>
+                        <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-3xs font-semibold text-accent-contrast">{{ $aktiveWeitere }}</span>
                     @endif
                     <svg class="size-3.5 transition-transform duration-200" :class="offen && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -55,7 +55,7 @@
                     class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border-strong/60 bg-card px-3 text-sm font-medium text-text md:hidden">
                 {{ __('Filter') }}
                 @if($aktiveFilter > 0)
-                    <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-contrast">{{ $aktiveFilter }}</span>
+                    <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-3xs font-semibold text-accent-contrast">{{ $aktiveFilter }}</span>
                 @endif
             </button>
 

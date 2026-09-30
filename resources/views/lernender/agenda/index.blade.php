@@ -106,12 +106,12 @@
                                        {{ $tag['imMonat'] ? 'bg-card' : 'bg-bg/40 text-muted' }}">
                             <span class="text-xs tabular-nums {{ $tag['heute'] ? 'inline-flex items-center justify-center w-5 h-5 rounded-full bg-accent text-accent-contrast' : 'text-muted' }}">{{ $tag['datum']->format('d') }}</span>
                             @foreach($chips as $c)
-                                <span class="text-[11px] truncate leading-tight {{ in_array($c['art'], ['pruefung', 'erkannt'], true) ? 'text-accent-text' : 'text-muted' }}">
+                                <span class="text-3xs truncate leading-tight {{ in_array($c['art'], ['pruefung', 'erkannt'], true) ? 'text-accent-text' : 'text-muted' }}">
                                     {{ ['pruefung' => '●', 'erkannt' => '◆', 'termin' => '◇', 'lektion' => '○'][$c['art']] }} {{ $c['titel'] }}
                                 </span>
                             @endforeach
                             @if($mehr > 0)
-                                <span class="text-[11px] text-muted">+{{ $mehr }}</span>
+                                <span class="text-3xs text-muted">+{{ $mehr }}</span>
                             @endif
                         </button>
                     @endforeach

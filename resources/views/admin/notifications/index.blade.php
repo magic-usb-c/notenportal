@@ -35,7 +35,7 @@
                                                 @endif
                                             </div>
                                             <p class="text-xs text-muted mt-0.5">{{ $a['description'] }}</p>
-                                            <p class="text-[11px] text-muted mt-1">{{ implode(', ', array_map('__', $a['roles'])) }}</p>
+                                            <p class="text-3xs text-muted mt-1">{{ implode(', ', array_map('__', $a['roles'])) }}</p>
                                         </div>
 
                                         <div class="flex flex-wrap items-center gap-2 shrink-0">

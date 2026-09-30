@@ -55,7 +55,7 @@
                                     @if($h['note'] !== null)
                                         <x-note :wert="$h['note']" variante="badge" />
                                     @elseif($h['badge'] !== null)
-                                        <span @class(['px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums',
+                                        <span @class(['px-2 py-0.5 rounded-full text-3xs font-semibold tabular-nums',
                                             'bg-note-ungenuegend/15 text-note-ungenuegend' => $h['ton'] === 'rot',
                                             'bg-note-knapp/15 text-note-knapp' => $h['ton'] === 'gelb',
                                             'bg-accent/15 text-accent-text' => $h['ton'] === 'accent',

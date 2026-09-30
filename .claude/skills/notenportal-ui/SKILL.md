@@ -63,6 +63,7 @@ die Klassennamen bleiben die von Tailwind.
 
 | Klasse | Grösse/Zeile | Apple Text Style | Einsatz |
 |---|---|---|---|
+| `text-3xs` | 11/13 | Caption 2 | Zähler-Badge, Kalenderzelle, Skalenmarken |
 | `text-2xs` | 12/16 | Caption 1 | Tabellenkopf, Achsen, Meta |
 | `text-xs` | 13/18 | Footnote | Hilfetext, Sekundärzeile |
 | `text-sm` | 15/20 | Subhead | **UI-Grundschrift**, Tabellen, Buttons (`font-medium`) |

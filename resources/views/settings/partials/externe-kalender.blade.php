@@ -48,7 +48,7 @@
                     </div>
                     <div class="mt-1.5 flex flex-wrap gap-1.5">
                         @foreach([['import_exams', __('Prüfungen')], ['import_appointments', __('Termine')], ['import_lessons', __('Lektionen (Stundenplan)')]] as [$feld, $bezeichnung])
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] {{ $f->$feld ? 'bg-accent/10 text-accent-text' : 'text-muted line-through' }}">{{ $bezeichnung }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-3xs {{ $f->$feld ? 'bg-accent/10 text-accent-text' : 'text-muted line-through' }}">{{ $bezeichnung }}</span>
                         @endforeach
                     </div>
 

@@ -64,7 +64,7 @@
                     <template x-for="s in plan" :key="s.b">
                         <li class="rounded-xl border px-3 py-2" :class="s.da ? 'border-border text-muted' : 'border-accent/40 bg-accent/5 text-text'">
                             <div class="text-sm font-semibold tabular-nums" x-text="s.b"></div>
-                            <div class="text-[11px] text-muted tabular-nums" x-text="`${fmt(s.von)} – ${fmt(s.bis)}`"></div>
+                            <div class="text-3xs text-muted tabular-nums" x-text="`${fmt(s.von)} – ${fmt(s.bis)}`"></div>
                         </li>
                     </template>
                 </ul>

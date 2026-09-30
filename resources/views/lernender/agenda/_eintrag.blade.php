@@ -15,14 +15,14 @@
 <div class="px-5 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
     <div class="w-14 shrink-0 text-center">
         <div class="text-lg font-bold text-text tabular-nums leading-none">{{ $e['datum']->format('d') }}</div>
-        <div class="text-[11px] uppercase tracking-wider text-muted">{{ \App\Support\Format::datum($e['datum'], 'M') }}</div>
+        <div class="text-3xs uppercase tracking-wider text-muted">{{ \App\Support\Format::datum($e['datum'], 'M') }}</div>
     </div>
     <div class="flex-1 min-w-40">
         <div class="font-medium text-text truncate flex items-center gap-1.5">
             <span aria-hidden="true" class="{{ $symbolFarbe }}">{{ $symbol }}</span>
             <span class="truncate">{{ $e['titel'] }}</span>
             @if($p && $p->quelle === \App\Models\Pruefung::ICAL && filled($p->lokal_gesperrt))
-                <span class="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full border border-border text-muted" title="{{ __('Lokal angepasst') }}">{{ __('lokal angepasst') }}</span>
+                <span class="shrink-0 text-3xs px-1.5 py-0.5 rounded-full border border-border text-muted" title="{{ __('Lokal angepasst') }}">{{ __('lokal angepasst') }}</span>
             @endif
         </div>
         <div class="text-xs text-muted truncate">
