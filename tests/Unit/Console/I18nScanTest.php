@@ -75,6 +75,18 @@ class I18nScanTest extends TestCase
     }
 
     #[Test]
+    public function satzzeichen_und_marken_machen_aus_text_keinen_beispielwert(): void
+    {
+        // Gegenstück zu oben: gewöhnliche Wörter mit Doppelpunkt, Punkt oder Schrägstrich bleiben Text
+        $blade = '<p>Hinweis:</p><th>Total:</th><span>Noten/Prüfungen</span><span>Ja/Nein</span><p>Fertig.</p>'
+            .'<p>BMS Noten:</p><p>PDF herunterladen.</p><p>Notenportal öffnen.</p><input title="PDF öffnen.">';
+        [$knoten, $attribute] = I18nScan::funde($blade);
+
+        $this->assertSame(['Hinweis:', 'Total:', 'Noten/Prüfungen', 'Ja/Nein', 'Fertig.', 'BMS Noten:', 'PDF herunterladen.', 'Notenportal öffnen.'], $knoten);
+        $this->assertSame(['[PDF öffnen.]'], $attribute);
+    }
+
+    #[Test]
     public function relevante_attribute_werden_erfasst_andere_nicht(): void
     {
         $blade = '<input placeholder="Suchbegriff eingeben" data-info="Nicht erfasst" title="Weitere Erklärung">';

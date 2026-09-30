@@ -656,3 +656,17 @@ ausgeblendeten Werte in der Namenszelle nach.
   Überlaufmatrix nur «kein Querscrollen», nicht «kein Wert fehlt»; das hat der Prüfer im Code nachgelesen.
 - **Schwellenlabel in winzigen Diagrammen** (Zeichenfläche unter etwa 70 × 30 px) wird weggelassen statt
   über die Achsen gezeichnet; die Linie selbst bleibt.
+
+## Aufräumen Block 5: bewusst gelassen (30.09.2026)
+
+- **Abgabetermin ohne Gewichtung zählt 100 %** (ea7e431, vorher Abbruch mit 500): so will es
+  `docs/notenlogik.md` («leer = 100»), die Spalte und die Übernahme erkannter Prüfungen. Fachlich offen
+  (Prüferbefund): In einem teilweise benoteten Modul verdrängt das volle Gewicht das Restgewicht. Beispiel:
+  5.0 und 4.0 zu je 35 %, offen 30 % – eine leere Abgabe geht mit 100 % ein (59 % statt 30 % Anteil), bei
+  4.0 ergibt das 4.21 statt 4.35. Besser wäre, wenn das Formular das Restgewicht des Moduls vorschlägt;
+  das ist eine Funktion, kein Fehler, und braucht den Entscheid, ob «leer» künftig «Rest» heissen soll.
+- **Vollständigkeitsprüfungen der Rollentrennung** erfassen Routen mit Objekt-ID im Pfad (`trainer.*` mit
+  Lernenden-/Prüfungsbezug, `comments.*`, `role:Lernender`). IDs im Formularinhalt (`trainer.exams.store`,
+  `pruefung_id`/`ersetzt` bei Lernenden) prüfen eigene Tests, nicht der Sweep.
+- **«Ctrl K» in der Leiste** steht fest statt über `__('Strg/Cmd K')` wie an anderer Stelle; auf Schweizer
+  Tastaturen heisst die Taste Ctrl. Vereinheitlichen, wenn die Tastenbeschriftung je Plattform kommt.

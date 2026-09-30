@@ -11,8 +11,8 @@ use Symfony\Component\Finder\Finder;
  * Ratsche für die Sprachumschaltung: zählt pro View-Ordner die Textknoten und Textattribute
  * (placeholder, title, aria-label, alt), die nicht in __() stehen. Heuristik: Blade-Kommentare,
  * {{ }}/{!! !!}, @php, <?php ?>, <script>, <style>, <svg>, <code>, <pre>, <kbd> und Blade-Direktiven
- * werden entfernt; Zahlen, reine Satzzeichen und technische Beispielwerte (Hostname, Pfad, URL)
- * zählen nicht.
+ * werden entfernt; Zahlen, reine Satzzeichen und technische Beispielwerte (ganzer Wert ist URL, absoluter
+ * Pfad oder Hostname) zählen nicht.
  */
 class I18nScan extends Command
 {
@@ -103,11 +103,12 @@ class I18nScan extends Command
 
     private static function istText(string $wert): bool
     {
-        $wert = preg_replace('/\b(?:'.implode('|', self::NICHT_UEBERSETZEN).')\b/u', '', $wert);
-        // Ein Wort mit Punkt, Schrägstrich oder Doppelpunkt ohne Leerraum ist ein Beispielwert (backup.example.ch, /mnt/…, https://)
-        if (preg_match('#^\S*[./:]\S*$#u', trim($wert))) {
+        // Technische Beispielwerte (URL, absoluter Pfad, Hostname) – am ganzen Wert geprüft, bevor Marken wegfallen:
+        // sonst würde aus «PDF herunterladen.» ein einzelnes Wort mit Punkt und ginge als Beispiel durch
+        if (preg_match('#^(?:[a-z][a-z0-9+.-]*://\S*|~?/[\w./~-]*|[\w-]+(?:\.[\w-]+)+)$#iu', trim($wert))) {
             return false;
         }
+        $wert = preg_replace('/\b(?:'.implode('|', self::NICHT_UEBERSETZEN).')\b/u', '', $wert);
 
         return (bool) preg_match('/\p{L}{2,}/u', $wert) && ! preg_match('/^[\s\p{P}\p{S}\d]*$/u', $wert);
     }
