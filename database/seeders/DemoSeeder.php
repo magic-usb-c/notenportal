@@ -10,6 +10,7 @@ use App\Models\Note;
 use App\Models\NotenGesehen;
 use App\Models\NotenKommentar;
 use App\Models\User;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -102,6 +103,12 @@ class DemoSeeder extends Seeder
         $kommentar = 0;
         foreach ($personen['lernende'] as $i => $l) {
             $this->seedeLernenden($l, $i, $semester, $faecher, $berufe, $kommentar);
+        }
+
+        // QV-Notenbaum der beiden Informatiker-Fachrichtungen: zeigt Abschlussseite, QV-Prognose und die
+        // Stammdaten-Ansicht. EDB und INBE bleiben ohne Baum und rechnen flach – beides soll sichtbar sein.
+        foreach (['INPE', 'INAP'] as $kuerzel) {
+            app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $berufe[$kuerzel]['lehrberuf_id']);
         }
     }
 
