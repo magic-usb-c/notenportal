@@ -180,6 +180,41 @@ export function registriereSeitenleiste(Alpine) {
         },
     }));
 
+    // Aufklappmenü der Leiste («Mehr», Gruppen). Überfahren öffnet nur mit echter Maus: auf Touch kommen
+    // mouseenter und click direkt nacheinander, das Menü ging auf und sofort wieder zu. Ein Klick oder Tipp
+    // öffnet und hält offen, der zweite schliesst. Escape gibt den Fokus an den Knopf zurück, Tab hinaus schliesst.
+    Alpine.data('npLeistenMenue', () => ({
+        auf: false,
+        gehalten: false,
+        rein(e) {
+            if (e.pointerType === 'mouse') this.auf = true;
+        },
+        raus(e) {
+            if (e.pointerType === 'mouse' && !this.gehalten) this.auf = false;
+        },
+        klick() {
+            if (this.auf && this.gehalten) {
+                this.zu();
+            } else {
+                this.auf = true;
+                this.gehalten = true;
+            }
+        },
+        zu() {
+            this.auf = false;
+            this.gehalten = false;
+        },
+        escape() {
+            if (!this.auf) return;
+            this.zu();
+            this.$refs.knopf.focus();
+        },
+        fokusRaus(e) {
+            // Nur wenn der Fokus sichtbar woandershin geht (Tab); einen Tipp ins Leere fängt click.outside
+            if (e.relatedTarget && !this.$root.contains(e.relatedTarget)) this.zu();
+        },
+    }));
+
     Alpine.data('npSeitenleisteSchalter', () => ({
         seite: document.documentElement.dataset.navigation === 'seite',
         init() {

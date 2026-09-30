@@ -94,8 +94,8 @@
         <div class="hidden flex-1 items-center lg:flex seite:lg:hidden">
             @foreach($eintraege as $e)
                 @if(isset($e['kinder']))
-                    <div class="relative" x-data="{ auf: false }" @mouseenter="auf = true" @mouseleave="auf = false" @click.outside="auf = false" @keydown.escape="auf = false">
-                        <button type="button" @click="auf = !auf" :aria-expanded="auf" aria-haspopup="true"
+                    <div class="relative" x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                        <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true"
                                 class="{{ $punkt }} {{ $e['aktiv'] ? $aktiv : $inaktiv }}">
                             {{ $e['label'] }}
                             <svg class="size-3.5 transition-transform duration-150" :class="auf && 'rotate-180'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/></svg>
@@ -125,8 +125,8 @@
             @endforeach
             @if($mehr !== [])
                 @php $mehrAktiv = collect($mehr)->contains('aktiv', true); @endphp
-                <div class="relative 2xl:hidden" x-data="{ auf: false }" @mouseenter="auf = true" @mouseleave="auf = false" @click.outside="auf = false" @keydown.escape="auf = false">
-                    <button type="button" @click="auf = !auf" :aria-expanded="auf" aria-haspopup="true" class="{{ $punkt }} {{ $mehrAktiv ? $aktiv : $inaktiv }}">
+                <div class="relative 2xl:hidden" x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                    <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true" class="{{ $punkt }} {{ $mehrAktiv ? $aktiv : $inaktiv }}">
                         {{ __('Mehr') }}
                         @if($mehrBadge > 0)<span class="{{ $badge }}">{{ $mehrBadge }}</span>@endif
                         <svg class="size-3.5 transition-transform duration-150" :class="auf && 'rotate-180'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/></svg>
