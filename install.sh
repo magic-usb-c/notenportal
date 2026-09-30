@@ -512,17 +512,41 @@ if [[ "$STATUS" != "200" ]]; then
     case "$STATUS" in
         403) echo "  403 heisst meist: www-data darf das Verzeichnis nicht lesen – Portal nach /var/www verschieben." ;;
         500)
-            # Ein PHP-Fataler landet im Apache-Protokoll, nicht im Laravel-Log. Im Laravel-Log steht
-            # dann nur die Folgemeldung «A facade root has not been set» – sie verdeckt die Ursache.
-            echo "  Die eigentliche Ursache steht im Apache-Protokoll:"
+            # Nach einem PHP-Fatalen versucht Laravel noch eine Fehlerseite zu rendern, findet aber
+            # keinen Container mehr und meldet «A facade root has not been set». Diese Folgemeldung
+            # füllt beide Protokolle und verdeckt die Ursache – darum wird sie hier weggefiltert.
+            echo "  «A facade root has not been set» ist nur die Folgemeldung, nicht die Ursache."
+            GEFUNDEN=0
             for LOGDATEI in "/var/log/apache2/$NAME-ssl-error.log" "/var/log/apache2/$NAME-error.log"; do
-                if [[ -s "$LOGDATEI" ]]; then
-                    echo "  --- $LOGDATEI"
-                    tail -n 8 "$LOGDATEI" | sed 's/^/  /'
-                    break
-                fi
+                [[ -s "$LOGDATEI" ]] || continue
+                URSACHE="$(grep -a -E 'PHP (Fatal error|Parse error)' "$LOGDATEI" \
+                    | grep -av 'facade root' | tail -n 2 | cut -c1-300 || true)"
+                [[ -n "$URSACHE" ]] || continue
+                echo "  --- $LOGDATEI"; echo "$URSACHE" | sed 's/^/  /'; GEFUNDEN=1
             done
-            echo "  Danach erst: tail -30 $VERZ/storage/logs/laravel-*.log"
+            if (( ! GEFUNDEN )); then
+                # Im Protokoll steht nur die Hülle. Also den Webeinstieg auf der Kommandozeile
+                # nachspielen – mit der php.ini von Apache, damit Speicherlimit und Erweiterungen
+                # dieselben sind. Dort erscheint die ursprüngliche Meldung ungefiltert.
+                APACHE_INI="$(dirname "$(ls -d /etc/php/*/apache2/conf.d 2>/dev/null | tail -n 1)" 2>/dev/null || true)"
+                if [[ -d "$APACHE_INI" ]]; then
+                    PRUEFDATEI="$(mktemp /tmp/notenportal-webpruefung-XXXXXX.php)"
+                    {
+                        echo '<?php'
+                        printf '$_SERVER["HTTP_HOST"] = %s;\n' "\"$HOST\""
+                        echo '$_SERVER["REQUEST_METHOD"] = "GET";'
+                        echo '$_SERVER["REQUEST_URI"] = "/login";'
+                        echo '$_SERVER["SCRIPT_NAME"] = "/index.php";'
+                        printf 'require %s;\n' "\"$VERZ/public/index.php\""
+                    } > "$PRUEFDATEI"
+                    chmod 644 "$PRUEFDATEI"
+                    echo "  Gegenprobe über den Webeinstieg mit den Apache-Werten:"
+                    sudo -u www-data php -c "$APACHE_INI" -d display_errors=1 -d error_reporting=-1 \
+                        "$PRUEFDATEI" 2>&1 | grep -av 'facade root' | head -n 15 | sed 's/^/  /' || true
+                    rm -f "$PRUEFDATEI"
+                fi
+            fi
+            echo "  Ergänzend: tail -30 $VERZ/storage/logs/laravel-*.log"
             ;;
         000|"") echo "  Keine Antwort: läuft Apache? systemctl status apache2 – und hört er auf Port $PORT?" ;;
         *) echo "  Fehlerprotokoll: tail -30 /var/log/apache2/$NAME-error.log" ;;
