@@ -8,6 +8,7 @@
 
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\NotenImportController;
+use App\Http\Controllers\Verwaltung\AbschlussController;
 use App\Http\Controllers\Verwaltung\BetreuungController;
 use App\Http\Controllers\Verwaltung\KontoController;
 use App\Http\Controllers\Verwaltung\LernendeController;
@@ -45,6 +46,8 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::post('/tracks/{track_id}/end', [TrackController::class, 'beenden'])
         ->whereNumber('track_id')->name('tracks.end');
 
+    Route::get('/qualification', [AbschlussController::class, 'index'])->name('learners.qualification');
+    Route::put('/qualification', [AbschlussController::class, 'update'])->name('learners.qualification.update');
     Route::get('/calculator', [RechnerController::class, 'index'])->name('learners.calculator');
     Route::post('/calculator', [RechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('learners.calculator.calculate');
     Route::get('/grades', [LernendeNotenController::class, 'index'])->name('learners.grades.index');

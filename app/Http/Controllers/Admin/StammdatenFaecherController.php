@@ -119,6 +119,10 @@ class StammdatenFaecherController extends Controller
         if ($inGebrauch) {
             return back()->with('error', __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.'));
         }
+        // Ein Fächerknoten ohne sein Fach rechnete still ohne diesen Teil weiter – erst den Baum anpassen.
+        if (DB::table('notenbaum_knoten_faecher')->where('fach_id', $fach_id)->exists()) {
+            return back()->with('error', __('Ein Notenbaum rechnet mit diesem Fach. Passe zuerst den Notenbaum an oder deaktiviere das Fach.'));
+        }
 
         DB::transaction(function () use ($fach_id) {
             DB::table('lehrberuf_faecher')->where('fach_id', $fach_id)->delete();

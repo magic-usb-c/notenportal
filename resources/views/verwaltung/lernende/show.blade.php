@@ -29,6 +29,9 @@
                             <x-dropdown-link href="{{ route($bereich.'.learners.edit', $lernender->lernender_id) }}">{{ __('Bearbeiten') }}</x-dropdown-link>
                         @endcan
                         <x-dropdown-link href="{{ route($bereich.'.learners.calculator', $lernender->lernender_id) }}">{{ __('Rechner') }}</x-dropdown-link>
+                        @if($stand->auswertung->baeume)
+                            <x-dropdown-link href="{{ route($bereich.'.learners.qualification', $lernender->lernender_id) }}">{{ __('Abschluss') }}</x-dropdown-link>
+                        @endif
                     </x-slot>
                 </x-dropdown>
             </x-slot:aktionen>

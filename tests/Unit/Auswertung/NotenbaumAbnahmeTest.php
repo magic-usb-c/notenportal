@@ -300,6 +300,43 @@ class NotenbaumAbnahmeTest extends TestCase
         $this->assertTrue($a->promotion(self::BMS, 1)['erfuellt']);
     }
 
+    #[Test]
+    public function allgemeinbildung_entfaellt_mit_bm_und_die_uebrigen_gewichte_werden_hochgerechnet(): void
+    {
+        $baum = $this->efzBaum(['entfaellt_mit_track' => 'BMS']);
+        $l = [$this->position('ipa', 5.0), $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+
+        $mitBm = (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum->fuerTrack('BMS')]))->baeume[1];
+        // IPA 5.0·40 + EGK 4.5·10 + IK 4.8·30 = 389 / 80 = 4.8625 → 4.9, ohne Allgemeinbildung vollständig
+        $this->assertEqualsWithDelta(4.9, $mitBm->wurzel()->note, 1e-9);
+        $this->assertTrue($mitBm->wurzel()->vollstaendig);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $mitBm->status);
+        $this->assertTrue($mitBm->knoten('ab')->knoten->entfaellt);
+
+        // Mit ABU-Track (oder ohne Track) fehlt die Allgemeinbildung und das Ergebnis bleibt offen
+        foreach (['ABU', null] as $track) {
+            $ohneBm = (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum->fuerTrack($track)]))->baeume[1];
+            $this->assertSame(BaumErgebnis::OFFEN, $ohneBm->status);
+            $this->assertFalse($ohneBm->knoten('ab')->knoten->entfaellt);
+        }
+    }
+
+    #[Test]
+    public function ein_nicht_zaehlender_teil_entscheidet_nicht_ueber_das_bestehen(): void
+    {
+        // Fallnote auf einem Teil, der nicht zählt: 3.0 darunter darf das Ergebnis nicht kippen
+        $baum = $this->efzBaum(['zaehlt' => false, 'fallnote' => 4.0]);
+        $l = [$this->position('ipa', 5.0), $this->position('ab_schlussarbeit', 3.0), $this->position('ab_schlusspruefung', 3.0),
+            $this->fach(self::ABU_FACH, 1, 3.0, self::ABU), $this->fach(self::ENGLISCH, 1, 4.5, self::FACH),
+            $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+
+        $e = (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1];
+
+        $this->assertEqualsWithDelta(3.0, $e->knoten('ab')->note, 1e-9);
+        $this->assertSame([], $e->gruende);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $e->status);
+    }
+
     // ---------------------------------------------------------------------------------------------
     // Hilfen
     // ---------------------------------------------------------------------------------------------
@@ -324,13 +361,14 @@ class NotenbaumAbnahmeTest extends TestCase
     }
 
     /** Baum laut LAGE.md §2 mit den Rundungen, die NOTENBAUM.md §3.1 voraussetzt. */
-    private function efzBaum(): Baum
+    /** @param  array<string, mixed>  $ab  zusätzliche Angaben am Knoten «Allgemeinbildung» */
+    private function efzBaum(array $ab = []): Baum
     {
         return Baum::ausArray(1, 'Informatiker/in EFZ', [
             'code' => 'qv', 'name' => 'QV-Gesamtnote', 'typ' => 'gruppe', 'rundung' => 0.1, 'fallnote' => 4.0,
             'kinder' => [
                 ['code' => 'ipa', 'name' => 'Praktische Arbeit', 'typ' => 'manuell', 'gewicht' => 40, 'rundung' => 0.1, 'fallnote' => 4.0],
-                ['code' => 'ab', 'name' => 'Allgemeinbildung', 'typ' => 'gruppe', 'gewicht' => 20, 'rundung' => 0.1, 'kinder' => [
+                $ab + ['code' => 'ab', 'name' => 'Allgemeinbildung', 'typ' => 'gruppe', 'gewicht' => 20, 'rundung' => 0.1, 'kinder' => [
                     ['code' => 'ab_erfahrung', 'name' => 'Erfahrungsnote', 'typ' => 'kategorie', 'kategorie_id' => self::ABU, 'rundung' => 0.5],
                     ['code' => 'ab_schlussarbeit', 'name' => 'Schlussarbeit', 'typ' => 'manuell'],
                     ['code' => 'ab_schlusspruefung', 'name' => 'Schlussprüfung', 'typ' => 'manuell'],

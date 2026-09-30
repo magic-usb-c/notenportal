@@ -8,7 +8,11 @@
         {{-- Stand --}}
         <section class="rounded-xl border border-border bg-card p-5 flex flex-wrap items-center gap-6">
             <div>
-                <div class="text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
+                @if($qv = \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($stand->auswertung))
+                    <a href="{{ route($bereich.'.learners.qualification', $stand->auswertung->lernenderId) }}" class="inline-flex min-h-6 items-center text-xs font-medium text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}</a>
+                @else
+                    <div class="text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
+                @endif
                 <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="block text-4xl mt-0.5" />
             </div>
             <x-sparkline :werte="$stand->verlauf" :breite="140" :hoehe="40" :zahl="false" />

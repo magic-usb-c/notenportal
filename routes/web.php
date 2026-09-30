@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\StammdatenFaecherController;
 use App\Http\Controllers\Admin\StammdatenKategorieController;
 use App\Http\Controllers\Admin\StammdatenLehrberufeController;
 use App\Http\Controllers\Admin\StammdatenModuleController;
+use App\Http\Controllers\Admin\StammdatenNotenbaeumeController;
 use App\Http\Controllers\Admin\StammdatenSemesterController;
 use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\CalendarExportController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\DatenauskunftController;
 use App\Http\Controllers\DokumenteController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\KommentarController;
+use App\Http\Controllers\Lernender\AbschlussController as LernenderAbschlussController;
 use App\Http\Controllers\Lernender\CalendarController as LernenderCalendarController;
 use App\Http\Controllers\Lernender\NotenController as LernenderNotenController;
 use App\Http\Controllers\Lernender\PruefungenController;
@@ -113,6 +115,17 @@ Route::middleware(['auth', 'role:Lernender'])
 
         // AJAX: Notiz/Titel einer Note inline bearbeiten (ohne Seitenneuladen)
         Route::patch('/{note_id}/title', [LernenderNotenController::class, 'updateTitel'])->name('title.update');
+    });
+
+/**
+ * Lernender: Abschluss (QV, Berufsmaturität) mit den von Hand erfassten Positionen
+ */
+Route::middleware(['auth', 'role:Lernender'])
+    ->prefix('qualification')
+    ->name('learner.qualification.')
+    ->group(function () {
+        Route::get('/', [LernenderAbschlussController::class, 'index'])->name('index');
+        Route::put('/', [LernenderAbschlussController::class, 'update'])->name('update');
     });
 
 /**
@@ -302,6 +315,24 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('master-data.subjects.update');
         Route::delete('/master-data/subjects/{fach_id}', [StammdatenFaecherController::class, 'destroy'])
             ->name('master-data.subjects.destroy');
+
+        // Stammdaten: Notenbäume (Gewichtung bis zur Gesamtnote je Lehrberuf bzw. Bildungsgang)
+        Route::get('/master-data/grade-trees', [StammdatenNotenbaeumeController::class, 'index'])
+            ->name('master-data.grade-trees.index');
+        Route::post('/master-data/grade-trees/template', [StammdatenNotenbaeumeController::class, 'laden'])
+            ->name('master-data.grade-trees.template');
+        Route::post('/master-data/grade-trees/import', [StammdatenNotenbaeumeController::class, 'importieren'])
+            ->middleware('throttle:30,1')->name('master-data.grade-trees.import');
+        Route::get('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'show'])
+            ->whereNumber('baum_id')->name('master-data.grade-trees.show');
+        Route::put('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'update'])
+            ->whereNumber('baum_id')->name('master-data.grade-trees.update');
+        Route::post('/master-data/grade-trees/{baum_id}/active', [StammdatenNotenbaeumeController::class, 'aktivieren'])
+            ->whereNumber('baum_id')->name('master-data.grade-trees.activate');
+        Route::get('/master-data/grade-trees/{baum_id}/export', [StammdatenNotenbaeumeController::class, 'exportieren'])
+            ->whereNumber('baum_id')->name('master-data.grade-trees.export');
+        Route::delete('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'destroy'])
+            ->whereNumber('baum_id')->name('master-data.grade-trees.destroy');
 
         // Stammdaten: Semester
         Route::get('/master-data/semesters', [StammdatenSemesterController::class, 'index'])

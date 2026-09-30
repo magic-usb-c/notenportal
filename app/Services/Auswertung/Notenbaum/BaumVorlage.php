@@ -127,6 +127,9 @@ final class BaumVorlage
             if (isset($k['elementtyp']) && ! in_array($k['elementtyp'], Knoten::ELEMENTTYPEN, true)) {
                 $fehler[] = __('Knoten «:wo»: unbekannter Elementtyp.', ['wo' => $wo]);
             }
+            if (isset($k['entfaellt_mit_track']) && ! in_array($k['entfaellt_mit_track'], ['BMS', 'ABU'], true)) {
+                $fehler[] = __('Knoten «:wo»: «entfällt mit Track» ist BMS oder ABU.', ['wo' => $wo]);
+            }
             if ($typ === Knoten::FAECHER) {
                 if (! is_array($k['faecher'] ?? null) || $k['faecher'] === []) {
                     $fehler[] = __('Knoten «:wo»: mindestens ein Fach angeben.', ['wo' => $wo]);
@@ -212,6 +215,7 @@ final class BaumVorlage
             'max_ungenuegend' => isset($k['max_ungenuegend']) ? (int) $k['max_ungenuegend'] : null,
             'max_minuspunkte' => isset($k['max_minuspunkte']) ? (float) $k['max_minuspunkte'] : null,
             'zaehlt' => (bool) ($k['zaehlt'] ?? true),
+            'entfaellt_mit_track' => $k['entfaellt_mit_track'] ?? null,
             'kategorie_id' => isset($k['kategorie']) && $k['typ'] === Knoten::KATEGORIE ? $kategorien[$k['kategorie']] : null,
             'elementtyp' => (string) ($k['elementtyp'] ?? Knoten::ALLE),
             'sortierung' => $sortierung,
@@ -309,6 +313,9 @@ final class BaumVorlage
             }
             if (! $k->zaehlt) {
                 $d['zaehlt'] = false;
+            }
+            if ($k->entfaellt_mit_track !== null) {
+                $d['entfaellt_mit_track'] = $k->entfaellt_mit_track;
             }
             if ($k->typ === Knoten::KATEGORIE) {
                 $d['kategorie'] = $kategorien[$k->kategorie_id] ?? null;

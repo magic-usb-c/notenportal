@@ -167,8 +167,11 @@ final class BaumRechner
             }
         }
 
+        // Nicht zählende Teile (entfallen, nur informativ) entscheiden nicht über das Bestehen
         foreach ($e->kinder as $kind) {
-            $this->regelnPruefen($kind);
+            if ($kind->knoten->zaehlt) {
+                $this->regelnPruefen($kind);
+            }
         }
     }
 }

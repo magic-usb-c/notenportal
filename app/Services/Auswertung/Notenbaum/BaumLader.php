@@ -95,6 +95,7 @@ final class BaumLader
             elementtyp: (string) $k->elementtyp,
             faecher: $faecher[(int) $k->knoten_id] ?? [],
             kinder: $k->typ === Knoten::GRUPPE ? $kinder : [],
+            entfaelltMitTrack: $k->entfaellt_mit_track ?? null,
         );
     }
 
@@ -119,12 +120,18 @@ final class BaumLader
             ->get(['lernender_id', 'track_typ'])->groupBy('lernender_id')
             ->map(fn ($g) => $g->pluck('track_typ')->unique()->values()->all());
 
+        // Massgebend für «entfällt mit Track» ist der zuletzt begonnene Track: wer die BM abschliesst oder
+        // noch besucht, hat BMS; wer aus der BM in den ABU-Unterricht wechselt, hat danach ABU.
+        $letzter = DB::table('lernender_tracks')->whereIn('lernender_id', $lernenderIds)->where('start_datum', '<=', $heute)
+            ->orderBy('start_datum')->orderBy('lernender_track_id')->get(['lernender_id', 'track_typ'])
+            ->mapWithKeys(fn ($t) => [(int) $t->lernender_id => (string) $t->track_typ])->all();
+
         $out = [];
         foreach ($lernenderIds as $id) {
             $liste = [];
             foreach ($aktive as $a) {
                 if ($a['baum']->bezug === Baum::LEHRBERUF && $a['lehrberuf_id'] !== null && $a['lehrberuf_id'] === (int) ($lehrberufe[$id] ?? 0)) {
-                    $liste[] = $a['baum'];
+                    $liste[] = $a['baum']->fuerTrack($letzter[$id] ?? null);
                     break; // ein Baum je Lehrberuf; weitere aktive werden ignoriert
                 }
             }

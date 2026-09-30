@@ -35,7 +35,11 @@
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
                         <div class="flex items-baseline gap-3">
                             <x-note :wert="$a->gesamtNote" variante="hero" :stellen="1" class="text-display leading-none" />
-                            <span class="text-sm text-muted">{{ __('Gesamtschnitt') }}</span>
+                            @if($qv = \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($a))
+                                <a href="{{ route('learner.qualification.index') }}" class="inline-flex min-h-6 items-center text-sm text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}</a>
+                            @else
+                                <span class="text-sm text-muted">{{ __('Gesamtschnitt') }}</span>
+                            @endif
                         </div>
                         @if(count(array_filter($stand->verlauf, fn ($v) => $v !== null)) > 1)
                             <x-sparkline :werte="$stand->verlauf" :breite="120" :hoehe="36" :zahl="false" :label="__('Semesterschnitte')" />

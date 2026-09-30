@@ -50,6 +50,8 @@ final readonly class Knoten
         public string $elementtyp = self::ALLE,
         public array $faecher = [],
         public array $kinder = [],
+        public ?string $entfaelltMitTrack = null,
+        public bool $entfaellt = false,
     ) {
         if (! in_array($typ, self::TYPEN, true)) {
             throw new InvalidArgumentException("Unbekannter Knotentyp «{$typ}».");
@@ -66,6 +68,21 @@ final readonly class Knoten
         if ($typ !== self::GRUPPE && $kinder !== []) {
             throw new InvalidArgumentException("Nur Gruppen haben Unterknoten («{$code}»).");
         }
+    }
+
+    /**
+     * Knoten für Lernende mit diesem Track: Teile mit «entfällt mit Track» zählen nicht mehr, die übrigen
+     * Gewichte ihrer Gruppe werden dadurch hochgerechnet (z. B. Allgemeinbildung bei Berufsmaturität).
+     */
+    public function fuerTrack(string $track, bool $elternEntfaellt = false): self
+    {
+        $selbst = $this->entfaelltMitTrack === $track;
+        $entfaellt = $selbst || $elternEntfaellt;
+
+        return new self($this->id, $this->code, $this->name, $this->typ, $this->gewicht, $this->rundung, $this->fallnote,
+            $this->maxUngenuegend, $this->maxMinuspunkte, $selbst ? false : $this->zaehlt, $this->kategorieId,
+            $this->elementtyp, $this->faecher, array_map(fn (Knoten $k) => $k->fuerTrack($track, $entfaellt), $this->kinder),
+            $this->entfaelltMitTrack, $entfaellt);
     }
 
     public function istBlatt(): bool

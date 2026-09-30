@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Einzige Definition der Navigation je Rolle – Menü, Mobilmenü und Befehlspalette lesen von hier.
@@ -21,10 +22,28 @@ final class Navigation
         'daten' => 'M4 7v10c0 2 3.6 3 8 3s8-1 8-3V7M4 7c0 2 3.6 3 8 3s8-1 8-3M4 7c0-2 3.6-3 8-3s8 1 8 3m0 5c0 2-3.6 3-8 3s-8-1-8-3',
         'bericht' => 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
         'feedback' => 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.4-4 8-9 8a9.9 9.9 0 01-4.3-.9L3 20l1.4-3.7A7.7 7.7 0 013 12c0-4.4 4-8 9-8s9 3.6 9 8z',
+        'abschluss' => 'M12 14l9-5-9-5-9 5 9 5zm0 0v6m-6.2-8.4V16c0 1.3 2.8 3 6.2 3s6.2-1.7 6.2-3v-4.4',
         'plus' => 'M12 4v16m8-8H4',
         'profil' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
         'einstellungen' => 'M10.3 4.3c.4-1.8 3-1.8 3.4 0a1.7 1.7 0 002.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 001 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 00-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 00-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 00-2.6-1c-1.5.9-3.3-.9-2.4-2.4a1.7 1.7 0 00-1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 001-2.5c-.9-1.6.9-3.3 2.4-2.4 1 .6 2.3.1 2.6-1.1zM15 12a3 3 0 11-6 0 3 3 0 016 0z',
     ];
+
+    /** Gibt es für diesen Lernenden einen aktiven Notenbaum (Lehrberuf oder laufender Bildungsgang)? */
+    private static function hatAbschluss(User $user): bool
+    {
+        $l = $user->lernender;
+        if (! $l) {
+            return false;
+        }
+        $heute = now()->toDateString();
+
+        return DB::table('notenbaeume')->where('aktiv', true)->where(fn ($q) => $q
+            ->where(fn ($q) => $q->where('bezug', 'lehrberuf')->where('lehrberuf_id', $l->lehrberuf_id))
+            ->orWhere(fn ($q) => $q->where('bezug', 'bildungsgang')->whereIn('track_typ', DB::table('lernender_tracks')
+                ->where('lernender_id', $l->lernender_id)->where('start_datum', '<=', $heute)
+                ->where(fn ($q) => $q->whereNull('end_datum')->orWhere('end_datum', '>=', $heute))->select('track_typ'))))
+            ->exists();
+    }
 
     /**
      * @return list<array{label: string, url: string, aktiv: bool, icon: string, badge?: int, kinder?: list<array{label: string, url: string, aktiv: bool}>}>
@@ -54,6 +73,7 @@ final class Navigation
                     self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*']),
                     self::link(__('Fächer'), 'admin.master-data.subjects.index', ['admin.master-data.subjects.*']),
                     self::link(__('Kategorien'), 'admin.master-data.categories.index', ['admin.master-data.categories.*']),
+                    self::link(__('Notenbäume'), 'admin.master-data.grade-trees.index', ['admin.master-data.grade-trees.*']),
                     self::link(__('Semester'), 'admin.master-data.semesters.index', ['admin.master-data.semesters.*']),
                 ]),
                 self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht'),
@@ -70,6 +90,7 @@ final class Navigation
                 self::link(__('Noten'), 'learner.grades.index', ['learner.grades.index', 'learner.grades.create', 'learner.grades.edit', 'learner.grades.print', 'learner.grades.import.*'], 'noten'),
                 self::link(__('Agenda'), 'learner.exams.index', ['learner.exams.*'], 'kalender'),
                 self::link(__('Rechner'), 'learner.grades.calculator', ['learner.grades.calculator'], 'rechner'),
+                ...(self::hatAbschluss($user) ? [self::link(__('Abschluss'), 'learner.qualification.index', ['learner.qualification.*'], 'abschluss')] : []),
                 // Module sind gemeinsame Stammdaten – deshalb steht der Eintrag bei allen Rollen, nicht nur beim Admin.
                 self::link(__('Module'), 'modules.index', ['modules.*'], 'daten'),
                 self::link(__('Dokumente'), 'learner.documents.index', ['learner.documents.*'], 'dokument'),

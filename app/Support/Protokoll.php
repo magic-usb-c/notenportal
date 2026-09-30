@@ -81,6 +81,15 @@ final class Protokoll
 
     public const string ADMIN_MODULKATALOG_EXPORTIERT = 'admin.modulkatalog_exportiert';
 
+    public const string ADMIN_NOTENBAUM_GELADEN = 'admin.notenbaum_geladen';
+
+    public const string ADMIN_NOTENBAUM_GEAENDERT = 'admin.notenbaum_geaendert';
+
+    public const string ADMIN_NOTENBAUM_GELOESCHT = 'admin.notenbaum_geloescht';
+
+    // Positionen im Notenbaum (IPA, Abschlussprüfungen): Lernende selbst, Berufsbildner, Admin
+    public const string NOTENBAUM_POSITION_GEAENDERT = 'notenbaum.position_geaendert';
+
     // Module sind gemeinsame Stammdaten: diese Aktionen stehen allen Angemeldeten offen.
     public const string MODUL_ANGELEGT = 'modul.angelegt';
 
@@ -120,6 +129,10 @@ final class Protokoll
         self::ADMIN_FEEDBACK_KNOPF_GEAENDERT => 'Feedback-Knopf geändert',
         self::ADMIN_MODULKATALOG_IMPORTIERT => 'Modulkatalog importiert',
         self::ADMIN_MODULKATALOG_EXPORTIERT => 'Modulkatalog ausgegeben',
+        self::ADMIN_NOTENBAUM_GELADEN => 'Notenbaum geladen',
+        self::ADMIN_NOTENBAUM_GEAENDERT => 'Notenbaum geändert',
+        self::ADMIN_NOTENBAUM_GELOESCHT => 'Notenbaum gelöscht',
+        self::NOTENBAUM_POSITION_GEAENDERT => 'Abschlussnote erfasst',
         self::MODUL_ANGELEGT => 'Modul angelegt',
         self::MODUL_GEAENDERT => 'Modul geändert',
         self::MODUL_DOKUMENT_HOCHGELADEN => 'Moduldokument hochgeladen',

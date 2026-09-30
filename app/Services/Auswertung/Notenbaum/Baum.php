@@ -81,7 +81,18 @@ final class Baum
             elementtyp: (string) ($d['elementtyp'] ?? Knoten::ALLE),
             faecher: array_values(array_map('intval', $d['faecher'] ?? [])),
             kinder: $kinder,
+            entfaelltMitTrack: isset($d['entfaellt_mit_track']) ? (string) $d['entfaellt_mit_track'] : null,
         );
+    }
+
+    /** Baum für Lernende, deren massgebender Track $track ist; ohne betroffene Knoten derselbe Baum. */
+    public function fuerTrack(?string $track): self
+    {
+        if ($track === null || ! array_filter($this->nachCode, fn (Knoten $k) => $k->entfaelltMitTrack === $track)) {
+            return $this;
+        }
+
+        return new self($this->id, $this->name, $this->wurzel->fuerTrack($track), $this->bezug);
     }
 
     public function knoten(string $code): ?Knoten
