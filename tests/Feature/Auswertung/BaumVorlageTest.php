@@ -91,6 +91,55 @@ class BaumVorlageTest extends TestCase
 
                 return $d;
             }, 'Wurzelknoten'],
+            // Typen und Grenzen der Spalten: früher 500 statt Meldung
+            'Name als Liste' => [fn ($d) => ['name' => ['x']] + $d, 'Namen mit höchstens 150'],
+            'Name zu lang' => [fn ($d) => ['name' => str_repeat('x', 151)] + $d, 'Namen mit höchstens 150'],
+            'Beschreibung als Liste' => [fn ($d) => ['beschreibung' => ['x']] + $d, 'Beschreibung'],
+            'Code als Liste' => [function ($d) {
+                $d['wurzel']['kinder'][0]['code'] = ['ipa'];
+
+                return $d;
+            }, 'Code nur aus'],
+            'Knotenname als Liste' => [function ($d) {
+                $d['wurzel']['kinder'][0]['name'] = ['IPA'];
+
+                return $d;
+            }, 'kein Text'],
+            'max_ungenuegend 300' => [function ($d) {
+                $d['wurzel']['max_ungenuegend'] = 300;
+
+                return $d;
+            }, 'ungenügender Noten'],
+            'max_minuspunkte negativ' => [function ($d) {
+                $d['wurzel']['max_minuspunkte'] = -1;
+
+                return $d;
+            }, 'Minuspunkte'],
+            'Gewicht 1e7' => [function ($d) {
+                $d['wurzel']['kinder'][0]['gewicht'] = 1e7;
+
+                return $d;
+            }, 'Gewicht'],
+            'Rundung als Liste' => [function ($d) {
+                $d['wurzel']['rundung'] = [0.1];
+
+                return $d;
+            }, 'Rundung'],
+            'zählt als Text' => [function ($d) {
+                $d['wurzel']['kinder'][0]['zaehlt'] = 'ja';
+
+                return $d;
+            }, 'zählt'],
+            'Fachname als Liste' => [function ($d) {
+                $d['wurzel']['kinder'][2]['faecher'][0]['name'] = ['Sport'];
+
+                return $d;
+            }, 'Fach ohne Namen'],
+            'Kinder als Text' => [function ($d) {
+                $d['wurzel']['kinder'][1]['kinder'] = 'x';
+
+                return $d;
+            }, 'keine Unterknoten'],
         ];
     }
 

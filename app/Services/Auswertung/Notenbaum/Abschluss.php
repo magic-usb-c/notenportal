@@ -99,6 +99,11 @@ final class Abschluss
 
                 continue;
             }
+            if ($eingabe !== null && ! is_scalar($eingabe)) {
+                $fehler[$feld] = __('Bitte eine Note zwischen 1 und 6 eingeben.');
+
+                continue;
+            }
             $text = str_replace(',', '.', trim((string) $eingabe));
             if ($text === '') {
                 $sauber[$knotenId] = null;
@@ -122,10 +127,11 @@ final class Abschluss
         DB::transaction(function () use ($sauber, $bestehend, $lernenderId, $benutzerId, &$geaendert) {
             foreach ($sauber as $knotenId => $wert) {
                 $alt = $bestehend[$knotenId] ?? null;
+                $vorher = $alt?->note_wert;
                 if ($wert === null) {
                     if ($alt) {
                         $alt->delete();
-                        $geaendert[$knotenId] = [$alt->note_wert, null];
+                        $geaendert[$knotenId] = [$vorher, null];
                     }
 
                     continue;
@@ -139,7 +145,7 @@ final class Abschluss
                     NotenbaumPosition::create(['lernender_id' => $lernenderId, 'knoten_id' => $knotenId, 'note_wert' => $wert,
                         'datum' => now()->toDateString(), 'erfasst_von_benutzer_id' => $benutzerId]);
                 }
-                $geaendert[$knotenId] = [$alt?->note_wert, $wert];
+                $geaendert[$knotenId] = [$vorher, $wert];
             }
         });
 

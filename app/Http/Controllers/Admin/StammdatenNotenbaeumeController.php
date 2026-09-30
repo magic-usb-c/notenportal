@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Notenbaum\Baum;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
+use App\Services\Auswertung\Notenbaum\BaumWechsel;
 use App\Services\Auswertung\Notenbaum\Knoten;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
@@ -98,8 +99,7 @@ class StammdatenNotenbaeumeController extends Controller
         };
         $gehe(0, 0);
 
-        $positionen = DB::table('notenbaum_positionen as p')->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
-            ->where('k.baum_id', $baum_id)->count();
+        $positionen = BaumWechsel::verlorenePositionen($baum_id);
 
         return view('admin.stammdaten.notenbaeume.show', compact('baum', 'zeilen', 'faecher', 'positionen'));
     }
@@ -160,15 +160,9 @@ class StammdatenNotenbaeumeController extends Controller
         $baum = DB::table('notenbaeume')->where('baum_id', $baum_id)->first() ?? abort(404);
         $aktiv = $request->boolean('aktiv');
 
-        DB::transaction(function () use ($baum, $aktiv) {
-            if ($aktiv) {
-                DB::table('notenbaeume')->where('aktiv', true)->where('baum_id', '!=', $baum->baum_id)
-                    ->when($baum->bezug === Baum::LEHRBERUF, fn ($q) => $q->where('bezug', Baum::LEHRBERUF)->where('lehrberuf_id', $baum->lehrberuf_id))
-                    ->when($baum->bezug === Baum::BILDUNGSGANG, fn ($q) => $q->where('bezug', Baum::BILDUNGSGANG)->where('track_typ', $baum->track_typ))
-                    ->update(['aktiv' => false, 'aktualisiert_am' => now()]);
-            }
-            DB::table('notenbaeume')->where('baum_id', $baum->baum_id)->update(['aktiv' => $aktiv, 'aktualisiert_am' => now()]);
-        });
+        $aktiv
+            ? BaumWechsel::aktivieren((int) $baum->baum_id)
+            : DB::table('notenbaeume')->where('baum_id', $baum->baum_id)->update(['aktiv' => false, 'aktualisiert_am' => now()]);
         Konfiguration::vergessen();
         Protokoll::schreiben(Protokoll::ADMIN_NOTENBAUM_GEAENDERT, null, ['baum' => $baum->name, 'aktiv' => $aktiv]);
 
@@ -191,9 +185,7 @@ class StammdatenNotenbaeumeController extends Controller
     public function destroy(int $baum_id): RedirectResponse
     {
         $baum = DB::table('notenbaeume')->where('baum_id', $baum_id)->first() ?? abort(404);
-        $belegt = DB::table('notenbaum_positionen as p')->join('notenbaum_knoten as k', 'k.knoten_id', '=', 'p.knoten_id')
-            ->where('k.baum_id', $baum_id)->exists();
-        if ($belegt) {
+        if (BaumWechsel::verlorenePositionen($baum_id) > 0) {
             return back()->with('error', __('Zu diesem Notenbaum sind schon Noten erfasst. Deaktiviere ihn stattdessen.'));
         }
 

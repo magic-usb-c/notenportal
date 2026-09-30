@@ -83,8 +83,11 @@ final class BaumVorlage
         if ((int) ($d['version'] ?? 0) !== self::VERSION) {
             $fehler[] = __('Unbekannte Version der Vorlage.');
         }
-        if (trim((string) ($d['name'] ?? '')) === '') {
-            $fehler[] = __('Die Vorlage hat keinen Namen.');
+        if (! is_string($d['name'] ?? null) || trim($d['name']) === '' || mb_strlen($d['name']) > 150) {
+            $fehler[] = __('Die Vorlage braucht einen Namen mit höchstens 150 Zeichen.');
+        }
+        if (isset($d['beschreibung']) && ! is_string($d['beschreibung'])) {
+            $fehler[] = __('Die Beschreibung ist kein Text.');
         }
         if (! in_array($d['bezug'] ?? Baum::LEHRBERUF, [Baum::LEHRBERUF, Baum::BILDUNGSGANG], true)) {
             $fehler[] = __('Unbekannter Bezug der Vorlage.');
@@ -99,10 +102,13 @@ final class BaumVorlage
         $kategorien = DB::table('kategorien')->pluck('code')->all();
         $codes = [];
         $pruefe = function (array $k, string $pfad) use (&$pruefe, &$fehler, &$codes, $kategorien): void {
-            $code = (string) ($k['code'] ?? '');
+            $code = is_string($k['code'] ?? null) ? $k['code'] : '';
             $wo = $pfad !== '' ? $pfad.' › '.$code : $code;
             if (! preg_match('/^[a-z0-9_]{1,40}$/', $code)) {
                 $fehler[] = __('Knoten «:wo»: Code nur aus a–z, 0–9 und _ (höchstens 40 Zeichen).', ['wo' => $wo]);
+            }
+            if (isset($k['name']) && ! is_string($k['name'])) {
+                $fehler[] = __('Knoten «:wo»: Der Name ist kein Text.', ['wo' => $wo]);
             }
             if (isset($codes[$code])) {
                 $fehler[] = __('Code «:code» kommt mehrfach vor.', ['code' => $code]);
@@ -112,14 +118,23 @@ final class BaumVorlage
             if (! in_array($typ, Knoten::TYPEN, true)) {
                 $fehler[] = __('Knoten «:wo»: unbekannter Typ.', ['wo' => $wo]);
             }
-            if (isset($k['gewicht']) && (! is_numeric($k['gewicht']) || $k['gewicht'] < 0)) {
-                $fehler[] = __('Knoten «:wo»: Gewicht muss eine Zahl ab 0 sein.', ['wo' => $wo]);
+            if (isset($k['gewicht']) && (! is_numeric($k['gewicht']) || $k['gewicht'] < 0 || $k['gewicht'] > 9999)) {
+                $fehler[] = __('Knoten «:wo»: Gewicht muss eine Zahl von 0 bis 9999 sein.', ['wo' => $wo]);
             }
-            if (isset($k['rundung']) && ! in_array((float) $k['rundung'], [0.1, 0.5, 1.0], true)) {
+            if (isset($k['rundung']) && (! is_numeric($k['rundung']) || ! in_array((float) $k['rundung'], [0.1, 0.5, 1.0], true))) {
                 $fehler[] = __('Knoten «:wo»: Rundung ist 0.1, 0.5 oder 1.', ['wo' => $wo]);
             }
             if (isset($k['fallnote']) && (! is_numeric($k['fallnote']) || $k['fallnote'] < 1 || $k['fallnote'] > 6)) {
                 $fehler[] = __('Knoten «:wo»: Fallnote liegt zwischen 1 und 6.', ['wo' => $wo]);
+            }
+            if (isset($k['max_ungenuegend']) && (! is_int($k['max_ungenuegend']) || $k['max_ungenuegend'] < 0 || $k['max_ungenuegend'] > 99)) {
+                $fehler[] = __('Knoten «:wo»: Höchstzahl ungenügender Noten ist eine ganze Zahl von 0 bis 99.', ['wo' => $wo]);
+            }
+            if (isset($k['max_minuspunkte']) && (! is_numeric($k['max_minuspunkte']) || $k['max_minuspunkte'] < 0 || $k['max_minuspunkte'] > 99)) {
+                $fehler[] = __('Knoten «:wo»: Höchstzahl Minuspunkte liegt zwischen 0 und 99.', ['wo' => $wo]);
+            }
+            if (isset($k['zaehlt']) && ! is_bool($k['zaehlt'])) {
+                $fehler[] = __('Knoten «:wo»: «zählt» ist true oder false.', ['wo' => $wo]);
             }
             if ($typ === Knoten::KATEGORIE && ! in_array($k['kategorie'] ?? null, $kategorien, true)) {
                 $fehler[] = __('Knoten «:wo»: Kategorie «:kat» gibt es nicht.', ['wo' => $wo, 'kat' => (string) ($k['kategorie'] ?? '')]);
@@ -134,8 +149,10 @@ final class BaumVorlage
                 if (! is_array($k['faecher'] ?? null) || $k['faecher'] === []) {
                     $fehler[] = __('Knoten «:wo»: mindestens ein Fach angeben.', ['wo' => $wo]);
                 }
-                foreach ($k['faecher'] ?? [] as $f) {
-                    if (trim((string) ($f['name'] ?? '')) === '' || (isset($f['kategorie']) && ! in_array($f['kategorie'], $kategorien, true))) {
+                foreach (is_array($k['faecher'] ?? null) ? $k['faecher'] : [] as $f) {
+                    if (! is_array($f) || ! is_string($f['name'] ?? null) || trim($f['name']) === '' || mb_strlen($f['name']) > 200
+                        || (isset($f['kurzname']) && (! is_string($f['kurzname']) || mb_strlen($f['kurzname']) > 40))
+                        || (isset($f['kategorie']) && ! in_array($f['kategorie'], $kategorien, true))) {
                         $fehler[] = __('Knoten «:wo»: Fach ohne Namen oder mit unbekannter Kategorie.', ['wo' => $wo]);
                     }
                 }
@@ -146,7 +163,7 @@ final class BaumVorlage
             if ($typ !== Knoten::GRUPPE && ! empty($k['kinder'])) {
                 $fehler[] = __('Nur Gruppen haben Unterknoten («:wo»).', ['wo' => $wo]);
             }
-            foreach ($k['kinder'] ?? [] as $kind) {
+            foreach (is_array($k['kinder'] ?? null) ? $k['kinder'] : [] as $kind) {
                 is_array($kind) ? $pruefe($kind, $wo) : $fehler[] = __('Knoten «:wo»: ungültiger Unterknoten.', ['wo' => $wo]);
             }
         };
@@ -157,7 +174,8 @@ final class BaumVorlage
 
     /**
      * Baum aus der Vorlage anlegen und aktivieren; ein bisher aktiver Baum desselben Lehrberufs bzw.
-     * Bildungsgangs wird deaktiviert (nicht gelöscht). Fehlende Fächer werden angelegt und freigegeben.
+     * Bildungsgangs wird deaktiviert (nicht gelöscht), seine Positionen übernimmt der neue Baum über den
+     * Knoten-Code (BaumWechsel). Fehlende Fächer werden angelegt und freigegeben.
      *
      * @param  array<string, mixed>  $d  geprüfte Vorlage
      * @return int neue baum_id
@@ -173,11 +191,6 @@ final class BaumVorlage
         $id = DB::transaction(function () use ($d, $bezug, $lehrberufId, $track, $vorlage) {
             $kategorien = DB::table('kategorien')->pluck('kategorie_id', 'code')->map(fn ($v) => (int) $v)->all();
 
-            DB::table('notenbaeume')->where('aktiv', true)
-                ->when($bezug === Baum::LEHRBERUF, fn ($q) => $q->where('bezug', Baum::LEHRBERUF)->where('lehrberuf_id', $lehrberufId))
-                ->when($bezug === Baum::BILDUNGSGANG, fn ($q) => $q->where('bezug', Baum::BILDUNGSGANG)->where('track_typ', $track))
-                ->update(['aktiv' => false, 'aktualisiert_am' => now()]);
-
             $baumId = (int) DB::table('notenbaeume')->insertGetId([
                 'name' => (string) $d['name'],
                 'bezug' => $bezug,
@@ -185,10 +198,11 @@ final class BaumVorlage
                 'track_typ' => $track,
                 'vorlage' => $vorlage,
                 'beschreibung' => isset($d['beschreibung']) ? mb_substr((string) $d['beschreibung'], 0, 500) : null,
-                'aktiv' => true,
+                'aktiv' => false,
             ]);
 
             $this->knotenAnlegen($d['wurzel'], $baumId, null, 0, $kategorien, $lehrberufId, $track);
+            BaumWechsel::aktivieren($baumId);
 
             return $baumId;
         });

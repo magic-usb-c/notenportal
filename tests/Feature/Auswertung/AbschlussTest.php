@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auswertung;
 
+use App\Models\Aktivitaet;
 use App\Models\Lernender;
 use App\Models\NotenbaumPosition;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Auswertung\NotenQuelle;
+use App\Support\Protokoll;
 use Database\Seeders\BasisSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -263,6 +265,70 @@ class AbschlussTest extends TestCase
         $this->delete(route('admin.master-data.grade-trees.destroy', $zweiter))->assertRedirect(route('admin.master-data.grade-trees.index'));
         $this->assertNull(DB::table('notenbaeume')->where('baum_id', $zweiter)->first());
         $this->assertSame(0, DB::table('notenbaum_knoten')->where('baum_id', $zweiter)->count());
+    }
+
+    #[Test]
+    public function reimport_und_zurueckschalten_behalten_die_erfassten_positionen(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $alt = $this->efzBaum();
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), [
+            'werte' => [$this->knoten('ipa') => '5.5', $this->knoten('ab_schlussarbeit') => '4'],
+        ])->assertSessionHas('success');
+        $vorher = app(NotenQuelle::class)->auswertung($id)->gesamtNote;
+
+        // Export und Reimport: dokumentierter Weg für Strukturänderungen
+        $json = $this->actingAs($admin)->get(route('admin.master-data.grade-trees.export', $alt))->getContent();
+        $this->post(route('admin.master-data.grade-trees.import'), [
+            'datei' => UploadedFile::fake()->createWithContent('baum.json', (string) $json), 'datei_lehrberuf_id' => $this->lehrberuf,
+        ])->assertSessionHas('success');
+        $neu = (int) DB::table('notenbaeume')->where('aktiv', true)->value('baum_id');
+        $this->assertNotSame($alt, $neu);
+        Konfiguration::vergessen();
+
+        $a = app(NotenQuelle::class)->auswertung($id);
+        $this->assertEqualsWithDelta($vorher, $a->gesamtNote, 1e-9);
+        $this->assertEqualsWithDelta(5.5, array_values($a->baeume)[0]->knoten('ipa')->note, 1e-9);
+
+        // Im neuen Baum ändern und eine Position leeren, dann auf den alten Stand zurückschalten
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), [
+            'werte' => [$this->knoten('ipa') => '4.5', $this->knoten('ab_schlussarbeit') => ''],
+        ])->assertSessionHas('success');
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.activate', $alt), ['aktiv' => 1])->assertSessionHas('success');
+        Konfiguration::vergessen();
+
+        $baum = array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0];
+        $this->assertEqualsWithDelta(4.5, $baum->knoten('ipa')->note, 1e-9, 'Der zuletzt aktive Baum ist die Wahrheit');
+        $this->assertNull($baum->knoten('ab_schlussarbeit')->note, 'Geleerte Position bleibt leer');
+
+        // Der abgelöste Baum hält keine Note mehr, die es nur dort gibt, und darf weg
+        $this->delete(route('admin.master-data.grade-trees.destroy', $neu))->assertSessionHas('success');
+        $this->assertSame(1, NotenbaumPosition::count());
+        // Der aktive Baum mit Noten bleibt gesperrt
+        $this->delete(route('admin.master-data.grade-trees.destroy', $alt))->assertSessionHas('error');
+    }
+
+    #[Test]
+    public function protokoll_haelt_den_alten_wert_fest_und_listen_als_wert_melden_einen_fehler(): void
+    {
+        $lernender = $this->lernenderMitBeruf();
+        $this->efzBaum();
+        $ipa = $this->knoten('ipa');
+        $this->actingAs($lernender->benutzer);
+
+        $this->put(route('learner.qualification.update'), ['werte' => [$ipa => '4']])->assertSessionHas('success');
+        $this->put(route('learner.qualification.update'), ['werte' => [$ipa => '5.5']])->assertSessionHas('success');
+        $this->put(route('learner.qualification.update'), ['werte' => [$ipa => '']])->assertSessionHas('success');
+
+        $eintraege = Aktivitaet::where('aktion', Protokoll::NOTENBAUM_POSITION_GEAENDERT)->get()->sortBy(fn ($a) => $a->getKey())
+            ->map(fn ($a) => $a->details['positionen'][0])->values()->all();
+        $this->assertEquals([null, 4.0], [$eintraege[0]['vorher'], $eintraege[0]['nachher']]);
+        $this->assertEquals([4.0, 5.5], [$eintraege[1]['vorher'], $eintraege[1]['nachher']]);
+        $this->assertEquals([5.5, null], [$eintraege[2]['vorher'], $eintraege[2]['nachher']]);
+
+        $this->put(route('learner.qualification.update'), ['werte' => [$ipa => ['5']]])->assertSessionHasErrors("werte.$ipa");
     }
 
     #[Test]
