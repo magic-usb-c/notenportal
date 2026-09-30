@@ -133,13 +133,13 @@
                                 <td class="el">{{ $el['label'] }}</td>
                                 <td class="pr">
                                     @foreach($el['pruefungen'] as $p)
-                                        <span>{{ $datum($p['datum'], 'd.m.') }}@if($p['titel']) {{ $p['titel'] }}@endif <b>{{ NotenSkala::format($p['note']) }}</b>@if(abs($p['gewicht'] - 100) > 0.001) · {{ Zahl::prozent($p['gewicht']) }}@endif</span>
+                                        <span>{{ $datum($p['datum'], 'd.m.') }}@if($p['titel']) {{ $p['titel'] }}@endif <b>{{ $p['stufe'] ?? NotenSkala::format($p['note']) }}</b>@if(abs($p['gewicht'] - 100) > 0.001) · {{ Zahl::prozent($p['gewicht']) }}@endif</span>
                                     @endforeach
                                     @if($el['offen'])
                                         <span class="offen">{{ Zahl::prozent($el['offen']) }} {{ __('offen') }}</span>
                                     @endif
                                 </td>
-                                <td class="r note {{ $stufe($el['note']) }}">{{ NotenSkala::format($el['note'], 1) }}</td>
+                                <td class="r note {{ $stufe($el['note']) }}">{{ $el['stufe'] ?? NotenSkala::format($el['note'], 1) }}</td>
                             </tr>
                         @endforeach
                     </tbody>

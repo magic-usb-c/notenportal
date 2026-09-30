@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Fach;
 use App\Models\Note;
 use App\Models\User;
+use App\Services\Bericht;
 use Illuminate\Support\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -65,6 +67,20 @@ class BerichtTest extends TestCase
             ->get(route('admin.reports.grades', ['semester' => 'alle']))
             ->assertOk()
             ->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
+    }
+
+    #[Test]
+    public function nicht_zaehlendes_fach_gilt_im_bericht_nicht_als_ungenuegend(): void
+    {
+        $lernender = User::factory()->lernender()->create()->lernender;
+        $idaf = Fach::factory()->create(['zaehlt' => false]);
+        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'fach_id' => $idaf->fach_id, 'note_wert' => 2.0]);
+        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 5.0]);
+
+        $zeile = app(Bericht::class)->noten(['semester_id' => null, 'lehrberuf_id' => null, 'berufsbildner_id' => null])['zeilen']
+            ->firstWhere('id', (int) $lernender->lernender_id);
+
+        $this->assertSame(0, $zeile->ungenuegend);
     }
 
     #[Test]

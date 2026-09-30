@@ -71,10 +71,10 @@ final class Bericht
         ];
     }
 
-    /** @return list<Element> Zeugnisnoten eines Semesters oder der ganzen Lehrzeit */
+    /** @return list<Element> zählende Zeugnisnoten eines Semesters oder der ganzen Lehrzeit (IDAF, Sport gehen nicht ein) */
     private function zeugnisnoten(Auswertung $a, ?int $sid): array
     {
-        return array_values(array_filter($a->elemente, fn (Element $e) => $e->note !== null && ($sid === null || $e->semesterId === $sid)));
+        return array_values(array_filter($a->elemente, fn (Element $e) => $e->zaehlt && $e->note !== null && ($sid === null || $e->semesterId === $sid)));
     }
 
     /** @return array{kennzahlen: array<string, mixed>, verteilung: array<string, mixed>, kategorien: list<array<string, mixed>>, schwachstellen: list<array<string, mixed>>} */

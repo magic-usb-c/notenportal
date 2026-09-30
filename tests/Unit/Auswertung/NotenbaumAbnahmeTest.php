@@ -49,6 +49,10 @@ class NotenbaumAbnahmeTest extends TestCase
 
     private const int SPORT = 40;
 
+    private const int MATHE_ERW_BM = 37;
+
+    private const int NATURWISS_BM = 38;
+
     // ---------------------------------------------------------------------------------------------
     // 3.1 Informatiker/in EFZ – QV-Gesamtnote
     // ---------------------------------------------------------------------------------------------
@@ -87,7 +91,7 @@ class NotenbaumAbnahmeTest extends TestCase
         $e = $this->efz(ipa: 5.0, abuErfahrung: 4.5, schlussarbeit: 5.0, schlusspruefung: 4.0, egk: 4.5, schulmodule: 3.5, uek: 4.5);
 
         $this->assertEqualsWithDelta(3.7, $e->knoten('ik')->note, 1e-9);
-        $this->assertGreaterThanOrEqual(4.0, $e->wurzel()->note);
+        $this->assertEqualsWithDelta(4.5, $e->wurzel()->note, 1e-9); // (5,0×40 + 4,5×20 + 4,5×10 + 3,7×30) / 100 = 4,46
         $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $e->status);
         $this->assertSame(['ik'], array_map(fn ($g) => $g->code, $e->gruende));
     }
@@ -99,7 +103,8 @@ class NotenbaumAbnahmeTest extends TestCase
 
         // 6,0 × 0,8 + 1,0 × 0,2 = 5,0 – ein ungewichtetes Mittel ergäbe 3,5
         $this->assertEqualsWithDelta(5.0, $e->knoten('ik')->note, 1e-9);
-        $this->assertEqualsWithDelta(5.0, $e->knoten('ik_bfs')->note * 0.8 + $e->knoten('ik_uek')->note * 0.2, 1e-9);
+        $this->assertEqualsWithDelta(6.0, $e->knoten('ik_bfs')->note, 1e-9);
+        $this->assertEqualsWithDelta(1.0, $e->knoten('ik_uek')->note, 1e-9);
     }
 
     #[Test]
@@ -225,7 +230,7 @@ class NotenbaumAbnahmeTest extends TestCase
         $p = $this->promotion([3.5, 3.5, 3.5, 5.0, 5.0, 5.0]);
 
         $this->assertFalse($p['erfuellt']);
-        $this->assertGreaterThanOrEqual(4.0, $p['schnitt']); // 4,25
+        $this->assertEqualsWithDelta(4.3, $p['schnitt'], 1e-9); // 4,25 auf Zehntel gerundet
         $this->assertEqualsWithDelta(1.5, $p['minuspunkte'], 1e-9);
         $this->assertSame(3, $p['ungenuegend']);
         $this->assertSame(['ungenuegend'], $p['verletzt']);
@@ -256,9 +261,10 @@ class NotenbaumAbnahmeTest extends TestCase
     #[Test]
     public function bm_abschluss_bestehen_wie_promotion(): void
     {
-        // Abschlussnoten 3,5 / 3,5 / 3,5 / 5,0 / 5,0 / 5,0 / 5,0 → Schnitt 4,4, Minuspunkte 1,5, aber drei ungenügende
+        // Abschlussnoten 3,5 / 3,5 / 3,5 und sechsmal 5,0 → Schnitt 4,5, Minuspunkte 1,5, aber drei ungenügende
         $leistungen = [];
-        $faecher = ['deutsch' => [self::DEUTSCH, 3.5], 'italienisch' => [self::ITALIENISCH, 3.5], 'englisch' => [self::ENGLISCH_BM, 3.5], 'mathematik' => [self::MATHE_BM, 5.0]];
+        $faecher = ['deutsch' => [self::DEUTSCH, 3.5], 'italienisch' => [self::ITALIENISCH, 3.5], 'englisch' => [self::ENGLISCH_BM, 3.5], 'mathematik' => [self::MATHE_BM, 5.0],
+            'mathematik_erweitert' => [self::MATHE_ERW_BM, 5.0], 'naturwissenschaften' => [self::NATURWISS_BM, 5.0]];
         foreach ($faecher as $code => [$fach, $wert]) {
             $leistungen[] = $this->fach($fach, 1, $wert, self::BMS);
             $leistungen[] = $this->position($code.'_pruefung', $wert);
@@ -271,7 +277,7 @@ class NotenbaumAbnahmeTest extends TestCase
         $e = $this->bm($leistungen);
 
         $this->assertTrue($e->wurzel()->vollstaendig);
-        $this->assertEqualsWithDelta(4.4, $e->wurzel()->note, 1e-9);
+        $this->assertEqualsWithDelta(4.5, $e->wurzel()->note, 1e-9);
         $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $e->status);
         $this->assertSame(['ungenuegend'], array_map(fn ($g) => $g->regel, $e->gruende));
 
@@ -341,6 +347,43 @@ class NotenbaumAbnahmeTest extends TestCase
     // Hilfen
     // ---------------------------------------------------------------------------------------------
 
+    #[Test]
+    public function ein_teil_ohne_gewicht_haelt_das_ergebnis_nicht_offen(): void
+    {
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ipa' => ['gewicht' => 0]]);
+        $l = [$this->position('ab_schlussarbeit', 5.0), $this->position('ab_schlusspruefung', 5.0), $this->fach(self::ABU_FACH, 1, 5.0, self::ABU),
+            $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+
+        $e = (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1];
+
+        // (5,0×20 + 4,5×10 + 4,8×30) / 60 = 4,82 → 4,8; die IPA ohne Gewicht fehlt, entscheidet aber nichts
+        $this->assertTrue($e->wurzel()->vollstaendig);
+        $this->assertEqualsWithDelta(4.8, $e->wurzel()->note, 1e-9);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $e->status);
+    }
+
+    #[Test]
+    public function eine_gruppe_ohne_zaehlende_teile_haelt_das_ergebnis_nicht_offen(): void
+    {
+        $aus = ['zaehlt' => false];
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE],
+            ['ab_erfahrung' => $aus, 'ab_schlussarbeit' => $aus, 'ab_schlusspruefung' => $aus]);
+        $l = [$this->position('ipa', 5.0), $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+
+        $e = (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1];
+
+        // (5,0×40 + 4,5×10 + 4,8×30) / 80 = 4,86 → 4,9
+        $this->assertNull($e->knoten('ab')->note);
+        $this->assertTrue($e->wurzel()->vollstaendig);
+        $this->assertEqualsWithDelta(4.9, $e->wurzel()->note, 1e-9);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $e->status);
+
+        // Zählt gar nichts, gibt es auch kein «bestanden»
+        $leer = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE],
+            ['ipa' => $aus, 'ab' => $aus, 'egk' => $aus, 'ik' => $aus]);
+        $this->assertSame(BaumErgebnis::OFFEN, (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$leer]))->baeume[1]->status);
+    }
+
     private function efz(?float $ipa, ?float $abuErfahrung, ?float $schlussarbeit, ?float $schlusspruefung, ?float $egk, ?float $schulmodule, ?float $uek): BaumErgebnis
     {
         return $this->efzAuswertung($ipa, $abuErfahrung, $schlussarbeit, $schlusspruefung, $egk, $schulmodule, $uek)->baeume[1];
@@ -360,26 +403,14 @@ class NotenbaumAbnahmeTest extends TestCase
         return (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$this->efzBaum()]));
     }
 
-    /** Baum laut LAGE.md §2 mit den Rundungen, die NOTENBAUM.md §3.1 voraussetzt. */
-    /** @param  array<string, mixed>  $ab  zusätzliche Angaben am Knoten «Allgemeinbildung» */
+    /**
+     * Baum aus der mitgelieferten Vorlage (dieselbe Datei, die der Import lädt), nicht nachgebaut.
+     *
+     * @param  array<string, mixed>  $ab  zusätzliche Angaben am Knoten «Allgemeinbildung»
+     */
     private function efzBaum(array $ab = []): Baum
     {
-        return Baum::ausArray(1, 'Informatiker/in EFZ', [
-            'code' => 'qv', 'name' => 'QV-Gesamtnote', 'typ' => 'gruppe', 'rundung' => 0.1, 'fallnote' => 4.0,
-            'kinder' => [
-                ['code' => 'ipa', 'name' => 'Praktische Arbeit', 'typ' => 'manuell', 'gewicht' => 40, 'rundung' => 0.1, 'fallnote' => 4.0],
-                $ab + ['code' => 'ab', 'name' => 'Allgemeinbildung', 'typ' => 'gruppe', 'gewicht' => 20, 'rundung' => 0.1, 'kinder' => [
-                    ['code' => 'ab_erfahrung', 'name' => 'Erfahrungsnote', 'typ' => 'kategorie', 'kategorie_id' => self::ABU, 'rundung' => 0.5],
-                    ['code' => 'ab_schlussarbeit', 'name' => 'Schlussarbeit', 'typ' => 'manuell'],
-                    ['code' => 'ab_schlusspruefung', 'name' => 'Schlussprüfung', 'typ' => 'manuell'],
-                ]],
-                ['code' => 'egk', 'name' => 'Erweiterte Grundkompetenzen', 'typ' => 'faecher', 'faecher' => [self::ENGLISCH, self::MATHE], 'gewicht' => 10, 'rundung' => 0.5],
-                ['code' => 'ik', 'name' => 'Informatikkompetenzen', 'typ' => 'gruppe', 'gewicht' => 30, 'rundung' => 0.1, 'fallnote' => 4.0, 'kinder' => [
-                    ['code' => 'ik_bfs', 'name' => 'Modulnoten Berufsfachschule', 'typ' => 'kategorie', 'kategorie_id' => self::FACH, 'elementtyp' => 'modul', 'gewicht' => 80],
-                    ['code' => 'ik_uek', 'name' => 'Modulnoten überbetriebliche Kurse', 'typ' => 'kategorie', 'kategorie_id' => self::UEK, 'elementtyp' => 'modul', 'gewicht' => 20],
-                ]],
-            ],
-        ]);
+        return $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ab' => $ab]);
     }
 
     /** @param  list<Leistung>  $leistungen */
@@ -390,30 +421,37 @@ class NotenbaumAbnahmeTest extends TestCase
 
     private function bmBaum(): Baum
     {
-        $mitPruefung = fn (string $code, string $name, int $fach) => ['code' => $code, 'name' => $name, 'typ' => 'gruppe', 'rundung' => 0.5, 'kinder' => [
-            ['code' => $code.'_erfahrung', 'name' => 'Erfahrungsnote', 'typ' => 'faecher', 'faecher' => [$fach], 'rundung' => 0.1],
-            ['code' => $code.'_pruefung', 'name' => 'Abschlussprüfung', 'typ' => 'manuell', 'rundung' => 0.5],
-        ]];
-        $ohnePruefung = fn (string $code, string $name, int $fach) => ['code' => $code, 'name' => $name, 'typ' => 'gruppe', 'rundung' => 0.5, 'kinder' => [
-            ['code' => $code.'_erfahrung', 'name' => 'Erfahrungsnote', 'typ' => 'faecher', 'faecher' => [$fach], 'rundung' => 0.1],
-        ]];
-
-        return Baum::ausArray(2, 'BM TALS1', [
-            'code' => 'bm', 'name' => 'Berufsmaturität', 'typ' => 'gruppe', 'rundung' => 0.1,
-            'fallnote' => 4.0, 'max_ungenuegend' => 2, 'max_minuspunkte' => 2.0,
-            'kinder' => [
-                $mitPruefung('deutsch', 'Deutsch', self::DEUTSCH),
-                $mitPruefung('italienisch', 'Italienisch', self::ITALIENISCH),
-                $mitPruefung('englisch', 'Englisch', self::ENGLISCH_BM),
-                $mitPruefung('mathematik', 'Mathematik', self::MATHE_BM),
-                $ohnePruefung('geschichte', 'Geschichte und Politik', self::GESCHICHTE),
-                $ohnePruefung('wirtschaft', 'Wirtschaft und Recht', self::WIRTSCHAFT),
-                ['code' => 'idpa', 'name' => 'Interdisziplinäres Arbeiten', 'typ' => 'gruppe', 'rundung' => 0.5, 'kinder' => [
-                    ['code' => 'idaf_erfahrung', 'name' => 'Erfahrungsnote IDAF', 'typ' => 'faecher', 'faecher' => [self::IDAF], 'rundung' => 0.1],
-                    ['code' => 'idpa_arbeit', 'name' => 'IDPA', 'typ' => 'manuell', 'rundung' => 0.5],
-                ]],
-            ],
+        return $this->ausVorlage('bm-tals1-bmv2025', 2, [
+            'Deutsch' => self::DEUTSCH, 'Italienisch' => self::ITALIENISCH, 'Englisch' => self::ENGLISCH_BM, 'Mathematik' => self::MATHE_BM,
+            'Mathematik erweitert' => self::MATHE_ERW_BM, 'Naturwissenschaften' => self::NATURWISS_BM,
+            'Geschichte und Politik' => self::GESCHICHTE, 'Wirtschaft und Recht' => self::WIRTSCHAFT,
+            'Interdisziplinäres Arbeiten in den Fächern' => self::IDAF,
         ]);
+    }
+
+    /**
+     * Vorlage aus resources/vorlagen/notenbaeume lesen; Kategorien und Fächer auf die IDs dieses Tests abbilden.
+     *
+     * @param  array<string, int>  $faecher  Fachname => ID
+     * @param  array<string, array<string, mixed>>  $zusatz  Code => zusätzliche Angaben am Knoten
+     */
+    private function ausVorlage(string $schluessel, int $id, array $faecher, array $zusatz = []): Baum
+    {
+        $d = json_decode((string) file_get_contents(dirname(__DIR__, 3).'/resources/vorlagen/notenbaeume/'.$schluessel.'.json'), true, flags: JSON_THROW_ON_ERROR);
+        $kategorien = ['FACH' => self::FACH, 'UEK' => self::UEK, 'BMS' => self::BMS, 'ABU' => self::ABU];
+        $umbau = function (array $k) use (&$umbau, $kategorien, $faecher, $zusatz): array {
+            if (isset($k['kategorie'])) {
+                $k['kategorie_id'] = $kategorien[$k['kategorie']];
+            }
+            if (isset($k['faecher'])) {
+                $k['faecher'] = array_map(fn (array $f) => $faecher[$f['name']] ?? throw new \LogicException('Fach fehlt im Test: '.$f['name']), $k['faecher']);
+            }
+            $k['kinder'] = array_map($umbau, $k['kinder'] ?? []);
+
+            return ($zusatz[$k['code']] ?? []) + $k;
+        };
+
+        return Baum::ausArray($id, (string) $d['name'], $umbau($d['wurzel']));
     }
 
     /**

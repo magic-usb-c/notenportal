@@ -148,6 +148,34 @@ class NotenbaumDbTest extends TestCase
         $this->assertCount(1, $a->elemente, 'Stufen erzeugen kein rechnendes Element');
 
         $this->get(route('learner.grades.index'))->assertOk()->assertSee('Sport');
+
+        // Im Zeugnis sichtbar: Notenblatt und CSV zeigen die Stufe, nie «0.00»
+        $this->get(route('learner.grades.print'))->assertOk()->assertSeeInOrder(['Sport', '<b>C</b>'], false);
+        $csv = $this->get(route('learner.grades.export'))->assertOk()->streamedContent();
+        $this->assertMatchesRegularExpression('/;Sport;;C;100/', $csv);
+        $this->assertDoesNotMatchRegularExpression('/;Sport;;0\.00;/', $csv);
+
+        $admin = User::factory()->admin()->create();
+        $csv = $this->actingAs($admin)->get(route('admin.learners.grades.export', $id))->assertOk()->streamedContent();
+        $this->assertMatchesRegularExpression('/;Sport;;C;100/', $csv);
+        $this->actingAs($admin)->get(route('admin.learners.grades.print', $id))->assertOk()->assertSee('Sport');
+    }
+
+    #[Test]
+    public function bestehende_installation_ohne_bm_promotionsregel_bekommt_sie_per_migration(): void
+    {
+        $migration = require database_path('migrations/2026_10_01_000003_bms_promotionsregel.php');
+        $regel = fn () => (array) DB::table('kategorien')->where('code', 'BMS')
+            ->first(['promotion_min_schnitt', 'promotion_max_ungenuegend', 'promotion_max_minuspunkte']);
+
+        DB::table('kategorien')->where('code', 'BMS')->update(['promotion_min_schnitt' => null, 'promotion_max_ungenuegend' => null, 'promotion_max_minuspunkte' => null]);
+        $migration->up();
+        $this->assertEquals(['promotion_min_schnitt' => 4.0, 'promotion_max_ungenuegend' => 2, 'promotion_max_minuspunkte' => 2.0], array_map('floatval', $regel()));
+
+        // Eine eigene Regel des Admins bleibt stehen
+        DB::table('kategorien')->where('code', 'BMS')->update(['promotion_min_schnitt' => null, 'promotion_max_ungenuegend' => 3, 'promotion_max_minuspunkte' => null]);
+        $migration->up();
+        $this->assertEquals(['promotion_min_schnitt' => null, 'promotion_max_ungenuegend' => 3, 'promotion_max_minuspunkte' => null], $regel());
     }
 
     #[Test]

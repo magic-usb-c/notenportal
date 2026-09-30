@@ -270,7 +270,8 @@ final class Rechner
 
         $basis = $this->quelle->fuerLernenden((int) $lernender->lernender_id);
         if (! empty($eingabe['ersetzt'])) {
-            $basis = array_values(array_filter($basis, fn (Leistung $l) => $l->id !== (int) $eingabe['ersetzt']));
+            // Nur Noten ersetzen: Positionen eines Notenbaums tragen ihre eigene ID (position_id)
+            $basis = array_values(array_filter($basis, fn (Leistung $l) => $l->knotenId !== null || $l->id !== (int) $eingabe['ersetzt']));
         }
 
         $zeilen = [];

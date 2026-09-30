@@ -21,6 +21,7 @@ use App\Services\Uebersicht;
 use App\Support\Csv;
 use App\Support\Lehrsemester;
 use App\Support\Modulbaukasten;
+use App\Support\NotenSkala;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -435,6 +436,7 @@ class NotenController extends Controller
                 'm.modul_nummer', 'm.titel as modul_titel',
                 'n.titel',
                 'n.note_wert',
+                'n.note_stufe',
                 'n.gewichtung_prozent',
             ])
             ->get();
@@ -457,7 +459,7 @@ class NotenController extends Controller
                     $r->kategorie ?? '',
                     Csv::safe($fachModul),
                     Csv::safe($r->titel ?? ''),
-                    number_format((float) $r->note_wert, 2, '.', ''),
+                    $r->note_wert !== null ? number_format((float) $r->note_wert, 2, '.', '') : NotenSkala::stufeText($r->note_stufe),
                     $r->gewichtung_prozent ?? 100,
                 ], ';');
             }

@@ -9,6 +9,8 @@ use App\Models\Lernender;
 use App\Models\NotenbaumPosition;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Lernstand;
+use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Auswertung\NotenQuelle;
 use App\Support\Protokoll;
@@ -329,6 +331,22 @@ class AbschlussTest extends TestCase
         $this->assertEquals([5.5, null], [$eintraege[2]['vorher'], $eintraege[2]['nachher']]);
 
         $this->put(route('learner.qualification.update'), ['werte' => [$ipa => ['5']]])->assertSessionHasErrors("werte.$ipa");
+    }
+
+    #[Test]
+    public function ungenuegende_ipa_faerbt_die_statusampel_rot(): void
+    {
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $this->efzBaum();
+        $this->assertNotSame(Lernstand::ROT, app(LernstandRechner::class)->fuer([$id])[$id]->status);
+
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '3.5']]);
+        Konfiguration::vergessen();
+
+        $stand = app(LernstandRechner::class)->fuer([$id])[$id];
+        $this->assertSame(Lernstand::ROT, $stand->status);
+        $this->assertStringContainsString('Praktische Arbeit (IPA) 3,5', implode(' | ', $stand->gruende));
     }
 
     #[Test]

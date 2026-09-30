@@ -18,6 +18,8 @@ final class KnotenErgebnis
         public ?float $note = null,
         public bool $vollstaendig = false,
         public int $anzahl = 0,
+        /** Gruppe ohne Teil, der zählt und Gewicht trägt: bewegt die Note der Eltern nicht, hält sie nicht offen. */
+        public bool $leer = false,
     ) {}
 
     /** Wert, mit dem der Knoten in seine Gruppe eingeht: gerundet, wenn der Knoten rundet. */

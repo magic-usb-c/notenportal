@@ -115,13 +115,19 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Vor jeder DDL prüfen: MariaDB rollt DDL nicht zurück, ein Abbruch mittendrin liesse das Schema halb stehen.
+        // Stufen (Sport A/B/C) passen nicht in das alte Schema; still löschen wäre Datenverlust.
+        $stufen = DB::table('noten')->whereNull('note_wert')->count();
+        if ($stufen > 0) {
+            throw new RuntimeException("Rollback abgebrochen: {$stufen} Noten mit Stufe (Sport) vorhanden. Zuerst löschen oder in Zahlen umwandeln.");
+        }
+
         Schema::dropIfExists('notenbaum_positionen');
         Schema::dropIfExists('notenbaum_knoten_faecher');
         Schema::dropIfExists('notenbaum_knoten');
         Schema::dropIfExists('notenbaeume');
 
         DB::statement('ALTER TABLE noten DROP CONSTRAINT IF EXISTS chk_noten_note_wert');
-        DB::table('noten')->whereNull('note_wert')->delete();
         Schema::table('noten', function (Blueprint $table) {
             $table->dropColumn('note_stufe');
             $table->decimal('note_wert', 4, 2)->nullable(false)->change();

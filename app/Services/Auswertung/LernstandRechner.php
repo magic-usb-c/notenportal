@@ -103,6 +103,16 @@ final class LernstandRechner
         if ($semesterNote !== null && $semesterNote < $grenze - 1e-9) {
             $rot[] = __('Semesterschnitt :note', ['note' => NotenSkala::format($semesterNote)]);
         }
+        // Notenbaum (QV, BM): eine abgeschlossene Prüfung unter der Grenze entscheidet, ein Zwischenstand warnt
+        foreach ($a->baeume as $baum) {
+            foreach ($baum->gruende as $g) {
+                if ($g->definitiv) {
+                    $rot[] = $g->text();
+                } else {
+                    $gelb[] = $g->text();
+                }
+            }
+        }
         if (count($ungenuegend) >= 2) {
             $rot[] = __(':anzahl ungenügende Noten', ['anzahl' => count($ungenuegend)]);
         } elseif (count($ungenuegend) === 1) {
@@ -139,7 +149,7 @@ final class LernstandRechner
             letztePruefung: $letzte,
             ueberfaellig: $ueberfaellig,
             status: $status,
-            gruende: [...$rot, ...$gelb],
+            gruende: array_values(array_unique([...$rot, ...$gelb])),
         );
     }
 }

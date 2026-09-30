@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Verwaltung;
 use App\Models\Lernender;
 use App\Services\Notenblatt;
 use App\Support\Csv;
+use App\Support\NotenSkala;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -74,7 +75,7 @@ class NotenExportController extends VerwaltungController
             ->whereIn('n.lernender_id', $lernendeIds)
             ->whereNull('n.geloescht_am')
             ->select([
-                'n.note_id', 'n.pruefungsdatum', 'n.note_wert', 'n.gewichtung_prozent', 'n.titel',
+                'n.note_id', 'n.pruefungsdatum', 'n.note_wert', 'n.note_stufe', 'n.gewichtung_prozent', 'n.titel',
                 's.semester_id', 's.bezeichnung as semester_bezeichnung', 's.sortierung',
                 'k.name as kategorie_name',
                 'f.name as fach_name',
@@ -99,7 +100,7 @@ class NotenExportController extends VerwaltungController
                     Csv::safe($r->kategorie_name ?? ''),
                     Csv::safe($fachModul),
                     Csv::safe($r->titel ?? ''),
-                    number_format((float) $r->note_wert, 2, '.', ''),
+                    $r->note_wert !== null ? number_format((float) $r->note_wert, 2, '.', '') : NotenSkala::stufeText($r->note_stufe),
                     $r->gewichtung_prozent ?? 100,
                 ];
 

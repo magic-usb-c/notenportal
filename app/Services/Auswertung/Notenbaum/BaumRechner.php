@@ -43,7 +43,7 @@ final class BaumRechner
 
         $definitiv = array_filter($this->gruende, fn (Grund $g) => $g->definitiv) !== [];
         $status = match (true) {
-            $wurzel->vollstaendig => $this->gruende === [] ? BaumErgebnis::BESTANDEN : BaumErgebnis::NICHT_BESTANDEN,
+            $wurzel->vollstaendig && $wurzel->note !== null => $this->gruende === [] ? BaumErgebnis::BESTANDEN : BaumErgebnis::NICHT_BESTANDEN,
             $definitiv => BaumErgebnis::NICHT_BESTANDEN,
             default => BaumErgebnis::OFFEN,
         };
@@ -82,6 +82,7 @@ final class BaumRechner
         $gewichte = 0.0;
         $vollstaendig = true;
         $zaehlende = 0;
+        $tragende = 0;
 
         foreach ($e->knoten->kinder as $kind) {
             $k = $this->knoten($kind);
@@ -90,17 +91,24 @@ final class BaumRechner
                 continue;
             }
             $zaehlende++;
+            // Ein Teil ohne Gewicht (oder eine Gruppe ohne zählende Teile) kann die Note nicht bewegen und
+            // hält sie deshalb auch nicht offen.
+            if ($kind->gewicht <= 0 || $k->leer) {
+                continue;
+            }
+            $tragende++;
             $vollstaendig = $vollstaendig && $k->vollstaendig;
-            if ($k->massgebend() !== null && $kind->gewicht > 0) {
+            if ($k->massgebend() !== null) {
                 $summe += $kind->gewicht * $k->massgebend();
                 $gewichte += $kind->gewicht;
             }
         }
 
         $e->anzahl = $zaehlende;
+        $e->leer = $tragende === 0;
         $e->schnitt = $gewichte > 0 ? $summe / $gewichte : null;
         $e->note = Rundung::auf($e->schnitt, $e->knoten->rundung ?? 0.0);
-        $e->vollstaendig = $vollstaendig && $zaehlende > 0 && $e->schnitt !== null;
+        $e->vollstaendig = $e->leer || ($vollstaendig && $e->schnitt !== null);
     }
 
     /** @return list<float> Zeugnisnoten der zählenden Elemente einer Kategorie */

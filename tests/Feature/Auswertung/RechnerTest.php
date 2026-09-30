@@ -16,6 +16,7 @@ use App\Models\User;
 use App\Models\Ziel;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\LernstandRechner;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Auswertung\Rechner;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -149,6 +150,27 @@ class RechnerTest extends TestCase
         ])->assertOk();
 
         $this->assertEquals(6.0, $antwort->json('loesung.resultat'));
+    }
+
+    #[Test]
+    public function ersetzt_laesst_eine_notenbaum_position_mit_gleicher_id_stehen(): void
+    {
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), (int) $this->lernender->lehrberuf_id);
+        $this->modulNote(2.0, 100);
+        $note = Note::sole();
+        $ipa = (int) DB::table('notenbaum_knoten')->where('code', 'ipa')->value('knoten_id');
+        // Positionen und Noten zählen ihre IDs getrennt; gleiche Zahlen kommen im Betrieb vor
+        DB::table('notenbaum_positionen')->insert(['position_id' => $note->note_id, 'lernender_id' => $this->lernender->lernender_id,
+            'knoten_id' => $ipa, 'note_wert' => 5.0, 'erfasst_von_benutzer_id' => $this->user->benutzer_id]);
+        Konfiguration::vergessen();
+
+        $antwort = $this->actingAs($this->user)->postJson(route('learner.grades.calculator.calculate'), [
+            'ziel' => 'gesamt', 'zielwert' => 4, 'ersetzt' => $note->note_id,
+            'zeilen' => [['element' => 'modul:'.$this->modul->modul_id, 'gewicht' => 100, 'wert' => 6]],
+        ])->assertOk();
+
+        // IPA 5,0 (40) und Informatikkompetenzen 6,0 (30): 380 / 70 = 5,43 → 5,4; ohne IPA wären es 6,0
+        $this->assertEquals(5.4, $antwort->json('loesung.resultat'));
     }
 
     #[Test]
