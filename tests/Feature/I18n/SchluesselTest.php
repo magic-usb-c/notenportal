@@ -34,6 +34,16 @@ class SchluesselTest extends TestCase
     }
 
     #[Test]
+    public function dynamische_schluessel_haben_eine_englische_uebersetzung(): void
+    {
+        // Texte aus Konstanten (Protokoll::LABELS, Feedback::STATUS …) sieht der Quelltext-Scan nicht
+        $vorhanden = array_merge(...array_values(array_map('array_keys', Schluessel::dateien())));
+        $fehlend = array_values(array_unique(array_diff(Schluessel::dynamisch(), $vorhanden)));
+
+        $this->assertSame([], $fehlend, "Ohne EN-Übersetzung:\n".implode("\n", $fehlend));
+    }
+
+    #[Test]
     public function geschlossene_uebersetzungsdateien_haben_keine_verwaisten_schluessel(): void
     {
         $verwendet = [...array_keys(Schluessel::verwendet()), ...Schluessel::dynamisch()];

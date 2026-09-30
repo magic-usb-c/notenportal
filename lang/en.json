@@ -188,7 +188,6 @@
     "Eine Ernte ist eine JSON-Datei mit Modulnummern, Titeln, Versionen, Handlungszielen und der Zuordnung Abschluss zu Modul. Erzeugt wird sie mit dem Werkzeug tools/modulkatalog-ernte.mjs; der Aufbau steht in docs/modulkatalog.md.": "A harvest is a JSON file containing module numbers, titles, versions, performance objectives and the qualification-to-module assignment. It is produced with the tool tools/modulkatalog-ernte.mjs; its structure is described in docs/modulkatalog.md.",
     "Einrichtung": "Setup",
     "Einstellungen": "Settings",
-    "Einträge": "entries",
     "endet heute": "ends today",
     "entfällt": "not applicable",
     "Enthaltene Dateien": "Files included",
@@ -269,7 +268,6 @@
     "Kein Lernort erfasst – neue Zuordnungen bleiben ohne Lernort.": "No place of learning recorded – new assignments remain without one.",
     "Kein Modul gefunden. Leg es an, dann sehen es alle.": "No module found. Create it and everyone will see it.",
     "Kein Zugriff": "Access denied",
-    "Keine Einträge für diese Filtereinstellungen gefunden.": "No entries found for these filters.",
     "Keine gültige Vorlage vorhanden.": "No valid template available.",
     "Keine neuen Lehrberufe anlegen": "Do not create new occupations",
     "keine Noten": "no grades",
@@ -581,5 +579,7 @@
     "Anmelden ist danach nicht mehr möglich.": "Signing in will no longer be possible afterwards.",
     "Darstellung auf Standard zurücksetzen?": "Reset appearance to default?",
     "Neuen Abo-Link erzeugen?": "Generate a new subscription link?",
-    "Der bisherige Link funktioniert danach nicht mehr.": "The previous link will stop working."
+    "Der bisherige Link funktioniert danach nicht mehr.": "The previous link will stop working.",
+    "Ja": "Yes",
+    "Nein": "No"
 }

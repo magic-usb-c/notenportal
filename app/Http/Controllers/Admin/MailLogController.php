@@ -33,15 +33,17 @@ class MailLogController extends Controller
         $eintraege = MailLog::query()
             ->when($status !== '', fn ($qq) => $qq->where('status', $status))
             ->when($type !== '', fn ($qq) => $qq->where('type', $type))
-            ->when($q !== '', fn ($qq) => $qq->where(fn ($qqq) => $qqq
-                ->where('recipient', 'like', '%'.$q.'%')
-                ->orWhere('redirected_to', 'like', '%'.$q.'%')))
+            ->when($q !== '', function ($qq) use ($q) {
+                $like = '%'.addcslashes($q, '%_\\').'%';
+                $qq->where(fn ($w) => $w->where('recipient', 'like', $like)->orWhere('redirected_to', 'like', $like));
+            })
             ->orderByDesc('created_at')
             ->paginate(50)
             ->withQueryString();
 
         return view('admin.mail-log.index', [
             'eintraege' => $eintraege,
+            'leer' => $eintraege->isEmpty() && ! MailLog::query()->exists(),
             'kennzahlen' => $kennzahlen,
             'status' => $status,
             'type' => $type,

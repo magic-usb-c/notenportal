@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Number;
 use Throwable;
 
 /**
@@ -139,6 +140,42 @@ final class Protokoll
         self::MODUL_DOKUMENT_GELOESCHT => 'Moduldokument gelöscht',
     ];
 
+    /** Bezeichnungen der Detail-Schlüssel für die Anzeige; unbekannte Schlüssel erscheinen mit grossem Anfangsbuchstaben. */
+    public const array DETAIL_LABELS = [
+        'aktiv' => 'Aktiv',
+        'alt' => 'Vorher',
+        'anzahl' => 'Anzahl',
+        'art' => 'Art',
+        'baum' => 'Notenbaum',
+        'beginn' => 'Beginn',
+        'bis' => 'Bis',
+        'bytes' => 'Grösse',
+        'datei' => 'Datei',
+        'duplikat_von' => 'Duplikat von',
+        'email' => 'E-Mail',
+        'ende' => 'Ende',
+        'felder' => 'Felder',
+        'konto' => 'Konto',
+        'lehrberufe' => 'Lehrberufe',
+        'modul_id' => 'Modul',
+        'module' => 'Module',
+        'nachher' => 'Nachher',
+        'name' => 'Name',
+        'neu' => 'Nachher',
+        'nummer' => 'Nummer',
+        'ok' => 'Erfolgreich',
+        'original' => 'Original',
+        'position' => 'Position',
+        'positionen' => 'Positionen',
+        'rolle' => 'Rolle',
+        'titel' => 'Titel',
+        'von' => 'Von',
+        'vorher' => 'Vorher',
+        'vorlage' => 'Vorlage',
+        'zielgruppe' => 'Zielgruppe',
+        'zuordnungen' => 'Zuordnungen',
+    ];
+
     /** Schlüssel, die nie ins Protokoll dürfen (Passwörter, Token, Geheimnisse), unabhängig von Gross-/Kleinschreibung. */
     private const array SPERR_MUSTER = ['/passwort/i', '/password/i', '/token/i', '/secret/i', '/geheim/i'];
 
@@ -179,6 +216,36 @@ final class Protokoll
     public static function label(string $aktion): string
     {
         return __(self::LABELS[$aktion] ?? $aktion);
+    }
+
+    /**
+     * Details eines Eintrags als lesbarer Text statt JSON: «Rolle: Berufsbildner · Aktiv: Ja».
+     *
+     * @param  array<string|int, mixed>|null  $details
+     */
+    public static function detailText(?array $details): string
+    {
+        $teile = [];
+        foreach ($details ?? [] as $schluessel => $wert) {
+            $text = $schluessel === 'bytes' && is_numeric($wert) ? Number::fileSize((int) $wert, 1) : self::wertText($wert);
+            $teile[] = is_string($schluessel)
+                ? __(self::DETAIL_LABELS[$schluessel] ?? ucfirst(str_replace('_', ' ', $schluessel))).': '.$text
+                : $text;
+        }
+
+        return implode(' · ', $teile);
+    }
+
+    private static function wertText(mixed $wert): string
+    {
+        return match (true) {
+            is_bool($wert) => $wert ? __('Ja') : __('Nein'),
+            $wert === null, $wert === '', $wert === [] => '–',
+            is_array($wert) => array_is_list($wert)
+                ? implode(', ', array_map(fn ($w) => is_array($w) && ! array_is_list($w) ? '('.self::detailText($w).')' : self::wertText($w), $wert))
+                : self::detailText($wert),
+            default => (string) $wert,
+        };
     }
 
     /** Die Tabelle gibt es erst nach der Migration 2026_09_12_000010. Ist die DB nicht erreichbar, gilt «nicht verfügbar» (ohne zu cachen). */

@@ -161,6 +161,24 @@ class MailEinstellungenTest extends TestCase
         $gefiltert->assertOk();
         $gefiltert->assertSee('beta@beispielfirma.ch');
         $gefiltert->assertDontSee('alpha@beispielfirma.ch');
+
+        // Suche ist wörtlich: % und _ sind keine Platzhalter
+        $wildcard = $this->actingAs($admin)->get(route('admin.mail-log.index', ['q' => '%']));
+        $wildcard->assertOk();
+        $wildcard->assertDontSee('alpha@beispielfirma.ch');
+        $wildcard->assertSee('Keine Einträge passen zu den Filtern.');
+    }
+
+    #[Test]
+    public function leeres_versandprotokoll_zeigt_leerzustand_statt_tabelle(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $antwort = $this->actingAs($admin)->get(route('admin.mail-log.index'));
+
+        $antwort->assertOk();
+        $antwort->assertSee('Noch keine E-Mails verschickt');
+        $antwort->assertDontSee('Status: alle');
     }
 
     #[Test]

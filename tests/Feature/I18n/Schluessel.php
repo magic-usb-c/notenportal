@@ -74,6 +74,7 @@ final class Schluessel
             ...array_values(Feedback::STATUS),
             ...array_values(Darstellung::AKZENTE),
             ...array_values(Protokoll::LABELS),
+            ...array_values(Protokoll::DETAIL_LABELS),
             ...array_values(MailLog::STATUS),
             ...array_values(NotificationCatalog::FREQUENCIES),
             ...array_values(NotificationCatalog::GROUPS),
