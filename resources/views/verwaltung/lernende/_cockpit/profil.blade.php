@@ -41,16 +41,15 @@
                 <div class="flex items-center gap-2 flex-wrap">
                     <form method="POST" action="{{ route("{$bereich}.learners.account.password", $lernender->lernender_id) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                          onsubmit="return confirm('{{ __('Neues Startpasswort erzeugen? Das bisherige Passwort wird ungültig.') }}');">
+                          data-bestaetigen="{{ __('Neues Startpasswort erzeugen?') }}" data-bestaetigen-text="{{ __('Das bisherige Passwort wird ungültig.') }}" data-bestaetigen-knopf="{{ __('Zurücksetzen') }}">
                         @csrf
                         <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Passwort zurücksetzen') }}</button>
                     </form>
                     <form method="POST" action="{{ route("{$bereich}.learners.account.active", $lernender->lernender_id) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                          onsubmit="return confirm('{{ $benutzer->aktiv ? __('Konto deaktivieren? Anmelden ist danach nicht mehr möglich.') : __('Konto aktivieren?') }}');">
+                          @if($benutzer->aktiv) data-bestaetigen="{{ __('Konto deaktivieren?') }}" data-bestaetigen-text="{{ __('Anmelden ist danach nicht mehr möglich.') }}" data-bestaetigen-knopf="{{ __('Deaktivieren') }}" @endif>
                         @csrf
-                        <button type="submit" :disabled="loading"
-                                class="px-4 h-10 rounded-xl text-sm border disabled:opacity-60 {{ $benutzer->aktiv ? 'border-note-ungenuegend/40 text-note-ungenuegend hover:bg-note-ungenuegend/10' : 'border-border text-text hover:bg-accent/5' }}">
+                        <button type="submit" :disabled="loading" class="np-knopf {{ $benutzer->aktiv ? 'np-knopf-gefahr' : 'np-knopf-sekundaer' }}">
                             {{ $benutzer->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                         </button>
                     </form>
@@ -162,11 +161,11 @@
                             <form method="POST" action="{{ route("{$bereich}.tracks.end", [$lernender->lernender_id, $t->lernender_track_id]) }}"
                                   class="flex items-center gap-2"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                  onsubmit="return confirm('{{ __('Track :typ beenden?', ['typ' => $t->track_typ]) }}');">
+                                  data-bestaetigen="{{ __('Track :typ beenden?', ['typ' => $t->track_typ]) }}" data-bestaetigen-knopf="{{ __('Beenden') }}">
                                 @csrf
                                 <label for="end_semester_{{ $t->lernender_track_id }}" class="sr-only">{{ __('Endsemester') }}</label>
                                 <select id="end_semester_{{ $t->lernender_track_id }}" name="end_semester_id" required
-                                        class="np-feld text-xs pl-2 pr-6 min-h-[36px] min-w-[7rem] shrink-0">
+                                        class="np-feld np-feld-klein w-auto shrink-0">
                                     @foreach($semesterListe as $s)
                                         <option value="{{ $s->semester_id }}">{{ $s->bezeichnung }}</option>
                                     @endforeach

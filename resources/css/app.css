@@ -338,6 +338,36 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
+/* Bestätigungsdialog (HIG «Alerts», macOS): schmal, zentriert, Knöpfe gleich breit nebeneinander.
+   Natives <dialog> mit showModal() – Fokusfalle, Escape und oberste Ebene liefert der Browser. */
+@utility np-alert {
+  margin: auto;
+  width: min(100% - 2rem, 20rem);
+  padding: 0;
+  border: 1px solid rgb(var(--border-strong) / 0.3);
+  border-radius: var(--radius-2xl);
+  background-color: rgb(var(--card));
+  color: rgb(var(--text));
+  box-shadow: var(--elev-3);
+  transition:
+    opacity 150ms ease-out,
+    scale 150ms ease-out;
+  @starting-style {
+    &[open] {
+      opacity: 0;
+      scale: 0.96;
+    }
+  }
+  &::backdrop {
+    background-color: rgb(0 0 0 / 0.18);
+  }
+  @variant dark {
+    &::backdrop {
+      background-color: rgb(0 0 0 / 0.45);
+    }
+  }
+}
+
 /* ==========================================================================
    Symbolleiste mit Scroll-Edge-Effekt (HIG «Toolbars», «Layout»: «use a scroll
    edge effect to visually elevate controls above content» statt einer festen

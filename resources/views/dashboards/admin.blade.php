@@ -27,7 +27,7 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Betrieb')" :untertitel="\App\Support\Format::date(now())">
             <x-slot:aktionen>
-                <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="user-plus" strich="2" />{{ __('Benutzer anlegen') }}</a>
+                <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="user-plus" strich="2" />{{ __('Benutzer erfassen') }}</a>
                 <a href="{{ route('admin.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>

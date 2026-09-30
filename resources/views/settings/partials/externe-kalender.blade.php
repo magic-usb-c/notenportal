@@ -30,7 +30,7 @@
                             <button :disabled="loading" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Jetzt abgleichen') }}</button>
                         </form>
                         <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Bearbeiten') }}</button>
-                        <form method="POST" action="{{ route('learner.calendar.feed.destroy', $f->id) }}" onsubmit="return confirm(@js(__('Kalender entfernen?')));" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                        <form method="POST" action="{{ route('learner.calendar.feed.destroy', $f->id) }}" data-bestaetigen="{{ __('Kalender entfernen?') }}" data-bestaetigen-knopf="{{ __('Entfernen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                             @csrf
                             @method('DELETE')
                             <button :disabled="loading" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __('Entfernen') }}" title="{{ __('Entfernen') }}"><x-symbol name="trash" /></button>

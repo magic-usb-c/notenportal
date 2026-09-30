@@ -196,6 +196,8 @@
 
         <x-feedback-widget />
 
+        <x-bestaetigung />
+
         @auth
             @include('layouts._sitzung')
         @endauth
@@ -235,7 +237,7 @@
                     start();
                 });
 
-                document.addEventListener('submit', () => start());
+                document.addEventListener('submit', (e) => { if (!e.defaultPrevented) start(); });
 
                 // Bei Back/Forward-Cache-Restore zurücksetzen
                 window.addEventListener('pageshow', () => {

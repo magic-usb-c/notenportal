@@ -176,7 +176,7 @@
                                         @if($darfLoeschen)
                                             <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                                  onsubmit="return confirm(@js(__('Note löschen?')));">
+                                                  data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
@@ -198,7 +198,7 @@
                                                 @if((int) $k->autor_benutzer_id === $viewerId || $bereich === 'admin')
                                                     <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
                                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                                          onsubmit="return confirm(@js(__('Kommentar löschen?')));">
+                                                          data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}"

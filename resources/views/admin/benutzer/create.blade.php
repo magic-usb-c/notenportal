@@ -1,7 +1,7 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('Neuer Benutzer') }}</x-slot>
+    <x-slot name="title">{{ __('Benutzer erfassen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :zurueck="route('admin.users.index')" :titel="__('Neuen Benutzer anlegen')" schmal />
+        <x-seitenkopf :zurueck="route('admin.users.index')" :titel="__('Benutzer erfassen')" schmal />
     </x-slot>
 
     <div class="py-6">
@@ -26,7 +26,7 @@
 
                 @include('admin.benutzer._passwort', ['pflicht' => true])
 
-                <x-formular-aktionen :abbrechen="route('admin.users.index')">{{ __('Benutzer anlegen') }}</x-formular-aktionen>
+                <x-formular-aktionen :abbrechen="route('admin.users.index')">{{ __('Benutzer erfassen') }}</x-formular-aktionen>
             </form>
         </div>
     </div>

@@ -94,7 +94,7 @@
                     <p class="text-sm text-muted">{{ __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.') }}</p>
                 @else
                     <form method="POST" action="{{ route('admin.master-data.subjects.destroy', $fach->fach_id) }}"
-                          onsubmit="return confirm(@js(__('Fach «:name» endgültig löschen?', ['name' => $fach->name])));">
+                          data-bestaetigen="{{ __('Fach «:name» endgültig löschen?', ['name' => $fach->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="np-knopf np-knopf-gefahr">

@@ -36,6 +36,26 @@
 
                 <x-formular-aktionen :abbrechen="route('admin.users.index')">{{ __('Änderungen speichern') }}</x-formular-aktionen>
             </form>
+
+            {{-- Eigenes Konto bleibt aktiv: sonst sperrte sich der letzte Admin selbst aus --}}
+            @unless($user->is(auth()->user()))
+                <section class="mt-10 max-w-3xl">
+                    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Konto') }}</h2>
+                    <div class="np-karte np-gruppe">
+                        <x-einstellung :label="$user->aktiv ? __('Konto aktiv') : __('Konto deaktiviert')"
+                                       :hinweis="$user->aktiv ? __('Deaktivierte Konten können sich nicht mehr anmelden.') : __('Anmelden ist nicht möglich, bis das Konto wieder aktiviert ist.')">
+                            <form method="POST" action="{{ route('admin.users.toggle-active', $user->benutzer_id) }}"
+                                  @if($user->aktiv) data-bestaetigen="{{ __('Konto deaktivieren?') }}" data-bestaetigen-text="{{ __('Anmelden ist danach nicht mehr möglich.') }}" data-bestaetigen-knopf="{{ __('Deaktivieren') }}" @endif
+                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                @csrf
+                                <button type="submit" :disabled="loading" class="np-knopf {{ $user->aktiv ? 'np-knopf-gefahr' : 'np-knopf-sekundaer' }}">
+                                    {{ $user->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
+                                </button>
+                            </form>
+                        </x-einstellung>
+                    </div>
+                </section>
+            @endunless
         </div>
     </div>
 </x-app-layout>

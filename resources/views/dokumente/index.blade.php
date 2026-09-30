@@ -102,12 +102,12 @@
                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/></svg>
                                         </a>
                                         @if($bereich ? $darfHochladen : (int) $d->hochgeladen_von_benutzer_id === $ich)
-                                            <form method="POST" action="{{ $r('destroy', ['dokument_id' => $d->dokument_id]) }}" onsubmit="return confirm('{{ __('Dokument löschen?') }}')"
+                                            <form method="POST" action="{{ $r('destroy', ['dokument_id' => $d->dokument_id]) }}" data-bestaetigen="{{ __('Dokument löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button :disabled="loading" aria-label="{{ __(':titel löschen', ['titel' => $d->titel]) }}"
-                                                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr">×</button>
+                                                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr"><x-symbol name="trash" /></button>
                                             </form>
                                         @endif
                                     </div>

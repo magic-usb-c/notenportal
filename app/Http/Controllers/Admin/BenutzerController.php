@@ -60,8 +60,11 @@ class BenutzerController extends Controller
             );
         }
 
+        // Per EXISTS statt über den Join: sonst zeigte die Rollenspalte bei aktivem Filter nur noch die gefilterte Rolle
         if ($rolleId !== '') {
-            $q->where('br.rolle_id', (int) $rolleId);
+            $q->whereExists(fn ($e) => $e->from('benutzer_rollen as fr')
+                ->whereColumn('fr.benutzer_id', 'b.benutzer_id')
+                ->where('fr.rolle_id', (int) $rolleId));
         }
 
         if ($status === 'aktiv') {

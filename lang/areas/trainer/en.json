@@ -110,9 +110,7 @@
     "Kommentare": "Comments",
     "Konten": "Accounts",
     "Konto": "Account",
-    "Konto aktivieren?": "Activate account?",
     "Konto aktiviert.": "Account activated.",
-    "Konto deaktivieren? Anmelden ist danach nicht mehr möglich.": "Deactivate account? Signing in will no longer be possible afterwards.",
     "Konto deaktiviert.": "Account deactivated.",
     "Konto eröffnet": "Account created",
     "Kopieren": "Copy",
@@ -137,7 +135,7 @@
     "Lernender angelegt.": "Apprentice created.",
     "Lernender anlegen": "Create apprentice",
     "Lernender bearbeiten": "Edit apprentice",
-    "Lernender erfassen": "Record apprentice",
+    "Lernender erfassen": "Add apprentice",
     "Lernender gespeichert.": "Apprentice saved.",
     "Letzte Aktivität": "Last activity",
     "Letzte Note": "Last grade",
@@ -158,7 +156,6 @@
     "Neue Note erfasst": "New grade recorded",
     "Neue Noten": "New grades",
     "Neuer Kommentar": "New comment",
-    "Neues Startpasswort erzeugen? Das bisherige Passwort wird ungültig.": "Generate a new starting password? The current password will become invalid.",
     "Nie": "Never",
     "Noch keine Kommentare.": "No comments yet.",
     "Noch keine Meldungen": "No reports yet",
@@ -260,5 +257,7 @@
     "Kein Eintrag seit :tage Tagen": "No entry for :tage days",
     "Noten von :name": "Grades of :name",
     "Keine Lernenden passen zu den Filtern.": "No apprentices match the filters.",
-    "Noch keine Lernenden erfasst.": "No apprentices added yet."
+    "Noch keine Lernenden erfasst.": "No apprentices added yet.",
+    "Neues Startpasswort erzeugen?": "Generate a new starting password?",
+    "Das bisherige Passwort wird ungültig.": "The current password will become invalid."
 }

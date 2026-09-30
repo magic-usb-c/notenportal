@@ -81,7 +81,7 @@
                                         <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
                                            class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
                                         <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}"
-                                              onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                              data-bestaetigen="{{ __('Abgabetermin löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                             @csrf @method('DELETE')
                                             <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
                                             <button :disabled="loading" class="text-muted hover:text-note-ungenuegend disabled:opacity-50">{{ __('Löschen') }}</button>
@@ -141,7 +141,7 @@
                                                     <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
                                                        class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Bearbeiten') }}</a>
                                                     <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}" class="inline"
-                                                          onsubmit="return confirm(@js(__('Abgabetermin löschen?')))" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                          data-bestaetigen="{{ __('Abgabetermin löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                         @csrf @method('DELETE')
                                                         <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
                                                         <button :disabled="loading" aria-label="{{ __('Löschen') }}" title="{{ __('Löschen') }}"

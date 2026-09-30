@@ -121,11 +121,11 @@
                                     </a>
                                     @if($istAdmin || (int) $d->hochgeladen_von_benutzer_id === $ich)
                                         <form method="POST" action="{{ route('modules.documents.destroy', [$modul->modul_id, $d->modul_dokument_id]) }}"
-                                              onsubmit="return confirm('{{ __('Unterlage löschen?') }}')" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                              data-bestaetigen="{{ __('Unterlage löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                             @csrf
                                             @method('DELETE')
                                             <button :disabled="loading" aria-label="{{ __(':titel löschen', ['titel' => $d->titel]) }}"
-                                                    class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr">×</button>
+                                                    class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr"><x-symbol name="trash" /></button>
                                         </form>
                                     @endif
                                 </div>

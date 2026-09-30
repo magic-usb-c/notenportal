@@ -72,7 +72,7 @@
                                             </form>
                                             <form method="POST"
                                                   action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
-                                                  onsubmit="return confirm(@js(__('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer])))"
+                                                  data-bestaetigen="{{ __('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer]) }}"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
                                                 <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
@@ -173,7 +173,7 @@
                                         <td class="text-right">
                                             <form method="POST"
                                                   action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
-                                                  onsubmit="return confirm(@js(__('Fach :name entfernen?', ['name' => $f->name])))"
+                                                  data-bestaetigen="{{ __('Fach :name entfernen?', ['name' => $f->name]) }}"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf @method('DELETE')
                                                 <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>

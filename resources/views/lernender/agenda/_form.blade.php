@@ -172,7 +172,7 @@
         </form>
     @endif
     @foreach($b->dokumente as $d)
-        <form id="anhang-entfernen-{{ $d->dokument_id }}" method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" onsubmit="return confirm('{{ __('Anhang entfernen?') }}');" class="hidden">
+        <form id="anhang-entfernen-{{ $d->dokument_id }}" method="POST" action="{{ route('learner.documents.destroy', $d->dokument_id) }}" data-bestaetigen="{{ __('Anhang entfernen?') }}" data-bestaetigen-knopf="{{ __('Entfernen') }}" class="hidden">
             @csrf @method('DELETE')
         </form>
     @endforeach

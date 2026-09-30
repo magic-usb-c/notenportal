@@ -173,7 +173,7 @@ class AdminEnglischTest extends TestCase
             ->assertSee('Overview');
 
         $this->actingAs($admin)->get(route('admin.users.index'))
-            ->assertSee('Create user');
+            ->assertSee('Add user');
 
         $this->assertKeineFehlendenSchluessel();
     }

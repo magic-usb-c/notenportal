@@ -178,7 +178,7 @@
                     <p class="text-sm text-muted">{{ __('Zu diesem Notenbaum sind :anzahl Noten erfasst. Löschen geht erst ohne erfasste Noten.', ['anzahl' => $positionen]) }}</p>
                 @else
                     <form method="POST" action="{{ route('admin.master-data.grade-trees.destroy', $baum->baum_id) }}"
-                          onsubmit="return confirm(@js(__('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name])));">
+                          data-bestaetigen="{{ __('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="np-knopf np-knopf-gefahr">{{ __('Notenbaum löschen') }}</button>

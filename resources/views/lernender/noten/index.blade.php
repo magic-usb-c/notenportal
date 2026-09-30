@@ -204,7 +204,7 @@
                                                     @if($beleg)
                                                         <div class="flex justify-end px-3 py-1.5">
                                                             <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
-                                                                  @if($beleg['offen']) onsubmit="return confirm(@js(__('Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.')))" @endif
+                                                                  @if($beleg['offen']) data-bestaetigen="{{ __('Modul wiederholen?') }}" data-bestaetigen-text="{{ __('Ab der nächsten Note zählt nur der neue Versuch.') }}" data-bestaetigen-knopf="{{ __('Wiederholen') }}" data-bestaetigen-art="normal" @endif
                                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                                 @csrf
                                                                 <button :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">

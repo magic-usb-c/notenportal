@@ -70,7 +70,7 @@ class BerufsbildnerEnglischTest extends TestCase
 
         $this->get(route('trainer.learners.index'))
             ->assertOk()
-            ->assertSee('Record apprentice');
+            ->assertSee('Add apprentice');
 
         $this->get(route('trainer.learners.show', $lernenderId).'?tab=overview')
             ->assertOk()

@@ -50,7 +50,7 @@
                                         <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
                                            class="np-knopf np-knopf-schlicht">{{ __('Bearbeiten') }}</a>
                                         <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
-                                              onsubmit="return confirm(@js(__('Semester :bezeichnung löschen?', ['bezeichnung' => $s->bezeichnung])))"
+                                              data-bestaetigen="{{ __('Semester :bezeichnung löschen?', ['bezeichnung' => $s->bezeichnung]) }}"
                                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                             @csrf @method('DELETE')
                                             <button :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>

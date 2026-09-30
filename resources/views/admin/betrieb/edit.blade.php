@@ -124,7 +124,7 @@
                                     <span class="w-20 text-right text-xs text-muted tabular-nums">{{ $groesse($s['groesse']) }}</span>
                                     <a href="{{ route('admin.operations.backups.show', $s['name']) }}" aria-label="{{ __('Sicherung :datum herunterladen', ['datum' => $datum]) }}"
                                        title="{{ __('Herunterladen') }}" class="np-knopf np-knopf-symbol"><x-symbol name="arrow-down-tray" class="size-4" /></a>
-                                    <form method="POST" action="{{ route('admin.operations.backups.destroy', $s['name']) }}#sicherung" onsubmit="return confirm(@js(__('Sicherung löschen?')))"
+                                    <form method="POST" action="{{ route('admin.operations.backups.destroy', $s['name']) }}#sicherung" data-bestaetigen="{{ __('Sicherung löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
                                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                         @csrf
                                         @method('DELETE')

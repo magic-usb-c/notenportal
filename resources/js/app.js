@@ -1,6 +1,7 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import { registriereBestaetigung } from './bestaetigung';
 import { registriereCharts } from './charts';
 import { registriereFeedback } from './feedback';
 import { kopieren, registriereFormhilfen, registriereRadiogroup, registriereScrollbereiche, registriereSeitenleiste, t } from './np';
@@ -15,6 +16,7 @@ window.Alpine = Alpine;
 // np.t(schluessel), np.kopieren(text)
 window.np = { ...(window.np ?? {}), t, kopieren };
 
+registriereBestaetigung();
 registriereCharts(Alpine);
 registriereFeedback(Alpine);
 registriereRadiogroup(Alpine);

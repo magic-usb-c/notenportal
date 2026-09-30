@@ -97,7 +97,6 @@
     "dann": "then",
     "Darstellung": "Appearance",
     "Darstellung auf Standard zurückgesetzt.": "Appearance reset to default.",
-    "Darstellung wirklich auf Standard zurücksetzen?": "Reset appearance to default?",
     "Darstellung:": "Appearance:",
     "Darstellung: Dunkel": "Appearance: Dark",
     "Darstellung: Hell": "Appearance: Light",
@@ -577,5 +576,10 @@
     "Erscheinungsbild": "Appearance",
     "Bedienung": "Controls",
     "Transparenz reduzieren": "Reduce transparency",
-    "Alle Daten dieses Kontos": "All data of this account"
+    "Alle Daten dieses Kontos": "All data of this account",
+    "Konto deaktivieren?": "Deactivate account?",
+    "Anmelden ist danach nicht mehr möglich.": "Signing in will no longer be possible afterwards.",
+    "Darstellung auf Standard zurücksetzen?": "Reset appearance to default?",
+    "Neuen Abo-Link erzeugen?": "Generate a new subscription link?",
+    "Der bisherige Link funktioniert danach nicht mehr.": "The previous link will stop working."
 }

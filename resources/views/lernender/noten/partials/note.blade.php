@@ -44,7 +44,7 @@
                 </a>
                 <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                      onsubmit="return confirm(@js(__('Note wirklich löschen?')));">
+                      data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                     @csrf
                     @method('DELETE')
                     <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
@@ -88,7 +88,7 @@
                         @if((int) $k->autor_benutzer_id === $ich)
                             <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                  onsubmit="return confirm(@js(__('Kommentar wirklich löschen?')));">
+                                  data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                                 @csrf
                                 @method('DELETE')
                                 <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>

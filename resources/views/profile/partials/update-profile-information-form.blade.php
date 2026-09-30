@@ -329,7 +329,7 @@
 
 @if($praeferenzenOption ?? false)
     <form id="praeferenzen-zuruecksetzen" method="POST" action="{{ route('profile.preferences.reset') }}" class="hidden"
-          onsubmit="return confirm(@js(__('Darstellung wirklich auf Standard zurücksetzen?')));">
+          data-bestaetigen="{{ __('Darstellung auf Standard zurücksetzen?') }}" data-bestaetigen-knopf="{{ __('Zurücksetzen') }}">
         @csrf
         @method('delete')
     </form>

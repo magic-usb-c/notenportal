@@ -42,7 +42,7 @@
             @endif
             <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}" class="np-knopf np-knopf-symbol"
                aria-label="{{ __('Bearbeiten') }}" title="{{ __('Bearbeiten') }}"><x-symbol name="pencil-square" /></a>
-            <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" onsubmit="return confirm(@js(__('Prüfung entfernen?')));"
+            <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" data-bestaetigen="{{ __('Prüfung entfernen?') }}" data-bestaetigen-knopf="{{ __('Entfernen') }}"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('DELETE')

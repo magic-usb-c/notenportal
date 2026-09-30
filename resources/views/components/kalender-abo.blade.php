@@ -16,7 +16,7 @@
     </div>
     <div class="flex items-center justify-between gap-3 px-4 py-3">
         <form method="POST" action="{{ $resetRoute }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-              onsubmit="return confirm(@js(__('Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.')));">
+              data-bestaetigen="{{ __('Neuen Abo-Link erzeugen?') }}" data-bestaetigen-text="{{ __('Der bisherige Link funktioniert danach nicht mehr.') }}">
             @csrf
             <button :disabled="loading" class="np-knopf np-knopf-schlicht">{{ __('Neuen Link erzeugen') }}</button>
         </form>

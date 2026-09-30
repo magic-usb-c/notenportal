@@ -127,7 +127,6 @@
     "Keine offenen Prüfungen": "No remaining exams",
     "Keine offenen Prüfungen geplant": "No remaining exams planned",
     "Kommentar schreiben": "Write a comment",
-    "Kommentar wirklich löschen?": "Really delete this comment?",
     "Kommentare": "Comments",
     "Kopieren": "Copy",
     "Kopiert": "Copied",
@@ -144,11 +143,9 @@
     "Minuspunkte": "Minus points",
     "Modul": "Module",
     "Modul wiederholen": "Repeat module",
-    "Modul wiederholen? Ab der nächsten Note zählt nur der neue Versuch.": "Repeat module? From the next grade onward, only the new attempt counts.",
     "Monat": "Month",
     "Mündlich": "Oral",
     "Neu": "New",
-    "Neuen Abo-Link erzeugen? Der bisherige Link funktioniert danach nicht mehr.": "Generate a new subscription link? The previous link will stop working.",
     "Neuen Link erzeugen": "Generate new link",
     "Neuer Abo-Link erzeugt.": "New subscription link generated.",
     "Nextcloud": "Nextcloud",
@@ -173,7 +170,6 @@
     "Note gespeichert.": "Grade saved.",
     "Note hinzufügen": "Add grade",
     "Note löschen": "Delete grade",
-    "Note wirklich löschen?": "Really delete this grade?",
     "Notenblatt": "Grade sheet",
     "Notenimport": "Grade import",
     "Notenliste": "Grade list",
@@ -343,5 +339,8 @@
     ":zeit Uhr": ":zeit",
     ":anzahl weitere": ":anzahl more",
     "1 Eintrag": "1 entry",
-    "Monatsübersicht": "Month overview"
+    "Monatsübersicht": "Month overview",
+    "Modul wiederholen?": "Repeat module?",
+    "Ab der nächsten Note zählt nur der neue Versuch.": "From the next grade onward, only the new attempt counts.",
+    "Wiederholen": "Repeat"
 }

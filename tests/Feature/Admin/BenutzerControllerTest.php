@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Berufsbildner;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -96,5 +97,36 @@ class BenutzerControllerTest extends TestCase
             ->assertSessionHasErrors('rollen');
 
         $this->assertNotSame('Geaendert', $this->admin->fresh()->vorname);
+    }
+
+    #[Test]
+    public function rollenfilter_zeigt_weiterhin_alle_rollen_eines_kontos(): void
+    {
+        $beide = User::factory()->berufsbildner()->create();
+        $adminRolle = DB::table('rollen')->where('name', 'Admin')->value('rolle_id');
+        DB::table('benutzer_rollen')->insert(['benutzer_id' => $beide->benutzer_id, 'rolle_id' => $adminRolle]);
+
+        $zeilen = $this->actingAs($this->admin)->get(route('admin.users.index', ['rolle_id' => $adminRolle]))
+            ->assertOk()->viewData('benutzer');
+
+        $this->assertSame('Admin, Berufsbildner', $zeilen->firstWhere('benutzer_id', $beide->benutzer_id)->rollen);
+    }
+
+    #[Test]
+    public function konto_deaktivieren_liegt_im_konto_mit_rueckfrage_und_fehlt_beim_eigenen(): void
+    {
+        $bb = User::factory()->berufsbildner()->create();
+
+        $this->actingAs($this->admin)->get(route('admin.users.edit', $bb->benutzer_id))->assertOk()
+            ->assertSee(route('admin.users.toggle-active', $bb->benutzer_id))
+            ->assertSee('data-bestaetigen="'.__('Konto deaktivieren?').'"', false);
+
+        $this->actingAs($this->admin)->get(route('admin.users.edit', $this->admin->benutzer_id))->assertOk()
+            ->assertDontSee(route('admin.users.toggle-active', $this->admin->benutzer_id));
+
+        $bb->forceFill(['aktiv' => false])->save();
+        $this->actingAs($this->admin)->get(route('admin.users.edit', $bb->benutzer_id))->assertOk()
+            ->assertSee(__('Aktivieren'))
+            ->assertDontSee('data-bestaetigen=', false);
     }
 }
