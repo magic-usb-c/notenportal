@@ -27,10 +27,12 @@
         $sortLink = function (string $spalte, string $label) use ($filter) {
             $aktiv = $filter['sort'] === $spalte;
             $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
-            $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : ($filter['dir'] === 'asc' ? '↑' : '↓');
+            $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
 
             return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
         };
+        // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
+        $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
 
         $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40';
     @endphp
@@ -145,14 +147,14 @@
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 z-10 bg-surface-2">
                             <tr>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{!! $sortLink('name', __('Name')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('lehrjahr', __('Lehrberuf / Lj')) !!}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Name')) !!}</th>
+                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('lehrjahr') }}">{!! $sortLink('lehrjahr', __('Lehrberuf / Lj')) !!}</th>
                                 @if($bereich === 'admin')
                                     <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted whitespace-nowrap">{{ __('Berufsbildner') }}</th>
                                 @endif
                                 <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Noten') }}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
-                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
+                                <th scope="col" class="h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
                                 <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Status') }}</th>
                                 <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>

@@ -7,7 +7,9 @@
             'sort' => $spalte,
             'dir' => $sort === $spalte ? ($dir === 'asc' ? 'desc' : 'asc') : $start,
         ]);
-        $pfeil = fn (string $spalte) => $sort === $spalte ? ($dir === 'asc' ? '↑' : '↓') : '';
+        // Richtung für Screenreader über aria-sort am Spaltenkopf, der Pfeil ist nur fürs Auge
+        $pfeil = fn (string $spalte) => $sort === $spalte ? new \Illuminate\Support\HtmlString('<span aria-hidden="true">'.($dir === 'asc' ? '↑' : '↓').'</span>') : '';
+        $ariaSort = fn (string $spalte) => $sort === $spalte ? ($dir === 'desc' ? 'descending' : 'ascending') : 'none';
         $filterAktiv = request()->hasAny(['semester', 'lehrberuf_id', 'berufsbildner_id']);
         $k = $kennzahlen;
     @endphp
@@ -175,7 +177,7 @@
                     <table class="min-w-full text-sm text-text">
                         <thead class="text-muted text-xs">
                             <tr class="border-b border-border">
-                                <th class="text-left px-5 py-2 font-medium">
+                                <th scope="col" class="text-left px-5 py-2 font-medium" aria-sort="{{ $ariaSort('name') }}">
                                     <span class="flex flex-wrap items-center gap-x-3 gap-y-1">
                                         <a href="{{ $sortUrl('name') }}" class="hover:text-text">{{ __('Name') }} {{ $pfeil('name') }}</a>
                                         <span class="contents sm:hidden">
@@ -187,14 +189,14 @@
                                         </span>
                                     </span>
                                 </th>
-                                <th class="hidden sm:table-cell text-left px-3 py-2 font-medium"><a href="{{ $sortUrl('status') }}" class="hover:text-text">{{ __('Status') }} {{ $pfeil('status') }}</a></th>
-                                <th class="text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="hover:text-text">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
+                                <th scope="col" class="hidden sm:table-cell text-left px-3 py-2 font-medium" aria-sort="{{ $ariaSort('status') }}"><a href="{{ $sortUrl('status') }}" class="hover:text-text">{{ __('Status') }} {{ $pfeil('status') }}</a></th>
+                                <th scope="col" class="text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('gesamt') }}"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="hover:text-text">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
                                 @if($sid)
-                                    <th class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('semester', 'desc') }}" class="hover:text-text">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
+                                    <th scope="col" class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('semester') }}"><a href="{{ $sortUrl('semester', 'desc') }}" class="hover:text-text">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
                                 @endif
-                                <th class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="hover:text-text">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
-                                <th class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="hover:text-text">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
-                                <th class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap"><a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
+                                <th scope="col" class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('ungenuegend') }}"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="hover:text-text">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
+                                <th scope="col" class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('pruefungen') }}"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="hover:text-text">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
+                                <th scope="col" class="hidden sm:table-cell text-right px-3 py-2 font-medium whitespace-nowrap" aria-sort="{{ $ariaSort('letzte') }}"><a href="{{ $sortUrl('letzte', 'desc') }}" class="hover:text-text">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
                                 <th class="px-5 py-2 print:hidden"><span class="sr-only">{{ __('Noten') }}</span></th>
                             </tr>
                         </thead>

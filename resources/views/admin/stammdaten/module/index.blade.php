@@ -31,7 +31,9 @@
                     ' <a href="'.e($mbk).'" target="_blank" rel="noopener noreferrer"
                          class="ml-1 text-xs text-accent-text underline underline-offset-2 hover:opacity-80">'
                         .e(__('Modulbaukasten')).'<span class="sr-only"> ('.e(__('neues Fenster')).')</span></a>')
-                    .($m->aktiv ? '' : '<span class="block text-xs text-muted sm:hidden">'.e(__('inaktiv')).'</span>').'</td>
+                    .'<span class="block text-xs text-muted sm:hidden">'
+                        .e((int) $m->lehrberuf_count === 1 ? __('1 Lehrberuf') : __(':anzahl Lehrberufe', ['anzahl' => (int) $m->lehrberuf_count]))
+                        .($m->aktiv ? '' : ' · '.e(__('inaktiv'))).'</span></td>
                 <td class="hidden px-2.5 sm:px-4 text-right text-muted sm:table-cell">'.e((string) $m->lehrberuf_count).'</td>
                 <td class="hidden px-2.5 sm:px-4 sm:table-cell">'.($m->aktiv
                     ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'
