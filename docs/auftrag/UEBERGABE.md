@@ -65,6 +65,8 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Dabei gefunden und behoben: Abgabetermin ohne Gewichtung ergab 500 (ea7e431).
                   «Backlog A» ist nirgends definiert; ausgelegt als die offenen Punkte in
                   audit-backlog.md – erledigte mit Beleg markiert, Rest begründet gelassen.
+                  Prüfer: Scan-Regel zu grob (3ac27d2), Berufsbildner konnten eigene Kommentare nach
+                  Ende der Betreuung noch löschen (c82bad2) – beide mit Test, der vorher fällt.
 ```
 
 ---
@@ -83,5 +85,7 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
 - **Kantonale BMV**: ob sie an die BMV 2025 angepasst ist, liess sich nicht klären
   (`LAGE.md` 4.8). Betrifft die BM-Vorlage.
 - **INBE-Modulverteilung**: Lektionentafel und Modulverteilungs-PDF widersprechen sich.
+- **Abgabetermin ohne Gewichtung**: zählt heute 100 % («leer = 100» aus `notenlogik.md`). In teilweise
+  benoteten Modulen wäre das Restgewicht passender; Beispiel und Vorschlag in `audit-backlog.md`.
 - **Lizenz und Meldeweg für Sicherheitslücken** sind weiterhin offen.
 - **Prod-Testpasswort aus Commit `171ed72`** liegt in der Git-Historie und muss rotiert werden.
