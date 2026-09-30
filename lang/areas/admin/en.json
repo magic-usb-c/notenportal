@@ -1,6 +1,5 @@
 {
     "(Buchstaben, Ziffern, . _ -)": "(letters, digits, . _ -)",
-    "(mind. 10 Zeichen, Buchstaben und Ziffern)": "(min. 10 characters, letters and digits)",
     "+:n Duplikate": "+:n duplicates",
     "1 Fach": "1 subject",
     "1 fehlgeschlagene Mail (7 Tage)": "1 failed email (7 days)",
@@ -186,7 +185,6 @@
     "Ende": "End",
     "Entfernen": "Remove",
     "Entfällt mit": "Not applicable with",
-    "Erfasst eigene Noten": "Records own grades",
     "Erfasste Noten": "Recorded grades",
     "Erfasste Noten pro Woche": "Grades recorded per week",
     "Erinnerung mit Prüfungsstoff, Dauer und Hilfsmitteln einige Tage vor der Prüfung.": "Reminder with exam content, duration and permitted aids a few days before the exam.",
@@ -221,7 +219,6 @@
     "Fächer (berufsspezifisch)": "Subjects (occupation-specific)",
     "Für diese Vorlage einen Lehrberuf wählen.": "Choose an occupation for this template.",
     "Ganze Lehrzeit": "Whole apprenticeship",
-    "Generieren": "Generate",
     "Genügend ab": "Pass from",
     "Gesamtnote": "Overall grade",
     "Gesamtschnitt nach Lehrjahr": "Overall average by year of apprenticeship",
@@ -572,7 +569,6 @@
     "Ungesehen": "Unseen",
     "URL": "URL",
     "URL:": "URL:",
-    "Verbergen": "Hide",
     "Verbindung testen": "Test connection",
     "Verbindung zum Ziel funktioniert.": "Connection to the target works.",
     "Verpflichtend": "Mandatory",
@@ -646,5 +642,11 @@
     "Kein Handlungsbedarf": "Nothing to do",
     "Noten in :anzahl Wochen": "grades in :anzahl weeks",
     "KW :nr": "Wk :nr",
-    "Kennzahlen": "Key figures"
+    "Kennzahlen": "Key figures",
+    "Passwort generieren": "Generate password",
+    "Mindestens 10 Zeichen mit Buchstaben und Ziffern": "At least 10 characters with letters and digits",
+    "Passwort anzeigen": "Show password",
+    "Unverändert": "Unchanged",
+    "Buchstaben, Ziffern und . _ -": "Letters, digits and . _ -",
+    "Berufsbildner betreuen Lernende, Admins verwalten das ganze Portal.": "Trainers mentor apprentices, admins manage the whole portal."
 }

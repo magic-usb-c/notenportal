@@ -154,6 +154,26 @@ export function registriereRadiogroup(Alpine) {
     });
 }
 
+// Passwortfelder im Admin: zufälliges Passwort erzeugen (mind. eine Ziffer und ein Buchstabe, ohne
+// verwechselbare Zeichen) und in Feld plus Bestätigung setzen. Refs: «pw1», «pw2».
+export function registrierePasswortFelder(Alpine) {
+    Alpine.data('npPasswortFelder', () => ({
+        sichtbar: false,
+        generieren() {
+            const zeichen = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!?#+';
+            const werte = new Uint32Array(14);
+            let pw;
+            do {
+                crypto.getRandomValues(werte);
+                pw = Array.from(werte, (v) => zeichen[v % zeichen.length]).join('');
+            } while (!/\d/.test(pw) || !/[a-z]/i.test(pw));
+            this.$refs.pw1.value = pw;
+            this.$refs.pw2.value = pw;
+            this.sichtbar = true;
+        },
+    }));
+}
+
 // Seitenleiste: aufgeklappte Gruppen je Gerät merken (reine Bequemlichkeit, darf fehlen).
 const SEITENLEISTE_ZU = 'np-seitenleiste-zu';
 
