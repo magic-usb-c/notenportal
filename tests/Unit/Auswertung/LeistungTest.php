@@ -66,20 +66,4 @@ class LeistungTest extends TestCase
         $this->assertSame('m42', $leistung->schluessel(null));
         $this->assertSame('m42', $leistung->schluessel(5), 'Modul-Leistungen hängen nicht vom übergebenen Semester ab');
     }
-
-    #[Test]
-    public function to_array_liefert_die_darstellbaren_felder(): void
-    {
-        $leistung = new Leistung(kategorieId: 1, fachId: 2, modulId: null, semesterId: 3, datum: '2026-03-15', wert: 5.25, gewicht: 75.0, quelle: Leistung::NOTE, id: 11, titel: 'LB2');
-
-        $this->assertSame([
-            'id' => 11,
-            'quelle' => Leistung::NOTE,
-            'datum' => '2026-03-15',
-            'titel' => 'LB2',
-            'wert' => 5.25,
-            'gewicht' => 75.0,
-            'knoten_id' => null,
-        ], $leistung->toArray());
-    }
 }

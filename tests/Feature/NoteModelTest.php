@@ -4,80 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Kategorie;
 use App\Models\Note;
 use App\Models\NotenGesehen;
 use App\Models\NotenKommentar;
 use App\Models\Pruefung;
-use App\Models\Semester;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-/** app/Models/Note.php: Query-Scopes für Listen, Beziehungen zu Kommentaren/gesehen/Erfassern. */
+/** app/Models/Note.php: Beziehungen zu Kommentaren/gesehen/Erfassern, Löschen öffnet die Prüfung wieder. */
 class NoteModelTest extends TestCase
 {
-    #[Test]
-    public function scope_for_lernender_liefert_nur_dessen_noten(): void
-    {
-        $eigene = Note::factory()->create();
-        Note::factory()->create();
-
-        $gefunden = Note::query()->forLernender($eigene->lernender_id)->get();
-
-        $this->assertSame([$eigene->note_id], $gefunden->pluck('note_id')->all());
-    }
-
-    #[Test]
-    public function scope_filter_kategorie_lässt_null_durch_und_filtert_sonst(): void
-    {
-        $bms = Kategorie::where('code', 'BMS')->value('kategorie_id') ?? Kategorie::factory()->create()->kategorie_id;
-        $andere = Kategorie::where('kategorie_id', '!=', $bms)->value('kategorie_id') ?? Kategorie::factory()->create()->kategorie_id;
-        $note = Note::factory()->create(['kategorie_id' => $bms]);
-        Note::factory()->create(['kategorie_id' => $andere]);
-
-        $this->assertSame(2, Note::query()->filterKategorie(null)->count());
-        $gefiltert = Note::query()->filterKategorie($bms)->get();
-        $this->assertSame([$note->note_id], $gefiltert->pluck('note_id')->all());
-    }
-
-    #[Test]
-    public function scope_filter_semester_lässt_null_durch_und_filtert_sonst(): void
-    {
-        $sem1 = Semester::factory()->create();
-        $sem2 = Semester::factory()->create();
-        $note = Note::factory()->create(['semester_id' => $sem1->semester_id]);
-        Note::factory()->create(['semester_id' => $sem2->semester_id]);
-
-        $this->assertSame(2, Note::query()->filterSemester(null)->count());
-        $gefiltert = Note::query()->filterSemester($sem1->semester_id)->get();
-        $this->assertSame([$note->note_id], $gefiltert->pluck('note_id')->all());
-    }
-
-    #[Test]
-    public function scope_ordered_sortiert_nach_pruefungsdatum_dann_note_id_absteigend(): void
-    {
-        $alt = Note::factory()->create(['pruefungsdatum' => '2026-01-10']);
-        $neu = Note::factory()->create(['pruefungsdatum' => '2026-02-01']);
-        $neuZweite = Note::factory()->create(['pruefungsdatum' => '2026-02-01']);
-
-        $reihenfolge = Note::query()->ordered()->pluck('note_id')->all();
-
-        $this->assertSame([$neuZweite->note_id, $neu->note_id, $alt->note_id], $reihenfolge);
-    }
-
-    #[Test]
-    public function scope_with_overview_laedt_die_standard_relationen(): void
-    {
-        Note::factory()->create();
-
-        $note = Note::query()->withOverview()->sole();
-
-        foreach (Note::OVERVIEW_RELATIONS as $relation) {
-            $this->assertTrue($note->relationLoaded(explode('.', $relation)[0]), "{$relation} sollte geladen sein");
-        }
-    }
-
     #[Test]
     public function kommentare_werden_nach_erstellungsdatum_aufsteigend_geladen(): void
     {

@@ -402,10 +402,13 @@ Block F (Rückmeldung #14): Lernende sehen je Modul/Fach, wo sie chronologisch u
 
 Aus der Sicherheitsprüfung (Opus) von Block G: HOCH/MITTEL umgesetzt (GD-Dekompressionsbomben-Schutz `Anhang::MAX_PX`, Dialog/Auslöser unabhängig vom Schalter `Einstellungen::FEEDBACK_KNOPF`, Toast-Überlappung, UI blendet Technik-/Anhang-Optionen vor der Prod-Migration aus). Zwei TIEF-Befunde bewusst zurückgestellt:
 
-- **GD-Fallback behält Originalbytes**: Ist `extension_loaded('gd')` falsch (Prod hat GD, betrifft nur exotische PHP-Builds) oder scheitert `imagecreatefromstring()`, speichert `Anhang::speichern()` die hochgeladenen Bytes unverändert statt sie neu zu kodieren. Ein Polyglot-Bild (gültige Bildsignatur + eingebetteter Fremdcode) könnte so unverändert überleben. Nicht direkt ausnutzbar: Auslieferung erfolgt ausschliesslich mit `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff` und einer sandboxenden CSP an Admin/meldende Person – kein Browser führt den Inhalt aus. Fix wäre, ohne GD/bei Fehlschlag der Neukodierung das Bild ganz abzulehnen statt roh zu speichern; aus Zeitgründen zurückgestellt.
+- ~~**GD-Fallback behält Originalbytes**~~ erledigt (842e284, 28.09.): `Anhang::speichern()` weist ein Bild ab, das sich nicht neu kodieren lässt (Test `FeedbackTechnikAnhangTest::bild_ohne_erfolgreiche_neukodierung_wird_abgelehnt_statt_ungeprueft_uebernommen`). Nachgeprüft 30.09.: Der Feedback-Screenshot (`Screenshot::speichern()`) und das Betriebslogo behalten ihre Bytes weiterhin – der Screenshot nimmt nur JPG/PNG/WebP an und geht mit Sandbox-CSP und `nosniff` nur an Admins, das Logo lädt nur ein Admin hoch und wird mit GD neu kodiert, das `install.sh` mitinstalliert. Beides bewusst so gelassen.
 - **`Feedback::booted()`-`deleting`-Hook räumt nur bei Eloquent-Löschung auf**: Screenshot/Anhänge werden nur entfernt, wenn eine `Feedback`-Zeile über das Model gelöscht wird (`$feedback->delete()`). Ein direkter `DB::table('feedback')->delete()` (kommt in der Anwendung aktuell nirgends vor) würde die Datenbankzeile per Fremdschlüssel-Kaskade entfernen, die zugehörigen Dateien auf der Disk aber verwaisen lassen. Kein akutes Risiko (kein Code-Pfad nutzt Raw-Deletes auf `feedback`), aber ohne Model-Event nicht automatisch behebbar; bei Bedarf ein periodisches Aufräum-Kommando (verwaiste Pfade unter `feedback/anhaenge`/`feedback/screenshots` ohne passende DB-Zeile) ergänzen.
 
 ## Verwaiste Schlüssel in `lang/areas/*/en.json` (12.09.2026)
+
+**Erledigt (nachgeprüft 30.09.2026):** keiner der sechs Schlüssel steht mehr in `lang/`, und
+`SchluesselTest::geschlossene_uebersetzungsdateien_haben_keine_verwaisten_schluessel` prüft Waisen je Bereichsdatei.
 
 Beim Abschluss von Block G aufgefallen: Die Umbenennung «Lob» → «Sonstiges» hatte drei tote Schlüssel in `lang/areas/trainer/en.json` hinterlassen (`Lob`, der alte Bannersatz «… oder Lob – über das Benutzermenü oder mit», `unter «Feedback melden» erreichst du uns jederzeit.`). Kein Test hat angeschlagen: `tests/Feature/I18n/Schluessel.php` liest die Bereichsdateien zwar ein, prüft sie aber nur auf *fehlende* Übersetzungen – auf verwaiste Schlüssel wird ausschliesslich `lang/en.json` geprüft. `tests/Feature/I18n/offen.php` hält diese Lücke bereits fest. Die drei Trainer-Waisen sind mit Block G entfernt.
 
@@ -417,6 +420,10 @@ Sechs weitere Waisen bleiben bewusst liegen, weil sie aus fremden Blöcken stamm
 Vorschlag: `Schluessel.php` um eine Waisen-Prüfung je Bereichsdatei erweitern und die sechs Einträge im selben Zug entfernen – zusammen ein kleiner, eigener Commit. Die Prüfung per literaler Suche ist eine Heuristik; dynamisch zusammengesetzte Schlüssel würden fälschlich als verwaist gelten, deshalb muss jeder Treffer wie hier einzeln gegengeprüft werden.
 
 ## Ungenutzte öffentliche API in `Note` und `Leistung` (12.09.2026)
+
+**Erledigt (30.09.2026):** entfernt samt ihren Tests. Nachgeprüft: kein Aufruf in `app/`, `resources/`
+(Views) oder `routes/`; `Leistung` implementiert weder `Arrayable` noch `JsonSerializable`, `toArray()`
+wurde also auch nicht implizit gerufen. `Note::OVERVIEW_RELATIONS` bleibt (Lernenden-Noten der Verwaltung).
 
 Beim Schliessen der Testlücken (Block AI) fiel auf, dass die `Note`-Scopes
 `forLernender`, `filterKategorie`, `filterSemester`, `ordered`, `withOverview`
@@ -485,6 +492,10 @@ Konstante streichen. Der erste Weg ist der wahrscheinlichere, weil der Raum aus 
 und genau die Art Wert ist, die eine Schule kurzfristig ändert.
 
 ## Die Modulkatalog-Seiten sind nur statisch geprüft
+
+**Erledigt (30.09.2026):** Die Überlaufmatrix des GUI-Blocks misst `/admin/master-data/modules`,
+`…/modules/create`, `…/modules/catalog` und `/grades` bei 320, 390, 640, 768, 1024 und 1280 px, dazu mit
+Seitenleiste bei 1024 und 1280 px: kein seitliches Überlaufen. Historischer Stand:
 
 Die vier im Block «Modulkatalog» geänderten Seiten (Stammdaten → Module als Liste, Neu und
 Bearbeiten, Lernender → Noten) wurden auf Quellcode-Ebene geprüft: Schweizer Hochdeutsch, kein

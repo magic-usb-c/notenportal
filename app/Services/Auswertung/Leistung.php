@@ -62,18 +62,4 @@ final readonly class Leistung
 
         return "m{$this->modulId}";
     }
-
-    /** @return array<string, mixed> */
-    public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'quelle' => $this->quelle,
-            'datum' => $this->datum,
-            'titel' => $this->titel,
-            'wert' => $this->wert,
-            'gewicht' => $this->gewicht,
-            'knoten_id' => $this->knotenId,
-        ];
-    }
 }

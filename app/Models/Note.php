@@ -7,9 +7,7 @@ namespace App\Models;
 use App\Casts\Notenwert;
 use App\Support\NotenSkala;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -117,67 +115,6 @@ class Note extends Model
     public function aktualisiertVonBenutzer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'aktualisiert_von_benutzer_id', 'benutzer_id');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Query-Scopes (damit Controller sauber bleiben)
-    |--------------------------------------------------------------------------
-    */
-
-    /**
-     * Noten nur für einen Lernenden.
-     */
-    #[Scope]
-    protected function forLernender(Builder $query, int $lernenderId): Builder
-    {
-        return $query->where('lernender_id', $lernenderId);
-    }
-
-    /**
-     * Optional nach Kategorie filtern.
-     */
-    #[Scope]
-    protected function filterKategorie(Builder $query, ?int $kategorieId): Builder
-    {
-        if (! $kategorieId) {
-            return $query;
-        }
-
-        return $query->where('kategorie_id', $kategorieId);
-    }
-
-    /**
-     * Optional nach Semester filtern.
-     */
-    #[Scope]
-    protected function filterSemester(Builder $query, ?int $semesterId): Builder
-    {
-        if (! $semesterId) {
-            return $query;
-        }
-
-        return $query->where('semester_id', $semesterId);
-    }
-
-    /**
-     * Standard-Sortierung für Noten-Listen.
-     */
-    #[Scope]
-    protected function ordered(Builder $query): Builder
-    {
-        return $query
-            ->orderByDesc('pruefungsdatum')
-            ->orderByDesc('note_id');
-    }
-
-    /**
-     * Standard-Relations für Listen laden.
-     */
-    #[Scope]
-    protected function withOverview(Builder $query): Builder
-    {
-        return $query->with(self::OVERVIEW_RELATIONS);
     }
 
     /**
