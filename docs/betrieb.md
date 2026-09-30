@@ -29,7 +29,7 @@ find . -path './.git' -prune -o -user ubuntu ! -group www-data -exec chgrp www-d
 
 Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb ausserhalb des Labs:
 
-- HTTPS: läuft seit 11.09. parallel zu HTTP mit eigener Lab-CA (siehe «HTTPS»). Offen: HTTP → HTTPS-Redirect, HSTS, `SESSION_SECURE_COOKIE=true`, sobald die Geräte der Lernenden der CA vertrauen oder ein Zertifikat der Hamilton-CA vorliegt
+- HTTPS: erledigt (30.09.) – `install.sh` richtet CA, Serverzertifikat, HTTPS-vhost, die Umleitung von HTTP und `SESSION_SECURE_COOKIE=true` selbst ein. Offen bleibt nur HSTS: bewusst nicht gesetzt, solange Geräte im Lab ohne importierte CA zugreifen – HSTS würde den Ausweg über die Zertifikatswarnung versperren und lässt sich pro Browser nicht zurücknehmen
 - `.env`: `APP_DEBUG=false`, `LOG_CHANNEL=daily`, `APP_URL` erledigt (11.09.); `APP_ENV=production` erledigt (28.09.)
 - opcache: aktiv (11.09. geprüft, `10-opcache.ini` in mod_php geladen, Distro-Standard `opcache.enable=1`); `validate_timestamps` bleibt an, weil Prod aus dem Working Copy läuft. `config:cache`/`route:cache`/`view:cache` über `php artisan optimize` (Go-Live Punkt 6)
 - Kopie ausser Haus: Funktion vorhanden (11.09., Seite Betrieb → «Kopie ausser Haus», rsync in Ordner oder per SSH); Ziel muss beim Go-Live eingetragen werden. Offen: Wochenstände, wöchentlicher Restore-Test
@@ -40,24 +40,20 @@ Pilot im geschlossenen ICT-LAB-Netz ohne HTTPS und Härtung. Vor einem Betrieb a
 
 ## Zugang ICT-LAB (Pilot)
 
-- URL für die Lernenden: `http://172.26.14.101` (vhost `notenportal.conf`, ServerName = Lab-IP, Port 80, ufw offen).
-- Nur aus dem geschlossenen Lab-Netz erreichbar; kein DNS-Name, kein HTTPS in der Pilotphase.
+- URL für die Lernenden: `https://notenportal` über das Lab-VPN. HTTP leitet um.
+- Nur aus dem geschlossenen Lab-Netz erreichbar. Der Name löst nur auf, solange das VPN verbunden ist – das ist beabsichtigt.
 
 ## HTTPS (Lab-CA, kostenlos, ohne externe Stelle)
 
-Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's Encrypt. Stattdessen eine eigene Zertifizierungsstelle auf der VM:
+Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's Encrypt. Stattdessen eine eigene Zertifizierungsstelle auf der Maschine. Seit 30.09. richtet `install.sh` das vollständig selbst ein – die folgenden Angaben beschreiben, was dabei entsteht, nicht Handarbeit.
 
-- Dateien: `/etc/ssl/notenportal/` – `ca.crt` (öffentlich, verteilen), `ca.key` (geheim, 600), `server.crt`/`server.key` (Apache).
-- Browser vertrauen der Seite erst, wenn `ca.crt` importiert ist: Windows `certmgr.msc` → «Vertrauenswürdige Stammzertifizierungsstellen» → Importieren; macOS Schlüsselbundverwaltung → System → «Immer vertrauen»; Firefox Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren. Ohne Import: Warnung «Nicht sicher», Verbindung trotzdem verschlüsselt.
-- Serverzertifikat erneuern (vor 14.12.2028):
-```bash
-cd /etc/ssl/notenportal
-sudo openssl req -newkey rsa:2048 -nodes -keyout server.key -out server.csr -subj "/CN=172.26.14.101"
-sudo openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt -days 825 -extfile ext.cnf
-sudo systemctl reload apache2
-```
-- Umstellung auf HTTPS-only (wenn alle Geräte der CA vertrauen): in `notenportal.conf` `Redirect permanent / https://172.26.14.101/`, `.env` `APP_URL=https://172.26.14.101` und `SESSION_SECURE_COOKIE=true`, dann `php artisan config:clear`.
-- Zertifikat der Hamilton-CA statt Lab-CA: nur `SSLCertificateFile`/`SSLCertificateKeyFile` in `notenportal-ssl.conf` ersetzen.
+- Dateien: `/etc/ssl/<instanz>/` – `ca.crt` (öffentlich, verteilen), `ca.key` (geheim, 600), `server.crt`/`server.key` (Apache), `san.txt` (die Namen, für die das Zertifikat ausgestellt wurde), `ext.cnf`.
+- vhosts: `<instanz>.conf` (HTTP, leitet mit 301 auf HTTPS um – Ausnahme `/lab-ca.crt`) und `<instanz>-ssl.conf` (HTTPS, TLS 1.2/1.3). Beide tragen eine Marke von `install.sh`; wer sie entfernt, behält seine eigene Fassung und der Installer fasst die Datei nicht mehr an.
+- `.env`: `APP_URL=https://<name>` und `SESSION_SECURE_COOKIE=true` setzt der Installer, danach baut er den Config-Cache neu auf.
+- Verteilen: `ca.crt` liegt als `public/lab-ca.crt` im DocumentRoot und ist bewusst auch über HTTP erreichbar – vor dem Import würde der Abruf über HTTPS genau die Warnung auslösen, die der Import behebt. Windows Doppelklick → «Lokaler Computer» → «Vertrauenswürdige Stammzertifizierungsstellen»; macOS Schlüsselbund System → «Immer vertrauen»; Firefox hat einen eigenen Speicher und braucht den Import zusätzlich. Ohne Import: Warnung «Nicht sicher», Verbindung trotzdem verschlüsselt.
+- Erneuern: nichts zu tun. Läuft das Serverzertifikat in weniger als 30 Tagen ab oder ändern sich die Namen (anderer `--host`, neue IP), stellt der nächste `sudo ./install.sh` ein neues aus – mit derselben CA, die Geräte müssen nichts neu importieren. Die CA selbst gilt 10 Jahre.
+- Ein Zertifikat einer offiziellen Stelle statt der Lab-CA: nur `SSLCertificateFile`/`SSLCertificateKeyFile` in `<instanz>-ssl.conf` ersetzen und die Marke aus der Datei löschen, damit der Installer sie stehen lässt.
+- Name im Netz: `install.sh` trägt den Namen in `/etc/hosts` der Maschine ein, damit sie sich selbst erreicht. Für alle anderen Geräte braucht es einen A-Record auf dem DNS-Server, den der VPN-Zugang verteilt – das kann der Installer nicht.
 
 ## Go-Live-Checkliste Testbetrieb (30.09.2026)
 

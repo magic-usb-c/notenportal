@@ -1,7 +1,7 @@
 // Nimmt die Screenshots für docs/systemdoku/ auf.
 //
 // Aufruf:
-//   NP_DOKU_PW=<passwort> node tools/systemdoku-bilder.mjs <baseUrl> [ausgabe-dir]
+//   NP_DOKU_PW=<passwort> node tools/systemdoku-bilder.mjs <baseUrl> [ausgabe-dir] [--dunkel]
 //
 // Nur gegen eine Demoinstanz richten – die Bilder landen in der Dokumentation und
 // dürfen keine echten Personen zeigen. Das Passwort kommt ausschliesslich aus der
@@ -14,12 +14,14 @@ import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const baseUrl = process.argv[2];
-const ausgabe = process.argv[3] ?? 'docs/systemdoku/bilder';
+const argumente = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const dunkel = process.argv.includes('--dunkel');
+const baseUrl = argumente[0];
+const ausgabe = argumente[1] ?? 'docs/systemdoku/bilder';
 const passwort = process.env.NP_DOKU_PW;
 
 if (!baseUrl || !passwort) {
-    console.error('Aufruf: NP_DOKU_PW=<passwort> node tools/systemdoku-bilder.mjs <baseUrl> [ausgabe-dir]');
+    console.error('Aufruf: NP_DOKU_PW=<passwort> node tools/systemdoku-bilder.mjs <baseUrl> [ausgabe-dir] [--dunkel]');
     process.exit(1);
 }
 
@@ -65,14 +67,16 @@ for (const lauf of LAEUFE) {
         viewport: { width: 1366, height: 860 },
         locale: 'de-CH',
         timezoneId: 'Europe/Zurich',
-        colorScheme: 'light',
+        colorScheme: dunkel ? 'dark' : 'light',
     });
-    await context.addInitScript(() => {
+    // Die angemeldete Ansicht folgt benutzer.darstellung aus der Datenbank; localStorage deckt die
+    // Anmeldeseite ab, die noch keinen Benutzer kennt.
+    await context.addInitScript((modus) => {
         try {
-            localStorage.setItem('theme', 'light');
+            localStorage.setItem('theme', modus);
             localStorage.setItem('np.feedback.hint', '1');
         } catch (e) { /* privates Fenster */ }
-    });
+    }, dunkel ? 'dark' : 'light');
 
     const page = await context.newPage();
 

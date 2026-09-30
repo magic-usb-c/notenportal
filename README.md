@@ -4,14 +4,15 @@ Notenverwaltung für Lernende in der Schweizer Berufslehre. Lernende erfassen ih
 sehen Zeugnisnoten, Promotion und Modulfortschritt; Berufsbildner begleiten ihre Lernenden;
 Admins verwalten Betrieb, Stammdaten und Konten.
 
-Ein Server, ein Befehl: `sudo ./install.sh` richtet auf einem frischen Ubuntu alles ein.
+Ein Server, ein Befehl: `sudo ./install.sh` richtet auf einem frischen Ubuntu alles ein –
+einschliesslich HTTPS mit eigener Zertifizierungsstelle.
 
 ---
 
 ## Installation
 
-Voraussetzungen: Ubuntu 24.04 mit `sudo`-Rechten, etwa 2 GB Arbeitsspeicher, ein freier Port
-(Standard 80) und eine Internetverbindung. Sonst nichts – PHP, Apache, MariaDB, Node und
+Voraussetzungen: Ubuntu 24.04 LTS oder neuer (erprobt bis 26.04) mit `sudo`-Rechten, etwa 2 GB
+Arbeitsspeicher, freie Ports 80 und 443 und eine Internetverbindung. Sonst nichts – PHP, Apache, MariaDB, Node und
 Composer installiert das Skript selbst.
 
 ```bash
@@ -31,6 +32,12 @@ Anfang ab und nennt den Befehl zum Verschieben.
 Am Ende nennt das Skript die Adresse, die E-Mail des ersten Admin-Kontos und ein
 Startpasswort. Dieses Passwort erscheint genau einmal – notiere es, bevor du das Fenster
 schliesst.
+
+Die Adresse ist standardmässig `https://notenportal`. Damit andere Geräte diesen Namen auflösen,
+braucht es einen A-Record auf dem zuständigen DNS-Server; das Skript nennt am Schluss den nötigen
+Eintrag. Die Zertifizierungsstelle liegt unter `/etc/ssl/notenportal/ca.crt` und lässt sich als
+`http://<name>/lab-ca.crt` herunterladen – ohne diesen einmaligen Import warnt der Browser,
+verschlüsselt aber trotzdem.
 
 Danach geht es nur noch im Browser weiter:
 
@@ -53,7 +60,9 @@ Ein leeres Portal braucht keinen einzigen SQL-Befehl und keinen Eingriff in die 
 ```
 sudo ./install.sh --help                              zeigt diese Liste
 sudo ./install.sh --port 8082 --db notenportal_i2     zweite Instanz neben einer bestehenden
-sudo ./install.sh --host notenportal.example.ch       Servername statt erkannter IP
+sudo ./install.sh --host notenportal.example.ch       Servername im vhost und im Zertifikat
+sudo ./install.sh --ohne-https                        nur HTTP, ohne Zertifikat
+sudo ./install.sh --https-port 8443                   HTTPS auf einem anderen Port
 sudo ./install.sh --ohne-firewall                     keine ufw-Freigabe
 sudo ./install.sh --neues-admin-passwort              neues Startpasswort, wenn der Zugang weg ist
 ```
@@ -64,21 +73,27 @@ Pakete (Apache, MariaDB, PHP der Distribution samt Erweiterungen – mindestens 
 Composer) · Datenbank mit zwei
 Benutzern – einer nur für Daten, einer für Schemaänderungen · `.env` mit Zufallspasswörtern und
 Produktionswerten · Anwendungsschlüssel · Migrationen · Grundstammdaten (Rollen, Kategorien) ·
-erstes Admin-Konto · Oberfläche bauen · Apache-VirtualHost und Port · Firewall-Freigabe, falls
-ufw läuft · Cron für Sicherung, Mailversand und Benachrichtigungen · Dateirechte · Schlusstest
-gegen `/login`.
+erstes Admin-Konto · Oberfläche bauen · eigene Zertifizierungsstelle und Serverzertifikat ·
+Apache-VirtualHosts für HTTP und HTTPS samt Umleitung · Firewall-Freigabe, falls ufw läuft ·
+Cron für Sicherung, Mailversand und Benachrichtigungen · erste Sicherung · Dateirechte ·
+Schlusstest gegen `/login` über HTTPS, mit Prüfung der Zertifikatskette.
 
 Ein erneuter Lauf im selben Verzeichnis ist ein Update: Pakete, Abhängigkeiten, Build und
-Migrationen werden nachgezogen, `.env`, Webserver-Konfiguration und Konten bleiben unverändert.
+Migrationen werden nachgezogen, `.env`, Zertifikat, Webserver-Konfiguration und Konten bleiben
+unverändert. Läuft das Serverzertifikat in weniger als 30 Tagen ab, stellt der Lauf ein neues aus –
+mit derselben Zertifizierungsstelle, die Geräte müssen nichts neu importieren.
 
 ---
 
 ## Was danach von Hand gehört
 
-Das Skript liefert ein lauffähiges Portal über HTTP. Für den echten Betrieb bleibt dies offen:
+Das Skript liefert ein lauffähiges Portal über HTTPS. Für den echten Betrieb bleibt dies offen:
 
-- **HTTPS**: Zertifikat und `mod_ssl` richtet das Skript nicht ein. Ohne TLS gehen Passwörter
-  im Klartext durchs Netz. Vorgehen inklusive eigener CA: `docs/betrieb.md`.
+- **DNS-Eintrag**: Den Namen aus `--host` als A-Record auf dem DNS-Server eintragen, den die
+  Clients benutzen. Das ist der einzige Schritt ausserhalb der Maschine.
+- **Zertifikat verteilen**: `http://<name>/lab-ca.crt` auf jedem Gerät einmal importieren.
+  Ein Zertifikat einer offiziellen Stelle ersetzt es, indem nur `SSLCertificateFile` und
+  `SSLCertificateKeyFile` im vhost getauscht werden.
 - **E-Mail**: Erstinstallation schreibt Mails nur ins Log. SMTP-Server, Absender und Passwort
   trägst du unter Admin → Betrieb → E-Mail ein, mit Testmail.
 - **Sicherungskopie ausser Haus**: Die tägliche Sicherung läuft lokal. Ziel (Ordner oder

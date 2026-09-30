@@ -84,8 +84,9 @@ Migrationen laufen zuerst gegen die Kopie `notenportal_probe`.
 
 ## 4. Installation Server
 
-**Voraussetzungen:** Ubuntu 24.04 LTS (frisch genügt), ein Benutzer mit `sudo`, rund 2 GB
-Arbeitsspeicher, Port 80 frei (sonst `--port`), Internetzugang während der Installation.
+**Voraussetzungen:** Ubuntu 24.04 LTS oder neuer, erprobt bis 26.04 (frisch genügt), ein Benutzer
+mit `sudo`, rund 2 GB Arbeitsspeicher, Ports 80 und 443 frei (sonst `--port` bzw. `--https-port`),
+Internetzugang während der Installation.
 Apache, MariaDB, PHP, Node und Composer installiert das Skript selbst.
 
 ```bash
@@ -113,15 +114,19 @@ Passwort erscheint genau einmal.
 | Schema | Migrationen, Grundstammdaten (Rollen, Kategorien) |
 | Konto | Erstes Admin-Konto mit Startpasswort |
 | Oberfläche | `npm ci` und Build |
-| Webserver | VirtualHost, Port, ufw-Freigabe falls ufw läuft |
+| HTTPS | Eigene Zertifizierungsstelle, Serverzertifikat für alle Namen und Adressen der Maschine, `APP_URL` und Secure-Cookie |
+| Webserver | VirtualHosts für HTTP und HTTPS, Umleitung von HTTP, ufw-Freigabe falls ufw läuft |
 | Automatik | `/etc/cron.d/notenportal` für Sicherung, Mailversand, Benachrichtigungen |
-| Abschluss | Dateirechte, Schlusstest gegen `/login` |
+| Sicherung | Bei einer Neuinstallation gleich die erste Sicherung |
+| Abschluss | Dateirechte, Schlusstest gegen `/login` über HTTPS samt Prüfung der Zertifikatskette |
 
 **Optionen:**
 
 ```bash
 sudo ./install.sh --help                        # Liste aller Optionen
-sudo ./install.sh --host notenportal.example.ch # Servername statt erkannter IP
+sudo ./install.sh --host notenportal.example.ch # Servername im vhost und im Zertifikat
+sudo ./install.sh --ohne-https                  # nur HTTP, ohne Zertifikat
+sudo ./install.sh --https-port 8443             # HTTPS auf einem anderen Port
 sudo ./install.sh --port 8082 --db np_test      # zweite Instanz daneben
 sudo ./install.sh --ohne-firewall               # keine ufw-Freigabe
 sudo ./install.sh --neues-admin-passwort        # neues Startpasswort
@@ -146,9 +151,10 @@ Migrationen werden nachgezogen. `.env`, Webserver-Konfiguration und Konten bleib
 Die Einrichtung bleibt danach erreichbar (Betrieb → «Einrichtung») und ist der Weg, später
 einen ganzen Jahrgang anzulegen: bis 100 Lernende und 50 Berufsbildner je Vorgang.
 
-**Was von Hand bleibt:** HTTPS-Zertifikat (richtet das Skript nicht ein), SMTP unter Admin →
-Betrieb → E-Mail eintragen (Erstinstallation schreibt Mails nur ins Log), Ziel für die Kopie
-ausser Haus, Zeitzonen der Datenbank
+**Was von Hand bleibt:** DNS-Eintrag für den Namen auf dem zuständigen DNS-Server (das Skript
+nennt am Schluss den nötigen A-Record), Import der Zertifizierungsstelle auf den Clients
+(`http://<name>/lab-ca.crt`), SMTP unter Admin → Betrieb → E-Mail eintragen (Erstinstallation
+schreibt Mails nur ins Log), Ziel für die Kopie ausser Haus, Zeitzonen der Datenbank
 (`mysql_tzinfo_to_sql /usr/share/zoneinfo | sudo mysql mysql`), Firewall auf die berechtigten
 Netze einschränken.
 
@@ -168,7 +174,7 @@ Es gibt keine Client-Software.
 | Software | Keine Installation, kein Agent, kein Plug-in |
 | Browser | Chrome, Edge, Firefox oder Safari in aktueller Version, JavaScript aktiv |
 | Bildschirm | Ab 390 Pixel Breite bedienbar |
-| Netz | Zugang zum Lab-Netz, Adresse `http://172.26.14.101` bzw. `https://` |
+| Netz | Zugang zum Lab-Netz über VPN, Adresse `https://notenportal`; HTTP leitet um |
 | Zugang | E-Mail und Startpasswort vom Admin; beim ersten Login ist ein eigenes Passwort Pflicht (mindestens 8 Zeichen) |
 
 **PWA:** Das Portal lässt sich als App auf den Startbildschirm legen. Windows Chrome/Edge:
@@ -177,9 +183,12 @@ Teilen → «Zum Home-Bildschirm». Ohne Verbindung erscheint eine Offline-Seite
 zwischengespeichert werden nur Programmdateien und Symbole, nie Noten oder Personendaten. Beim
 Abmelden leert die App ihren Zwischenspeicher.
 
-**Lab-CA importieren:** Windows `certmgr.msc` → «Vertrauenswürdige Stammzertifizierungsstellen»
-→ Importieren. macOS Schlüsselbundverwaltung → System → hineinziehen → «Immer vertrauen».
-Firefox Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren.
+**Lab-CA importieren:** Herunterladen unter `http://<name>/lab-ca.crt` – bewusst über HTTP, weil
+der Abruf über HTTPS vor dem Import genau die Warnung auslösen würde, die er behebt. Windows
+Doppelklick → «Lokaler Computer» → «Vertrauenswürdige Stammzertifizierungsstellen». macOS
+Schlüsselbundverwaltung → System → «Immer vertrauen». Firefox hat einen eigenen Speicher:
+Einstellungen → Zertifikate → Zertifizierungsstellen → Importieren. Ohne Import ist die Verbindung
+verschlüsselt, aber ungeprüft – der Browser warnt bei jedem Besuch.
 
 **Kalenderabo:** Link aus Einstellungen → Kalender, enthält ein persönliches Token und lässt
 sich dort neu erzeugen. Outlook: Kalender hinzufügen → «Aus dem Internet abonnieren». Google:
@@ -494,7 +503,8 @@ einzige Quelle für die Ursache.
 - **Berufsbildner:** Übersicht · Lernende · Prüfungstermine · Module
 - **Admin:** Übersicht · Lernende · Prüfungstermine · Personen · Stammdaten · Berichte · Feedback
 
-Für alle: **Ctrl + K** Befehlspalette, **?** Übersicht aller Tastenkürzel, **g + Buchstabe**
+Für alle: **Ctrl + K** oder **/** Befehlspalette, **n** neue Note, **?** Übersicht aller
+Tastenkürzel, **g + Buchstabe**
 Sprung auf eine Seite. Oben rechts: Feedback melden (Sprechblase), Hell/Dunkel, Benutzermenü.
 
 ### Lernende
