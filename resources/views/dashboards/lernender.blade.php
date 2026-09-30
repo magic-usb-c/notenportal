@@ -290,7 +290,10 @@
                                         <tr>
                                             <th scope="col" class="py-1.5 pr-2 text-left font-medium sm:pr-3">{{ __('Semester') }}</th>
                                             @foreach($verlauf['serien'] as $s)
-                                                <th scope="col" class="hyphens-auto py-1.5 pl-2 text-right font-medium sm:pl-3">{{ $s['name'] }}</th>
+                                                <th scope="col" class="hyphens-auto py-1.5 pl-2 text-right font-medium sm:pl-3">
+                                                    {{-- Mobil «Ø» statt «Semesterschnitt», vorgelesen wird immer der volle Name --}}
+                                                    @if($s['name'] === __('Semesterschnitt'))<span class="sm:hidden" aria-hidden="true">Ø</span><span class="sr-only sm:not-sr-only">{{ $s['name'] }}</span>@else{{ $s['name'] }}@endif
+                                                </th>
                                             @endforeach
                                         </tr>
                                     </thead>

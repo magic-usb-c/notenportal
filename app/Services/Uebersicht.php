@@ -457,7 +457,7 @@ final class Uebersicht
     private function verlaufDiagramm(Auswertung $a, array $semesterIds): array
     {
         $k = $a->konfiguration;
-        $serien = [['name' => 'Semesterschnitt', 'werte' => array_map(fn ($s) => $a->semester($s)['note'], $semesterIds), 'farbe' => '--accent', 'dick' => true]];
+        $serien = [['name' => __('Semesterschnitt'), 'werte' => array_map(fn ($s) => $a->semester($s)['note'], $semesterIds), 'farbe' => '--accent', 'dick' => true]];
         foreach (array_keys($a->kategorien) as $kid) {
             $serien[] = ['name' => $k->kategorieName($kid), 'werte' => array_map(fn ($s) => $a->semester($s, $kid)['note'], $semesterIds)];
         }

@@ -240,7 +240,7 @@
                                     <span class="font-semibold text-text" x-text="p.kategorie"></span>
                                     <span class="text-muted" x-text="p.semester"></span>
                                 </div>
-                                <div class="flex items-center gap-3 text-xs text-muted tabular-nums">
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted tabular-nums">
                                     <span>{{ __('Schnitt') }} <b class="text-text" x-text="fmt(p.nachher.schnitt)"></b></span>
                                     <span>{{ __('ungenügend') }} <b class="text-text" x-text="p.nachher.ungenuegend"></b></span>
                                     <span>{{ __('Minuspunkte') }} <b class="text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></b></span>

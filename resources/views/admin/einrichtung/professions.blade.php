@@ -36,7 +36,7 @@
         <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
         <section class="rounded-2xl border border-border bg-card p-6 flex flex-col gap-4">
             <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
-            <div class="grid sm:grid-cols-2 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 @foreach($katalog as $l)
                     @php $da = isset($vorhandeneBerufe[$l['kuerzel']]); @endphp
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
@@ -44,7 +44,7 @@
                         <input type="checkbox" name="berufe[]" value="{{ $l['kuerzel'] }}" @checked($da || in_array($l['kuerzel'], $gewaehlt, true)) @disabled($da)
                                class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
                         <span class="min-w-0 flex-1">
-                            <span class="block text-sm text-text">{{ $l['name'] }}</span>
+                            <span class="block text-sm text-text wrap-break-word">{{ $l['name'] }}</span>
                             <span class="text-xs text-muted">{{ $l['kuerzel'] }}</span>
                         </span>
                         @if($da)<span class="text-xs text-muted">{{ __('vorhanden') }}</span>@endif
@@ -53,7 +53,7 @@
                 @foreach($weitere as $lb)
                     <div class="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 opacity-60">
                         <input type="checkbox" checked disabled aria-label="{{ $lb->name }}" class="w-5 h-5 rounded border-border text-accent focus:ring-ring">
-                        <span class="min-w-0 flex-1"><span class="block text-sm text-text">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block text-sm text-text wrap-break-word">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
                         <span class="text-xs text-muted">{{ __('vorhanden') }}</span>
                     </div>
                 @endforeach
@@ -77,7 +77,8 @@
                 <h3 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h3>
                 <a href="{{ route('admin.master-data.subjects.index') }}" class="inline-flex min-h-9 items-center rounded-lg px-3 text-sm text-accent-text hover:bg-accent/10">{{ __('Alle Fächer bearbeiten') }}</a>
             </div>
-            <div class="grid md:grid-cols-3 gap-6">
+            {{-- Spalten nach Breite des Inhalts: mit Seitenleiste wären drei Spalten zu schmal für «Stufe · zählt nicht» --}}
+            <div class="@container"><div class="grid grid-cols-1 gap-6 @3xl:grid-cols-3">
                 @foreach(['BMS', 'ABU', StammdatenVorlage::OHNE_TRACK] as $track)
                     @continue(! $gruppen->has($track))
                     <div>
@@ -104,7 +105,7 @@
                         </div>
                     </div>
                 @endforeach
-            </div>
+            </div></div>
         </section>
 
         @if($baeume->isNotEmpty())

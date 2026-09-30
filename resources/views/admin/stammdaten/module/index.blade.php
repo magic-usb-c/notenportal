@@ -23,6 +23,8 @@
         $zeile = function ($m) {
             // Verweis in den Modulbaukasten nur mit bekannter Version – siehe App\Support\Modulbaukasten.
             $mbk = \App\Support\Modulbaukasten::modulLink($m->modul_nummer, $m->version ?? null);
+            // Wie <x-zeilen-link>: schmal nur der Stift, der Name nennt das Modul
+            $name = __('Bearbeiten').': '.$m->modul_nummer.' '.$m->titel;
 
             return '<tr class="group h-11 border-b border-border last:border-0 hover:bg-surface-2/60">
                 <td class="px-2.5 sm:px-4 font-mono font-semibold text-text whitespace-nowrap">'.e($m->modul_nummer)
@@ -38,8 +40,11 @@
                 <td class="hidden px-2.5 sm:px-4 sm:table-cell">'.($m->aktiv
                     ? '<span class="text-xs text-muted">'.e(__('aktiv')).'</span>'
                     : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">'.e(__('inaktiv')).'</span>').'</td>
-                <td class="px-2.5 sm:px-4 text-right">
-                    <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">'.e(__('Bearbeiten')).'</a>
+                <td class="px-1.5 sm:px-4 text-right">
+                    <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" aria-label="'.e($name).'" title="'.e($name).'"
+                       class="np-ziel inline-flex min-h-9 min-w-9 items-center justify-center rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 pointer-coarse:opacity-100 hover:bg-accent/10 @xl:px-3">'
+                        .'<span class="hidden @xl:inline">'.e(__('Bearbeiten')).'</span>'
+                        .'<svg class="size-4 @xl:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"/></svg></a>
                 </td>
             </tr>';
         };
@@ -83,7 +88,7 @@
                         <div class="px-4 py-2.5 border-b border-border bg-bg/40">
                             <h3 class="text-sm font-semibold text-text">{{ $name }}</h3>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="@container overflow-x-auto">
                             <table class="w-full text-sm tabular-nums">
                                 <thead class="sticky top-0 bg-surface-2">
                                     <tr>
@@ -107,7 +112,7 @@
                 @endforelse
             @else
                 <div class="rounded-xl border border-border bg-card overflow-hidden">
-                    <div class="overflow-x-auto">
+                    <div class="@container overflow-x-auto">
                     <table class="w-full text-sm tabular-nums">
                         <thead class="sticky top-0 bg-surface-2">
                             <tr>

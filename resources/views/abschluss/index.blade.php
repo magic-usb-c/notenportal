@@ -4,7 +4,8 @@
 @use('App\Support\NotenSkala')
 @php
     $name = $lernender ? trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname) : null;
-    $einzug = ['pl-5', 'pl-9', 'pl-13', 'pl-17', 'pl-21'];
+    // Auf dem Handy halber Einzug, sonst frisst die Tiefe die Namensspalte
+    $einzug = ['pl-4 sm:pl-5', 'pl-6 sm:pl-9', 'pl-8 sm:pl-13', 'pl-10 sm:pl-17', 'pl-12 sm:pl-21'];
     $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.')."\u{00A0}%";
 
     // Baum flach in Anzeige-Reihenfolge, mit Tiefe und Anteil am Elternknoten
@@ -114,9 +115,9 @@
                                 <table class="w-full text-sm tabular-nums">
                                     <thead class="bg-surface-2">
                                         <tr>
-                                            <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">{{ __('Teil') }}</th>
-                                            <th scope="col" class="h-9 px-2 text-right text-2xs font-medium text-muted sm:px-3">{{ __('Anteil') }}</th>
-                                            <th scope="col" class="h-9 w-24 pl-2 pr-4 text-right text-2xs font-medium text-muted sm:w-32 sm:px-5">{{ __('Note') }}</th>
+                                            <th scope="col" class="h-9 px-4 text-left text-2xs font-medium text-muted sm:px-5">{{ __('Teil') }}</th>
+                                            <th scope="col" class="hidden h-9 px-2 text-right text-2xs font-medium text-muted sm:table-cell sm:px-3">{{ __('Anteil') }}</th>
+                                            <th scope="col" class="h-9 w-20 pl-2 pr-3 text-right text-2xs font-medium text-muted sm:w-32 sm:px-5">{{ __('Note') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -126,18 +127,17 @@
                                                 $gruppe = $k->typ === Knoten::GRUPPE;
                                                 $feld = 'werte.'.$k->id;
                                                 $position = $positionen[$k->id] ?? null;
+                                                $anteil = $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht'));
+                                                $r = $regeln($k);
                                             @endphp
                                             <tr class="border-b border-border last:border-0">
                                                 <td class="py-2.5 pr-3 {{ $einzug[min($z['tiefe'], 4)] }}">
-                                                    <div @class(['text-text', 'font-medium' => $gruppe])>{{ $k->name }}</div>
-                                                    @if($r = $regeln($k))
-                                                        <div class="text-xs text-muted">{{ implode(' · ', $r) }}</div>
-                                                    @endif
+                                                    <div @class(['text-text wrap-break-word', 'font-medium' => $gruppe])>{{ $k->name }}</div>
+                                                    {{-- Auf dem Handy steht der Anteil hier statt in einer eigenen Spalte --}}
+                                                    <div class="text-xs text-muted wrap-break-word"><span class="sm:hidden">{{ $anteil }}@if($r) · @endif</span>{{ $r ? implode(' · ', $r) : '' }}</div>
                                                 </td>
-                                                <td class="whitespace-nowrap px-2 text-right text-muted sm:px-3">
-                                                    {{ $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht')) }}
-                                                </td>
-                                                <td class="py-1.5 pl-2 pr-4 text-right sm:px-5">
+                                                <td class="hidden whitespace-nowrap px-2 text-right text-muted sm:table-cell sm:px-3">{{ $anteil }}</td>
+                                                <td class="py-1.5 pl-2 pr-3 text-right sm:px-5">
                                                     @if($k->entfaellt)
                                                         <span class="text-muted">–</span>
                                                     @elseif($k->typ === Knoten::MANUELL)
