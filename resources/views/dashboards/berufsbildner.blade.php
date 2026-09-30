@@ -24,7 +24,7 @@
                                 <span class="size-1.5 shrink-0 rounded-full {{ $z->stand->status === 'rot' ? 'bg-note-ungenuegend' : 'bg-note-knapp' }}" aria-hidden="true"></span>
                                 <span class="min-w-0 flex-1">
                                     <span class="block truncate text-sm font-medium text-text">{{ $z->lernender->benutzer->vorname }} {{ $z->lernender->benutzer->nachname }}</span>
-                                    <span class="block truncate text-xs text-muted">{{ implode(' · ', $eintrag['gruende']) }}</span>
+                                    <span class="block truncate text-xs text-muted" title="{{ implode(' · ', $eintrag['gruende']) }}">{{ implode(' · ', $eintrag['gruende']) }}</span>
                                 </span>
                                 <span class="text-muted" aria-hidden="true">›</span>
                             </a>
