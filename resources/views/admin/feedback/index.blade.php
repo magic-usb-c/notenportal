@@ -26,7 +26,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-40">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\Feedback::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -35,7 +35,7 @@
 
                 <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
                 <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-44">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($kategorie === '')>{{ __('Kategorie: alle') }}</option>
                     @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
                         <option value="{{ $value }}" @selected($kategorie === $value)>{{ __($label) }}</option>
@@ -44,7 +44,7 @@
 
                 <label for="rolle" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-40">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($rolle === '')>{{ __('Rolle: alle') }}</option>
                     <option value="Admin" @selected($rolle === 'Admin')>{{ __('Admin') }}</option>
                     <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>{{ __('Berufsbildner') }}</option>

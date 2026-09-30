@@ -14,7 +14,7 @@
                              zaehler-label="{{ __('Einträge') }}" :zurueck="route('admin.activity.index')" :aktive-filter="$aktiveFilter">
                 <label for="aktion" class="sr-only">{{ __('Aktion') }}</label>
                 <select name="aktion" id="aktion" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-56">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($aktion === '')>{{ __('Aktion: alle') }}</option>
                     @foreach($aktionen as $wert => $label)
                         <option value="{{ $wert }}" @selected($aktion === $wert)>{{ __($label) }}</option>

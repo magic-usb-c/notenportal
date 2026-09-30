@@ -1,66 +1,50 @@
+{{-- Lernendenliste für Admin und Berufsbildner: Symbolleiste mit Suche und Filtern, darunter eine sortierbare
+     Tabelle. Die ganze Zeile führt zum Profil, «Noten» direkt zur Notenliste. --}}
+@php
+    $aktiveFilter = collect([$filter['suche'], $filter['lehrberuf_id'], $filter['lehrjahr'], $filter['berufsbildner_id'],
+        $filter['bms'], $filter['warnung'], $filter['inaktive']])->filter()->count();
+
+    $sortLink = function (string $spalte, string $label) use ($filter) {
+        $aktiv = $filter['sort'] === $spalte;
+        $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
+        $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
+
+        return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
+    };
+    // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
+    $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
+
+    $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
+    $tageSeit = fn ($z) => $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->startOfDay()->diffInDays(now()->startOfDay()) : null;
+    $wann = fn (?int $tage) => match (true) {
+        $tage === null => '–',
+        $tage === 0 => __('heute'),
+        $tage === 1 => __('gestern'),
+        default => __('vor :tage Tagen', ['tage' => $tage]),
+    };
+    $spalten = $bereich === 'admin' ? 8 : 7;
+@endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Lernende') }}</x-slot>
     <x-slot name="header">
         <x-seitenkopf :titel="__('Lernende')" :zaehler="$zeilen->count()">
             <x-slot:aktionen>
-                <a href="{{ route("{$bereich}.grades.export_all") }}"
-                   class="np-knopf np-knopf-sekundaer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    {{ __('Alle Noten (CSV)') }}
+                <a href="{{ route("{$bereich}.grades.export_all") }}" class="np-knopf np-knopf-sekundaer">
+                    <x-symbol name="arrow-down-tray" />{{ __('Alle Noten (CSV)') }}
                 </a>
-                <a href="{{ route("{$bereich}.learners.create") }}"
-                   class="np-knopf np-knopf-primaer">
+                <a href="{{ route("{$bereich}.learners.create") }}" class="np-knopf np-knopf-primaer">
                     <x-symbol name="plus" strich="2" />{{ __('Lernender erfassen') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
 
-    @php
-        $aktivePrimaer = collect([$filter['suche'], $filter['lehrberuf_id'], $filter['lehrjahr'], $filter['berufsbildner_id']])->filter()->count();
-        $aktiveWeitere = collect([$filter['bms'], $filter['warnung'], $filter['inaktive']])->filter()->count();
-        $aktiveFilter = $aktivePrimaer + $aktiveWeitere;
-
-        $sortLink = function (string $spalte, string $label) use ($filter) {
-            $aktiv = $filter['sort'] === $spalte;
-            $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
-            $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
-
-            return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
-        };
-        // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
-        $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
-
-        $auswahl = 'np-feld np-feld-klein sm:w-40';
-
-        $tageSeit = fn ($z) => $z->lastNote ? (int) \Carbon\Carbon::parse($z->lastNote)->diffInDays(now()) : null;
-        $wann = fn (?int $tage) => match (true) {
-            $tage === null => '–',
-            $tage === 0 => __('heute'),
-            $tage === 1 => __('gestern'),
-            default => __('vor :tage Tagen', ['tage' => $tage]),
-        };
-        // Die Karten haben keine Spaltenköpfe: dieselben Sortierungen als Auswahl
-        $sortierungen = [
-            ['name', 'asc', __('Name A–Z')],
-            ['name', 'desc', __('Name Z–A')],
-            ['lehrjahr', 'asc', __('Lehrjahr aufsteigend')],
-            ['lehrjahr', 'desc', __('Lehrjahr absteigend')],
-            ['last_note', 'desc', __('Neueste Note zuerst')],
-            ['last_note', 'asc', __('Älteste Note zuerst')],
-            ['avg', 'asc', __('Tiefster Ø zuerst')],
-            ['avg', 'desc', __('Höchster Ø zuerst')],
-        ];
-    @endphp
-
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
 
             <x-filterleiste :action="route($bereich.'.learners.index')" suche-name="suche" :suche-wert="$filter['suche']"
-                             :suche-platzhalter="__('Name, E-Mail, Benutzername')" :zaehler="$zeilen->count()"
-                             :zurueck="route($bereich.'.learners.index')" :aktive-filter="$aktiveFilter" :aktive-weitere="$aktiveWeitere">
+                             :suche-platzhalter="__('Name, E-Mail, Benutzername')"
+                             :zurueck="route($bereich.'.learners.index')" :aktive-filter="$aktiveFilter">
                 <x-slot:hidden>
                     <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
                     <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
@@ -95,13 +79,6 @@
                 @endif
 
                 <x-slot:weitere>
-                    <label for="bms" class="sr-only">BMS</label>
-                    <select name="bms" id="bms" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
-                        <option value="">{{ __('BMS: alle') }}</option>
-                        <option value="ja" @selected($filter['bms'] === 'ja')>{{ __('Mit BMS') }}</option>
-                        <option value="nein" @selected($filter['bms'] === 'nein')>{{ __('Ohne BMS') }}</option>
-                    </select>
-
                     <label for="warnung" class="sr-only">{{ __('Warnung') }}</label>
                     <select name="warnung" id="warnung" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
                         <option value="">{{ __('Warnung: alle') }}</option>
@@ -113,6 +90,13 @@
                         @endif
                     </select>
 
+                    <label for="bms" class="sr-only">BMS</label>
+                    <select name="bms" id="bms" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="">{{ __('BMS: alle') }}</option>
+                        <option value="ja" @selected($filter['bms'] === 'ja')>{{ __('Mit BMS') }}</option>
+                        <option value="nein" @selected($filter['bms'] === 'nein')>{{ __('Ohne BMS') }}</option>
+                    </select>
+
                     <label for="inaktive" class="sr-only">{{ __('Status') }}</label>
                     <select name="inaktive" id="inaktive" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
                         <option value="0" @selected(! $filter['inaktive'])>{{ __('Nur aktive') }}</option>
@@ -121,71 +105,8 @@
                 </x-slot:weitere>
             </x-filterleiste>
 
-            {{-- Karten oder Tabelle je nach Breite des Inhalts, nicht des Fensters (Seitenleiste). Die Tabelle
-                 braucht mit Aktionen rund 900 px, darunter lägen die Aktionen ausserhalb des Sichtbereichs. --}}
-            <div class="@container flex flex-col gap-3">
-            @if($zeilen->count() > 1)
-                <div class="flex items-center justify-end gap-2 @4xl:hidden">
-                    <label for="sortierung" class="text-sm text-muted">{{ __('Sortieren') }}</label>
-                    <select id="sortierung" x-data x-on:change="window.location.href = $el.value" class="{{ $auswahl }} min-w-0">
-                        @foreach($sortierungen as [$sort, $dir, $label])
-                            <option value="{{ request()->fullUrlWithQuery(['sort' => $sort, 'dir' => $dir]) }}" @selected($filter['sort'] === $sort && $filter['dir'] === $dir)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
-
-            <div data-ansicht="karten" class="np-karte @4xl:hidden divide-y divide-border overflow-hidden">
-                @forelse($zeilen as $z)
-                    @php
-                        $l = $z->lernender;
-                        $initialen = strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1));
-                        $tagSeit = $tageSeit($z);
-                    @endphp
-                    <div class="p-4 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}">
-                        <div class="flex items-start gap-3 min-w-0">
-                            <div class="np-monogramm mt-0.5 size-9 shrink-0 text-xs" aria-hidden="true">
-                                {{ $initialen ?: '?' }}
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <div class="font-medium text-text">{{ $z->nachname }} {{ $z->vorname }}</div>
-                                {{-- Wie die Tabelle: bei einer Suche zeigt die Adresse, warum die Person trifft --}}
-                                @if($filter['suche'] !== '')
-                                    <div class="text-xs text-muted break-all">{{ $l->benutzer->email }}</div>
-                                @endif
-                                <div class="text-xs text-muted">{{ $l->lehrberuf?->name ?? '–' }}{{ $z->lehrjahr ? ' · '.__(':jahr. Lehrjahr', ['jahr' => $z->lehrjahr]) : '' }}</div>
-                                @if($bereich === 'admin')
-                                    <div class="text-xs text-muted mt-0.5">{{ __('Berufsbildner: :name', ['name' => $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–']) }}</div>
-                                @endif
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-muted tabular-nums">
-                                    <span>{{ __(':anzahl Noten', ['anzahl' => $z->anzahl]) }}</span>
-                                    <span class="font-semibold">Ø <x-note :wert="$z->avg" :stellen="2" /></span>
-                                    @if($tagSeit !== null)
-                                        <span>{{ __('Letzte Note :wann', ['wann' => $wann($tagSeit)]) }}</span>
-                                    @endif
-                                </div>
-                                @php
-                                    $status = trim(view('verwaltung.lernende._status', compact('l', 'z', 'tagSeit', 'grenze', 'bereich'))->render());
-                                @endphp
-                                @if($status !== '')
-                                    <div class="flex flex-wrap gap-1 mt-2">{!! $status !!}</div>
-                                @endif
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 mt-3">
-                            <a href="{{ route("{$bereich}.learners.show", $l->lernender_id) }}"
-                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">{{ __('Profil') }}</a>
-                            <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                               class="flex-1 inline-flex items-center justify-center px-3 min-h-[36px] rounded-xl border border-border text-xs hover:bg-bg whitespace-nowrap">{{ __('Noten') }}</a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="p-6 text-center text-sm text-muted">{{ __('Keine Lernenden gefunden.') }}</div>
-                @endforelse
-            </div>
-
-            <div data-ansicht="tabelle" class="np-karte hidden @4xl:block overflow-hidden">
-                <div class="overflow-x-auto p-2">
+            <div class="np-karte overflow-hidden">
+                <div class="p-2">
                     <table class="np-tabelle text-sm">
                         <thead>
                             <tr>
@@ -194,66 +115,58 @@
                                 @if($bereich === 'admin')
                                     <th scope="col" class="whitespace-nowrap">{{ __('Berufsbildner') }}</th>
                                 @endif
-                                <th scope="col" class="hidden text-right whitespace-nowrap @6xl:table-cell">{{ __('Noten') }}</th>
-                                <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
-                                <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
+                                <th scope="col" class="w-20 text-right whitespace-nowrap">{{ __('Noten') }}</th>
+                                <th scope="col" class="w-36 text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
+                                <th scope="col" class="w-28 text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
                                 <th scope="col">{{ __('Status') }}</th>
-                                <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col" class="w-24 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($zeilen as $z)
                                 @php
                                     $l = $z->lernender;
-                                    $initialen = strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1));
                                     $tagSeit = $tageSeit($z);
                                     $zielUrl = route("{$bereich}.learners.show", $l->lernender_id);
                                 @endphp
-                                <tr class="group cursor-pointer {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}"
-                                    onclick="window.location='{{ $zielUrl }}'">
+                                <tr class="cursor-pointer {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}" onclick="window.location='{{ $zielUrl }}'">
                                     <td>
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">
-                                                {{ $initialen ?: '?' }}
-                                            </div>
+                                        <div class="flex min-w-0 items-center gap-3">
+                                            <span class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">{{ mb_strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1)) ?: '?' }}</span>
                                             <div class="min-w-0">
                                                 <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="font-medium text-text hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                                {{-- Bei einer Suche zeigt die Adresse, warum die Person trifft --}}
                                                 @if($filter['suche'] !== '')
-                                                    <div class="text-xs text-muted truncate">{{ $l->benutzer->email }}</div>
+                                                    <div class="truncate text-xs text-muted">{{ $l->benutzer->email }}</div>
                                                 @endif
-                                                <div class="text-xs text-muted tabular-nums @6xl:hidden">{{ __(':anzahl Noten', ['anzahl' => $z->anzahl]) }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="text-left whitespace-nowrap">
+                                    <td class="whitespace-nowrap">
                                         <span title="{{ $l->lehrberuf?->name }}">{{ $l->lehrberuf?->kuerzel ?? '–' }}</span>
                                         <span class="text-muted">· {{ $z->lehrjahr ?: '–' }}</span>
                                     </td>
                                     @if($bereich === 'admin')
-                                        <td class="text-left text-muted whitespace-nowrap">
+                                        <td class="whitespace-nowrap text-muted">
                                             {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}
                                         </td>
                                     @endif
-                                    <td class="hidden text-right @6xl:table-cell">{{ $z->anzahl }}</td>
-                                    <td class="text-right text-muted whitespace-nowrap">{{ $wann($tagSeit) }}</td>
-                                    <td class="text-right">
-                                        <x-note :wert="$z->avg" :stellen="2" />
-                                    </td>
-                                    <td class="text-left">
+                                    <td class="text-right tabular-nums">{{ $z->anzahl }}</td>
+                                    <td class="text-right whitespace-nowrap text-muted">{{ $wann($tagSeit) }}</td>
+                                    <td class="text-right"><x-note :wert="$z->avg" :stellen="2" /></td>
+                                    <td>
                                         <div class="flex flex-wrap gap-1">@include('verwaltung.lernende._status')</div>
                                     </td>
                                     <td class="text-right" onclick="event.stopPropagation()">
-                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 pointer-coarse:opacity-100">
-                                            {{-- Zum Profil führen schon Zeile und Name --}}
-                                            <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
-                                               class="np-knopf np-knopf-sekundaer np-knopf-klein np-ziel">{{ __('Noten') }}</a>
-                                        </div>
+                                        <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
+                                           aria-label="{{ __('Noten von :name', ['name' => $z->vorname.' '.$z->nachname]) }}"
+                                           class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Noten') }}</a>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $bereich === 'admin' ? 8 : 7 }}" class="p-6 text-center text-muted">
-                                        {{ __('Keine Lernenden gefunden.') }}
+                                    <td colspan="{{ $spalten }}" class="px-3 py-6 text-center text-muted">
+                                        {{ $aktiveFilter > 0 ? __('Keine Lernenden passen zu den Filtern.') : __('Noch keine Lernenden erfasst.') }}
                                     </td>
                                 </tr>
                             @endforelse
@@ -261,8 +174,6 @@
                     </table>
                 </div>
             </div>
-            </div>
-
         </div>
     </div>
 </x-app-layout>

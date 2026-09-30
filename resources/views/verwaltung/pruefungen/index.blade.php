@@ -17,7 +17,7 @@
     </x-slot>
 
     @php
-        $auswahl = 'np-feld np-feld-klein sm:w-48';
+        $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
         $aktiveFilter = ($filter['lernender_id'] ? 1 : 0) + ($filter['zeitraum'] !== 'alle' ? 1 : 0);
         $pillBasis = 'np-marke';
     @endphp

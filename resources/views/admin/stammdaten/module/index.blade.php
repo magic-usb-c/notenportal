@@ -16,7 +16,7 @@
     </x-slot>
 
     @php
-        $auswahl = 'np-feld np-feld-klein sm:w-44';
+        $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
         $aktiveFilter = collect([$suche, $lehrberufId, $kategorieId])->filter()->count();
         $aktiveWeitere = $gruppieren !== '' ? 1 : 0;
     @endphp

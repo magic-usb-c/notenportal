@@ -21,7 +21,7 @@
                              :zurueck="route('admin.users.index')" :aktive-filter="$aktiveFilter">
                 <label for="rolle_id" class="sr-only">{{ __('Rolle') }}</label>
                 <select name="rolle_id" id="rolle_id" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-44">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="">{{ __('Alle Rollen') }}</option>
                     @foreach($rollen as $r)
                         <option value="{{ $r->rolle_id }}" @selected($rolleId == $r->rolle_id)>{{ __($r->name) }}</option>
@@ -30,7 +30,7 @@
 
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-36">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     <option value="aktiv" @selected($status === 'aktiv')>{{ __('Aktiv') }}</option>
                     <option value="inaktiv" @selected($status === 'inaktiv')>{{ __('Inaktiv') }}</option>

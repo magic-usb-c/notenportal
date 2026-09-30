@@ -29,7 +29,7 @@
                              :zurueck="route('admin.mail-log.index')" :aktive-filter="$aktiveFilter">
                 <label for="status" class="sr-only">{{ __('Status') }}</label>
                 <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-40">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
                     @foreach(\App\Models\MailLog::STATUS as $value => $label)
                         <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
@@ -38,7 +38,7 @@
 
                 <label for="type" class="sr-only">{{ __('Anlass') }}</label>
                 <select name="type" id="type" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein sm:w-48">
+                        class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="" @selected($type === '')>{{ __('Anlass: alle') }}</option>
                     @foreach($anlaesse as $value => $label)
                         <option value="{{ $value }}" @selected($type === $value)>{{ $label }}</option>

@@ -72,7 +72,7 @@
             <x-filterleiste :action="$zuruecksetzen" :zaehler="$notes->total()" zaehler-label="{{ __('Prüfungen') }}"
                             :zurueck="$zuruecksetzen" :aktive-filter="(int) request()->filled('kategorie_id') + (int) request()->filled('semester_id')">
                 <label for="lernenden_wechseln" class="sr-only">{{ __('Lernender') }}</label>
-                <select id="lernenden_wechseln" class="np-feld np-feld-klein sm:w-56" onchange="if (this.value) window.location.href = this.value">
+                <select id="lernenden_wechseln" class="np-feld np-feld-klein w-auto max-w-64" onchange="if (this.value) window.location.href = this.value">
                     @foreach($switcher as $l)
                         <option value="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}" @selected($l->lernender_id === $lernender->lernender_id)>
                             {{ $l->benutzer->nachname }} {{ $l->benutzer->vorname }}
@@ -80,14 +80,14 @@
                     @endforeach
                 </select>
                 <label for="kategorie_id" class="sr-only">{{ __('Kategorie') }}</label>
-                <select id="kategorie_id" name="kategorie_id" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein sm:w-48">
+                <select id="kategorie_id" name="kategorie_id" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="">{{ __('Kategorie: alle') }}</option>
                     @foreach($kategorien as $k)
                         <option value="{{ $k->kategorie_id }}" @selected(request('kategorie_id') == $k->kategorie_id)>{{ $k->name }}</option>
                     @endforeach
                 </select>
                 <label for="semester_id" class="sr-only">{{ __('Semester') }}</label>
-                <select id="semester_id" name="semester_id" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein sm:w-48">
+                <select id="semester_id" name="semester_id" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
                     <option value="">{{ __('Semester: alle') }}</option>
                     @foreach($semester as $s)
                         <option value="{{ $s->semester_id }}" @selected(request('semester_id') == $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>

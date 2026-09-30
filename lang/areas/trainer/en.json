@@ -42,7 +42,6 @@
     "Beobachten": "Watch",
     "Bereiche": "Areas",
     "Berufsbildner *": "Trainer *",
-    "Berufsbildner: :name": "Trainer: :name",
     "Betreuung": "Supervision",
     "Betreuung beenden?": "End supervision?",
     "Betreuung beendet.": "Supervision ended.",
@@ -94,7 +93,6 @@
     "Keine Auffälligkeiten": "No issues",
     "Keine Betreuung.": "No supervision.",
     "Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.": "No subjects or modules available – set up a track or occupation modules first.",
-    "Keine Lernenden gefunden.": "No apprentices found.",
     "Keine Noten": "No grades",
     "Keine Noten im Filter": "No grades match the filter",
     "Keine Semester erfasst": "No semesters recorded",
@@ -247,12 +245,6 @@
     "Sortieren": "Sort",
     "Name A–Z": "Name A–Z",
     "Name Z–A": "Name Z–A",
-    "Lehrjahr aufsteigend": "Year ascending",
-    "Lehrjahr absteigend": "Year descending",
-    "Neueste Note zuerst": "Newest grade first",
-    "Älteste Note zuerst": "Oldest grade first",
-    "Tiefster Ø zuerst": "Lowest avg. first",
-    "Höchster Ø zuerst": "Highest avg. first",
     "Letzte Note :wann": "Last grade :wann",
     "Prüfung am :datum": "Exam on :datum",
     "Kritische zuerst": "Critical first",
@@ -265,5 +257,8 @@
     "Stärkster Anstieg zuerst": "Largest rise first",
     "Seit :tage Tagen keine Note": "No grade for :tage days",
     "vor :tage Tagen": ":tage days ago",
-    "Kein Eintrag seit :tage Tagen": "No entry for :tage days"
+    "Kein Eintrag seit :tage Tagen": "No entry for :tage days",
+    "Noten von :name": "Grades of :name",
+    "Keine Lernenden passen zu den Filtern.": "No apprentices match the filters.",
+    "Noch keine Lernenden erfasst.": "No apprentices added yet."
 }

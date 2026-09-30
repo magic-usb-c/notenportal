@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Verwaltung;
 
+use App\Models\Kategorie;
+use App\Models\Modul;
+use App\Models\Semester;
 use App\Models\User;
+use App\Support\Einstellungen;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Die Lernendenliste zeigt je nach Breite des Inhalts Karten oder Tabelle. Die Karten dürfen dabei nichts
- * verlieren, was die Tabelle bietet: weder die Sortierung der Spaltenköpfe noch die Statusmarken.
+ * Die Lernendenliste ist eine sortierbare Tabelle: Spaltenköpfe schalten die Richtung um und sagen sie per
+ * aria-sort an, eine Suche zeigt die Adresse, die Statusmarken folgen Einstellungen statt festen Werten.
  */
 class LernendeListeTest extends TestCase
 {
@@ -25,63 +30,61 @@ class LernendeListeTest extends TestCase
     }
 
     #[Test]
-    public function kartenansicht_bietet_jede_sortierung_der_spaltenkoepfe(): void
+    public function spaltenkoepfe_sortieren_und_nennen_die_richtung(): void
     {
         $this->neuerLernender();
         $this->neuerLernender();
         $admin = User::factory()->admin()->create();
 
-        $html = (string) $this->actingAs($admin)->get(route('admin.learners.index', ['sort' => 'avg', 'dir' => 'desc']))->assertOk()->getContent();
-        $xpath = $this->dom($html);
+        $xpath = $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index', ['sort' => 'avg', 'dir' => 'desc']))->assertOk()->getContent());
+        $koepfe = collect(iterator_to_array($xpath->query('//th[@aria-sort]')))
+            ->mapWithKeys(function (\DOMElement $th) {
+                parse_str((string) parse_url(html_entity_decode($th->getElementsByTagName('a')->item(0)->getAttribute('href')), PHP_URL_QUERY), $q);
 
-        $parameter = function (string $url): string {
-            parse_str((string) parse_url(html_entity_decode($url), PHP_URL_QUERY), $q);
+                return [$q['sort'] => ['aria' => $th->getAttribute('aria-sort'), 'dir' => $q['dir']]];
+            });
 
-            return ($q['sort'] ?? '').':'.($q['dir'] ?? '');
-        };
-        $optionen = collect(iterator_to_array($xpath->query('//select[@id="sortierung"]/option')))
-            ->mapWithKeys(fn (\DOMElement $o) => [$parameter($o->getAttribute('value')) => $o->hasAttribute('selected')]);
-        $spalten = collect(iterator_to_array($xpath->query('//*[@data-ansicht="tabelle"]//th[@aria-sort]//a')))
-            ->map(fn (\DOMElement $a) => strtok($parameter($a->getAttribute('href')), ':'))->unique()->values();
-
-        $this->assertNotEmpty($spalten);
-        foreach ($spalten as $sort) {
-            $this->assertArrayHasKey("{$sort}:asc", $optionen->all(), "Sortierung {$sort} aufsteigend fehlt in den Karten");
-            $this->assertArrayHasKey("{$sort}:desc", $optionen->all(), "Sortierung {$sort} absteigend fehlt in den Karten");
-        }
-        $this->assertSame(['avg:desc'], $optionen->filter()->keys()->all(), 'Die aktuelle Sortierung ist gewählt');
+        $this->assertSame(['name', 'lehrjahr', 'last_note', 'avg'], $koepfe->keys()->all());
+        $this->assertSame(['aria' => 'descending', 'dir' => 'asc'], $koepfe['avg'], 'Aktive Spalte nennt die Richtung und kehrt sie um');
+        $this->assertSame(['aria' => 'none', 'dir' => 'asc'], $koepfe['name']);
     }
 
     #[Test]
-    public function karten_zeigen_bei_einer_suche_die_adresse_wie_die_tabelle(): void
+    public function suche_zeigt_die_adresse(): void
     {
         $lernender = $this->neuerLernender();
         $email = $lernender->benutzer->email;
         $admin = User::factory()->admin()->create();
-        $inAnsicht = fn (\DOMXPath $x, string $ansicht) => str_contains((string) $x->query('//*[@data-ansicht="'.$ansicht.'"]')->item(0)?->textContent, $email);
+        $zeigtAdresse = fn (array $query) => str_contains((string) $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index', $query))->assertOk()->getContent())
+            ->query('//tbody//div[contains(@class,"text-muted")]')->item(0)?->textContent, $email);
 
-        $mitSuche = $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index', ['suche' => $lernender->benutzer->nachname]))->assertOk()->getContent());
-        $this->assertTrue($inAnsicht($mitSuche, 'tabelle'));
-        $this->assertTrue($inAnsicht($mitSuche, 'karten'), 'Die Karten verschweigen, warum die Person trifft');
-
-        $ohneSuche = $this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index'))->assertOk()->getContent());
-        $this->assertFalse($inAnsicht($ohneSuche, 'karten'));
+        $this->assertTrue($zeigtAdresse(['suche' => $lernender->benutzer->nachname]), 'Die Suche verschweigt, warum die Person trifft');
+        $this->assertFalse($zeigtAdresse([]));
     }
 
     #[Test]
-    public function karten_zeigen_dieselben_statusmarken_wie_die_tabelle(): void
+    public function statusmarke_ohne_note_folgt_der_eingestellten_frist(): void
     {
-        // Ohne Noten und ohne Berufsbildner: zwei Marken, die es nur in der Statusspalte gab
-        $this->neuerLernender();
+        Semester::factory()->create();
+        $lernender = $this->neuerLernender();
+        $modul = Modul::factory()->create();
+        DB::table('lehrberuf_module')->insert([
+            'lehrberuf_id' => $lernender->lehrberuf_id,
+            'modul_id' => $modul->modul_id,
+            'kategorie_id' => Kategorie::where('code', 'FACH')->value('kategorie_id'),
+        ]);
+        $this->actingAs($lernender->benutzer)->post(route('learner.grades.store'), [
+            'typ' => 'modul', 'modul_id' => $modul->modul_id, 'pruefungsdatum' => now()->subDays(20)->toDateString(), 'note_wert' => 5.0,
+        ])->assertSessionHasNoErrors();
         $admin = User::factory()->admin()->create();
+        $marken = fn () => collect(iterator_to_array($this->dom((string) $this->actingAs($admin)->get(route('admin.learners.index'))->assertOk()->getContent())
+            ->query("//tbody//span[contains(@class,'np-marke')]")))->map(fn (\DOMElement $s) => trim($s->textContent))->all();
 
-        $html = (string) $this->actingAs($admin)->get(route('admin.learners.index'))->assertOk()->getContent();
-        $xpath = $this->dom($html);
-        $marken = fn (string $ansicht) => collect(iterator_to_array($xpath->query("//*[@data-ansicht=\"{$ansicht}\"]//span[contains(@class,'np-marke')]")))
-            ->map(fn (\DOMElement $s) => trim($s->textContent))->sort()->values()->all();
+        $this->assertContains(__('Ohne BB'), $marken());
+        $this->assertNotContains(__('Seit :tage Tagen keine Note', ['tage' => 20]), $marken());
 
-        $this->assertContains(__('Keine Noten'), $marken('tabelle'));
-        $this->assertContains(__('Ohne BB'), $marken('tabelle'));
-        $this->assertSame($marken('tabelle'), $marken('karten'));
+        Einstellungen::set(Einstellungen::FRIST_INAKTIV_TAGE, '14');
+
+        $this->assertContains(__('Seit :tage Tagen keine Note', ['tage' => 20]), $marken());
     }
 }
