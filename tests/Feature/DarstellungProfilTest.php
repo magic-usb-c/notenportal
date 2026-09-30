@@ -173,7 +173,7 @@ class DarstellungProfilTest extends TestCase
         $this->actingAs($user)->get(route('admin.master-data.subjects.index'))->assertOk()
             ->assertSee('data-navigation="seite"', false)->assertDontSee('data-navigation="oben"', false)
             ->assertSee(__('Seitenleiste ausblenden'))->assertSee(__('Seitenleiste einblenden'))
-            ->assertSeeInOrder([__('Stammdaten'), __('Fächer'), __('Betrieb'), __('Allgemein')]);
+            ->assertSeeInOrder([__('Stammdaten'), __('Fächer'), __('Betrieb'), __('Einstellungen')]);
 
         $this->patch(route('profile.update'), $profil(['navigation' => 'oben']))->assertSessionHasNoErrors();
         $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);

@@ -76,7 +76,7 @@ final class Navigation
                 ]),
                 // Betrieb und Protokolle getrennt von den Stammdaten: andere Aufgabe, anderer Rhythmus
                 self::gruppe(__('Betrieb'), 'betrieb', [
-                    self::link(__('Allgemein'), 'admin.operations.edit', ['admin.operations.*'], symbol: 'building-office-2'),
+                    self::link(__('Einstellungen'), 'admin.operations.edit', ['admin.operations.*'], symbol: 'cog-6-tooth'),
                     self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*'], symbol: 'wrench-screwdriver'),
                     self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*'], symbol: 'bell'),
                     self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*'], symbol: 'envelope'),

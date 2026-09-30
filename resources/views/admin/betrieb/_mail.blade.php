@@ -1,70 +1,65 @@
+{{-- Mailversand als gruppierte Listen – in «Betrieb» und im Einrichtungsschritt «E-Mail». --}}
 @php
-    $feld = 'np-feld mt-1';
-    $label = 'text-sm font-medium text-text';
     $wert = fn (string $k) => old($k, $werte[$k]);
+    $fehlerAttr = fn (string $k) => $errors->has($k) ? 'aria-invalid=true' : '';
 @endphp
-<div class="flex flex-col gap-6">
-    <div class="grid sm:grid-cols-3 gap-4">
-        <div class="sm:col-span-2">
-            <label for="mail_host" class="{{ $label }}">{{ __('Server') }}</label>
-            <input id="mail_host" name="mail_host" type="text" maxlength="190" value="{{ $wert('mail_host') }}" class="{{ $feld }}" autocomplete="off" placeholder="{{ $werte['env_host'] ?? '' }}">
-            @if($werte['source'] === 'env' && $werte['env_host'])
-                <p class="mt-1 text-xs text-muted">{{ __('Vorgabe der Installation: :host', ['host' => $werte['env_host']]) }}</p>
-            @endif
-            @error('mail_host')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="mail_port" class="{{ $label }}">{{ __('Port') }}</label>
-            <input id="mail_port" name="mail_port" type="number" min="1" max="65535" value="{{ $wert('mail_port') }}" class="{{ $feld }} tabular-nums">
-            @error('mail_port')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
-    </div>
-
-    <div class="grid sm:grid-cols-3 gap-4">
-        <div>
-            <label for="mail_encryption" class="{{ $label }}">{{ __('Verschlüsselung') }} *</label>
-            <select id="mail_encryption" name="mail_encryption" required class="{{ $feld }}">
-                @foreach(\App\Services\Notifications\MailSettings::ENCRYPTIONS as $wert_key => $wert_label)
-                    <option value="{{ $wert_key }}" @selected($wert('mail_encryption') === $wert_key)>{{ __($wert_label) }}</option>
+<section>
+    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Server') }}</h2>
+    <div class="np-karte np-gruppe">
+        <x-einstellung :label="__('Server')" fuer="mail_host" name="mail_host"
+                       :hinweis="$werte['source'] === 'env' && $werte['env_host'] ? __('Vorgabe der Installation: :host', ['host' => $werte['env_host']]) : null">
+            <input id="mail_host" name="mail_host" type="text" maxlength="190" value="{{ $wert('mail_host') }}" placeholder="{{ $werte['env_host'] ?? '' }}"
+                   autocomplete="off" spellcheck="false" class="np-feld w-72" {{ $fehlerAttr('mail_host') }}>
+        </x-einstellung>
+        <x-einstellung :label="__('Port')" fuer="mail_port" name="mail_port">
+            <input id="mail_port" name="mail_port" type="number" min="1" max="65535" value="{{ $wert('mail_port') }}"
+                   class="np-feld w-24 text-right tabular-nums" {{ $fehlerAttr('mail_port') }}>
+        </x-einstellung>
+        <x-einstellung :label="__('Verschlüsselung')" fuer="mail_encryption" name="mail_encryption">
+            <select id="mail_encryption" name="mail_encryption" required class="np-feld w-72">
+                @foreach(\App\Services\Notifications\MailSettings::ENCRYPTIONS as $schluessel => $text)
+                    <option value="{{ $schluessel }}" @selected($wert('mail_encryption') === $schluessel)>{{ __($text) }}</option>
                 @endforeach
             </select>
-            @error('mail_encryption')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="mail_username" class="{{ $label }}">{{ __('Benutzer') }}</label>
-            <input id="mail_username" name="mail_username" type="text" maxlength="190" value="{{ $wert('mail_username') }}" class="{{ $feld }}" autocomplete="off">
-            @error('mail_username')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="mail_password" class="{{ $label }}">{{ __('Passwort') }}</label>
+        </x-einstellung>
+        <x-einstellung :label="__('Benutzer')" fuer="mail_username" name="mail_username">
+            <input id="mail_username" name="mail_username" type="text" maxlength="190" value="{{ $wert('mail_username') }}"
+                   autocomplete="off" spellcheck="false" class="np-feld w-72" {{ $fehlerAttr('mail_username') }}>
+        </x-einstellung>
+        <x-einstellung :label="__('Passwort')" fuer="mail_password" name="mail_password">
             <input id="mail_password" name="mail_password" type="password" maxlength="190" value=""
-                   placeholder="{{ $werte['has_password'] ? __('gesetzt') : '' }}" class="{{ $feld }}" autocomplete="new-password">
-            @error('mail_password')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-            @if($werte['has_password'])
-                <label for="mail_password_clear" class="mt-2 flex items-center gap-2 text-xs text-muted">
-                    <input id="mail_password_clear" name="mail_password_clear" type="checkbox" value="1" class="np-haken">
-                    {{ __('Passwort entfernen') }}
-                </label>
-            @endif
-        </div>
+                   placeholder="{{ $werte['has_password'] ? __('gesetzt') : '' }}" autocomplete="new-password"
+                   class="np-feld w-72" {{ $fehlerAttr('mail_password') }}>
+        </x-einstellung>
+        @if($werte['has_password'])
+            <x-einstellung :label="__('Passwort entfernen')" fuer="mail_password_clear">
+                <input id="mail_password_clear" name="mail_password_clear" type="checkbox" role="switch" value="1" class="np-schalter">
+            </x-einstellung>
+        @endif
     </div>
+</section>
 
-    <div class="grid sm:grid-cols-2 gap-4">
-        <div>
-            <label for="mail_from_address" class="{{ $label }}">{{ __('Absenderadresse') }}</label>
-            <input id="mail_from_address" name="mail_from_address" type="email" maxlength="190" value="{{ $wert('mail_from_address') }}" class="{{ $feld }}" placeholder="{{ $werte['env_from'] ?? '' }}" autocomplete="off">
-            @error('mail_from_address')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
-        <div>
-            <label for="mail_from_name" class="{{ $label }}">{{ __('Anzeigename') }}</label>
-            <input id="mail_from_name" name="mail_from_name" type="text" maxlength="120" value="{{ $wert('mail_from_name') }}" class="{{ $feld }}" placeholder="{{ $werte['effective_from_name'] }}" autocomplete="off">
-            @error('mail_from_name')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-        </div>
+<section>
+    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Absender') }}</h2>
+    <div class="np-karte np-gruppe">
+        <x-einstellung :label="__('Absenderadresse')" fuer="mail_from_address" name="mail_from_address">
+            <input id="mail_from_address" name="mail_from_address" type="email" maxlength="190" value="{{ $wert('mail_from_address') }}" placeholder="{{ $werte['env_from'] ?? '' }}"
+                   autocomplete="off" class="np-feld w-72" {{ $fehlerAttr('mail_from_address') }}>
+        </x-einstellung>
+        <x-einstellung :label="__('Anzeigename')" fuer="mail_from_name" name="mail_from_name">
+            <input id="mail_from_name" name="mail_from_name" type="text" maxlength="120" value="{{ $wert('mail_from_name') }}" placeholder="{{ $werte['effective_from_name'] }}"
+                   autocomplete="off" class="np-feld w-72" {{ $fehlerAttr('mail_from_name') }}>
+        </x-einstellung>
     </div>
+</section>
 
-    <div>
-        <label for="mail_redirect_to" class="{{ $label }}">{{ __('Alle Mails umleiten an') }} <span class="normal-case font-normal text-muted">({{ __('Testbetrieb') }})</span></label>
-        <input id="mail_redirect_to" name="mail_redirect_to" type="email" maxlength="190" value="{{ $wert('mail_redirect_to') }}" class="{{ $feld }}" autocomplete="off">
-        @error('mail_redirect_to')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+<section>
+    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Testbetrieb') }}</h2>
+    <div class="np-karte">
+        <x-einstellung :label="__('Alle Mails umleiten an')" fuer="mail_redirect_to" name="mail_redirect_to">
+            <input id="mail_redirect_to" name="mail_redirect_to" type="email" maxlength="190" value="{{ $wert('mail_redirect_to') }}"
+                   autocomplete="off" class="np-feld w-72" {{ $fehlerAttr('mail_redirect_to') }}>
+        </x-einstellung>
     </div>
-</div>
+    <p class="mt-2 px-1 text-xs text-muted">{{ __('Leer lassen, damit jede Mail an ihre Empfänger geht.') }}</p>
+</section>

@@ -1,29 +1,20 @@
 <x-einrichtung schritt="operations" :stand="$stand" :titel="__('Betrieb')">
-    @php
-        $feld = 'np-feld mt-1';
-        $label = 'text-sm font-medium text-text';
-    @endphp
-    <form method="POST" action="{{ route('admin.setup.operations') }}" class="flex flex-col gap-5"
+    <form method="POST" action="{{ route('admin.setup.operations') }}" class="flex flex-col gap-8"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-        <section class="np-karte p-6">
-            <h3 class="text-sm font-semibold text-text mb-4">{{ __('Dein Konto') }}</h3>
-            <div class="grid sm:grid-cols-3 gap-4">
-                @foreach(['vorname' => [__('Vorname'), 'text', 'given-name'], 'nachname' => [__('Nachname'), 'text', 'family-name'], 'email' => [__('E-Mail'), 'email', 'email']] as $name => [$text, $typ, $auto])
-                    <div>
-                        <label for="{{ $name }}" class="{{ $label }}">{{ $text }} *</label>
-                        <input id="{{ $name }}" name="{{ $name }}" type="{{ $typ }}" required maxlength="{{ $typ === 'email' ? 255 : 100 }}"
-                               value="{{ old($name, $konto->$name) }}" autocomplete="{{ $auto }}" class="{{ $feld }}">
-                        @error($name)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-                    </div>
+        <section>
+            <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Dein Konto') }}</h2>
+            <div class="np-karte np-gruppe">
+                @foreach(['vorname' => [__('Vorname'), 'text', 'given-name', 100], 'nachname' => [__('Nachname'), 'text', 'family-name', 100], 'email' => [__('E-Mail'), 'email', 'email', 255]] as $name => [$text, $typ, $auto, $max])
+                    <x-einstellung :label="$text" :fuer="$name" :name="$name">
+                        <input id="{{ $name }}" name="{{ $name }}" type="{{ $typ }}" required maxlength="{{ $max }}" value="{{ old($name, $konto->$name) }}"
+                               autocomplete="{{ $auto }}" class="np-feld w-72" @error($name) aria-invalid="true" @enderror>
+                    </x-einstellung>
                 @endforeach
             </div>
         </section>
 
-        <section class="np-karte p-6">
-            <h3 class="text-sm font-semibold text-text mb-4">{{ __('Betrieb und Notengrenzen') }}</h3>
-            @include('admin.betrieb._felder', ['werte' => $werte])
-        </section>
+        @include('admin.betrieb._felder', ['werte' => $werte])
 
         @include('admin.einrichtung._fuss', ['schritt' => 'operations'])
     </form>

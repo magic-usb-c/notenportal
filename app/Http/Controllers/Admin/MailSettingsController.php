@@ -47,14 +47,22 @@ class MailSettingsController extends Controller
         if ($log->status === MailLog::SKIPPED) {
             $domain = mb_substr((string) strrchr($to, '@'), 1) ?: $to;
 
-            return redirect()->route('admin.operations.edit')
+            return $this->zurueck($request)
                 ->with('error', __(':to ist eine Testadresse (:domain) – Umleitung setzen oder echte Adresse verwenden.', ['to' => $to, 'domain' => $domain]));
         }
         if ($log->status === MailLog::FAILED) {
-            return redirect()->route('admin.operations.edit')
+            return $this->zurueck($request)
                 ->with('error', __('Testmail fehlgeschlagen: :fehler', ['fehler' => mb_substr((string) $log->error, 0, 150)]));
         }
 
-        return redirect()->route('admin.operations.edit')->with('success', __('Testmail an :to verschickt.', ['to' => $to]));
+        return $this->zurueck($request)->with('success', __('Testmail an :to verschickt.', ['to' => $to]));
+    }
+
+    /** Die Testmail gibt es auch im Einrichtungsschritt «E-Mail» – dorthin zurück statt auf die Seite Betrieb. */
+    private function zurueck(Request $request): RedirectResponse
+    {
+        return $request->input('herkunft') === 'einrichtung'
+            ? redirect()->route('admin.setup', 'mail')
+            : redirect()->route('admin.operations.edit');
     }
 }

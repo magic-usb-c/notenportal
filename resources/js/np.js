@@ -154,9 +154,27 @@ export function registriereRadiogroup(Alpine) {
     });
 }
 
-// Passwortfelder im Admin: zufälliges Passwort erzeugen (mind. eine Ziffer und ein Buchstabe, ohne
-// verwechselbare Zeichen) und in Feld plus Bestätigung setzen. Refs: «pw1», «pw2».
-export function registrierePasswortFelder(Alpine) {
+export function registriereFormhilfen(Alpine) {
+    // Bereiche einer Einstellungsseite (macOS-Einstellungsfenster): ein Bereich sichtbar, gewählt per Segment.
+    // Der Bereich steht im Fragment – Formulare posten an «…#bereich», und der Browser übernimmt das Fragment
+    // bei der Weiterleitung nach dem Speichern (RFC 9110, 10.2.2), so bleibt man im selben Bereich.
+    // Segment (Seitenkopf) und Inhalt sind getrennte Instanzen und gleichen sich über «np-bereich» ab.
+    Alpine.data('npBereiche', (standard, liste) => ({
+        bereich: liste.includes(location.hash.slice(1)) ? location.hash.slice(1) : standard,
+        init() {
+            const setzen = (neu) => { if (liste.includes(neu)) this.bereich = neu; };
+            window.addEventListener('hashchange', () => setzen(location.hash.slice(1)));
+            window.addEventListener('np-bereich', (ev) => setzen(ev.detail));
+        },
+        wechseln(neu) {
+            history.replaceState(null, '', '#' + neu);
+            window.dispatchEvent(new CustomEvent('np-bereich', { detail: neu }));
+            window.scrollTo({ top: 0 });
+        },
+    }));
+
+    // Passwortfelder im Admin: zufälliges Passwort erzeugen (mind. eine Ziffer und ein Buchstabe, ohne
+    // verwechselbare Zeichen) und in Feld plus Bestätigung setzen. Refs: «pw1», «pw2».
     Alpine.data('npPasswortFelder', () => ({
         sichtbar: false,
         generieren() {
