@@ -20,15 +20,15 @@
                 </div>
             @else
                 {{-- Übersicht-Tabelle --}}
-                <div class="rounded-xl border border-border bg-card overflow-hidden">
+                <div class="@container rounded-xl border border-border bg-card overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead class="sticky top-0 z-10 bg-surface-2">
                                 <tr>
                                     <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Berufsbildner') }}</th>
-                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
-                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
-                                    <th scope="col" class="hidden sm:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ohne Noteneintrag') }}</th>
+                                    <th scope="col" class="hidden @3xl:table-cell h-9 px-3 text-right text-2xs font-medium text-muted whitespace-nowrap">{{ __('Ø < :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</th>
                                     <th scope="col" class="h-9 px-3 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
@@ -49,7 +49,7 @@
                                                 <div class="min-w-0">
                                                     <div class="font-medium text-text break-words sm:truncate">{{ $bb->nachname }} {{ $bb->vorname }}</div>
                                                     <div class="text-xs text-muted break-all sm:truncate">{{ $bb->email }}</div>
-                                                    <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted sm:hidden">
+                                                    <div class="flex flex-wrap items-center gap-x-3 text-xs text-muted @3xl:hidden">
                                                         <span>{{ $st?->lernende ?? 0 }} {{ __('Lernende') }}</span>
                                                         @if($warnOhneNoten)
                                                             <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
@@ -67,7 +67,7 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="hidden sm:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell px-3 text-right">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold bg-surface-2 hover:bg-accent hover:text-accent-contrast transition-colors">
@@ -77,7 +77,7 @@
                                                 <span class="text-muted">0</span>
                                             @endif
                                         </td>
-                                        <td class="hidden sm:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell px-3 text-right">
                                             @if($warnOhneNoten)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'keine_noten']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
@@ -88,7 +88,7 @@
                                                 <span class="text-muted">–</span>
                                             @endif
                                         </td>
-                                        <td class="hidden sm:table-cell px-3 text-right">
+                                        <td class="hidden @3xl:table-cell px-3 text-right">
                                             @if($warnTiefAvg)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id, 'warnung' => 'tief_avg']) }}"
                                                    class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold
