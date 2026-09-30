@@ -46,7 +46,7 @@ final class Navigation
     }
 
     /**
-     * @return list<array{label: string, url: string, aktiv: bool, icon: string, badge?: int, kinder?: list<array{label: string, url: string, aktiv: bool}>}>
+     * @return list<array{label: string, url: string, aktiv: bool, icon: string, badge?: int, mehr?: bool, kinder?: list<array{label: string, url: string, aktiv: bool}>}>
      */
     public static function fuer(?User $user, int $feedbackOffen = 0): array
     {
@@ -64,11 +64,6 @@ final class Navigation
                     self::link(__('Benutzerkonten'), 'admin.users.index', ['admin.users.*']),
                 ]),
                 self::gruppe(__('Stammdaten'), 'daten', [
-                    self::link(__('Betrieb'), 'admin.operations.edit', ['admin.operations.*']),
-                    self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*']),
-                    self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*']),
-                    self::link(__('Aktivitätsprotokoll'), 'admin.activity.index', ['admin.activity.*']),
-                    self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*']),
                     self::link(__('Lehrberufe'), 'admin.master-data.professions.index', ['admin.master-data.professions.*']),
                     self::link(__('Module'), 'admin.master-data.modules.index', ['admin.master-data.modules.*']),
                     self::link(__('Fächer'), 'admin.master-data.subjects.index', ['admin.master-data.subjects.*']),
@@ -76,8 +71,17 @@ final class Navigation
                     self::link(__('Notenbäume'), 'admin.master-data.grade-trees.index', ['admin.master-data.grade-trees.*']),
                     self::link(__('Semester'), 'admin.master-data.semesters.index', ['admin.master-data.semesters.*']),
                 ]),
-                self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht'),
-                self::link(__('Feedback'), 'admin.feedback.index', ['admin.feedback.*'], 'feedback') + ['badge' => $feedbackOffen],
+                // Betrieb und Protokolle getrennt von den Stammdaten: andere Aufgabe, anderer Rhythmus
+                self::gruppe(__('Betrieb'), 'einstellungen', [
+                    self::link(__('Allgemein'), 'admin.operations.edit', ['admin.operations.*']),
+                    self::link(__('Einrichtung'), 'admin.setup', ['admin.setup*']),
+                    self::link(__('Benachrichtigungen'), 'admin.notifications.index', ['admin.notifications.*']),
+                    self::link(__('Versandprotokoll'), 'admin.mail-log.index', ['admin.mail-log.*']),
+                    self::link(__('Aktivitätsprotokoll'), 'admin.activity.index', ['admin.activity.*']),
+                ]),
+                // «mehr»: in der Leiste oben unter 1536 px im Menü «Mehr» (HIG: Überlauf statt Umbruch)
+                self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht') + ['mehr' => true],
+                self::link(__('Feedback'), 'admin.feedback.index', ['admin.feedback.*'], 'feedback') + ['badge' => $feedbackOffen, 'mehr' => true],
             ],
             $user->hasRole('Berufsbildner') => [
                 self::link(__('Übersicht'), 'trainer.dashboard', ['trainer.dashboard'], 'start'),
@@ -166,6 +170,8 @@ final class Navigation
         $befehle[] = ['label' => __('Schrift: Normal'), 'url' => '#schrift:normal', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Schrift: Gross'), 'url' => '#schrift:gross', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Schrift: Sehr gross'), 'url' => '#schrift:sehr-gross', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Navigation: Oben'), 'url' => '#navigation:oben', 'gruppe' => $gruppe];
+        $befehle[] = ['label' => __('Navigation: Seitenleiste'), 'url' => '#navigation:seite', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Dichte: Normal'), 'url' => '#dichte:normal', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Dichte: Kompakt'), 'url' => '#dichte:kompakt', 'gruppe' => $gruppe];
         $befehle[] = ['label' => __('Diagrammfarben: Standard'), 'url' => '#diagramm:standard', 'gruppe' => $gruppe];

@@ -44,6 +44,7 @@ class ProfileController extends Controller
                 'ecken' => $daten['ecken'] ?? Darstellung::ECKEN_RUND,
                 'transparenz' => $daten['transparenz'] ?? Darstellung::TRANSPARENZ_NORMAL,
                 'tastenkuerzel' => $daten['tastenkuerzel'] ?? Darstellung::TASTENKUERZEL_AN,
+                'navigation' => $daten['navigation'] ?? Darstellung::fuer($user)['navigation'],
                 'startseite' => $daten['startseite'] ?? 'dashboard',
                 'karten_ausgeblendet' => $this->kartenAusgeblendet($request, $user),
             ];
@@ -93,6 +94,7 @@ class ProfileController extends Controller
             'ecken' => Darstellung::ECKEN_RUND,
             'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
             'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
+            'navigation' => Darstellung::NAVIGATION_OBEN,
             'startseite' => 'dashboard',
             'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
         ];
@@ -142,6 +144,9 @@ class ProfileController extends Controller
         if ($request->has('bewegung')) {
             $regeln['bewegung'] = [Rule::in(Darstellung::BEWEGUNGEN)];
         }
+        if ($request->has('navigation')) {
+            $regeln['navigation'] = [Rule::in(Darstellung::NAVIGATIONEN)];
+        }
         abort_if($regeln === [], 422);
 
         $validiert = $request->validate($regeln);
@@ -151,7 +156,7 @@ class ProfileController extends Controller
             $user->darstellung = $validiert['darstellung'];
         }
 
-        $praefSchluessel = array_intersect_key($validiert, array_flip(['theme', 'akzent', 'schrift', 'dichte', 'diagramm', 'bewegung']));
+        $praefSchluessel = array_intersect_key($validiert, array_flip(['theme', 'akzent', 'schrift', 'dichte', 'diagramm', 'bewegung', 'navigation']));
         if ($praefSchluessel !== []) {
             $aktuell = Darstellung::fuer($user);
             $theme = array_key_exists('theme', $praefSchluessel) ? ($praefSchluessel['theme'] ?: null) : $aktuell['theme'];

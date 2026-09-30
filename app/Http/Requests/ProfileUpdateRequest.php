@@ -44,6 +44,7 @@ class ProfileUpdateRequest extends FormRequest
                 'ecken' => ['nullable', Rule::in(Darstellung::ECKEN)],
                 'transparenz' => ['nullable', Rule::in(Darstellung::TRANSPARENZEN)],
                 'tastenkuerzel' => ['nullable', Rule::in(Darstellung::TASTENKUERZEL)],
+                'navigation' => ['nullable', Rule::in(Darstellung::NAVIGATIONEN)],
                 'startseite' => ['nullable', Rule::in(array_keys(Darstellung::STARTSEITEN[$rolle] ?? ['dashboard' => 'dashboard']))],
                 // «karten_uebermittelt» (verstecktes Feld im Formular) unterscheidet «Abschnitt nicht
                 // angezeigt/gesendet» von «Benutzer hat alle Karten abgewählt» (min. eine Pflicht).

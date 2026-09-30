@@ -153,3 +153,42 @@ export function registriereRadiogroup(Alpine) {
         });
     });
 }
+
+// Seitenleiste: aufgeklappte Gruppen je Gerät merken (reine Bequemlichkeit, darf fehlen).
+const SEITENLEISTE_ZU = 'np-seitenleiste-zu';
+
+function geschlosseneGruppen() {
+    try {
+        const liste = JSON.parse(localStorage.getItem(SEITENLEISTE_ZU) || '[]');
+        return Array.isArray(liste) ? liste : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+export function registriereSeitenleiste(Alpine) {
+    Alpine.data('npSeitenleisteGruppe', (name, aktiv) => ({
+        // Die Gruppe mit der aktuellen Seite ist immer offen
+        auf: aktiv || !geschlosseneGruppen().includes(name),
+        umschalten() {
+            this.auf = !this.auf;
+            try {
+                const liste = geschlosseneGruppen().filter((g) => g !== name);
+                if (!this.auf) liste.push(name);
+                localStorage.setItem(SEITENLEISTE_ZU, JSON.stringify(liste));
+            } catch (e) {}
+        },
+    }));
+
+    Alpine.data('npSeitenleisteSchalter', () => ({
+        seite: document.documentElement.dataset.navigation === 'seite',
+        init() {
+            window.addEventListener('np-navigation', () => {
+                this.seite = document.documentElement.dataset.navigation === 'seite';
+            });
+        },
+        umschalten() {
+            window.npBefehl('#navigation:' + (this.seite ? 'oben' : 'seite'));
+        },
+    }));
+}

@@ -10,7 +10,8 @@
       @if(($npDichte ?? 'normal') !== 'normal') data-dichte="{{ $npDichte }}" @endif
       @if(($npDiagramm ?? 'standard') !== 'standard') data-diagramm="{{ $npDiagramm }}" @endif
       @if(($npEcken ?? 'rund') !== 'rund') data-ecken="{{ $npEcken }}" @endif
-      @if(($npTransparenz ?? 'normal') !== 'normal') data-transparenz="{{ $npTransparenz }}" @endif>
+      @if(($npTransparenz ?? 'normal') !== 'normal') data-transparenz="{{ $npTransparenz }}" @endif
+      @if(($npNavigation ?? 'oben') !== 'oben') data-navigation="{{ $npNavigation }}" @endif>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -65,12 +66,12 @@
                  PATCH fehl (Netzwerk, 419 abgelaufene Sitzung, sonstiger Fehlerstatus), wird der
                  optimistisch gesetzte Wert zurückgesetzt und eine Meldung angezeigt. --}}
             window.npBefehl = function (ziel) {
-                const treffer = /^#(darstellung|theme|schrift|dichte|diagramm):(.+)$/.exec(ziel);
+                const treffer = /^#(darstellung|theme|schrift|dichte|diagramm|navigation):(.+)$/.exec(ziel);
                 if (!treffer) return;
                 const [, art, wert] = treffer;
                 const root = document.documentElement;
                 // Neutraler Wert je Attribut: ohne Präferenz wird kein data-* gesetzt (siehe layouts/app.blade.php Kopf).
-                const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard' };
+                const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard', navigation: 'oben' };
 
                 const vorher = {
                     dunkel: root.classList.contains('dark'),
@@ -78,6 +79,7 @@
                     schrift: root.dataset.schrift,
                     dichte: root.dataset.dichte,
                     diagramm: root.dataset.diagramm,
+                    navigation: root.dataset.navigation,
                 };
                 const zuruecksetzen = function () {
                     root.classList.toggle('dark', vorher.dunkel);
@@ -85,6 +87,8 @@
                     if (vorher.schrift === undefined) delete root.dataset.schrift; else root.dataset.schrift = vorher.schrift;
                     if (vorher.dichte === undefined) delete root.dataset.dichte; else root.dataset.dichte = vorher.dichte;
                     if (vorher.diagramm === undefined) delete root.dataset.diagramm; else root.dataset.diagramm = vorher.diagramm;
+                    if (vorher.navigation === undefined) delete root.dataset.navigation; else root.dataset.navigation = vorher.navigation;
+                    window.dispatchEvent(new CustomEvent('np-navigation'));
                     npFehlermeldung();
                 };
 
@@ -100,9 +104,10 @@
                     } catch (e) {}
                 } else if (art === 'theme') {
                     root.dataset.theme = wert;
-                } else if (art === 'schrift' || art === 'dichte' || art === 'diagramm') {
+                } else if (art === 'schrift' || art === 'dichte' || art === 'diagramm' || art === 'navigation') {
                     if (wert === neutral[art]) delete root.dataset[art];
                     else root.dataset[art] = wert;
+                    if (art === 'navigation') window.dispatchEvent(new CustomEvent('np-navigation'));
                 }
 
                 fetch(@js(route('profile.preferences')), {
@@ -135,7 +140,7 @@
         {{-- Page-Progress-Bar (accent, 2px, oben) --}}
         <div id="np-progress"></div>
 
-        <div class="min-h-screen flex flex-col">
+        <div class="min-h-screen flex flex-col seite:lg:pl-60">
             @include('layouts.navigation')
 
             @if(Route::has('system-notice.dismiss') && ($systemhinweis ?? null))

@@ -87,6 +87,13 @@ final class Darstellung
 
     public const array TASTENKUERZEL = [self::TASTENKUERZEL_AN, self::TASTENKUERZEL_AUS];
 
+    /** Hauptnavigation oben (Leiste) oder als Seitenleiste ab 1024 px; darunter immer das Menü. */
+    public const string NAVIGATION_OBEN = 'oben';
+
+    public const string NAVIGATION_SEITE = 'seite';
+
+    public const array NAVIGATIONEN = [self::NAVIGATION_OBEN, self::NAVIGATION_SEITE];
+
     /**
      * Startseite nach dem Login (nur ohne intended-URL, siehe AuthenticatedSessionController) je
      * Dashboard-Rolle (App\Support\DashboardKarten::rolleFuer): Wert => Routenname. «dashboard»
@@ -144,7 +151,7 @@ final class Darstellung
      * Gültige, aufbereitete Präferenzen für die Seite. Ungültige oder fehlende Werte
      * fallen auf den Standard zurück (theme/akzent/akzent_eigen: null = wie Betrieb/Theme).
      *
-     * @return array{theme: ?string, akzent: ?string, akzent_eigen: ?string, schrift: string, schriftart: string, bewegung: string, dichte: string, diagramm: string, notenanzeige: string, ecken: string, transparenz: string, tastenkuerzel: string, startseite: string, karten_ausgeblendet: list<string>}
+     * @return array{theme: ?string, akzent: ?string, akzent_eigen: ?string, schrift: string, schriftart: string, bewegung: string, dichte: string, diagramm: string, notenanzeige: string, ecken: string, transparenz: string, tastenkuerzel: string, navigation: string, startseite: string, karten_ausgeblendet: list<string>}
      */
     public static function fuer(?User $user): array
     {
@@ -215,6 +222,11 @@ final class Darstellung
             $tastenkuerzel = self::TASTENKUERZEL_AN;
         }
 
+        $navigation = $rohdaten['navigation'] ?? self::NAVIGATION_OBEN;
+        if (! in_array($navigation, self::NAVIGATIONEN, true)) {
+            $navigation = self::NAVIGATION_OBEN;
+        }
+
         // «dashboard» (Standard) ist für jede Rolle gültig – DashboardKarten::rolleFuer (Rollen-
         // Abfragen) wird nur bei einer tatsächlich abweichenden Präferenz gebraucht (AbfragenAnzahlTest:
         // Darstellung::fuer läuft pro Seite mehrfach, z. B. AppServiceProvider, Tastenkürzel-Palette).
@@ -252,6 +264,7 @@ final class Darstellung
             'ecken' => $ecken,
             'transparenz' => $transparenz,
             'tastenkuerzel' => $tastenkuerzel,
+            'navigation' => $navigation,
             'startseite' => $startseite,
             'karten_ausgeblendet' => $kartenAusgeblendet,
         ];

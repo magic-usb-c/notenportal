@@ -11,6 +11,9 @@
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Hauptnavigation als Seitenleiste (Präferenz «navigation», data-navigation auf <html>); wirkt nur mit lg: */
+@custom-variant seite (&:where([data-navigation='seite'], [data-navigation='seite'] *));
+
 /* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
    Wechsel der Variablen (Modus, Theme) auch bei /alpha-Modifiern greift */
 @theme inline {
@@ -205,6 +208,20 @@
   background-color: rgb(var(--card-rgb) / 0.78);
   backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid rgb(var(--border));
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background-color: rgb(var(--card));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: rgb(var(--card));
+    backdrop-filter: none;
+  }
+}
+
+@utility glass-seitenleiste {
+  /* G1 wie glass-bar, Kante rechts statt unten: Seitenleiste der Hauptnavigation */
+  background-color: rgb(var(--card-rgb) / 0.78);
+  backdrop-filter: blur(16px) saturate(140%);
+  border-right: 1px solid rgb(var(--border));
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
   }

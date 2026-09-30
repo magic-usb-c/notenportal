@@ -21,20 +21,77 @@
     $badge = 'inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-accent/12 px-1 text-2xs font-semibold tabular-nums text-accent-text';
     $werkzeug = 'inline-flex size-9 items-center justify-center rounded-lg text-muted transition-colors duration-100 hover:bg-surface-2 hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring';
     $mobil = 'flex min-h-11 items-center gap-3 rounded-lg px-3 text-base transition-colors duration-100';
+    // Seitenleiste: Zeilen wie in einer Quellliste, Symbole im Akzent (HIG «Sidebars»), die aktuelle Seite hinterlegt
+    $zeile = 'flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors duration-100 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring';
+    $zeileAktiv = 'bg-accent/12 font-medium text-text';
+    $zeileInaktiv = 'text-text hover:bg-surface-2';
 @endphp
+
+{{-- Seitenleiste (Präferenz «navigation» = seite): ersetzt ab lg die Einträge der Leiste. Liegt ausserhalb von <nav>,
+     weil dessen backdrop-filter feste Kinder an sich binden würde. Unter lg gilt das Menü der Leiste. --}}
+<aside class="glass-seitenleiste fixed inset-y-0 left-0 z-50 hidden w-60 flex-col seite:lg:flex print:hidden">
+    <a href="{{ route('dashboard') }}" class="flex h-14 shrink-0 items-center gap-2.5 px-5 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
+        <x-application-logo class="h-8 max-w-32" />
+        <span class="min-w-0 leading-tight">
+            <span class="block text-sm font-semibold text-text">Notenportal</span>
+            @if($betriebName ?? null)<span class="block truncate text-2xs text-muted">{{ $betriebName }}</span>@endif
+        </span>
+    </a>
+    <nav class="np-scroll-edge flex-1 overflow-y-auto px-3 pb-6 pt-2" aria-label="{{ __('Seitenleiste') }}">
+        <div class="flex flex-col gap-0.5">
+            @foreach($eintraege as $e)
+                @if(isset($e['kinder']))
+                    <div class="mt-4" x-data="npSeitenleisteGruppe(@js($e['label']), @js($e['aktiv']))">
+                        <button type="button" @click="umschalten()" :aria-expanded="auf" aria-controls="np-gruppe-{{ $loop->index }}"
+                                class="flex h-7 w-full items-center rounded-md px-2.5 text-xs font-semibold text-muted transition-colors duration-100 hover:text-text focus-visible:outline-2 focus-visible:outline-ring">
+                            {{ $e['label'] }}
+                            <svg class="ml-auto size-3.5 transition-transform duration-150" :class="auf && 'rotate-90'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 6l4 4-4 4"/></svg>
+                        </button>
+                        <div id="np-gruppe-{{ $loop->index }}" x-show="auf" class="mt-0.5 flex flex-col gap-0.5">
+                            @foreach($e['kinder'] as $k)
+                                <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif
+                                   class="{{ $zeile }} {{ $k['aktiv'] ? $zeileAktiv : $zeileInaktiv }}">
+                                    <span class="w-5 shrink-0" aria-hidden="true"></span>{{ $k['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif class="{{ $zeile }} {{ $e['aktiv'] ? $zeileAktiv : $zeileInaktiv }}">
+                        <svg class="size-5 shrink-0 text-accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon($e['icon']) }}"/></svg>
+                        <span class="min-w-0 truncate">{{ $e['label'] }}</span>
+                        @if(($e['badge'] ?? 0) > 0)<span class="ml-auto {{ $badge }}">{{ $e['badge'] }}</span>@endif
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    </nav>
+</aside>
 
 <nav x-data="{ open: false }" @keydown.escape.window="open = false" class="glass-bar sticky top-0 z-50 print:hidden" aria-label="{{ __('Hauptnavigation') }}">
     <div class="mx-auto flex h-14 np-seite items-center gap-3 px-4 sm:px-6 lg:px-8">
-        <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
+        {{-- Seitenleiste ein/aus: ganz vorne, wie in der Symbolleiste nach HIG; unter lg gibt es keine Seitenleiste --}}
+        <button type="button" x-data="npSeitenleisteSchalter" @click="umschalten()" :aria-pressed="seite.toString()"
+                :aria-label="seite ? @js(__('Seitenleiste ausblenden')) : @js(__('Seitenleiste einblenden'))"
+                :title="seite ? @js(__('Seitenleiste ausblenden')) : @js(__('Seitenleiste einblenden'))"
+                aria-label="{{ __('Seitenleiste einblenden') }}"
+                class="{{ $werkzeug }} -ml-1.5 hidden shrink-0 lg:inline-flex">
+            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path stroke-linecap="round" d="M9.5 4.5v15"/></svg>
+        </button>
+        <a href="{{ route('dashboard') }}" class="mr-3 flex shrink-0 items-center gap-2.5 rounded-lg seite:lg:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label="{{ __('Zur Übersicht') }}">
             <x-application-logo class="h-8 max-w-40" />
-            <span class="hidden leading-tight md:block lg:hidden xl:block">
+            <span class="hidden leading-tight md:block lg:hidden 2xl:block">
                 <span class="block text-sm font-semibold text-text">Notenportal</span>
                 @if($betriebName ?? null)<span class="block text-2xs text-muted">{{ $betriebName }}</span>@endif
             </span>
         </a>
 
         {{-- Desktop --}}
-        <div class="hidden flex-1 items-center lg:flex">
+        @php
+            $mehr = array_values(array_filter($eintraege, fn ($e) => $e['mehr'] ?? false));
+            $mehrBadge = array_sum(array_map(fn ($e) => (int) ($e['badge'] ?? 0), $mehr));
+        @endphp
+        <div class="hidden flex-1 items-center lg:flex seite:lg:hidden">
             @foreach($eintraege as $e)
                 @if(isset($e['kinder']))
                     <div class="relative" x-data="{ auf: false }" @mouseenter="auf = true" @mouseleave="auf = false" @click.outside="auf = false" @keydown.escape="auf = false">
@@ -57,7 +114,8 @@
                         </div>
                     </div>
                 @else
-                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif class="{{ $punkt }} {{ $e['aktiv'] ? $aktiv : $inaktiv }}">
+                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif
+                       class="{{ $punkt }} {{ $e['aktiv'] ? $aktiv : $inaktiv }} {{ ($e['mehr'] ?? false) ? 'max-2xl:hidden' : '' }}">
                         {{ $e['label'] }}
                         @if(($e['badge'] ?? 0) > 0)
                             <span class="{{ $badge }}">{{ $e['badge'] }}</span>
@@ -65,6 +123,31 @@
                     </a>
                 @endif
             @endforeach
+            @if($mehr !== [])
+                @php $mehrAktiv = collect($mehr)->contains('aktiv', true); @endphp
+                <div class="relative 2xl:hidden" x-data="{ auf: false }" @mouseenter="auf = true" @mouseleave="auf = false" @click.outside="auf = false" @keydown.escape="auf = false">
+                    <button type="button" @click="auf = !auf" :aria-expanded="auf" aria-haspopup="true" class="{{ $punkt }} {{ $mehrAktiv ? $aktiv : $inaktiv }}">
+                        {{ __('Mehr') }}
+                        @if($mehrBadge > 0)<span class="{{ $badge }}">{{ $mehrBadge }}</span>@endif
+                        <svg class="size-3.5 transition-transform duration-150" :class="auf && 'rotate-180'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/></svg>
+                    </button>
+                    <div x-show="auf" x-cloak
+                         x-transition:enter="transition-opacity ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition-opacity ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                         class="absolute right-0 top-full z-50 w-56 pt-1">
+                        <div class="rounded-xl p-1 glass-overlay">
+                            @foreach($mehr as $k)
+                                <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif
+                                   @class(['flex min-h-9 items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-100',
+                                       'bg-surface-2 font-medium text-text' => $k['aktiv'], 'text-muted hover:bg-surface-2 hover:text-text' => ! $k['aktiv']])>
+                                    {{ $k['label'] }}
+                                    @if(($k['badge'] ?? 0) > 0)<span class="ml-auto {{ $badge }}">{{ $k['badge'] }}</span>@endif
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="ml-auto flex items-center gap-1.5">
@@ -73,7 +156,7 @@
                 <button type="button" @click="oeffnen()"
                         class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-2.5 text-sm text-muted hover:text-text md:px-3" aria-label="{{ __('Suchen') }}">
                     <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    <span class="hidden md:inline">{{ __('Suchen') }}</span>
+                    <span class="hidden md:inline lg:hidden xl:inline">{{ __('Suchen') }}</span>
                     <kbd class="hidden rounded-md border border-border px-1.5 py-0.5 font-sans text-2xs text-muted md:inline lg:hidden xl:inline">Ctrl K</kbd>
                 </button>
 

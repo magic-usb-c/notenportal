@@ -71,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
             $view->with('npDiagramm', $praeferenzen['diagramm']);
             $view->with('npEcken', $praeferenzen['ecken']);
             $view->with('npTransparenz', $praeferenzen['transparenz']);
+            $view->with('npNavigation', $praeferenzen['navigation']);
         });
 
         View::composer('layouts.navigation', function ($view) {

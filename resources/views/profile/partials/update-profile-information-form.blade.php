@@ -123,6 +123,8 @@
                     $altTransparenz = in_array($altTransparenz, \App\Support\Darstellung::TRANSPARENZEN, true) ? $altTransparenz : ($praeferenzen['transparenz'] ?? 'normal');
                     $altTastenkuerzel = old('tastenkuerzel', $praeferenzen['tastenkuerzel'] ?? 'an');
                     $altTastenkuerzel = in_array($altTastenkuerzel, \App\Support\Darstellung::TASTENKUERZEL, true) ? $altTastenkuerzel : ($praeferenzen['tastenkuerzel'] ?? 'an');
+                    $altNavigation = old('navigation', $praeferenzen['navigation'] ?? 'oben');
+                    $altNavigation = in_array($altNavigation, \App\Support\Darstellung::NAVIGATIONEN, true) ? $altNavigation : ($praeferenzen['navigation'] ?? 'oben');
                     $startseitenOptionen = \App\Support\Darstellung::STARTSEITEN[$dashboardRolle ?? null] ?? null;
                     $altStartseite = old('startseite', $praeferenzen['startseite'] ?? 'dashboard');
                     $altStartseite = $startseitenOptionen && array_key_exists($altStartseite, $startseitenOptionen) ? $altStartseite : ($praeferenzen['startseite'] ?? 'dashboard');
@@ -341,6 +343,21 @@
                                class="h-4 w-4 rounded border-border-strong/70 bg-input text-accent focus:ring-2 focus:ring-ring/30">
                         {{ __('Bewegungen reduzieren') }}
                     </label>
+
+                    {{-- Navigation: Leiste oben oder Seitenleiste (ab 1024 px; darunter immer das Menü) --}}
+                    <fieldset>
+                        <legend class="text-sm font-medium text-text">{{ __('Navigation') }}</legend>
+                        <div class="mt-2 grid grid-cols-2 gap-2">
+                            @foreach(['oben' => __('Oben'), 'seite' => __('Seitenleiste')] as $wert => $label)
+                                <label class="flex items-center justify-center h-10 rounded-xl border border-border bg-input text-sm text-text cursor-pointer
+                                              has-checked:border-accent has-checked:bg-accent/10 has-checked:text-accent-text has-focus-visible:ring-2 has-focus-visible:ring-ring">
+                                    <input type="radio" name="navigation" value="{{ $wert }}" class="sr-only" @checked($altNavigation === $wert)>
+                                    {{ $label }}
+                                </label>
+                            @endforeach
+                        </div>
+                        @error('navigation')<p class="mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    </fieldset>
 
                     {{-- Tastenkürzel: schaltet sowohl den Dialog als auch dessen Listener ab --}}
                     <fieldset>
