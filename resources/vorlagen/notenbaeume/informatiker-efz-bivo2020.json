@@ -1,0 +1,67 @@
+{
+    "format": "notenportal-notenbaum",
+    "version": 1,
+    "name": "Informatiker/in EFZ (BiVo 2020)",
+    "beschreibung": "QV-Gesamtnote: praktische Arbeit 40 %, Allgemeinbildung 20 %, erweiterte Grundkompetenzen 10 %, Informatikkompetenzen 30 % (Berufsfachschule 80 %, üK 20 %). Bestanden mit IPA, Informatikkompetenzen und Gesamtnote je mindestens 4.",
+    "bezug": "lehrberuf",
+    "quellen": [
+        "BiVo Informatikerin/Informatiker EFZ, SR 412.101.220.10, Art. 18/19 (Stand 1.1.2026)",
+        "BBV SR 412.101 Art. 34 Abs. 2: Gesamtnote auf eine Dezimalstelle",
+        "VMAB SR 412.101.241 Art. 6: Allgemeinbildung je 1/3 Erfahrungsnote, Schlussarbeit, Schlussprüfung"
+    ],
+    "offen": [
+        "Rundung der Erfahrungsnote Informatikkompetenzen: hier eine Dezimalstelle (Abnahmefall NOTENBAUM.md 3.1). Verlangt die BiVo ganze oder halbe Noten, im Knoten «ik» die Rundung auf 0.5 setzen.",
+        "Rundung der Note Allgemeinbildung und der IPA-Note nicht an der Primärquelle geprüft."
+    ],
+    "wurzel": {
+        "code": "qv",
+        "name": "QV-Gesamtnote",
+        "typ": "gruppe",
+        "rundung": 0.1,
+        "fallnote": 4.0,
+        "kinder": [
+            {
+                "code": "ipa",
+                "name": "Praktische Arbeit (IPA)",
+                "typ": "manuell",
+                "gewicht": 40,
+                "fallnote": 4.0
+            },
+            {
+                "code": "ab",
+                "name": "Allgemeinbildung",
+                "typ": "gruppe",
+                "gewicht": 20,
+                "rundung": 0.1,
+                "kinder": [
+                    { "code": "ab_erfahrung", "name": "Erfahrungsnote Allgemeinbildung", "typ": "kategorie", "kategorie": "ABU", "rundung": 0.5 },
+                    { "code": "ab_schlussarbeit", "name": "Schlussarbeit", "typ": "manuell" },
+                    { "code": "ab_schlusspruefung", "name": "Schlussprüfung Allgemeinbildung", "typ": "manuell" }
+                ]
+            },
+            {
+                "code": "egk",
+                "name": "Erweiterte Grundkompetenzen",
+                "typ": "faecher",
+                "gewicht": 10,
+                "rundung": 0.5,
+                "faecher": [
+                    { "name": "Englisch", "kurzname": "EN", "kategorie": "FACH" },
+                    { "name": "Mathematik", "kurzname": "MA", "kategorie": "FACH" }
+                ]
+            },
+            {
+                "code": "ik",
+                "name": "Informatikkompetenzen",
+                "typ": "gruppe",
+                "gewicht": 30,
+                "rundung": 0.1,
+                "fallnote": 4.0,
+                "kinder": [
+                    { "code": "ik_bfs", "name": "Module Berufsfachschule", "typ": "kategorie", "kategorie": "FACH", "elementtyp": "modul", "gewicht": 80 },
+                    { "code": "ik_uek", "name": "Module überbetriebliche Kurse", "typ": "kategorie", "kategorie": "UEK", "elementtyp": "modul", "gewicht": 20 }
+                ]
+            }
+        ]
+    }
+}
