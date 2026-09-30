@@ -217,6 +217,11 @@
     background-color: rgb(var(--card));
     backdrop-filter: none;
   }
+  /* Menüs und Palette in der Leiste: Mit ihrem backdrop-filter ist die Leiste die Backdrop Root, ein Menü
+     darin zeichnet den Seiteninhalt darunter nicht weich. 88 % Deckkraft über scharfem Text liest sich schlecht. */
+  & .glass-overlay {
+    background-color: rgb(var(--card));
+  }
 }
 
 @utility glass-seitenleiste {

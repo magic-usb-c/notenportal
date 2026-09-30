@@ -215,6 +215,53 @@ export function registriereSeitenleiste(Alpine) {
         },
     }));
 
+    // Priority+ der Leiste: was nicht passt, wandert von hinten in «Mehr». Löst die feste Aufteilung ab
+    // (Blade: max-2xl:hidden / 2xl:hidden), die nur für die Grundschrift stimmte.
+    Alpine.data('npLeistenUeberlauf', () => ({
+        init() {
+            this.eintraege = [...this.$root.querySelectorAll(':scope > [data-ueberlauf]')];
+            this.mehr = this.$root.querySelector(':scope > [data-mehr-menue]');
+            if (!this.mehr) return;
+            this.eintraege.forEach((el) => el.classList.remove('max-2xl:hidden'));
+            this.mehr.classList.remove('2xl:hidden');
+            const neu = () => requestAnimationFrame(() => this.einpassen());
+            new ResizeObserver(neu).observe(this.$root);
+            // Schrift aus dem Profil (auch die Vorschau) ändert die Breite der Einträge, nicht die der Leiste
+            new MutationObserver(neu).observe(document.documentElement, { attributes: true, attributeFilter: ['data-schrift', 'data-schriftart', 'lang'] });
+            document.fonts?.ready.then(neu);
+            this.einpassen();
+        },
+        einpassen() {
+            const platz = this.$root.clientWidth;
+            if (platz === 0) return; // Seitenleiste aktiv oder unter lg
+            const belegt = () => [...this.$root.children].reduce((summe, el) => summe + (el.hidden ? 0 : el.getBoundingClientRect().width), 0);
+            this.eintraege.forEach((el) => { el.hidden = false; });
+            this.mehr.hidden = true;
+            if (belegt() > platz) {
+                this.mehr.hidden = false;
+                for (let i = this.eintraege.length - 1; i >= 0 && belegt() > platz; i--) this.eintraege[i].hidden = true;
+            }
+            let badge = 0;
+            let aktiv = false;
+            for (const el of this.eintraege) {
+                const ziel = this.mehr.querySelector(`[data-mehr="${el.dataset.ueberlauf}"]`);
+                if (ziel) ziel.hidden = !el.hidden;
+                if (el.hidden) {
+                    badge += Number(el.dataset.badge || 0);
+                    aktiv ||= 'aktiv' in el.dataset;
+                }
+            }
+            const knopf = this.mehr.querySelector('button');
+            const an = knopf.dataset.aktivKlassen.split(' ');
+            const aus = knopf.dataset.inaktivKlassen.split(' ');
+            knopf.classList.remove(...(aktiv ? aus : an));
+            knopf.classList.add(...(aktiv ? an : aus));
+            const zahl = this.mehr.querySelector('[data-mehr-badge]');
+            zahl.textContent = String(badge);
+            zahl.hidden = badge === 0;
+        },
+    }));
+
     Alpine.data('npSeitenleisteSchalter', () => ({
         seite: document.documentElement.dataset.navigation === 'seite',
         init() {

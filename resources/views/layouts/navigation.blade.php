@@ -86,15 +86,22 @@
             </span>
         </a>
 
-        {{-- Desktop --}}
+        {{-- Desktop. Priority+ (npLeistenUeberlauf): was nicht passt, wandert von hinten in «Mehr» – so passt die
+             Leiste bei jeder Schriftgrösse aus dem Profil, in jeder Sprache und neben jedem Firmennamen. Media Queries
+             allein reichten nicht, sie rechnen mit der Grundschrift des Browsers. Ohne Skript gilt die feste
+             Aufteilung: mit «mehr» markierte Einträge stehen unter 2xl nur in «Mehr». --}}
         @php
-            $mehr = array_values(array_filter($eintraege, fn ($e) => $e['mehr'] ?? false));
-            $mehrBadge = array_sum(array_map(fn ($e) => (int) ($e['badge'] ?? 0), $mehr));
+            $mehrFest = array_filter($eintraege, fn ($e) => $e['mehr'] ?? false);
+            $mehrBadge = array_sum(array_map(fn ($e) => (int) ($e['badge'] ?? 0), $mehrFest));
+            $mehrAktiv = collect($mehrFest)->contains('aktiv', true);
+            $mehrZeile = 'flex min-h-9 items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-100';
+            $menueZeile = fn (bool $aktivJa) => $aktivJa ? 'bg-surface-2 font-medium text-text' : 'text-muted hover:bg-surface-2 hover:text-text';
         @endphp
-        <div class="hidden flex-1 items-center lg:flex seite:lg:hidden">
-            @foreach($eintraege as $e)
+        <div class="hidden min-w-0 flex-1 items-center lg:flex seite:lg:hidden" x-data="npLeistenUeberlauf">
+            @foreach($eintraege as $i => $e)
                 @if(isset($e['kinder']))
-                    <div class="relative" x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                    <div data-ueberlauf="{{ $i }}" @if($e['aktiv']) data-aktiv @endif class="relative shrink-0"
+                         x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
                         <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true"
                                 class="{{ $punkt }} {{ $e['aktiv'] ? $aktiv : $inaktiv }}">
                             {{ $e['label'] }}
@@ -107,15 +114,14 @@
                             <div class="rounded-xl p-1 glass-overlay">
                                 @foreach($e['kinder'] as $k)
                                     <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif
-                                       @class(['flex min-h-9 items-center rounded-lg px-3 text-sm transition-colors duration-100',
-                                           'bg-surface-2 font-medium text-text' => $k['aktiv'], 'text-muted hover:bg-surface-2 hover:text-text' => ! $k['aktiv']])>{{ $k['label'] }}</a>
+                                       class="{{ $mehrZeile }} {{ $menueZeile($k['aktiv']) }}">{{ $k['label'] }}</a>
                                 @endforeach
                             </div>
                         </div>
                     </div>
                 @else
-                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif
-                       class="{{ $punkt }} {{ $e['aktiv'] ? $aktiv : $inaktiv }} {{ ($e['mehr'] ?? false) ? 'max-2xl:hidden' : '' }}">
+                    <a href="{{ $e['url'] }}" data-ueberlauf="{{ $i }}" data-badge="{{ (int) ($e['badge'] ?? 0) }}" @if($e['aktiv']) data-aktiv aria-current="page" @endif
+                       class="{{ $punkt }} shrink-0 {{ $e['aktiv'] ? $aktiv : $inaktiv }} {{ ($e['mehr'] ?? false) ? 'max-2xl:hidden' : '' }}">
                         {{ $e['label'] }}
                         @if(($e['badge'] ?? 0) > 0)
                             <span class="{{ $badge }}">{{ $e['badge'] }}</span>
@@ -123,31 +129,39 @@
                     </a>
                 @endif
             @endforeach
-            @if($mehr !== [])
-                @php $mehrAktiv = collect($mehr)->contains('aktiv', true); @endphp
-                <div class="relative 2xl:hidden" x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
-                    <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true" class="{{ $punkt }} {{ $mehrAktiv ? $aktiv : $inaktiv }}">
-                        {{ __('Mehr') }}
-                        @if($mehrBadge > 0)<span class="{{ $badge }}">{{ $mehrBadge }}</span>@endif
-                        <svg class="size-3.5 transition-transform duration-150" :class="auf && 'rotate-180'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/></svg>
-                    </button>
-                    <div x-show="auf" x-cloak
-                         x-transition:enter="transition-opacity ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                         x-transition:leave="transition-opacity ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                         class="absolute right-0 top-full z-50 w-56 pt-1">
-                        <div class="rounded-xl p-1 glass-overlay">
-                            @foreach($mehr as $k)
-                                <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif
-                                   @class(['flex min-h-9 items-center gap-2 rounded-lg px-3 text-sm transition-colors duration-100',
-                                       'bg-surface-2 font-medium text-text' => $k['aktiv'], 'text-muted hover:bg-surface-2 hover:text-text' => ! $k['aktiv']])>
-                                    {{ $k['label'] }}
-                                    @if(($k['badge'] ?? 0) > 0)<span class="ml-auto {{ $badge }}">{{ $k['badge'] }}</span>@endif
+            <div data-mehr-menue class="relative shrink-0 2xl:hidden" @if($mehrFest === []) hidden @endif
+                 x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true"
+                        data-aktiv-klassen="{{ $aktiv }}" data-inaktiv-klassen="{{ $inaktiv }}" class="{{ $punkt }} {{ $mehrAktiv ? $aktiv : $inaktiv }}">
+                    {{ __('Mehr') }}
+                    <span data-mehr-badge class="{{ $badge }}" @if($mehrBadge === 0) hidden @endif>{{ $mehrBadge }}</span>
+                    <svg class="size-3.5 transition-transform duration-150" :class="auf && 'rotate-180'" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4"/></svg>
+                </button>
+                <div x-show="auf" x-cloak
+                     x-transition:enter="transition-opacity ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     class="absolute right-0 top-full z-50 max-h-[calc(100dvh-4rem)] w-56 overflow-y-auto pt-1">
+                    <div class="rounded-xl p-1 glass-overlay">
+                        @foreach($eintraege as $i => $e)
+                            @if(isset($e['kinder']))
+                                <div data-mehr="{{ $i }}" role="group" aria-label="{{ $e['label'] }}" @unless($e['mehr'] ?? false) hidden @endunless>
+                                    <p class="px-3 pb-1 pt-2 text-2xs font-medium text-muted" aria-hidden="true">{{ $e['label'] }}</p>
+                                    @foreach($e['kinder'] as $k)
+                                        <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif
+                                           class="{{ $mehrZeile }} {{ $menueZeile($k['aktiv']) }}">{{ $k['label'] }}</a>
+                                    @endforeach
+                                </div>
+                            @else
+                                <a href="{{ $e['url'] }}" data-mehr="{{ $i }}" @if($e['aktiv']) aria-current="page" @endif @unless($e['mehr'] ?? false) hidden @endunless
+                                   class="{{ $mehrZeile }} {{ $menueZeile($e['aktiv']) }}">
+                                    {{ $e['label'] }}
+                                    @if(($e['badge'] ?? 0) > 0)<span class="ml-auto {{ $badge }}">{{ $e['badge'] }}</span>@endif
                                 </a>
-                            @endforeach
-                        </div>
+                            @endif
+                        @endforeach
                     </div>
                 </div>
-            @endif
+            </div>
         </div>
 
         <div class="ml-auto flex items-center gap-1.5">

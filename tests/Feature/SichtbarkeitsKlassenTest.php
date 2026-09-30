@@ -46,6 +46,30 @@ class SichtbarkeitsKlassenTest extends TestCase
         $this->assertSame([], $konflikte);
     }
 
+    /**
+     * Priority+: die Leiste legt, was nicht passt, in «Mehr». Das geht nur, wenn «Mehr» jedes Ziel der Leiste
+     * kennt – sonst wäre ein ausgelagerter Eintrag bei grosser Schrift oder schmalem Fenster unerreichbar.
+     */
+    #[Test]
+    #[DataProvider('seiten')]
+    public function mehr_menue_kennt_jedes_ziel_der_leiste(string $rolle, string $route): void
+    {
+        $user = User::factory()->{$rolle}()->create();
+        $html = (string) $this->actingAs($user)->get(route($route))->assertOk()->getContent();
+
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
+        $xpath = new \DOMXPath($dom);
+        $ziele = fn (string $ausdruck) => collect(iterator_to_array($xpath->query($ausdruck)))
+            ->map(fn (\DOMElement $a) => $a->getAttribute('href'))->unique()->sort()->values()->all();
+
+        $leiste = $ziele('//*[@x-data="npLeistenUeberlauf"]/*[@data-ueberlauf]/descendant-or-self::a');
+        $mehr = $ziele('//*[@data-mehr-menue]//*[@data-mehr]/descendant-or-self::a');
+
+        $this->assertNotSame([], $leiste);
+        $this->assertSame($leiste, $mehr);
+    }
+
     #[Test]
     public function feedback_symbol_in_der_leiste_nur_ohne_schwebenden_knopf(): void
     {
