@@ -94,6 +94,7 @@ class ProfileTest extends TestCase
             'ecken' => 'rund',
             'transparenz' => 'normal',
             'tastenkuerzel' => 'an',
+            'navigation' => 'oben',
             'startseite' => 'dashboard',
             'karten_ausgeblendet' => [],
         ], $user->praeferenzen);
