@@ -2,10 +2,14 @@
 
 Webportal für Lehrbetriebe: Lernende erfassen ihre Noten (Fachunterricht, ÜK, BMS, ABU), Berufsbildner begleiten, Admins verwalten. Pilot ab 30.09.2026 im ICT-LAB der Hamilton AG, langfristig Open Source.
 
+**Vor jeder Arbeit `docs/auftrag/LAGE.md` lesen** – dort steht, was gilt, was nachweislich falsch ist und woran gerade gearbeitet wird. Danach `docs/auftrag/UEBERGABE.md` (Brett der parallelen Sitzungen) und `docs/auftrag/ARBEITSTEILUNG.md` (wem welche Verzeichnisse gehören).
+
 Weiterführend: `docs/endspurt-plan.md` (Ideensammlung) · `docs/gui-konzept.md` (Designkonzept) · `docs/architektur.md` (Struktur, Rollen, Datenmodell) · `docs/funktionsumfang.md` · `docs/betrieb.md` (Server, Rechte, Änderungen ausserhalb des Repos)
 
 ## Umgebung
-- VM srv-lab-dva-001, `/var/www/notenportal`, Apache 2.4 + mod_php 8.3, MariaDB 10.11, Node 22
+- Entwicklung und Prod: VM srv-lab-dva-001, `/var/www/notenportal`, Apache 2.4 + mod_php 8.3, MariaDB 10.11, Node 22
+- Testbetrieb seit 30.09.2026: VM srv-lab-dva-003, `https://172.26.14.100`, Ubuntu 26.04.1, PHP 8.5 (frisch per `install.sh`)
+- **Autonome Sitzungen arbeiten nie in `/var/www/notenportal`** – immer in einem Worktree auf einem eigenen `claude/*`-Branch (`docs/auftrag/ARBEITSTEILUNG.md`)
 - Testbenutzer Prod (Login per E-Mail `<vorname>.<nachname>@example.local`, Admin `admin@example.local`): admin, peter (Berufsbildner), david/nando/jan/lukas/nils (Lernende). Passwort ausschliesslich über die Umgebungsvariable `NP_TEST_PW` – nie in Code, Docs, Logs oder Commits
 - Demo-Server (DB `notenportal_demo`, Konten `@demo.example`): laura.frei (Admin), michael.baumann (Berufsbildner), nina.huber/elena.fischer (Lernende). Passwort steht als Konstante `DEMO_PASSWORT` in `database/seeders/DemoSeeder.php` und gehört auch dort nirgends sonst hin – für Prüfläufe ohne Ausgabe übernehmen: `export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\s*=\s*'\K[^']+" database/seeders/DemoSeeder.php)`. Startbefehl: Skill `notenportal-pruefwerkzeuge`
 - Zweite Instanz (Installationstest): `/var/www/notenportal-i2`, Port 8082, DB `notenportal_i2`
