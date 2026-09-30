@@ -6,6 +6,7 @@
 #   sudo ./install.sh --port 8082 --db notenportal_i2   zweite Instanz neben einer bestehenden (nur HTTP)
 # Optionen: --host <Name|IP>  --admin-mail <adresse>  --ohne-https  --https-port <n>
 #           --ohne-firewall  --neues-admin-passwort
+#   sudo ./install.sh --entfernen                       alles wieder abräumen (mit Sicherung und Rückfrage)
 # Erneut ausführen = Update (Pakete, Abhängigkeiten, Build, Migrationen); .env, Webserver-Konfiguration und Konten bleiben.
 set -euo pipefail
 
@@ -19,9 +20,13 @@ HTTPS=-1                  # -1 = noch nicht entschieden: an, sobald die Instanz 
 FIREWALL=1
 ADMIN_OPTION=""
 ADMIN_MAIL=""
+ENTFERNEN=0
+RUECKFRAGE=1
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
+        --entfernen) ENTFERNEN=1; shift ;;
+        --ohne-rueckfrage) RUECKFRAGE=0; shift ;;
         --port) PORT="$2"; shift 2 ;;
         --db) DB="$2"; shift 2 ;;
         --host) HOST="$2"; shift 2 ;;
@@ -31,7 +36,7 @@ while [[ $# -gt 0 ]]; do
         --ohne-https) HTTPS=0; shift ;;
         --ohne-firewall) FIREWALL=0; shift ;;
         --neues-admin-passwort) ADMIN_OPTION="--zuruecksetzen"; shift ;;
-        -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+        -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
         *) echo "Unbekannte Option: $1 (siehe --help)"; exit 1 ;;
     esac
 done
@@ -66,7 +71,24 @@ fi
 SSL_VERZ="/etc/ssl/$NAME"
 
 schritt() { printf '\n\033[1;34m▸ %s\033[0m\n' "$*"; }
-als() { sudo -u "$BESITZER" -H bash -c "cd '$VERZ' && $*"; }
+# umask 002: alles, was artisan und composer anlegen (Zwischenspeicher, Protokolle, übersetzte
+# Vorlagen), bleibt für die Gruppe beschreibbar. Zusammen mit dem setgid-Bit auf den Verzeichnissen
+# gehört es damit der Gruppe www-data – sonst legt der Installer Dateien an, die der Webserver
+# später nicht mehr überschreiben kann.
+als() { sudo -u "$BESITZER" -H bash -c "umask 002; cd '$VERZ' && $*"; }
+
+# Rechte so setzen, dass $BESITZER arbeiten und www-data lesen und in storage/ schreiben kann.
+# Wird zweimal aufgerufen: einmal vor den artisan-Läufen, damit deren Dateien richtig entstehen,
+# und einmal am Schluss für alles, was danach noch dazugekommen ist.
+setze_rechte() {
+    chgrp -R www-data "$VERZ"
+    find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune \
+        -o -type d -exec chmod u+rwx,g+rxs,o-rwx {} +
+    find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune \
+        -o -type f -exec chmod u+rw,g+r,o-rwx {} +
+    [[ ! -d "$VERZ/vendor" ]] || chmod -R g+rX "$VERZ/vendor"
+    chmod -R g+w "$VERZ/storage" "$VERZ/bootstrap/cache"
+}
 
 # Einen Schlüssel in der .env setzen oder ergänzen – ohne die Datei neu zu schreiben, damit
 # Passwörter und von Hand gesetzte Werte erhalten bleiben.
@@ -78,6 +100,81 @@ setze_env() {
         printf '%s=%s\n' "$schluessel" "$wert" >> "$VERZ/.env"
     fi
 }
+
+# Alles, was der Installer am System hinterlässt, wieder abräumen – damit eine misslungene
+# Installation sauber von vorne beginnen kann, statt dass Reste die nächste Runde vergiften.
+# Die Datenbank wird vorher gesichert: ein Abräumen aus Versehen darf keine Noten kosten.
+if (( ENTFERNEN )); then
+    lies_env() { [[ -f "$VERZ/.env" ]] || return 0
+                 { grep -E "^$1=" "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"'; }
+    E_DB="$(lies_env DB_DATABASE)";           E_DB="${E_DB:-$DB}"
+    E_WEB="$(lies_env DB_USERNAME)";          E_WEB="${E_WEB:-${E_DB}_web}"
+    E_MIG="$(lies_env DB_MIGRATE_USERNAME)";  E_MIG="${E_MIG:-${E_DB}_migrate}"
+    E_URL="$(lies_env APP_URL)"
+    E_HOST="${E_URL#*://}"; E_HOST="${E_HOST%%[:/]*}"; E_HOST="${E_HOST:-$HOST}"
+
+    schritt "Entfernen – das verschwindet"
+    echo "  Datenbank        $E_DB (wird vorher gesichert)"
+    echo "  Datenbankkonten  $E_WEB, $E_MIG"
+    echo "  Apache-Sites     $NAME.conf, $NAME-ssl.conf"
+    echo "  Zertifikate      $SSL_VERZ (inklusive Lab-CA – importierte Kopien werden wertlos)"
+    echo "  Zeitplan         /etc/cron.d/${NAME//[^A-Za-z0-9_-]/_}"
+    echo "  hosts-Eintrag    $E_HOST"
+    echo "  Im Verzeichnis   .env, vendor/, node_modules/, public/build, storage/logs, Zwischenspeicher"
+    echo "  Nicht angetastet: $VERZ selbst, Apache, MariaDB, PHP, die Pakete."
+    if (( RUECKFRAGE )); then
+        printf '\n  Zum Bestätigen «entfernen» eingeben: '
+        read -r ANTWORT
+        [[ "$ANTWORT" == "entfernen" ]] || { echo "  Abgebrochen – es wurde nichts verändert."; exit 1; }
+    fi
+
+    schritt "Sicherung vor dem Entfernen"
+    if mysql -N -e "SHOW DATABASES LIKE '$E_DB';" 2>/dev/null | grep -q .; then
+        SICHERUNG="/root/${NAME}-entfernt-$(date +%Y%m%d-%H%M%S).sql.gz"
+        if mysqldump --single-transaction --routines --events "$E_DB" 2>/dev/null | gzip > "$SICHERUNG"; then
+            chmod 600 "$SICHERUNG"
+            echo "  $SICHERUNG ($(du -h "$SICHERUNG" | cut -f1))"
+        else
+            rm -f "$SICHERUNG"
+            echo "  Die Sicherung ist fehlgeschlagen – Abbruch, damit nichts verloren geht."
+            exit 1
+        fi
+    else
+        echo "  Keine Datenbank $E_DB vorhanden – nichts zu sichern"
+    fi
+
+    schritt "Entfernen"
+    a2dissite -q "$NAME-ssl" >/dev/null 2>&1 || true
+    a2dissite -q "$NAME" >/dev/null 2>&1 || true
+    rm -f "/etc/apache2/sites-available/$NAME.conf" "/etc/apache2/sites-available/$NAME-ssl.conf"
+    # Bleibt gar keine Site übrig, die Standardsite wieder anschalten, damit Apache startet. Läuft auf
+    # dem Server noch eine zweite Instanz, bleibt alles, wie es ist – sonst bekäme die auf einmal einen
+    # zweiten vhost auf demselben Port.
+    if [[ -z "$(ls -A /etc/apache2/sites-enabled 2>/dev/null)" ]]; then
+        a2ensite -q 000-default >/dev/null 2>&1 || true
+    fi
+    # 99-notenportal.ini bleibt: die Datei gilt für ganz PHP und damit auch für eine zweite Instanz.
+    # Sie hebt nur Upload- und Speichergrenzen an – stehen zu lassen schadet nichts, wegnehmen schon.
+    rm -f "/etc/cron.d/${NAME//[^A-Za-z0-9_-]/_}"
+    rm -rf "$SSL_VERZ"
+    [[ -z "$E_HOST" ]] || sed -i "/^127\.0\.0\.1[[:space:]].*[[:space:]]\?${E_HOST//./\\.}\([[:space:]]\|$\)/d" /etc/hosts
+    mysql <<SQL 2>/dev/null || true
+DROP DATABASE IF EXISTS \`$E_DB\`;
+DROP USER IF EXISTS '$E_WEB'@'localhost';
+DROP USER IF EXISTS '$E_MIG'@'localhost';
+FLUSH PRIVILEGES;
+SQL
+    rm -f "$VERZ/.env" "$VERZ/public/lab-ca.crt"
+    rm -rf "$VERZ/vendor" "$VERZ/node_modules" "$VERZ/public/build"
+    rm -f "$VERZ"/bootstrap/cache/*.php
+    rm -rf "$VERZ"/storage/logs/* "$VERZ"/storage/framework/views/* \
+           "$VERZ"/storage/framework/sessions/* "$VERZ"/storage/framework/cache/data/*
+    if apachectl -t >/dev/null 2>&1; then systemctl reload apache2 >/dev/null 2>&1 || true; fi
+    printf '\n\033[1;32m✔ Abgeräumt.\033[0m Neu aufsetzen mit: sudo ./install.sh\n'
+    echo "  Die Sicherung der Datenbank liegt unter /root/ – erst löschen, wenn sie nicht mehr gebraucht wird."
+    echo "  Soll auch das Verzeichnis weg: cd .. && sudo rm -rf \"$VERZ\""
+    exit 0
+fi
 
 schritt "Voraussetzungen"
 # Alles Prüfbare vor dem ersten apt-get: schlägt eine Voraussetzung erst mitten in der Installation
@@ -254,6 +351,10 @@ if ! als "composer install --no-dev --optimize-autoloader --no-interaction --qui
 fi
 als "npm ci --no-audit --no-fund --loglevel=error && npm run build --silent"
 
+# Vor den artisan-Läufen, nicht erst danach: sonst entstehen Protokoll, Sitzungen und übersetzte
+# Vorlagen unter der Gruppe von $BESITZER, und www-data scheitert später beim ersten Schreibversuch.
+setze_rechte
+
 schritt "Anwendung"
 grep -q '^APP_KEY=base64' "$VERZ/.env" || als "php artisan key:generate --force --quiet"
 als "php artisan config:clear --quiet && php artisan notenportal:migrate"
@@ -343,10 +444,27 @@ fi
 schritt "Webserver (HTTP $PORT$( ((HTTPS)) && echo " → HTTPS $HTTPS_PORT" || true))"
 a2enmod -q rewrite headers >/dev/null
 if (( HTTPS )); then a2enmod -q ssl >/dev/null; fi
-# Das Apache-Modul heisst je nach Ubuntu-Ausgabe php8.3, php8.5 …: den vorhandenen Namen nehmen.
-for MODUL in /etc/apache2/mods-available/php*.load; do
-    [[ -e "$MODUL" ]] && a2enmod -q "$(basename "$MODUL" .load)" >/dev/null 2>&1 || true
-done
+# Das Apache-Modul heisst je nach Ubuntu-Ausgabe php8.3, php8.5 … – und es darf genau eines aktiv
+# sein, nämlich das zur Kommandozeilen-Version passende. Liegen zwei PHP-Fassungen auf dem Server
+# (ein Upgrade, ein Fremd-Repository), baut composer vendor/ gegen die eine und Apache führt es mit
+# der anderen aus. Das Ergebnis ist ein 500, während jeder artisan-Befehl einwandfrei läuft.
+PHP_ZWEIG="$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')"
+PHP_MODUL="php$PHP_ZWEIG"
+if [[ -e "/etc/apache2/mods-available/$PHP_MODUL.load" ]]; then
+    for MODUL in /etc/apache2/mods-enabled/php*.load; do
+        [[ -e "$MODUL" ]] || continue
+        AKTIV="$(basename "$MODUL" .load)"
+        [[ "$AKTIV" == "$PHP_MODUL" ]] || { a2dismod -q "$AKTIV" >/dev/null 2>&1 || true
+            echo "  Apache-Modul $AKTIV abgeschaltet – die Kommandozeile läuft mit PHP $PHP_ZWEIG"; }
+    done
+    a2enmod -q "$PHP_MODUL" >/dev/null 2>&1 || true
+    echo "  Apache führt PHP $PHP_ZWEIG aus (Modul $PHP_MODUL)"
+else
+    # Kein mod_php für diese Fassung: dann läuft PHP über php-fpm oder gar nicht. Beides ist hier
+    # nicht vorgesehen, aber ein stiller Fehlschlag wäre schlimmer als eine deutliche Meldung.
+    echo "  Achtung: /etc/apache2/mods-available/$PHP_MODUL.load fehlt – Apache und Kommandozeile"
+    echo "  benutzen womöglich verschiedene PHP-Fassungen. Prüfen: apachectl -M | grep php"
+fi
 # Uploads: 2 MB Standard reichen für eine Modulkatalog-Ernte oder eine lange Notenliste nicht.
 # memory_limit: die Kommandozeile läuft unter Ubuntu ohne Limit, Apache mit 128M. Ein Import oder
 # eine Sicherung stösst dort an – und ein Speicherabbruch erscheint im Laravel-Log nur als
@@ -472,16 +590,47 @@ if (( FRISCH )); then
 fi
 
 schritt "Dateirechte"
-chgrp -R www-data "$VERZ"
-find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune -o -type d -exec chmod u+rwx,g+rxs,o-rwx {} +
-find "$VERZ" \( -path "$VERZ/.git" -o -path "$VERZ/node_modules" -o -path "$VERZ/vendor" \) -prune -o -type f -exec chmod u+rw,g+r,o-rwx {} +
-chmod -R g+rX "$VERZ/vendor"
-chmod -R g+w "$VERZ/storage" "$VERZ/bootstrap/cache"
+setze_rechte
 if ! sudo -u www-data test -r "$VERZ/public/index.php"; then
     echo "  Achtung: www-data kann $VERZ nicht lesen – übergeordnete Verzeichnisse prüfen (z. B. chmod o+x)."
 fi
+# Beweis statt Annahme: www-data muss in storage/ tatsächlich schreiben können, sonst scheitert die
+# erste Sitzung mit einer Ausnahme, die Laravel nur noch als «A facade root has not been set» meldet.
+for SCHREIBZIEL in storage/logs storage/framework/sessions storage/framework/views bootstrap/cache; do
+    if ! sudo -u www-data test -w "$VERZ/$SCHREIBZIEL"; then
+        echo "  Achtung: www-data kann in $SCHREIBZIEL nicht schreiben – das Portal antwortet mit 500."
+        echo "  Behebt sich mit: sudo chgrp -R www-data \"$VERZ\" && sudo chmod -R g+w \"$VERZ/storage\" \"$VERZ/bootstrap/cache\""
+    fi
+done
 
 schritt "Selbstprüfung"
+# Erst den Webeinstieg unter dem Webserver-Benutzer und mit der php.ini von Apache durchspielen.
+# Geht dabei etwas schief, erscheint die Meldung hier ungefiltert – über HTTP käme nur ein nacktes
+# «500», und im Protokoll stünde bloss die Folgemeldung «A facade root has not been set».
+APACHE_INI="$(dirname "$(ls -d /etc/php/*/apache2/conf.d 2>/dev/null | tail -n 1)" 2>/dev/null || true)"
+if [[ -d "$APACHE_INI" ]]; then
+    PRUEFDATEI="$(mktemp /tmp/notenportal-webpruefung-XXXXXX.php)"
+    {
+        echo '<?php'
+        printf '$_SERVER["HTTP_HOST"] = %s;\n' "\"$HOST\""
+        echo '$_SERVER["REQUEST_METHOD"] = "GET";'
+        echo '$_SERVER["REQUEST_URI"] = "/login";'
+        echo '$_SERVER["SCRIPT_NAME"] = "/index.php";'
+        printf 'require %s;\n' "\"$VERZ/public/index.php\""
+    } > "$PRUEFDATEI"
+    chmod 644 "$PRUEFDATEI"
+    WEB_AUSGABE="$(sudo -u www-data php -c "$APACHE_INI" -d display_errors=1 -d error_reporting=-1 \
+        "$PRUEFDATEI" 2>&1 || true)"
+    rm -f "$PRUEFDATEI"
+    if [[ "$WEB_AUSGABE" == *"Fatal error"* || "$WEB_AUSGABE" == *"Uncaught"* || "$WEB_AUSGABE" != *"<!DOCTYPE"* ]]; then
+        printf '\n\033[1;31m✖ Die Anwendung startet unter dem Webserver-Benutzer nicht.\033[0m\n'
+        echo "$WEB_AUSGABE" | grep -av 'facade root' | head -n 15 | sed 's/^/  /'
+        echo "  PHP unter Apache: $(php -c "$APACHE_INI" -r 'echo PHP_VERSION;' 2>/dev/null || echo '?'), Kommandozeile: $(php -r 'echo PHP_VERSION;')"
+        echo "  Sauber neu beginnen: sudo ./install.sh --entfernen && sudo ./install.sh"
+        exit 1
+    fi
+    echo "  Die Anwendung startet als www-data"
+fi
 if (( HTTPS )); then
     # Über --resolve und --cacert statt gegen 127.0.0.1: so wird geprüft, was der Browser prüft –
     # richtiger Name im Zertifikat und Vertrauenskette zur Lab-CA. Ein blosses -k würde beides
