@@ -38,7 +38,7 @@
                                 </td>
                                 <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if($lb->aktiv)
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
+                                        <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
                                     @endif

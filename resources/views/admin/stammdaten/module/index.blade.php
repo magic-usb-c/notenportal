@@ -36,7 +36,7 @@
                         .($m->aktiv ? '' : ' · '.e(__('inaktiv'))).'</span></td>
                 <td class="hidden px-2.5 sm:px-4 text-right text-muted sm:table-cell">'.e((string) $m->lehrberuf_count).'</td>
                 <td class="hidden px-2.5 sm:px-4 sm:table-cell">'.($m->aktiv
-                    ? '<span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">'.e(__('aktiv')).'</span>'
+                    ? '<span class="text-xs text-muted">'.e(__('aktiv')).'</span>'
                     : '<span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">'.e(__('inaktiv')).'</span>').'</td>
                 <td class="px-2.5 sm:px-4 text-right">
                     <a href="'.e(route('admin.master-data.modules.edit', $m->modul_id)).'" class="inline-flex items-center px-3 min-h-9 rounded-lg text-sm text-accent-text opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100 hover:bg-accent/10">'.e(__('Bearbeiten')).'</a>

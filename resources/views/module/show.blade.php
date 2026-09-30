@@ -141,8 +141,7 @@
                     @csrf
                     <div>
                         <label for="datei" class="text-sm font-medium text-text">{{ __('Datei') }}</label>
-                        <input id="datei" name="datei" type="file" required accept=".pdf,.jpg,.jpeg,.png,.docx,.odt"
-                               class="{{ $feld }} file:mr-3 file:rounded-lg file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:text-text">
+                        <x-datei-feld id="datei" name="datei" required accept=".pdf,.jpg,.jpeg,.png,.docx,.odt" />
                         <p class="mt-1 text-xs text-muted">{{ __('PDF, Bild, Word, OpenDocument · bis 20 MB') }}</p>
                         @error('datei')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>

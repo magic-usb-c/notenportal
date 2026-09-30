@@ -42,14 +42,14 @@
                                 <td class="hidden sm:table-cell px-2.5 sm:px-4 text-right text-muted">{{ number_format((float) $k->gewicht_gesamt, 2) }}</td>
                                 <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if(! is_null($k->promotion_min_schnitt))
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
+                                        <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">–</span>
                                     @endif
                                 </td>
                                 <td class="hidden sm:table-cell px-2.5 sm:px-4">
                                     @if($k->aktiv)
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-note-gut/14 text-note-gut">{{ __('aktiv') }}</span>
+                                        <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
                                         <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
                                     @endif

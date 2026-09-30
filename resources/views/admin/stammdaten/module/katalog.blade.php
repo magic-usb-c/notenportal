@@ -41,7 +41,7 @@
 
                         <div>
                             <label for="datei" class="text-sm font-medium text-text">{{ __('Datei') }} *</label>
-                            <input id="datei" name="datei" type="file" accept=".json,application/json" required class="{{ $feld }}">
+                            <x-datei-feld id="datei" name="datei" accept=".json,application/json" required />
                             @error('datei')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
 

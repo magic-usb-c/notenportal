@@ -156,9 +156,8 @@
                 @if(\App\Models\Feedback::hatAnhaengeTabelle())
                     <div class="mt-3">
                         <label for="feedback-anhaenge" class="text-sm font-medium text-text">{{ __('Eigene Anhänge') }}</label>
-                        <input id="feedback-anhaenge" type="file" multiple accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.log"
-                               @change="dateienWaehlen($event)"
-                               class="mt-1.5 block w-full text-sm text-muted file:mr-3 file:h-8 file:rounded-lg file:border-0 file:bg-surface-2 file:px-3 file:text-sm file:font-medium file:text-text hover:file:bg-surface-2/80">
+                        <x-datei-feld id="feedback-anhaenge" mehrere ohne-name accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.log"
+                                      @change="dateienWaehlen($event)" />
                         <p class="mt-1 text-xs text-muted">{{ __('Bis zu 3 Dateien, je maximal 5 MB (PNG, JPG, WebP, PDF, TXT, LOG).') }}</p>
                         <ul class="mt-1.5 space-y-1" x-show="anhaenge.length > 0">
                             <template x-for="(datei, index) in anhaenge" :key="datei.name + index">

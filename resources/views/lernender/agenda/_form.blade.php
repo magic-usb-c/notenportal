@@ -151,7 +151,7 @@
                 <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
             @endforelse
             <div class="flex items-center gap-2">
-                <input type="file" name="datei" form="anhang-hochladen" required class="text-sm text-muted flex-1 min-w-0" aria-label="{{ __('Datei anhängen') }}">
+                <x-datei-feld id="anhang-datei" rahmen="flex-1" name="datei" form="anhang-hochladen" required :aria-label="__('Datei anhängen')" />
                 <button form="anhang-hochladen" class="px-3 h-9 rounded-lg glass-btn text-text text-sm shrink-0">{{ __('Anhängen') }}</button>
             </div>
             @error('datei')<p class="{{ $fehler }}">{{ $message }}</p>@enderror

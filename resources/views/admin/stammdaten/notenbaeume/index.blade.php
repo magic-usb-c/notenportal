@@ -32,7 +32,7 @@
                                     <td class="px-4 text-right text-muted">{{ $b->positionen }}</td>
                                     <td class="px-4">
                                         @if($b->aktiv)
-                                            <span class="rounded-md bg-note-gut/14 px-2 py-0.5 text-xs text-note-gut">{{ __('aktiv') }}</span>
+                                            <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
                                         @else
                                             <span class="rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ __('inaktiv') }}</span>
                                         @endif
@@ -84,9 +84,8 @@
                         @csrf
                         <div>
                             <label for="datei" class="text-sm font-medium text-text">{{ __('Datei (JSON)') }} <span class="text-note-ungenuegend">*</span></label>
-                            <input id="datei" name="datei" type="file" accept=".json,application/json" required
-                                   class="mt-1.5 block w-full text-sm text-text file:mr-3 file:h-9 file:rounded-lg file:border-0 file:bg-surface-2 file:px-3 file:text-sm file:font-medium file:text-text"
-                                   @error('datei') aria-invalid="true" aria-describedby="datei-fehler" @enderror>
+                            <x-datei-feld id="datei" name="datei" accept=".json,application/json" required
+                                          :aria-invalid="$errors->has('datei') ? 'true' : null" :aria-describedby="$errors->has('datei') ? 'datei-fehler' : null" />
                             @error('datei')<p id="datei-fehler" class="mt-1 whitespace-pre-line text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>

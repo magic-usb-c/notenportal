@@ -16,7 +16,7 @@
         </nav>
         <x-seitenkopf :titel="$baum->name" :untertitel="$fuer">
             @if($baum->aktiv)
-                <span class="rounded-md bg-note-gut/14 px-2 py-0.5 text-xs text-note-gut">{{ __('aktiv') }}</span>
+                <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
             @else
                 <span class="rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ __('inaktiv') }}</span>
             @endif
