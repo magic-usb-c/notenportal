@@ -71,29 +71,29 @@
 
             {{-- Berufsbildner --}}
             @if($sichtbar['berufsbildner'] ?? true)
-                <x-karte :titel="__('Berufsbildner')" class="lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
+                <x-karte :titel="__('Berufsbildner')" class="@container lg:col-span-7" :polster="false" :link="route('admin.trainers.index')">
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm tabular-nums">
                             <thead class="sticky top-0 bg-surface-2">
                                 <tr>
-                                    <th scope="col" class="h-9 px-2 sm:px-3 sm:px-5 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
-                                    <th scope="col" class="hidden sm:table-cell h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
-                                    <th scope="col" class="h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Kritisch') }}</th>
-                                    <th scope="col" class="h-9 px-2 sm:px-3 text-right text-2xs font-medium text-muted">{{ __('Beobachten') }}</th>
-                                    <th scope="col" class="h-9 px-2 sm:px-3 sm:px-5 text-right text-2xs font-medium text-muted">{{ __('Ungesehen') }}</th>
+                                    <th scope="col" class="h-9 px-3 @md:px-5 text-left text-2xs font-medium text-muted">{{ __('Name') }}</th>
+                                    <th scope="col" class="hidden @md:table-cell h-9 px-2 @md:px-3 text-right text-2xs font-medium text-muted">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="h-9 px-2 @md:px-3 text-right text-2xs font-medium text-muted">{{ __('Kritisch') }}</th>
+                                    <th scope="col" class="h-9 px-2 @md:px-3 text-right text-2xs font-medium text-muted">{{ __('Beobachten') }}</th>
+                                    <th scope="col" class="hidden @sm:table-cell h-9 px-3 @md:px-5 text-right text-2xs font-medium text-muted">{{ __('Ungesehen') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-border">
                                 @forelse($proBb as $bb)
                                     <tr class="h-11">
-                                        <td class="px-2 sm:px-3 sm:px-5 text-text">
+                                        <td class="px-3 @md:px-5 text-text">
                                             {{ $bb->name }}
-                                            <span class="block text-xs text-muted sm:hidden">{{ $bb->lernende }} {{ __('Lernende') }}</span>
+                                            <span class="block text-xs text-muted @md:hidden">{{ $bb->lernende }} {{ __('Lernende') }}<span class="@sm:hidden"> · {{ __(':anzahl ungesehen', ['anzahl' => $bb->neu]) }}</span></span>
                                         </td>
-                                        <td class="hidden sm:table-cell px-2 sm:px-3 text-right text-muted">{{ $bb->lernende }}</td>
-                                        <td class="px-2 sm:px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
-                                        <td class="px-2 sm:px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
-                                        <td class="px-2 sm:px-3 sm:px-5 text-right {{ $bb->neu > 20 ? 'text-accent-text font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                        <td class="hidden @md:table-cell px-2 @md:px-3 text-right text-muted">{{ $bb->lernende }}</td>
+                                        <td class="px-2 @md:px-3 text-right {{ $bb->rot ? 'text-note-ungenuegend font-semibold' : 'text-muted' }}">{{ $bb->rot }}</td>
+                                        <td class="px-2 @md:px-3 text-right {{ $bb->gelb ? 'text-note-knapp font-semibold' : 'text-muted' }}">{{ $bb->gelb }}</td>
+                                        <td class="hidden @sm:table-cell px-3 @md:px-5 text-right {{ $bb->neu > 20 ? 'text-accent-text font-semibold' : 'text-muted' }}">{{ $bb->neu }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="5" class="px-5 py-8 text-center text-muted">{{ __('Noch keine Berufsbildner') }}</td></tr>
