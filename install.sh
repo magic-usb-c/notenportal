@@ -24,6 +24,7 @@ ADMIN_MAIL=""
 ENTFERNEN=0
 PRUEFEN=0
 RUECKFRAGE=1
+ARGUMENTE=("$@")          # für den Neustart nach dem Umzug aus dem Home-Verzeichnis
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -298,17 +299,31 @@ echo "  $SYSTEM_NAME"
 
 # Apache liest die Anwendung als www-data. Liegt das Verzeichnis unter einem Home-Verzeichnis, fehlt
 # dort das Durchgangsrecht (Ubuntu legt Home-Verzeichnisse als 750 an) – Apache antwortete mit 403,
-# ohne dass die Ursache im Portal zu sehen wäre. Das muss vor der Installation geklärt sein.
-PFAD_PRUEF="$VERZ"
-while [[ "$PFAD_PRUEF" != "/" ]]; do
-    if ! sudo -u www-data test -x "$PFAD_PRUEF"; then
-        echo "Der Webserver-Benutzer www-data kann $PFAD_PRUEF nicht betreten – Apache würde 403 liefern."
-        echo "Verschiebe das Portal an eine Stelle ausserhalb der Home-Verzeichnisse und starte dort erneut:"
-        echo "  sudo mv \"$VERZ\" /var/www/notenportal && cd /var/www/notenportal && sudo ./install.sh"
+# ohne dass die Ursache im Portal zu sehen wäre. Der übliche Weg «git clone im Home, sudo ./install.sh»
+# soll trotzdem in einem Zug durchlaufen: das Portal zieht nach /var/www um und startet dort neu.
+# Das Durchgangsrecht am Home-Verzeichnis zu öffnen wäre die schlechtere Wahl (fremde Dateien lesbar).
+www_data_kommt_durch() {
+    local pfad="$1"
+    while [[ "$pfad" != "/" ]]; do
+        sudo -u www-data test -x "$pfad" || return 1
+        pfad="$(dirname "$pfad")"
+    done
+}
+if ! www_data_kommt_durch "$VERZ"; then
+    ZIEL="/var/www/$NAME"
+    if [[ -e "$ZIEL" ]]; then
+        echo "Der Webserver-Benutzer www-data kann $VERZ nicht betreten – Apache würde 403 liefern."
+        echo "Unter $ZIEL liegt schon etwas. Ist es dieses Portal, dort aktualisieren und installieren:"
+        echo "  cd $ZIEL && git pull && sudo ./install.sh"
+        echo "Sonst diesen Klon unter anderem Namen nach /var/www verschieben und dort starten."
         exit 1
     fi
-    PFAD_PRUEF="$(dirname "$PFAD_PRUEF")"
-done
+    echo "  $VERZ liegt im Home-Verzeichnis – Apache darf dort nicht lesen."
+    echo "  Das Portal zieht nach $ZIEL um und die Installation läuft dort weiter."
+    mkdir -p /var/www
+    mv "$VERZ" "$ZIEL"
+    exec "$ZIEL/install.sh" "${ARGUMENTE[@]}"
+fi
 
 # composer und npm laufen als $BESITZER, nicht als root (sonst gehörten vendor/ und node_modules/
 # der Installation root). Wurde das Repo mit «sudo git clone» geholt, gehört alles root und die
@@ -373,7 +388,19 @@ if ! node_ok; then
     echo "Von Hand nachholen und erneut starten: https://github.com/nodesource/distributions"
     exit 1
 fi
-systemctl enable --now mariadb apache2 >/dev/null 2>&1
+systemctl enable --now mariadb apache2 >/dev/null 2>&1 || true
+# Startet ein Dienst nicht, schlug die Installation früher erst beim ersten mysql-Aufruf fehl – mit einer
+# Socket-Meldung, die auf die falsche Spur führt. Die häufigste Ursache ist ein belegter Port.
+for DIENST in mariadb apache2; do
+    systemctl is-active --quiet "$DIENST" && continue
+    echo "Der Dienst $DIENST startet nicht. Seine letzten Meldungen:"
+    journalctl -u "$DIENST" -n 12 --no-pager 2>/dev/null | sed 's/^/    /' || true
+    case "$DIENST" in
+        mariadb) echo "Häufigste Ursache: Port 3306 ist belegt (eine andere MySQL/MariaDB?) – nachsehen mit: ss -ltnp | grep 3306" ;;
+        apache2) echo "Häufigste Ursache: Port 80 ist belegt (nginx o. ä.?) – nachsehen mit: ss -ltnp | grep ':80 '" ;;
+    esac
+    exit 1
+done
 
 schritt "Datenbank"
 FRISCH=0
@@ -444,7 +471,22 @@ if ! als "composer install --no-dev --optimize-autoloader --no-interaction --qui
     echo "  Nicht mit --ignore-platform-reqs übergehen – dann fehlen zur Laufzeit Erweiterungen."
     exit 1
 fi
-als "npm ci --no-audit --no-fund --loglevel=error && npm run build --silent"
+# npm vertraut nur seinen eingebauten Zertifizierungsstellen, nicht dem Systemspeicher. Hinter einem
+# Firmen-Proxy, der TLS aufbricht, scheitert npm ci sonst mit SELF_SIGNED_CERT_IN_CHAIN, obwohl apt
+# und composer (die dem System vertrauen) durchkommen.
+SYSTEM_CA=/etc/ssl/certs/ca-certificates.crt
+NPM_UMGEBUNG=""
+[[ -r "$SYSTEM_CA" ]] && NPM_UMGEBUNG="NODE_EXTRA_CA_CERTS=$SYSTEM_CA "
+if ! als "${NPM_UMGEBUNG}npm ci --no-audit --no-fund --loglevel=error && npm run build --silent"; then
+    echo
+    echo "npm ci oder der Build der Oberfläche ist fehlgeschlagen. Häufige Ursachen:"
+    echo "  - kein Zugang zu registry.npmjs.org (Proxy: in /etc/environment eintragen, dann neu anmelden)"
+    echo "  - eine Firmen-Zertifizierungsstelle fehlt im Systemspeicher:"
+    echo "      sudo cp firma-ca.crt /usr/local/share/ca-certificates/ && sudo update-ca-certificates"
+    echo "  - zu wenig Arbeitsspeicher für den Build (mindestens 1 GB frei)"
+    echo "  Details: das letzte Protokoll unter ~$BESITZER/.npm/_logs/"
+    exit 1
+fi
 
 # Vor den artisan-Läufen, nicht erst danach: sonst entstehen Protokoll, Sitzungen und übersetzte
 # Vorlagen unter der Gruppe von $BESITZER, und www-data scheitert später beim ersten Schreibversuch.
