@@ -206,7 +206,8 @@ class PruefungenController extends VerwaltungController
             'modul_id' => $typ === 'modul' ? (int) $id : null,
             'titel' => $daten['titel'],
             'datum' => $daten['datum'],
-            'gewichtung_prozent' => $daten['gewichtung_prozent'] ?? null,
+            // Leer heisst volles Gewicht wie der Spaltenstandard (NOT NULL) und die Prüfungen der Lernenden
+            'gewichtung_prozent' => $daten['gewichtung_prozent'] ?? 100,
         ]];
     }
 }

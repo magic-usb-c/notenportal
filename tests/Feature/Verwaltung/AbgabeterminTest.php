@@ -69,6 +69,28 @@ class AbgabeterminTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function abgabetermin_ohne_gewichtung_zaehlt_voll_statt_abzubrechen(string $rolle): void
+    {
+        // Das Formular schlägt keine Gewichtung vor; ein leeres Feld ergab NULL in einer NOT-NULL-Spalte (500)
+        $lernender = $this->lernender();
+        $user = $this->verwalter($rolle, $lernender);
+        $eingabe = ['lernender_id' => $lernender->lernender_id, 'bezug' => 'modul:'.$this->modul, 'titel' => 'Projektbericht',
+            'datum' => now()->addWeeks(2)->toDateString(), 'gewichtung_prozent' => ''];
+
+        $this->actingAs($user)->post(route("{$rolle}.exams.store"), $eingabe)
+            ->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
+        $abgabe = Pruefung::where('lernender_id', $lernender->lernender_id)->where('titel', 'Projektbericht')->sole();
+        $this->assertEquals(100, $abgabe->gewichtung_prozent);
+
+        $abgabe->update(['gewichtung_prozent' => 40]);
+        $this->actingAs($user)->put(route("{$rolle}.exams.update", $abgabe->pruefung_id), ['titel' => 'Bericht'] + $eingabe)
+            ->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
+        $this->assertEquals(100, $abgabe->fresh()->gewichtung_prozent);
+        $this->assertSame('Bericht', $abgabe->fresh()->titel);
+    }
+
+    #[Test]
     public function lernende_koennen_keine_abgabetermine_erfassen(): void
     {
         $lernender = $this->lernender();
