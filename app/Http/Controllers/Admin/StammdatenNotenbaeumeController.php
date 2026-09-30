@@ -55,7 +55,14 @@ class StammdatenNotenbaeumeController extends Controller
             'lehrberuf_id' => ['nullable', 'integer', Rule::exists('lehrberufe', 'lehrberuf_id')],
         ]);
 
-        return $this->anlegen(BaumVorlage::laden($data['vorlage']), isset($data['lehrberuf_id']) ? (int) $data['lehrberuf_id'] : null, $data['vorlage']);
+        // Die mitgelieferte Datei wird gegen die aktuellen Stammdaten geprüft (z. B. umbenannter Kategorie-Code)
+        try {
+            $vorlage = BaumVorlage::laden($data['vorlage']);
+        } catch (RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return $this->anlegen($vorlage, isset($data['lehrberuf_id']) ? (int) $data['lehrberuf_id'] : null, $data['vorlage']);
     }
 
     /** Eigene Datei importieren (z. B. ein exportierter und bearbeiteter Baum). */
@@ -115,17 +122,21 @@ class StammdatenNotenbaeumeController extends Controller
             'beschreibung' => ['nullable', 'string', 'max:500'],
             'knoten' => ['required', 'array'],
             'knoten.*.name' => ['required', 'string', 'max:150'],
-            'knoten.*.gewicht' => ['required', 'numeric', 'min:0', 'max:1000'],
+            'knoten.*.gewicht' => ['required', 'numeric', 'min:0', 'max:'.Knoten::GEWICHT_MAX],
             'knoten.*.rundung' => ['nullable', Rule::in(['0.1', '0.5', '1'])],
             'knoten.*.fallnote' => ['nullable', 'numeric', 'min:1', 'max:6'],
-            'knoten.*.max_ungenuegend' => ['nullable', 'integer', 'min:0', 'max:50'],
-            'knoten.*.max_minuspunkte' => ['nullable', 'numeric', 'min:0', 'max:50'],
+            'knoten.*.max_ungenuegend' => ['nullable', 'integer', 'min:0', 'max:'.Knoten::MAX_UNGENUEGEND_MAX],
+            'knoten.*.max_minuspunkte' => ['nullable', 'numeric', 'min:0', 'max:'.Knoten::MAX_MINUSPUNKTE_MAX],
             'knoten.*.zaehlt' => ['sometimes', 'boolean'],
             'knoten.*.entfaellt_mit_track' => ['nullable', Rule::in(['BMS', 'ABU'])],
         ], [], [
             'knoten.*.name' => __('Name'),
             'knoten.*.gewicht' => __('Gewicht'),
             'knoten.*.fallnote' => __('Mindestnote'),
+            'knoten.*.rundung' => __('Rundung'),
+            'knoten.*.max_ungenuegend' => __('Max. ungenügend'),
+            'knoten.*.max_minuspunkte' => __('Max. Minuspunkte'),
+            'knoten.*.entfaellt_mit_track' => __('Entfällt mit'),
         ]);
 
         $fremd = array_diff(array_map('intval', array_keys($data['knoten'])), $ids);

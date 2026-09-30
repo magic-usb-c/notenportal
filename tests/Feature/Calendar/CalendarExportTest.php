@@ -10,6 +10,7 @@ use App\Models\CalendarEvent;
 use App\Models\CalendarFeed;
 use App\Models\Kategorie;
 use App\Models\Modul;
+use App\Models\Note;
 use App\Models\Pruefung;
 use App\Models\User;
 use App\Services\Calendar\CalendarExport;
@@ -53,6 +54,18 @@ class CalendarExportTest extends TestCase
         $this->assertStringContainsString('- DHCP', (string) $event->DESCRIPTION);
         $this->assertSame('13:15', $event->DTSTART->getDateTime()->setTimezone(new \DateTimeZone('Europe/Zurich'))->format('H:i'));
         $this->assertSame(45 * 60, $event->DTEND->getDateTime()->getTimestamp() - $event->DTSTART->getDateTime()->getTimestamp());
+    }
+
+    #[Test]
+    public function erfasste_stufe_erscheint_als_stufe_nicht_als_null(): void
+    {
+        $note = Note::factory()->create(['lernender_id' => $this->lernender->lernender->lernender_id, 'note_wert' => null, 'note_stufe' => 'A']);
+        $this->pruefung->update(['note_id' => $note->note_id]);
+
+        $beschreibung = (string) Reader::read(app(CalendarExport::class)->forUser($this->lernender))->VEVENT->DESCRIPTION;
+
+        $this->assertStringContainsString('Note: A', $beschreibung);
+        $this->assertStringNotContainsString('Note: 0', $beschreibung);
     }
 
     #[Test]

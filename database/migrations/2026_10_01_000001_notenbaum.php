@@ -121,6 +121,11 @@ return new class extends Migration
         if ($stufen > 0) {
             throw new RuntimeException("Rollback abgebrochen: {$stufen} Noten mit Stufe (Sport) vorhanden. Zuerst löschen oder in Zahlen umwandeln.");
         }
+        // Erfasste Abschlussnoten (IPA, Schlussarbeit …) gingen mit der Tabelle verloren
+        $positionen = Schema::hasTable('notenbaum_positionen') ? DB::table('notenbaum_positionen')->count() : 0;
+        if ($positionen > 0) {
+            throw new RuntimeException("Rollback abgebrochen: {$positionen} erfasste Abschlussnoten (Notenbaum) vorhanden. Zuerst sichern und löschen.");
+        }
 
         Schema::dropIfExists('notenbaum_positionen');
         Schema::dropIfExists('notenbaum_knoten_faecher');

@@ -13,6 +13,7 @@ use App\Services\Auswertung\NotenQuelle;
 use Database\Seeders\BasisSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -159,6 +160,29 @@ class NotenbaumDbTest extends TestCase
         $csv = $this->actingAs($admin)->get(route('admin.learners.grades.export', $id))->assertOk()->streamedContent();
         $this->assertMatchesRegularExpression('/;Sport;;C;100/', $csv);
         $this->actingAs($admin)->get(route('admin.learners.grades.print', $id))->assertOk()->assertSee('Sport');
+    }
+
+    #[Test]
+    public function rollback_des_notenbaums_bricht_bei_stufen_oder_abschlussnoten_vor_jeder_ddl_ab(): void
+    {
+        $migration = require database_path('migrations/2026_10_01_000001_notenbaum.php');
+        [$user, $id] = $this->lernender();
+        $baum = $this->baumAnlegen();
+
+        // Abschlussnote (IPA o. ä.) erfasst: Rollback würde sie mit der Tabelle löschen
+        $knoten = (int) DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('typ', 'manuell')->value('knoten_id');
+        DB::table('notenbaum_positionen')->insert(['lernender_id' => $id, 'knoten_id' => $knoten, 'note_wert' => 5.0, 'erfasst_von_benutzer_id' => $user->benutzer_id, 'erstellt_am' => now(), 'aktualisiert_am' => now()]);
+        $this->assertThrows(fn () => $migration->down(), \RuntimeException::class, 'Abschlussnote');
+        $this->assertTrue(Schema::hasTable('notenbaum_positionen'));
+        DB::table('notenbaum_positionen')->delete();
+
+        // Stufe (Sport) erfasst: passt nicht ins alte Schema
+        $sport = $this->fachAnlegen('Sport', 'SP', $this->fach, skala: 'stufe', zaehlt: false);
+        $this->actingAs($user)->post(route('learner.grades.store'), [
+            'typ' => 'fach', 'fach_id' => $sport, 'pruefungsdatum' => now()->toDateString(), 'note_stufe' => 'B',
+        ])->assertSessionHasNoErrors();
+        $this->assertThrows(fn () => $migration->down(), \RuntimeException::class, 'Stufe');
+        $this->assertTrue(Schema::hasColumn('noten', 'note_stufe'));
     }
 
     #[Test]

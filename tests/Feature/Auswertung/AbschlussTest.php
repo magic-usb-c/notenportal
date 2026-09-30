@@ -11,7 +11,9 @@ use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
+use App\Services\Auswertung\Notenbaum\BaumErgebnis;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
+use App\Services\Auswertung\Notenbaum\BaumWechsel;
 use App\Services\Auswertung\NotenQuelle;
 use App\Support\Protokoll;
 use Database\Seeders\BasisSeeder;
@@ -313,6 +315,61 @@ class AbschlussTest extends TestCase
     }
 
     #[Test]
+    public function wieder_aktivieren_nach_leerem_nachfolger_verliert_keine_positionen(): void
+    {
+        // Prüferbefund: A deaktivieren, dieselbe Vorlage neu laden, A wieder aktivieren – vorher waren alle Noten weg
+        $admin = User::factory()->admin()->create();
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $a = $this->efzBaum();
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), [
+            'werte' => [$this->knoten('ipa') => '5.5', $this->knoten('ab_schlussarbeit') => '4.5'],
+        ])->assertSessionHas('success');
+
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.activate', $a), ['aktiv' => 0])->assertSessionHas('success');
+        $this->post(route('admin.master-data.grade-trees.template'), ['vorlage' => 'informatiker-efz-bivo2020', 'lehrberuf_id' => $this->lehrberuf])
+            ->assertSessionHas('success');
+        $b = (int) DB::table('notenbaeume')->where('aktiv', true)->value('baum_id');
+        $this->assertNotSame($a, $b);
+        Konfiguration::vergessen();
+        $baum = array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0];
+        $this->assertEqualsWithDelta(5.5, $baum->knoten('ipa')->note, 1e-9, 'Der neue Baum übernimmt die Noten des abgeschalteten');
+
+        // Im neuen Baum ändern, dann zurück auf A: der zuletzt aktive Stand gilt, nichts geht verloren
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '5.0']])
+            ->assertSessionHas('success');
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.activate', $a), ['aktiv' => 1])->assertSessionHas('success');
+        Konfiguration::vergessen();
+
+        $baum = array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0];
+        $this->assertEqualsWithDelta(5.0, $baum->knoten('ipa')->note, 1e-9);
+        $this->assertEqualsWithDelta(4.5, $baum->knoten('ab_schlussarbeit')->note, 1e-9);
+        $this->assertSame(2, NotenbaumPosition::count());
+        $this->assertSame(0, BaumWechsel::verlorenePositionen($b));
+    }
+
+    #[Test]
+    public function vollstaendig_nicht_bestandenes_qv_faerbt_die_ampel_rot(): void
+    {
+        // Prüferbefund: Grund an einer berechneten Gruppe (nicht von Hand erfasst) – bei vollständigem Baum
+        // ist «nicht bestanden» endgültig, nicht nur eine Warnung
+        $lernender = $this->lernenderMitBeruf();
+        $id = (int) $lernender->lernender_id;
+        $baum = $this->efzBaum();
+        DB::table('notenbaum_knoten')->where('baum_id', $baum)->whereIn('code', ['ipa', 'egk', 'ik', 'ab_erfahrung'])->update(['zaehlt' => false]);
+        DB::table('notenbaum_knoten')->where('baum_id', $baum)->where('code', 'ab')->update(['fallnote' => 4.0]);
+        $this->actingAs($lernender->benutzer)->put(route('learner.qualification.update'), [
+            'werte' => [$this->knoten('ab_schlussarbeit') => '3.5', $this->knoten('ab_schlusspruefung') => '3.5'],
+        ])->assertSessionHas('success');
+        Konfiguration::vergessen();
+
+        $ergebnis = array_values(app(NotenQuelle::class)->auswertung($id)->baeume)[0];
+        $this->assertTrue($ergebnis->wurzel()->vollstaendig);
+        $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $ergebnis->status);
+        $this->assertSame(Lernstand::ROT, app(LernstandRechner::class)->fuer([$id])[$id]->status);
+    }
+
+    #[Test]
     public function protokoll_haelt_den_alten_wert_fest_und_listen_als_wert_melden_einen_fehler(): void
     {
         $lernender = $this->lernenderMitBeruf();
@@ -346,7 +403,7 @@ class AbschlussTest extends TestCase
 
         $stand = app(LernstandRechner::class)->fuer([$id])[$id];
         $this->assertSame(Lernstand::ROT, $stand->status);
-        $this->assertStringContainsString('Praktische Arbeit (IPA) 3,5', implode(' | ', $stand->gruende));
+        $this->assertStringContainsString('Praktische Arbeit (IPA) 3.5', implode(' | ', $stand->gruende));
     }
 
     #[Test]

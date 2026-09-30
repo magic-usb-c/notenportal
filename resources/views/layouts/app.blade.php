@@ -126,7 +126,16 @@
             };
         </script>
 
-        @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif<title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>
+        @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif
+        @php
+            // Der Titel kommt als Slot, oft über eine zweite Komponente gereicht und dabei schon maskiert:
+            // auf Klartext zurückführen und genau einmal maskieren (sonst zeigt der Tab «&amp;amp;»).
+            $seitentitel = isset($title) ? trim(strip_tags((string) $title)) : '';
+            while ($seitentitel !== ($klartext = html_entity_decode($seitentitel, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) {
+                $seitentitel = $klartext;
+            }
+        @endphp
+        <title>{{ $seitentitel !== '' ? $seitentitel.' – '.config('app.name', 'Notenportal') : config('app.name', 'Notenportal') }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         @include('layouts._pwa-head')
 

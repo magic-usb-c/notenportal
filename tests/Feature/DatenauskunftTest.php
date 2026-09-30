@@ -143,6 +143,21 @@ class DatenauskunftTest extends TestCase
     }
 
     #[Test]
+    public function stufe_statt_zahl_erscheint_in_csv_und_json(): void
+    {
+        // Prüferbefund: Sport «C» stand als leere Note im CSV und als "note": null im JSON
+        $a = User::factory()->lernender()->create();
+        Note::factory()->create(['lernender_id' => $a->lernender->lernender_id, 'titel' => 'Sporttag', 'note_wert' => null, 'note_stufe' => 'C']);
+
+        $zip = $this->oeffnen($a);
+        $this->assertMatchesRegularExpression('/Sporttag;C;/', (string) $zip->getFromName('noten.csv'));
+        $json = json_decode((string) $zip->getFromName('noten.json'), true);
+        $this->assertNull($json[0]['note']);
+        $this->assertSame('C', $json[0]['stufe']);
+        $zip->close();
+    }
+
+    #[Test]
     public function feedback_stimmen_json_erscheint_nur_bei_vorhandenen_stimmen_ohne_fremden_text(): void
     {
         $a = User::factory()->lernender()->create();

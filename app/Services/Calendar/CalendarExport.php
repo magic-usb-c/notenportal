@@ -9,6 +9,7 @@ use App\Models\Lernender;
 use App\Models\Pruefung;
 use App\Models\User;
 use App\Support\Einstellungen;
+use App\Support\NotenSkala;
 use Carbon\CarbonInterface;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -112,7 +113,9 @@ final class CalendarExport
             $p->dauer_minuten ? __('Dauer').': '.__(':minuten Minuten', ['minuten' => $p->dauer_minuten]) : null,
             $p->hilfsmittel ? __('Erlaubte Hilfsmittel').': '.$p->hilfsmittel : null,
             __('Gewichtung').': '.rtrim(rtrim(number_format((float) $p->gewichtung_prozent, 2, '.', ''), '0'), '.').' %',
-            $p->note ? __('Note').': '.rtrim(rtrim(number_format((float) $p->note->note_wert, 2, '.', ''), '0'), '.') : null,
+            $p->note ? __('Note').': '.($p->note->note_wert !== null
+                ? rtrim(rtrim(number_format((float) $p->note->note_wert, 2, '.', ''), '0'), '.')
+                : NotenSkala::stufeText($p->note->note_stufe)) : null,
             $p->stoff ? "\n".__('Prüfungsstoff').":\n".$p->stoff : null,
         ]);
 

@@ -83,6 +83,8 @@ final class BaumRechner
         $vollstaendig = true;
         $zaehlende = 0;
         $tragende = 0;
+        // Zählt diese Gruppe ungenügende Teile oder Minuspunkte, entscheidet jeder zählende Teil mit.
+        $zaehltUngenuegende = $e->knoten->maxUngenuegend !== null || $e->knoten->maxMinuspunkte !== null;
 
         foreach ($e->knoten->kinder as $kind) {
             $k = $this->knoten($kind);
@@ -91,13 +93,17 @@ final class BaumRechner
                 continue;
             }
             $zaehlende++;
-            // Ein Teil ohne Gewicht (oder eine Gruppe ohne zählende Teile) kann die Note nicht bewegen und
-            // hält sie deshalb auch nicht offen.
-            if ($kind->gewicht <= 0 || $k->leer) {
+            // Ein Teil ohne Gewicht (oder eine Gruppe ohne zählende Teile) bewegt die Note nicht. Offen hält
+            // er sie nur, wenn er trotzdem übers Bestehen entscheidet (eigene Mindestnote, Regel darunter
+            // oder hier gezählte ungenügende Teile) – sonst stünde «bestanden», bevor er erfasst ist.
+            $bewegt = $kind->gewicht > 0 && ! $k->leer;
+            if ($bewegt || $zaehltUngenuegende || self::hatRegel($kind)) {
+                $vollstaendig = $vollstaendig && $k->vollstaendig;
+            }
+            if (! $bewegt) {
                 continue;
             }
             $tragende++;
-            $vollstaendig = $vollstaendig && $k->vollstaendig;
             if ($k->massgebend() !== null) {
                 $summe += $kind->gewicht * $k->massgebend();
                 $gewichte += $kind->gewicht;
@@ -108,7 +114,22 @@ final class BaumRechner
         $e->leer = $tragende === 0;
         $e->schnitt = $gewichte > 0 ? $summe / $gewichte : null;
         $e->note = Rundung::auf($e->schnitt, $e->knoten->rundung ?? 0.0);
-        $e->vollstaendig = $e->leer || ($vollstaendig && $e->schnitt !== null);
+        $e->vollstaendig = $vollstaendig && ($e->leer || $e->schnitt !== null);
+    }
+
+    /** Trägt der Knoten oder ein zählender Teil darunter eine Bestehensregel? */
+    private static function hatRegel(Knoten $k): bool
+    {
+        if ($k->fallnote !== null || $k->maxUngenuegend !== null || $k->maxMinuspunkte !== null) {
+            return true;
+        }
+        foreach ($k->kinder as $kind) {
+            if ($kind->zaehlt && self::hatRegel($kind)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return list<float> Zeugnisnoten der zählenden Elemente einer Kategorie */

@@ -30,7 +30,8 @@ final readonly class Grund
 
     public function text(): string
     {
-        $z = fn (float $x) => number_format($x, 1, ',', '');
+        // Punkt als Dezimalzeichen wie überall im Portal (NotenSkala::format), sonst stünde «3,7» neben «3.5»
+        $z = fn (float $x) => number_format($x, 1, '.', '');
         $werte = ['name' => $this->name, 'wert' => $z($this->wert), 'grenze' => $z($this->grenze),
             'anzahl' => (string) (int) $this->wert, 'max' => (string) (int) $this->grenze];
 

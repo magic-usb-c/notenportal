@@ -118,8 +118,8 @@ final class BaumVorlage
             if (! in_array($typ, Knoten::TYPEN, true)) {
                 $fehler[] = __('Knoten «:wo»: unbekannter Typ.', ['wo' => $wo]);
             }
-            if (isset($k['gewicht']) && (! is_numeric($k['gewicht']) || $k['gewicht'] < 0 || $k['gewicht'] > 9999)) {
-                $fehler[] = __('Knoten «:wo»: Gewicht muss eine Zahl von 0 bis 9999 sein.', ['wo' => $wo]);
+            if (isset($k['gewicht']) && (! is_numeric($k['gewicht']) || $k['gewicht'] < 0 || $k['gewicht'] > Knoten::GEWICHT_MAX)) {
+                $fehler[] = __('Knoten «:wo»: Gewicht muss eine Zahl von 0 bis :max sein.', ['wo' => $wo, 'max' => Knoten::GEWICHT_MAX]);
             }
             if (isset($k['rundung']) && (! is_numeric($k['rundung']) || ! in_array((float) $k['rundung'], [0.1, 0.5, 1.0], true))) {
                 $fehler[] = __('Knoten «:wo»: Rundung ist 0.1, 0.5 oder 1.', ['wo' => $wo]);
@@ -127,17 +127,17 @@ final class BaumVorlage
             if (isset($k['fallnote']) && (! is_numeric($k['fallnote']) || $k['fallnote'] < 1 || $k['fallnote'] > 6)) {
                 $fehler[] = __('Knoten «:wo»: Fallnote liegt zwischen 1 und 6.', ['wo' => $wo]);
             }
-            if (isset($k['max_ungenuegend']) && (! is_int($k['max_ungenuegend']) || $k['max_ungenuegend'] < 0 || $k['max_ungenuegend'] > 99)) {
-                $fehler[] = __('Knoten «:wo»: Höchstzahl ungenügender Noten ist eine ganze Zahl von 0 bis 99.', ['wo' => $wo]);
+            if (isset($k['max_ungenuegend']) && (! is_int($k['max_ungenuegend']) || $k['max_ungenuegend'] < 0 || $k['max_ungenuegend'] > Knoten::MAX_UNGENUEGEND_MAX)) {
+                $fehler[] = __('Knoten «:wo»: Höchstzahl ungenügender Noten ist eine ganze Zahl von 0 bis :max.', ['wo' => $wo, 'max' => Knoten::MAX_UNGENUEGEND_MAX]);
             }
-            if (isset($k['max_minuspunkte']) && (! is_numeric($k['max_minuspunkte']) || $k['max_minuspunkte'] < 0 || $k['max_minuspunkte'] > 99)) {
-                $fehler[] = __('Knoten «:wo»: Höchstzahl Minuspunkte liegt zwischen 0 und 99.', ['wo' => $wo]);
+            if (isset($k['max_minuspunkte']) && (! is_numeric($k['max_minuspunkte']) || $k['max_minuspunkte'] < 0 || $k['max_minuspunkte'] > Knoten::MAX_MINUSPUNKTE_MAX)) {
+                $fehler[] = __('Knoten «:wo»: Höchstzahl Minuspunkte liegt zwischen 0 und :max.', ['wo' => $wo, 'max' => Knoten::MAX_MINUSPUNKTE_MAX]);
             }
             if (isset($k['zaehlt']) && ! is_bool($k['zaehlt'])) {
                 $fehler[] = __('Knoten «:wo»: «zählt» ist true oder false.', ['wo' => $wo]);
             }
             if ($typ === Knoten::KATEGORIE && ! in_array($k['kategorie'] ?? null, $kategorien, true)) {
-                $fehler[] = __('Knoten «:wo»: Kategorie «:kat» gibt es nicht.', ['wo' => $wo, 'kat' => (string) ($k['kategorie'] ?? '')]);
+                $fehler[] = __('Knoten «:wo»: Kategorie «:kat» gibt es nicht.', ['wo' => $wo, 'kat' => is_scalar($k['kategorie'] ?? null) ? (string) $k['kategorie'] : '']);
             }
             if (isset($k['elementtyp']) && ! in_array($k['elementtyp'], Knoten::ELEMENTTYPEN, true)) {
                 $fehler[] = __('Knoten «:wo»: unbekannter Elementtyp.', ['wo' => $wo]);

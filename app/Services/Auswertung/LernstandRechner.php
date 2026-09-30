@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumErgebnis;
 use App\Support\Einstellungen;
 use App\Support\Lehrsemester;
 use App\Support\NotenSkala;
@@ -103,10 +104,11 @@ final class LernstandRechner
         if ($semesterNote !== null && $semesterNote < $grenze - 1e-9) {
             $rot[] = __('Semesterschnitt :note', ['note' => NotenSkala::format($semesterNote)]);
         }
-        // Notenbaum (QV, BM): eine abgeschlossene Prüfung unter der Grenze entscheidet, ein Zwischenstand warnt
+        // Notenbaum (QV, BM): eine abgeschlossene Prüfung unter der Grenze oder ein vollständig gerechneter,
+        // nicht bestandener Baum entscheidet, ein Zwischenstand warnt
         foreach ($a->baeume as $baum) {
             foreach ($baum->gruende as $g) {
-                if ($g->definitiv) {
+                if ($g->definitiv || $baum->status === BaumErgebnis::NICHT_BESTANDEN) {
                     $rot[] = $g->text();
                 } else {
                     $gelb[] = $g->text();

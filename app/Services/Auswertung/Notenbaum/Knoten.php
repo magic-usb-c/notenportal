@@ -31,6 +31,13 @@ final readonly class Knoten
 
     public const array ELEMENTTYPEN = [self::ALLE, self::NUR_MODULE, self::NUR_FAECHER];
 
+    /** Obergrenzen der Parameter, gleich für Import und Bearbeiten (sonst liesse sich ein Import nicht speichern). */
+    public const int GEWICHT_MAX = 1000;
+
+    public const int MAX_UNGENUEGEND_MAX = 50;
+
+    public const int MAX_MINUSPUNKTE_MAX = 50;
+
     /**
      * @param  list<int>  $faecher  nur Typ «faecher»
      * @param  list<Knoten>  $kinder  nur Typ «gruppe»

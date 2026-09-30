@@ -350,7 +350,7 @@ class NotenbaumAbnahmeTest extends TestCase
     #[Test]
     public function ein_teil_ohne_gewicht_haelt_das_ergebnis_nicht_offen(): void
     {
-        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ipa' => ['gewicht' => 0]]);
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ipa' => ['gewicht' => 0, 'fallnote' => null]]);
         $l = [$this->position('ab_schlussarbeit', 5.0), $this->position('ab_schlusspruefung', 5.0), $this->fach(self::ABU_FACH, 1, 5.0, self::ABU),
             $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
 
@@ -360,6 +360,26 @@ class NotenbaumAbnahmeTest extends TestCase
         $this->assertTrue($e->wurzel()->vollstaendig);
         $this->assertEqualsWithDelta(4.8, $e->wurzel()->note, 1e-9);
         $this->assertSame(BaumErgebnis::BESTANDEN, $e->status);
+    }
+
+    #[Test]
+    public function ein_teil_ohne_gewicht_mit_mindestnote_entscheidet_trotzdem(): void
+    {
+        // Prüferbefund: IPA mit Gewicht 0, aber Mindestnote 4 – fehlt sie, darf nichts «bestanden» sein
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ipa' => ['gewicht' => 0, 'fallnote' => 4.0]]);
+        $l = [$this->position('ab_schlussarbeit', 5.0), $this->position('ab_schlusspruefung', 5.0), $this->fach(self::ABU_FACH, 1, 5.0, self::ABU),
+            $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+        $rechne = fn (array $l) => (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1];
+
+        $offen = $rechne($l);
+        $this->assertFalse($offen->wurzel()->vollstaendig);
+        $this->assertSame(BaumErgebnis::OFFEN, $offen->status);
+
+        $bestanden = $rechne([...$l, $this->position('ipa', 4.5)]);
+        $this->assertSame(BaumErgebnis::BESTANDEN, $bestanden->status);
+        $this->assertEqualsWithDelta(4.8, $bestanden->wurzel()->note, 1e-9, 'Ohne Gewicht bewegt die IPA die Note weiterhin nicht');
+
+        $this->assertSame(BaumErgebnis::NICHT_BESTANDEN, $rechne([...$l, $this->position('ipa', 3.0)])->status);
     }
 
     #[Test]

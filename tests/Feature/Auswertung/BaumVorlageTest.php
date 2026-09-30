@@ -135,6 +135,17 @@ class BaumVorlageTest extends TestCase
 
                 return $d;
             }, 'Fach ohne Namen'],
+            // Dieselben Grenzen wie im Bearbeiten-Formular, sonst liesse sich ein Import nicht unverändert speichern
+            'Gewicht 1001' => [function ($d) {
+                $d['wurzel']['kinder'][0]['gewicht'] = 1001;
+
+                return $d;
+            }, 'Gewicht'],
+            'max_ungenuegend 51' => [function ($d) {
+                $d['wurzel']['max_ungenuegend'] = 51;
+
+                return $d;
+            }, 'ungenügender'],
             'Kinder als Text' => [function ($d) {
                 $d['wurzel']['kinder'][1]['kinder'] = 'x';
 
@@ -151,6 +162,55 @@ class BaumVorlageTest extends TestCase
 
         $this->assertNotSame([], $fehler);
         $this->assertStringContainsString($erwartet, implode(' | ', $fehler));
+    }
+
+    #[Test]
+    public function jeder_wert_als_liste_ergibt_eine_meldung_statt_eines_absturzes(): void
+    {
+        // Prüferbefund: {"kategorie":["FACH"]} endete in «Array to string conversion» (500). Jeden Wert
+        // jedes Knotens und jedes Fachs einmal durch eine Liste ersetzen.
+        $d = BaumVorlage::laden('informatiker-efz-bivo2020');
+        $pfade = [];
+        $sammeln = function (array $k, array $pfad) use (&$sammeln, &$pfade): void {
+            foreach (array_keys($k) as $schluessel) {
+                if ($schluessel !== 'kinder' && $schluessel !== 'faecher') {
+                    $pfade[] = [...$pfad, $schluessel];
+                }
+            }
+            foreach ($k['faecher'] ?? [] as $i => $f) {
+                foreach (array_keys($f) as $schluessel) {
+                    $pfade[] = [...$pfad, 'faecher', $i, $schluessel];
+                }
+            }
+            foreach ($k['kinder'] ?? [] as $i => $kind) {
+                $sammeln($kind, [...$pfad, 'kinder', $i]);
+            }
+        };
+        $sammeln($d['wurzel'], ['wurzel']);
+        $this->assertGreaterThan(30, count($pfade));
+
+        foreach ($pfade as $pfad) {
+            $kaputt = $d;
+            $ziel = &$kaputt;
+            foreach ($pfad as $teil) {
+                $ziel = &$ziel[$teil];
+            }
+            $ziel = ['x'];
+            unset($ziel);
+            $this->assertNotSame([], BaumVorlage::pruefen($kaputt), implode('.', $pfad).' als Liste wird nicht gemeldet');
+        }
+    }
+
+    #[Test]
+    public function mitgelieferte_vorlage_nach_umbenannter_kategorie_meldet_den_grund(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'KAT', 'name' => 'Kategorie-Test EFZ']);
+        DB::table('kategorien')->where('code', 'ABU')->update(['code' => 'ALLG']);
+
+        $this->actingAs($admin)->post(route('admin.master-data.grade-trees.template'), ['vorlage' => 'informatiker-efz-bivo2020', 'lehrberuf_id' => $lehrberuf])
+            ->assertRedirect()->assertSessionHas('error', fn (string $m) => str_contains($m, 'ABU'));
+        $this->assertSame(0, DB::table('notenbaeume')->count());
     }
 
     #[Test]
