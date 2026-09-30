@@ -65,16 +65,15 @@
                 @else
                     @php
                         $trendSortierbar = $zeilen->contains(fn ($z) => $z->stand->delta() !== null);
-                        $sortLink = function (string $spalte, string $label, bool $srOnlyLabel = false) use ($filter) {
+                        $sortLink = function (string $spalte, string $label) use ($filter) {
                             $aktiv = $filter['sort'] === $spalte;
                             $naechsteDir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
                             $pfeil = ! $aktiv
-                                ? '<span class="text-muted/50" aria-hidden="true">⇅</span>'
+                                ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
                                 : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
                             $url = e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $naechsteDir]));
-                            $labelHtml = $srOnlyLabel ? '<span class="sr-only">'.e($label).'</span>' : e($label);
 
-                            return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.$labelHtml.' '.$pfeil.'</a>';
+                            return '<a href="'.$url.'" class="group/sort inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
                         };
                         $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
                     @endphp
@@ -82,7 +81,7 @@
                         <table class="w-full text-sm tabular-nums">
                             <thead>
                                 <tr class="border-y border-border">
-                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status'), true) !!}</th>
+                                    <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted sm:table-cell" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
                                     <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
                                     <th scope="col" class="hidden h-9 bg-surface-2 px-2 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Lj') }}</th>
                                     <th scope="col" class="hidden h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted md:table-cell" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>

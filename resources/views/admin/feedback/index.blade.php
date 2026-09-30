@@ -75,10 +75,10 @@
                         $pfeilAuf = $aktiv && $dir === 'asc';
                     }
                     $pfeil = ! $aktiv
-                        ? '<span class="text-muted/50" aria-hidden="true">⇅</span>'
+                        ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
                         : '<span aria-hidden="true">'.($pfeilAuf ? '↑' : '↓').'</span>';
 
-                    return '<a href="'.$url.'" class="inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
+                    return '<a href="'.$url.'" class="group/sort inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
                 };
                 $ariaSort = fn (string $spalte) => $sort === $spalte ? ($spalte === 'stimmen' || $dir === 'desc' ? 'descending' : 'ascending') : 'none';
             @endphp

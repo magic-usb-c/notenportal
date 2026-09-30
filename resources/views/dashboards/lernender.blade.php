@@ -12,6 +12,16 @@
         $anzahlBalken = max(count($balken['semester']['labels']), count($balken['lehrzeit']['labels']));
         $balkenModus = count($balken['semester']['labels']) ? 'semester' : 'lehrzeit';
         $desktop = "window.matchMedia('(min-width: 1024px)').matches";
+        $zeigen = [
+            'stand' => $sichtbar['stand'] ?? true,
+            'als_naechstes' => $sichtbar['als_naechstes'] ?? true,
+            'wo_stehe_ich' => ($sichtbar['wo_stehe_ich'] ?? true) && $anzahlBalken > 0,
+            'ziele' => ($sichtbar['ziele'] ?? true) && $ziele,
+            'verlauf' => ($sichtbar['verlauf'] ?? true) && count($verlauf['labels']) > 0,
+            'letzte_noten' => ($sichtbar['letzte_noten'] ?? true) && $letzteNoten->isNotEmpty(),
+        ];
+        $links = $zeigen['stand'] || $zeigen['wo_stehe_ich'] || $zeigen['verlauf'];
+        $rechts = $zeigen['als_naechstes'] || $zeigen['ziele'] || $zeigen['letzte_noten'];
     @endphp
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Hallo :name', ['name' => auth()->user()->vorname]) }}" :untertitel="$meta">
@@ -26,11 +36,14 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-raster mx-auto grid np-seite grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-flow-row-dense lg:grid-cols-12 lg:px-8">
+        {{-- Zwei unabhängige Spalten ab lg, damit keine Karte auf die Höhe ihrer Nachbarin gestreckt wird.
+             Darunter lösen sich die Spalten auf (contents) und «order» hält die Reihenfolge Stand, Als Nächstes, … --}}
+        <div class="np-raster mx-auto grid np-seite grid-cols-1 gap-4 px-4 sm:px-6 lg:grid-cols-12 lg:items-start lg:px-8">
+            <div @class(['contents lg:flex lg:flex-col lg:gap-4', 'lg:col-span-8' => $rechts, 'lg:col-span-12' => ! $rechts])>
 
             {{-- Stand: Heldenzahl, Bullet Graph, Semester, Kategorien --}}
-            @if($sichtbar['stand'] ?? true)
-            <x-karte titel="{{ __('Stand') }}" class="lg:col-span-8">
+            @if($zeigen['stand'])
+            <x-karte titel="{{ __('Stand') }}" class="order-1 lg:order-none">
                 @if($a->gesamtNote !== null)
                     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
                         <div class="flex items-baseline gap-3">
@@ -50,7 +63,7 @@
 
                     @if($stand->semesterId)
                         <p class="mt-3 flex flex-wrap items-baseline gap-x-2 text-sm">
-                            <span class="text-muted">{{ __('Semester') }} <x-semester :id="$stand->semesterId" :lernender="$a->lernenderId" /></span>
+                            <x-semester class="text-muted" :id="$stand->semesterId" :lernender="$a->lernenderId" />
                             <x-note :wert="$stand->semesterNote" :stellen="1" />
                             @if($delta !== null && $delta != 0)
                                 <span class="text-xs tabular-nums text-muted">{{ $delta > 0 ? '▲' : '▼' }} {{ $skala::format(abs($delta), 1) }}</span>
@@ -85,10 +98,120 @@
             </x-karte>
             @endif
 
+            {{-- Wo stehe ich pro Fach und Modul --}}
+            @if($zeigen['wo_stehe_ich'])
+                <x-karte titel="{{ __('Wo stehe ich') }}" class="order-3 lg:order-none"
+                         x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
+                    <x-slot:aktionen>
+                        <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
+                            <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length"
+                                    class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs" x-text="d.semester.name"></button>
+                            <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'"
+                                    class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Lehrzeit') }}</button>
+                        </div>
+                    </x-slot:aktionen>
+                    <div x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 28 + 60)}px`"
+                         x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
+                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
+                    </div>
+                    <x-noten-legende class="mt-2" />
+                    <details class="group/tabelle np-details mt-3 border-t border-border pt-2">
+                        <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                            <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
+                            {{ __('Als Tabelle') }}
+                        </summary>
+                        <div class="overflow-x-auto pb-2 pt-1">
+                            <table class="w-full text-sm tabular-nums">
+                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
+                                <thead class="text-2xs text-muted">
+                                    <tr>
+                                        <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="py-1.5 pr-3 text-right font-medium">{{ __('Note') }}</th>
+                                        <th scope="col" class="py-1.5 text-right font-medium">{{ __('Stufe') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
+                                        <tr class="border-t border-border">
+                                            <td class="py-1.5 pr-3 text-text">{{ $label }}</td>
+                                            <td class="py-1.5 pr-3 text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
+                                            <td class="py-1.5 text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </x-karte>
+            @endif
+
+            {{-- Verlauf: mobil zugeklappt --}}
+            @if($zeigen['verlauf'])
+                <details open x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }" x-init="$el.open = {{ $desktop }}"
+                         class="group relative order-5 rounded-xl border border-border bg-card lg:order-none">
+                    <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
+                             @click="if ({{ $desktop }}) $event.preventDefault()">
+                        <h2 class="text-sm font-semibold text-text">{{ __('Verlauf') }}</h2>
+                        <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
+                    </summary>
+                    <div class="px-5 pb-5">
+                        <div class="mb-2 flex flex-wrap items-center justify-end gap-2 lg:absolute lg:right-5 lg:top-2 lg:mb-0">
+                            <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
+                                <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'"
+                                        class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Kategorien') }}</button>
+                                <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length"
+                                        class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Fach') }}</button>
+                            </div>
+                            <select x-show="modus === 'fach'" x-model.number="fach" class="h-8 rounded-lg border border-border-strong/70 bg-input py-0 pl-2 pr-7 text-xs text-text" aria-label="{{ __('Fach') }}">
+                                <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
+                            </select>
+                        </div>
+                        <div class="h-64" x-data="npChart('verlauf')"
+                             x-effect="zeichne(modus === 'fach' && d.faecher[fach]
+                                ? { labels: d.labels, grenze: d.grenze, serien: [{ name: d.faecher[fach].name, werte: d.faecher[fach].werte, farbe: '--accent', dick: true }] }
+                                : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
+                            <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
+                        </div>
+                        <details class="group/tabelle np-details mt-3 border-t border-border pt-2">
+                            <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                                <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
+                                {{ __('Als Tabelle') }}
+                            </summary>
+                            <div class="overflow-x-auto pb-2 pt-1">
+                                <table class="w-full text-sm tabular-nums">
+                                    <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
+                                    <thead class="text-2xs text-muted">
+                                        <tr>
+                                            <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Semester') }}</th>
+                                            @foreach($verlauf['serien'] as $s)
+                                                <th scope="col" class="py-1.5 pl-3 text-right font-medium">{{ $s['name'] }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($verlauf['labels'] as $i => $label)
+                                            <tr class="border-t border-border">
+                                                <th scope="row" class="py-1.5 pr-3 text-left font-normal text-text">{{ $label }}</th>
+                                                @foreach($verlauf['serien'] as $s)
+                                                    <td class="py-1.5 pl-3 text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    </div>
+                </details>
+            @endif
+
+            </div>
+
+            <div @class(['contents lg:flex lg:flex-col lg:gap-4', 'lg:col-span-4' => $links, 'lg:col-span-12' => ! $links])>
             {{-- Als Nächstes: Überfälliges oben, dann Hinweise, Prüfungen, fehlende Module --}}
-            @if($sichtbar['als_naechstes'] ?? true)
+            @if($zeigen['als_naechstes'])
             @php $spalte = collect($alsNaechstes)->contains(fn ($t) => $t['datum'] !== null) ? 'w-10' : 'w-2'; @endphp
-            <x-karte titel="{{ __('Als Nächstes') }}" class="lg:col-span-4 lg:self-start" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
+            <x-karte titel="{{ __('Als Nächstes') }}" class="order-2 lg:order-none" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
                 @if($alsNaechstes)
                     <x-slot:aktionen><span class="text-xs tabular-nums text-muted">{{ count($alsNaechstes) }}</span></x-slot:aktionen>
                 @endif
@@ -122,56 +245,9 @@
             </x-karte>
             @endif
 
-            {{-- Wo stehe ich pro Fach und Modul --}}
-            @if(($sichtbar['wo_stehe_ich'] ?? true) && $anzahlBalken > 0)
-                <x-karte titel="{{ __('Wo stehe ich') }}" class="lg:col-span-8"
-                         x-data="{ modus: {{ \Illuminate\Support\Js::from(count($balken['semester']['labels']) ? 'semester' : 'lehrzeit') }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
-                    <x-slot:aktionen>
-                        <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
-                            <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length"
-                                    class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs" x-text="d.semester.name"></button>
-                            <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'"
-                                    class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Lehrzeit') }}</button>
-                        </div>
-                    </x-slot:aktionen>
-                    <div x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 28 + 60)}px`"
-                         x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
-                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
-                    </div>
-                    <x-noten-legende class="mt-2" />
-                    <details class="group np-details mt-3 border-t border-border pt-2">
-                        <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                            <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
-                            {{ __('Als Tabelle') }}
-                        </summary>
-                        <div class="overflow-x-auto pb-2 pt-1">
-                            <table class="w-full text-sm tabular-nums">
-                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
-                                <thead class="text-2xs text-muted">
-                                    <tr>
-                                        <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="py-1.5 pr-3 text-right font-medium">{{ __('Note') }}</th>
-                                        <th scope="col" class="py-1.5 text-right font-medium">{{ __('Stufe') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
-                                        <tr class="border-t border-border">
-                                            <td class="py-1.5 pr-3 text-text">{{ $label }}</td>
-                                            <td class="py-1.5 pr-3 text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
-                                            <td class="py-1.5 text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                </x-karte>
-            @endif
-
             {{-- Ziele: nur wenn gesetzt --}}
-            @if(($sichtbar['ziele'] ?? true) && $ziele)
-                <x-karte titel="{{ __('Ziele') }}" class="lg:col-span-4" :link="route('learner.grades.calculator')" :link-text="__('Rechner')" :polster="false">
+            @if($zeigen['ziele'])
+                <x-karte titel="{{ __('Ziele') }}" class="order-4 lg:order-none" :link="route('learner.grades.calculator')" :link-text="__('Rechner')" :polster="false">
                     <ul class="divide-y divide-border">
                         @foreach($ziele as $z)
                             @php
@@ -208,75 +284,15 @@
                 </x-karte>
             @endif
 
-            {{-- Verlauf: mobil zugeklappt --}}
-            @if(($sichtbar['verlauf'] ?? true) && count($verlauf['labels']) > 0)
-                <details open x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }" x-init="$el.open = {{ $desktop }}"
-                         class="group relative rounded-xl border border-border bg-card lg:col-span-8">
-                    <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
-                             @click="if ({{ $desktop }}) $event.preventDefault()">
-                        <h2 class="text-sm font-semibold text-text">{{ __('Verlauf') }}</h2>
-                        <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
-                    </summary>
-                    <div class="px-5 pb-5">
-                        <div class="mb-2 flex flex-wrap items-center justify-end gap-2 lg:absolute lg:right-5 lg:top-2 lg:mb-0">
-                            <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-xs" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
-                                <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'"
-                                        class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Kategorien') }}</button>
-                                <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length"
-                                        class="h-8 whitespace-nowrap rounded-md px-2.5 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">{{ __('Fach') }}</button>
-                            </div>
-                            <select x-show="modus === 'fach'" x-model.number="fach" class="h-8 rounded-lg border border-border-strong/70 bg-input py-0 pl-2 pr-7 text-xs text-text" aria-label="{{ __('Fach') }}">
-                                <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
-                            </select>
-                        </div>
-                        <div class="h-64" x-data="npChart('verlauf')"
-                             x-effect="zeichne(modus === 'fach' && d.faecher[fach]
-                                ? { labels: d.labels, grenze: d.grenze, serien: [{ name: d.faecher[fach].name, werte: d.faecher[fach].werte, farbe: '--accent', dick: true }] }
-                                : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
-                            <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
-                        </div>
-                        <details class="group np-details mt-3 border-t border-border pt-2">
-                            <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                                <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
-                                {{ __('Als Tabelle') }}
-                            </summary>
-                            <div class="overflow-x-auto pb-2 pt-1">
-                                <table class="w-full text-sm tabular-nums">
-                                    <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
-                                    <thead class="text-2xs text-muted">
-                                        <tr>
-                                            <th scope="col" class="py-1.5 pr-3 text-left font-medium">{{ __('Semester') }}</th>
-                                            @foreach($verlauf['serien'] as $s)
-                                                <th scope="col" class="py-1.5 pl-3 text-right font-medium">{{ $s['name'] }}</th>
-                                            @endforeach
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($verlauf['labels'] as $i => $label)
-                                            <tr class="border-t border-border">
-                                                <th scope="row" class="py-1.5 pr-3 text-left font-normal text-text">{{ $label }}</th>
-                                                @foreach($verlauf['serien'] as $s)
-                                                    <td class="py-1.5 pl-3 text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
-                                                @endforeach
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </details>
-                    </div>
-                </details>
-            @endif
-
             {{-- Letzte Noten: mobil zugeklappt --}}
-            @if(($sichtbar['letzte_noten'] ?? true) && $letzteNoten->isNotEmpty())
-                <details open x-init="$el.open = {{ $desktop }}" class="group relative rounded-xl border border-border bg-card lg:col-span-4">
+            @if($zeigen['letzte_noten'])
+                <details open x-init="$el.open = {{ $desktop }}" class="group relative order-6 rounded-xl border border-border bg-card lg:order-none">
                     <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-2 lg:cursor-default"
                              @click="if ({{ $desktop }}) $event.preventDefault()">
                         <h2 class="text-sm font-semibold text-text">{{ __('Letzte Noten') }}</h2>
                         <svg class="size-4 text-muted transition-transform duration-200 group-open:rotate-180 lg:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
                     </summary>
-                    <a href="{{ route('learner.grades.index') }}" class="hidden whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:absolute lg:right-5 lg:top-2 lg:inline">{{ __('Alle') }}</a>
+                    <a href="{{ route('learner.grades.index') }}" class="hidden h-12 items-center whitespace-nowrap text-xs text-accent-text underline-offset-2 hover:underline lg:absolute lg:right-5 lg:top-0 lg:inline-flex">{{ __('Alle') }}</a>
                     <ul class="divide-y divide-border border-t border-border">
                         @foreach($letzteNoten as $n)
                             <li>
@@ -292,6 +308,7 @@
                     </ul>
                 </details>
             @endif
+            </div>
         </div>
     </div>
 

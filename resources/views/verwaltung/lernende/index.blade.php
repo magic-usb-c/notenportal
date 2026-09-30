@@ -27,9 +27,9 @@
         $sortLink = function (string $spalte, string $label) use ($filter) {
             $aktiv = $filter['sort'] === $spalte;
             $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
-            $pfeil = ! $aktiv ? '<span class="text-muted/50" aria-hidden="true">⇅</span>' : ($filter['dir'] === 'asc' ? '↑' : '↓');
+            $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : ($filter['dir'] === 'asc' ? '↑' : '↓');
 
-            return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="inline-flex items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
+            return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
         };
 
         $auswahl = 'h-9 rounded-lg border border-border-strong/60 bg-input px-2.5 text-sm text-text focus:border-accent focus:ring-2 focus:ring-ring/30 sm:w-40';

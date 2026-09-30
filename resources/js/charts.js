@@ -157,7 +157,23 @@ const senkrechtPlugin = {
     },
 };
 
-// Text-Label neben einer Schwellenlinie (z. B. «genügend 4.0»)
+// Punkte entlang der sichtbaren Datenlinien (Stützpunkte plus Zwischenpunkte), für die Kollisionsprüfung von Labels
+const linienPunkte = (chart) => {
+    const punkte = [];
+    chart.data.datasets.forEach((ds, i) => {
+        if (!ds.label || ds.label.startsWith('_') || !chart.isDatasetVisible(i)) return;
+        const echt = chart.getDatasetMeta(i).data.filter((p, j) => p && !p.skip && ds.data[j] !== null && ds.data[j] !== undefined && Number.isFinite(p.y));
+        echt.forEach((p, j) => {
+            punkte.push([p.x, p.y]);
+            const n = echt[j + 1];
+            if (n) for (let s = 1; s < 8; s++) punkte.push([p.x + (n.x - p.x) * s / 8, p.y + (n.y - p.y) * s / 8]);
+        });
+    });
+    return punkte;
+};
+
+// Text-Label neben einer Schwellenlinie (z. B. «genügend 4.0»): links oberhalb, sonst die erste Ecke,
+// an der keine Datenlinie durch den Text läuft (vorher lag es auf den ersten Punkten, wenn diese nahe der Schwelle lagen)
 const schwellenLabelPlugin = {
     id: 'npSchwellenLabel',
     afterDatasetsDraw(chart) {
@@ -168,10 +184,21 @@ const schwellenLabelPlugin = {
             if (!punkt) return;
             ctx.save();
             ctx.font = `11px ${Chart.defaults.font.family}`;
+            const breite = ctx.measureText(ds.npSchwelleLabel).width;
+            const hoehe = 12;
+            const daten = linienPunkte(chart);
+            const kandidaten = [
+                { x: chartArea.left + 2, y: punkt.y - 3 - hoehe },
+                { x: chartArea.left + 2, y: punkt.y + 3 },
+                { x: chartArea.right - 2 - breite, y: punkt.y - 3 - hoehe },
+                { x: chartArea.right - 2 - breite, y: punkt.y + 3 },
+            ].filter((k) => k.y >= chartArea.top && k.y + hoehe <= chartArea.bottom);
+            const frei = kandidaten.find((k) => !daten.some(([x, y]) => x > k.x - 5 && x < k.x + breite + 5 && y > k.y - 5 && y < k.y + hoehe + 5));
+            const ort = frei ?? kandidaten[0] ?? { x: chartArea.left + 2, y: punkt.y - 3 - hoehe };
             ctx.fillStyle = tokenFarbe('--muted');
-            ctx.textBaseline = 'bottom';
+            ctx.textBaseline = 'top';
             ctx.textAlign = 'left';
-            ctx.fillText(ds.npSchwelleLabel, chartArea.left + 2, punkt.y - 3);
+            ctx.fillText(ds.npSchwelleLabel, ort.x, ort.y);
             ctx.restore();
         });
     },
@@ -295,13 +322,14 @@ const BAUER = {
         };
     },
 
-    // { labels, werte, grenzen, name } – Histogramm in 0.5-Klassen: Klassen unter genügend eingefärbt, Rest neutral
+    // { labels, werte, grenzen, name } – Histogramm in 0.5-Klassen (Label = Untergrenze): knapp und ungenügend
+    // in Notenfarbe, Rest neutral – dieselbe Regel wie die Balken und die Legende (x-noten-legende)
     histogramm(d) {
-        const grenze = d.grenzen?.genuegend ?? 4;
+        const g = d.grenzen ?? undefined;
         return {
             type: 'bar',
             data: { labels: d.labels, datasets: [{ label: d.name ?? t('Anzahl'), data: d.werte,
-                backgroundColor: d.labels.map((l) => (parseFloat(l) < grenze - 1e-9 ? tokenFarbe('--note-ungenuegend', 0.75) : tokenFarbe('--chart-6', 0.6))),
+                backgroundColor: d.labels.map((l) => (['knapp', 'ungenuegend'].includes(stufe(parseFloat(l), g)) ? notenFarbe(parseFloat(l), g, 0.75) : tokenFarbe('--chart-6', 0.6))),
                 borderRadius: 6 }] },
             options: {
                 ...basis(),

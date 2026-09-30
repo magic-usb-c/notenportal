@@ -92,9 +92,9 @@
                     @endforeach
                 </div>
                 @if($modulstatusFertig->isNotEmpty())
-                    <details class="group np-details border-t border-border/70">
+                    <details class="group/tabelle np-details border-t border-border/70">
                         <summary class="flex min-h-11 cursor-pointer list-none items-center gap-1.5 px-5 text-xs font-medium text-muted hover:text-text">
-                            <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
+                            <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
                             {{ __('Vollständig bewertet') }} <span class="tabular-nums">{{ $modulstatusFertig->count() }}</span>
                         </summary>
                         <div class="divide-y divide-border/70 border-t border-border/70">

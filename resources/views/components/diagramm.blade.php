@@ -15,9 +15,9 @@
         {{ $slot }}
     </div>
     @isset($tabelle)
-        <details class="group np-details border-t border-border">
+        <details class="group/tabelle np-details border-t border-border">
             <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 px-5 py-2.5 text-xs font-medium text-muted hover:bg-surface-2/60 hover:text-text">
-                <span class="inline-block transition-transform duration-200 group-open:rotate-90" aria-hidden="true">▸</span>
+                <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
                 {{ __('Als Tabelle') }}
             </summary>
             <div class="overflow-x-auto px-5 pb-4">
