@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auswertung\LernstandRechner;
+use App\Support\Betrieb;
 use App\Support\NotenSkala;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class BerufsbildnerController extends Controller
     public function index(Request $request, LernstandRechner $lernstaende)
     {
         $today = now()->toDateString();
-        $cutoff = now()->subDays(30)->toDateString();
+        $cutoff = Betrieb::inaktivVor();
 
         $berufsbildner = DB::table('berufsbildner as bb')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
@@ -32,6 +33,7 @@ class BerufsbildnerController extends Controller
                 'berufsbildner' => collect(),
                 'stats' => collect(),
                 'grenze' => NotenSkala::genuegend(),
+                'frist' => Betrieb::fristInaktivTage(),
             ]);
         }
 
@@ -52,15 +54,13 @@ class BerufsbildnerController extends Controller
             ->get()
             ->keyBy('berufsbildner_id');
 
-        // Lernende ohne Noteneintrag in letzten 30 Tagen je BB
+        // Lernende ohne Noteneintrag innerhalb der Frist (Einstellung «Erinnerung ohne neue Note nach») je BB
+        $letzteNote = DB::table('noten')->whereNull('geloescht_am')->groupBy('lernender_id')
+            ->select(['lernender_id', DB::raw('MAX(pruefungsdatum) as last_entry')]);
         $ohneNotenCount = DB::table('betreuungen as bt')
             ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
             ->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
-            ->leftJoin(DB::raw(
-                '(SELECT lernender_id, MAX(pruefungsdatum) as last_entry
-                  FROM noten WHERE geloescht_am IS NULL
-                  GROUP BY lernender_id) as nn'
-            ), 'nn.lernender_id', '=', 'l.lernender_id')
+            ->leftJoinSub($letzteNote, 'nn', 'nn.lernender_id', '=', 'l.lernender_id')
             ->whereIn('bt.berufsbildner_id', $bbIds)
             ->where('bt.gueltig_von', '<=', $today)
             ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $today))
@@ -106,6 +106,6 @@ class BerufsbildnerController extends Controller
             ];
         })->keyBy('berufsbildner_id');
 
-        return view('admin.berufsbildner.index', compact('berufsbildner', 'stats', 'grenze'));
+        return view('admin.berufsbildner.index', compact('berufsbildner', 'stats', 'grenze') + ['frist' => Betrieb::fristInaktivTage()]);
     }
 }

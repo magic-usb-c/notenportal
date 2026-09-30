@@ -10,6 +10,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
 use App\Services\Uebersicht;
+use App\Support\Betrieb;
 use App\Support\NotenSkala;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
@@ -79,7 +80,7 @@ class LernendeController extends VerwaltungController
 
         $zeilen = $this->mitStatistik($lernende, (int) $user->benutzer_id);
 
-        $cutoff = now()->subDays(30)->toDateString();
+        $cutoff = Betrieb::inaktivVor();
         $grenze = NotenSkala::genuegend();
         $zeilen = $zeilen
             ->when($filter['lehrjahr'], fn ($z, $jahr) => $z->filter(fn ($r) => $r->lehrjahr === $jahr))
@@ -100,6 +101,7 @@ class LernendeController extends VerwaltungController
             'zeilen' => $zeilen->values(),
             'filter' => $filter,
             'grenze' => $grenze,
+            'frist' => Betrieb::fristInaktivTage(),
             'lehrberufe' => DB::table('lehrberufe')->orderBy('name')->get(['lehrberuf_id', 'name']),
             'berufsbildnerListe' => $istAdmin ? $this->berufsbildnerListe() : collect(),
         ]);

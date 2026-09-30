@@ -106,7 +106,7 @@
                     <select name="warnung" id="warnung" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
                         <option value="">{{ __('Warnung: alle') }}</option>
                         <option value="tief_avg" @selected($filter['warnung'] === 'tief_avg')>{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</option>
-                        <option value="keine_noten" @selected($filter['warnung'] === 'keine_noten')>{{ __('Kein Eintrag seit 30 Tagen') }}</option>
+                        <option value="keine_noten" @selected($filter['warnung'] === 'keine_noten')>{{ __('Kein Eintrag seit :tage Tagen', ['tage' => $frist]) }}</option>
                         @if($bereich === 'admin')
                             <option value="ohne_betreuung" @selected($filter['warnung'] === 'ohne_betreuung')>{{ __('Ohne Berufsbildner') }}</option>
                             <option value="ohne_track" @selected($filter['warnung'] === 'ohne_track')>{{ __('Ohne aktiven Track') }}</option>

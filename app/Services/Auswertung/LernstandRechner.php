@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Auswertung;
 
 use App\Services\Auswertung\Notenbaum\BaumErgebnis;
-use App\Support\Einstellungen;
+use App\Support\Betrieb;
 use App\Support\Lehrsemester;
 use App\Support\NotenSkala;
 use Illuminate\Support\Carbon;
@@ -92,7 +92,7 @@ final class LernstandRechner
             }
         }
 
-        $frist = (int) Einstellungen::get(Einstellungen::FRIST_INAKTIV_TAGE, '30');
+        $frist = Betrieb::fristInaktivTage();
         $tage = $letzte ? (int) $letzte->copy()->startOfDay()->diffInDays(now()->startOfDay()) : null;
         $delta = $semesterNote !== null && $vorsemesterNote !== null ? $semesterNote - $vorsemesterNote : null;
 

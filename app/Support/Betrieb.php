@@ -35,6 +35,24 @@ final class Betrieb
         return $werte;
     }
 
+    /** Tage ohne neue Note, ab denen Lernende als «ohne Noteneintrag» gelten (Warnung, Filter, Erinnerung). */
+    public static function fristInaktivTage(): int
+    {
+        return (int) Einstellungen::get(Einstellungen::FRIST_INAKTIV_TAGE, self::FELDER[Einstellungen::FRIST_INAKTIV_TAGE]);
+    }
+
+    /** Tage vor dem Lehrende, ab denen es auf Übersichten angekündigt wird. */
+    public static function fristLehrendeTage(): int
+    {
+        return (int) Einstellungen::get(Einstellungen::FRIST_LEHRENDE_TAGE, self::FELDER[Einstellungen::FRIST_LEHRENDE_TAGE]);
+    }
+
+    /** Datum (Y-m-d), vor dem die letzte Note liegen muss, damit die Inaktivitätsfrist überschritten ist. */
+    public static function inaktivVor(): string
+    {
+        return now()->subDays(self::fristInaktivTage())->toDateString();
+    }
+
     /** @return array<string, list<string>> */
     public static function regeln(): array
     {

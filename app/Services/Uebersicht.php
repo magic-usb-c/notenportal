@@ -21,7 +21,7 @@ use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Zielrechner;
 use App\Services\Betrieb\Sicherung;
-use App\Support\Einstellungen;
+use App\Support\Betrieb;
 use App\Support\Format;
 use App\Support\NotenSkala;
 use App\Support\Zahl;
@@ -649,7 +649,7 @@ final class Uebersicht
 
     private function lehrendeBald(Collection $lernende): Collection
     {
-        $frist = (int) Einstellungen::get(Einstellungen::FRIST_LEHRENDE_TAGE, '60');
+        $frist = Betrieb::fristLehrendeTage();
 
         return $lernende->filter(fn (Lernender $l) => $l->lehrende && $l->lehrende->isFuture() && $l->lehrende->lte(now()->addDays($frist)))
             ->sortBy('lehrende')->values();

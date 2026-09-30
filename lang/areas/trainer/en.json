@@ -89,7 +89,6 @@
     "Inaktiv": "Inactive",
     "Inkl. inaktive": "Incl. inactive",
     "Kategorie": "Category",
-    "Kein Eintrag seit 30 Tagen": "No entry for 30 days",
     "Kein Track": "No track",
     "Kein Track.": "No track.",
     "Keine Auffälligkeiten": "No issues",
@@ -265,5 +264,6 @@
     "Stärkster Rückgang zuerst": "Largest drop first",
     "Stärkster Anstieg zuerst": "Largest rise first",
     "Seit :tage Tagen keine Note": "No grade for :tage days",
-    "vor :tage Tagen": ":tage days ago"
+    "vor :tage Tagen": ":tage days ago",
+    "Kein Eintrag seit :tage Tagen": "No entry for :tage days"
 }
