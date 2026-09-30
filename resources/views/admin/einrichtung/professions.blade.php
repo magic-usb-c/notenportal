@@ -21,7 +21,7 @@
                         <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
                     @endforeach
                 </select>
-                <noscript><button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Übernehmen') }}</button></noscript>
+                <noscript><button type="submit" class="np-knopf np-knopf-sekundaer">{{ __('Übernehmen') }}</button></noscript>
             </div>
             @if(filled($vorlage['beschreibung'] ?? null))
                 <p class="text-xs text-muted">{{ $vorlage['beschreibung'] }}</p>

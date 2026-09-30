@@ -835,6 +835,8 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   display: block;
   width: 100%;
   height: 2.25rem;
+  /* Forms-Plugin setzt 0.5rem oben/unten: bei fester Höhe rutscht der Wert einer Auswahl sonst nach unten */
+  padding-block: 0;
   padding-inline: 0.75rem;
   border-radius: var(--radius-lg);
   border: 1px solid rgb(var(--border-strong));
@@ -1365,6 +1367,13 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   /* Akkordeon (für <details>-Inhalte) */
   details[open] > summary ~ * {
     animation: np-slide-down 220ms var(--ease-out);
+  }
+  /* Aufklapp-Dreieck dreht mit dem Zustand der Disclosure, ohne Skript (HIG «Disclosure controls») */
+  details > summary .np-chevron {
+    transition: rotate 200ms var(--ease-out);
+  }
+  details[open] > summary .np-chevron {
+    rotate: 90deg;
   }
 
   /* Fortschritt beim Seitenwechsel (oben, 2 px, Akzent) */

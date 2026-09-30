@@ -59,7 +59,7 @@
                             <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" class="{{ $feld }}">
                             @error('titel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Hochladen') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Hochladen') }}</button>
                     </div>
                 </form>
             @endif

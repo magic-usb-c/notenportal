@@ -24,7 +24,7 @@
     @include('admin.einrichtung._zugaenge')
 
     <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <a href="{{ route('admin.setup', 'people') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('← Zurück') }}</a>
+        <a href="{{ route('admin.setup', 'people') }}" class="np-knopf np-knopf-sekundaer">{{ __('← Zurück') }}</a>
         @if(\App\Support\Einrichtung::offen())
             <form method="POST" action="{{ route('admin.setup.finish') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
@@ -34,7 +34,7 @@
                 </button>
             </form>
         @else
-            <a href="{{ route('admin.dashboard') }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Zur Übersicht') }}</a>
+            <a href="{{ route('admin.dashboard') }}" class="np-knopf np-knopf-primaer">{{ __('Zur Übersicht') }}</a>
         @endif
     </div>
 </x-einrichtung>

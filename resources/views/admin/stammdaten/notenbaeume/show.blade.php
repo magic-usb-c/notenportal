@@ -15,9 +15,9 @@
     <x-slot name="header">
         <x-seitenkopf :zurueck="route('admin.master-data.grade-trees.index')" :titel="$baum->name" :untertitel="$fuer">
             @if($baum->aktiv)
-                <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
+                <span class="np-marke bg-accent/12 text-accent-text">{{ __('aktiv') }}</span>
             @else
-                <span class="rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ __('inaktiv') }}</span>
+                <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
             @endif
             <x-slot:aktionen>
                 <form method="POST" action="{{ route('admin.master-data.grade-trees.activate', $baum->baum_id) }}">

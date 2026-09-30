@@ -23,7 +23,7 @@
                     <div>
                         <label for="kurzname" class="text-sm font-medium text-text">{{ __('Kürzel *') }}</label>
                         <input type="text" id="kurzname" name="kurzname" value="{{ old('kurzname') }}" required maxlength="50"
-                               class="np-feld mt-1 font-mono @error('kurzname') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 tabular-nums @error('kurzname') border-note-ungenuegend @enderror">
                         @error('kurzname')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -88,12 +88,7 @@
                             <label for="zaehlt" class="text-sm text-text">{{ __('Zählt in Schnitt und Promotion') }}</label>
                         </div>
                     </div>
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ __('Fach anlegen') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="route('admin.master-data.subjects.index')">{{ __('Fach anlegen') }}</x-formular-aktionen>
                 </form>
             </div>
         </div>

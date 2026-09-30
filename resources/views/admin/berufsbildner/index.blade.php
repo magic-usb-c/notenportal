@@ -70,7 +70,7 @@
                                         <td class="hidden @3xl:table-cell text-right">
                                             @if(($st?->lernende ?? 0) > 0)
                                                 <a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->berufsbildner_id]) }}"
-                                                   class="inline-flex items-center justify-center min-w-8 px-2 py-1 rounded-lg font-semibold bg-surface-2 hover:bg-accent hover:text-accent-contrast transition-colors">
+                                                   class="inline-flex min-h-6 min-w-8 items-center justify-end font-medium text-accent-text tabular-nums hover:underline underline-offset-2">
                                                     {{ $st->lernende }}
                                                 </a>
                                             @else

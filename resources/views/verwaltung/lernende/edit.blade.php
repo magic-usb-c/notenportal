@@ -41,7 +41,7 @@
                     </div>
                     <div>
                         <label for="benutzername" class="{{ $label }}">{{ __('Benutzername *') }}</label>
-                        <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername', $benutzer->benutzername) }}" required maxlength="50" class="{{ $feld }} font-mono">
+                        <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername', $benutzer->benutzername) }}" required maxlength="50" class="{{ $feld }} tabular-nums">
                         @error('benutzername')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                 </div>
@@ -79,10 +79,7 @@
                     </div>
                 </div>
 
-                <button type="submit" :disabled="loading"
-                        class="w-full h-12 rounded-xl bg-accent text-accent-contrast font-semibold hover:opacity-90 transition-colors duration-150 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                    {{ __('Speichern') }}
-                </button>
+                <x-formular-aktionen :abbrechen="route($bereich.'.learners.show', $lernender->lernender_id)">{{ __('Speichern') }}</x-formular-aktionen>
             </form>
             </div>
         </div>

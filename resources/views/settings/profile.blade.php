@@ -21,7 +21,7 @@
                             <dd class="text-text font-medium">
                                 {{ $lehrberuf->name ?? '–' }}
                                 @if($lehrberuf?->kuerzel)
-                                    <span class="text-muted font-mono text-xs">({{ $lehrberuf->kuerzel }})</span>
+                                    <span class="text-muted tabular-nums text-xs">({{ $lehrberuf->kuerzel }})</span>
                                 @endif
                             </dd>
                         </div>

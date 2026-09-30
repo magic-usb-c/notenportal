@@ -51,7 +51,7 @@
                                 <div class="text-xs text-muted mt-1 truncate">{{ json_encode($e->details, JSON_UNESCAPED_UNICODE) }}</div>
                             @endif
                             @if($e->ip)
-                                <div class="text-xs text-muted mt-1 font-mono">{{ $e->ip }}</div>
+                                <div class="text-xs text-muted mt-1 tabular-nums">{{ $e->ip }}</div>
                             @endif
                         </div>
                     @empty

@@ -35,9 +35,9 @@
                                     <td class="hidden text-right text-muted @xl:table-cell">{{ $b->positionen }}</td>
                                     <td>
                                         @if($b->aktiv)
-                                            <span class="rounded-md bg-accent/12 px-2 py-0.5 text-xs font-medium text-accent-text">{{ __('aktiv') }}</span>
+                                            <span class="np-marke bg-accent/12 text-accent-text">{{ __('aktiv') }}</span>
                                         @else
-                                            <span class="rounded-md border border-border bg-surface-2 px-2 py-0.5 text-xs text-muted">{{ __('inaktiv') }}</span>
+                                            <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
                                         @endif
                                     </td>
                                 </tr>

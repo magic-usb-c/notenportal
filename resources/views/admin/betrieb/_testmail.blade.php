@@ -10,7 +10,7 @@
         <input id="test_to" name="test_to" type="email" required maxlength="190" value="{{ old('test_to', $testTo) }}" class="{{ $feld }}" autocomplete="off">
         @error('test_to')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
     </div>
-    <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">
+    <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">
         <span x-show="loading" x-cloak class="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" aria-hidden="true"></span>
         {{ __('Testmail senden') }}
     </button>

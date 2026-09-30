@@ -11,7 +11,7 @@
     @if($lehrberufe->isEmpty())
         <section class="np-karte p-8 flex flex-col items-center gap-3 text-center">
             <p class="text-sm text-muted">{{ __('Noch keine Lehrberufe') }}</p>
-            <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Lehrberufe anlegen') }}</a>
+            <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-primaer">{{ __('Lehrberufe anlegen') }}</a>
         </section>
         @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
     @else
@@ -65,7 +65,7 @@
                                 <div class="text-xs font-medium text-muted mb-2">{{ $lernort }}</div>
                                 <ul class="flex flex-col gap-1 text-sm">
                                     @foreach($liste as $m)
-                                        <li class="flex gap-3 min-w-0"><span class="font-mono text-muted w-12 shrink-0">{{ $m->modul_nummer }}</span><span class="truncate text-text">{{ $m->titel }}</span></li>
+                                        <li class="flex gap-3 min-w-0"><span class="tabular-nums text-muted w-12 shrink-0">{{ $m->modul_nummer }}</span><span class="truncate text-text">{{ $m->titel }}</span></li>
                                     @endforeach
                                 </ul>
                             </div>

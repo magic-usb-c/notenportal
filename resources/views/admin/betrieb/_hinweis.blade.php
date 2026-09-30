@@ -54,9 +54,9 @@
         </label>
         {{-- «Speichern» steht im DOM zuerst: Enter in einem Feld löst den ersten Submit-Knopf aus und darf nie löschen. --}}
         <div class="flex flex-row-reverse justify-start gap-3">
-            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
             <button type="submit" name="hinweis_entfernen" value="1" formnovalidate :disabled="loading"
-                    class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Hinweis entfernen') }}</button>
+                    class="np-knopf np-knopf-sekundaer">{{ __('Hinweis entfernen') }}</button>
         </div>
     </form>
 </section>

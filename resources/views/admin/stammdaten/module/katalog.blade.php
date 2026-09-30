@@ -25,7 +25,7 @@
                     <p class="text-sm text-muted">
                         {{ __('Die Katalogspalten fehlen in der Datenbank. Einmalig auf dem Server ausführen:') }}
                     </p>
-                    <code class="rounded-lg bg-surface-2 px-3 py-2 font-mono text-sm text-text">php artisan notenportal:migrate</code>
+                    <code class="rounded-lg bg-fill-2 px-3 py-2 font-mono text-sm text-text">php artisan notenportal:migrate</code>
                 </section>
             @elseif($vorschau === null)
                 <section class="{{ $karte }}">
@@ -65,7 +65,7 @@
 
                         <div>
                             <button type="submit" x-bind:disabled="laeuft"
-                                    class="np-knopf np-knopf-primaer np-knopf-gross">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Vorschau erstellen') }}
                             </button>
                         </div>
@@ -120,7 +120,7 @@
                         <ul class="flex flex-col gap-1 text-sm">
                             @foreach($vorschau['konflikte'] as $nummer => $titel)
                                 <li class="flex gap-3 min-w-0">
-                                    <span class="font-mono text-muted w-16 shrink-0">{{ $nummer }}</span>
+                                    <span class="tabular-nums text-muted w-16 shrink-0">{{ $nummer }}</span>
                                     <span class="truncate text-text">{{ $titel }}</span>
                                 </li>
                             @endforeach
@@ -171,13 +171,13 @@
                             @csrf
                             <input type="hidden" name="token" value="{{ $vorschau['token'] }}">
                             <button type="submit" x-bind:disabled="laeuft"
-                                    class="np-knopf np-knopf-primaer np-knopf-gross">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Katalog übernehmen') }}
                             </button>
                         </form>
                         <form method="POST" action="{{ route('admin.master-data.modules.catalog.discard') }}">
                             @csrf
-                            <button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                            <button type="submit" class="np-knopf np-knopf-sekundaer">
                                 {{ __('Verwerfen') }}
                             </button>
                         </form>
@@ -193,7 +193,7 @@
                     </p>
                     <div>
                         <a href="{{ route('admin.master-data.modules.catalog.export') }}"
-                           class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                           class="np-knopf np-knopf-sekundaer">
                             {{ __('Katalog herunterladen') }}
                         </a>
                     </div>

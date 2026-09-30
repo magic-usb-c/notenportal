@@ -82,7 +82,7 @@
                 @endforeach
 
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
                 </div>
             </form>
         </div>

@@ -41,11 +41,11 @@
                      x-data="{ kopiert: false }">
                     <div>
                         <div class="text-xs font-medium text-muted">{{ __('Startpasswort · wird nur einmal angezeigt') }}</div>
-                        <div class="mt-1 font-mono text-2xl font-bold tracking-wider text-text select-all" x-ref="pw">{{ session('startpasswort') }}</div>
+                        <div class="mt-1 font-mono text-2xl font-semibold tracking-wider text-text select-all" x-ref="pw">{{ session('startpasswort') }}</div>
                     </div>
                     <button type="button"
                             @click="if (await np.kopieren($refs.pw.textContent.trim())) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
-                            class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                            class="np-knopf np-knopf-sekundaer">
                         <span x-show="!kopiert">{{ __('Kopieren') }}</span>
                         <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
                     </button>
@@ -61,19 +61,12 @@
                         history.replaceState(null, '', u);
                     },
                  }">
-                <nav aria-label="{{ __('Bereiche') }}" class="flex gap-6 overflow-x-auto border-b border-border text-sm">
-                    <button type="button" :aria-current="tab === 'overview' ? 'page' : null" @click="wechsleTab('overview')"
-                            class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 font-medium"
-                            :class="tab === 'overview' ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text'">{{ __('Übersicht') }}</button>
-                    <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"
-                       class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">{{ __('Noten') }}</a>
-                    <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}"
-                       class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">{{ __('Dokumente') }}</a>
-                    <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}"
-                       class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 border-transparent text-muted hover:border-border-strong/50 hover:text-text">{{ __('Rechner') }}</a>
-                    <button type="button" :aria-current="tab === 'profil' ? 'page' : null" @click="wechsleTab('profil')"
-                            class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 font-medium whitespace-nowrap"
-                            :class="tab === 'profil' ? 'border-accent text-text' : 'border-transparent text-muted hover:text-text'">{{ __('Profil & Betreuung') }}</button>
+                <nav aria-label="{{ __('Bereiche') }}" class="np-segment">
+                    <button type="button" :aria-current="tab === 'overview' ? 'page' : null" @click="wechsleTab('overview')">{{ __('Übersicht') }}</button>
+                    <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}">{{ __('Noten') }}</a>
+                    <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}">{{ __('Dokumente') }}</a>
+                    <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}">{{ __('Rechner') }}</a>
+                    <button type="button" :aria-current="tab === 'profil' ? 'page' : null" @click="wechsleTab('profil')">{{ __('Profil & Betreuung') }}</button>
                 </nav>
 
                 <div class="pt-5" x-show="tab === 'overview'">

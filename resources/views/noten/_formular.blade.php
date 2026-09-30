@@ -127,14 +127,14 @@
         </template>
     </div>
 
-    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
+    <div class="flex items-center justify-end gap-2 pt-2">
         @if($drawer)
-            <button type="button" @click="$dispatch('close-drawer', 'note')" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</button>
+            <button type="button" @click="$dispatch('close-drawer', 'note')" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Abbrechen') }}</button>
         @else
-            <a href="{{ $zurueck }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
+            <a href="{{ $zurueck }}" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Abbrechen') }}</a>
         @endif
         <button type="submit" :disabled="loading"
-                class="np-knopf np-knopf-primaer np-knopf-gross sm:flex-1">
+                class="np-knopf np-knopf-primaer min-w-24">
             <svg x-show="loading" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>

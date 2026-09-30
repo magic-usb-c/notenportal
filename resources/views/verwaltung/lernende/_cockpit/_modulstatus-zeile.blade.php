@@ -6,7 +6,7 @@
         @endif
     </div>
     @if($ms['bewerteter_anteil_prozent'] !== null)
-        <span class="mt-1 block h-1 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+        <span class="mt-1 block h-1 w-full overflow-hidden rounded-full bg-fill" aria-hidden="true">
             <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
         </span>
     @endif

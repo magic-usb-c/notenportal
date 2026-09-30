@@ -25,10 +25,10 @@
             @error('logo')<p id="logo-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </div>
         <div class="flex flex-row-reverse justify-start gap-3">
-            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
             @if($logoVorhanden)
                 <button type="submit" name="logo_entfernen" value="1" formnovalidate :disabled="loading"
-                        class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Logo entfernen') }}</button>
+                        class="np-knopf np-knopf-sekundaer">{{ __('Logo entfernen') }}</button>
             @endif
         </div>
     </form>

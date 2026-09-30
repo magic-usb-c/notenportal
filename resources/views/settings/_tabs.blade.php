@@ -8,14 +8,9 @@
         ['route' => 'settings.data', 'label' => __('Daten')],
     ];
 @endphp
-<nav aria-label="{{ __('Bereiche') }}" class="flex gap-6 overflow-x-auto border-b border-border text-sm">
+<nav aria-label="{{ __('Bereiche') }}" class="np-segment">
     @foreach($npEinstellungenTabs as $npTab)
         @continue(! \Illuminate\Support\Facades\Route::has($npTab['route']))
-        @php($npTabAktiv = request()->routeIs($npTab['route']))
-        <a href="{{ route($npTab['route']) }}" @if($npTabAktiv) aria-current="page" @endif
-           class="-mb-px inline-flex h-10 shrink-0 items-center border-b-2 font-medium whitespace-nowrap
-                  {{ $npTabAktiv ? 'border-accent text-text' : 'border-transparent text-muted hover:border-border-strong/50 hover:text-text' }}">
-            {{ $npTab['label'] }}
-        </a>
+        <a href="{{ route($npTab['route']) }}" @if(request()->routeIs($npTab['route'])) aria-current="page" @endif>{{ $npTab['label'] }}</a>
     @endforeach
 </nav>

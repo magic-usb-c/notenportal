@@ -50,8 +50,5 @@
         </div>
     </div>
 
-    <div class="flex gap-2 mt-2">
-        <a href="{{ route($bereich.'.exams.index', $filter) }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
-        <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross flex-1">{{ $b ? __('Speichern') : __('Erfassen') }}</button>
-    </div>
+    <x-formular-aktionen :abbrechen="route($bereich.'.exams.index', $filter)">{{ $b ? __('Speichern') : __('Erfassen') }}</x-formular-aktionen>
 </form>

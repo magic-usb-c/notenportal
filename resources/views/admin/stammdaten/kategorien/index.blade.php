@@ -44,14 +44,14 @@
                                     @if(! is_null($k->promotion_min_schnitt))
                                         <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">–</span>
+                                        <span class="np-marke text-muted">–</span>
                                     @endif
                                 </td>
                                 <td class="hidden @3xl:table-cell">
                                     @if($k->aktiv)
                                         <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
+                                        <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
                                 <td class="text-right">

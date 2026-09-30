@@ -23,9 +23,9 @@
 
             <div class="np-karte p-5 space-y-3">
                 <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                    @if($modul->version)<span class="rounded-md bg-surface-2 px-2 py-0.5">{{ __('Katalogversion') }} {{ $modul->version }}</span>@endif
+                    @if($modul->version)<span class="np-marke text-muted">{{ __('Katalogversion') }} {{ $modul->version }}</span>@endif
                     @if($modul->ausKatalog())
-                        <span class="rounded-md bg-surface-2 px-2 py-0.5">{{ __('aus dem Modulbaukasten') }}</span>
+                        <span class="np-marke text-muted">{{ __('aus dem Modulbaukasten') }}</span>
                     @elseif($modul->ersteller)
                         <span>{{ __('Erfasst von :name', ['name' => trim($modul->ersteller->vorname.' '.$modul->ersteller->nachname)]) }}</span>
                     @endif
@@ -55,7 +55,7 @@
                         <form method="POST" action="{{ route('modules.enroll', $modul->modul_id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                             @csrf
                             <button type="submit" :disabled="loading"
-                                    class="np-knopf np-knopf-primaer np-knopf-gross">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Zu meinen Modulen hinzufügen') }}
                             </button>
                             <span class="ml-2 text-xs text-muted">{{ __('Danach kannst du hier eigene Noten erfassen.') }}</span>
@@ -70,7 +70,7 @@
                     <ul class="mt-3 space-y-2">
                         @foreach($modul->handlungsziele as $ziel)
                             <li class="flex gap-3 text-sm">
-                                <span class="w-10 shrink-0 font-mono text-muted">{{ $ziel->nummer }}</span>
+                                <span class="w-10 shrink-0 tabular-nums text-muted">{{ $ziel->nummer }}</span>
                                 <span class="text-text">{{ $ziel->text }}</span>
                             </li>
                         @endforeach
@@ -150,7 +150,7 @@
                         @error('titel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <button type="submit" :disabled="loading"
-                            class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Hochladen') }}</button>
+                            class="np-knopf np-knopf-primaer">{{ __('Hochladen') }}</button>
                 </form>
             </section>
 

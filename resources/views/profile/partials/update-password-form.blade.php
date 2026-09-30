@@ -30,9 +30,9 @@
                    class="np-feld mt-1 block">
         </div>
 
-        <div class="pt-1 flex items-center gap-4">
+        <div class="flex justify-end pt-1">
             <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-primaer np-knopf-gross">
+                    class="np-knopf np-knopf-primaer">
                 {{ __('Passwort ändern') }}
             </button>
         </div>

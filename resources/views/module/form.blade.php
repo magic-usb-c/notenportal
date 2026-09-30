@@ -27,7 +27,7 @@
                         <label for="modul_nummer" class="{{ $label }}">{{ __('Modulnummer') }} * <span class="text-xs font-normal">({{ __('z.B. M100') }})</span></label>
                         <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
                                @unless($neu || auth()->user()->hasRole('Admin')) readonly @endunless
-                               class="{{ $feld }} font-mono @error('modul_nummer') border-note-ungenuegend @enderror">
+                               class="{{ $feld }} tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
                         @unless($neu || auth()->user()->hasRole('Admin'))
                             <p class="mt-1 text-xs text-muted">{{ __('Die Nummer bleibt fest: an ihr hängen die Noten aller, die dieses Modul führen.') }}</p>
                         @endunless
@@ -45,7 +45,7 @@
                         <label for="version" class="{{ $label }}">{{ __('Katalogversion') }}
                             <span class="text-xs font-normal">({{ __('optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten') }})</span></label>
                         <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2"
-                               class="{{ $feld }} font-mono @error('version') border-note-ungenuegend @enderror">
+                               class="{{ $feld }} tabular-nums @error('version') border-note-ungenuegend @enderror">
                         @error('version')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
@@ -73,12 +73,7 @@
                         @error('handlungsziele')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="$neu ? route('modules.index') : route('modules.show', $modul->modul_id)">{{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}</x-formular-aktionen>
                 </form>
             </div>
         </div>

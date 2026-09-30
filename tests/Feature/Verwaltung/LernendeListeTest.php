@@ -77,7 +77,7 @@ class LernendeListeTest extends TestCase
 
         $html = (string) $this->actingAs($admin)->get(route('admin.learners.index'))->assertOk()->getContent();
         $xpath = $this->dom($html);
-        $marken = fn (string $ansicht) => collect(iterator_to_array($xpath->query("//*[@data-ansicht=\"{$ansicht}\"]//span[contains(@class,'rounded-full')]")))
+        $marken = fn (string $ansicht) => collect(iterator_to_array($xpath->query("//*[@data-ansicht=\"{$ansicht}\"]//span[contains(@class,'np-marke')]")))
             ->map(fn (\DOMElement $s) => trim($s->textContent))->sort()->values()->all();
 
         $this->assertContains(__('Keine Noten'), $marken('tabelle'));

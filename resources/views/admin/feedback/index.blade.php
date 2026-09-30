@@ -179,12 +179,12 @@
                                                 <span class="text-xs text-muted tabular-nums">{{ __('Stimmen') }} {{ $m->stimmen_anzahl ?? 0 }}</span>
                                                 @if($hatDuplikatSpalte && $m->duplikat_von)
                                                     <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
-                                                       class="inline-flex min-h-6 items-center rounded-md bg-surface-2 px-1.5 text-2xs text-muted hover:text-text">
+                                                       class="np-marke min-h-6 text-muted hover:text-text">
                                                         {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
                                                     </a>
                                                 @endif
                                                 @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
-                                                    <span class="inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted">{{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}</span>
+                                                    <span class="np-marke text-muted">{{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}</span>
                                                 @endif
                                             </div>
                                         </div>
@@ -194,12 +194,12 @@
                                         <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
                                         @if($hatDuplikatSpalte && $m->duplikat_von)
                                             <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
-                                               class="mt-1 inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted hover:text-text">
+                                               class="mt-1 np-marke min-h-6 text-muted hover:text-text">
                                                 {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
                                             </a>
                                         @endif
                                         @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
-                                            <span class="mt-1 inline-flex items-center rounded-md bg-surface-2 px-1.5 py-0.5 text-2xs text-muted">
+                                            <span class="mt-1 np-marke text-muted">
                                                 {{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}
                                             </span>
                                         @endif
@@ -329,7 +329,7 @@
                                                 </div>
                                                 <div class="flex items-center gap-3">
                                                     <button type="button" @click="speichern()" :disabled="saving"
-                                                            class="np-knopf np-knopf-primaer np-knopf-gross">
+                                                            class="np-knopf np-knopf-primaer">
                                                         <span x-show="!saving">{{ __('Speichern') }}</span>
                                                         <span x-show="saving">…</span>
                                                     </button>
@@ -343,7 +343,7 @@
                                                                    x-model="duplikatEingabe" :disabled="!!duplikatVon"
                                                                    class="np-feld w-28 disabled:opacity-50">
                                                             <button type="button" @click="duplikatUmschalten()" :disabled="duplikatSaving"
-                                                                    class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                                                                    class="np-knopf np-knopf-sekundaer">
                                                                 <span x-text="duplikatVon ? @js(__('Markierung aufheben')) : @js(__('Als Duplikat markieren'))"></span>
                                                             </button>
                                                         </div>

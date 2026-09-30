@@ -49,12 +49,7 @@
                         @enderror
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ __('Änderungen speichern') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="route('admin.master-data.semesters.index')">{{ __('Änderungen speichern') }}</x-formular-aktionen>
                 </form>
             </div>
         </div>

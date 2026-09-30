@@ -40,5 +40,7 @@
             {{ __('Lektionen (Stundenplan)') }}
         </label>
     </fieldset>
-    <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+    <div class="flex justify-end">
+        <button :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
+    </div>
 </form>

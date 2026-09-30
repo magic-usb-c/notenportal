@@ -58,7 +58,7 @@
                     </select>
                 </div>
                 @if($filterAktiv)
-                    <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross" aria-label="{{ __('Filter zurücksetzen') }}">×</a>
+                    <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-schlicht">{{ __('Zurücksetzen') }}</a>
                 @endif
             </form>
 

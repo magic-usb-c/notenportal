@@ -24,8 +24,6 @@
                 $status[] = [$a->konfiguration->kategorieName($kid), $kNote];
             }
         }
-        $chip = 'inline-flex h-8 items-center rounded-full border px-3 text-sm transition-colors duration-100';
-        $segment = 'h-8 whitespace-nowrap rounded-md px-3 text-muted transition-colors duration-150 aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs';
         $pfeil = 'np-knopf np-knopf-symbol';
     @endphp
 
@@ -82,16 +80,14 @@
 
             {{-- Werkzeugzeile: Ansicht links, Kategorien rechts --}}
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="inline-flex rounded-lg bg-surface-2 p-0.5 text-sm" role="radiogroup" x-radiogroup aria-label="{{ __('Ansicht') }}">
-                    <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'" class="{{ $segment }}">{{ __('Semester') }}</button>
-                    <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'" class="{{ $segment }}">{{ __('Zeugnisübersicht') }}</button>
+                <div class="np-segment" role="radiogroup" x-radiogroup aria-label="{{ __('Ansicht') }}">
+                    <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'">{{ __('Semester') }}</button>
+                    <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'">{{ __('Zeugnisübersicht') }}</button>
                 </div>
-                <nav class="flex flex-wrap gap-1.5" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}">
-                    <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" @if(! $kategorieId) aria-current="page" @endif
-                       @class([$chip, 'border-accent/40 bg-accent/10 text-accent-text' => ! $kategorieId, 'border-border text-muted hover:bg-surface-2/60 hover:text-text' => $kategorieId])>{{ __('Alle') }}</a>
+                <nav class="np-segment max-w-full overflow-x-auto" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}">
+                    <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" @if(! $kategorieId) aria-current="page" @endif>{{ __('Alle') }}</a>
                     @foreach($kategorien as $k)
-                        <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" @if($kategorieId === $k->kategorie_id) aria-current="page" @endif
-                           @class([$chip, 'border-accent/40 bg-accent/10 text-accent-text' => $kategorieId === $k->kategorie_id, 'border-border text-muted hover:bg-surface-2/60 hover:text-text' => $kategorieId !== $k->kategorie_id])>{{ $k->name }}</a>
+                        <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" @if($kategorieId === $k->kategorie_id) aria-current="page" @endif>{{ $k->name }}</a>
                     @endforeach
                 </nav>
             </div>
@@ -122,11 +118,11 @@
                             <table class="w-full text-sm tabular-nums">
                                 <thead>
                                     <tr class="border-b border-border">
-                                        <th scope="col" class="h-9 w-full max-w-0 bg-surface-2 px-4 text-left text-2xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">{{ __('Prüfungen') }}</th>
-                                        <th scope="col" class="hidden h-9 whitespace-nowrap bg-surface-2 px-3 text-right text-2xs font-medium text-muted sm:table-cell">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="h-9 bg-surface-2 px-3 text-right text-2xs font-medium text-muted">{{ __('Zeugnis') }}</th>
-                                        <th scope="col" class="h-9 w-10 bg-surface-2"><span class="sr-only">{{ __('Einzelnoten') }}</span></th>
+                                        <th scope="col" class="h-8 w-full max-w-0 px-4 text-left text-xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="h-8 px-3 text-left text-xs font-medium text-muted">{{ __('Prüfungen') }}</th>
+                                        <th scope="col" class="hidden h-8 whitespace-nowrap px-3 text-right text-xs font-medium text-muted sm:table-cell">{{ __('Schnitt') }}</th>
+                                        <th scope="col" class="h-8 px-3 text-right text-xs font-medium text-muted">{{ __('Zeugnis') }}</th>
+                                        <th scope="col" class="h-8 w-10"><span class="sr-only">{{ __('Einzelnoten') }}</span></th>
                                     </tr>
                                 </thead>
                                 @foreach($g->elemente as $el)
@@ -154,7 +150,7 @@
                                                     <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
                                                     <span aria-hidden="true">{{ $anzahl }}</span>
                                                     @if($fortschritt !== null)
-                                                        <span class="hidden h-1 w-16 overflow-hidden rounded-full bg-surface-2 sm:block" aria-hidden="true">
+                                                        <span class="hidden h-1 w-16 overflow-hidden rounded-full bg-fill sm:block" aria-hidden="true">
                                                             <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>
                                                         </span>
                                                         <span class="hidden text-xs md:inline">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
@@ -174,7 +170,7 @@
                                                     $mbk = $beleg['mbk'] ?? null;
                                                 @endphp
                                                 @if($mbk || ($ms && ($ms['dauer_seit_beginn'] || $ms['naechster_termin'] || $ms['bewerteter_anteil_prozent'] !== null)))
-                                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-border/70 bg-surface-2/40 px-3 py-2 text-xs text-muted">
+                                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-border/70 bg-fill-2 px-4 py-2 text-xs text-muted">
                                                         @if($ms && $ms['dauer_seit_beginn'])
                                                             <span>{{ $ms['dauer_seit_beginn'] }}</span>
                                                         @endif
@@ -187,7 +183,7 @@
                                                         @if($ms && $ms['bewerteter_anteil_prozent'] !== null)
                                                             <span class="inline-flex shrink-0 items-center gap-1.5">
                                                                 {{ __('Bewertet') }}
-                                                                <span class="h-1 w-14 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                                                                <span class="h-1 w-14 overflow-hidden rounded-full bg-fill" aria-hidden="true">
                                                                     <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
                                                                 </span>
                                                                 {{ \App\Support\Zahl::prozent($ms['bewerteter_anteil_prozent']) }}
@@ -251,7 +247,7 @@
 
             <div class="flex flex-col gap-3">
                 <template x-for="z in zeilen" :key="z.nr">
-                    <div class="flex flex-col gap-2 rounded-xl border border-border bg-surface-2/40 p-3">
+                    <div class="flex flex-col gap-2 rounded-xl bg-fill-2 p-3">
                         <div class="flex items-center gap-2">
                             <select x-model="z.bezug" class="np-feld min-w-0 flex-1" aria-label="{{ __('Fach / Modul') }}">
                                 <option value="">{{ __('Bitte wählen') }}</option>
@@ -263,7 +259,7 @@
                                     </optgroup>
                                 @endforeach
                             </select>
-                            <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0" aria-label="{{ __('Note entfernen') }}">×</button>
+                            <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0" aria-label="{{ __('Note entfernen') }}"><x-symbol name="x-mark" strich="2" /></button>
                         </div>
                         <input type="date" x-model="z.datum" class="np-feld" aria-label="{{ __('Prüfungsdatum') }}">
                         <p class="text-xs" :class="semesterVon(z.datum) ? 'text-muted' : 'text-note-knapp'"
@@ -307,7 +303,7 @@
                             <span class="flex shrink-0 items-center gap-2 tabular-nums">
                                 <span class="text-muted" x-text="fmt(v.vorher)"></span>
                                 <span class="text-muted" aria-hidden="true">→</span>
-                                <span class="min-w-10 text-right font-bold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></span>
+                                <span class="min-w-10 text-right font-semibold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></span>
                                 <span class="w-12 text-right text-xs"
                                       :class="delta(v.vorher, v.nachher) > 0 ? 'text-note-gut' : (delta(v.vorher, v.nachher) < 0 ? 'text-note-ungenuegend' : 'text-muted')"
                                       x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '' : (delta(v.vorher, v.nachher) > 0 ? '+' : '') + fmt(delta(v.vorher, v.nachher), 2)"></span>
@@ -320,15 +316,15 @@
             <section x-show="promotion.length" x-cloak class="flex flex-col gap-2">
                 <h3 class="text-sm font-semibold text-text">{{ __('Promotion') }}</h3>
                 <template x-for="p in promotion" :key="p.kategorie + p.semester">
-                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5"
-                         :class="p.nachher.erfuellt ? 'border-note-gut/30 bg-note-gut/5' : 'border-note-ungenuegend/30 bg-note-ungenuegend/5'">
+                    <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-fill-2 px-3 py-2.5">
                         <div class="text-sm">
-                            <span class="font-semibold text-text" x-text="p.kategorie"></span>
+                            <span class="font-medium text-text" x-text="p.kategorie"></span>
                             <span class="text-muted" x-text="p.semester"></span>
                         </div>
-                        <span class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                              :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'"
-                              x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-text">
+                            <span class="size-2 rounded-full" :class="p.nachher.erfuellt ? 'bg-note-gut' : 'bg-note-ungenuegend'" aria-hidden="true"></span>
+                            <span x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
+                        </span>
                     </div>
                 </template>
             </section>
@@ -381,9 +377,7 @@
             const offen = {{ $offeneNote ?: 'null' }};
 
             document.querySelectorAll('details.np-note-detail').forEach((d) => {
-                const c = d.querySelector('.np-chevron-note');
                 d.addEventListener('toggle', () => {
-                    c?.classList.toggle('rotate-90', d.open);
                     if (d.open) {
                         fetch(`/grades/${d.dataset.noteId}/seen`, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' } }).catch(() => {});
                     }

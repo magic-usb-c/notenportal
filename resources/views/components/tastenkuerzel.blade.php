@@ -61,7 +61,7 @@
                                 <span class="flex shrink-0 items-center gap-1">
                                     @foreach($zeile['tasten'] as $taste)
                                         @if(!$loop->first)<span class="text-2xs text-muted" aria-hidden="true">{{ __('dann') }}</span>@endif
-                                        <kbd class="rounded-md border border-border px-1.5 py-0.5 text-2xs text-muted">{{ $taste }}</kbd>
+                                        <kbd class="np-taste">{{ $taste }}</kbd>
                                     @endforeach
                                 </span>
                             </li>

@@ -30,7 +30,7 @@
                             <tr class="group">
                                 <td class="hidden @3xl:table-cell font-semibold text-text">{{ $lb->kuerzel }}</td>
                                 <td class="text-text">
-                                    <span class="block font-mono text-xs font-semibold text-muted @3xl:hidden">{{ $lb->kuerzel }}</span>
+                                    <span class="block tabular-nums text-xs font-semibold text-muted @3xl:hidden">{{ $lb->kuerzel }}</span>
                                     {{ $lb->name }}
                                     @unless($lb->aktiv)
                                         <span class="block text-xs text-muted @3xl:hidden">{{ __('inaktiv') }}</span>
@@ -40,7 +40,7 @@
                                     @if($lb->aktiv)
                                         <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
+                                        <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
                                 <td class="text-right">

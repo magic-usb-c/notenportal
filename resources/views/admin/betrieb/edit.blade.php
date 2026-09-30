@@ -17,7 +17,7 @@
                 @method('PUT')
                 @include('admin.betrieb._felder', ['werte' => $werte])
                 <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
                 </div>
             </form>
 
@@ -36,7 +36,7 @@
                     @method('PUT')
                     @include('admin.betrieb._mail', ['werte' => $mailWerte])
                     <div class="flex justify-end">
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
                     </div>
                 </form>
 
@@ -70,7 +70,7 @@
                     </div>
                     <form method="POST" action="{{ route('admin.operations.backups.store') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">
                             <span x-show="loading" x-cloak class="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" aria-hidden="true"></span>
                             {{ __('Jetzt sichern') }}
                         </button>

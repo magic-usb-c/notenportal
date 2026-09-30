@@ -1,5 +1,4 @@
 {
-    " Uhr · ": " · ",
     "1 Note importieren": "Import 1 grade",
     "1 Note importiert.": "1 grade imported.",
     "1 Note mit neuem Kommentar": "1 grade with a new comment",
@@ -17,7 +16,6 @@
     ":prozent offen": ":prozent open",
     ":titel herunterladen": "Download :titel",
     ":titel löschen": "Delete :titel",
-    ":zeit Uhr · ": ":zeit · ",
     "Abgleich": "Reconcile",
     "Abgleich fehlgeschlagen: :fehler": "Sync failed: :fehler",
     "Abweichend": "Differing",
@@ -157,7 +155,6 @@
     "Nicht erreichbar": "Not achievable",
     "Nicht gespeichert": "Not saved",
     "Nichts geplant": "Nothing planned",
-    "Nichts geplant im :monat": "Nothing planned in :monat",
     "Nichts geplant.": "Nothing planned.",
     "Nichts offen": "Nothing outstanding",
     "Noch keine Dokumente": "No documents yet",
@@ -224,7 +221,6 @@
     "Schulnetz-Termine": "Schulnetz events",
     "Schulnetz: :titel": "Schulnetz: :titel",
     "Semester ": "Semester ",
-    "Semester :name": "Semester :name",
     "Semesterschnitte": "Semester averages",
     "Sonstiges": "Other",
     "Später": "Later",
@@ -232,8 +228,6 @@
     "Status": "Status",
     "Stufe": "Level",
     "Stundenplan": "Timetable",
-    "Stundenplan ausblenden": "Hide timetable",
-    "Stundenplan einblenden": "Show timetable",
     "Tabelle": "Table",
     "Tag": "Day",
     "Termin": "Event",
@@ -345,5 +339,9 @@
     "Ziel nicht erreichbar: Selbst mit der Bestnote (6.0) in allen offenen Prüfungen kommst du :bezug höchstens auf :maximum, dein Ziel war :ziel.": "Target not reachable: even with the best grade (6.0) in all open exams, you reach at most :maximum :bezug; your target was :ziel.",
     "Die offenen Prüfungen wirken sich :bezug nicht aus; der Wert bleibt bei :resultat.": "The open exams have no effect :bezug; the value stays at :resultat.",
     "Ziel erreicht: Du stehst :bezug bei :resultat.": "Target reached: you stand :bezug at :resultat.",
-    "Ziel noch nicht erreicht: Du stehst :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: you stand :bezug at :resultat, :differenz is missing."
+    "Ziel noch nicht erreicht: Du stehst :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: you stand :bezug at :resultat, :differenz is missing.",
+    ":zeit Uhr": ":zeit",
+    ":anzahl weitere": ":anzahl more",
+    "1 Eintrag": "1 entry",
+    "Monatsübersicht": "Month overview"
 }

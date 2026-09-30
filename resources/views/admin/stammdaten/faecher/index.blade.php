@@ -33,16 +33,16 @@
                             <tr class="group">
                                 <td class="hidden @3xl:table-cell font-semibold text-text">{{ $f->kurzname }}</td>
                                 <td class="text-text">
-                                    <span class="block font-mono text-xs font-semibold text-muted @3xl:hidden">{{ $f->kurzname }}</span>
+                                    <span class="block tabular-nums text-xs font-semibold text-muted @3xl:hidden">{{ $f->kurzname }}</span>
                                     {{ $f->name }}
-                                    @if($f->skala === 'stufe')<span class="ml-1.5 rounded-md bg-surface-2 px-1.5 py-0.5 text-xs text-muted">{{ __('Stufe') }}</span>@endif
+                                    @if($f->skala === 'stufe')<span class="ml-1.5 np-marke text-muted">{{ __('Stufe') }}</span>@endif
                                     @unless($f->zaehlt)<span class="ml-1.5 text-xs text-muted">{{ __('zählt nicht') }}</span>@endunless
                                     <span class="block text-xs text-muted @3xl:hidden">{{ $f->kategorie_name }}@unless($f->aktiv) · {{ __('inaktiv') }}@endunless</span>
                                 </td>
                                 <td class="hidden @3xl:table-cell text-muted">{{ $f->kategorie_name }}</td>
                                 <td class="hidden @3xl:table-cell">
                                     @if($f->track_typ)
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-text">
+                                        <span class="np-marke">
                                             {{ $f->track_typ }}
                                         </span>
                                     @else
@@ -54,7 +54,7 @@
                                     @if($f->aktiv)
                                         <span class="text-xs text-muted">{{ __('aktiv') }}</span>
                                     @else
-                                        <span class="px-2 py-0.5 rounded-md text-xs bg-surface-2 text-muted border border-border">{{ __('inaktiv') }}</span>
+                                        <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
                                     @endif
                                 </td>
                                 <td class="text-right">

@@ -10,14 +10,14 @@
     <div class="flex items-center gap-2" x-data="{ kopiert: false }">
         <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()" aria-label="{{ __('Abo-Link') }}"
                class="np-feld flex-1 min-w-0 font-mono text-xs">
-        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-gross shrink-0"
+        <button type="button" class="np-knopf np-knopf-sekundaer shrink-0"
                 @click="if (await np.kopieren($refs.link.value)) { kopiert = true; setTimeout(() => kopiert = false, 2000) } else { $refs.link.select() }">
             <span x-show="!kopiert">{{ __('Kopieren') }}</span>
             <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
         </button>
     </div>
 
-    <a href="{{ $webcalUrl }}" class="np-knopf np-knopf-primaer np-knopf-gross">
+    <a href="{{ $webcalUrl }}" class="np-knopf np-knopf-primaer">
         {{ __('In Kalender öffnen') }}
     </a>
 

@@ -1,6 +1,5 @@
 {
     "(Buchstaben, Ziffern, . _ -)": "(letters, digits, . _ -)",
-    "+ Note erfassen": "+ Record grade",
     "1 Note als gesehen markiert.": "1 grade marked as seen.",
     "1 Note fehlt": "1 grade missing",
     "1 neue Note": "1 new grade",
@@ -15,7 +14,6 @@
     ":datum Uhr": ":datum",
     ":delta zum Vorsemester": ":delta vs previous semester",
     ":label abbestellen?": "Unsubscribe from :label?",
-    ":tage kein Eintrag": ":tage no entry",
     "Ab *": "From *",
     "Abbestellen": "Unsubscribe",
     "Abbestellt": "Unsubscribed",
@@ -205,7 +203,6 @@
     "Schul-Track": "School track",
     "Schul-Tracks": "School tracks",
     "Semester *": "Semester *",
-    "Semester :name": "Semester :name",
     "Semester erfasst bis :datum": "Semesters recorded up to :datum",
     "Semesterschnitt :note": "Semester average :note",
     "Senden": "Send",
@@ -247,7 +244,6 @@
     "noch keine Noten": "no grades yet",
     "offen": "open",
     "seit :tage Tagen keine Note": ":tage days without a grade",
-    "vor :tage": ":tage ago",
     "Ø gesamt": "Overall avg.",
     "Übersicht": "Overview",
     "Ø unter :grenze": "Avg. below :grenze",
@@ -269,5 +265,7 @@
     "Tiefste Gesamtnote zuerst": "Lowest overall grade first",
     "Höchste Gesamtnote zuerst": "Highest overall grade first",
     "Stärkster Rückgang zuerst": "Largest drop first",
-    "Stärkster Anstieg zuerst": "Largest rise first"
+    "Stärkster Anstieg zuerst": "Largest rise first",
+    "Seit :tage Tagen keine Note": "No grade for :tage days",
+    "vor :tage Tagen": ":tage days ago"
 }

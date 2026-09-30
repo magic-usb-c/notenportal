@@ -440,22 +440,25 @@
             @endif
         </fieldset>
 
-        <div class="pt-1">
+        <div class="flex items-center justify-end gap-2 pt-1">
+            @if($praeferenzenOption ?? false)
+                {{-- gehört zum eigenen Formular unten (keine verschachtelten <form>), steht aber in derselben Aktionszeile --}}
+                <button type="submit" form="praeferenzen-zuruecksetzen" class="np-knopf np-knopf-schlicht mr-auto">
+                    {{ __('Auf Standard zurücksetzen') }}
+                </button>
+            @endif
             <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-primaer np-knopf-gross">
+                    class="np-knopf np-knopf-primaer min-w-24">
                 {{ __('Speichern') }}
             </button>
         </div>
     </form>
 
     @if($praeferenzenOption ?? false)
-        <form method="POST" action="{{ route('profile.preferences.reset') }}" class="mt-3"
+        <form id="praeferenzen-zuruecksetzen" method="POST" action="{{ route('profile.preferences.reset') }}" class="hidden"
               onsubmit="return confirm(@js(__('Darstellung wirklich auf Standard zurücksetzen?')));">
             @csrf
             @method('delete')
-            <button type="submit" class="np-knopf np-knopf-sekundaer">
-                {{ __('Auf Standard zurücksetzen') }}
-            </button>
         </form>
     @endif
 </section>

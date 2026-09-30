@@ -95,7 +95,7 @@
                     </section>
                     @if($fehlend->isNotEmpty() && $darfUebernehmen && $semesterId)
                         <div class="flex justify-end">
-                            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Zeugnisnoten übernehmen') }}</button>
+                            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zeugnisnoten übernehmen') }}</button>
                         </div>
                     @endif
                 </form>

@@ -16,7 +16,7 @@
                         <div>
                             <label for="code" class="text-sm font-medium text-text">{{ __('Code *') }}</label>
                             <input type="text" id="code" name="code" value="{{ old('code') }}" required maxlength="30"
-                                   class="np-feld mt-1 font-mono @error('code') border-note-ungenuegend @enderror">
+                                   class="np-feld mt-1 tabular-nums @error('code') border-note-ungenuegend @enderror">
                             @error('code')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                         <div>
@@ -90,16 +90,7 @@
                         </div>
                     </div>
 
-                    <div class="pt-2 flex gap-3">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross">
-                            {{ __('Speichern') }}
-                        </button>
-                        <a href="{{ route('admin.master-data.categories.index') }}"
-                           class="np-knopf np-knopf-sekundaer np-knopf-gross">
-                            {{ __('Abbrechen') }}
-                        </a>
-                    </div>
+                    <x-formular-aktionen abbrechen="{{ route('admin.master-data.categories.index') }}">{{ __('Speichern') }}</x-formular-aktionen>
                 </form>
 
             </div>

@@ -2,7 +2,7 @@
     @php
         $feld = 'np-feld px-2 normal-case tracking-normal';
         $label = 'flex flex-col gap-1 text-sm font-medium text-text min-w-0';
-        $knopf = 'np-knopf np-knopf-primaer np-knopf-gross';
+        $knopf = 'np-knopf np-knopf-primaer';
         $fehlerKeys = array_keys($errors->getMessages());
         $meldungen = fn (string $praefix) => collect($errors->getMessages())->filter(fn ($m, $k) => str_starts_with($k, $praefix))->flatten()->unique();
         $leerePerson = ['vorname' => '', 'nachname' => '', 'email' => '', 'rolle' => 'Berufsbildner'];
@@ -73,10 +73,10 @@
             <h3 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h3>
             <div class="flex gap-2">
                 @unless($semesterVorhanden)
-                    <a href="{{ route('admin.setup', 'semesters') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Semester anlegen') }}</a>
+                    <a href="{{ route('admin.setup', 'semesters') }}" class="np-knopf np-knopf-sekundaer">{{ __('Semester anlegen') }}</a>
                 @endunless
                 @if($lehrberufe->isEmpty())
-                    <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Lehrberufe anlegen') }}</a>
+                    <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-sekundaer">{{ __('Lehrberufe anlegen') }}</a>
                 @endif
             </div>
         </section>

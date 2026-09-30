@@ -12,7 +12,7 @@
     <x-karte :titel="__('Profil')" class="lg:col-span-8">
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
             <div><dt class="{{ $label }}">{{ __('E-Mail') }}</dt><dd class="text-text break-all"><a href="mailto:{{ $benutzer->email }}" class="hover:text-accent-text">{{ $benutzer->email }}</a></dd></div>
-            <div><dt class="{{ $label }}">{{ __('Benutzername') }}</dt><dd class="text-text font-mono">{{ $benutzer->benutzername }}</dd></div>
+            <div><dt class="{{ $label }}">{{ __('Benutzername') }}</dt><dd class="text-text tabular-nums">{{ $benutzer->benutzername }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Lehrbeginn') }}</dt><dd class="text-text">{{ $datum($lernender->lehrbeginn) }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Lehrende') }}</dt><dd class="text-text">{{ $datum($lernender->lehrende) }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Klasse Schule') }}</dt><dd class="text-text">{{ $lernender->klasse_schule ?: '–' }}</dd></div>
@@ -34,7 +34,7 @@
                     <x-status status="neutral" :text="__('Inaktiv')" />
                 @endif
                 @if($benutzer->passwort_wechsel_noetig)
-                    <span class="inline-flex px-2 py-0.5 rounded-full text-xs bg-bg border border-border text-muted">{{ __('Passwortwechsel ausstehend') }}</span>
+                    <span class="np-marke text-muted">{{ __('Passwortwechsel ausstehend') }}</span>
                 @endif
             </div>
             @can('verwalten', $lernender)
@@ -43,7 +43,7 @@
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                           onsubmit="return confirm('{{ __('Neues Startpasswort erzeugen? Das bisherige Passwort wird ungültig.') }}');">
                         @csrf
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Passwort zurücksetzen') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Passwort zurücksetzen') }}</button>
                     </form>
                     <form method="POST" action="{{ route("{$bereich}.learners.account.active", $lernender->lernender_id) }}"
                           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
@@ -125,7 +125,7 @@
                     @error('gueltig_von')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading"
-                        class="np-knopf np-knopf-primaer np-knopf-gross sm:col-span-3">{{ __('Zuweisen') }}</button>
+                        class="np-knopf np-knopf-primaer sm:col-span-3">{{ __('Zuweisen') }}</button>
             </form>
             <x-modal name="betreuung-zuweisen" maxWidth="sm">
                 <div class="p-6" role="dialog" aria-modal="true" aria-labelledby="betreuung-zuweisen-titel">
@@ -209,7 +209,7 @@
                     @error('start_semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading"
-                        class="np-knopf np-knopf-primaer np-knopf-gross sm:col-span-3">{{ __('Track starten') }}</button>
+                        class="np-knopf np-knopf-primaer sm:col-span-3">{{ __('Track starten') }}</button>
             </form>
         @endcan
     </div>

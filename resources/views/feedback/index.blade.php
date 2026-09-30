@@ -42,7 +42,7 @@
                                     <td class="p-3 max-w-md">
                                         <p class="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted sm:hidden">
                                             <span>{{ $m->erstellt_am->format('d.m.Y') }} · {{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</span>
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full {{ $statusClasses }}">{{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}</span>
+                                            <span class="np-marke {{ $statusClasses }}">{{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}</span>
                                         </p>
                                         @if($gekuerzt)
                                             <details class="np-details">
@@ -65,7 +65,7 @@
                                         @endif
                                     </td>
                                     <td class="hidden p-3 whitespace-nowrap sm:table-cell">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs {{ $statusClasses }}">
+                                        <span class="np-marke {{ $statusClasses }}">
                                             {{ __(\App\Models\Feedback::STATUS[$m->status] ?? $m->status) }}
                                         </span>
                                     </td>
@@ -86,7 +86,7 @@
                                         <p class="text-text font-medium mb-1">{{ __('Noch keine Meldungen') }}</p>
                                         <p class="text-sm max-w-sm mx-auto">
                                             {{ __('Fehler, Ideen, Fragen oder sonst etwas – nutze den Knopf oben oder') }}
-                                            <kbd class="px-1 py-0.5 rounded-md border border-border text-xs">{{ __('Strg/Cmd K') }}</kbd>
+                                            <kbd class="np-taste">{{ __('Strg/Cmd K') }}</kbd>
                                             {{ __('um deine erste Meldung zu erfassen.') }}
                                         </p>
                                     </td>

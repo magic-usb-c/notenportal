@@ -28,7 +28,7 @@
                     @error('datei')<p class="-mt-2 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     <div class="flex items-center justify-between gap-3">
                         <a href="{{ $r('template') }}" class="np-knopf np-knopf-schlicht">{{ __('Vorlage (CSV)') }}</a>
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Datei lesen') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Datei lesen') }}</button>
                     </div>
                 </form>
             @else
@@ -95,10 +95,10 @@
                             <div class="text-sm font-semibold text-text truncate">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
                                 @if($vorschau['format'] ?? null)
-                                    <span class="px-2 py-0.5 rounded-full text-3xs bg-accent/10 border border-border text-accent-text">{{ $vorschau['format'] }}</span>
+                                    <span class="np-marke bg-accent/12 text-accent-text">{{ $vorschau['format'] }}</span>
                                 @endif
                                 @foreach($vorschau['erkannt'] as $art => $index)
-                                    <span class="px-2 py-0.5 rounded-full text-3xs bg-bg/60 border border-border text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
+                                    <span class="np-marke text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
                                 @endforeach
                             </div>
                         </div>
@@ -164,7 +164,7 @@
                                             <td class="w-24"><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :class="! z.note && 'border-note-ungenuegend!'"></td>
                                             <td class="w-24"><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums"></td>
                                             <td class="whitespace-nowrap">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-3xs font-semibold" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
+                                                <span class="np-marke" :class="farbe(z.status)" x-text="z.meldung || @js(__('bereit'))"></span>
                                             </td>
                                         </tr>
                                     </template>
@@ -175,13 +175,13 @@
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex flex-wrap items-center gap-3">
-                            <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Verwerfen') }}</button>
+                            <button type="submit" form="import-verwerfen" :disabled="loading" @click="loading = true" class="np-knopf np-knopf-sekundaer">{{ __('Verwerfen') }}</button>
                             <button type="button" :disabled="loading || pruefeLaedt" @click="erneutPruefen()"
-                                    class="np-knopf np-knopf-sekundaer np-knopf-gross"
+                                    class="np-knopf np-knopf-sekundaer"
                                     x-text="pruefeLaedt ? @js(__('Prüfe …')) : @js(__('Erneut prüfen'))"></button>
                         </div>
                         <button type="submit" :disabled="loading || pruefeLaedt || gewaehlt === 0"
-                                class="np-knopf np-knopf-primaer np-knopf-gross"
+                                class="np-knopf np-knopf-primaer"
                                 x-text="gewaehlt === 1 ? @js(__('1 Note importieren')) : @js(__(':anzahl Noten importieren')).replace(':anzahl', gewaehlt)"></button>
                     </div>
                 </form>

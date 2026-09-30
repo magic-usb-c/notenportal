@@ -92,7 +92,7 @@
                             </header>
 
                             @if($e->gruende)
-                                <ul class="mx-5 mt-4 flex flex-col gap-1.5 rounded-lg bg-surface-2 px-4 py-3 text-sm">
+                                <ul class="mx-5 mt-4 flex flex-col gap-1.5 rounded-lg bg-fill-2 px-4 py-3 text-sm">
                                     @foreach($e->gruende as $g)
                                         <li class="flex items-center gap-2">
                                             <span @class(['size-1.5 shrink-0 rounded-full', 'bg-note-ungenuegend' => $g->definitiv || $wurzel->vollstaendig, 'bg-note-knapp' => ! $g->definitiv && ! $wurzel->vollstaendig]) aria-hidden="true"></span>

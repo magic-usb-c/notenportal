@@ -49,7 +49,7 @@
                             {{ __('Benutzername') }} * <span class="text-xs font-normal">{{ __('(Buchstaben, Ziffern, . _ -)') }}</span>
                         </label>
                         <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername') }}" required
-                               class="np-feld mt-1 font-mono @error('benutzername') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 tabular-nums @error('benutzername') border-note-ungenuegend @enderror">
                         @error('benutzername')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -136,12 +136,7 @@
                         @enderror
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ __('Benutzer anlegen') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="route('admin.users.index')">{{ __('Benutzer anlegen') }}</x-formular-aktionen>
                 </form>
 
             </div>

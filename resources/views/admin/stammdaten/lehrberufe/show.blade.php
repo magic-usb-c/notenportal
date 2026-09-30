@@ -127,7 +127,7 @@
                         </div>
                         <div>
                             <button type="submit" :disabled="loading"
-                                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
+                                    class="np-knopf np-knopf-primaer">
                                 {{ __('Zuweisen') }}
                             </button>
                         </div>
@@ -158,12 +158,12 @@
                                     <tr>
                                         <td class="hidden text-text @sm:table-cell">{{ $f->kurzname }}</td>
                                         <td class="text-text">
-                                            <span class="block font-mono text-xs text-muted @sm:hidden">{{ $f->kurzname }}</span>
+                                            <span class="block tabular-nums text-xs text-muted @sm:hidden">{{ $f->kurzname }}</span>
                                             {{ $f->name }}
                                         </td>
                                         <td>
                                             @if($f->track_typ)
-                                                <span class="px-2 py-0.5 rounded-full text-xs bg-accent/10 text-accent-text">
+                                                <span class="np-marke bg-accent/12 text-accent-text">
                                                     {{ $f->track_typ }}
                                                 </span>
                                             @else
@@ -206,7 +206,7 @@
                             </select>
                         </div>
                         <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross">
+                                class="np-knopf np-knopf-primaer">
                             {{ __('Zuweisen') }}
                         </button>
                     </form>

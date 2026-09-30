@@ -52,7 +52,7 @@
                     <div>
                         <label for="benutzername" class="text-sm font-medium text-text">{{ __('Benutzername') }} *</label>
                         <input type="text" name="benutzername" id="benutzername" value="{{ old('benutzername', $user->benutzername) }}" required maxlength="50" pattern="[A-Za-z0-9._\-]+"
-                               class="np-feld mt-1 font-mono @error('benutzername') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 tabular-nums @error('benutzername') border-note-ungenuegend @enderror">
                         @error('benutzername')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -122,12 +122,7 @@
                         </div>
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ __('Änderungen speichern') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="route('admin.users.index')">{{ __('Änderungen speichern') }}</x-formular-aktionen>
                 </form>
             </div>
 

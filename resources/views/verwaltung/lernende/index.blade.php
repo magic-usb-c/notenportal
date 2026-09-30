@@ -39,7 +39,8 @@
         $wann = fn (?int $tage) => match (true) {
             $tage === null => '–',
             $tage === 0 => __('heute'),
-            default => __('vor :tage', ['tage' => $tage.'d']),
+            $tage === 1 => __('gestern'),
+            default => __('vor :tage Tagen', ['tage' => $tage]),
         };
         // Die Karten haben keine Spaltenköpfe: dieselben Sortierungen als Auswahl
         $sortierungen = [
@@ -143,7 +144,7 @@
                     @endphp
                     <div class="p-4 {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}">
                         <div class="flex items-start gap-3 min-w-0">
-                            <div class="w-9 h-9 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
+                            <div class="np-monogramm mt-0.5 size-9 shrink-0 text-xs" aria-hidden="true">
                                 {{ $initialen ?: '?' }}
                             </div>
                             <div class="min-w-0 flex-1">
@@ -212,7 +213,7 @@
                                     onclick="window.location='{{ $zielUrl }}'">
                                     <td>
                                         <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-8 h-8 rounded-full bg-accent/10 text-accent-text text-xs font-bold flex items-center justify-center shrink-0" aria-hidden="true">
+                                            <div class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">
                                                 {{ $initialen ?: '?' }}
                                             </div>
                                             <div class="min-w-0">

@@ -17,9 +17,9 @@
             </div>
             @error('locale')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
         </fieldset>
-        <div>
+        <div class="flex justify-end">
             <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-sekundaer np-knopf-gross">
+                    class="np-knopf np-knopf-sekundaer">
                 {{ __('Sprache speichern') }}
             </button>
         </div>

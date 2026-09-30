@@ -57,9 +57,9 @@
                     </div>
                 @endforeach
 
-                <div>
+                <div class="flex justify-end">
                     <button type="submit" :disabled="loading"
-                            class="np-knopf np-knopf-primaer np-knopf-gross">
+                            class="np-knopf np-knopf-primaer">
                         {{ __('Speichern') }}
                     </button>
                 </div>

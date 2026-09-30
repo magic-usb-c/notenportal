@@ -73,7 +73,7 @@
         @endif
 
         <div class="flex justify-end">
-            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross">{{ __('Speichern') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Speichern') }}</button>
         </div>
     </form>
 
@@ -82,8 +82,8 @@
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
             {{-- Erst nach dem Absenden sperren: ein schon gesperrter Knopf schickt name/value nicht mit – aus «testen» würde «kopieren». --}}
             @csrf
-            <button type="submit" name="aktion" value="testen" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Verbindung testen') }}</button>
-            <button type="submit" name="aktion" value="kopieren" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-gross">
+            <button type="submit" name="aktion" value="testen" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Verbindung testen') }}</button>
+            <button type="submit" name="aktion" value="kopieren" :disabled="loading" class="np-knopf np-knopf-sekundaer">
                 <span x-show="loading" x-cloak class="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" aria-hidden="true"></span>
                 {{ __('Jetzt kopieren') }}
             </button>

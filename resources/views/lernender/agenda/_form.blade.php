@@ -136,7 +136,7 @@
             <x-note :wert="$b->note->note_wert" :stufe="$b->note->note_stufe" variante="badge" />
         </div>
     @elseif($b)
-        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Note eintragen') }}</a>
+        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer">{{ __('Note eintragen') }}</a>
     @endif
 
     @if($b)
@@ -160,10 +160,7 @@
         <p class="text-xs text-muted">{{ __('Anhänge können nach dem Speichern hinzugefügt werden.') }}</p>
     @endif
 
-    <div class="flex gap-2 mt-2">
-        <a href="{{ route('learner.exams.index') }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Abbrechen') }}</a>
-        <button :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross flex-1">{{ $b ? __('Speichern') : __('Planen') }}</button>
-    </div>
+    <x-formular-aktionen :abbrechen="route('learner.exams.index')">{{ $b ? __('Speichern') : __('Planen') }}</x-formular-aktionen>
 </form>
 
 {{-- Eigenständige Formulare ausserhalb des Hauptformulars: HTML erlaubt keine verschachtelten

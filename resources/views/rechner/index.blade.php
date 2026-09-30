@@ -159,8 +159,8 @@
                                             <template x-for="s in katalog.semester" :key="s.id"><option :value="String(s.id)" x-text="s.name" :selected="String(s.id) === z.semester"></option></template>
                                         </select>
                                         <div class="flex-1 min-w-32 flex items-center gap-2 text-xs text-muted" x-show="z.typ !== 'fach'">
-                                            <span x-show="z.quelle === 'rest'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('Rest') }}</span>
-                                            <span x-show="z.quelle === 'geplant'" class="px-2 py-0.5 rounded-full bg-accent/10 text-accent-text font-medium">{{ __('geplant') }}</span>
+                                            <span x-show="z.quelle === 'rest'" class="np-marke bg-accent/12 text-accent-text">{{ __('Rest') }}</span>
+                                            <span x-show="z.quelle === 'geplant'" class="np-marke bg-accent/12 text-accent-text">{{ __('geplant') }}</span>
                                             <span class="truncate" x-text="z.titel ?? ''"></span>
                                         </div>
                                         <label class="ms-auto flex items-center gap-1 text-xs text-muted shrink-0">
@@ -241,7 +241,7 @@
                                     <span>{{ __('Schnitt') }} <b class="text-text" x-text="fmt(p.nachher.schnitt)"></b></span>
                                     <span>{{ __('ungenügend') }} <b class="text-text" x-text="p.nachher.ungenuegend"></b></span>
                                     <span>{{ __('Minuspunkte') }} <b class="text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></b></span>
-                                    <span class="px-2 py-0.5 rounded-full font-semibold"
+                                    <span class="np-marke"
                                           :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'"
                                           x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
                                 </div>

@@ -14,7 +14,7 @@
                     <div>
                         <label for="modul_nummer" class="text-sm font-medium text-text">{{ __('Modulnummer') }} * <span class="text-xs font-normal">({{ __('z.B. M100') }})</span></label>
                         <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer') }}" required maxlength="50"
-                               class="np-feld mt-1 font-mono @error('modul_nummer') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
                         @error('modul_nummer')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -33,7 +33,7 @@
                         <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}
                             <span class="text-xs font-normal">({{ __('optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten') }})</span></label>
                         <input type="text" id="version" name="version" value="{{ old('version') }}" inputmode="numeric" maxlength="2"
-                               class="np-feld mt-1 font-mono @error('version') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 tabular-nums @error('version') border-note-ungenuegend @enderror">
                         @error('version')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -58,12 +58,7 @@
                         @enderror
                     </div>
 
-                    <div class="pt-2">
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                            {{ __('Modul anlegen') }}
-                        </button>
-                    </div>
+                    <x-formular-aktionen :abbrechen="route('admin.master-data.modules.index')">{{ __('Modul anlegen') }}</x-formular-aktionen>
                 </form>
             </div>
         </div>
