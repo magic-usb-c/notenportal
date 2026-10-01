@@ -33,7 +33,7 @@
                     <x-symbol name="arrow-down-tray" />{{ __('Alle Noten (CSV)') }}
                 </a>
                 <a href="{{ route("{$bereich}.learners.create") }}" class="np-knopf np-knopf-primaer">
-                    <x-symbol name="plus" strich="2" />{{ __('Lernender erfassen') }}
+                    <x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}
                 </a>
             </x-slot:aktionen>
         </x-seitenkopf>

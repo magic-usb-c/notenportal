@@ -10,7 +10,7 @@
             </x-einstellung>
         @endforeach
         <x-einstellung :label="__('E-Mail')" fuer="email" name="email">
-            <input type="email" name="email" id="email" value="{{ old('email', $user?->email) }}" required autocomplete="off"
+            <input type="email" name="email" id="email" value="{{ old('email', $user?->email) }}" required maxlength="255" autocomplete="off"
                    class="np-feld w-72" @error('email') aria-invalid="true" aria-describedby="email-fehler" @enderror>
         </x-einstellung>
         <x-einstellung :label="__('Benutzername')" fuer="benutzername" name="benutzername"
