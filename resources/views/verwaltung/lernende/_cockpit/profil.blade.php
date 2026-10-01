@@ -11,7 +11,7 @@
     $semesterName = fn (?int $id) => $konfiguration->semesterName($id, (int) $lernender->lernender_id);
     $hatOffeneBetreuung = $lernender->betreuungen->contains(fn ($bt) => ! $bt->gueltig_bis || $bt->gueltig_bis->gte($heute));
 @endphp
-<div class="grid grid-cols-12 gap-5">
+<div class="grid grid-cols-12 gap-4">
 
     {{-- Stammdaten --}}
     <x-karte :titel="__('Profil')" class="col-span-8">
@@ -66,7 +66,7 @@
     {{-- Betreuungen --}}
     <x-karte :titel="__('Betreuung')" :polster="false" class="col-span-6">
         <div class="flex h-full flex-col">
-        <div class="mt-2 divide-y divide-border border-t border-border">
+        <div class="np-gruppe mt-2 border-t border-border">
             @forelse($lernender->betreuungen as $bt)
                 @php $offen = ! $bt->gueltig_bis || $bt->gueltig_bis->gte($heute); @endphp
                 <div class="flex min-h-14 items-center justify-between gap-3 px-5 py-2.5">
@@ -117,7 +117,7 @@
                            @error('gueltig_von') aria-invalid="true" aria-describedby="gueltig_von-fehler" @enderror>
                     @error('gueltig_von')<p id="gueltig_von-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
-                <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
+                <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Zuweisen') }}</button>
             </form>
         @endcan
         </div>
@@ -126,10 +126,10 @@
     {{-- Tracks --}}
     <x-karte :titel="__('Schul-Tracks')" :polster="false" class="col-span-6">
         <div class="flex h-full flex-col">
-        <div class="mt-2 divide-y divide-border border-t border-border">
+        <div class="np-gruppe mt-2 border-t border-border">
             @forelse($lernender->tracks as $t)
                 <div class="flex min-h-14 items-center gap-3 px-5 py-2.5">
-                    <span @class(['np-marke shrink-0', 'bg-accent/10 text-accent-text' => ! $t->end_datum, 'text-muted' => $t->end_datum])>{{ $t->track_typ }}</span>
+                    <span @class(['np-marke shrink-0', 'text-muted' => $t->end_datum])>{{ $t->track_typ }}</span>
                     <div class="min-w-0 flex-1 text-sm text-text">
                         {{ __('ab :datum', ['datum' => $t->start_datum->format('d.m.Y')]) }}
                         @if($t->startSemester)<span class="text-muted">({{ $semesterName($t->startSemester->semester_id) }})</span>@endif
@@ -212,7 +212,7 @@
                     </select>
                     @error('start_semester_id')<p id="start_semester_id-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
-                <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Track starten') }}</button>
+                <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Track starten') }}</button>
             </form>
         @endcan
         </div>

@@ -94,12 +94,12 @@
                 </div>
 
                 {{-- Gleicher Aufbau wie die Listen: Überschrift über der Fläche, damit die Kartenkanten bündig laufen --}}
-                <aside class="flex flex-col gap-2" aria-label="{{ __('Monatsübersicht') }}">
+                <aside class="sticky top-20 flex flex-col gap-2 self-start" aria-label="{{ __('Monatsübersicht') }}">
                     <div class="flex items-baseline justify-between gap-2 px-1">
                         <h2 class="text-sm font-semibold text-text">{{ \App\Support\Format::datum($monat, 'F Y') }}</h2>
                         <a href="{{ $monatsLink(null) }}" class="inline-flex items-center gap-0.5 text-sm text-accent-text">{{ __('Monat') }}<x-symbol name="chevron-right" strich="2" class="size-3.5" /></a>
                     </div>
-                    <div class="np-karte sticky top-20 p-4">
+                    <div class="np-karte p-4">
                     <div class="grid grid-cols-7 text-center">
                         @foreach(range(0, 6) as $i)
                             <div class="py-1 text-2xs font-medium text-muted">{{ \App\Support\Format::date(now()->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addDays($i), 'dd') }}</div>

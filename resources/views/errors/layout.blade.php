@@ -15,7 +15,19 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <x-akzent-eigen-stil :hex="$npAkzentEigen ?? null" />
 </head>
-@php($angemeldet = rescue(fn () => auth()->user(), null, false))
+@php
+    $angemeldet = rescue(fn () => auth()->user(), null, false);
+    // Zurück nur, wenn die Person von einer Seite dieses Portals kam (kein Datenbankzugriff nötig)
+    $herkunft = (string) request()->headers->get('referer');
+    $zurueck = $herkunft !== '' && parse_url($herkunft, PHP_URL_HOST) === request()->getHost() && $herkunft !== request()->fullUrl()
+        ? $herkunft : null;
+    // Bei Wartung und Drosselung führt «Zur Anmeldung» nirgends hin oder mitten aus der Aufgabe: erneut versuchen ist der Hauptweg
+    $wiederholen = in_array($code, [429, 503], true)
+        ? (request()->isMethod('GET') ? request()->fullUrl() : $zurueck)
+        : null;
+    $start = $angemeldet ? url('/') : route('login');
+    $startText = $angemeldet ? __('Zur Übersicht') : __('Zur Anmeldung');
+@endphp
 <body class="font-sans antialiased bg-bg text-text min-h-screen flex flex-col items-center justify-center p-6">
     <div class="max-w-md w-full text-center space-y-4">
         <div class="text-display text-ghost" aria-hidden="true">{{ $code }}</div>
@@ -24,25 +36,25 @@
         @if($code === 403 && $angemeldet)
             {{-- Häufig: Mail-Link für ein anderes Konto (z. B. Admin-Adresse), geöffnet in einer fremden Sitzung --}}
             <p class="text-muted text-sm">{{ __('Angemeldet als :name', ['name' => $angemeldet->vorname.' '.$angemeldet->nachname.' ('.$angemeldet->email.')']) }}</p>
+        @endif
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-2">
+            @if($wiederholen)
+                <a href="{{ $wiederholen }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ $code === 503 ? __('Erneut laden') : __('Erneut versuchen') }}</a>
+                <a href="{{ $start }}" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ $startText }}</a>
+            @else
+                <a href="{{ $start }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ $startText }}</a>
+                @if($zurueck && $code !== 503)
+                    <a href="{{ $zurueck }}" x-data @click.prevent="history.back()" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Zurück') }}</a>
+                @endif
+            @endif
+        </div>
+        @if($code === 403 && $angemeldet)
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <input type="hidden" name="weiter" value="{{ request()->getRequestUri() }}">
-                <button type="submit" class="text-sm text-accent-text underline underline-offset-2">{{ __('Mit anderem Konto anmelden') }}</button>
+                <button type="submit" class="np-knopf np-knopf-schlicht">{{ __('Mit anderem Konto anmelden') }}</button>
             </form>
         @endif
-        <div class="pt-2">
-            @if($angemeldet)
-                <a href="{{ url('/') }}"
-                   class="np-knopf np-knopf-primaer np-knopf-gross">
-                    {{ __('Zum Dashboard') }}
-                </a>
-            @else
-                <a href="{{ route('login') }}"
-                   class="np-knopf np-knopf-primaer np-knopf-gross">
-                    {{ __('Zur Anmeldung') }}
-                </a>
-            @endif
-        </div>
     </div>
 </body>
 </html>

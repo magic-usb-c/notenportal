@@ -1,12 +1,12 @@
 @php
     [$p, $datum, $zustand] = [$z['pruefung'], $z['datum'], $z['zustand']];
     $titel = trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : ''));
-    $heute = $datum->isToday();
     $bald = $zustand === 'offen' && $datum->lte(today()->addDays(7));
     $details = array_filter([$p->pruefungsart, $p->raum ? __('Raum :raum', ['raum' => $p->raum]) : null]);
 @endphp
 {{-- Eine Zeile wie in der Agenda der Lernenden (Apple Erinnerungen): Datum wie das Kalendersymbol, Titel, darunter
-     Lernende/r, Wochentag, Art, Raum und der Zeitpunkt (fehlende Note in ihrer Farbe); rechts Note und Aktionen. --}}
+     Lernende/r, Wochentag, Art, Raum und der Zeitpunkt (fehlende Note kräftiger); rechts Note und Aktionen.
+     Die Warnung trägt die Gruppenüberschrift mit ihrem Zähler, nicht jede Zeile. --}}
 {{-- Weitere Termine desselben Tages lassen das Datum weg und trennen eingerückt wie die Listenansicht in Apple Kalender --}}
 <div @class(['relative grid min-h-15 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-5 px-4 py-2',
              'before:absolute before:right-0 before:top-0 before:border-t before:border-border' => ! $ersteZeile,
@@ -14,7 +14,7 @@
     <div class="text-center leading-none">
         <div @class(['sr-only' => ! $neuerTag])>
             <div class="text-2xs font-medium text-muted">{{ \App\Support\Format::datum($datum, 'M') }}</div>
-            <div @class(['mt-0.5 text-lg font-semibold tabular-nums', 'text-accent-text' => $heute, 'text-text' => ! $heute])>{{ $datum->format('j') }}</div>
+            <div class="mt-0.5 text-lg font-semibold tabular-nums text-text">{{ $datum->format('j') }}</div>
         </div>
     </div>
 
@@ -22,7 +22,7 @@
         <div class="flex min-w-0 items-center gap-2">
             <span @class(['truncate text-sm font-medium', 'text-muted line-through' => $zustand === 'abgesagt', 'text-text' => $zustand !== 'abgesagt'])>{{ $titel }}</span>
             @if($p->istAbgabe())
-                <span class="np-marke shrink-0 bg-accent/10 text-accent-text">{{ __('Abgabetermin') }}</span>
+                <span class="np-marke shrink-0 bg-fill text-muted">{{ __('Abgabetermin') }}</span>
             @endif
             @if($zustand === 'abgesagt')
                 <span class="np-marke shrink-0 bg-surface-2 text-muted">{{ __('Abgesagt') }}</span>
@@ -34,7 +34,7 @@
             @endunless
             {{ \App\Support\Format::datum($datum, 'l') }}@if($p->uhrzeit), {{ __(':zeit Uhr', ['zeit' => substr((string) $p->uhrzeit, 0, 5)]) }}@endif
             @foreach($details as $d) · {{ $d }}@endforeach
-            · <span @class(['font-medium text-note-knapp' => $zustand === 'fehlt', 'text-accent-text' => $bald])>{{ \App\Support\Format::wann($datum) }}</span>
+            · <span @class(['font-medium' => $zustand === 'fehlt', 'text-text' => $zustand === 'fehlt' || $bald])>{{ \App\Support\Format::wann($datum) }}</span>
         </div>
     </div>
 

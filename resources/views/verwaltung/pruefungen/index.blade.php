@@ -42,13 +42,17 @@
 
     <div class="py-6">
         {{-- Termine als gruppierte Liste, daneben die Lernenden wie die Kalenderliste in Apple Kalender: Auswahl und Zähler --}}
-        <div class="np-seite mx-auto grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8 px-8">
+        <div class="np-seite mx-auto grid grid-cols-[minmax(0,78rem)_20rem] items-start gap-8 px-8">
             <div class="flex min-w-0 flex-col gap-8">
                 @forelse($gruppen as $g)
                     <section class="flex flex-col gap-2">
-                        <h2 @class(['flex items-baseline gap-2 px-1 text-sm font-semibold', 'text-note-knapp' => $g['fehlt'], 'text-text' => ! $g['fehlt']])>
+                        <h2 class="flex h-5 items-center gap-2 px-1 text-sm font-semibold text-text">
                             {{ $g['label'] }}
-                            <span class="text-xs font-normal tabular-nums text-muted">{{ $g['zeilen']->count() }}</span>
+                            @if($g['fehlt'])
+                                <span class="np-marke bg-note-knapp/14 tabular-nums text-note-knapp" title="{{ __('Note fehlt') }}">{{ $g['zeilen']->count() }}<span class="sr-only"> {{ __('Note fehlt') }}</span></span>
+                            @else
+                                <span class="text-xs font-normal tabular-nums text-muted">{{ $g['zeilen']->count() }}</span>
+                            @endif
                         </h2>
                         <div class="np-karte overflow-hidden">
                             @foreach($g['zeilen'] as $i => $z)
@@ -57,13 +61,18 @@
                         </div>
                     </section>
                 @empty
-                    <p class="np-karte px-5 py-10 text-center text-sm text-muted">{{ __('Keine Prüfungstermine für die aktuelle Auswahl.') }}</p>
+                    {{-- Platzhalter in Höhe der Überschrift hält die Oberkante der Karte auf Höhe der Lernenden-Karte --}}
+                    <section class="flex flex-col gap-2">
+                        <div class="h-5" aria-hidden="true"></div>
+                        <x-leer class="np-karte" symbol="calendar" :titel="__('Keine Prüfungstermine für die aktuelle Auswahl.')" />
+                    </section>
                 @endforelse
             </div>
 
-            <aside class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex max-h-[calc(100dvh-var(--np-symbolleiste-hoehe)-2rem)] flex-col" aria-labelledby="lernende-titel">
-                <h2 id="lernende-titel" class="px-4 pb-1 pt-3.5 text-sm font-semibold text-text">{{ __('Lernende') }}</h2>
-                <nav class="flex flex-col gap-px overflow-y-auto p-1.5 pt-0" aria-labelledby="lernende-titel">
+            {{-- Überschrift über der Fläche wie bei den Terminen: Oberkanten und Karten beginnen auf gleicher Höhe --}}
+            <aside class="sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex max-h-[calc(100dvh-var(--np-symbolleiste-hoehe)-2rem)] flex-col gap-2" aria-labelledby="lernende-titel">
+                <h2 id="lernende-titel" class="flex h-5 items-center px-1 text-sm font-semibold text-text">{{ __('Lernende') }}</h2>
+                <nav class="np-karte flex min-h-0 flex-col gap-px overflow-y-auto p-1.5" aria-labelledby="lernende-titel">
                     <a href="{{ $filterLink(null) }}" @unless($einLernender) aria-current="page" @endunless class="np-leistenzeile">
                         <span class="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-fill text-muted" aria-hidden="true"><x-symbol name="users" class="size-4" /></span>
                         <span class="min-w-0 flex-1 truncate">{{ __('Alle Lernenden') }}</span>

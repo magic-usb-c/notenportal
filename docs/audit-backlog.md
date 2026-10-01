@@ -727,3 +727,24 @@ ausgeblendeten Werte in der Namenszelle nach.
   Als Nächstes 410 px): zwei inhaltsgetriebene Spalten mit 2 gegen 3 Karten; gleiche Reihenhöhen hiessen leere
   Flächen in den kürzeren Karten. Apple-Dashboards (Health, Aktien) richten Spalten ebenfalls nicht reihenweise aus.
 
+## R4 Berufsbildner: bewusst gelassen (01.10.2026)
+
+- **Lernendenliste ohne Paginierung** (`LernendeController`, `->get()`): ein Lehrbetrieb führt Dutzende
+  Lernende, keine Tausende; Suche und Filter tragen die Liste. Paginierung erst, wenn ein Betrieb sie braucht.
+- **Lernendenliste: Namensspalte dehnt sich, Status fest `w-80`**: Finder-Muster (erste Spalte wächst, Daten
+  rechts bündig). Bei 2560 liegt der freie Raum zwischen Name und Lehrberuf – die Alternative (Status wächst)
+  liess bei 2560 640 px zwischen letzter Marke und «Noten».
+- **KPI «Neu» in Akzent** (`verwaltung/noten/index.blade.php`, `x-kachel ton=accent`): Akzent bedeutet
+  dort «ungelesen», wie der Punkt vor «n neu» in der Liste und in Mail; neutral nur bei 0.
+- **Zähler «Note fehlt» in Bernstein** (`verwaltung/pruefungen/_zaehler.blade.php`): nach dem Entfärben von
+  «vor N Tagen» ist die Marke der einzige Träger der Warnung; `title` nennt den Grund.
+- **`@container` in `verwaltung/noten/index.blade.php` bleibt**: die `@4xl:`-Varianten der Inspektorspalte
+  sind Container-Queries, der Bildprüfer-Befund «ohne Nutzung» traf nicht zu.
+- **Fussnote «Für Lernende nicht sichtbar.»** unter der Bemerkung im Lernendenformular: keine
+  Entwicklernotiz, sondern die Vertraulichkeitszusage, die einen Fehleintrag verhindert.
+- **Startpasswort-Kasten** (`verwaltung/lernende/show.blade.php`, nur nach POST sichtbar): Änderung
+  `font-mono text-xl` per Klassenlesung geprüft, nicht als Bild gesehen.
+- **Sparkline-Farbe `chart-1`** in Dashboard und Cockpit: siehe «Neutrale Diagrammfarbe uneinheitlich»
+  unter R4 Lernende – ein Schritt für alle Diagramme.
+- **`admin/benutzer/_person.blade.php`: Hinweis «Buchstaben, Ziffern und . _ -»** unter dem Benutzernamen
+  ist erklärend; kommt mit dem Admin-Block (Validierungsmeldung statt Dauerhinweis).

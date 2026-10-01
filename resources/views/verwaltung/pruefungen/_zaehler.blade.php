@@ -1,4 +1,4 @@
-{{-- Zähler einer Lernenden-Zeile wie die Ungelesen-Zahl in Apple Mail: fehlende Noten als Marke, sonst die Anzahl Termine --}}
+{{-- Zähler einer Lernenden-Zeile wie die Ungelesen-Zahl in Apple Mail: fehlende Noten als Marke (Bernstein = überfällig ohne Note, so wie die Gruppenüberschrift), daneben die Anzahl Termine --}}
 @if($fehlt > 0)
     <span class="np-marke shrink-0 bg-note-knapp/14 tabular-nums text-note-knapp" title="{{ __('Note fehlt') }}">{{ $fehlt }}<span class="sr-only"> {{ __('Note fehlt') }}</span></span>
 @endif

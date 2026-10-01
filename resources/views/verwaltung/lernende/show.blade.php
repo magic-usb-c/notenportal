@@ -34,14 +34,14 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-seite mx-auto px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-8 flex flex-col gap-4">
 
             @if(session('startpasswort'))
                 <div class="np-karte p-5 flex flex-wrap items-center justify-between gap-4"
                      x-data="{ kopiert: false }">
                     <div>
                         <div class="text-xs font-medium text-muted">{{ __('Startpasswort · wird nur einmal angezeigt') }}</div>
-                        <div class="mt-1 font-mono text-2xl font-semibold tracking-wider text-text select-all" x-ref="pw">{{ session('startpasswort') }}</div>
+                        <div class="mt-1 font-mono text-xl font-semibold text-text select-all" x-ref="pw">{{ session('startpasswort') }}</div>
                     </div>
                     <button type="button"
                             @click="if (await np.kopieren($refs.pw.textContent.trim())) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
@@ -69,10 +69,10 @@
                     <button type="button" :aria-current="tab === 'profil' ? 'page' : null" @click="wechsleTab('profil')">{{ __('Profil & Betreuung') }}</button>
                 </nav>
 
-                <div class="pt-5" x-show="tab === 'overview'">
+                <div class="pt-4" x-show="tab === 'overview'">
                     @include('verwaltung.lernende._cockpit.uebersicht')
                 </div>
-                <div class="pt-5" x-show="tab === 'profil'" x-cloak>
+                <div class="pt-4" x-show="tab === 'profil'" x-cloak>
                     @include('verwaltung.lernende._cockpit.profil')
                 </div>
             </div>

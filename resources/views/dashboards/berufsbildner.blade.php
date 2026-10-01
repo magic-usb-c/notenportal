@@ -29,7 +29,7 @@
                       :untertitel="implode(' · ', array_filter([\App\Support\Format::date(now()), $imPlan]))">
             <x-slot:aktionen>
                 <a href="{{ route('trainer.grades.export_all') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="arrow-down-tray" strich="2" />{{ __('Exportieren') }}</a>
-                <a href="{{ route('trainer.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende') }}</a>
+                <a href="{{ route('trainer.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -53,14 +53,15 @@
                 <div role="radiogroup" x-radiogroup aria-label="{{ __('Filter') }}" class="grid grid-cols-4 gap-4">
                     @foreach($listen as [$wert, $name, $symbol, $ton, $anzahl])
                         <button type="button" role="radio" :aria-checked="filter === '{{ $wert }}'" @click="filter = '{{ $wert }}'"
-                                class="group np-karte np-karte-klickbar flex items-start justify-between gap-3 p-4 text-left text-text aria-checked:bg-accent! aria-checked:text-accent-contrast">
+                                :class="filter === '{{ $wert }}' ? 'bg-accent/12! border-accent/50' : ''"
+                                class="np-karte np-karte-klickbar flex items-start justify-between gap-3 border border-transparent p-4 text-left text-text">
                             <span class="flex min-w-0 flex-col gap-3">
-                                <span class="flex size-8 items-center justify-center rounded-full {{ $ton }} group-aria-checked:bg-accent-contrast/20 group-aria-checked:text-accent-contrast" aria-hidden="true">
+                                <span class="flex size-8 items-center justify-center rounded-full {{ $ton }}" aria-hidden="true">
                                     <x-symbol :name="$symbol" strich="2" class="size-4" />
                                 </span>
-                                <span class="truncate text-sm font-medium text-muted group-aria-checked:text-accent-contrast">{{ $name }}</span>
+                                <span class="truncate text-sm font-medium text-muted">{{ $name }}</span>
                             </span>
-                            <span class="text-2xl font-semibold tabular-nums leading-none">{{ $anzahl }}</span>
+                            <span :class="filter === '{{ $wert }}' ? 'text-accent-text' : ''" class="text-2xl font-semibold tabular-nums leading-none">{{ $anzahl }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -96,11 +97,14 @@
                             $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
                         @endphp
                         <div class="overflow-x-auto px-2 pb-2">
-                            <table class="np-tabelle text-sm">
+                            <table class="np-tabelle table-fixed text-sm">
                                 <caption class="sr-only">{{ __('Meine Lernenden') }}</caption>
+                                <colgroup>
+                                    <col class="w-32"><col class="w-48"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
+                                </colgroup>
                                 <thead>
                                     <tr>
-                                        <th scope="col" class="w-32" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
+                                        <th scope="col" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
                                         <th scope="col" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
                                         <th scope="col" class="text-right">{{ __('Lehrjahr') }}</th>
                                         <th scope="col" @if($trendSortierbar) aria-sort="{{ $ariaSort('trend') }}" @endif>{!! $trendSortierbar ? $sortLink('trend', __('Verlauf')) : e(__('Verlauf')) !!}</th>
@@ -121,7 +125,7 @@
                                         <tr data-href="{{ $ziel }}" x-show="passt(zeilen[{{ $loop->index }}])">
                                             <td class="h-13"><x-status :status="$s->status" /></td>
                                             <td class="py-1.5">
-                                                <a href="{{ $ziel }}" class="font-medium text-text">{{ $b->vorname }} {{ $b->nachname }}</a>
+                                                <a href="{{ $ziel }}" class="block truncate font-medium text-text">{{ $b->vorname }} {{ $b->nachname }}</a>
                                                 @if($z->lernender->lehrberuf)
                                                     <div class="truncate text-xs text-muted" title="{{ $z->lernender->lehrberuf->name }}">{{ $z->lernender->lehrberuf->kuerzel ?: $z->lernender->lehrberuf->name }}</div>
                                                 @endif
@@ -137,18 +141,18 @@
                                             <td class="text-right font-semibold"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
                                             <td class="text-right">
                                                 @if($z->neu)
-                                                    <a href="{{ route('trainer.learners.grades.index', $z->lernender->lernender_id) }}" class="np-marke bg-accent/12! text-accent-text hover:bg-accent/20!"
-                                                       aria-label="{{ __(':anzahl neue Noten von :name', ['anzahl' => $z->neu, 'name' => $b->vorname.' '.$b->nachname]) }}">{{ $z->neu }}</a>
+                                                    <a href="{{ route('trainer.learners.grades.index', $z->lernender->lernender_id) }}" class="inline-flex min-h-6 items-center gap-1.5 font-semibold text-text hover:text-accent-text"
+                                                       aria-label="{{ __(':anzahl neue Noten von :name', ['anzahl' => $z->neu, 'name' => $b->vorname.' '.$b->nachname]) }}"><span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>{{ $z->neu }}</a>
                                                 @else
-                                                    <span class="text-faint">0</span>
+                                                    <span class="text-muted">0</span>
                                                 @endif
                                             </td>
-                                            <td class="max-w-64">
+                                            <td>
                                                 @if($z->naechstePruefung)
-                                                    <div class="truncate text-text">{{ $z->naechstePruefung->bezeichnung() }}</div>
+                                                    <div class="truncate text-text" title="{{ $z->naechstePruefung->bezeichnung() }}">{{ $z->naechstePruefung->bezeichnung() }}</div>
                                                     <div class="text-xs tabular-nums text-muted">{{ $z->naechstePruefung->datum->format('d.m.Y') }}</div>
                                                 @else
-                                                    <span class="text-faint">–</span>
+                                                    <span class="text-muted">–</span>
                                                 @endif
                                             </td>
                                         </tr>
@@ -215,7 +219,7 @@
                                                 <a href="{{ route('trainer.learners.show', $p->lernender_id) }}" class="flex min-h-13 items-center gap-3 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-fill-2">
                                                     @if($loop->first)
                                                         <span class="flex size-9 shrink-0 flex-col items-center justify-center rounded-lg bg-fill leading-none" title="{{ \App\Support\Format::date($datum, 'wochentag_tag') }}">
-                                                            <span class="text-3xs font-semibold uppercase text-accent-text">{{ rtrim($datum->isoFormat('MMM'), '.') }}</span>
+                                                            <span class="text-2xs font-semibold uppercase text-accent-text">{{ rtrim($datum->isoFormat('MMM'), '.') }}</span>
                                                             <span class="mt-0.5 text-base font-semibold tabular-nums text-text">{{ $datum->format('j') }}</span>
                                                             <span class="sr-only">{{ \App\Support\Format::date($datum, 'wochentag_tag') }}</span>
                                                         </span>

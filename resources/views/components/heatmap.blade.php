@@ -22,7 +22,7 @@
                     <tr>
                         <th scope="row" class="sticky left-0 bg-card px-5 pb-1 pt-3 text-left text-xs font-semibold text-text">{{ $g['name'] }}</th>
                         @foreach($daten['semester'] as $s)
-                            <td class="px-1 pb-1 pt-3 text-center"><span class="text-3xs font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
+                            <td class="px-1 pb-1 pt-3 text-center"><span class="text-2xs font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
                         @endforeach
                         <td class="px-5 pb-1 pt-3 text-center"><span aria-hidden="true">{{ $marke($g['note']) }}</span><x-note :wert="$g['note']" :stellen="1" class="text-sm" /></td>
                     </tr>
@@ -30,10 +30,10 @@
                         {{-- Die feste Namenszelle braucht deckenden Grund; der Verlauf legt den Zeilen-Hover darüber, damit er mitläuft --}}
                         <tr class="group hover:bg-surface-2/60">
                             <th scope="row" class="sticky left-0 bg-card px-5 py-0.5 text-left font-normal text-text group-hover:bg-linear-to-r group-hover:from-surface-2/60 group-hover:to-surface-2/60">
-                                {{-- Kürzen im Block statt in der Zelle, «offen» bleibt stehen --}}
-                                <div class="flex max-w-54 items-baseline gap-1">
+                                {{-- Name in voller Länge (Tooltip mit dem ganzen Namen, falls das Fenster ihn doch kürzt), «offen» bleibt stehen --}}
+                                <div class="flex items-baseline gap-1">
                                     <span class="min-w-0 truncate" title="{{ $z['label'] }}">{{ $z['label'] }}</span>
-                                    @if($z['offen'])<span class="shrink-0 text-3xs font-semibold text-accent-text">{{ __('offen') }}</span>@endif
+                                    @if($z['offen'])<span class="shrink-0 text-2xs font-medium text-muted">{{ __('offen') }}</span>@endif
                                 </div>
                             </th>
                             @foreach($daten['semester'] as $s)
@@ -60,5 +60,9 @@
         </table>
     </div>
 @else
-    <div class="px-5 py-10 text-center text-sm text-muted">{{ __('Noch keine Noten') }}</div>
+    {{-- Leerzustand in der Karte: ein Satz mit kleinem Symbol, die Karte schrumpft auf ihren Inhalt --}}
+    <div class="flex items-center gap-2.5 px-5 pb-5 pt-1 text-sm text-muted">
+        <x-symbol name="table-cells" class="size-5 text-faint" />
+        {{ __('Noch keine Noten') }}
+    </div>
 @endif

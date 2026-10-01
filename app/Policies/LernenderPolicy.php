@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\Lernender;
 use App\Models\User;
+use Illuminate\Auth\Access\Response;
 
 /**
  * Berechtigungen auf Lernende. Sichtbarkeit selbst regelt Lernender::sichtbarFuer();
@@ -32,10 +33,14 @@ class LernenderPolicy
         return $this->view($user, $lernender);
     }
 
-    /** Noten legen Lernende selbst an; Admin darf nachtragen. */
-    public function noteAnlegen(User $user, Lernender $lernender): bool
+    /** Noten legen Lernende selbst an; Admin darf nachtragen. Alle anderen erfahren den Grund (403-Seite zeigt ihn). */
+    public function noteAnlegen(User $user, Lernender $lernender): bool|Response
     {
-        return $user->hasRole('Admin') && $this->view($user, $lernender);
+        if (! $user->hasRole('Admin')) {
+            return Response::deny(__('Noten erfassen die Lernenden selbst.'));
+        }
+
+        return $this->view($user, $lernender);
     }
 
     public function noteKorrigieren(User $user, Lernender $lernender): bool

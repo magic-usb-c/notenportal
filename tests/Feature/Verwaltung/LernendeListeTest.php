@@ -121,4 +121,19 @@ class LernendeListeTest extends TestCase
         $this->actingAs($bb)->get(route('trainer.dashboard'))->assertOk()
             ->assertViewHas('aufmerksamkeit', fn (array $liste) => array_map(fn ($e) => $e['zeile']->lernender->lernender_id, $liste) === [$laufend->lernender_id]);
     }
+
+    #[Test]
+    public function ohne_lernende_zeigt_die_liste_einen_leerzustand_statt_einer_tabelle(): void
+    {
+        foreach (['trainer' => User::factory()->berufsbildner()->create(), 'admin' => User::factory()->admin()->create()] as $bereich => $user) {
+            $html = (string) $this->actingAs($user)->get(route($bereich.'.learners.index'))->assertOk()->getContent();
+            $this->assertStringContainsString('Noch keine Lernenden', $html, $bereich);
+            $this->assertStringNotContainsString('<table', $html, $bereich);
+            $this->assertStringNotContainsString('Alle Noten (CSV)', $html, $bereich);
+
+            $gefiltert = (string) $this->actingAs($user)->get(route($bereich.'.learners.index', ['suche' => 'zzz']))->assertOk()->getContent();
+            $this->assertStringContainsString('Keine Treffer', $gefiltert, $bereich);
+            $this->assertStringContainsString('<table', $gefiltert, $bereich);
+        }
+    }
 }

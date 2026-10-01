@@ -134,7 +134,10 @@ export function registriereScrollKanten(root = document) {
         el.dataset.npKanteAktiv = '1';
         scrollKante(el);
         el.addEventListener('scroll', () => scrollKante(el), { passive: true });
-        new ResizeObserver(() => scrollKante(el)).observe(el);
+        const beobachter = new ResizeObserver(() => scrollKante(el));
+        beobachter.observe(el);
+        // Auch den Inhalt messen: wächst er ohne DOM-Mutation (Schriftwechsel, Bild), ändert sich nur scrollHeight.
+        if (el.firstElementChild) beobachter.observe(el.firstElementChild);
         new MutationObserver(() => scrollKante(el)).observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
     });
 }
