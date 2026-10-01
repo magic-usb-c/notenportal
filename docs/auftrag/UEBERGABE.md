@@ -95,7 +95,8 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Suite jetzt 199 bestanden, 0 Warnungen. Details SETUP-CLAUDE.md §4.3, §12.12–13.
                   R4 Lernende begonnen: Basis-Rundgang 1920 Exit 0 für alle drei Rollen, Lernende bei
                   1920 und 2560 gesichtet (Scratchpad), Baustellen-Inventar liegt vor.
-[O] 01.10. 16:45  R4 Lernende abgeschlossen, Runde 1 (19572a9 Rechnerlogik, 9787b6e Oberfläche): zehn
+[O] 01.10. 17:45  R4 Lernende abgeschlossen, Runde 1 (19572a9 Rechnerlogik, 9787b6e Oberfläche) und
+                  Runde 2 (5e8a863 Fix, 842b2c2 GUI, Suite 1270 grün, siehe unten). Runde 1: zehn
                   Umsetzungsgruppen parallel (Rechner, Leerzustände, Noten, Module, Import, Dashboard,
                   Abschluss, Agenda, Profil, Demo-Lernende «Livia Gerber» ohne Noten), Bildprüfer 1920/2560,
                   Reviewer ohne Befund, Suite 1269 grün. Rechner: gesuchte Note nur in einfliessende
@@ -107,8 +108,27 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Bewusst gelassen: docs/audit-backlog.md «R4 Lernende». Git-Historie beginnt bei 88905a4
                   (01.10. 01:56); ältere Hashes in diesem Brett (3458e6c, 8e8af07, 171ed72 …) existieren
                   nicht mehr – die Rotation des Prod-Testpassworts bleibt trotzdem bei David.
-                  Nächster Schritt: Runde 2 (ui-checker: Tastatur, aria, Hinweistexte, colgroup), dann
-                  Berufsbildner (Bildprüfer-Befunde liegen vor: scratchpad briefs-bb).
+                  Runde 2 (ui-checker 14 Befunde, Prüfer, Rundgang-Workflow 1920/2560): Tastatur
+                  (Ebenen-Segment als Radiogroup, Semesterpfeile ohne Ziel nicht fokussierbar), aria-busy
+                  und aria-labels, Leerzustände als x-leer (Module, Abgleich, Feedback mit Aktion),
+                  colgroup überall, Kennzahlen text-xl, Einstellungs-Tabs ortsfest unter dem Titel,
+                  Agenda-Liste auf 78 rem begrenzt, Modulliste mit Scroll-Kante unten, Verlauf-Tabelle
+                  ohne abgeschnittene Köpfe, Rechner-Fehler mit Grund (429/419) und «Erneut berechnen»,
+                  Feedback-Symbolleistenknopf auf «Meine Meldungen» ausgeblendet. Backend: throttle ohne
+                  Präfix teilte den Zähler je Benutzer über alle Routen (nach 11 Rechner-Aufrufen war
+                  Feedback gesperrt) → eigener Präfix je Route, Test ThrottleSchluesselTest. Agenda-Drawer:
+                  Schleifenvariable überschrieb die Feldklasse (Felder ohne Gestaltung) → behoben, Test.
+                  Prüfer-Befunde 1–3 behoben (Altbezeichnung in zwei Fehlermeldungen, DashboardKartenTest
+                  ohne Beweiskraft, Hero-Satz «bei –»); Befund 4 (Leerzustand-Bedingung) bewusst so.
+                  Prüfwerkzeuge: Chromium mit LANG=de_CH (Datumsfelder 01.08.2026 statt 08/01/2026),
+                  clip.mjs (Bildausschnitt), rundgang.mjs lässt die lesenden Rechner-POSTs durch (vorher
+                  zeigte jeder Rundgang «Berechnung fehlgeschlagen» – Werkzeug, kein Portalfehler).
+                  Runde 3 nach Bildprüfer (10 Befunde) und Reviewer (3 niedrige): Scroll-Kanten als Maske
+                  nur bei Überlauf (np.js setzt data-np-kante; vorher helle Bänder in der Seitenleiste),
+                  Bullet-Graph mit sichtbaren Bändern, Kategoriewerte «Lehrzeit» beschriftet, Sparkline
+                  bei der Zahl, Semester-Kapsel mittig, Monatskarte bündig, leerer Rechner mit «Note
+                  erfassen», Platzhalter «–» dünn, Throttle-Test prüft doppelte Präfixe, Feedback-Tipp
+                  nicht auf «Meine Meldungen». Nächster Schritt: R4 Berufsbildner (Agents laufen).
 ```
 
 ---

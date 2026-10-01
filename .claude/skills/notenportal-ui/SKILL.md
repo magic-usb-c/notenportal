@@ -66,8 +66,8 @@ damit die persönliche Schriftgrösse alles mitskaliert. Kein eigenes Tracking (
 | `text-3xs` | 10/13 | Footnote, Caption | Zähler-Badge, Kalenderzelle, Skalenmarken |
 | `text-2xs` | 11/14 | Subheadline | Tabellenkopf, Achsen, Marken |
 | `text-xs` | 12/16 | Callout | Hilfetext, Sekundärzeile, Metazeile |
-| `text-sm` | 13/18 | Body / Headline | **Grundschrift** aller Bedienelemente, Tabellen, Formulare; Kartentitel `font-semibold` |
-| `text-base` | 15/20 | Title 3 | Drawer-/Dialogtitel |
+| `text-sm` | 13/18 | Body / Headline | **Grundschrift** aller Bedienelemente, Tabellen, Formulare; Gruppenüberschriften über Listen `font-semibold` |
+| `text-base` | 15/20 | Title 3 | Kartentitel (`x-karte`, `x-diagramm`) `font-semibold`, Drawer-/Dialogtitel |
 | `text-lg` | 17/22 | Title 2 | Abschnittstitel auf Leseseiten |
 | `text-xl` | 22/26 | Title 1 | Kennzahl in Kacheln |
 | `text-2xl` | 26/32 | Large Title | **Seitentitel h1** (nur über `<x-seitenkopf>`, `font-bold`) |

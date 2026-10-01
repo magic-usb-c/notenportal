@@ -716,7 +716,13 @@ ausgeblendeten Werte in der Namenszelle nach.
 - **Abschluss: Ergebniskarte und Aufbau-Tabelle enden nicht bündig** (18 px): die Karte ist sticky und
   trägt ihre natürliche Höhe; Strecken würde das Mitlaufen zerstören.
 - **Primärknopf in der Symbolleiste rechts, Lesespalte mittig** (Abschluss, Import bei 2560): Konvention
-  der macOS-Toolbar, gilt portalweit; keine Ausnahme je Seite.
+  der macOS-Toolbar, gilt portalweit; keine Ausnahme je Seite. Ebenso die Agenda-Liste (Deckel 78 rem,
+  bei 2560 rechts 384 px frei): lieber ein ruhiger Rand als Zeilen, deren Aktionen 1000 px vom Text stehen.
+- **Dashboard Lernende: Leerzustand-Bedingung** (`! $alsNaechstes && ! $zeigen['ziele']`): zeigt den Leerzustand
+  auch, wenn ein Ziel existiert, die Karte «Ziele» aber ausgeblendet ist, und Karten statt Leerzustand, wenn
+  «Als Nächstes» fehlende Module nennt. Beides ist gewollt: Massstab ist «nichts Sichtbares», nicht «0 Datensätze».
+- **Dokumente-Abgleich, Zweig `status 'fehlt'` mit `portal null` und Checkbox**: im Prüflauf nur mit PDF ohne
+  Textlayer gerendert; der Zweig ist durch AbgleichTest abgedeckt, aber nicht als Bild gesehen.
 - **Dashboard Lernende: Kartenkanten der linken und rechten Spalte laufen versetzt** (Stand 389 px gegen
   Als Nächstes 410 px): zwei inhaltsgetriebene Spalten mit 2 gegen 3 Karten; gleiche Reihenhöhen hiessen leere
   Flächen in den kürzeren Karten. Apple-Dashboards (Health, Aktien) richten Spalten ebenfalls nicht reihenweise aus.
