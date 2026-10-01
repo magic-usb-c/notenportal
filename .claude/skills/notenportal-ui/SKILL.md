@@ -74,7 +74,7 @@ damit die persönliche Schriftgrösse alles mitskaliert. Kein eigenes Tracking (
 | `text-3xl` | 36/40 | – | grosse Ziffer: Noteneingabe, Gesamtschnitt im Cockpit |
 | `text-display` | 48 px | – | **eine** Heldenzahl pro Seite |
 
-- Labels in Satzschreibung: `text-sm font-medium text-text`; Pflichtfeld mit ` *` im Label (gleiche Farbe, kein Rot).
+- Labels in Satzschreibung: `text-sm text-text`, ohne Sternchen (Pflicht ist der Normalfall; freiwillige Felder tragen den Platzhalter «Optional»).
   **Verboten:** `uppercase tracking-widest`-Labels, `font-extrabold`, `font-black`. `font-bold` nur für h1 (Large Title) und die Heldenzahl.
 - `tabular-nums` nur, wo Zahlen untereinander stehen (Tabellen, Listen). Zahlenspalten rechtsbündig.
 - Schriftgrössen nie hart setzen (`text-[15px]`, `style="font-size:…"`) – nur die Klassen oben. Tailwinds übrige Stufen
@@ -91,7 +91,7 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 |---|---|
 | `np-karte` | **Standard für alle Inhaltskarten** (Karte, Formular, Tabelle): `bg-card`, `rounded-xl`, Schatten E1 statt Rahmen |
 | `np-karte-klickbar` | ganze Karte als Link (Hover hellt auf, keine Bewegung) |
-| `np-gruppe` | gruppierte Liste in einer Karte (Haarlinie zwischen Zeilen) |
+| `np-gruppe` | gruppierte Liste in einer Karte (Haarlinie zwischen Zeilen); Zeilen über `<x-einstellung>` |
 | `np-tabelle` | macOS-Tabelle: Kopf ohne Fläche, Zeilen im Wechsel hinterlegt, Hover gerundet. Mehrere Tabellen untereinander: `table-fixed` + `<colgroup>` mit festen Breiten, damit die Spalten bündig stehen. Spalten ohne einen einzigen Wert entfallen. |
 | `np-marke` | Badge/Zähler (Pille, `text-2xs` 600); Bedeutung über `bg-note-…/14 text-note-…` |
 | `np-feld` · `np-feld-klein` | Eingabefeld/Auswahl 36 px bzw. 28 px (Filterleiste) |
@@ -126,12 +126,36 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 <button class="np-knopf np-knopf-schlicht">Abbrechen</button>
 <button class="np-knopf np-knopf-gefahr">Löschen</button>            {{-- voll rot nur im Bestätigungsdialog: np-knopf-gefahr-voll --}}
 <button class="np-knopf np-knopf-symbol" aria-label="…"><x-symbol name="pencil-square" /></button>
+<button class="np-knopf np-knopf-sekundaer np-knopf-rund" aria-label="…">…</button>   {{-- Symbol mit Fläche, kreisrund (Menü «…», Stepper) --}}
 {{-- Grössen: np-knopf-klein (28 px, in Tabellen) · Standard 32 px · np-knopf-gross (40 px, Anmeldung) --}}
 
-{{-- Formularfeld --}}
-<label for="x" class="text-sm font-medium text-text">{{ __('Gewichtung *') }}</label>
-<input id="x" name="x" class="np-feld mt-1" aria-describedby="x-fehler">
-@error('x')<p id="x-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+{{-- Formular = gruppierte Liste (macOS-Systemeinstellungen), mittig in np-spalte --}}
+<form method="POST" class="flex np-spalte flex-col gap-8" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+  <section>
+    <h2 class="mb-2 px-1 text-sm font-semibold text-text">Fach</h2>
+    <div class="np-karte np-gruppe">
+      <x-einstellung :label="__('Name')" fuer="name" name="name">
+        <input id="name" name="name" required class="np-feld w-72" @error('name') aria-invalid="true" aria-describedby="name-fehler" @enderror>
+      </x-einstellung>
+      {{-- mit Hinweis: beide ids in EINEM aria-describedby --}}
+      <x-einstellung :label="__('Kürzel')" fuer="kuerzel" name="kuerzel" :hinweis="__('…')">
+        <input id="kuerzel" name="kuerzel" class="np-feld w-32" placeholder="{{ __('Optional') }}"
+               aria-describedby="kuerzel-hinweis @error('kuerzel') kuerzel-fehler @enderror" @error('kuerzel') aria-invalid="true" @enderror>
+      </x-einstellung>
+      <x-einstellung :label="__('Skala')" name="skala"><x-segment-auswahl name="skala" :wert="…" :optionen="[…]" /></x-einstellung>
+      <x-einstellung :label="__('Aktiv')" fuer="aktiv" name="aktiv">
+        <input type="hidden" name="aktiv" value="0"><input type="checkbox" role="switch" id="aktiv" name="aktiv" value="1" class="np-schalter">
+      </x-einstellung>
+      <x-einstellung :label="__('Beschreibung')" fuer="beschreibung" name="beschreibung" gestapelt>
+        <textarea id="beschreibung" name="beschreibung" rows="4" class="np-feld w-full"></textarea>
+      </x-einstellung>
+    </div>
+    <p class="mt-2 px-1 text-xs text-muted">Fussnote, nur wenn sie eine Entscheidung ermöglicht.</p>
+  </section>
+  <x-formular-aktionen :abbrechen="route('…')">{{ __('Fach anlegen') }}</x-formular-aktionen>
+</form>
+{{-- Feldbreiten: Text w-72/w-80 · kurz w-32/w-40 · Zahl w-24 text-right tabular-nums · Datum w-44 · Auswahl w-56.
+     Löschen: eigene <section class="mt-10 np-spalte"> mit np-gruppe-Zeile und np-knopf-gefahr. --}}
 
 {{-- Karte --}}
 <section class="np-karte p-5">
@@ -156,7 +180,7 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 ```
 
 ## 8. Pflicht bei jedem Feld und jeder Seite
-- `<label for>` + `id`, feldgenaues `@error`, Pflichtfeld mit `*` in `text-note-ungenuegend`.
+- `<label for>` + `id` (über `<x-einstellung fuer>`), feldgenaues `@error` mit `aria-invalid` und `aria-describedby="{feld}-fehler"`; Hinweis-id `{feld}-hinweis` im selben Attribut. Keine Sternchen.
 - Mutierende Formulare: Alpine `x-data="{ loading: false }"` gegen Doppelabsenden.
 - Erfolg/Fehler nur über Flash-Toast (`->with('success'|'error')`), keine Inline-Banner.
 - Trefferfläche ≥ 24 px (WCAG 2.5.8; `np-knopf-klein` erfüllt das), Icon-Buttons mit `aria-label`, Fokus sichtbar (`focus-visible:outline-2 outline-ring`).
