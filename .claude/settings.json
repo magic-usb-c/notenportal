@@ -1,150 +1,147 @@
 {
-  "model": "fable",
-  "effortLevel": "xhigh",
-  "modelSettings": {
-    "claude-fable-5-1": { "effortLevel": "xhigh" },
-    "claude-opus-5-5": { "effortLevel": "xhigh" },
-    "claude-sonnet-5-5": { "effortLevel": "high" }
-  },
-  "alwaysThinkingEnabled": true,
-  "advisorModel": "fable",
-  "ultracode": true,
-  "workflowSizeGuideline": "unrestricted",
-  "subagentPromptCacheTtl": "1h",
-  "language": "deutsch",
-  "enabledPlugins": {
-    "caveman@caveman": true,
-    "laravel@laravel": true,
-    "laravel-lsp@laravel": true,
-    "frontend-design@claude-plugins-official": true,
-    "php-lsp@claude-plugins-official": true,
-    "context7@claude-plugins-official": false,
-    "security-guidance@claude-plugins-official": false,
-    "tailwind-v4-shadcn@claude-skills": false,
-    "ui-ux-pro-max@ui-ux-pro-max-skill": false
-  },
-  "permissions": {
-    "defaultMode": "acceptEdits",
-    "allow": [
-      "Read",
-      "Edit",
-      "Write",
-      "Glob",
-      "Grep",
-      "WebSearch",
-      "WebFetch",
-      "Agent",
-      "Workflow",
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git show:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-      "Bash(git switch:*)",
-      "Bash(git restore:*)",
-      "Bash(git branch:*)",
-      "Bash(git worktree:*)",
-      "Bash(git stash:*)",
-      "Bash(git tag:*)",
-      "Bash(git fetch:*)",
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(git rev-parse:*)",
-      "Bash(git ls-files:*)",
-      "Bash(git push:*)",
-      "Bash(git pull:*)",
-      "Bash(php artisan:*)",
-      "Bash(php -r:*)",
-      "Bash(php -v)",
-      "Bash(php -l:*)",
-      "Bash(php vendor/bin/phpunit:*)",
-      "Bash(vendor/bin/phpunit:*)",
-      "Bash(vendor/bin/pint:*)",
-      "Bash(./vendor/bin/pint:*)",
-      "Bash(./vendor/bin/phpstan:*)",
-      "Bash(composer show:*)",
-      "Bash(composer validate:*)",
-      "Bash(composer install:*)",
-      "Bash(composer dump-autoload:*)",
-      "Bash(npm install)",
-      "Bash(npm run build)",
-      "Bash(npm run dev)",
-      "Bash(npm ci)",
-      "Bash(npm test:*)",
-      "Bash(npx prettier:*)",
-      "Bash(node:*)",
-      "Bash(mysql --socket:*)",
-      "Bash(mysqladmin --socket:*)",
-      "Bash(tools/pruefung/demo-server.sh:*)",
-      "Bash(bash tools/pruefung/demo-server.sh:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(wc:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(sed:*)",
-      "Bash(sort:*)",
-      "Bash(diff:*)",
-      "Bash(echo:*)",
-      "Bash(timeout:*)",
-      "Bash(mkdir:*)",
-      "Bash(chmod:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)",
-      "Bash(curl -s:*)",
-      "Bash(curl -sk:*)",
-      "Bash(curl -sS:*)"
-    ],
-    "deny": [
-      "Bash(git push --force:*)",
-      "Bash(git push -f:*)",
-      "Bash(git push --force-with-lease:*)",
-      "Bash(git reset --hard:*)",
-      "Bash(git clean -fdx:*)",
-      "Bash(rm -rf:*)",
-      "Bash(sudo rm:*)",
-      "Bash(sudo mysql:*)",
-      "Bash(mysql -u root:*)",
-      "Bash(DROP DATABASE:*)",
-      "Bash(composer update:*)",
-      "Bash(composer require:*)",
-      "Bash(sudo systemctl:*)",
-      "Bash(sudo a2*:*)",
-      "Bash(./install.sh:*)",
-      "Bash(sudo ./install.sh:*)",
-      "Read(./.env)",
-      "Read(./tmp-testdaten/**)",
-      "Edit(./.env)",
-      "Write(./.env)"
-    ]
-  },
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
-            "timeout": 900
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/view-pruefung.sh",
-            "timeout": 10
-          }
-        ]
-      }
-    ]
-  }
+"model": "fable",
+"effortLevel": "xhigh",
+"modelSettings": {
+  "claude-fable-5-1": { "effortLevel": "xhigh" },
+  "claude-opus-5-5": { "effortLevel": "xhigh" },
+  "claude-sonnet-5-5": { "effortLevel": "high" }
+},
+"alwaysThinkingEnabled": true,
+"advisorModel": "fable",
+"ultracode": true,
+"workflowSizeGuideline": "unrestricted",
+"subagentPromptCacheTtl": "1h",
+"language": "deutsch",
+"enabledPlugins": {
+  "caveman@caveman": true,
+  "laravel@laravel": true,
+  "laravel-lsp@laravel": true,
+  "frontend-design@claude-plugins-official": true,
+  "php-lsp@claude-plugins-official": true,
+  "context7@claude-plugins-official": false,
+  "security-guidance@claude-plugins-official": false,
+  "tailwind-v4-shadcn@claude-skills": false,
+  "ui-ux-pro-max@ui-ux-pro-max-skill": false
+},
+"permissions": {
+  "defaultMode": "acceptEdits",
+  "allow": [
+    "Read",
+    "Edit",
+    "Write",
+    "Glob",
+    "Grep",
+    "WebSearch",
+    "WebFetch",
+    "Agent",
+    "Workflow",
+    "Bash(git status:*)",
+    "Bash(git diff:*)",
+    "Bash(git log:*)",
+    "Bash(git show:*)",
+    "Bash(git add:*)",
+    "Bash(git commit:*)",
+    "Bash(git checkout:*)",
+    "Bash(git switch:*)",
+    "Bash(git restore:*)",
+    "Bash(git branch:*)",
+    "Bash(git worktree:*)",
+    "Bash(git stash:*)",
+    "Bash(git tag:*)",
+    "Bash(git fetch:*)",
+    "Bash(git merge:*)",
+    "Bash(git rebase:*)",
+    "Bash(git rev-parse:*)",
+    "Bash(git ls-files:*)",
+    "Bash(git push:*)",
+    "Bash(git pull:*)",
+    "Bash(php artisan:*)",
+    "Bash(php -r:*)",
+    "Bash(php -v)",
+    "Bash(php -l:*)",
+    "Bash(php vendor/bin/phpunit:*)",
+    "Bash(vendor/bin/phpunit:*)",
+    "Bash(vendor/bin/pint:*)",
+    "Bash(vendor/bin/pint)",
+    "Bash(./vendor/bin/pint:*)",
+    "Bash(./vendor/bin/pint)",
+    "Bash(vendor/bin/phpstan:*)",
+    "Bash(vendor/bin/phpstan)",
+    "Bash(./vendor/bin/phpstan:*)",
+    "Bash(./vendor/bin/phpstan)",
+    "Bash(composer show:*)",
+    "Bash(composer validate:*)",
+    "Bash(composer install:*)",
+    "Bash(composer install)",
+    "Bash(composer update:*)",
+    "Bash(composer update)",
+    "Bash(composer require:*)",
+    "Bash(composer dump-autoload:*)",
+    "Bash(composer dump-autoload)",
+    "Bash(npm install)",
+    "Bash(npm install *)",
+    "Bash(npm update)",
+    "Bash(npm run build)",
+    "Bash(npm run dev)",
+    "Bash(npm ci)",
+    "Bash(npm test:*)",
+    "Bash(npx prettier:*)",
+    "Bash(node:*)",
+    "Bash(mysql --socket:*)",
+    "Bash(mysqladmin --socket:*)",
+    "Bash(tools/pruefung/demo-server.sh:*)",
+    "Bash(bash tools/pruefung/demo-server.sh:*)",
+    "Bash(ls:*)",
+    "Bash(cat:*)",
+    "Bash(wc:*)",
+    "Bash(grep:*)",
+    "Bash(find:*)",
+    "Bash(head:*)",
+    "Bash(tail:*)",
+    "Bash(sed:*)",
+    "Bash(sort:*)",
+    "Bash(diff:*)",
+    "Bash(echo:*)",
+    "Bash(timeout:*)",
+    "Bash(mkdir:*)",
+    "Bash(chmod:*)",
+    "Bash(cp:*)",
+    "Bash(mv:*)"
+  ],
+  "deny": [
+    "Bash(git push --force:*)",
+    "Bash(git push -f:*)",
+    "Bash(git push --force-with-lease:*)",
+    "Bash(git reset --hard:*)",
+    "Bash(git clean -fdx:*)",
+    "Bash(rm -rf:*)",
+    "Bash(sudo rm:*)",
+    "Bash(DROP DATABASE:*)"
+  ]
+},
+"hooks": {
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh",
+          "timeout": 900
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "matcher": "Edit|Write|MultiEdit",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/view-pruefung.sh",
+          "timeout": 120
+        }
+      ]
+    }
+  ]
+}
 }
