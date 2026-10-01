@@ -22,18 +22,19 @@
     @push('np-aktionen'){{ $aktionen }}@endpush
 @endisset
 <div {{ $attributes->class(['flex flex-wrap items-end justify-between gap-x-4 gap-y-3', 'max-w-3xl' => $schmal]) }}>
-    <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-        <div class="min-w-0">
-            <h1 data-np-titel class="flex items-baseline gap-2.5 text-2xl font-bold text-text">
+    {{-- Bedienelement neben dem Titel auf dessen Zeile, die Metazeile darunter über die ganze Breite --}}
+    <div class="min-w-0">
+        <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 data-np-titel class="flex min-w-0 items-baseline gap-2.5 text-2xl font-bold text-text">
                 <span class="min-w-0 break-words">{{ $titel }}</span>
                 @if($zaehler !== null)
                     <span class="whitespace-nowrap text-lg font-normal tabular-nums text-muted">{{ $zaehler }}</span>
                 @endif
             </h1>
-            @if($untertitel)
-                <p class="mt-1 text-sm text-muted">{{ $untertitel }}</p>
-            @endif
+            {{ $slot }}
         </div>
-        {{ $slot }}
+        @if($untertitel)
+            <p class="mt-1 text-sm text-muted">{{ $untertitel }}</p>
+        @endif
     </div>
 </div>
