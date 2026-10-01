@@ -134,6 +134,8 @@ export function registrierePraeferenzen(Alpine) {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     },
                     body: JSON.stringify(body),
+                }).catch(() => {
+                    throw new Error(t('Änderung konnte nicht gespeichert werden.'));
                 });
                 if (res.status === 419) throw new Error(t('Sitzung abgelaufen. Seite bitte neu laden.'));
                 if (!res.ok) throw new Error(t('Änderung konnte nicht gespeichert werden.'));

@@ -132,6 +132,7 @@ function toast(message, art = 'erfolg') {
     window.dispatchEvent(new CustomEvent('np-toast', { detail: { message, art } }));
 }
 
+// Netzfehler werfen sonst die englische Browsermeldung («Failed to fetch»).
 async function patchJson(url, body) {
     return fetch(url, {
         method: 'PATCH',
@@ -141,6 +142,8 @@ async function patchJson(url, body) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
         },
         body: JSON.stringify(body),
+    }).catch(() => {
+        throw new Error(t('Änderung konnte nicht gespeichert werden.'));
     });
 }
 

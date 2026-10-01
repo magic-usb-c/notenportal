@@ -8,6 +8,7 @@ export function t(schluessel, ersetzungen = {}) {
 }
 
 export async function postJson(url, body) {
+    // Netzfehler werfen sonst die englische Browsermeldung («Failed to fetch»).
     const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -16,6 +17,8 @@ export async function postJson(url, body) {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
         },
         body: JSON.stringify(body),
+    }).catch(() => {
+        throw new Error(t('Berechnung fehlgeschlagen.'));
     });
     const daten = await res.json().catch(() => null);
     if (!res.ok) {
