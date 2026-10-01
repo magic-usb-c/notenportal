@@ -87,6 +87,14 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Overlays im Dunkeln eine Stufe über der Karte (e52ab7a, HIG base/elevated,
                   gemessen), Direktlabels im Verlauf in Textfarbe mit Punkt in Linienfarbe.
                   Offen aus dem Rundgang: 10 Sichtbefunde ohne Urteil – kommen im vollen R4-Lauf dran.
+[Q] 01.10. 15:45  Cloud-Hook in frischem Container nachgemessen und repariert (99940e5): MariaDB startete
+                  nicht (/run/mysqld gehörte root, mysqld_safe läuft als mysql), composer install scheiterte
+                  (api.github.com 403 hinter dem Proxy → composer-spiegel.sh schreibt Dist-URLs auf einen
+                  Packagist-Spiegel um), APP_KEY fehlte, Marktplatz veraltet (php-lsp unbekannt), ssh-keygen
+                  fehlte (SicherungKopieTest), ohne .env zählte Collision 1066 unterdrückte Warnungen.
+                  Suite jetzt 199 bestanden, 0 Warnungen. Details SETUP-CLAUDE.md §4.3, §12.12–13.
+                  R4 Lernende begonnen: Basis-Rundgang 1920 Exit 0 für alle drei Rollen, Lernende bei
+                  1920 und 2560 gesichtet (Scratchpad), Baustellen-Inventar liegt vor.
 ```
 
 ---

@@ -188,6 +188,19 @@ Dokumentation: `https://code.claude.com/docs/en/claude-code-on-the-web` und
    Tabelle `benutzer` leer ist · `tools/pruefung/demo-server.sh start` auf `http://127.0.0.1:8099` ·
    Plugins `php-lsp` und `frontend-design` installieren. Der Container wird nach dem Hook
    zwischengespeichert; ein zweiter Lauf überspringt, was da ist.
+   Gemessen am 01.10. in einem zweiten, frischen Container (Commit 99940e5): `mysqld_safe` läuft als
+   `mysql`, darum gehören `/run/mysqld`, `/var/log/mysql` und `/var/lib/mysql` vorher diesem Benutzer
+   (sonst stirbt der Dienst stumm, Syslog gibt es im Container nicht; Fehlerprotokoll jetzt
+   `/var/log/mysql/error.log`). `api.github.com` ist hinter dem Proxy gesperrt (403) – `composer install`
+   läuft dann über `.claude/hooks/composer-spiegel.sh`, das die Dist-URLs aus `composer.lock` in
+   `composer.local.lock` auf einen Packagist-Spiegel umschreibt (Standard Tencent, `NP_COMPOSER_SPIEGEL`);
+   beide `composer.local.*` sind gitignored. Ohne `.env` zählt Collision je Test eine unterdrückte
+   phpdotenv-Warnung («1066 warnings») – der Hook legt eine leere `.env` an, die Werte kommen weiter
+   aus der Umgebung. `openssh-client` wird nachinstalliert (`SicherungKopieTest` braucht `ssh-keygen`).
+   Fehlt `APP_KEY` in einer Shell (leeres `CLAUDE_ENV_FILE` nach `compact`), liest
+   `tools/pruefung/demo-server.sh` ihn aus `~/.notenportal/app_key`. Der Marktplatz wird vor der
+   Plugin-Installation aktualisiert, sonst kennt die Kopie im Container `php-lsp` nicht.
+   Idempotenz gemessen: zweiter Lauf 1,3 s; nach `mysqladmin shutdown` startet der Hook MariaDB in 2,4 s neu.
 4. **Berechtigungen:** Menü der Sitzung → **Auto**. Deny-Regeln aus `.claude/settings.json` gelten in
    jedem Modus. Die Projektdatei trägt `acceptEdits`, weil `auto` dort laut Dokumentation nicht
    wirkt (Abschnitt 6).
@@ -544,6 +557,15 @@ Hier steht, was sich nicht sauber belegen liess. Nichts davon ist als Tatsache i
     gleichzeitig; nach dem Reset mit `resumeFromRunId` fortsetzen, die fertigen Befunde kommen aus
     dem Cache. Wie viel Kontingent eine Fable-Sitzung je Tag hat, zeigt keine Dokumentation; nur
     die Meldung mit der Reset-Zeit.
+12. **Netzwerk hinter dem Agent-Proxy (gemessen 01.10., 13:00 UTC):** `api.github.com`,
+    `codeload.github.com` und `github.com/…/archive` antworten 403 (Policy), `github.com` per Git,
+    `raw.githubusercontent.com`, `repo.packagist.org` und die Spiegel `mirrors.cloud.tencent.com`
+    und `mirrors.aliyun.com` sind offen. Composer holt Dist-Archive aber von `api.github.com` –
+    ohne Spiegel scheitert `composer install` mit «Could not authenticate against github.com».
+    Abschnitt 4 Punkt 2 («Netzwerkzugriff so wählen …») reicht deshalb nicht; der Hook umgeht es.
+13. **Collision 8.9.5 mit PHPUnit 12.5 zählt unterdrückte Warnungen:** phpdotenv liest `.env` mit
+    `@file_get_contents`; fehlt die Datei, meldet `php artisan test` je Test eine Warnung, `vendor/bin/phpunit`
+    keine. Mit leerer `.env` (Hook) sind es 0.
 
 ---
 
