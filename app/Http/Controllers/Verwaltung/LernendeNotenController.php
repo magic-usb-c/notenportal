@@ -15,6 +15,8 @@ use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Support\Protokoll;
 use App\Support\Ungelesen;
+use Closure;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,6 +28,8 @@ use Illuminate\View\View;
  */
 class LernendeNotenController extends VerwaltungController
 {
+    private const int PRO_SEITE = 25;
+
     public function __construct(
         private readonly NoteService $noteService,
         private readonly LernstandRechner $lernstaende,
@@ -40,7 +44,11 @@ class LernendeNotenController extends VerwaltungController
         $kategorieId = $request->filled('kategorie_id') ? $request->integer('kategorie_id') : null;
         $semesterId = $request->filled('semester_id') ? $request->integer('semester_id') : null;
 
-        $notes = $lernender->noten()
+        $gefiltert = fn () => $lernender->noten()
+            ->when($kategorieId, fn ($q, $id) => $q->where('kategorie_id', $id))
+            ->when($semesterId, fn ($q, $id) => $q->where('semester_id', $id));
+
+        $notes = $gefiltert()
             ->with([
                 ...Note::OVERVIEW_RELATIONS,
                 'erfasstVonBenutzer',
@@ -48,12 +56,10 @@ class LernendeNotenController extends VerwaltungController
                 'kommentare' => fn ($q) => $q->with('autor')->orderBy('erstellt_am'),
                 'gesehen' => fn ($q) => $q->where('viewer_benutzer_id', $viewerId),
             ])
-            ->when($kategorieId, fn ($q, $id) => $q->where('kategorie_id', $id))
-            ->when($semesterId, fn ($q, $id) => $q->where('semester_id', $id))
             ->orderByDesc('pruefungsdatum')
             ->orderByDesc('note_id')
-            ->paginate(25)
-            ->withQueryString();
+            ->paginate(self::PRO_SEITE, page: $this->seiteMitNote($request, $gefiltert))
+            ->appends($request->except(['page', '_open']));
 
         // Ungelesene Noten über alle Seiten im aktiven Filter – dieselbe Menge, die «Alle gesehen» markiert
         $neuCount = NotenGesehenController::gefilterteNoten($request, $lernender_id)
@@ -82,6 +88,29 @@ class LernendeNotenController extends VerwaltungController
             'kategorien' => Kategorie::query()->orderBy('sortierung')->get(),
             'semester' => $this->noteService->semestersForLernender($lernender_id),
         ]);
+    }
+
+    /**
+     * Ein Link auf eine bestimmte Note (?_open=ID, etwa aus der Mitteilung zu einem Kommentar) öffnet die Seite
+     * der Liste, auf der sie steht – gleiche Sortierung wie die Liste: Prüfungsdatum, dann ID, beide absteigend.
+     *
+     * @param  Closure(): HasMany<Note, Lernender>  $gefiltert
+     */
+    private function seiteMitNote(Request $request, Closure $gefiltert): ?int
+    {
+        if (! $request->filled('_open') || $request->filled('page')) {
+            return null;
+        }
+        $ziel = $gefiltert()->whereKey($request->integer('_open'))->first(['note_id', 'pruefungsdatum']);
+        if (! $ziel) {
+            return null;
+        }
+        $davor = $gefiltert()
+            ->where(fn ($q) => $q->where('pruefungsdatum', '>', $ziel->pruefungsdatum)
+                ->orWhere(fn ($q) => $q->where('pruefungsdatum', $ziel->pruefungsdatum)->where('note_id', '>', $ziel->note_id)))
+            ->count();
+
+        return intdiv($davor, self::PRO_SEITE) + 1;
     }
 
     public function create(Request $request, int $lernender_id): View

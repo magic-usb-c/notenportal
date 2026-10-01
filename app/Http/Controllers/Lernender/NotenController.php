@@ -246,7 +246,7 @@ class NotenController extends Controller
     private function benachrichtigeBetreuer(Lernender $lernender, Note $note): void
     {
         $note->loadMissing(['fach', 'modulBelegung.modul']);
-        $zielUrl = route('trainer.learners.show', $lernender->lernender_id);
+        $zielUrl = route('trainer.learners.grades.index', [$lernender->lernender_id, '_open' => $note->note_id]);
         foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
             Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, fn () => GradeAdded::einzeln(
                 $lernender, $note, $zielUrl

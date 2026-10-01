@@ -489,3 +489,52 @@ export function registriereZeilenLinks() {
         if (href) window.open(href, '_blank', 'noopener');
     });
 }
+
+// Liste mit Detailbereich wie in Mail (x-data="npAuswahlliste({ reihenfolge, start, praefix })"): Auswahl per
+// Klick oder Pfeiltasten (ARIA-Listbox, Fokus wandert mit). Die Adresse merkt sie als #<praefix>-ID, damit
+// Zurück, Neuladen und Links direkt auf dieselbe Zeile führen.
+export function registriereAuswahlliste(Alpine) {
+    Alpine.data('npAuswahlliste', (cfg) => ({
+        gewaehlt: null,
+
+        init() {
+            this.gewaehlt = this.ausAdresse() ?? (cfg.reihenfolge.includes(cfg.start) ? cfg.start : cfg.reihenfolge[0] ?? null);
+            window.addEventListener('hashchange', () => {
+                const id = this.ausAdresse();
+                if (id !== null) this.waehlen(id, false);
+            });
+            this.$nextTick(() => this.zeile(this.gewaehlt)?.scrollIntoView({ block: 'nearest' }));
+        },
+
+        ausAdresse() {
+            const treffer = window.location.hash.match(/^#([a-z]+)-(\d+)$/);
+            const id = treffer && treffer[1] === cfg.praefix ? Number(treffer[2]) : null;
+            return cfg.reihenfolge.includes(id) ? id : null;
+        },
+
+        zeile(id) {
+            return this.$refs.liste?.querySelector(`[data-auswahl="${id}"]`) ?? null;
+        },
+
+        waehlen(id, adresseSetzen = true) {
+            if (this.gewaehlt === id) return;
+            this.gewaehlt = id;
+            if (adresseSetzen) history.replaceState(null, '', `#${cfg.praefix}-${id}`);
+            this.$nextTick(() => this.$refs.detail?.scrollTo({ top: 0 }));
+        },
+
+        // Pfeil auf/ab, Pos1/Ende: nächste Zeile wählen und den Fokus mitnehmen
+        bewegen(schritt) {
+            const liste = cfg.reihenfolge;
+            const i = liste.indexOf(this.gewaehlt);
+            const id = liste[Math.min(Math.max(i + schritt, 0), liste.length - 1)];
+            if (id === undefined) return;
+            this.waehlen(id);
+            this.$nextTick(() => {
+                const z = this.zeile(id);
+                z?.focus({ preventScroll: true });
+                z?.scrollIntoView({ block: 'nearest' });
+            });
+        },
+    }));
+}

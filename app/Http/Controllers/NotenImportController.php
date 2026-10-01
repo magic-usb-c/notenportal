@@ -144,7 +144,7 @@ class NotenImportController extends Controller
         // Eigener Import des Lernenden (nicht durch Verwaltung) → aktive Betreuer, eine Sammelmeldung
         if ($bereich === null) {
             $lernender->loadMissing('benutzer');
-            $zielUrl = route('trainer.learners.show', $lernender->lernender_id);
+            $zielUrl = route('trainer.learners.grades.index', $lernender->lernender_id);
             $anzahlNeu = $ergebnis['neu'];
             foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
                 Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, fn () => GradeAdded::sammel(

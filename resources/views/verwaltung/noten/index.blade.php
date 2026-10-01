@@ -103,144 +103,191 @@
                     @endif
                 </div>
             @else
-                {{-- Eine gruppierte Liste statt Einzelkarten (HIG «Lists and tables»); Ungelesenes wie in Mail mit blauem Punkt. --}}
-                <div class="np-karte divide-y divide-border overflow-hidden">
-                    @foreach($notes as $n)
-                        @php
-                            $gesehen = $n->gesehen->first();
-                            $istNeu = \App\Support\Ungelesen::istNeu($n, $gesehen?->gesehen_am, (int) auth()->id());
-                            $letzterKommentar = $n->kommentare->last();
-                            $thema = $n->fach?->name
-                                ?? ($n->modulBelegung?->modul ? $n->modulBelegung->modul->modul_nummer.' – '.$n->modulBelegung->modul->titel : '–');
-                        @endphp
-                        <details class="np-details group" data-note-id="{{ $n->note_id }}">
-                            <summary class="flex cursor-pointer select-none list-none items-start gap-3 py-2.5 pl-3 pr-4 transition-colors duration-100 hover:bg-surface-2/60">
-                                <span class="flex h-6 w-3 shrink-0 items-center justify-center" @if($istNeu) role="img" aria-label="{{ __('Neu') }}" title="{{ __('Neu') }}" @endif>
-                                    @if($istNeu)<span class="size-2 rounded-full bg-accent"></span>@endif
-                                </span>
-                                <span class="np-chevron flex h-6 shrink-0 items-center text-muted" aria-hidden="true"><x-symbol name="chevron-right" strich="2" class="size-3.5" /></span>
-                                <div class="grid min-w-0 flex-1 grid-cols-[6.5rem_minmax(0,1fr)] items-baseline gap-x-4">
-                                    <span class="text-sm leading-6 tabular-nums text-muted">{{ $n->pruefungsdatum?->format('d.m.Y') }}</span>
-                                    <span class="flex min-w-0 items-baseline gap-2">
-                                        <span class="truncate text-sm font-medium leading-6 text-text">{{ $thema }}</span>
-                                        <span class="shrink-0 text-xs text-muted">{{ $n->kategorie?->name ?? '–' }}</span>
-                                    </span>
-                                    <span></span>
-                                    <div class="min-w-0">
-                                        @if($n->titel)
-                                            <div class="truncate text-xs text-muted">{{ $n->titel }}</div>
-                                        @endif
-                                        <x-note-geaendert :note="$n" :lernender-benutzer-id="$lernender->benutzer_id" />
-                                        @if($letzterKommentar)
-                                            <div class="max-w-xl truncate text-xs text-muted">
-                                                <span class="font-medium">{{ $letzterKommentar->autor?->vorname }}</span>: {{ Str::limit($letzterKommentar->kommentar_text, 90) }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="flex h-6 shrink-0 items-center gap-4">
-                                    @if($n->kommentare->isNotEmpty())
-                                        <span class="inline-flex items-center gap-1 text-xs tabular-nums text-muted" title="{{ $n->kommentare->count() === 1 ? __('Kommentar') : __('Kommentare') }}">
-                                            <svg class="size-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M10 3c-4.31 0-8 3.033-8 7 0 2.024.978 3.825 2.499 5.085a3.478 3.478 0 01-.522 1.756.75.75 0 00.584 1.143 5.976 5.976 0 003.936-1.108c.487.082.99.124 1.503.124 4.31 0 8-3.033 8-7s-3.69-7-8-7z" clip-rule="evenodd"/></svg>
-                                            {{ $n->kommentare->count() }}<span class="sr-only"> {{ $n->kommentare->count() === 1 ? __('Kommentar') : __('Kommentare') }}</span>
-                                        </span>
-                                    @endif
-                                    <span class="w-12 text-right text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
-                                    <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
-                                </div>
-                            </summary>
+                @php
+                    // Nach Speichern, Kommentar oder «gesehen» kommt die Seite mit derselben Note zurück; ein Link mit ?_open= ebenso
+                    $start = (int) (session('opened_note') ?: request()->integer('_open'));
+                    $ids = $notes->pluck('note_id')->map(fn ($id) => (int) $id)->all();
+                    $start = in_array($start, $ids, true) ? $start : $ids[0];
+                    $infos = $notes->mapWithKeys(fn ($n) => [$n->note_id => [
+                        'gesehen' => $gesehen = $n->gesehen->first(),
+                        'neu' => \App\Support\Ungelesen::istNeu($n, $gesehen?->gesehen_am, (int) auth()->id()),
+                        'thema' => $n->fach?->name
+                            ?? ($n->modulBelegung?->modul ? $n->modulBelegung->modul->modul_nummer.' – '.$n->modulBelegung->modul->titel : '–'),
+                    ]]);
+                @endphp
+                {{-- Liste links, gewählte Note rechts wie in Mail (HIG «Split views»); Ungelesenes mit blauem Punkt --}}
+                <div class="grid grid-cols-[minmax(22rem,30rem)_minmax(0,1fr)] items-start gap-4"
+                     x-data="npAuswahlliste({ reihenfolge: @js($ids), start: {{ $start }}, praefix: 'note' })">
 
-                            <div class="border-t border-border bg-fill-2">
-                                <div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-3 px-5 py-4 pl-14">
-                                    <dl class="grid grid-cols-3 gap-x-8 gap-y-2 text-sm">
-                                        <div><dt class="text-xs text-muted">{{ __('Semester') }}</dt><dd class="text-text">@if($n->semester_id)<x-semester :id="$n->semester_id" :lernender="$lernender" />@else–@endif</dd></div>
-                                        <div><dt class="text-xs text-muted">{{ __('Fach / Modul') }}</dt><dd class="text-text">{{ $thema }}</dd></div>
-                                        <div><dt class="text-xs text-muted">{{ __('Erfasst von') }}</dt><dd class="text-text">{{ $n->erfasstVonBenutzer?->vorname }} {{ $n->erfasstVonBenutzer?->nachname }}</dd></div>
-                                    </dl>
-                                    <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex flex-col gap-3">
+                        <div class="np-karte p-1.5">
+                            <div role="listbox" x-ref="liste" aria-label="{{ __('Noten') }}" class="flex flex-col gap-0.5"
+                                 @keydown.arrow-down.prevent="bewegen(1)" @keydown.arrow-up.prevent="bewegen(-1)"
+                                 @keydown.home.prevent="bewegen(-Infinity)" @keydown.end.prevent="bewegen(Infinity)">
+                                @foreach($notes as $n)
+                                    @php
+                                        $id = (int) $n->note_id;
+                                        ['neu' => $istNeu, 'thema' => $thema] = $infos[$id];
+                                        $letzterKommentar = $n->kommentare->last();
+                                        $vorschau = $n->titel ?: ($letzterKommentar ? $letzterKommentar->autor?->vorname.': '.$letzterKommentar->kommentar_text : null);
+                                    @endphp
+                                    <div role="option" id="note-{{ $id }}" data-auswahl="{{ $id }}" data-note-id="{{ $id }}"
+                                         aria-selected="{{ $id === $start ? 'true' : 'false' }}" tabindex="{{ $id === $start ? 0 : -1 }}"
+                                         :aria-selected="gewaehlt === {{ $id }} ? 'true' : 'false'" :tabindex="gewaehlt === {{ $id }} ? 0 : -1"
+                                         @click="waehlen({{ $id }})" class="np-listenzeile">
                                         @if($istNeu)
-                                            <form method="POST" action="{{ route("{$bereich}.learners.grades.seen", [$lernender->lernender_id, $n->note_id]) }}"
-                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                                @csrf
-                                                <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Als gesehen markieren') }}</button>
-                                            </form>
-                                        @elseif($gesehen)
-                                            <span class="text-xs text-muted">{{ __('Gesehen am :datum Uhr', ['datum' => $gesehen->gesehen_am->format('d.m.Y H:i')]) }}</span>
+                                            <span class="absolute left-2 top-4 size-2 rounded-full bg-accent" role="img" aria-label="{{ __('Neu') }}" title="{{ __('Neu') }}"></span>
                                         @endif
-                                        @if($darfKorrigieren)
-                                            <a href="{{ route("{$bereich}.learners.grades.edit", [$lernender->lernender_id, $n->note_id]) }}"
-                                               class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Korrigieren') }}</a>
-                                        @endif
-                                        @if($darfLoeschen)
-                                            <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
-                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                                  data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
-                                                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="flex flex-col gap-2 px-5 pb-4 pl-14">
-                                    <div class="text-xs font-medium text-muted">{{ __('Kommentare') }}</div>
-                                    @forelse($n->kommentare as $k)
-                                        <div class="max-w-3xl rounded-xl bg-card px-3.5 py-2.5 shadow-e1">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div class="text-xs text-muted">
-                                                    <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
-                                                    &middot; {{ __(':datum Uhr', ['datum' => $k->erstellt_am->format('d.m.Y H:i')]) }}
+                                        <div class="flex items-start gap-3">
+                                            <div class="min-w-0 flex-1">
+                                                <div @class(['truncate text-sm text-text', 'font-semibold' => $istNeu, 'font-medium' => ! $istNeu])>{{ $thema }}</div>
+                                                <div class="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+                                                    <time datetime="{{ $n->pruefungsdatum?->toDateString() }}" class="shrink-0 tabular-nums">{{ $n->pruefungsdatum?->format('d.m.Y') }}</time>
+                                                    <span aria-hidden="true">·</span>
+                                                    <span class="truncate">{{ $n->kategorie?->name ?? '–' }}</span>
+                                                    <span aria-hidden="true">·</span>
+                                                    <span class="shrink-0 tabular-nums">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
                                                 </div>
-                                                @if((int) $k->autor_benutzer_id === $viewerId || $bereich === 'admin')
-                                                    <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
-                                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                                          data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}"
-                                                                class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
-                                                    </form>
+                                                @if($vorschau)
+                                                    <p class="mt-0.5 truncate text-xs text-muted">{{ Str::limit($vorschau, 120) }}</p>
                                                 @endif
                                             </div>
-                                            <div class="whitespace-pre-line text-sm text-text">{{ $k->kommentar_text }}</div>
+                                            <div class="flex shrink-0 flex-col items-end gap-1">
+                                                <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
+                                                @if($n->kommentare->isNotEmpty())
+                                                    <span class="inline-flex items-center gap-1 text-xs tabular-nums text-muted">
+                                                        <x-symbol name="chat-bubble-oval-left" class="size-3.5" />{{ $n->kommentare->count() }}<span class="sr-only"> {{ $n->kommentare->count() === 1 ? __('Kommentar') : __('Kommentare') }}</span>
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </div>
-                                    @empty
-                                        <div class="text-sm text-muted">{{ __('Noch keine Kommentare.') }}</div>
-                                    @endforelse
-                                </div>
-
-                                <form method="POST" action="{{ route('comments.store', $n->note_id) }}"
-                                      class="flex max-w-3xl items-end gap-2 px-5 pb-4 pl-14"
-                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                    @csrf
-                                    <textarea name="kommentar_text" rows="2" maxlength="2000" required
-                                              placeholder="{{ __('Kommentar schreiben…') }}" aria-label="{{ __('Kommentar schreiben') }}"
-                                              x-on:keydown.ctrl.enter="$el.form.requestSubmit()" x-on:keydown.meta.enter="$el.form.requestSubmit()"
-                                              class="np-feld min-w-0 flex-1 resize-y"></textarea>
-                                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
-                                </form>
+                                    </div>
+                                @endforeach
                             </div>
-                        </details>
-                    @endforeach
-                </div>
-            @endif
+                        </div>
+                        @if($notes->hasPages())
+                            <div class="px-1">{{ $notes->links() }}</div>
+                        @endif
+                    </div>
 
-            @if($notes->hasPages())
-                <div class="px-1">{{ $notes->links() }}</div>
+                    {{-- Gewählte Note: so hoch wie das Fenster (höchstens wie die Liste), bleibt beim Scrollen stehen --}}
+                    <div class="self-stretch">
+                        <div x-ref="detail" class="np-karte @container sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] h-full max-h-[calc(100dvh-var(--np-symbolleiste-hoehe)-2rem)] overflow-y-auto">
+                            @foreach($notes as $n)
+                                @php
+                                    $id = (int) $n->note_id;
+                                    ['gesehen' => $gesehen, 'neu' => $istNeu, 'thema' => $thema] = $infos[$id];
+                                @endphp
+                                <article x-show="gewaehlt === {{ $id }}" @if($id !== $start) x-cloak @endif aria-labelledby="note-titel-{{ $id }}"
+                                         class="grid min-h-full @4xl:grid-cols-[minmax(0,1fr)_19rem]">
+                                    <div class="min-w-0">
+                                        <header class="flex items-start gap-6 border-b border-border px-6 py-5">
+                                            <div class="min-w-0 flex-1">
+                                                <h2 id="note-titel-{{ $id }}" class="text-lg font-semibold text-text">{{ $thema }}</h2>
+                                                <p class="mt-0.5 text-sm text-muted">
+                                                    {{ $n->kategorie?->name ?? '–' }}
+                                                    @if($n->semester_id)<span aria-hidden="true">·</span> <x-semester :id="$n->semester_id" :lernender="$lernender" />@endif
+                                                    @if($n->pruefungsdatum)<span aria-hidden="true">·</span> <time datetime="{{ $n->pruefungsdatum->toDateString() }}">{{ \App\Support\Format::date($n->pruefungsdatum) }}</time>@endif
+                                                </p>
+                                                @if($n->titel)
+                                                    <p class="mt-3 max-w-3xl break-words text-base text-text">{{ $n->titel }}</p>
+                                                @endif
+                                            </div>
+                                            <div class="flex shrink-0 flex-col items-end">
+                                                <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="hero" class="text-3xl leading-none" />
+                                                <span class="mt-1.5 text-xs tabular-nums text-muted">{{ __('Gewicht :prozent', ['prozent' => \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100)]) }}</span>
+                                            </div>
+                                        </header>
+
+                                        <section aria-labelledby="kommentare-{{ $id }}" class="flex flex-col gap-4 px-6 py-5">
+                                            <h3 id="kommentare-{{ $id }}" class="text-sm font-semibold text-text">{{ __('Kommentare') }}</h3>
+                                            @if($n->kommentare->isNotEmpty())
+                                                <ol class="flex max-w-3xl flex-col gap-4">
+                                                    @foreach($n->kommentare as $k)
+                                                        <li class="flex items-start gap-3">
+                                                            <span class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">{{ mb_strtoupper(mb_substr($k->autor?->vorname ?? '', 0, 1).mb_substr($k->autor?->nachname ?? '', 0, 1)) ?: '?' }}</span>
+                                                            <div class="min-w-0 flex-1">
+                                                                <div class="flex items-baseline gap-2">
+                                                                    <span class="truncate text-sm font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span>
+                                                                    <time datetime="{{ $k->erstellt_am->toIso8601String() }}" class="shrink-0 text-xs tabular-nums text-muted">{{ __(':datum Uhr', ['datum' => $k->erstellt_am->format('d.m.Y H:i')]) }}</time>
+                                                                    @if((int) $k->autor_benutzer_id === $viewerId || $bereich === 'admin')
+                                                                        <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}" class="ml-auto"
+                                                                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                                                              data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+                                                                            @csrf
+                                                                            @method('DELETE')
+                                                                            <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}"
+                                                                                    class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
+                                                                        </form>
+                                                                    @endif
+                                                                </div>
+                                                                <p class="mt-0.5 whitespace-pre-line break-words text-sm text-text">{{ $k->kommentar_text }}</p>
+                                                            </div>
+                                                        </li>
+                                                    @endforeach
+                                                </ol>
+                                            @else
+                                                <p class="text-sm text-muted">{{ __('Noch keine Kommentare.') }}</p>
+                                            @endif
+
+                                            <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="flex max-w-3xl items-end gap-2"
+                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                @csrf
+                                                <label for="kommentar-{{ $id }}" class="sr-only">{{ __('Kommentar schreiben') }}</label>
+                                                <textarea id="kommentar-{{ $id }}" name="kommentar_text" rows="2" maxlength="2000" required
+                                                          placeholder="{{ __('Kommentar schreiben…') }}"
+                                                          x-on:keydown.ctrl.enter="$el.form.requestSubmit()" x-on:keydown.meta.enter="$el.form.requestSubmit()"
+                                                          class="np-feld min-w-0 flex-1 resize-y"></textarea>
+                                                <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
+                                            </form>
+                                        </section>
+                                    </div>
+
+                                    {{-- Inspektor: Angaben und Aktionen --}}
+                                    <aside aria-label="{{ __('Angaben') }}" class="flex flex-col gap-5 border-t border-border px-5 py-5 @4xl:border-l @4xl:border-t-0">
+                                        <div class="flex flex-col gap-2">
+                                            @if($istNeu)
+                                                <form method="POST" action="{{ route("{$bereich}.learners.grades.seen", [$lernender->lernender_id, $n->note_id]) }}"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                    @csrf
+                                                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer w-full">{{ __('Als gesehen markieren') }}</button>
+                                                </form>
+                                            @endif
+                                            @if($darfKorrigieren)
+                                                <a href="{{ route("{$bereich}.learners.grades.edit", [$lernender->lernender_id, $n->note_id]) }}"
+                                                   class="np-knopf np-knopf-sekundaer w-full">{{ __('Korrigieren') }}</a>
+                                            @endif
+                                            @if($darfLoeschen)
+                                                <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                                      data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-gefahr w-full">{{ __('Note löschen') }}</button>
+                                                </form>
+                                            @endif
+                                        </div>
+
+                                        <dl class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-4 gap-y-1.5 text-sm">
+                                            <dt class="text-muted">{{ __('Erfasst von') }}</dt>
+                                            <dd class="text-text">{{ $n->erfasstVonBenutzer?->vorname }} {{ $n->erfasstVonBenutzer?->nachname }}</dd>
+                                            @if($n->erstellt_am)
+                                                <dt class="text-muted">{{ __('Erfasst am') }}</dt>
+                                                <dd class="tabular-nums text-text">{{ __(':datum Uhr', ['datum' => $n->erstellt_am->format('d.m.Y H:i')]) }}</dd>
+                                            @endif
+                                            @if($gesehen && ! $istNeu)
+                                                <dt class="text-muted">{{ __('Gesehen') }}</dt>
+                                                <dd class="tabular-nums text-text">{{ __(':datum Uhr', ['datum' => $gesehen->gesehen_am->format('d.m.Y H:i')]) }}</dd>
+                                            @endif
+                                        </dl>
+                                        <x-note-geaendert :note="$n" :lernender-benutzer-id="$lernender->benutzer_id" class="-mt-3" />
+                                    </aside>
+                                </article>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
             @endif
         </div>
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const offen = {{ session('opened_note') ? (int) session('opened_note') : 'null' }};
-            const el = offen && document.querySelector(`details.np-details[data-note-id="${offen}"]`);
-            if (el) {
-                el.open = true;
-                setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-            }
-        });
-    </script>
 </x-app-layout>

@@ -67,7 +67,7 @@ class MailLinksTest extends TestCase
 
         $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id]);
 
-        $trainerZielUrl = route('trainer.learners.show', $lernender->lernender_id);
+        $trainerZielUrl = route('trainer.learners.grades.index', [$lernender->lernender_id, '_open' => $note->note_id]);
         $lernenderZielUrl = route('learner.grades.index', ['_open' => $note->note_id]);
 
         $faelle = [
