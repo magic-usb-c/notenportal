@@ -15,8 +15,11 @@ class StammdatenSemesterController extends Controller
 {
     public function index()
     {
-        $semester = DB::table('semester')
-            ->orderBy('sortierung')
+        $semester = DB::table('semester as s')
+            ->select('s.*')
+            ->selectSub(DB::table('noten as n')->whereColumn('n.semester_id', 's.semester_id')
+                ->whereNull('n.geloescht_am')->selectRaw('COUNT(*)'), 'noten_anzahl')
+            ->orderBy('s.sortierung')
             ->get();
 
         return view('admin.stammdaten.semester.index', compact('semester'));
@@ -69,8 +72,9 @@ class StammdatenSemesterController extends Controller
     public function edit(int $semester_id)
     {
         $semester = DB::table('semester')->where('semester_id', $semester_id)->firstOrFail();
+        $belegt = $this->belegt($semester_id);
 
-        return view('admin.stammdaten.semester.edit', compact('semester'));
+        return view('admin.stammdaten.semester.edit', compact('semester', 'belegt'));
     }
 
     public function update(Request $request, int $semester_id): RedirectResponse
@@ -108,15 +112,20 @@ class StammdatenSemesterController extends Controller
         $semester = DB::table('semester')->where('semester_id', $semester_id)->first();
         abort_unless($semester, 404);
 
-        $belegt = DB::table('noten')->where('semester_id', $semester_id)->exists()
-            || DB::table('lernender_tracks')->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id)->exists()
-            || DB::table('dokumente')->where('semester_id', $semester_id)->exists();
-        if ($belegt) {
+        if ($this->belegt($semester_id)) {
             return back()->with('error', __('Semester «:bezeichnung» enthält Noten, Tracks oder Dokumente und bleibt bestehen.', ['bezeichnung' => $semester->bezeichnung]));
         }
 
         DB::table('semester')->where('semester_id', $semester_id)->delete();
 
         return redirect()->route('admin.master-data.semesters.index')->with('success', __('Semester «:bezeichnung» gelöscht.', ['bezeichnung' => $semester->bezeichnung]));
+    }
+
+    /** Noten (auch gelöschte, sie hängen per Fremdschlüssel daran), Tracks oder Dokumente verweisen auf das Semester. */
+    private function belegt(int $semester_id): bool
+    {
+        return DB::table('noten')->where('semester_id', $semester_id)->exists()
+            || DB::table('lernender_tracks')->where(fn ($q) => $q->where('start_semester_id', $semester_id)->orWhere('end_semester_id', $semester_id))->exists()
+            || DB::table('dokumente')->where('semester_id', $semester_id)->exists();
     }
 }

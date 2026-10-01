@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Module') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Module')">
+        <x-seitenkopf :titel="__('Module')" :zaehler="$module->count() ?: null">
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.modules.catalog') }}"
                    class="np-knopf np-knopf-sekundaer">
@@ -19,11 +19,17 @@
         $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
         $aktiveFilter = collect([$suche, $lehrberufId, $kategorieId])->filter()->count();
         $aktiveWeitere = $gruppieren !== '' ? 1 : 0;
+        $leer = $module->isEmpty() && $aktiveFilter === 0;
     @endphp
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
 
+            @if($leer)
+                <div class="np-karte">
+                    <x-leer symbol="rectangle-stack" :titel="__('Noch keine Module erfasst.')" />
+                </div>
+            @else
             <x-filterleiste :action="route('admin.master-data.modules.index')" suche-name="suche" :suche-wert="$suche"
                              :suche-platzhalter="__('Nummer oder Titel')" :aktive-filter="$aktiveFilter + $aktiveWeitere" :aktive-weitere="$aktiveWeitere"
                              :zurueck="route('admin.master-data.modules.index')">
@@ -57,16 +63,10 @@
                 @forelse($gruppen as $name => $zeilen)
                     <section class="np-karte">
                         <h3 class="px-5 pt-4 pb-1 text-sm font-semibold text-text">{{ $name }}</h3>
-                        <div class="@container overflow-x-auto px-2 pb-2">
-                            <table class="np-tabelle text-sm">
+                        <div class="px-2 pb-2">
+                            <table class="np-tabelle table-fixed text-sm">
                                 <thead>
-                                    <tr>
-                                        <th scope="col">{{ __('Nummer') }}</th>
-                                        <th scope="col">{{ __('Titel') }}</th>
-                                        <th scope="col" class="hidden text-right sm:table-cell">{{ __('Lehrberufe') }}</th>
-                                        <th scope="col" class="hidden sm:table-cell">{{ __('Status') }}</th>
-                                        <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
-                                    </tr>
+                                    @include('admin.stammdaten.module._kopf')
                                 </thead>
                                 <tbody>
                                     @foreach($zeilen as $m)
@@ -77,33 +77,21 @@
                         </div>
                     </section>
                 @empty
-                    <div class="np-karte p-6 text-center text-muted">{{ __('Keine Module gefunden.') }}</div>
+                    <div class="np-karte px-3 py-6 text-center text-sm text-muted">{{ __('Keine Module für diese Filtereinstellungen gefunden.') }}</div>
                 @endforelse
             @else
                 <div class="np-karte">
-                    <div class="@container overflow-x-auto p-2">
-                    <table class="np-tabelle text-sm">
+                    <div class="p-2">
+                    <table class="np-tabelle table-fixed text-sm">
                         <thead>
-                            <tr>
-                                <th scope="col">{{ __('Nummer') }}</th>
-                                <th scope="col">{{ __('Titel') }}</th>
-                                <th scope="col" class="hidden text-right sm:table-cell">{{ __('Lehrberufe') }}</th>
-                                <th scope="col" class="hidden sm:table-cell">{{ __('Status') }}</th>
-                                <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
-                            </tr>
+                            @include('admin.stammdaten.module._kopf')
                         </thead>
                         <tbody>
                             @forelse($module as $m)
                                 @include('admin.stammdaten.module._zeile')
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-4 py-8 text-center text-muted">
-                                        @if($aktiveFilter > 0)
-                                            {{ __('Keine Module für diese Filtereinstellungen gefunden.') }}
-                                        @else
-                                            {{ __('Noch keine Module erfasst.') }}
-                                        @endif
-                                    </td>
+                                    <td colspan="5" class="px-3 py-6 text-center text-muted">{{ __('Keine Module für diese Filtereinstellungen gefunden.') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -111,13 +99,7 @@
                 </div>
                 </div>
             @endif
-
-            <p class="text-xs text-muted px-1">
-                {{ __('Module werden über die') }}
-                <a href="{{ route('admin.master-data.professions.index') }}" class="text-accent-text underline underline-offset-2">{{ __('Lehrberuf-Detailseite') }}</a>
-                {{ __('einem Lehrberuf zugewiesen.') }}
-            </p>
-
+            @endif
         </div>
     </div>
 </x-app-layout>

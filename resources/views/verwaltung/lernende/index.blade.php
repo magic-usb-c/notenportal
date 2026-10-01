@@ -129,12 +129,12 @@
                                     $tagSeit = $tageSeit($z);
                                     $zielUrl = route("{$bereich}.learners.show", $l->lernender_id);
                                 @endphp
-                                <tr class="cursor-pointer {{ $l->benutzer->aktiv ? '' : 'opacity-60' }}" onclick="window.location='{{ $zielUrl }}'">
+                                <tr data-href="{{ $zielUrl }}">
                                     <td>
                                         <div class="flex min-w-0 items-center gap-3">
                                             <span class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">{{ mb_strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1)) ?: '?' }}</span>
                                             <div class="min-w-0">
-                                                <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="font-medium text-text hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                                <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="font-medium {{ $l->benutzer->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
                                                 {{-- Bei einer Suche zeigt die Adresse, warum die Person trifft --}}
                                                 @if($filter['suche'] !== '')
                                                     <div class="truncate text-xs text-muted">{{ $l->benutzer->email }}</div>
@@ -157,7 +157,7 @@
                                     <td>
                                         <div class="flex flex-wrap gap-1">@include('verwaltung.lernende._status')</div>
                                     </td>
-                                    <td class="text-right" onclick="event.stopPropagation()">
+                                    <td class="text-right">
                                         <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}"
                                            aria-label="{{ __('Noten von :name', ['name' => $z->vorname.' '.$z->nachname]) }}"
                                            class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Noten') }}</a>

@@ -1,10 +1,13 @@
+{{-- Semesterplan: das laufende Semester markiert, vergangene zurückgenommen; die ganze Zeile öffnet das Semester,
+     Löschen liegt im Semester selbst. --}}
+@use('App\Models\Semester')
+@php $heute = now()->toDateString(); @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Semester') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Semester')">
+        <x-seitenkopf :titel="__('Semester')" :zaehler="$semester->count() ?: null">
             <x-slot:aktionen>
-                <a href="{{ route('admin.master-data.semesters.create') }}"
-                   class="np-knopf np-knopf-primaer">
+                <a href="{{ route('admin.master-data.semesters.create') }}" class="np-knopf np-knopf-primaer">
                     <x-symbol name="plus" strich="2" />{{ __('Neues Semester') }}
                 </a>
             </x-slot:aktionen>
@@ -12,64 +15,51 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
-
-            <div class="np-karte @container overflow-hidden">
-                <div class="overflow-x-auto p-2">
-                <table class="np-tabelle text-sm">
-                    <thead>
-                        <tr>
-                            <th scope="col">{{ __('Bezeichnung') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Neutraler Name') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Von') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Bis') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell text-right">{{ __('Sortierung') }}</th>
-                            <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $today = now()->toDateString(); @endphp
-                        @forelse($semester as $s)
-                            @php
-                                $isAktiv = $s->start_datum <= $today && $s->end_datum >= $today;
-                            @endphp
-                            <tr class="group {{ $isAktiv ? 'bg-accent/5' : '' }}">
-                                <td class="font-semibold text-text">
-                                    {{ $s->bezeichnung }}
-                                    @if($isAktiv)
-                                        <span class="ml-2 np-marke bg-accent/12 text-accent-text">{{ __('aktuell') }}</span>
-                                    @endif
-                                    <span class="block text-xs font-normal text-muted @3xl:hidden">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</span>
-                                </td>
-                                <td class="hidden @3xl:table-cell text-muted">{{ \App\Models\Semester::neutralerName($s->start_datum) }}</td>
-                                <td class="hidden @3xl:table-cell text-muted">{{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }}</td>
-                                <td class="hidden @3xl:table-cell text-muted">{{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}</td>
-                                <td class="hidden @3xl:table-cell text-right text-muted">{{ $s->sortierung }}</td>
-                                <td class="text-right">
-                                    <div class="flex flex-col items-end justify-end gap-1 sm:flex-row sm:items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
-                                        <a href="{{ route('admin.master-data.semesters.edit', $s->semester_id) }}"
-                                           class="np-knopf np-knopf-schlicht">{{ __('Bearbeiten') }}</a>
-                                        <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $s->semester_id) }}" class="inline"
-                                              data-bestaetigen="{{ __('Semester :bezeichnung löschen?', ['bezeichnung' => $s->bezeichnung]) }}"
-                                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                            @csrf @method('DELETE')
-                                            <button :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+            @if($semester->isEmpty())
+                <div class="np-karte">
+                    <x-leer symbol="calendar" :titel="__('Noch keine Semester erfasst.')" />
+                </div>
+            @else
+                <div class="np-karte p-2">
+                    <table class="np-tabelle table-fixed text-sm">
+                        <thead>
                             <tr>
-                                <td colspan="6" class="px-4 py-8 text-center text-muted">
-                                    {{ __('Noch keine Semester erfasst.') }}
-                                </td>
+                                <th scope="col" class="w-48">{{ __('Bezeichnung') }}</th>
+                                <th scope="col" class="w-48">{{ __('Semester') }}</th>
+                                <th scope="col">{{ __('Zeitraum') }}</th>
+                                <th scope="col" class="w-28 text-right">{{ __('Noten') }}</th>
+                                <th scope="col" class="w-32"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            </div>
-
+                        </thead>
+                        <tbody>
+                            @foreach($semester as $s)
+                                @php
+                                    $ziel = route('admin.master-data.semesters.edit', $s->semester_id);
+                                    $aktuell = $s->start_datum <= $heute && $s->end_datum >= $heute;
+                                    $vorbei = $s->end_datum < $heute;
+                                @endphp
+                                <tr data-href="{{ $ziel }}" @if($aktuell) aria-current="date" @endif>
+                                    <td>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ $ziel }}" class="font-semibold {{ $vorbei ? 'text-muted' : 'text-text' }} hover:text-accent-text">{{ $s->bezeichnung }}</a>
+                                            @if($aktuell)<span class="np-marke bg-accent/12 text-accent-text">{{ __('Aktuell') }}</span>@endif
+                                        </div>
+                                    </td>
+                                    <td class="{{ $vorbei ? 'text-muted' : 'text-text' }}">{{ Semester::neutralerName($s->start_datum) ?? '–' }}</td>
+                                    <td class="tabular-nums text-muted">
+                                        {{ \Carbon\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Carbon\Carbon::parse($s->end_datum)->format('d.m.Y') }}
+                                    </td>
+                                    <td class="text-right {{ $s->noten_anzahl > 0 ? 'text-text' : 'text-muted' }}">{{ $s->noten_anzahl }}</td>
+                                    <td class="text-right">
+                                        <x-zeilen-link :href="$ziel" :zeile="$s->bezeichnung" />
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

@@ -56,7 +56,7 @@
                                     $zielUrl = $b->lernender_id ? route('admin.learners.show', $b->lernender_id) : route('admin.users.edit', $b->benutzer_id);
                                     $name = trim($b->nachname.' '.$b->vorname);
                                 @endphp
-                                <tr class="cursor-pointer" onclick="window.location='{{ $zielUrl }}'">
+                                <tr data-href="{{ $zielUrl }}">
                                     <td>
                                         <div class="flex min-w-0 items-center gap-3">
                                             <span class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">{{ mb_strtoupper(mb_substr($b->vorname ?? '', 0, 1).mb_substr($b->nachname ?? '', 0, 1)) ?: '?' }}</span>
@@ -83,7 +83,7 @@
                                             <x-status status="neutral" :text="__('Inaktiv')" />
                                         @endif
                                     </td>
-                                    <td class="text-right" onclick="event.stopPropagation()">
+                                    <td class="text-right">
                                         <x-zeilen-link :href="$zielUrl" :label="$b->lernender_id ? __('Profil') : __('Bearbeiten')" :zeile="$name" />
                                     </td>
                                 </tr>

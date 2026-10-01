@@ -4,7 +4,7 @@ import Alpine from 'alpinejs';
 import { registriereBestaetigung } from './bestaetigung';
 import { registriereCharts } from './charts';
 import { registriereFeedback } from './feedback';
-import { kopieren, registriereFormhilfen, registriereRadiogroup, registriereScrollbereiche, registriereSeitenleiste, registriereToast, t } from './np';
+import { kopieren, registriereFormhilfen, registriereRadiogroup, registriereScrollbereiche, registriereSeitenleiste, registriereToast, registriereZeilenLinks, t } from './np';
 import { registrierePwa } from './pwa';
 import { registriereRechner } from './rechner';
 import { registriereSitzung } from './sitzung';
@@ -27,6 +27,7 @@ registriereRechner(Alpine);
 registriereSuche(Alpine);
 registriereTastenkuerzel(Alpine);
 registriereScrollbereiche();
+registriereZeilenLinks();
 registrierePwa();
 registriereSitzung();
 

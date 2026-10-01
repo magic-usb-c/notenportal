@@ -1,10 +1,10 @@
+{{-- Fächer: aktive zuerst, nach Kategorie und Name; die ganze Zeile öffnet das Fach. --}}
 <x-app-layout>
     <x-slot name="title">{{ __('Fächer') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Fächer')">
+        <x-seitenkopf :titel="__('Fächer')" :zaehler="$faecher->count() ?: null">
             <x-slot:aktionen>
-                <a href="{{ route('admin.master-data.subjects.create') }}"
-                   class="np-knopf np-knopf-primaer">
+                <a href="{{ route('admin.master-data.subjects.create') }}" class="np-knopf np-knopf-primaer">
                     <x-symbol name="plus" strich="2" />{{ __('Neues Fach') }}
                 </a>
             </x-slot:aktionen>
@@ -12,68 +12,51 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
-
-            <div class="np-karte @container overflow-hidden">
-                <div class="overflow-x-auto p-2">
-                <table class="np-tabelle text-sm">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Kürzel') }}</th>
-                            <th scope="col">{{ __('Name') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Kategorie') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Track') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell text-right">{{ __('Lehrberufe') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Status') }}</th>
-                            <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($faecher as $f)
-                            <tr class="group">
-                                <td class="hidden @3xl:table-cell font-semibold text-text">{{ $f->kurzname }}</td>
-                                <td class="text-text">
-                                    <span class="block tabular-nums text-xs font-semibold text-muted @3xl:hidden">{{ $f->kurzname }}</span>
-                                    {{ $f->name }}
-                                    @if($f->skala === 'stufe')<span class="ml-1.5 np-marke text-muted">{{ __('Stufe') }}</span>@endif
-                                    @unless($f->zaehlt)<span class="ml-1.5 text-xs text-muted">{{ __('zählt nicht') }}</span>@endunless
-                                    <span class="block text-xs text-muted @3xl:hidden">{{ $f->kategorie_name }}@unless($f->aktiv) · {{ __('inaktiv') }}@endunless</span>
-                                </td>
-                                <td class="hidden @3xl:table-cell text-muted">{{ $f->kategorie_name }}</td>
-                                <td class="hidden @3xl:table-cell">
-                                    @if($f->track_typ)
-                                        <span class="np-marke">
-                                            {{ $f->track_typ }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-muted">–</span>
-                                    @endif
-                                </td>
-                                <td class="hidden @3xl:table-cell text-right text-muted">{{ $f->lehrberuf_count }}</td>
-                                <td class="hidden @3xl:table-cell">
-                                    @if($f->aktiv)
-                                        <span class="text-xs text-muted">{{ __('aktiv') }}</span>
-                                    @else
-                                        <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
-                                    @endif
-                                </td>
-                                <td class="text-right">
-                                    <x-zeilen-link :href="route('admin.master-data.subjects.edit', $f->fach_id)" :zeile="$f->name"
-                                                   class="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100" />
-                                </td>
-                            </tr>
-                        @empty
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+            @if($faecher->isEmpty())
+                <div class="np-karte">
+                    <x-leer symbol="book-open" :titel="__('Noch keine Fächer erfasst.')" />
+                </div>
+            @else
+                <div class="np-karte p-2">
+                    <table class="np-tabelle table-fixed text-sm">
+                        <thead>
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-muted">
-                                    {{ __('Noch keine Fächer erfasst.') }}
-                                </td>
+                                <th scope="col" class="w-28">{{ __('Kürzel') }}</th>
+                                <th scope="col">{{ __('Name') }}</th>
+                                <th scope="col" class="w-52">{{ __('Kategorie') }}</th>
+                                <th scope="col" class="w-28">{{ __('Track') }}</th>
+                                <th scope="col" class="w-28 text-right">{{ __('Lehrberufe') }}</th>
+                                <th scope="col" class="w-28 text-right">{{ __('Noten') }}</th>
+                                <th scope="col" class="w-32"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            </div>
-
+                        </thead>
+                        <tbody>
+                            @foreach($faecher as $f)
+                                @php($ziel = route('admin.master-data.subjects.edit', $f->fach_id))
+                                <tr data-href="{{ $ziel }}">
+                                    <td class="font-semibold {{ $f->aktiv ? 'text-text' : 'text-muted' }}">{{ $f->kurzname }}</td>
+                                    <td>
+                                        <div class="flex min-w-0 items-center gap-2">
+                                            <a href="{{ $ziel }}" class="truncate {{ $f->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $f->name }}</a>
+                                            @if($f->skala === 'stufe')<span class="np-marke shrink-0 text-muted">{{ __('Stufe') }}</span>@endif
+                                            @unless($f->zaehlt)<span class="np-marke shrink-0 text-muted">{{ __('zählt nicht') }}</span>@endunless
+                                            @unless($f->aktiv)<span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>@endunless
+                                        </div>
+                                    </td>
+                                    <td class="truncate text-muted">{{ $f->kategorie_name ?? '–' }}</td>
+                                    <td class="text-muted">{{ $f->track_typ ?? '–' }}</td>
+                                    <td class="text-right {{ $f->lehrberuf_count > 0 ? 'text-text' : 'text-muted' }}">{{ $f->lehrberuf_count }}</td>
+                                    <td class="text-right {{ $f->noten_count > 0 ? 'text-text' : 'text-muted' }}">{{ $f->noten_count }}</td>
+                                    <td class="text-right">
+                                        <x-zeilen-link :href="$ziel" :zeile="$f->name" />
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

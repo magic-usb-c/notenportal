@@ -14,8 +14,19 @@ class StammdatenLehrberufeController extends Controller
 {
     public function index()
     {
-        $lehrberufe = DB::table('lehrberufe')
-            ->orderBy('name')
+        // Zähler je Lehrberuf: aktive Lernende (Konto aktiv), aktive Modul- und Fachzuordnungen
+        $anzahl = fn (string $tabelle) => DB::table($tabelle)->whereColumn("{$tabelle}.lehrberuf_id", 'lb.lehrberuf_id')
+            ->where("{$tabelle}.aktiv", true)->selectRaw('COUNT(*)');
+
+        $lehrberufe = DB::table('lehrberufe as lb')
+            ->select(['lb.lehrberuf_id', 'lb.kuerzel', 'lb.name', 'lb.aktiv'])
+            ->selectSub(DB::table('lernende as l')->join('benutzer as b', 'b.benutzer_id', '=', 'l.benutzer_id')
+                ->whereColumn('l.lehrberuf_id', 'lb.lehrberuf_id')->whereNull('l.geloescht_am')->whereNull('b.geloescht_am')
+                ->where('b.aktiv', true)->selectRaw('COUNT(*)'), 'lernende_anzahl')
+            ->selectSub($anzahl('lehrberuf_module'), 'module_anzahl')
+            ->selectSub($anzahl('lehrberuf_faecher'), 'faecher_anzahl')
+            ->orderByDesc('lb.aktiv')
+            ->orderBy('lb.name')
             ->get();
 
         return view('admin.stammdaten.lehrberufe.index', compact('lehrberufe'));

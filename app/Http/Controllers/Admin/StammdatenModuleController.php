@@ -33,9 +33,13 @@ class StammdatenModuleController extends Controller
         $module = DB::table('module as m')
             ->select([
                 'm.modul_id', 'm.modul_nummer', 'm.titel', $versionSpalte, 'm.aktiv',
-                DB::raw('COUNT(DISTINCT lbm.lehrberuf_id) as lehrberuf_count'),
+                // Kürzel der Lehrberufe und Lernorte aller Zuordnungen – auch bei einem Lehrberuf-Filter, der nur auswählt
+                DB::raw("GROUP_CONCAT(DISTINCT lbz.kuerzel ORDER BY lbz.kuerzel SEPARATOR ', ') as lehrberufe"),
+                DB::raw("GROUP_CONCAT(DISTINCT kz.name ORDER BY kz.name SEPARATOR ', ') as lernorte"),
             ])
             ->leftJoin('lehrberuf_module as lbm', 'lbm.modul_id', '=', 'm.modul_id')
+            ->leftJoin('lehrberufe as lbz', 'lbz.lehrberuf_id', '=', 'lbm.lehrberuf_id')
+            ->leftJoin('kategorien as kz', 'kz.kategorie_id', '=', 'lbm.kategorie_id')
             ->when($lehrberufId, fn ($q, $id) => $q->leftJoin('lehrberuf_module as lbv', fn ($j) => $j
                 ->on('lbv.modul_id', '=', 'm.modul_id')->where('lbv.lehrberuf_id', $id)))
             ->when($suche !== '', function ($q) use ($suche) {

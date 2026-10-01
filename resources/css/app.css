@@ -1163,6 +1163,9 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   & :where(tbody tr:hover) > * {
     background-color: rgb(var(--text) / 0.06);
   }
+  & :where(tbody tr[data-href]) {
+    cursor: pointer;
+  }
   & :where(tbody tr) > :first-child {
     border-start-start-radius: var(--radius-lg);
     border-end-start-radius: var(--radius-lg);

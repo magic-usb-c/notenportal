@@ -52,6 +52,20 @@
                     <x-formular-aktionen :abbrechen="route('admin.master-data.semesters.index')">{{ __('Änderungen speichern') }}</x-formular-aktionen>
                 </form>
             </div>
+
+            <div class="np-karte mt-6 max-w-3xl p-6">
+                @if($belegt)
+                    <p class="text-sm text-muted">{{ __('Das Semester enthält Noten, Tracks oder Dokumente und kann nicht gelöscht werden.') }}</p>
+                @else
+                    <form method="POST" action="{{ route('admin.master-data.semesters.destroy', $semester->semester_id) }}"
+                          data-bestaetigen="{{ __('Semester :bezeichnung löschen?', ['bezeichnung' => $semester->bezeichnung]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Semester löschen') }}</button>
+                    </form>
+                @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

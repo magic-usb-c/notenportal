@@ -2,6 +2,9 @@
     <x-slot name="title">{{ __('Lehrberuf') }}</x-slot>
     <x-slot name="header">
         <x-seitenkopf :zurueck="route('admin.master-data.professions.index')" :titel="$lehrberuf->name" :untertitel="$lehrberuf->kuerzel">
+            <x-slot:aktionen>
+                <a href="{{ route('admin.master-data.professions.edit', $lehrberuf->lehrberuf_id) }}" class="np-knopf np-knopf-sekundaer">{{ __('Bearbeiten') }}</a>
+            </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
 

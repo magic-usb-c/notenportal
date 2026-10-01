@@ -15,7 +15,15 @@ class StammdatenKategorieController extends Controller
 {
     public function index()
     {
-        $kategorien = DB::table('kategorien')->orderBy('sortierung')->get();
+        $kategorien = DB::table('kategorien as k')
+            ->select('k.*')
+            ->selectSub(DB::table('faecher as f')->whereColumn('f.kategorie_id', 'k.kategorie_id')
+                ->where('f.aktiv', true)->selectRaw('COUNT(*)'), 'faecher_anzahl')
+            ->selectSub(DB::table('lehrberuf_module as lbm')->whereColumn('lbm.kategorie_id', 'k.kategorie_id')
+                ->where('lbm.aktiv', true)->selectRaw('COUNT(DISTINCT lbm.modul_id)'), 'module_anzahl')
+            ->orderByDesc('k.aktiv')
+            ->orderBy('k.sortierung')
+            ->get();
 
         return view('admin.stammdaten.kategorien.index', compact('kategorien'));
     }

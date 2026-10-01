@@ -432,3 +432,28 @@ export function registriereSeitenleiste(Alpine) {
         },
     }));
 }
+
+// Tabellenzeilen mit data-href öffnen ihr Ziel bei einem Klick irgendwo in der Zeile, wie eine Liste in macOS.
+// Bedienelemente der Zeile behalten ihren eigenen Klick, markierter Text bleibt markierbar, Ctrl-/Cmd- und
+// Mittelklick öffnen wie bei einem Link einen neuen Tab. Tastatur und Screenreader erreichen das Ziel über
+// den Link in der Zeile – data-href ist nur die grössere Trefferfläche für die Maus.
+export function registriereZeilenLinks() {
+    const ziel = (ev) => {
+        const zeile = ev.target.closest?.('tr[data-href]');
+        if (!zeile || ev.target.closest('a, button, input, select, textarea, label, summary, [data-zeile-ignorieren]')) return null;
+        if (window.getSelection()?.toString()) return null;
+        return zeile.dataset.href;
+    };
+    document.addEventListener('click', (ev) => {
+        if (ev.button !== 0 || ev.defaultPrevented) return;
+        const href = ziel(ev);
+        if (!href) return;
+        if (ev.ctrlKey || ev.metaKey || ev.shiftKey) window.open(href, '_blank', 'noopener');
+        else window.location.assign(href);
+    });
+    document.addEventListener('auxclick', (ev) => {
+        if (ev.button !== 1) return;
+        const href = ziel(ev);
+        if (href) window.open(href, '_blank', 'noopener');
+    });
+}

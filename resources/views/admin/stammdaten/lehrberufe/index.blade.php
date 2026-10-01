@@ -1,10 +1,11 @@
+{{-- Lehrberufe: die ganze Zeile öffnet Module und Fächer des Berufs, «Bearbeiten» Kürzel, Name und Status.
+     Die Zahl der Lernenden führt in die gefilterte Lernendenliste. --}}
 <x-app-layout>
     <x-slot name="title">{{ __('Lehrberufe') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Lehrberufe')">
+        <x-seitenkopf :titel="__('Lehrberufe')" :zaehler="$lehrberufe->count() ?: null">
             <x-slot:aktionen>
-                <a href="{{ route('admin.master-data.professions.create') }}"
-                   class="np-knopf np-knopf-primaer">
+                <a href="{{ route('admin.master-data.professions.create') }}" class="np-knopf np-knopf-primaer">
                     <x-symbol name="plus" strich="2" />{{ __('Neuer Lehrberuf') }}
                 </a>
             </x-slot:aktionen>
@@ -12,57 +13,55 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
-
-            <div class="np-karte @container overflow-hidden">
-                <div class="overflow-x-auto p-2">
-                <table class="np-tabelle text-sm">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Kürzel') }}</th>
-                            <th scope="col">{{ __('Name') }}</th>
-                            <th scope="col" class="hidden @3xl:table-cell">{{ __('Status') }}</th>
-                            <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($lehrberufe as $lb)
-                            <tr class="group">
-                                <td class="hidden @3xl:table-cell font-semibold text-text">{{ $lb->kuerzel }}</td>
-                                <td class="text-text">
-                                    <span class="block tabular-nums text-xs font-semibold text-muted @3xl:hidden">{{ $lb->kuerzel }}</span>
-                                    {{ $lb->name }}
-                                    @unless($lb->aktiv)
-                                        <span class="block text-xs text-muted @3xl:hidden">{{ __('inaktiv') }}</span>
-                                    @endunless
-                                </td>
-                                <td class="hidden @3xl:table-cell">
-                                    @if($lb->aktiv)
-                                        <span class="text-xs text-muted">{{ __('aktiv') }}</span>
-                                    @else
-                                        <span class="np-marke text-muted">{{ __('inaktiv') }}</span>
-                                    @endif
-                                </td>
-                                <td class="text-right">
-                                    <div class="flex flex-col items-end justify-end gap-1 @xl:flex-row @xl:items-center @xl:gap-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
-                                        <x-zeilen-link :href="route('admin.master-data.professions.edit', $lb->lehrberuf_id)" :zeile="$lb->name" />
-                                        <a href="{{ route('admin.master-data.professions.show', $lb->lehrberuf_id) }}"
-                                           class="inline-flex min-h-6 items-center text-right text-sm text-accent-text hover:underline @xl:whitespace-nowrap">{{ __('Module & Fächer') }}</a>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+            @if($lehrberufe->isEmpty())
+                <div class="np-karte">
+                    <x-leer symbol="briefcase" :titel="__('Noch keine Lehrberufe erfasst.')" />
+                </div>
+            @else
+                <div class="np-karte p-2">
+                    <table class="np-tabelle table-fixed text-sm">
+                        <thead>
                             <tr>
-                                <td colspan="4" class="px-4 py-8 text-center text-muted">
-                                    {{ __('Noch keine Lehrberufe erfasst.') }}
-                                </td>
+                                <th scope="col" class="w-32">{{ __('Kürzel') }}</th>
+                                <th scope="col">{{ __('Name') }}</th>
+                                <th scope="col" class="w-32 text-right">{{ __('Lernende') }}</th>
+                                <th scope="col" class="w-32 text-right">{{ __('Module') }}</th>
+                                <th scope="col" class="w-32 text-right">{{ __('Fächer') }}</th>
+                                <th scope="col" class="w-32"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            </div>
-
+                        </thead>
+                        <tbody>
+                            @foreach($lehrberufe as $lb)
+                                @php($ziel = route('admin.master-data.professions.show', $lb->lehrberuf_id))
+                                <tr data-href="{{ $ziel }}">
+                                    <td class="font-semibold {{ $lb->aktiv ? 'text-text' : 'text-muted' }}">{{ $lb->kuerzel }}</td>
+                                    <td>
+                                        <div class="flex min-w-0 items-center gap-2">
+                                            <a href="{{ $ziel }}" class="truncate {{ $lb->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $lb->name }}</a>
+                                            @unless($lb->aktiv)<span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>@endunless
+                                        </div>
+                                    </td>
+                                    <td class="text-right">
+                                        @if($lb->lernende_anzahl > 0)
+                                            <a href="{{ route('admin.learners.index', ['lehrberuf_id' => $lb->lehrberuf_id]) }}"
+                                               aria-label="{{ __('Lernende im Lehrberuf :name', ['name' => $lb->name]) }}"
+                                               class="inline-flex min-h-6 items-center text-text hover:text-accent-text">{{ $lb->lernende_anzahl }}</a>
+                                        @else
+                                            <span class="text-muted">0</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-right {{ $lb->module_anzahl > 0 ? 'text-text' : 'text-muted' }}">{{ $lb->module_anzahl }}</td>
+                                    <td class="text-right {{ $lb->faecher_anzahl > 0 ? 'text-text' : 'text-muted' }}">{{ $lb->faecher_anzahl }}</td>
+                                    <td class="text-right">
+                                        <x-zeilen-link :href="route('admin.master-data.professions.edit', $lb->lehrberuf_id)" :zeile="$lb->name" />
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
