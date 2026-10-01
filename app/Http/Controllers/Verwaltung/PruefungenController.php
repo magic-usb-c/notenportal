@@ -55,9 +55,9 @@ class PruefungenController extends VerwaltungController
             default => self::TAGE_VORAUS,
         };
 
-        $pruefungen = Pruefung::query()
+        // Termine aller sichtbaren Lernenden im Zeitraum: die Liste zeigt die gewählte Person, die Seitenleiste zählt für alle
+        $alle = Pruefung::query()
             ->whereIn('lernender_id', $ids ?: [0])
-            ->when($filter['lernender_id'], fn ($q, $id) => $q->where('lernender_id', $id))
             ->where(function ($q) use ($heute, $tageVoraus) {
                 $q->whereBetween('datum', [$heute->toDateString(), $heute->addDays($tageVoraus)->toDateString()])
                     ->orWhere(fn ($q2) => $q2
@@ -67,6 +67,16 @@ class PruefungenController extends VerwaltungController
             ->with(['fach', 'modul', 'lernender.benutzer', 'note'])
             ->orderBy('datum')->orderBy('uhrzeit')
             ->get();
+        $pruefungen = $filter['lernender_id'] !== null
+            ? $alle->where('lernender_id', $filter['lernender_id'])->values()
+            : $alle;
+        $fehlt = $alle->filter(fn (Pruefung $p) => $this->zustand($p, $heute) === 'fehlt')->countBy('lernender_id');
+        $proLernendem = $alle->countBy('lernender_id');
+        $lernende = $lernendeOptionen->map(fn (Lernender $l) => [
+            'lernender' => $l,
+            'anzahl' => $proLernendem->get($l->lernender_id, 0),
+            'fehlt' => $fehlt->get($l->lernender_id, 0),
+        ]);
 
         // Abgabetermine (art=abgabe) pflegen: nur möglich, sobald ein einzelner Lernender gefiltert ist
         // (Fach/Modul-Auswahl hängt vom Lehrberuf/Track ab) und erst nach der Migration der art-Spalte.
@@ -78,8 +88,10 @@ class PruefungenController extends VerwaltungController
         return view('verwaltung.pruefungen.index', [
             'gruppen' => $this->gruppieren($pruefungen, $heute),
             'anzahl' => $pruefungen->count(),
+            'anzahlAlle' => $alle->count(),
+            'fehltAlle' => $fehlt->sum(),
             'filter' => $filter,
-            'lernendeOptionen' => $lernendeOptionen,
+            'lernende' => $lernende,
             'bereich' => $this->bereich($request),
             'abgabeMoeglich' => $abgabeMoeglich,
             'bezugOptionen' => $abgabeMoeglich ? $this->noteService->bezugOptionen($filter['lernender_id']) : [],
@@ -90,12 +102,12 @@ class PruefungenController extends VerwaltungController
     /**
      * Prüfungen nach «kürzlich vergangen», dieser/nächster Woche und danach nach Monat gruppiert.
      *
-     * @return Collection<int, array{label: string, zeilen: Collection}>
+     * @return Collection<int, array{label: string, fehlt: bool, zeilen: Collection}>
      */
     private function gruppieren(Collection $pruefungen, CarbonImmutable $heute): Collection
     {
         $datum = fn (Pruefung $p) => CarbonImmutable::parse($p->datum->toDateString());
-        $mitStatus = fn (Collection $c) => $c->map(fn (Pruefung $p) => ['pruefung' => $p, 'status' => $this->status($p, $heute, $datum($p))])->values();
+        $mitStatus = fn (Collection $c) => $c->map(fn (Pruefung $p) => ['pruefung' => $p, 'datum' => $datum($p), 'zustand' => $this->zustand($p, $heute)])->values();
 
         $vergangen = $pruefungen->filter(fn (Pruefung $p) => $datum($p)->lt($heute))->values();
         $kommend = $pruefungen->filter(fn (Pruefung $p) => $datum($p)->gte($heute))->values();
@@ -105,40 +117,36 @@ class PruefungenController extends VerwaltungController
 
         $gruppen = collect();
         if ($vergangen->isNotEmpty()) {
-            $gruppen->push(['label' => __('Kürzlich vergangen, ohne Note'), 'zeilen' => $mitStatus($vergangen)]);
+            $gruppen->push(['label' => __('Kürzlich vergangen, ohne Note'), 'fehlt' => true, 'zeilen' => $mitStatus($vergangen)]);
         }
 
         $dieseWoche = $kommend->filter(fn (Pruefung $p) => $datum($p)->lte($endeDieseWoche))->values();
         if ($dieseWoche->isNotEmpty()) {
-            $gruppen->push(['label' => __('Diese Woche'), 'zeilen' => $mitStatus($dieseWoche)]);
+            $gruppen->push(['label' => __('Diese Woche'), 'fehlt' => false, 'zeilen' => $mitStatus($dieseWoche)]);
         }
 
         $naechsteWoche = $kommend->filter(fn (Pruefung $p) => $datum($p)->gt($endeDieseWoche) && $datum($p)->lte($endeNaechsteWoche))->values();
         if ($naechsteWoche->isNotEmpty()) {
-            $gruppen->push(['label' => __('Nächste Woche · KW :kw', ['kw' => $heute->addWeek()->isoWeek()]), 'zeilen' => $mitStatus($naechsteWoche)]);
+            $gruppen->push(['label' => __('Nächste Woche · KW :kw', ['kw' => $heute->addWeek()->isoWeek()]), 'fehlt' => false, 'zeilen' => $mitStatus($naechsteWoche)]);
         }
 
         $spaeter = $kommend->filter(fn (Pruefung $p) => $datum($p)->gt($endeNaechsteWoche))->groupBy(fn (Pruefung $p) => $datum($p)->format('Y-m'));
         foreach ($spaeter as $monatSchluessel => $zeilen) {
-            $gruppen->push(['label' => Format::date(CarbonImmutable::parse($monatSchluessel.'-01'), 'monat_jahr'), 'zeilen' => $mitStatus($zeilen->values())]);
+            $gruppen->push(['label' => Format::date(CarbonImmutable::parse($monatSchluessel.'-01'), 'monat_jahr'), 'fehlt' => false, 'zeilen' => $mitStatus($zeilen->values())]);
         }
 
         return $gruppen;
     }
 
-    /** @return array{label: string, klasse: string} */
-    private function status(Pruefung $p, CarbonImmutable $heute, CarbonImmutable $datum): array
+    /** abgesagt, benotet, fehlt (vergangen ohne Note) oder offen */
+    private function zustand(Pruefung $p, CarbonImmutable $heute): string
     {
-        if ($p->abgesagt_am) {
-            return ['label' => __('Abgesagt'), 'klasse' => 'bg-surface-2 text-muted'];
-        }
-        if ($p->note) {
-            return ['label' => __('Note erfasst'), 'klasse' => 'bg-surface-2 text-text'];
-        }
-
-        return $datum->lt($heute)
-            ? ['label' => __('Note fehlt'), 'klasse' => 'bg-note-knapp/14 text-note-knapp']
-            : ['label' => __('Offen'), 'klasse' => 'bg-surface-2 text-muted'];
+        return match (true) {
+            $p->abgesagt_am !== null => 'abgesagt',
+            $p->note !== null => 'benotet',
+            CarbonImmutable::parse($p->datum->toDateString())->lt($heute) => 'fehlt',
+            default => 'offen',
+        };
     }
 
     /** Neuer Abgabetermin (art=abgabe) für einen sichtbaren Lernenden. */

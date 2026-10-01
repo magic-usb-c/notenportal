@@ -1,13 +1,7 @@
 @php
     $heute = \Carbon\CarbonImmutable::today();
     $tage = (int) $heute->diffInDays($e['datum'], false);
-    $wann = match (true) {
-        $tage === 0 => __('heute'),
-        $tage === 1 => __('morgen'),
-        $tage === -1 => __('gestern'),
-        $tage > 1 => __('in :anzahl Tagen', ['anzahl' => $tage]),
-        default => __('vor :anzahl Tagen', ['anzahl' => abs($tage)]),
-    };
+    $wann = \App\Support\Format::wann($e['datum']);
     $p = $e['pruefung'];
     // Zweite Zeile: Wochentag und Zeit, bei Prüfungen Art und Dauer, sonst Ort bzw. Herkunft
     $details = array_filter($p ? [

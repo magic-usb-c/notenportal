@@ -126,6 +126,31 @@ class PruefungenControllerTest extends TestCase
     }
 
     #[Test]
+    public function seitenleiste_zaehlt_termine_und_fehlende_noten_je_lernendem_unabhaengig_vom_filter(): void
+    {
+        $anna = $this->neuerLernender(['vorname' => 'Anna', 'nachname' => 'Erst']);
+        $beat = $this->neuerLernender(['vorname' => 'Beat', 'nachname' => 'Zweit']);
+        $bb = User::factory()->berufsbildner()->create();
+        $this->betreue($bb, $anna);
+        $this->betreue($bb, $beat);
+        $this->pruefung($anna->lernender_id, ['datum' => now()->subDays(3)->toDateString()]);
+        $this->pruefung($anna->lernender_id, ['datum' => now()->subDays(2)->toDateString(), 'abgesagt_am' => now()]);
+        $this->pruefung($anna->lernender_id);
+        $this->pruefung($beat->lernender_id);
+
+        foreach ([null, $beat->lernender_id] as $filter) {
+            $antwort = $this->actingAs($bb)->get(route('trainer.exams.index', array_filter(['lernender_id' => $filter])))->assertOk();
+            $zaehler = $antwort->viewData('lernende')->mapWithKeys(fn ($e) => [$e['lernender']->lernender_id => [$e['anzahl'], $e['fehlt']]]);
+
+            // Abgesagte Termine zählen als Termin, aber nicht als fehlende Note
+            $this->assertSame([3, 1], $zaehler[$anna->lernender_id]);
+            $this->assertSame([1, 0], $zaehler[$beat->lernender_id]);
+            $this->assertSame([4, 1], [$antwort->viewData('anzahlAlle'), $antwort->viewData('fehltAlle')]);
+            $this->assertSame($filter ? 1 : 4, $antwort->viewData('anzahl'));
+        }
+    }
+
+    #[Test]
     #[DataProvider('verwalterRollen')]
     public function filter_zeitraum_blendet_weiter_entfernte_pruefungen_aus(string $bereich): void
     {

@@ -47,6 +47,20 @@ final class Format
         return $datum->copy()->locale(self::locale())->translatedFormat($format);
     }
 
+    /** Abstand eines Tages zu heute in Worten: heute, morgen, gestern, in 3 Tagen, vor 3 Tagen. */
+    public static function wann(CarbonInterface $tag): string
+    {
+        $tage = (int) now()->startOfDay()->diffInDays($tag->copy()->startOfDay(), false);
+
+        return match (true) {
+            $tage === 0 => __('heute'),
+            $tage === 1 => __('morgen'),
+            $tage === -1 => __('gestern'),
+            $tage > 1 => __('in :anzahl Tagen', ['anzahl' => $tage]),
+            default => __('vor :anzahl Tagen', ['anzahl' => abs($tage)]),
+        };
+    }
+
     /**
      * Restdauer bis zu einem Zeitpunkt mit automatischer Einheit: Tage bis 6 Tage, ab 7 Tagen
      * Wochen, ab 30 Tagen Monate. «endet heute», wenn der Zeitpunkt schon erreicht ist. Die
