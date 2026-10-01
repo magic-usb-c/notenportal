@@ -23,6 +23,8 @@ Guidelines (`docs/auftrag/GUI-APPLE.md`).
    (Abschnitt 6).
 3. **Prompt:** `/weiter` – oder `/weiter <Schwerpunkt>`, zum Beispiel
    `/weiter R4 Admin-Bereich im Dunkelmodus`. Alles Weitere steht in `.claude/commands/weiter.md`.
+   Bietet die Oberfläche `/weiter` nicht an, den Text dieser Datei als Prompt einfügen (Schwerpunkt
+   statt `$ARGUMENTS`).
    Stoppen jederzeit mit der Stopp-Taste; der Stand ist in `docs/auftrag/UEBERGABE.md` und auf
    `main`, weil nach jedem lauffähigen Stand committet und gepusht wird.
 
@@ -256,8 +258,11 @@ Migrationen über den Skill `notenportal-migration`.
 - `permissions.ask` wirkt nur im Frage-Modus (`default`), nicht in `auto`.
 - Abgelehnte Aufrufe im Auto-Modus zeigt `/permissions` («recent auto mode denials»); eigene Regeln
   für den Klassifikator kommen in `autoMode.allow|soft_deny|hard_deny` (User- oder Managed-Datei).
-- Subagenten erben die Berechtigungen der Sitzung; `permissionMode` im Agent-Frontmatter kann sie
-  für einen Agent enger setzen, nie weiter.
+- Subagenten laufen mit den Berechtigungen der Sitzung; das Agent-Frontmatter kennt
+  `permissionMode` mit denselben Werten. Laut Referenz zu `permissions.disableBypassPermissionsMode`
+  kann ein Agent-Frontmatter sogar `bypassPermissions` setzen (dieser Schlüssel ignoriert es dann) –
+  ein Agent darf also grundsätzlich mehr als die Sitzung. Kein Agent im Repo setzt `permissionMode`;
+  die Deny-Liste gilt für alle.
 
 ---
 
@@ -306,6 +311,11 @@ user installs it themselves.» Deshalb installiert der Hook in der Cloud (geprü
 - `php-lsp@claude-plugins-official` – Sprachserver für PHP, Ersatz für `laravel-lsp@laravel`, das
   im Container keinen Marktplatz hat.
 - `frontend-design@claude-plugins-official` – Gestaltung von Oberflächen.
+
+Beim regulären Start läuft der Hook, bevor die erste Runde beginnt. Ob eine **laufende** Sitzung ein
+Plugin sieht, das der Hook eben erst installiert hat, ist nicht gemessen; nach einem Lauf von Hand
+hilft `/reload-plugins`. Lokal sind `php-lsp` und `laravel-lsp@laravel` beide eingeschaltet, also
+zwei PHP-Sprachserver – einen davon in `.claude/settings.local.json` auf `false` setzen.
 
 Die übrigen Einträge (`caveman@caveman`, `laravel@laravel`, `laravel-lsp@laravel`,
 `tailwind-v4-shadcn@claude-skills`, `ui-ux-pro-max@ui-ux-pro-max-skill`) stammen aus Davids lokaler
@@ -516,8 +526,15 @@ Hier steht, was sich nicht sauber belegen liess. Nichts davon ist als Tatsache i
 6. **Plugins:** `enabledPlugins` nennt Marktplätze, die nur David lokal hat; Quellen unbekannt.
 7. **Hook-Ereignisse:** vollständige Liste und die Managed-Settings-Schlüssel nicht geprüft.
 8. **Workflow-Agenten und `agentType`:** dass ein Projekt-Agent (`bildpruefer`) als `agentType` in
-   `agent()` funktioniert, steht in der Workflow-Referenz; der Dunkel-Rundgang fängt einen Fehler
-   trotzdem ab und fällt auf `opus xhigh` zurück.
+   `agent()` funktioniert, steht in der Workflow-Referenz. Im Rauchtest vom 01.10. schlug der Aufruf
+   fehl, weil `bildpruefer.md` erst während derselben Sitzung angelegt worden war und die Sitzung
+   ihre Agent-Liste nur beim Start liest; der Ersatz (`opus xhigh` mit denselben Anweisungen) griff.
+   In einer frischen Sitzung ist der Agent registriert.
+9. **`permissionMode` im Agent-Frontmatter:** die Referenz belegt nur indirekt (über
+   `disableBypassPermissionsMode`), dass ein Agent `bypassPermissions` setzen kann; die
+   Subagent-Seite selbst wurde nicht gelesen. Im Repo setzt kein Agent den Schlüssel.
+10. **Plugin-Sichtbarkeit:** ob eine laufende Sitzung ein vom Hook installiertes Plugin ohne
+    `/reload-plugins` lädt, ist nicht gemessen.
 
 ---
 

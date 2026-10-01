@@ -92,11 +92,12 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
 - **Cloud-Sitzung, Berechtigungen**: `auto` wirkt laut Doku nicht aus Projekt-Einstellungen; in der
   Cloud deshalb im Berechtigungs-Menü der Sitzung «Auto» wählen, lokal in `~/.claude/settings.json`
   setzen (`docs/auftrag/SETUP-CLAUDE.md` Abschnitt 5 und 6). Die Projektdatei trägt `acceptEdits`.
-- **Plugins**: `enabledPlugins` nennt Marktplätze `laravel`, `caveman`, `claude-skills`,
-  `ui-ux-pro-max-skill`, die im Cloud-Container nicht registriert sind; dort ist nur
-  `claude-plugins-official` bekannt und `installed_plugins.json` leer. Für die Cloud `php-lsp` und
-  `frontend-design` aus dem offiziellen Marktplatz installieren oder die Hook-Erweiterung aus
-  `SETUP-CLAUDE.md` Abschnitt 8 übernehmen – deine Entscheidung.
+- **Plugins**: Der Hook installiert in der Cloud `php-lsp` und `frontend-design` aus dem offiziellen
+  Marktplatz (geprüft, CLI 2.1.286). Die Einträge `laravel`, `caveman`, `claude-skills`,
+  `ui-ux-pro-max-skill` in `enabledPlugins` haben im Container keinen Marktplatz und wirken nur
+  lokal; sollen sie in der Cloud laufen, braucht jeder einen `extraKnownMarketplaces`-Eintrag mit
+  Quelle (`SETUP-CLAUDE.md` Abschnitt 8) – die Quellen kennst nur du. Lokal sind `php-lsp` und
+  `laravel-lsp` beide eingeschaltet, also zwei PHP-Sprachserver: einen abschalten.
 - **Gewichte nach BM-Dispens von der Allgemeinbildung**: Quellen widersprechen sich (hochrechnen
   57,14/42,86 vs. 50/50). Nicht voreingestellt; im Baum lässt sich «Entfällt mit BMS» je Knoten setzen.
 - **Rundung der Allgemeinbildung und der IPA im QV**: nur aus Sekundärquellen, Primärquelle
