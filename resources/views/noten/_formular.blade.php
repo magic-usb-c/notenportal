@@ -11,7 +11,7 @@
         ? ($note->fach_id ? 'fach:'.$note->fach_id : 'modul:'.$note->modulBelegung?->modul_id)
         : ($pruefung?->bezug() ?? $vorauswahl ?? null));
     $datum = old('pruefungsdatum', $note?->pruefungsdatum?->toDateString() ?? $pruefung?->datum?->toDateString() ?? now()->toDateString());
-    $gewicht = (string) old('gewichtung_prozent', $note?->gewichtung_prozent ?? $pruefung?->gewichtung_prozent ?? 100);
+    $gewicht = (string) old('gewichtung_prozent', \App\Support\Zahl::kurz($note?->gewichtung_prozent ?? $pruefung?->gewichtung_prozent ?? 100));
     $label = 'text-sm font-medium text-text';
     $feld = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';

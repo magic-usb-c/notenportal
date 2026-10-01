@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Note korrigieren') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :zurueck="route($bereich.'.learners.grades.index', $lernender->lernender_id)" :titel="__('Note korrigieren')" :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal>
+        <x-seitenkopf :zurueck="route($bereich.'.learners.grades.index', $lernender->lernender_id)" :titel="__('Note korrigieren')" :untertitel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname" schmal>
         </x-seitenkopf>
     </x-slot>
 

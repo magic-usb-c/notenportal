@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Benutzer bearbeiten') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :zurueck="route('admin.users.index')" :titel="__('Benutzer bearbeiten')" :untertitel="$user->nachname.' '.$user->vorname" schmal>
+        <x-seitenkopf :zurueck="route('admin.users.index')" :titel="__('Benutzer bearbeiten')" :untertitel="$user->vorname.' '.$user->nachname" schmal>
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.data-export', $user->benutzer_id) }}" class="np-knopf np-knopf-sekundaer">
                     <x-symbol name="arrow-down-tray" class="size-4" />{{ __('Daten herunterladen') }}

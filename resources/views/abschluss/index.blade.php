@@ -73,7 +73,7 @@
                             $erfasst = (int) round($e->erfasst() * 100);
                         @endphp
                         {{-- Links fest neben dem Aufbau: bei langen Bäumen (Berufsmaturität) bleibt das Ergebnis im Blick --}}
-                        <section class="grid grid-cols-[26rem_minmax(0,72rem)] items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
+                        <section class="grid grid-cols-[26rem_minmax(0,1fr)] items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
                             <div class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex flex-col p-5">
                                 <div class="flex items-start justify-between gap-3">
                                     <h2 id="baum-{{ $e->baum->id }}" class="min-w-0 text-base font-semibold text-text">{{ $e->baum->name }}</h2>

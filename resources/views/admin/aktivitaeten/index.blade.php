@@ -53,14 +53,17 @@
                                     @php
                                         $zeitpunkt = $e->erstellt_am?->timezone(config('app.timezone'));
                                         $details = \App\Support\Protokoll::detailText($e->details);
+                                        $wer = $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System');
+                                        // Bei der eigenen Anmeldung wäre das Ziel nur die Person noch einmal
+                                        $ziel = $e->ziel_bezeichnung !== $wer ? $e->ziel_bezeichnung : null;
                                     @endphp
                                     <tr>
                                         <td class="whitespace-nowrap tabular-nums text-muted">
                                             {{ $zeitpunkt?->format('d.m.Y') }} <span class="text-faint" aria-hidden="true">·</span> {{ $zeitpunkt?->format('H:i') }}
                                         </td>
-                                        <td class="truncate">{{ $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System') }}</td>
+                                        <td class="truncate">{{ $wer }}</td>
                                         <td class="truncate">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
-                                        <td class="truncate" title="{{ $e->ziel_bezeichnung }}">{{ $e->ziel_bezeichnung ?? '–' }}</td>
+                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>{{ $ziel ?? '–' }}</td>
                                         <td class="text-muted">
                                             <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>{{ $details !== '' ? $details : '–' }}</div>
                                         </td>

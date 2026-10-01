@@ -2,7 +2,7 @@
     <x-slot name="title">{{ __('Lernende bearbeiten') }}</x-slot>
     <x-slot name="header">
         <x-seitenkopf :zurueck="route($bereich.'.learners.show', $lernender->lernender_id)" :titel="__('Lernende bearbeiten')"
-                      :untertitel="$lernender->benutzer->nachname.' '.$lernender->benutzer->vorname" schmal />
+                      :untertitel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname" schmal />
     </x-slot>
 
     <div class="py-6">
