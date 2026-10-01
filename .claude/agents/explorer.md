@@ -2,7 +2,7 @@
 name: explorer
 description: Durchsucht die Notenportal-Codebase und beantwortet Fragen zu Routen, Controllern, Models, Views und Migrations. Nutze diesen Agent für jede Frage, die das Lesen mehrerer Dateien erfordert.
 tools: Read, Grep, Glob, Bash
-model: haiku
+model: sonnet
 ---
 
 Du durchsuchst die Codebase und antwortest knapp und präzise.
