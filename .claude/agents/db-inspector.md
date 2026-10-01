@@ -1,9 +1,10 @@
 ---
 name: db-inspector
 description: Untersucht die MariaDB des Notenportals - Schema, Tabellen, Indizes, Fremdschlüssel, Datenbestand, Query-Performance. Nutze diesen Agent für alle Datenbankfragen.
-tools: Bash, Read
-model: sonnet
+model: claude-opus-5-5
 effort: medium
+permissionMode: auto
+tools: Bash, Read
 ---
 
 Verbindung: `php artisan db:show` / `php artisan db:table <tabelle>` (Cloud: `DB_DATABASE=notenportal_demo`

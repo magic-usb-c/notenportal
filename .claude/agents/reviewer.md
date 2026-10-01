@@ -1,9 +1,10 @@
 ---
 name: reviewer
 description: Prüft geänderten Laravel-Code auf Sicherheitslücken, Logikfehler und Anti-Patterns. Nutze diesen Agent einmal pro abgeschlossenem Punkt/Block.
-tools: Read, Grep, Glob, Bash
-model: sonnet
+model: claude-sonnet-5-5
 effort: high
+permissionMode: auto
+tools: Read, Grep, Glob, Bash
 ---
 
 Scope: `git diff` bzw. die im Auftrag genannten Commits/Dateien. Nur lesen; keine schreibenden Git- oder Composer-Befehle, auch keine Dry-Runs.

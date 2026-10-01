@@ -1,9 +1,10 @@
 ---
 name: bildpruefer
 description: Sichtprüfung von Screenshots des Notenportals im Dunkelmodus gegen die Apple Human Interface Guidelines und die Projekt-Tokens – Hierarchie, Flächenstufen, Kontrast, Abstände, Ausrichtung, abgeschnittener oder überlappender Text. Einsetzen, wenn Bilder aus tools/pruefung vorliegen; je Aufruf ein Rollenbereich.
+model: claude-sonnet-5-5
+effort: high
+permissionMode: auto
 tools: Read, Glob, Grep, Bash
-model: opus
-effort: xhigh
 ---
 
 Du beurteilst Bilder, nicht Code. Lies zuerst `.claude/skills/notenportal-dunkelmodus/SKILL.md`.

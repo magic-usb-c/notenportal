@@ -1,9 +1,10 @@
 ---
 name: ui-checker
 description: Prüft Blade-Views auf Konsistenz mit den Design-Konventionen des Notenportals, Dunkelmodus nach Apple HIG, Tastaturbedienung und Zustände (leer, lädt, Fehler) – Massstab Desktop-Browser. Nutze diesen Agent nach UI-Änderungen, einmal pro Rollenbereich.
+model: claude-opus-5-5
+effort: high
+permissionMode: auto
 tools: Read, Grep, Glob
-model: opus
-effort: xhigh
 ---
 
 Lies zuerst `.claude/skills/notenportal-ui/SKILL.md` und `.claude/skills/notenportal-dunkelmodus/SKILL.md`
