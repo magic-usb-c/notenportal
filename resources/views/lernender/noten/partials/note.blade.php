@@ -11,7 +11,7 @@
 <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
          x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
     {{-- Raster wie die Spalten der Notentabelle (lernender/noten/index): Gewicht unter «Prüfungen», Note unter «Schnitt» --}}
-    <summary class="grid min-h-11 cursor-pointer select-none list-none grid-cols-[minmax(0,1fr)_18rem_6rem_7rem] items-center py-1.5 transition-colors duration-100 hover:bg-surface-2/60">
+    <summary class="grid min-h-11 cursor-pointer select-none list-none grid-cols-[minmax(0,1fr)_14rem_6rem_7rem] items-center py-1.5 transition-colors duration-100 hover:bg-surface-2/60">
         <div class="flex min-w-0 items-center gap-2 pl-10 pr-3">
             <span class="np-chevron shrink-0 text-muted" aria-hidden="true"><x-symbol name="chevron-right" strich="2" class="size-3" /></span>
             <div class="flex min-w-0 flex-col gap-0.5">

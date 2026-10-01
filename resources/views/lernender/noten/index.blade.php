@@ -100,11 +100,33 @@
                 <x-heatmap :daten="$heatmap" />
             </x-karte>
 
-            {{-- Semester: Tabelle je Kategorie --}}
-            <div class="flex flex-col gap-6" x-show="ansicht === 'semester'">
-                @forelse($gruppen as $g)
+            {{-- Semester: Tabelle je Kategorie. Ab 92rem Inhaltsbreite zwei Spalten: die Kategorien bleiben in ihrer
+                 Reihenfolge und werden dort geteilt, wo beide Spalten etwa gleich hoch werden. Eine Spalte allein bleibt
+                 halb breit, damit Name und Note nah beieinander stehen und ein Filter die Breite nicht ändert. --}}
+            @php
+                $gruppenListe = collect($gruppen)->values();
+                $hoehe = fn ($g) => 2 + count($g->elemente);
+                $summe = $gruppenListe->sum($hoehe);
+                $teilung = $gruppenListe->count();
+                $bester = PHP_INT_MAX;
+                $lauf = 0;
+                foreach ($gruppenListe as $i => $g) {
+                    $lauf += $hoehe($g);
+                    if ($i + 1 < $gruppenListe->count() && max($lauf, $summe - $lauf) < $bester) {
+                        $bester = max($lauf, $summe - $lauf);
+                        $teilung = $i + 1;
+                    }
+                }
+                $spalten = [$gruppenListe->take($teilung), $gruppenListe->slice($teilung)];
+            @endphp
+            <div class="@container" x-show="ansicht === 'semester'">
+                @if($gruppenListe->isNotEmpty())
+                <div class="grid grid-cols-1 items-start gap-6 @min-[92rem]:grid-cols-2">
+                @foreach($spalten as $spalte)
+                <div class="flex min-w-0 flex-col gap-6">
+                @foreach($spalte as $g)
                     <section class="flex flex-col gap-2" aria-labelledby="kategorie-{{ $g->id }}">
-                        <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1">
+                        <div class="flex h-7 items-center justify-between gap-3 px-1">
                             <h2 id="kategorie-{{ $g->id }}" class="text-sm font-semibold text-text">{{ $g->name }}</h2>
                             <div class="flex items-center gap-3 text-sm">
                                 @if($g->promotion)
@@ -120,7 +142,7 @@
                             <table class="w-full table-fixed text-sm tabular-nums">
                                 <colgroup>
                                     <col>
-                                    <col class="w-72">
+                                    <col class="w-56">
                                     <col class="w-24">
                                     <col class="w-28">
                                 </colgroup>
@@ -226,13 +248,17 @@
                             </table>
                         </div>
                     </section>
-                @empty
+                @endforeach
+                </div>
+                @endforeach
+                </div>
+                @else
                     <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
                         {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                            class="text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
                     </p>
-                @endforelse
+                @endif
             </div>
         </div>
     </div>
