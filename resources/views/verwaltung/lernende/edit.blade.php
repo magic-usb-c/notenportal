@@ -13,7 +13,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="max-w-3xl">
+            <div class="np-spalte">
             <form method="POST" action="{{ route("{$bereich}.learners.update", $lernender->lernender_id) }}"
                   class="np-karte p-6 space-y-5"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

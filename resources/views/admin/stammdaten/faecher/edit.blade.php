@@ -7,7 +7,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte max-w-3xl p-6">
+            <div class="np-karte np-spalte p-6">
                 <form method="POST" action="{{ route('admin.master-data.subjects.update', $fach->fach_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
@@ -89,7 +89,7 @@
                 </form>
             </div>
 
-            <div class="np-karte mt-6 max-w-3xl p-6">
+            <div class="np-karte mt-6 np-spalte p-6">
                 @if($notenAnzahl > 0)
                     <p class="text-sm text-muted">{{ __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.') }}</p>
                 @else

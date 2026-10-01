@@ -7,7 +7,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte max-w-3xl p-6">
+            <div class="np-karte np-spalte p-6">
                 <form method="POST" action="{{ route('admin.master-data.semesters.update', $semester->semester_id) }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     @method('PUT')
@@ -53,7 +53,7 @@
                 </form>
             </div>
 
-            <div class="np-karte mt-6 max-w-3xl p-6">
+            <div class="np-karte mt-6 np-spalte p-6">
                 @if($belegt)
                     <p class="text-sm text-muted">{{ __('Das Semester enthält Noten, Tracks oder Dokumente und kann nicht gelöscht werden.') }}</p>
                 @else

@@ -40,7 +40,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-        <div class="max-w-3xl" x-data="npBereiche(@js($standard), @js(array_keys($bereiche)))">
+        <div class="np-spalte" x-data="npBereiche(@js($standard), @js(array_keys($bereiche)))">
 
             <div x-show="bereich === 'allgemein'" x-cloak>
                 <form method="POST" action="{{ route('admin.operations.update') }}#allgemein" class="flex flex-col gap-8"

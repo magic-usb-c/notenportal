@@ -12,7 +12,7 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8 flex flex-col gap-5">
             @if(! $vorschau)
-                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="np-karte p-6 flex flex-col gap-4 max-w-3xl w-full"
+                <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="np-karte np-spalte p-6 flex flex-col gap-4"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <label for="datei" class="flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-12 text-center cursor-pointer transition-colors"

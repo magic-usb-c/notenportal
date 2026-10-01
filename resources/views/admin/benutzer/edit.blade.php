@@ -12,7 +12,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <form method="POST" action="{{ route('admin.users.update', $user->benutzer_id) }}" class="flex max-w-3xl flex-col gap-8"
+            <form method="POST" action="{{ route('admin.users.update', $user->benutzer_id) }}" class="flex np-spalte flex-col gap-8"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('PUT')
@@ -39,7 +39,7 @@
 
             {{-- Eigenes Konto bleibt aktiv: sonst sperrte sich der letzte Admin selbst aus --}}
             @unless($user->is(auth()->user()))
-                <section class="mt-10 max-w-3xl">
+                <section class="mt-10 np-spalte">
                     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Konto') }}</h2>
                     <div class="np-karte np-gruppe">
                         <x-einstellung :label="$user->aktiv ? __('Konto aktiv') : __('Konto deaktiviert')"

@@ -1376,6 +1376,15 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   max-width: 128rem;
 }
 
+/* Lese- und Formularspalte (Formulare, Einstellungen): Kopf und Inhalt teilen dieselbe Achse und stehen in der
+   Mitte des Fensters. Links bündig klebte die 48rem-Spalte bei 1920–2560 px an der Seitenleiste, daneben blieb
+   mehr als die Hälfte leer. */
+@utility np-spalte {
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
 /* Weisser Text auf Accent (Bestand text-white) → accent-contrast. Specificity 0,2,0 schlägt text-white. */
 @layer utilities {
   .bg-accent.text-white,

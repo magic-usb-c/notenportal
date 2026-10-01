@@ -13,7 +13,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte max-w-3xl p-6">
+            <div class="np-karte np-spalte p-6">
                 <form method="POST" action="{{ $neu ? route('modules.store') : route('modules.update', $modul->modul_id) }}"
                       class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf

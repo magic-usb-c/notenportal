@@ -8,7 +8,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-        <div class="max-w-3xl">
+        <div class="np-spalte">
 
             <form method="POST" action="{{ route('notifications.settings.update') }}" class="flex flex-col gap-8"
                   x-data="{ loading: false }" @submit="loading = true">

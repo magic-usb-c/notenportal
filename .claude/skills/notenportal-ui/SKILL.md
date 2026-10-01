@@ -104,7 +104,7 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 - Radien: `rounded-md` Badge-Ecke · `rounded-lg` Feld/Segment · `rounded-xl` Karte · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Knopf, Marke, Avatar, Punkt.
 - Abstände im 4-px-Raster: Karte `p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`.
 - **Trefferfläche:** jedes Bedienelement mindestens 24x24 px (WCAG 2.5.8); Textlinks als Aktion `inline-flex min-h-6 items-center`.
-- **Seitengerüst:** Inhalt `<div class="py-6"><div class="mx-auto np-seite px-8">` (`np-seite` füllt das Fenster, Deckel 2048 px). Lese-/Formularseiten innen `max-w-3xl` links bündig + `schmal` am Seitenkopf. Übersichten mit Haupt- und Nebenspalte: `grid grid-cols-12 items-start gap-4`, `col-span-8` / `col-span-4`.
+- **Seitengerüst:** Inhalt `<div class="py-6"><div class="mx-auto np-seite px-8">` (`np-seite` füllt das Fenster, Deckel 2048 px). Lese-/Formularseiten innen `np-spalte` (48rem, mittig) + `schmal` am Seitenkopf – nie `max-w-3xl` für eine ganze Seite. Übersichten mit Haupt- und Nebenspalte: `grid grid-cols-12 items-start gap-4`, `col-span-8` / `col-span-4`.
 - **Seitenkopf** nur über `<x-seitenkopf titel untertitel zaehler zurueck schmal>` im Slot `header`. Aktionen im Slot `aktionen` – sie wandern in die Symbolleiste oben rechts (höchstens **eine** Primäraktion), der Zurück-Knopf (`zurueck`) vorne. Metadaten als `untertitel` (eine Zeile, mit ` · ` getrennt), nicht als eigene Karte.
 - Datensätze bearbeiten im **Drawer** (`<x-drawer>`, schwebend rechts), Bestätigungen über `data-bestaetigen` (HIG-Dialog, nie `window.confirm`).
 - Toast nur über `<x-toast>` (Layout rendert Flash automatisch), Menüs über `<x-dropdown>` (G2). Modal und Drawer liegen auf `z-[70]`.

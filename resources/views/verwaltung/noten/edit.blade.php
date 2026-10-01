@@ -7,7 +7,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="max-w-3xl">
+            <div class="np-spalte">
             <div class="np-karte p-6">
                 @include('noten._formular', [
                     'zurueck' => route("{$bereich}.learners.grades.index", $lernender->lernender_id),

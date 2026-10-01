@@ -2,7 +2,7 @@
     'titel',
     'untertitel' => null,   // Metazeile unter dem Titel
     'zaehler' => null,      // Anzahl neben dem Titel, z. B. Treffer
-    'schmal' => false,      // Lese-/Formularseite: Kopf so breit wie der Inhalt (max-w-3xl)
+    'schmal' => false,      // Lese-/Formularseite: Kopf in derselben Spalte wie der Inhalt (np-spalte)
     'zurueck' => null,      // URL der übergeordneten Seite: Zurück-Knopf vorne in der Symbolleiste
 ])
 {{--
@@ -21,7 +21,7 @@
 @isset($aktionen)
     @push('np-aktionen'){{ $aktionen }}@endpush
 @endisset
-<div {{ $attributes->class(['flex flex-wrap items-end justify-between gap-x-4 gap-y-3', 'max-w-3xl' => $schmal]) }}>
+<div {{ $attributes->class(['flex flex-wrap items-end justify-between gap-x-4 gap-y-3', 'np-spalte' => $schmal]) }}>
     {{-- Bedienelement neben dem Titel auf dessen Zeile, die Metazeile darunter über die ganze Breite --}}
     <div class="min-w-0">
         <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
