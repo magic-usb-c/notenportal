@@ -36,7 +36,7 @@
                                class="np-feld mt-1">
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label for="rundung_element" class="text-sm font-medium text-text">{{ __('Rundung Zeugnisnote *') }}</label>
                             <select id="rundung_element" name="rundung_element" required
@@ -71,7 +71,7 @@
 
                     <div class="border-t border-border pt-4 space-y-4">
                         <h3 class="font-semibold text-text text-sm">{{ __('Promotion') }}</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label for="promotion_min_schnitt" class="text-sm font-medium text-text">{{ __('Mindestschnitt') }}</label>
                                 <input type="number" id="promotion_min_schnitt" name="promotion_min_schnitt" value="{{ old('promotion_min_schnitt', $kategorie->promotion_min_schnitt) }}" min="1" max="6" step="0.1"

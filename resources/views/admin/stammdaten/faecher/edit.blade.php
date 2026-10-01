@@ -59,7 +59,7 @@
                     </div>
 
 
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="skala" class="text-sm font-medium text-text">{{ __('Bewertung') }}</label>
                             <select id="skala" name="skala"

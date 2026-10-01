@@ -7,7 +7,7 @@
 
     @php
         $feld = 'np-feld mt-1';
-        $label = 'text-xs font-medium text-muted';
+        $label = 'text-sm font-medium text-text';
     @endphp
 
     <div class="py-6">
@@ -19,7 +19,7 @@
                   @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="vorname" class="{{ $label }}">{{ __('Vorname *') }}</label>
                         <input id="vorname" type="text" name="vorname" value="{{ old('vorname') }}" required maxlength="100" class="{{ $feld }}">
@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label for="email" class="{{ $label }}">{{ __('E-Mail *') }}</label>
                         <input id="email" type="email" name="email" value="{{ old('email') }}" required maxlength="255" class="{{ $feld }}">
@@ -57,7 +57,7 @@
                         @error('lehrberuf_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="lehrbeginn" class="{{ $label }}">{{ __('Lehrbeginn *') }}</label>
                             <input id="lehrbeginn" type="date" name="lehrbeginn" value="{{ old('lehrbeginn') }}" required class="{{ $feld }}">
@@ -70,7 +70,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="track_typ" class="{{ $label }}">{{ __('Schul-Track') }}</label>
                             <select id="track_typ" name="track_typ" x-model="track" class="{{ $feld }}">

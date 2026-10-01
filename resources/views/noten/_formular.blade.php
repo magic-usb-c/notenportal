@@ -46,7 +46,7 @@
     <input type="hidden" name="modul_id" :value="typ === 'modul' ? id : ''">
 
     <div class="flex flex-col items-center gap-2" x-show="!istStufe">
-        <label for="note_wert" class="{{ $label }}">{{ __('Note') }} <span class="text-note-ungenuegend">*</span></label>
+        <label for="note_wert" class="{{ $label }}">{{ __('Note') }} *</label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
                x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
                class="np-feld h-20 w-36 border-2 text-center text-4xl font-semibold tabular-nums">
@@ -54,7 +54,7 @@
     </div>
 
     <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak>
-        <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }} <span class="text-note-ungenuegend">*</span></legend>
+        <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }} *</legend>
         <div class="inline-flex gap-0.5 rounded-2xl bg-fill p-1" role="radiogroup">
             @foreach(\App\Services\Noten\NoteService::STUFEN as $s)
                 <label class="relative">
@@ -69,7 +69,7 @@
     </fieldset>
 
     <div>
-        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
         <select id="bezug" name="bezug" x-model="bezug" required class="{{ $feld }}">
             <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -85,9 +85,9 @@
         @endforeach
     </div>
 
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="grid grid-cols-2 gap-4">
         <div>
-            <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }} <span class="text-note-ungenuegend">*</span></label>
+            <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }} *</label>
             <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="{{ $feld }}">
             <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
                x-text="semester ? semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>

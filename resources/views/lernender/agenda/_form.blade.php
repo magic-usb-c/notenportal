@@ -51,7 +51,7 @@
     @endif
 
     <div>
-        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
         <select id="bezug" name="bezug" required class="{{ $feld }}">
             <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -73,7 +73,7 @@
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-note-ungenuegend">*</span></label>
+            <label for="datum" class="{{ $label }}">{{ __('Datum') }} *</label>
             <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

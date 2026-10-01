@@ -48,7 +48,7 @@
 
                 <div class="np-karte grid grid-cols-3 gap-x-5 gap-y-4 p-5">
                     <div>
-                        <label for="name" class="text-sm font-medium text-text">{{ __('Name') }} <span class="text-note-ungenuegend">*</span></label>
+                        <label for="name" class="text-sm font-medium text-text">{{ __('Name') }} *</label>
                         <input id="name" name="name" required maxlength="150" value="{{ old('name', $baum->name) }}" class="np-feld mt-1.5"
                                @error('name') aria-invalid="true" aria-describedby="name-fehler" @enderror>
                         @error('name')<p id="name-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror

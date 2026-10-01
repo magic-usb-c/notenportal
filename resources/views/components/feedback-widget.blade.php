@@ -92,7 +92,7 @@
                                    x-text="anzahl === 1 ? @js(__('1 offene Meldung zu dieser Seite')) : @js(__(':anzahl offene Meldungen zu dieser Seite')).replace(':anzahl', anzahl)"></p>
                                 <ul class="space-y-2">
                                     <template x-for="m in meldungen" :key="m.id">
-                                        <li class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <li class="flex items-center justify-between gap-2">
                                             <span class="text-muted">
                                                 <span x-text="m.kategorie_label"></span>
                                                 <span aria-hidden="true"> · </span>
@@ -101,7 +101,7 @@
                                                 <span x-text="m.stimmen"></span>
                                             </span>
                                             <button type="button" @click="stimmen(m)" :aria-pressed="m.meine"
-                                                    class="inline-flex h-11 w-full items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors duration-100 sm:h-9 sm:w-auto"
+                                                    class="inline-flex h-9 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors duration-100"
                                                     :class="m.meine ? 'bg-accent/10 text-accent-text' : 'text-muted hover:bg-surface-2 hover:text-text'">
                                                 <span x-text="m.meine ? @js(__('Unterstützt')) : @js(__('Betrifft mich auch'))"></span>
                                             </button>
@@ -113,7 +113,7 @@
                     </div>
                 @endif
 
-                <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }} <span class="text-note-ungenuegend">*</span></label>
+                <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }} *</label>
                 <textarea id="feedback-text" x-model="text" rows="4" maxlength="5000" required
                           placeholder="{{ __('Was ist passiert, was fehlt dir, was gefällt dir?') }}"
                           aria-describedby="feedback-fehler"

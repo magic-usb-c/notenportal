@@ -17,7 +17,7 @@
     <div>
         <label for="feed_url_{{ $idSuffix }}" class="{{ $label }}">
             {{ __('iCal-Adresse') }}
-            @unless($feed)<span class="text-note-ungenuegend">*</span>@endunless
+            @unless($feed)*@endunless
         </label>
         {{-- Die bestehende Adresse ist ein Geheimnis und wird nie in dieses Feld eingesetzt. --}}
         <input id="feed_url_{{ $idSuffix }}" name="url" type="text" @unless($feed) required @endunless maxlength="2000"

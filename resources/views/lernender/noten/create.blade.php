@@ -6,7 +6,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte max-w-3xl p-6 sm:p-8">
+            <div class="np-karte max-w-3xl p-8">
                 @if(empty($bezugOptionen))
                     <p class="mb-5 text-sm text-note-knapp">{{ __('Für dich sind noch keine Fächer oder Module freigegeben.') }}</p>
                 @endif

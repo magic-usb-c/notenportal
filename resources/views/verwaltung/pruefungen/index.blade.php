@@ -52,48 +52,7 @@
                         {{ $g['label'] }} <span class="np-marke font-medium tabular-nums text-muted">{{ $g['zeilen']->count() }}</span>
                     </h3>
 
-                    {{-- Mobil: Karten --}}
-                    <div class="md:hidden divide-y divide-border">
-                        @foreach($g['zeilen'] as $z)
-                            @php [$p, $status] = [$z['pruefung'], $z['status']]; @endphp
-                            <div class="p-4">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div class="min-w-0">
-                                        <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                                            <span class="font-medium text-text [overflow-wrap:anywhere]">{{ trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : '')) }}</span>
-                                            @if($p->istAbgabe())
-                                                <span class="{{ $pillBasis }} bg-accent/10 text-accent-text shrink-0">{{ __('Abgabetermin') }}</span>
-                                            @endif
-                                        </div>
-                                        <a href="{{ route($bereich.'.learners.show', $p->lernender_id) }}" class="text-xs text-accent-text hover:underline underline-offset-2">
-                                            {{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}
-                                        </a>
-                                    </div>
-                                    <span class="{{ $pillBasis }} {{ $status['klasse'] }} shrink-0">{{ $status['label'] }}</span>
-                                </div>
-                                <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-                                    <span class="tabular-nums">{{ $p->datum->format('d.m.Y') }}{{ $p->uhrzeit ? ' · '.substr((string) $p->uhrzeit, 0, 5) : '' }}</span>
-                                    @if($p->pruefungsart)<span>{{ $p->pruefungsart }}</span>@endif
-                                    @if($p->raum)<span>{{ $p->raum }}</span>@endif
-                                </div>
-                                @if($abgabeMoeglich && $p->istAbgabe())
-                                    <div class="mt-2 flex items-center gap-3 text-xs">
-                                        <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['bearbeiten' => $p->pruefung_id])) }}"
-                                           class="text-accent-text hover:underline underline-offset-2">{{ __('Bearbeiten') }}</a>
-                                        <form method="POST" action="{{ route($bereich.'.exams.destroy', $p->pruefung_id) }}"
-                                              data-bestaetigen="{{ __('Abgabetermin löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                            @csrf @method('DELETE')
-                                            <input type="hidden" name="lernender_id" value="{{ $p->lernender_id }}">
-                                            <button :disabled="loading" class="text-muted hover:text-note-ungenuegend disabled:opacity-50">{{ __('Löschen') }}</button>
-                                        </form>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-
-                    {{-- Desktop: Tabelle --}}
-                    <div class="hidden overflow-x-auto px-2 pb-2 md:block">
+                    <div class="overflow-x-auto px-2 pb-2">
                         <table class="np-tabelle text-sm">
                             <thead>
                                 <tr>

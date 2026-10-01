@@ -101,7 +101,7 @@
                 @else
                     <ul class="divide-y divide-border rounded-xl border border-border overflow-hidden">
                         @foreach($modul->dokumente as $d)
-                            <li class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 sm:flex-nowrap">
+                            <li class="flex flex-nowrap items-center gap-x-4 gap-y-1 px-4 py-3">
                                 <span class="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-3xs font-semibold text-accent-text">{{ strtoupper($d->endung()) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate text-sm font-medium text-text">{{ $d->titel }}</div>
@@ -109,7 +109,7 @@
                                         {{ collect([$d->erstellt_am?->format('d.m.Y'), $groesse((int) $d->groesse), $d->hochgeladenVon ? $d->hochgeladenVon->vorname.' '.$d->hochgeladenVon->nachname : null])->filter()->implode(' · ') }}
                                     </div>
                                 </div>
-                                <div class="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                                <div class="flex w-auto shrink-0 items-center justify-end gap-1">
                                     @if(in_array($d->mime, \App\Models\ModulDokument::INLINE, true))
                                         <a href="{{ route('modules.documents.show', [$modul->modul_id, $d->modul_dokument_id]) }}" target="_blank" rel="noopener"
                                            class="np-knopf np-knopf-schlicht">{{ __('Öffnen') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span></a>
@@ -135,7 +135,7 @@
                 @endif
 
                 <form method="POST" action="{{ route('modules.documents.store', $modul->modul_id) }}" enctype="multipart/form-data"
-                      class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-end"
+                      class="grid grid-cols-[minmax(0,1fr)_12rem_auto] items-end gap-3"
                       x-data="{ loading: false, name: '' }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <div>

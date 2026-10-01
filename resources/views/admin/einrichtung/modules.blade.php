@@ -33,7 +33,7 @@
             <input type="hidden" name="lehrberuf_id" value="{{ $aktiv->lehrberuf_id }}">
             <section class="np-karte p-6 flex flex-col gap-4">
                 <h3 class="text-sm font-semibold text-text">{{ $aktiv->name }}</h3>
-                <div class="grid md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     @foreach(['schule' => __('Module Schule'), 'uek' => __('Module ÜK')] as $name => $text)
                         <div>
                             <label for="{{ $name }}" class="{{ $label }}">{{ $text }}</label>
@@ -59,7 +59,7 @@
                         <h3 class="text-sm font-semibold text-text">{{ __('Zugeordnet') }} · {{ $zugeordnet->count() }}</h3>
                         <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent-text hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
                     </div>
-                    <div class="grid md:grid-cols-2 gap-5">
+                    <div class="grid grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)
                             <div>
                                 <div class="text-xs font-medium text-muted mb-2">{{ $lernort }}</div>

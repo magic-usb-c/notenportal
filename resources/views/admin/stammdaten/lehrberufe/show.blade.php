@@ -195,7 +195,7 @@
                 <div class="flex flex-col gap-4 p-6">
                     <h2 id="assign-module-title" class="text-lg font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
                     <div>
-                        <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul') }} <span class="text-note-ungenuegend">*</span></label>
+                        <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul') }} *</label>
                         <select id="modul_id" name="modul_id" required class="{{ $feld }}"
                                 @if($modulFehler->has('modul_id')) aria-invalid="true" aria-describedby="modul_id-fehler" @endif>
                             <option value="">{{ __('Bitte wählen…') }}</option>
@@ -207,7 +207,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Lernort') }} <span class="text-note-ungenuegend">*</span></label>
+                            <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Lernort') }} *</label>
                             <select id="kategorie_id" name="kategorie_id" required class="{{ $feld }}"
                                     @if($modulFehler->has('kategorie_id')) aria-invalid="true" aria-describedby="kategorie_id-fehler" @endif>
                                 @foreach($aktiveLernorte as $k)
@@ -246,7 +246,7 @@
                 <div class="flex flex-col gap-4 p-6">
                     <h2 id="assign-subject-title" class="text-lg font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
                     <div>
-                        <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach') }} <span class="text-note-ungenuegend">*</span></label>
+                        <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach') }} *</label>
                         <select id="fach_id" name="fach_id" required class="{{ $feld }}"
                                 @if($fachFehler->has('fach_id')) aria-invalid="true" aria-describedby="fach_id-fehler" @endif>
                             <option value="">{{ __('Bitte wählen…') }}</option>

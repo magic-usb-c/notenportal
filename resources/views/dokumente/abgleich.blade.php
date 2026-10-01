@@ -28,9 +28,9 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full sm:w-auto sm:ml-auto grid grid-cols-3 gap-2 sm:gap-3">
+                <div class="ml-auto grid w-auto grid-cols-3 gap-3">
                     @foreach(['gleich' => [__('Übereinstimmend'), 'gruen'], 'abweichung' => [__('Abweichend'), 'gelb'], 'fehlt' => [__('Fehlt im Portal'), 'neutral']] as $status => [$text, $ton])
-                        <x-kachel :label="$text" :wert="$anzahl[$status] ?? 0" :ton="($anzahl[$status] ?? 0) ? $ton : 'neutral'" class="sm:min-w-32" />
+                        <x-kachel :label="$text" :wert="$anzahl[$status] ?? 0" :ton="($anzahl[$status] ?? 0) ? $ton : 'neutral'" class="min-w-32" />
                     @endforeach
                 </div>
             </form>

@@ -37,7 +37,7 @@
           x-data="npSemesterPlan(@js($start), @js($semester->pluck('bezeichnung')), @js(['neu' => __('neu'), 'vorhanden' => __('vorhanden')]))" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <section class="np-karte p-6 flex flex-col gap-5">
-            <div class="grid sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }} *</label>
                     <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
@@ -60,7 +60,7 @@
                     <h3 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h3>
                     <span class="text-xs text-muted" x-text="`${neu} ${labels.neu} · ${plan.length - neu} ${labels.vorhanden}`"></span>
                 </div>
-                <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
+                <ul class="grid grid-cols-6 gap-2">
                     <template x-for="s in plan" :key="s.b">
                         <li class="rounded-xl border px-3 py-2" :class="s.da ? 'border-border text-muted' : 'border-accent/40 bg-accent/5 text-text'">
                             <div class="text-sm font-semibold tabular-nums" x-text="s.b"></div>

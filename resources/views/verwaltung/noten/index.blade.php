@@ -53,7 +53,7 @@
                 $detailUrl = route($bereich.'.learners.show', $lernender->lernender_id);
                 $semNote = $semNr ? $a->semester($semNr)['note'] : null;
             @endphp
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="grid grid-cols-4 gap-4">
                 <x-kachel :label="__('Gesamtschnitt')" :note="$a->gesamtNote" :href="$detailUrl" />
                 <x-kachel :label="$semNr ? $a->konfiguration->semesterName($semNr, $a->lernenderId) : __('Semester')" :note="$semNote" />
                 <x-kachel :label="__('Prüfungen')" :wert="$notes->total()" :sub="$gefiltert ? __('im Filter') : null" />
@@ -154,7 +154,7 @@
 
                             <div class="border-t border-border bg-fill-2">
                                 <div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-3 px-5 py-4 pl-14">
-                                    <dl class="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
+                                    <dl class="grid grid-cols-3 gap-x-8 gap-y-2 text-sm">
                                         <div><dt class="text-xs text-muted">{{ __('Semester') }}</dt><dd class="text-text">@if($n->semester_id)<x-semester :id="$n->semester_id" :lernender="$lernender" />@else–@endif</dd></div>
                                         <div><dt class="text-xs text-muted">{{ __('Fach / Modul') }}</dt><dd class="text-text">{{ $thema }}</dd></div>
                                         <div><dt class="text-xs text-muted">{{ __('Erfasst von') }}</dt><dd class="text-text">{{ $n->erfasstVonBenutzer?->vorname }} {{ $n->erfasstVonBenutzer?->nachname }}</dd></div>

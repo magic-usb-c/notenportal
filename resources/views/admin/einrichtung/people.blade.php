@@ -45,7 +45,7 @@
             <span class="text-xs text-muted">{{ $berufsbildner->count() }} {{ __('Berufsbildner') }}</span>
         </div>
         <template x-for="(z, i) in zeilen" :key="i">
-            <div class="grid grid-cols-2 md:grid-cols-[1fr_1fr_1.5fr_9rem_2.5rem] gap-2 items-end">
+            <div class="grid grid-cols-[1fr_1fr_1.5fr_9rem_2.5rem] gap-2 items-end">
                 <label class="{{ $label }}">{{ __('Vorname') }}<input :name="`personen[${i}][vorname]`" x-model="z.vorname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'vorname') && 'border-note-ungenuegend!'"></label>
                 <label class="{{ $label }}">{{ __('Nachname') }}<input :name="`personen[${i}][nachname]`" x-model="z.nachname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'nachname') && 'border-note-ungenuegend!'"></label>
                 <label class="{{ $label }}">{{ __('E-Mail') }}<input type="email" :name="`personen[${i}][email]`" x-model="z.email" required maxlength="255" autocomplete="off" class="{{ $feld }}" :class="f(i, 'email') && 'border-note-ungenuegend!'"></label>
@@ -87,11 +87,11 @@
             @csrf
             <h3 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h3>
             <template x-for="(z, i) in zeilen" :key="i">
-                <div class="rounded-xl border border-border p-3 grid grid-cols-2 lg:grid-cols-4 gap-2 items-end">
+                <div class="rounded-xl border border-border p-3 grid grid-cols-4 gap-2 items-end">
                     <label class="{{ $label }}">{{ __('Vorname') }}<input :name="`lernende[${i}][vorname]`" x-model="z.vorname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'vorname') && 'border-note-ungenuegend!'"></label>
                     <label class="{{ $label }}">{{ __('Nachname') }}<input :name="`lernende[${i}][nachname]`" x-model="z.nachname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'nachname') && 'border-note-ungenuegend!'"></label>
                     <label class="{{ $label }} col-span-2">{{ __('E-Mail') }}<input type="email" :name="`lernende[${i}][email]`" x-model="z.email" required maxlength="255" autocomplete="off" class="{{ $feld }}" :class="f(i, 'email') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }} col-span-2 lg:col-span-1">{{ __('Lehrberuf') }}
+                    <label class="{{ $label }} col-span-1">{{ __('Lehrberuf') }}
                         <select :name="`lernende[${i}][lehrberuf_id]`" x-model="z.lehrberuf_id" class="{{ $feld }}">
                             @foreach($lehrberufe as $lb)<option value="{{ $lb->lehrberuf_id }}">{{ $lb->kuerzel }} · {{ $lb->name }}</option>@endforeach
                         </select>
@@ -104,7 +104,7 @@
                             @foreach($berufsbildner as $bb)<option value="{{ $bb->berufsbildner_id }}">{{ $bb->vorname }} {{ $bb->nachname }}</option>@endforeach
                         </select>
                     </label>
-                    <div class="flex items-end gap-2 col-span-2 lg:col-span-1">
+                    <div class="flex items-end gap-2 col-span-1">
                         <label class="{{ $label }} flex-1">{{ __('Track') }}
                             <select :name="`lernende[${i}][track]`" x-model="z.track" class="{{ $feld }}">
                                 <option value="">–</option>

@@ -16,7 +16,7 @@
     <input type="hidden" name="lernender_id" value="{{ $filter['lernender_id'] }}">
 
     <div>
-        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }} <span class="text-note-ungenuegend">*</span></label>
+        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
         <select id="abgabe-bezug" name="bezug" required class="{{ $feld }}">
             <option value="">{{ __('Bitte wählen') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
@@ -31,14 +31,14 @@
     </div>
 
     <div>
-        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }} <span class="text-note-ungenuegend">*</span></label>
+        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }} *</label>
         <input id="abgabe-titel" name="titel" required maxlength="150" value="{{ old('titel', $b?->titel) }}" class="{{ $feld }}">
         @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }} <span class="text-note-ungenuegend">*</span></label>
+            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }} *</label>
             <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

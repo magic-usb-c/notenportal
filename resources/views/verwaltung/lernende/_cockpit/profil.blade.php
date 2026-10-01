@@ -3,8 +3,8 @@
     $benutzer = $lernender->benutzer;
     $datum = fn ($d) => $d ? \Carbon\Carbon::parse($d)->format('d.m.Y') : '–';
     $label = 'text-xs font-medium text-muted';
+    $feldLabel = 'text-sm font-medium text-text';
     $feld = 'np-feld mt-1';
-    $pflicht = '<span class="text-note-ungenuegend">*</span>';
     $heute = today();
     $konfiguration = \App\Services\Auswertung\Konfiguration::ausDb();
     // Semester aus Sicht dieser Person («3. Semester»), vor Lehrbeginn neutral
@@ -99,7 +99,7 @@
                   @if($hatOffeneBetreuung) data-bestaetigen="{{ __('Betreuung zuweisen?') }}" data-bestaetigen-text="{{ __('Die bisherige Betreuung endet am Vortag.') }}" data-bestaetigen-knopf="{{ __('Zuweisen') }}" data-bestaetigen-art="normal" @endif>
                 @csrf
                 <div>
-                    <label for="berufsbildner_id" class="{{ $label }}">{{ __('Berufsbildner') }} {!! $pflicht !!}</label>
+                    <label for="berufsbildner_id" class="{{ $feldLabel }}">{{ __('Berufsbildner') }} *</label>
                     <select id="berufsbildner_id" name="berufsbildner_id" required class="{{ $feld }}">
                         <option value="">{{ __('Bitte wählen') }}</option>
                         @foreach($berufsbildnerListe as $bb)
@@ -111,7 +111,7 @@
                     @error('berufsbildner_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="gueltig_von" class="{{ $label }}">{{ __('Ab') }} {!! $pflicht !!}</label>
+                    <label for="gueltig_von" class="{{ $feldLabel }}">{{ __('Ab') }} *</label>
                     <input id="gueltig_von" type="date" name="gueltig_von" required value="{{ old('gueltig_von', now()->toDateString()) }}" class="{{ $feld }}">
                     @error('gueltig_von')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
@@ -165,7 +165,7 @@
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <div>
-                    <label for="track_typ" class="{{ $label }}">{{ __('Track') }} {!! $pflicht !!}</label>
+                    <label for="track_typ" class="{{ $feldLabel }}">{{ __('Track') }} *</label>
                     <select id="track_typ" name="track_typ" required class="{{ $feld }}">
                         <option value="BMS">BMS</option>
                         <option value="ABU">ABU</option>
@@ -173,12 +173,12 @@
                     @error('track_typ')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="start_datum" class="{{ $label }}">{{ __('Start') }} {!! $pflicht !!}</label>
+                    <label for="start_datum" class="{{ $feldLabel }}">{{ __('Start') }} *</label>
                     <input id="start_datum" type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}" class="{{ $feld }}">
                     @error('start_datum')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="start_semester_id" class="{{ $label }}">{{ __('Semester') }} {!! $pflicht !!}</label>
+                    <label for="start_semester_id" class="{{ $feldLabel }}">{{ __('Semester') }} *</label>
                     <select id="start_semester_id" name="start_semester_id" required class="{{ $feld }}">
                         @foreach($semesterListe as $s)
                             <option value="{{ $s->semester_id }}">{{ $semesterName($s->semester_id) }}</option>

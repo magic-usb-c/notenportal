@@ -150,7 +150,7 @@
                     {{-- Farbthema: Miniaturen wie «Erscheinungsbild» in den Systemeinstellungen --}}
                     <div class="px-4 py-3">
                         <span id="theme-bez" class="text-sm text-text">{{ __('Farbthema') }}</span>
-                        <div class="mt-3 grid grid-cols-4 gap-x-3 gap-y-4 xl:grid-cols-5" role="radiogroup" aria-labelledby="theme-bez">
+                        <div class="mt-3 grid grid-cols-5 gap-x-3 gap-y-4" role="radiogroup" aria-labelledby="theme-bez">
                             <label class="group cursor-pointer text-center">
                                 <input type="radio" name="theme" value="" class="peer sr-only" x-model="theme" @change="anwenden()" @checked($altTheme === null)>
                                 <x-theme-vorschau :theme="$betriebTheme" x-bind:class="{ 'dark': dunkel }"

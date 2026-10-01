@@ -16,7 +16,7 @@
         <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="np-karte p-6 flex flex-col gap-3">
             <label for="vorlage-wahl" class="text-sm font-semibold text-text">{{ __('Vorlage') }}</label>
             <div class="flex flex-wrap items-center gap-2">
-                <select id="vorlage-wahl" name="vorlage" data-sofort class="{{ $feld }} min-w-0 flex-1 truncate pr-9 sm:flex-none sm:w-96">
+                <select id="vorlage-wahl" name="vorlage" data-sofort class="{{ $feld }} w-96 min-w-0 flex-none truncate pr-9">
                     @foreach($vorlagen as $schluessel => $v)
                         <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
                     @endforeach
@@ -36,7 +36,7 @@
         <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
         <section class="np-karte p-6 flex flex-col gap-4">
             <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div class="grid grid-cols-2 gap-2">
                 @foreach($katalog as $l)
                     @php $da = isset($vorhandeneBerufe[$l['kuerzel']]); @endphp
                     <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',

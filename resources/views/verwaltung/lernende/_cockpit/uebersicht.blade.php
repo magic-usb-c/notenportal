@@ -3,8 +3,8 @@
     $delta = $stand->delta();
     $heute = today();
 @endphp
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-    <div class="lg:col-span-8 flex flex-col gap-5">
+<div class="grid grid-cols-12 gap-5">
+    <div class="col-span-8 flex flex-col gap-5">
         {{-- Stand --}}
         <section class="np-karte p-5 flex flex-wrap items-center gap-6">
             <div>
@@ -40,7 +40,7 @@
         </x-karte>
     </div>
 
-    <div class="lg:col-span-4 flex flex-col gap-5">
+    <div class="col-span-4 flex flex-col gap-5">
         @if($stand->gruende)
             <x-karte :titel="__('Hinweise')">
                 <div class="flex flex-col gap-2">

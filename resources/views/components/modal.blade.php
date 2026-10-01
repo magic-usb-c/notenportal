@@ -6,11 +6,11 @@
 
 @php
 $maxWidth = [
-    'sm' => 'sm:max-w-sm',
-    'md' => 'sm:max-w-md',
-    'lg' => 'sm:max-w-lg',
-    'xl' => 'sm:max-w-xl',
-    '2xl' => 'sm:max-w-2xl',
+    'sm' => 'max-w-sm',
+    'md' => 'max-w-md',
+    'lg' => 'max-w-lg',
+    'xl' => 'max-w-xl',
+    '2xl' => 'max-w-2xl',
 ][$maxWidth];
 @endphp
 
@@ -51,7 +51,7 @@ $maxWidth = [
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
     x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
     x-show="show"
-    class="fixed inset-0 z-[70] overflow-y-auto px-4 py-6 sm:px-0 sm:pt-[12vh]"
+    class="fixed inset-0 z-[70] overflow-y-auto px-4 pb-6 pt-[12vh]"
     style="display: {{ $show ? 'block' : 'none' }};"
 >
     {{-- Scrim über der ganzen Seite, auch über der Navigation (z-50) --}}
@@ -70,7 +70,7 @@ $maxWidth = [
 
     <div
         x-show="show"
-        class="relative mb-6 overflow-hidden rounded-2xl border border-border-strong/30 bg-card text-text shadow-e3 sm:mx-auto sm:w-full {{ $maxWidth }}"
+        class="relative mb-6 overflow-hidden rounded-2xl border border-border-strong/30 bg-card text-text shadow-e3 mx-auto w-full {{ $maxWidth }}"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 translate-y-2"
         x-transition:enter-end="opacity-100 translate-y-0"
