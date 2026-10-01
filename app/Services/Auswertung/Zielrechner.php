@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumRechner;
+use App\Services\Auswertung\Notenbaum\Knoten;
+
 /**
  * Rückwärtsrechnung: welche Note x brauchen alle unbekannten Prüfungen, damit eine Zielgrösse
  * (gerundet) mindestens den Zielwert erreicht? Monoton in x, deshalb Suche im 0.05er-Raster.
@@ -23,6 +26,9 @@ final class Zielrechner
     public function __construct(private readonly Rechenkern $kern = new Rechenkern) {}
 
     /**
+     * «unbekannte» zählt nur die offenen Prüfungen, die in das Ziel eingehen: mit Ziel «Deutsch» ist die
+     * offene Mathematikprüfung für den Satz «… in jeder der n offenen Prüfungen» ohne Belang.
+     *
      * @param  list<Leistung>  $leistungen  unbekannte = wert null
      * @return array{status: string, note: ?float, resultat: ?float, minimum: ?float, maximum: ?float, aktuell: ?float, unbekannte: int}
      */
@@ -32,7 +38,7 @@ final class Zielrechner
         $aktuell = $this->kern->auswerten($leistungen, $k)->wert($ziel);
         $antwort = fn (string $status, ?float $note = null, ?float $resultat = null, ?float $min = null, ?float $max = null) => [
             'status' => $status, 'note' => $note, 'resultat' => $resultat, 'minimum' => $min, 'maximum' => $max,
-            'aktuell' => $aktuell, 'unbekannte' => $unbekannte,
+            'aktuell' => $aktuell, 'unbekannte' => $unbekannte > 0 ? $this->einfliessende($leistungen, $ziel, $k) : 0,
         ];
 
         if ($unbekannte === 0) {
@@ -82,6 +88,82 @@ final class Zielrechner
         for ($i = 0; 1.0 + $i * $schritt <= 6.0 + 1e-9; $i++) {
             $x = round(1.0 + $i * $schritt, 2);
             $out[] = ['x' => $x, 'wert' => $this->wertBei($leistungen, $x, $ziel, $k)];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Anzahl offener Prüfungen, die in die Zielgrösse eingehen – strukturell über Element, Kategorie,
+     * Semester und Notenbaum bestimmt, nicht durch Probieren: Rundungen auf Zwischenebenen verschlucken
+     * sonst die Wirkung einzelner Prüfungen, die gemeinsam das Ziel sehr wohl verschieben.
+     *
+     * @param  list<Leistung>  $leistungen
+     */
+    private function einfliessende(array $leistungen, Zielgroesse $ziel, Konfiguration $k): int
+    {
+        // Gefüllt rechnen, damit jedes Element samt Semester (Modul: das seiner letzten Prüfung) feststeht.
+        $gefuellt = array_map(fn (Leistung $l) => $l->istUnbekannt() ? $l->mitWert(6.0) : $l, $leistungen);
+        $elementVon = [];
+        foreach ($this->kern->auswerten($gefuellt, $k)->elemente as $e) {
+            foreach ($e->leistungen as $l) {
+                $elementVon[spl_object_id($l)] = $e;
+            }
+        }
+        $haupt = $ziel->ebene === 'gesamt' ? $k->hauptbaum() : null;
+        $blaetter = $haupt !== null ? $this->tragendeBlaetter($haupt->wurzel) : null;
+
+        $anzahl = 0;
+        foreach ($leistungen as $i => $l) {
+            if ($l->istUnbekannt() && $l->gewicht > 0
+                && $this->fliesstEin($l, $elementVon[spl_object_id($gefuellt[$i])] ?? null, $ziel, $k, $blaetter)) {
+                $anzahl++;
+            }
+        }
+
+        return $anzahl;
+    }
+
+    /** @param  list<Knoten>|null  $blaetter  Blätter des Hauptbaums, die die Gesamtnote tragen (null: ohne Baum) */
+    private function fliesstEin(Leistung $l, ?Element $e, Zielgroesse $ziel, Konfiguration $k, ?array $blaetter): bool
+    {
+        if ($blaetter !== null) {
+            foreach ($blaetter as $b) {
+                if ($b->typ === Knoten::MANUELL ? $l->knotenId === $b->id : ($e !== null && BaumRechner::nimmtAuf($b, $e))) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        if ($e === null) {
+            return false;
+        }
+
+        return match ($ziel->ebene) {
+            'gesamt' => $e->zaehlt && ($k->kategorien[$e->kategorieId]['gewicht_gesamt'] ?? 1.0) > 0,
+            'kategorie' => $e->zaehlt && $e->kategorieId === $ziel->id && ($ziel->semesterId === null || $e->semesterId === $ziel->semesterId),
+            'semester' => $e->zaehlt && $e->semesterId === $ziel->id,
+            'fach' => $e->typ === Element::FACH && $e->fachId === $ziel->id && ($ziel->semesterId === null || $e->semesterId === $ziel->semesterId),
+            'modul' => $e->typ === Element::MODUL && $e->modulId === $ziel->id,
+        };
+    }
+
+    /**
+     * Blätter, deren Noten bis zur Wurzel durchschlagen: nur über zählende Teile mit Gewicht.
+     *
+     * @return list<Knoten>
+     */
+    private function tragendeBlaetter(Knoten $knoten): array
+    {
+        if ($knoten->istBlatt()) {
+            return [$knoten];
+        }
+        $out = [];
+        foreach ($knoten->kinder as $kind) {
+            if ($kind->zaehlt && $kind->gewicht > 0) {
+                array_push($out, ...$this->tragendeBlaetter($kind));
+            }
         }
 
         return $out;

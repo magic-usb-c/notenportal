@@ -137,17 +137,28 @@ final class BaumRechner
     {
         $noten = [];
         foreach ($this->elemente as $el) {
-            if ($el->kategorieId !== $k->kategorieId || ! $el->zaehlt || $el->note === null) {
-                continue;
+            if ($el->note !== null && self::nimmtAuf($k, $el)) {
+                $noten[] = $el->note;
             }
-            if (($k->elementtyp === Knoten::NUR_MODULE && $el->typ !== Element::MODUL)
-                || ($k->elementtyp === Knoten::NUR_FAECHER && $el->typ !== Element::FACH)) {
-                continue;
-            }
-            $noten[] = $el->note;
         }
 
         return $noten;
+    }
+
+    /**
+     * Geht die Zeugnisnote dieses Elements in das Blatt ein? Einzige Stelle für die Zuordnung, damit der
+     * Zielrechner dieselbe Antwort bekommt wie die Rechnung selbst.
+     */
+    public static function nimmtAuf(Knoten $k, Element $el): bool
+    {
+        return match ($k->typ) {
+            Knoten::KATEGORIE => $el->kategorieId === $k->kategorieId && $el->zaehlt
+                && ! ($k->elementtyp === Knoten::NUR_MODULE && $el->typ !== Element::MODUL)
+                && ! ($k->elementtyp === Knoten::NUR_FAECHER && $el->typ !== Element::FACH),
+            // Ausdrücklich genannte Fächer zählen auch dann, wenn sie sonst nicht in Schnitte eingehen.
+            Knoten::FAECHER => $el->typ === Element::FACH && in_array($el->fachId, $k->faecher, true),
+            default => false,
+        };
     }
 
     /**
@@ -160,7 +171,7 @@ final class BaumRechner
     {
         $noten = [];
         foreach ($this->elemente as $el) {
-            if ($el->typ === Element::FACH && $el->note !== null && in_array($el->fachId, $k->faecher, true)) {
+            if ($el->note !== null && self::nimmtAuf($k, $el)) {
                 $noten[] = $el->note;
             }
         }

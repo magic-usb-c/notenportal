@@ -54,6 +54,41 @@ class ZielrechnerTest extends TestCase
     }
 
     #[Test]
+    public function zaehlt_nur_offene_pruefungen_mit_einfluss_auf_das_ziel(): void
+    {
+        // Die offene Deutschprüfung und das offene Modul ändern an Mathematik nichts: «in jeder der 2», nicht der 4.
+        $leistungen = [
+            $this->fach(self::MATHE, 1, 3.0), $this->fach(self::MATHE, 1, null, 50), $this->fach(self::MATHE, 1, null, 50),
+            $this->fach(self::DEUTSCH, 1, null), $this->modul(100, null),
+        ];
+        $r = (new Zielrechner)->loese($leistungen, Zielgroesse::parse('fach:10@semester:1'), 4.0, $this->testKonfiguration());
+
+        $this->assertSame(Zielrechner::BENOETIGT, $r['status']);
+        $this->assertSame(4.5, $r['note']);
+        $this->assertSame(2, $r['unbekannte']);
+
+        // Auf den Gesamtschnitt wirken alle vier.
+        $gesamt = (new Zielrechner)->loese($leistungen, Zielgroesse::parse('gesamt'), 4.0, $this->testKonfiguration());
+        $this->assertSame(4, $gesamt['unbekannte']);
+    }
+
+    #[Test]
+    public function rundung_auf_zwischenebenen_verdeckt_keine_offene_pruefung(): void
+    {
+        // Einzeln verschluckt die Semesterrundung von Englisch jede der drei kleinen Prüfungen, gemeinsam
+        // auf 1.0 kippen sie das Ziel: alle gehören in den Satz. Die Prüfung ohne Gewicht bewegt nichts.
+        $leistungen = [
+            $this->fach(self::ENGLISCH, 1, 5.5), $this->fach(self::ENGLISCH, 1, null, 20), $this->fach(self::ENGLISCH, 1, null, 10),
+            $this->fach(self::ENGLISCH, 1, null, 5), $this->fach(self::ENGLISCH, 1, null, 0),
+            $this->fach(self::MATHE, 1, 6.0), $this->fach(self::MATHE, 1, null), $this->fach(self::ENGLISCH, 2, 3.5),
+        ];
+        $r = (new Zielrechner)->loese($leistungen, Zielgroesse::parse('gesamt'), 4.5, $this->testKonfiguration());
+
+        $this->assertSame(Zielrechner::BENOETIGT, $r['status']);
+        $this->assertSame(4, $r['unbekannte']);
+    }
+
+    #[Test]
     public function meldet_unerreichbar_mit_maximum(): void
     {
         $r = (new Zielrechner)->loese(
