@@ -179,9 +179,12 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
-        ],
+        'benutzername' => ['regex' => 'The username may only contain letters, digits and . _ -.'],
+        'version' => ['regex' => 'The catalogue version consists of one or two digits.'],
+        'mail_host' => ['regex' => 'The server may only contain letters, digits, dots and hyphens.'],
+        'sicherung_kopie_host' => ['regex' => 'The server may only contain letters, digits, dots, colons and hyphens.'],
+        'sicherung_kopie_benutzer' => ['regex' => 'The user starts with a letter or _ and contains only letters, digits and . _ -.'],
+        'sicherung_kopie_pfad' => ['regex' => 'The folder may only contain letters, digits and . _ / ~ -.'],
     ],
 
     /*

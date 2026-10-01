@@ -35,7 +35,7 @@
             @foreach(['beginn' => __('Beginn'), 'ende' => __('Ende')] as $k => $text)
                 <x-einstellung :label="$text" :fuer="'hinweis_'.$k" :name="'hinweis_'.$k">
                     <input id="hinweis_{{ $k }}" name="hinweis_{{ $k }}" type="datetime-local" value="{{ $wert($k) }}"
-                           class="np-feld w-60 tabular-nums" @error('hinweis_'.$k) aria-invalid="true" @enderror>
+                           class="np-feld w-60 tabular-nums" @error('hinweis_'.$k) aria-invalid="true" aria-describedby="{{ 'hinweis_'.$k }}-fehler" @enderror>
                 </x-einstellung>
             @endforeach
         </div>

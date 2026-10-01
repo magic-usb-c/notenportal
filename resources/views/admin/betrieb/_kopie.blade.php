@@ -49,19 +49,19 @@
             </x-einstellung>
             <x-einstellung :label="__('Server')" :fuer="$K::HOST" :name="$K::HOST" x-show="ziel === 'ssh'" x-cloak>
                 <input id="{{ $K::HOST }}" name="{{ $K::HOST }}" type="text" maxlength="190" value="{{ $wert($K::HOST) }}" placeholder="backup.example.ch"
-                       autocomplete="off" spellcheck="false" class="np-feld w-72" @error($K::HOST) aria-invalid="true" @enderror>
+                       autocomplete="off" spellcheck="false" class="np-feld w-72" @error($K::HOST) aria-invalid="true" aria-describedby="{{ $K::HOST }}-fehler" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Port')" :fuer="$K::PORT" :name="$K::PORT" x-show="ziel === 'ssh'" x-cloak>
                 <input id="{{ $K::PORT }}" name="{{ $K::PORT }}" type="number" min="1" max="65535" value="{{ $wert($K::PORT) }}"
-                       class="np-feld w-24 text-right tabular-nums" @error($K::PORT) aria-invalid="true" @enderror>
+                       class="np-feld w-24 text-right tabular-nums" @error($K::PORT) aria-invalid="true" aria-describedby="{{ $K::PORT }}-fehler" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Benutzer')" :fuer="$K::BENUTZER" :name="$K::BENUTZER" x-show="ziel === 'ssh'" x-cloak>
                 <input id="{{ $K::BENUTZER }}" name="{{ $K::BENUTZER }}" type="text" maxlength="64" value="{{ $wert($K::BENUTZER) }}"
-                       autocomplete="off" spellcheck="false" class="np-feld w-72" @error($K::BENUTZER) aria-invalid="true" @enderror>
+                       autocomplete="off" spellcheck="false" class="np-feld w-72" @error($K::BENUTZER) aria-invalid="true" aria-describedby="{{ $K::BENUTZER }}-fehler" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Ordner am Ziel')" :fuer="$K::PFAD" :name="$K::PFAD" x-show="ziel !== ''" x-cloak>
                 <input id="{{ $K::PFAD }}" name="{{ $K::PFAD }}" type="text" maxlength="250" value="{{ $wert($K::PFAD) }}" placeholder="/mnt/sicherungen/notenportal"
-                       autocomplete="off" spellcheck="false" class="np-feld w-72 font-mono" @error($K::PFAD) aria-invalid="true" @enderror>
+                       autocomplete="off" spellcheck="false" class="np-feld w-72 font-mono" @error($K::PFAD) aria-invalid="true" aria-describedby="{{ $K::PFAD }}-fehler" @enderror>
             </x-einstellung>
             @if($schluessel_oeffentlich)
                 <div class="px-4 py-3" x-show="ziel === 'ssh'" x-cloak x-data="{ kopiert: false }">

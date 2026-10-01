@@ -1,66 +1,12 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Neues Modul') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :zurueck="route('admin.master-data.modules.index')" :titel="__('Neues Modul')" schmal>
-        </x-seitenkopf>
+        <x-seitenkopf :zurueck="route('admin.master-data.modules.index')" :titel="__('Neues Modul')" schmal />
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte np-spalte p-6">
-                <form method="POST" action="{{ route('admin.master-data.modules.store') }}" class="space-y-5" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                    @csrf
-
-                    <div>
-                        <label for="modul_nummer" class="text-sm font-medium text-text">{{ __('Modulnummer') }} *</label>
-                        <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer') }}" required maxlength="50" placeholder="M100"
-                               class="np-feld mt-1 max-w-48 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
-                        @error('modul_nummer')
-                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="titel" class="text-sm font-medium text-text">{{ __('Titel') }} *</label>
-                        <input type="text" id="titel" name="titel" value="{{ old('titel') }}" required maxlength="255"
-                               class="np-feld mt-1 @error('titel') border-note-ungenuegend @enderror">
-                        @error('titel')
-                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}</label>
-                        <input type="text" id="version" name="version" value="{{ old('version') }}" inputmode="numeric" maxlength="2" placeholder="1" aria-describedby="version-hilfe"
-                               class="np-feld mt-1 max-w-24 tabular-nums @error('version') border-note-ungenuegend @enderror">
-                        <p id="version-hilfe" class="mt-1 text-xs text-muted">{{ __('Erzeugt den Verweis auf den Modulbaukasten.') }}</p>
-                        @error('version')
-                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }}</label>
-                        <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
-                                  class="np-feld mt-1 @error('beschreibung') border-note-ungenuegend @enderror">{{ old('beschreibung') }}</textarea>
-                        @error('beschreibung')
-                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="ziel_gewicht_summe_default" class="text-sm font-medium text-text">{{ __('Ziel-Gewicht-Summe') }}</label>
-                        <input type="number" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default" value="{{ old('ziel_gewicht_summe_default', 100) }}"
-                               step="0.01" min="0"
-                               class="np-feld mt-1 max-w-32 tabular-nums @error('ziel_gewicht_summe_default') border-note-ungenuegend @enderror">
-                        @error('ziel_gewicht_summe_default')
-                            <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <x-formular-aktionen :abbrechen="route('admin.master-data.modules.index')">{{ __('Modul anlegen') }}</x-formular-aktionen>
-                </form>
-            </div>
+            @include('admin.stammdaten.module._formular', ['modul' => null])
         </div>
     </div>
 </x-app-layout>

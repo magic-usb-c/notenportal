@@ -18,7 +18,7 @@
             @method('PUT')
             <x-einstellung :label="__('Abmelden nach Inaktivität von')" fuer="sitzung_minuten" name="sitzung_minuten">
                 <select id="sitzung_minuten" name="sitzung_minuten" data-sofort class="np-feld w-56"
-                        @error('sitzung_minuten') aria-invalid="true" @enderror>
+                        @error('sitzung_minuten') aria-invalid="true" aria-describedby="sitzung_minuten-fehler" @enderror>
                     @foreach($stufen as $m)
                         <option value="{{ $m }}" @selected($m === $aktuell)>{{ $m === $sitzungStandard ? __(':dauer (Standard)', ['dauer' => $dauer($m)]) : $dauer($m) }}</option>
                     @endforeach

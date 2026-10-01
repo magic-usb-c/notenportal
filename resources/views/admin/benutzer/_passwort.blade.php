@@ -14,7 +14,7 @@
             </button>
             <input x-ref="pw1" :type="sichtbar ? 'text' : 'password'" name="passwort" id="passwort" minlength="10" autocomplete="new-password"
                    @if($pflicht) required @else placeholder="{{ __('Unverändert') }}" @endif
-                   class="np-feld w-72" @error('passwort') aria-invalid="true" @enderror>
+                   class="np-feld w-72" aria-describedby="passwort-hinweis @error('passwort') passwort-fehler @enderror" @error('passwort') aria-invalid="true" @enderror>
         </x-einstellung>
         <x-einstellung :label="__('Passwort bestätigen')" fuer="passwort_confirmation">
             <input x-ref="pw2" :type="sichtbar ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation" autocomplete="new-password"

@@ -8,7 +8,7 @@
                 @foreach(['vorname' => [__('Vorname'), 'text', 'given-name', 100], 'nachname' => [__('Nachname'), 'text', 'family-name', 100], 'email' => [__('E-Mail'), 'email', 'email', 255]] as $name => [$text, $typ, $auto, $max])
                     <x-einstellung :label="$text" :fuer="$name" :name="$name">
                         <input id="{{ $name }}" name="{{ $name }}" type="{{ $typ }}" required maxlength="{{ $max }}" value="{{ old($name, $konto->$name) }}"
-                               autocomplete="{{ $auto }}" class="np-feld w-72" @error($name) aria-invalid="true" @enderror>
+                               autocomplete="{{ $auto }}" class="np-feld w-72" @error($name) aria-invalid="true" aria-describedby="{{ $name }}-fehler" @enderror>
                     </x-einstellung>
                 @endforeach
             </div>

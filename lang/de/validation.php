@@ -131,6 +131,16 @@ return [
     'url' => 'Das Feld :attribute muss eine gültige URL sein.',
     'uuid' => 'Das Feld :attribute muss eine gültige UUID sein.',
 
+    // ---- Verständliche Meldungen für Formatregeln (regex) ----
+    'custom' => [
+        'benutzername' => ['regex' => 'Der Benutzername darf nur Buchstaben, Ziffern und . _ - enthalten.'],
+        'version' => ['regex' => 'Die Katalogversion besteht aus einer oder zwei Ziffern.'],
+        'mail_host' => ['regex' => 'Der Server darf nur Buchstaben, Ziffern, Punkte und Bindestriche enthalten.'],
+        'sicherung_kopie_host' => ['regex' => 'Der Server darf nur Buchstaben, Ziffern, Punkte, Doppelpunkte und Bindestriche enthalten.'],
+        'sicherung_kopie_benutzer' => ['regex' => 'Der Benutzer beginnt mit einem Buchstaben oder _ und enthält nur Buchstaben, Ziffern und . _ -.'],
+        'sicherung_kopie_pfad' => ['regex' => 'Der Ordner darf nur Buchstaben, Ziffern und . _ / ~ - enthalten.'],
+    ],
+
     // ---- Feldnamen auf Deutsch ----
     'attributes' => [
         'vorname' => 'Vorname',

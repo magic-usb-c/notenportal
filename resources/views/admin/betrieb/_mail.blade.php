@@ -1,7 +1,7 @@
 {{-- Mailversand als gruppierte Listen – in «Betrieb» und im Einrichtungsschritt «E-Mail». --}}
 @php
     $wert = fn (string $k) => old($k, $werte[$k]);
-    $fehlerAttr = fn (string $k) => $errors->has($k) ? 'aria-invalid=true' : '';
+    $fehlerAttr = fn (string $k) => $errors->has($k) ? 'aria-invalid=true aria-describedby='.$k.'-fehler' : '';
 @endphp
 <section>
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Server') }}</h2>

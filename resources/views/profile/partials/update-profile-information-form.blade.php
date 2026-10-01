@@ -22,34 +22,34 @@
             @else
                 <x-einstellung :label="__('Vorname')" fuer="vorname" name="vorname">
                     <input id="vorname" name="vorname" type="text" value="{{ old('vorname', $user->vorname) }}" required autocomplete="given-name"
-                           class="{{ $feld }}" @error('vorname') aria-invalid="true" @enderror>
+                           class="{{ $feld }}" @error('vorname') aria-invalid="true" aria-describedby="vorname-fehler" @enderror>
                 </x-einstellung>
                 <x-einstellung :label="__('Nachname')" fuer="nachname" name="nachname">
                     <input id="nachname" name="nachname" type="text" value="{{ old('nachname', $user->nachname) }}" required autocomplete="family-name"
-                           class="{{ $feld }}" @error('nachname') aria-invalid="true" @enderror>
+                           class="{{ $feld }}" @error('nachname') aria-invalid="true" aria-describedby="nachname-fehler" @enderror>
                 </x-einstellung>
             @endif
             <x-einstellung :label="__('E-Mail')" fuer="email" name="email">
                 <input id="email" name="email" type="email" x-model="email" required autocomplete="email"
-                       class="{{ $feld }}" @error('email') aria-invalid="true" @enderror>
+                       class="{{ $feld }}" @error('email') aria-invalid="true" aria-describedby="email-fehler" @enderror>
             </x-einstellung>
             <div x-show="email !== original" x-cloak>
                 <x-einstellung :label="__('Aktuelles Passwort')" :hinweis="__('Zur Bestätigung der neuen Adresse')" fuer="current_password" name="current_password">
                     <input id="current_password" name="current_password" type="password" autocomplete="current-password"
-                           class="{{ $feld }}" @error('current_password') aria-invalid="true" @enderror>
+                           class="{{ $feld }}" @error('current_password') aria-invalid="true" aria-describedby="current_password-fehler" @enderror>
                 </x-einstellung>
             </div>
             @if($lernender)
                 <x-einstellung :label="__('Klasse Berufsfachschule')" fuer="klasse_schule" name="klasse_schule">
                     <input id="klasse_schule" name="klasse_schule" type="text" maxlength="30"
                            value="{{ old('klasse_schule', $lernender->klasse_schule) }}" placeholder="{{ __('z. B. INF24b') }}"
-                           class="{{ $feld }}" @error('klasse_schule') aria-invalid="true" @enderror>
+                           class="{{ $feld }}" @error('klasse_schule') aria-invalid="true" aria-describedby="klasse_schule-fehler" @enderror>
                 </x-einstellung>
                 @if($bmsAktiv)
                     <x-einstellung :label="__('Klasse BMS')" fuer="klasse_bms" name="klasse_bms">
                         <input id="klasse_bms" name="klasse_bms" type="text" maxlength="30"
                                value="{{ old('klasse_bms', $lernender->klasse_bms) }}"
-                               class="{{ $feld }}" @error('klasse_bms') aria-invalid="true" @enderror>
+                               class="{{ $feld }}" @error('klasse_bms') aria-invalid="true" aria-describedby="klasse_bms-fehler" @enderror>
                     </x-einstellung>
                 @endif
             @endif

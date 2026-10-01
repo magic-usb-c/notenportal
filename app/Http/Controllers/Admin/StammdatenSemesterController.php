@@ -47,7 +47,7 @@ class StammdatenSemesterController extends Controller
             ->first();
         if ($overlap) {
             throw ValidationException::withMessages([
-                'start_datum' => __('Zeitraum ueberschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
+                'start_datum' => __('Zeitraum überschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
             ]);
         }
 
@@ -96,7 +96,7 @@ class StammdatenSemesterController extends Controller
             ->first();
         if ($overlap) {
             throw ValidationException::withMessages([
-                'start_datum' => __('Zeitraum ueberschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
+                'start_datum' => __('Zeitraum überschneidet sich mit Semester «:bezeichnung».', ['bezeichnung' => $overlap->bezeichnung]),
             ]);
         }
 
