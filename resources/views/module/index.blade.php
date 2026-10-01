@@ -43,7 +43,7 @@
                                     </td>
                                     <td class="text-text">
                                         <a href="{{ route('modules.show', $m->modul_id) }}" class="hover:text-accent-text">{{ $m->titel }}</a>
-                                        @unless($m->aktiv)<span class="np-marke ml-2 text-muted">{{ __('inaktiv') }}</span>@endunless
+                                        @unless($m->aktiv)<span class="np-marke ml-2 text-muted">{{ __('Inaktiv') }}</span>@endunless
                                     </td>
                                     <td class="text-right text-muted">{{ $m->handlungsziele_count }}</td>
                                     <td class="text-right text-muted">{{ $m->dokumente_count }}</td>

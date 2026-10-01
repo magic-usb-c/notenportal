@@ -54,7 +54,6 @@
     "Aktion": "Action",
     "Aktionen": "Actions",
     "Aktiv": "Active",
-    "aktiv": "active",
     "Aktive Betreuungen zuerst übergeben.": "Hand over active mentorships first.",
     "Aktivieren": "Activate",
     "Aktuelles Logo": "Current logo",
@@ -230,7 +229,6 @@
     "Importieren": "Import",
     "In Warteschlange": "Queued",
     "Inaktiv": "Inactive",
-    "inaktiv": "inactive",
     "Info": "Info",
     "Jemand hat Feedback, eine Idee oder einen Fehler gemeldet.": "Someone reported feedback, an idea or a bug.",
     "Jetzt kopieren": "Copy now",
@@ -688,5 +686,8 @@
     ":name (inaktiv)": ":name (inactive)",
     "Fach :name aktiv": "Subject :name active",
     "Zu diesem Modul gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this module. Deactivate it instead.",
-    "Zu diesem Fach gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this subject. Deactivate it instead."
+    "Zu diesem Fach gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this subject. Deactivate it instead.",
+    "Aufbau": "Structure",
+    "Notenbaum «:name» deaktivieren?": "Deactivate grade tree “:name”?",
+    ":teil zählt": ":teil counts"
 }
