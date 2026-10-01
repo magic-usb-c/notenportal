@@ -20,6 +20,10 @@
         $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
         $aktiveFilter = ($filter['lernender_id'] ? 1 : 0) + ($filter['zeitraum'] !== 'alle' ? 1 : 0);
         $pillBasis = 'np-marke';
+        // Spalten ohne einen einzigen Wert entfallen; feste Breiten halten die Abschnitte untereinander bündig.
+        $alle = collect($gruppen)->flatMap(fn ($g) => $g['zeilen'])->map(fn ($z) => $z['pruefung']);
+        $mitArt = $alle->contains(fn ($p) => filled($p->pruefungsart));
+        $mitRaum = $alle->contains(fn ($p) => filled($p->raum));
     @endphp
 
     <div class="py-6">
@@ -53,17 +57,26 @@
                     </h3>
 
                     <div class="overflow-x-auto px-2 pb-2">
-                        <table class="np-tabelle text-sm">
+                        <table class="np-tabelle table-fixed text-sm">
+                            <colgroup>
+                                <col class="w-32">
+                                <col class="w-64">
+                                <col>
+                                @if($mitArt)<col class="w-44">@endif
+                                @if($mitRaum)<col class="w-32">@endif
+                                <col class="w-32">
+                                @if($abgabeMoeglich)<col class="w-36">@endif
+                            </colgroup>
                             <thead>
                                 <tr>
                                     <th scope="col" class="whitespace-nowrap">{{ __('Datum') }}</th>
                                     <th scope="col">{{ __('Lernende/r') }}</th>
                                     <th scope="col">{{ __('Fach / Modul') }}</th>
-                                    <th scope="col">{{ __('Art') }}</th>
-                                    <th scope="col">{{ __('Raum') }}</th>
+                                    @if($mitArt)<th scope="col">{{ __('Art') }}</th>@endif
+                                    @if($mitRaum)<th scope="col">{{ __('Raum') }}</th>@endif
                                     <th scope="col">{{ __('Status') }}</th>
                                     @if($abgabeMoeglich)
-                                        <th scope="col" class="w-24"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                        <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     @endif
                                 </tr>
                             </thead>
@@ -75,13 +88,13 @@
                                             {{ $p->datum->format('d.m.Y') }}
                                             @if($p->uhrzeit)<span class="block text-xs text-muted">{{ substr((string) $p->uhrzeit, 0, 5) }}</span>@endif
                                         </td>
-                                        <td>
+                                        <td class="truncate">
                                             <a href="{{ route($bereich.'.learners.show', $p->lernender_id) }}" class="text-text hover:text-accent-text">
                                                 {{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}
                                             </a>
                                         </td>
                                         <td>
-                                            <div class="flex items-center gap-1.5">
+                                            <div class="flex min-w-0 items-center gap-1.5">
                                                 <span class="truncate text-text">{{ $p->bezeichnung() }}</span>
                                                 @if($p->istAbgabe())
                                                     <span class="{{ $pillBasis }} bg-accent/10 text-accent-text shrink-0">{{ __('Abgabetermin') }}</span>
@@ -89,8 +102,8 @@
                                             </div>
                                             @if($p->titel)<div class="truncate text-xs text-muted">{{ $p->titel }}</div>@endif
                                         </td>
-                                        <td>{{ $p->pruefungsart ?: '–' }}</td>
-                                        <td>{{ $p->raum ?: '–' }}</td>
+                                        @if($mitArt)<td class="truncate">{{ $p->pruefungsart ?: '–' }}</td>@endif
+                                        @if($mitRaum)<td class="truncate">{{ $p->raum ?: '–' }}</td>@endif
                                         <td>
                                             <span class="{{ $pillBasis }} {{ $status['klasse'] }}">{{ $status['label'] }}</span>
                                         </td>
