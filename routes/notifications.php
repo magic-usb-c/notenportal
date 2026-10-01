@@ -21,7 +21,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Abbestellen aus der Mail: signierter Link ohne Login; POST = One-Click nach RFC 8058 (Mailprogramm, ohne CSRF-Token)
-Route::middleware(['signed', 'throttle:30,1'])->group(function () {
+Route::middleware(['signed', 'throttle:30,1,unsubscribe'])->group(function () {
     Route::get('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'show'])
         ->whereNumber('user')->name('notifications.unsubscribe');
     Route::post('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'store'])
@@ -31,9 +31,9 @@ Route::middleware(['signed', 'throttle:30,1'])->group(function () {
 // Passwort vergessen / festlegen per Mail-Link (auch für neu eröffnete Konten)
 Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('throttle:5,1')->name('password.email');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->middleware('throttle:5,1,forgot-password')->name('password.email');
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:10,1')->name('password.store');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->middleware('throttle:10,1,reset-password')->name('password.store');
 });
 
 // Admin: Mail-Einstellungen (Teil der Seite Betrieb), Versandprotokoll, Regeln je Anlass

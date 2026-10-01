@@ -260,7 +260,7 @@ Route::middleware(['auth', 'role:Admin'])
         Route::post('/users/{benutzer_id}/toggle-active', [AdminBenutzerController::class, 'toggleAktiv'])
             ->name('users.toggle-active');
         Route::get('/users/{benutzer_id}/data-export', [AdminDatenauskunftController::class, 'zeigen'])
-            ->whereNumber('benutzer_id')->middleware('throttle:3,1,data-export')->name('users.data-export');
+            ->whereNumber('benutzer_id')->middleware('throttle:3,1,admin-data-export')->name('users.data-export');
 
         // Stammdaten: Lehrberufe (inkl. Modul- & Fach-Zuweisung)
         Route::get('/master-data/professions', [StammdatenLehrberufeController::class, 'index'])

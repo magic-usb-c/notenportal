@@ -106,6 +106,8 @@ class LernendeController extends VerwaltungController
 
         return view('verwaltung.lernende.index', [
             'zeilen' => $zeilen->values(),
+            // Leerzustand nur, wenn es gar keine sichtbaren Lernenden gibt – auch keine inaktiven
+            'gesamt' => Lernender::sichtbarFuer($user)->count(),
             'filter' => $filter,
             'grenze' => $grenze,
             'frist' => Betrieb::fristInaktivTage(),

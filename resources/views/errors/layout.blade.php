@@ -19,8 +19,13 @@
     $angemeldet = rescue(fn () => auth()->user(), null, false);
     // Zurück nur, wenn die Person von einer Seite dieses Portals kam (kein Datenbankzugriff nötig)
     $herkunft = (string) request()->headers->get('referer');
-    $zurueck = $herkunft !== '' && parse_url($herkunft, PHP_URL_HOST) === request()->getHost() && $herkunft !== request()->fullUrl()
-        ? $herkunft : null;
+    $teile = $herkunft !== '' ? parse_url($herkunft) : false;
+    $ausPortal = is_array($teile)
+        && in_array($teile['scheme'] ?? '', ['http', 'https'], true)
+        && ($teile['host'] ?? null) === request()->getHost()
+        && ($teile['port'] ?? ($teile['scheme'] === 'https' ? 443 : 80)) === request()->getPort();
+    // Bei GET führt die eigene Adresse nicht «zurück»; ein Formular, das auf sich selbst sendet, schon
+    $zurueck = $ausPortal && (! request()->isMethod('GET') || $herkunft !== request()->fullUrl()) ? $herkunft : null;
     // Bei Wartung und Drosselung führt «Zur Anmeldung» nirgends hin oder mitten aus der Aufgabe: erneut versuchen ist der Hauptweg
     $wiederholen = in_array($code, [429, 503], true)
         ? (request()->isMethod('GET') ? request()->fullUrl() : $zurueck)
@@ -44,7 +49,7 @@
             @else
                 <a href="{{ $start }}" class="np-knopf np-knopf-primaer np-knopf-gross">{{ $startText }}</a>
                 @if($zurueck && $code !== 503)
-                    <a href="{{ $zurueck }}" x-data @click.prevent="history.back()" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Zurück') }}</a>
+                    <a href="{{ $zurueck }}" x-data @click.prevent="history.length > 1 ? history.back() : (location.href = $el.href)" class="np-knopf np-knopf-sekundaer np-knopf-gross">{{ __('Zurück') }}</a>
                 @endif
             @endif
         </div>

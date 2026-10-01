@@ -18,7 +18,7 @@ class FehlerseitenWegeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Route::get('/_fehlerseite/{code}', fn (int $code) => abort($code))->middleware('web');
+        Route::match(['get', 'post'], '/_fehlerseite/{code}', fn (int $code) => abort($code))->middleware('web');
     }
 
     #[Test]
@@ -57,6 +57,21 @@ class FehlerseitenWegeTest extends TestCase
         $this->withHeader('Referer', url('/login'))->get('/_fehlerseite/404')->assertSee('>'.__('Zurück').'<', false);
 
         $this->withHeader('Referer', 'https://fremd.example/seite')->get('/_fehlerseite/404')->assertDontSee('>'.__('Zurück').'<', false);
+
+        // Gleicher Host, aber fremdes Schema oder fremder Port: nicht dieses Portal
+        $this->withHeader('Referer', 'ftp://'.request()->getHost().'/x')->get('/_fehlerseite/404')->assertDontSee('>'.__('Zurück').'<', false);
+        $this->withHeader('Referer', 'http://'.request()->getHost().':8443/x')->get('/_fehlerseite/404')->assertDontSee('>'.__('Zurück').'<', false);
+    }
+
+    #[Test]
+    public function gedrosseltes_formular_bietet_erneut_versuchen_auf_seiner_eigenen_seite(): void
+    {
+        // Häufigster Fall: POST /login mit Referer /login – der Hauptweg führt zurück zum Formular
+        $this->withHeader('Referer', url('/_fehlerseite/429'))
+            ->post('/_fehlerseite/429')
+            ->assertStatus(429)
+            ->assertSeeInOrder([__('Erneut versuchen'), __('Zur Anmeldung')])
+            ->assertSee('href="'.url('/_fehlerseite/429').'"', false);
     }
 
     #[Test]

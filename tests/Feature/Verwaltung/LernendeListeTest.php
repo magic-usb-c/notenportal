@@ -136,4 +136,22 @@ class LernendeListeTest extends TestCase
             $this->assertStringContainsString('<table', $gefiltert, $bereich);
         }
     }
+
+    #[Test]
+    public function nur_inaktive_lernende_zeigen_die_tabelle_mit_filterleiste(): void
+    {
+        $lernender = $this->neuerLernender(['aktiv' => false]);
+        $bb = User::factory()->berufsbildner()->create();
+        $this->betreue($bb, $lernender);
+
+        foreach (['trainer' => $bb, 'admin' => User::factory()->admin()->create()] as $bereich => $user) {
+            $html = (string) $this->actingAs($user)->get(route($bereich.'.learners.index'))->assertOk()->getContent();
+            $this->assertStringNotContainsString('Noch keine Lernenden', $html, $bereich);
+            $this->assertStringContainsString('<table', $html, $bereich);
+            $this->assertStringContainsString('name="inaktive"', $html, $bereich);
+
+            $mit = (string) $this->actingAs($user)->get(route($bereich.'.learners.index', ['inaktive' => 1]))->assertOk()->getContent();
+            $this->assertStringContainsString($lernender->benutzer->nachname, $mit, $bereich);
+        }
+    }
 }

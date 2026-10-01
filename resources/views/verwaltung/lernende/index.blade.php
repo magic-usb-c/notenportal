@@ -23,8 +23,9 @@
         default => __('vor :tage Tagen', ['tage' => $tage]),
     };
     $spalten = $bereich === 'admin' ? 8 : 7;
-    // Keine Lernende und kein Filter aktiv: ein Leerzustand für die ganze Ansicht statt leerer Tabelle
-    $leer = $zeilen->isEmpty() && $aktiveFilter === 0;
+    // Gar keine sichtbaren Lernenden (auch keine inaktiven) und kein Filter: Leerzustand für die ganze Ansicht.
+    // Nur inaktive Lernende zeigen die Tabelle mit Filterleiste, damit «Inkl. inaktive» erreichbar bleibt.
+    $leer = $gesamt === 0 && $aktiveFilter === 0;
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Lernende') }}</x-slot>
