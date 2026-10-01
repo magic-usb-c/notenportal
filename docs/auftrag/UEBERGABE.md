@@ -67,6 +67,18 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   audit-backlog.md – erledigte mit Beleg markiert, Rest begründet gelassen.
                   Prüfer: Scan-Regel zu grob (3ac27d2), Berufsbildner konnten eigene Kommentare nach
                   Ende der Betreuung noch löschen (c82bad2) – beide mit Test, der vorher fällt.
+[Q] 01.10. 08:32  Setup für Fable-Sitzungen in der Cloud (13f0edb + Folgecommit). Hook
+                  .claude/hooks/session-start.sh richtet Container ein (MariaDB, Test- und Demo-DB,
+                  Demo-Server 8099, npm/composer); Prüfwerkzeuge liegen jetzt im Repo unter
+                  tools/pruefung/ (browser, shot, klick, rundgang, demo-server.sh), Passwort nur per
+                  NP_TEST_PW. .claude/settings.json: model fable, effort xhigh, advisor fable,
+                  ultracode, workflowSizeGuideline unrestricted, Allow-/Deny-Listen. Neue Skills
+                  notenportal-orchestrierung (Modell/Effort je Aufgabe) und notenportal-dunkelmodus
+                  (HIG-Regeln aus der Primärquelle, DocC-JSON). Agents mit model/effort, neu
+                  bildpruefer (opus xhigh). Regel .claude/rules/oberflaeche.md. Workflows
+                  notenportal-audit.js und notenportal-dunkel-rundgang.js. Befehl /weiter. Massstab
+                  neu: Desktop 1920–2560 px, Dunkelmodus; hell und schmal nur «darf nicht brechen».
+                  Alles in docs/auftrag/SETUP-CLAUDE.md (Abbild, /-Befehle, Modelltabelle, Lücken).
 ```
 
 ---
@@ -74,8 +86,17 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
 ## Offen für David
 
 - **Standard der Navigation**: Seitenleiste nach HIG ist gebaut und je Person umschaltbar
-  (Einstellungen → Darstellung), die Topbar bleibt. Standard ist «Oben»; ob neue Konten mit der
-  Seitenleiste starten sollen, entscheidest du.
+  (Einstellungen → Darstellung), die Topbar bleibt. Standard für neue Konten ist laut Code die
+  Seitenleiste (`app/Support/Darstellung.php`, `NAVIGATION_SEITE`); nur wenn du die Topbar als
+  Standard willst, ist das zu ändern.
+- **Cloud-Sitzung, Berechtigungen**: `auto` wirkt laut Doku nicht aus Projekt-Einstellungen; in der
+  Cloud deshalb im Berechtigungs-Menü der Sitzung «Auto» wählen, lokal in `~/.claude/settings.json`
+  setzen (`docs/auftrag/SETUP-CLAUDE.md` Abschnitt 5 und 6). Die Projektdatei trägt `acceptEdits`.
+- **Plugins**: `enabledPlugins` nennt Marktplätze `laravel`, `caveman`, `claude-skills`,
+  `ui-ux-pro-max-skill`, die im Cloud-Container nicht registriert sind; dort ist nur
+  `claude-plugins-official` bekannt und `installed_plugins.json` leer. Für die Cloud `php-lsp` und
+  `frontend-design` aus dem offiziellen Marktplatz installieren oder die Hook-Erweiterung aus
+  `SETUP-CLAUDE.md` Abschnitt 8 übernehmen – deine Entscheidung.
 - **Gewichte nach BM-Dispens von der Allgemeinbildung**: Quellen widersprechen sich (hochrechnen
   57,14/42,86 vs. 50/50). Nicht voreingestellt; im Baum lässt sich «Entfällt mit BMS» je Knoten setzen.
 - **Rundung der Allgemeinbildung und der IPA im QV**: nur aus Sekundärquellen, Primärquelle

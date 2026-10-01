@@ -111,7 +111,22 @@ if mysqladmin --socket="$SOCKET" ping >/dev/null 2>&1 && [ -f vendor/autoload.ph
     fi
 fi
 
-# 7. Zusammenfassung – stdout landet im Kontext der Sitzung
+# 7. Plugins aus dem offiziellen Marktplatz (enabledPlugins in .claude/settings.json schaltet nur ein,
+#    installiert aber nichts – jeder Container muss selbst installieren; geprüft mit CLI 2.1.286)
+if command -v claude >/dev/null 2>&1; then
+    for PLUGIN in php-lsp@claude-plugins-official frontend-design@claude-plugins-official; do
+        if grep -q "\"$PLUGIN\"" "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null; then
+            continue
+        fi
+        if timeout 120 claude plugin install "$PLUGIN" >>"$LOG" 2>&1; then
+            melde "Plugin installiert: $PLUGIN"
+        else
+            melde "Plugin nicht installiert: $PLUGIN (siehe $LOG)"
+        fi
+    done
+fi
+
+# 8. Zusammenfassung – stdout landet im Kontext der Sitzung
 echo "Notenportal-Cloud-Umgebung: PHP $(php -r 'echo PHP_VERSION;' 2>/dev/null), Node $(node -v 2>/dev/null), Composer $(composer --version --no-ansi 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)"
 printf '%s\n' "${MELDUNGEN[@]}"
 echo "Tests: php artisan test (DB notenportal_test) · Pint: vendor/bin/pint --dirty · Build: npm run build"

@@ -1,15 +1,16 @@
 ---
 name: notenportal-blockabschluss
-description: Abgeschlossenen Arbeitsblock/Plan-Punkt sauber abschliessen – Tests, Build, ß-Prüfung, Mobile-Breite 390px, reviewer, ui-checker, Befunde fixen, Commit, Merge nach main, zweite Instanz aktualisieren, Kurzbericht. Laden, sobald ein Block fertig implementiert ist.
+description: Abgeschlossenen Arbeitsblock/Plan-Punkt sauber abschliessen – Build, Tests, ß-Prüfung, Demo-Seiten im Dunkelmodus auf 1920/2560, Rundgang je Rolle, reviewer/ui-checker/pruefer, Befunde fixen, Commit und Push auf main, Übergabe-Eintrag, Kurzbericht. Laden, sobald ein Block fertig implementiert ist.
 ---
 
 # Block abschliessen
 
 Reihenfolge einhalten. Jeder Schritt hat ein Prüfkriterium. Nicht erfüllt → beheben → Schritt wiederholen.
-Arbeitsverzeichnis immer `/var/www/notenportal`. Branch muss `feature/claude-fertigstellung` sein (`git branch --show-current`).
+Arbeitsverzeichnis ist die Repo-Wurzel, Branch `main` (`git branch --show-current`).
 
 ## 1. Migrationen
-`git status --short database/migrations` zeigt neue Dateien? → zuerst Skill `notenportal-migration`, dann hier weiter.
+`git status --short database/migrations` zeigt neue Dateien? Cloud: `DB_DATABASE=notenportal_demo php artisan migrate --force`
+muss durchlaufen, danach `tools/pruefung/demo-server.sh neu`. VM: zuerst Skill `notenportal-migration`.
 
 ## 2. Build + Caches
 ```bash
@@ -17,64 +18,59 @@ npm run build 2>&1 | tail -3          # muss "built in" enthalten
 php artisan optimize:clear >/dev/null
 ```
 
-## 3. Tests
+## 3. Tests + Stil
 ```bash
+vendor/bin/pint --dirty                # keine Änderungen übrig
 php artisan test 2>&1 | tail -5       # muss "Tests: N passed" ohne "failed" zeigen
 ```
-Laufen parallel andere Agents Tests? Dann `DB_DATABASE=notenportal_b_test php artisan test` (oder `_c_test`).
-Den Guard in tests/TestCase.php nie entfernen.
+Laufen parallel Agents Tests? Dann `DB_DATABASE=notenportal_b_test php artisan test`. Den Guard in `tests/TestCase.php` nie entfernen.
 
 ## 4. Textprüfung
 ```bash
 grep -rn "ß" resources/views/ lang/ 2>/dev/null          # muss leer sein
 ```
 
-## 5. Seiten laden (Prod) + Mobile-Breite
-Für jeden geänderten Pfad (Beispiel `/dashboard`):
+## 5. Seiten ansehen (Demo, dunkel, Desktop)
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1/login          # 200
-cd ~/tools/visual
-export NP_TEST_PW=…            # nur als Umgebungsvariable, nie als Argument, nie ausgeben
-node breite.mjs --base=http://127.0.0.1 --rolle=admin --breite=390 /dashboard /pfad2
-node breite.mjs --base=http://127.0.0.1 --rolle=learner --breite=390 /grades
-cd /var/www/notenportal
+tools/pruefung/demo-server.sh status || tools/pruefung/demo-server.sh start
+export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\s*=\s*'\K[^']+" database/seeders/DemoSeeder.php)
+D=<scratch-ordner>
+node tools/pruefung/shot.mjs <email> "/geänderter/pfad,/zweiter" --dir=$D --name=b          # 1920 dunkel
+node tools/pruefung/shot.mjs <email> "/geänderter/pfad" --breite=2560 --hoehe=1440 --dir=$D --name=g
+node tools/pruefung/rundgang.mjs <email der betroffenen Rolle>                              # Exit 0
 ```
-Kriterium: jede Zeile beginnt mit `200 ✓`. `✗` = seitliches Überlaufen → beheben.
-Benutzer-E-Mails unsicher? `sudo mysql -N -B notenportal -e "SELECT email FROM benutzer LIMIT 20;"` (`tinker` scheitert hier an einem nicht beschreibbaren psysh-Verzeichnis).
-Screenshots bei Bedarf: `node shot.mjs <baseUrl> <email|-> <outdir> [--dunkel] [--mobil] <pfade…>` und Bilder mit Read ansehen (Passwort nur über `NP_TEST_PW`, nie als Argument).
+Kriterium: Status 200, kein `UEBERLAUF`, Rundgang ohne Befunde, **jedes Bild mit Read angesehen** und
+gegen Skill `notenportal-dunkelmodus` beurteilt. Konten: Skill `notenportal-pruefwerkzeuge`.
 
-## 6. Review (parallel, eine Nachricht, zwei Agent-Aufrufe)
-- `reviewer` (sonnet): «Prüfe `git diff origin/main...HEAD` plus uncommittete Änderungen (`git diff`). Block: <Name>.»
-- `ui-checker` (haiku): nur wenn Views geändert; Liste der geänderten Views mitgeben (`git diff --name-only origin/main -- resources/views`), einmal pro Rollenbereich.
+## 6. Review (eine Nachricht, parallel)
+- `reviewer` (sonnet high): «Prüfe `git diff origin/main...HEAD` plus uncommittete Änderungen (`git diff`). Block: <Name>.»
+- `ui-checker` (opus xhigh): nur wenn Views geändert; Liste der geänderten Views mitgeben
+  (`git diff --name-only origin/main -- resources/views`), einmal pro Rollenbereich.
+- `pruefer` (opus xhigh): die Fertig-Behauptung des Blocks wörtlich, mit den Beweisen aus 3 und 5.
 Echte Befunde fixen, dann Schritt 3 wiederholen. Nicht Umgesetztes mit Begründung in `docs/audit-backlog.md`.
 
 ## 7. Doku
 - Neue Funktionen → `docs/funktionsumfang.md`; neue Klassen/Tabellen → `docs/architektur.md`.
-- Änderungen ausserhalb des Repos (DB, Apache, PHP, cron, ufw) → `docs/betrieb.md`.
+- Änderungen ausserhalb des Repos (VM: DB, Apache, PHP, cron, ufw) → `docs/betrieb.md`.
 - Bewusst Weggelassenes → `docs/audit-backlog.md`.
+- Eintrag in `docs/auftrag/UEBERGABE.md` (Format dort), Offenes unter «Offen».
 
-## 8. Commit + Push + Merge
+## 8. Commit + Push
 ```bash
-set -o pipefail                                                             # sonst zählt bei `check | tail` nur tail
+set -o pipefail
 git status --short | grep -E '(^|/)\.env' && echo "STOPP: .env im Commit"   # darf nichts ausgeben
-git add <pfade des blocks>                                                  # explizit, nie -A (tmp-testdaten/, fremde Agent-Hunks)
+git status --short | grep -E 'tmp-testdaten' && echo "STOPP: Testdaten"      # darf nichts ausgeben
+git add <pfade des blocks>                                                  # explizit, nie -A
 rest=$(git status --short | grep -v '^[MADR] ' || true); [ -z "$rest" ] || echo "Nicht gestaged: $rest"
-git commit -m "Feat: <Deutsch, Imperativ, eine Zeile>" -m "Claude-Session: <link>"
+git commit -m "Feat: <Deutsch, Imperativ, eine Zeile>" -m "Co-Authored-By: …" -m "Claude-Session: <link>"
 git log --oneline -1                                                        # Pflicht: stimmt die Meldung?
-git push && git push origin feature/claude-fertigstellung:main              # Fast-Forward nach main
+git push origin HEAD:main
 ```
-Nie `[ -z "$(git status --short)" ]` als Gate nach `git add` – gestagte Dateien zählen mit, der Commit wird still übersprungen.
-Liegen in einer Datei Hunks eines anderen, noch laufenden Agents: nur die eigenen Hunks stagen (`git diff datei > p; …; git apply --cached --recount p`).
-Präfixe: `Feat:` `Fix:` `GUI:` `Refactor:` `Test:` `Docs:` `Chore:`. Lokal gibt es keinen main-Branch.
-Merge schlägt fehl (kein Fast-Forward)? → `git fetch && git log --oneline HEAD..origin/main` ansehen, nie force-pushen.
+Push abgelehnt (kein Fast-Forward)? `git fetch origin main && git rebase origin/main`, Tests erneut, dann
+pushen. Nie force-pushen. Liegen in einer Datei Hunks eines anderen, noch laufenden Agents: nur die
+eigenen Hunks stagen (`git diff datei > p; …; git apply --cached --recount p`).
+Präfixe: `Feat:` `Fix:` `GUI:` `Refactor:` `Test:` `Docs:` `Chore:`. Keine Modellnamen im Commit.
 
-## 9. Zweite Instanz aktualisieren
-```bash
-cd /var/www/notenportal-i2 && git pull -q origin feature/claude-fertigstellung && sudo ./install.sh --port 8082 --ohne-firewall 2>&1 | tail -4
-cd /var/www/notenportal
-curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8082/login     # 200
-```
-Kriterium: Ausgabe enthält «Notenportal läuft» und HTTP 200.
-
-## 10. Bericht an den User
-Höchstens 8 Zeilen: was neu ist, Testzahl, Commit-Hash, offene Punkte/Backlog. Keine Wiederholung des Plans.
+## 9. Bericht an den User
+Höchstens 8 Zeilen: was neu ist, Testzahl, Commit-Hash, was gesehen wurde, offene Punkte/Backlog.
+Keine Wiederholung des Plans. Danach ohne Rückfrage den nächsten Punkt nehmen.

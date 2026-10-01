@@ -195,7 +195,9 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 
 ## 10. Abschluss
 `npm run build` (muss «built in» zeigen) · `php artisan test` · ß-Grep leer · Hook ohne Meldung ·
-Screenshots **1920 und 2560 px, hell und dunkel** mit `shot.mjs` (`--breite=1920|2560`, `--dunkel`) ansehen ·
-JS-Fehler je Rolle mit einem Durchlauf über alle GET-Seiten prüfen.
-Bei Layout-/Breitenarbeit zusätzlich `node ~/tools/visual/nutzung.mjs --demo` (Seitencontainer gegen 1280/1440/1920/2560).
+`node tools/pruefung/rundgang.mjs <email>` je betroffener Rolle mit Exit 0 (keine JS-Fehler, kein Überlauf) ·
+Screenshots **dunkel, 1920 und 2560 px** mit `node tools/pruefung/shot.mjs <email> "/pfad" --breite=1920|2560`
+erzeugen und jedes Bild mit `Read` ansehen · hell (`--hell`) nur einmal stichprobenartig: darf nicht brechen,
+bekommt keine Gestaltungsarbeit. Werkzeuge und Massstab: Skill `notenportal-pruefwerkzeuge`,
+Dunkelmodus-Regeln: Skill `notenportal-dunkelmodus`.
 Passwort bei allen Werkzeugen nur über `NP_TEST_PW`, nie als Argument.

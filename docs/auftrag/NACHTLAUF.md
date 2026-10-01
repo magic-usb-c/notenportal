@@ -2,6 +2,10 @@
 
 Ersetzt `docs/auftrag/ARBEITSTEILUNG.md`. Stand 30.09.2026, abends.
 
+> **01.10.2026:** Die Blöcke 1–5 sind erledigt (Übergabebrett). Die Grundsätze gelten weiter: eine
+> Sitzung auf `main`, Parallelität über Subagenten und Workflows, «fertig» nur mit Messung. Die
+> Einrichtung der Cloud-Sitzung steht in `docs/auftrag/SETUP-CLAUDE.md`.
+
 ## Die Lage hat sich geändert
 
 **Nichts ist mehr produktiv.** Es gibt keine schützenswerte Instanz, keine echten Daten, keine

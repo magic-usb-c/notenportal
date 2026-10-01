@@ -1,79 +1,58 @@
 ---
 name: notenportal-pruefwerkzeuge
-description: Automatisierte Playwright-Prüfwerkzeuge in ~/tools/visual (tippen, knoepfe, lint-knopf, leer, rollen, sprache, umbruch, pruefen, bogen) – wann welchen Check laufen lassen, Sicherheitsregeln, haiku-Bildprüfung. Laden, bevor Notenportal-UI-Änderungen geprüft oder ein Verdacht auf einen der bekannten Bug-Muster abgeklärt wird.
+description: Browser-Prüfwerkzeuge im Repo (tools/pruefung – shot, klick, rundgang, demo-server) für Screenshots und Layoutbefunde im Dunkelmodus auf Desktop-Breiten, Sicherheitsregeln, bekannte Regressionsmuster. Laden, bevor Notenportal-UI-Änderungen geprüft werden.
 ---
 
 # Notenportal-Prüfwerkzeuge
 
-Liegen unter `~/tools/visual/` (ausserhalb des Repos, Node + Playwright, `node_modules` schon da). Deterministische Skripte zuerst, haiku nur für vorgefilterte Screenshots – so bleibt der Tokenverbrauch klein.
+Liegen im Repo unter `tools/pruefung/` (Node 22 + Playwright, Chromium). In der Cloud findet
+`browser.mjs` Playwright global (`/opt/node22/lib/node_modules/playwright`) und Chromium über
+`PLAYWRIGHT_BROWSERS_PATH`; anderswo `npm i -D playwright && npx playwright install chromium` oder
+`NP_PLAYWRIGHT=<pfad zu index.mjs>` / `NP_CHROMIUM=<pfad>` setzen.
 
-## Sicherheit (gilt für JEDES Skript, immer)
-- Standardziel ist Prod (`http://127.0.0.1`). Passwort **nur** über `NP_TEST_PW` (env), nie im Code/CLI/Log.
-- Jeder Check ruft `schreibschutz(page)` (aus `lib/np.mjs`) auf: alle nicht-GET-Requests werden abgefangen und abgebrochen – nichts schreibt je auf Prod.
-- Nie Logout-/Löschen-Selektoren anklicken (`istVerboten()`/`VERBOTENE_SELEKTOREN` in `lib/np.mjs`).
-- Pool/Kontexte klein halten (max. 3 gleichzeitige Seiten, kleiner Server).
-- Eingeloggte Nutzer bekommen ihre Sprache aus `user.locale` (DB) – ohne echten Schreibzugriff gibt es keinen Weg, sie für einen Test auf Englisch umzuschalten. Deshalb prüft `sprache.mjs` Übersetzungslücken statisch (Blade-Quellen gegen `lang/en.json`) statt live umzuschalten; nur Gastseiten (Login) werden live mit `Accept-Language: en` geprüft.
+## Sicherheit (gilt für jedes Skript, immer)
+- Ziel über `NP_URL` (Standard Demo-Server `http://127.0.0.1:8099`). Passwort **nur** über `NP_TEST_PW`,
+  nie im Code, auf der Kommandozeile oder im Log:
+  `export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\s*=\s*'\K[^']+" database/seeders/DemoSeeder.php)`
+- `rundgang.mjs` schreibt nichts: nach der Anmeldung werden alle Nicht-GET-Requests abgebrochen.
+- Nie Logout-/Löschen-Selektoren mit `klick.mjs` anklicken.
+- Standard ist **dunkel, 1920×1080**. Hell nur mit `--hell`, grosse Bildschirme mit `--breite=2560 --hoehe=1440`.
 
-## Welcher Check wann
+## Werkzeuge
 
-| Check | Findet | Wann laufen lassen |
+| Werkzeug | Aufruf | Findet / liefert |
 |---|---|---|
-| `tippen.mjs` | Drawer/Modal-Formulare, in denen ein Feld beim Tippen Fokus/Wert verliert (Alpine-Re-Render-Bug) | Nach jeder Änderung an Drawern/Modalen mit Formularen |
-| `knoepfe.mjs` | Benannter Submit-Knopf (`name`+`value`), der wegen synchronem `:disabled` seinen Wert nicht mitschickt | Nach Änderungen an Formularen mit mehreren Submit-Knöpfen |
-| `lint-knopf.mjs` | Statischer Zwilling zu `knoepfe.mjs`: `loading = true` synchron gesetzt + benannter Knopf daran gebunden | Schnell, ohne Login – vor jedem Commit an Formular-Views |
-| `leer.mjs` | Fast einfarbige/leere Seiten (>97 % dominante Farbe), sichtbar gebliebene `[x-cloak]`, JS-Fehler beim Laden | Nach Layout-/Theme-Änderungen, bei Verdacht auf kaputten Screenshot/leere Seite |
-| `rollen.mjs` + `funktionen.json` | Eine Funktion (Klick → erwartetes Element) funktioniert für eine Rolle nicht (z.B. fehlendes `x-data`) | Bei rollenabhängigen Buttons/Aktionen; neue Einträge in `funktionen.json` ergänzen |
-| `sprache.mjs` | `__()`-Strings ohne Eintrag in `lang/en.json` (blieben im Englisch-Modus Deutsch), fehlende `validation.php`-Attribute | Nach neuen Views/Texten, vor Releases |
-| `umbruch.mjs` | Knöpfe/Links/Nav/Tabellenköpfe/Tabs/Badges, die bei 390/1024/1440/2560px umbrechen oder abgeschnitten werden | Nach Layout-/Breakpoint-Änderungen |
-| `abgeschnitten.mjs` | Elemente, die ein Vorfahr mit `overflow-hidden` (z. B. `x-karte`) seitlich abschneidet – `breite.mjs` sieht das nicht; dazu mit Ellipse auf < 80 px zusammengedrückter Text (Titel neben Knöpfen) | Nach Layout-Änderungen an Karten/Kopfzeilen, Standard 390 px (`--breite=`) |
-| `zielgroesse.mjs` | Bedienelemente unter 24×24 px mit engen Nachbarn (WCAG 2.5.8) und feste Höhen (`h-9`/`h-11`), die das Layout zusammendrückt (z. B. `flex-1` in `flex-col`) | Nach Änderungen an Formular-Fusszeilen und Knopfgruppen, Standard 390 px |
-| `pruefen.mjs` | Orchestriert alle obigen Checks als eigene kurze Prozesse (speicherschonend) | `node pruefen.mjs all` für einen Gesamtdurchlauf |
-| `bogen.mjs` | Baut aus markierten Screenshots einen 3×3-Bogen (400px/Kachel) für die haiku-Sichtprüfung | Nach `leer.mjs`, wenn Bilder zur Sichtprüfung anfallen |
-| `fokus-rueckgabe.mjs` | Drawer/Modal gibt nach Escape den Fokus nicht an den Auslöser zurück | Nach Änderungen an `drawer`/`modal`-Komponenten |
+| `demo-server.sh` | `tools/pruefung/demo-server.sh start\|stop\|status\|neu` | Demo-Instanz (DB `notenportal_demo`); `neu` setzt die Daten mit `DemoSeeder` zurück |
+| `shot.mjs` | `node tools/pruefung/shot.mjs <email> "/pfad,/pfad2" [--breite=1920] [--hoehe=1080] [--hell] [--fenster] [--name=x] [--dir=.]` | Screenshot je Pfad (ganze Seite), HTTP-Status, `UEBERLAUF`, JS-Fehler |
+| `klick.mjs` | `node tools/pruefung/klick.mjs <email> /pfad "sel1,sel2" [--dir=.]` | Zustand nach Klicks (Menü, Tab, Drawer) als Fenster-Screenshot |
+| `rundgang.mjs` | `node tools/pruefung/rundgang.mjs <email> [--max=150] [--start=/dashboard] [--shots=dir]` | Folgt allen internen Links einer Rolle; je Seite `UEBERLAUF`, `KLEIN` (<10 px), `ABGESCHNITTEN`, `ELLIPSE<90`, `RAND`, `VORFAHR-CLIP`, `UEBERLAPPUNG`, `STATUS`, `JS`. Exit 1 bei Befunden |
 
-Weitere Werkzeuge in `~/tools/visual`: `shot.mjs` (Screenshots), `breite.mjs` (seitliches Überlaufen bei 390 px), `nutzung.mjs` (ungenutzte Fensterbreite auf grossen Bildschirmen), `import.mjs`, `zeugnis.mjs`, `erstinbetrieb.mjs`.
+Konten: `nina.huber@demo.example` (Lernende), `michael.baumann@demo.example` (Berufsbildner),
+`laura.frei@demo.example` (Admin). Start-Pfade: Lernende `/dashboard`, Berufsbildner `/trainer`, Admin `/admin`.
 
-Demo-Server starten: `cd public && DB_DATABASE=notenportal_demo CACHE_STORE=array php -S 127.0.0.1:8090 ../vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php`
-
-Aufrufmuster (alle Checks gleich): `node <check>.mjs [--rolle=learner|trainer|admin] [--breite=1280] [--prod|--demo] [--ziel=/pfad]`.
-
-## haiku-Bildprüfung (nur für vorgefilterte Screenshots aus `leer.mjs`/`bogen.mjs`)
-
-Nie ganze Screenshot-Ordner an ein Modell schicken – erst `leer.mjs` filtert (nur auffällige Seiten), dann `bogen.mjs` bündelt bis zu 9 Bilder in einen Bogen. Für den Bogen an haiku genau dieser Prompt:
-
+## Standardlauf nach UI-Änderungen
+```bash
+export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\s*=\s*'\K[^']+" database/seeders/DemoSeeder.php)
+D=<scratch-ordner>
+node tools/pruefung/shot.mjs nina.huber@demo.example "/dashboard,/grades" --dir=$D --name=l
+node tools/pruefung/shot.mjs nina.huber@demo.example "/dashboard" --breite=2560 --hoehe=1440 --dir=$D --name=l
+node tools/pruefung/rundgang.mjs nina.huber@demo.example
+node tools/pruefung/rundgang.mjs michael.baumann@demo.example
+node tools/pruefung/rundgang.mjs laura.frei@demo.example
 ```
-Bild zeigt einen 3×3-Bogen nummerierter Screenshots (1–9, manche Zellen können leer sein).
-Beantworte JEDE Kachel mit GENAU einer Zeile, keine Prosa, kein Vorspann:
-  <nr> ok
-oder
-  <nr> ✗<frage-nr> <Befund in ≤12 Wörtern>
-
-Fragen (nur die Nummer zitieren):
-1 leer/einfarbig?
-2 Text abgeschnitten/überlappend?
-3 Deutsch, obwohl Englisch erwartet?
-4 unschöner Zeilenumbruch?
-5 Kontrast unlesbar?
-6 Layout sichtbar kaputt (verschoben/übereinander)?
-```
-
-Beispiel-Antwort:
-```
-1 ok
-2 ✗1 nur Hintergrundfarbe, kein Inhalt
-3 ok
-4 ✗4 Knopf "Kalender-Abo" bricht in zwei Zeilen
-5 ok
-6 ok
-7 ✗6 Drawer überlappt Navigation
-8 ok
-9 ok
-```
+Bilder mit `Read` ansehen – jedes, nicht nur das erste. Sichtprüfung nach Skill `notenportal-dunkelmodus`;
+für viele Bilder Agent `bildpruefer` (opus xhigh) oder Workflow `notenportal-dunkel-rundgang`.
 
 ## Bekannte, bereits behobene Fälle (Regressionsschutz, nicht neu reproduzieren)
-- `/grades` „Neue Note“-Drawer: Formular wurde per `x-html` neu gerendert und verlor beim Tippen den Fokus (Commit 2d2d306, jetzt direktes Einfügen + Alpine-Observer). `tippen.mjs` muss hier grün bleiben.
-- „Hinweis entfernen“ / „Verbindung testen“ (`admin/betrieb/_hinweis.blade.php`, `_kopie.blade.php`): Knopf sperrte sich synchron und schickte den falschen Wert – jetzt `setTimeout(() => loading = true)`. `knoepfe.mjs`/`lint-knopf.mjs` müssen hier grün bleiben.
-- Kalender-Abo-Knopf für Betreuer/Admin (`verwaltung/pruefungen/index.blade.php`): reagierte nicht (kein `x-data` in der Vorfahrenkette) – seit Commit 1cad406 verlinkt der Knopf stattdessen direkt auf `/settings/calendar`. `rollen.mjs`/`funktionen.json` (Eintrag `kalender-abo`) prüfen das für alle drei Rollen.
+- `/grades` «Neue Note»-Drawer: Formular wurde per `x-html` neu gerendert und verlor beim Tippen den
+  Fokus (Commit 2d2d306, jetzt direktes Einfügen + Alpine-Observer).
+- «Hinweis entfernen» / «Verbindung testen» (`admin/betrieb/_hinweis.blade.php`, `_kopie.blade.php`):
+  Knopf sperrte sich synchron und schickte den falschen Wert – jetzt `setTimeout(() => loading = true)`.
+- Kalender-Abo-Knopf für Betreuer/Admin: reagierte nicht (kein `x-data` in der Vorfahrenkette) –
+  seit Commit 1cad406 verlinkt der Knopf direkt auf `/settings/calendar`.
 
-## Output-Format
-Alle Checks nutzen `lib/np.mjs`: `✗ <check> <role> <width> <path> <detail>` je Fund, eine Zusammenfassungszeile, JSON unter `~/tools/out/checks/<datum>/<check>.json`. Exit-Code 0 = keine Funde, 1 = Funde vorhanden.
+## VM-Werkzeugkasten
+Auf der VM liegt zusätzlich die ältere Sammlung `~/tools/visual` (tippen, knoepfe, lint-knopf, leer,
+rollen, sprache, umbruch, abgeschnitten, zielgroesse, pruefen, bogen, breite, nutzung). Sie ist nicht
+im Repo und in der Cloud nicht vorhanden; was davon gebraucht wird, wird nach `tools/pruefung/`
+portiert (Passwort nur über `NP_TEST_PW`).

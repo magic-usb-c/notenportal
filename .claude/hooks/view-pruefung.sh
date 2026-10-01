@@ -24,5 +24,6 @@ if [[ "$datei" != */views/mail/* && "$datei" != */views/vendor/mail/* && "$datei
 fi
 
 [[ -z "$befunde" ]] && exit 0
-printf "view-pruefung %s:\n%b" "${datei#/var/www/notenportal/}" "$befunde" >&2
+wurzel="${CLAUDE_PROJECT_DIR:-$PWD}"
+printf "view-pruefung %s:\n%b" "${datei#"$wurzel"/}" "$befunde" >&2
 exit 2

@@ -17,6 +17,7 @@
     "laravel@laravel": true,
     "laravel-lsp@laravel": true,
     "frontend-design@claude-plugins-official": true,
+    "php-lsp@claude-plugins-official": true,
     "context7@claude-plugins-official": false,
     "security-guidance@claude-plugins-official": false,
     "tailwind-v4-shadcn@claude-skills": false,

@@ -20,6 +20,12 @@ echten Daten; die Datenbank ist leer. David klont morgen früh frisch auf einen 
 und führt `sudo ./install.sh` aus. Das ist das Abnahmekriterium für alles, was heute Nacht entsteht.
 Vorgehen: `docs/auftrag/NACHTLAUF.md` — **eine** Sitzung auf `main`, Parallelität über Subagenten.
 
+**Seit 01.10.2026:** Entwicklung in Claude-Code-Cloud-Sitzungen direkt auf `main`; der Hook
+`.claude/hooks/session-start.sh` richtet MariaDB, Demo-Server und Build ein. Einstellungen,
+Befehle, Modellwahl und Orchestrierung stehen in `docs/auftrag/SETUP-CLAUDE.md`. Testbetrieb auf
+der VM srv-lab-dva-003 (`https://172.26.14.100`, Installation per `install.sh`). Massstab der
+Oberfläche: Desktop-Browser 1920–2560 px im Dunkelmodus (`docs/auftrag/GUI-APPLE.md`).
+
 ---
 
 ## 2. Der zentrale Befund: die Notenrechnung ist falsch
@@ -264,6 +270,10 @@ Nicht raten — als offen markieren und David fragen:
 > (`UEBERGABE.md`). Offen sind nur die Entscheide unter «Offen für David» dort, darunter der Standard
 > der Navigation (Seitenleiste ist gebaut und je Person umschaltbar), und das Bewusst-Gelassene in
 > `docs/audit-backlog.md`.
+>
+> **Stand 01.10.:** Desktop-Rebuild nach HIG im Dunkelmodus – R1 Fundament, R2 Fensterstruktur
+> (Seitenleiste ist Standard), R3 Dashboards fertig; R4 übrige Bereiche läuft, R5 Gesamtprüfung
+> offen (Übergabebrett). Setup und Orchestrierung modernisiert: `docs/auftrag/SETUP-CLAUDE.md`.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 
@@ -293,5 +303,9 @@ Gilt zusätzlich zu `CLAUDE.md`:
 - **Keine Rückfragen**, solange eine vertretbare Annahme möglich ist. Annahme treffen, im Bericht
   nennen, weiterarbeiten.
 - **Berichte an David: höchstens 8 Zeilen**, Deutsch, keine Füllwörter, keine Rückschau.
-- Vor jedem Schema-Eingriff Dump und Tag (Skill `notenportal-migration`).
+- Schema-Eingriffe: in der Cloud `down()` implementieren, Suite gegen `notenportal_test`, Demo-DB
+  mit `bash tools/pruefung/demo-server.sh neu` neu aufbauen. Auf der VM vor jedem Eingriff Dump und
+  Tag (Skill `notenportal-migration`).
 - Nach jedem abgeschlossenen Block Skill `notenportal-blockabschluss`.
+- Orchestrierung: Fable 5.1 leitet, wählt Modell und Effort je Aufgabe und beauftragt Subagenten
+  und Workflows (Skill `notenportal-orchestrierung`); nichts wird nur behauptet, alles gemessen.
