@@ -14,8 +14,8 @@
             [__('Lernende'), 'users', 'bg-accent/12 text-accent-text', $kennzahlen['lernende'], route('admin.learners.index')],
             [__('Berufsbildner'), 'identification', 'bg-accent/12 text-accent-text', $kennzahlen['berufsbildner'], route('admin.trainers.index')],
             [__('Noten :semester', ['semester' => $kennzahlen['semester']]), 'clipboard-document-check', 'bg-accent/12 text-accent-text', $kennzahlen['noten_semester'], route('admin.reports.grades')],
-            [__('Kritisch'), 'exclamation-triangle', $kennzahlen['rot'] ? 'bg-note-ungenuegend/12 text-note-ungenuegend' : 'bg-fill text-muted', $kennzahlen['rot'], route('admin.learners.index')],
-            [__('Beobachten'), 'eye', $kennzahlen['gelb'] ? 'bg-note-knapp/14 text-note-knapp' : 'bg-fill text-muted', $kennzahlen['gelb'], route('admin.learners.index')],
+            [__('Kritisch'), 'exclamation-triangle', $kennzahlen['rot'] ? 'bg-note-ungenuegend/12 text-note-ungenuegend' : 'bg-fill text-muted', $kennzahlen['rot'], route('admin.learners.index', ['warnung' => 'kritisch'])],
+            [__('Beobachten'), 'eye', $kennzahlen['gelb'] ? 'bg-note-knapp/14 text-note-knapp' : 'bg-fill text-muted', $kennzahlen['gelb'], route('admin.learners.index', ['warnung' => 'beobachten'])],
             [__('Offene Meldungen'), 'chat-bubble-left-ellipsis', $kennzahlen['feedback'] ? 'bg-accent/12 text-accent-text' : 'bg-fill text-muted', $kennzahlen['feedback'], route('admin.feedback.index')],
         ];
         $ton = [
@@ -121,10 +121,10 @@
                                                 </td>
                                                 <td class="text-right text-text">{{ $bb->lernende }}</td>
                                                 <td class="text-right">
-                                                    @if($bb->rot)<span class="inline-flex items-center gap-1.5 font-semibold text-note-ungenuegend"><span class="size-1.5 rounded-full bg-note-ungenuegend" aria-hidden="true"></span>{{ $bb->rot }}</span>@else<span class="text-faint">0</span>@endif
+                                                    @if($bb->rot)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'kritisch']) }}" aria-label="{{ __(':anzahl kritisch bei :name', ['anzahl' => $bb->rot, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-ungenuegend underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-ungenuegend" aria-hidden="true"></span>{{ $bb->rot }}</a>@else<span class="text-faint">0</span>@endif
                                                 </td>
                                                 <td class="text-right">
-                                                    @if($bb->gelb)<span class="inline-flex items-center gap-1.5 font-semibold text-note-knapp"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</span>@else<span class="text-faint">0</span>@endif
+                                                    @if($bb->gelb)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'beobachten']) }}" aria-label="{{ __(':anzahl zu beobachten bei :name', ['anzahl' => $bb->gelb, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-knapp underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</a>@else<span class="text-faint">0</span>@endif
                                                 </td>
                                                 <td class="text-right {{ $bb->neu > 20 ? 'font-semibold text-accent-text' : 'text-muted' }}">{{ $bb->neu }}</td>
                                             </tr>

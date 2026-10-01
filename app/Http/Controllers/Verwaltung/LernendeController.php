@@ -26,7 +26,7 @@ use Illuminate\View\View;
 /** Lernende: Liste, Anlegen, Detail, Bearbeiten. */
 class LernendeController extends VerwaltungController
 {
-    private const array WARNUNGEN = ['tief_avg', 'keine_noten', 'ohne_betreuung', 'ohne_track'];
+    private const array WARNUNGEN = ['kritisch', 'beobachten', 'tief_avg', 'keine_noten', 'ohne_betreuung', 'ohne_track'];
 
     private const array SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
 
@@ -88,6 +88,9 @@ class LernendeController extends VerwaltungController
             ->when($filter['lehrjahr'], fn ($z, $jahr) => $z->filter(fn ($r) => $r->lehrjahr === $jahr))
             // Warnungen gelten wie die Etiketten in der Zeile nur für laufende Lehren aktiver Konten.
             ->when($filter['warnung'] !== '', fn ($z) => $z->filter(fn ($r) => $r->lernender->benutzer->aktiv && $r->stand->status !== Lernstand::ABGESCHLOSSEN))
+            // Ampel wie in den Übersichten (LernstandRechner): kritisch = rot, beobachten = gelb.
+            ->when($filter['warnung'] === 'kritisch', fn ($z) => $z->filter(fn ($r) => $r->stand->status === Lernstand::ROT))
+            ->when($filter['warnung'] === 'beobachten', fn ($z) => $z->filter(fn ($r) => $r->stand->status === Lernstand::GELB))
             ->when($filter['warnung'] === 'tief_avg', fn ($z) => $z->filter(fn ($r) => $r->avg !== null && $r->avg < $grenze))
             ->when($filter['warnung'] === 'keine_noten', fn ($z) => $z->filter(fn ($r) => ! $r->lastNote || $r->lastNote < $cutoff))
             ->when($filter['warnung'] === 'ohne_betreuung', fn ($z) => $z->filter(fn ($r) => ! $r->betreuer))

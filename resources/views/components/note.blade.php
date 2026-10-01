@@ -14,7 +14,7 @@
     };
     // Präferenz «Notenanzeige»: nur beim bisherigen Standardfall (Durchschnitt, 1 Nachkommastelle)
     // durch die persönliche Einstellung ersetzt – Notenblatt/Exporte/Mails rufen NotenSkala::format()
-    // direkt auf und bleiben unberührt; :stellen="2"-Stellen (z. B. Verwaltungslisten) unverändert.
+    // direkt auf und bleiben unberührt; eine feste andere Stellenzahl bleibt unverändert.
     $anzeigeStellen = $stellen === 1
         ? (int) (\App\Support\Darstellung::fuer(auth()->user())['notenanzeige'] ?? \App\Support\Darstellung::NOTENANZEIGE_1)
         : $stellen;

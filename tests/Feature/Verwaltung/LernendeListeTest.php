@@ -104,11 +104,18 @@ class LernendeListeTest extends TestCase
         $this->assertSame([], $staende[$fertig->lernender_id]->gruende);
         $this->assertSame(Lernstand::GELB, $staende[$laufend->lernender_id]->status, 'Ein Jahr ohne Note bleibt eine Warnung');
 
-        $marken = collect(iterator_to_array($this->dom((string) $this->actingAs(User::factory()->admin()->create())->get(route('admin.learners.index'))->assertOk()->getContent())
-            ->query("//tbody/tr[.//a[contains(., 'Abschlusstest')]]//span[contains(@class,'np-marke')]")))->map(fn (\DOMElement $s) => trim($s->textContent))->all();
-        $this->assertSame([__('Abgeschlossen')], $marken);
+        // Die Zeile trägt nur die Ampel «Abgeschlossen», keine Warnmarken.
+        $dom = $this->dom((string) $this->actingAs(User::factory()->admin()->create())->get(route('admin.learners.index'))->assertOk()->getContent());
+        $zeile = "//tbody/tr[.//a[contains(., 'Abschlusstest')]]";
+        $this->assertSame(0, $dom->query($zeile."//span[contains(@class,'np-marke')]")->length);
+        $this->assertStringContainsString(__('Abgeschlossen'), $dom->query($zeile)->item(0)->textContent);
         $this->get(route('admin.learners.index', ['warnung' => 'keine_noten']))->assertOk()
             ->assertSee('Laufendtest')->assertDontSee('Abschlusstest');
+        // Ampelfilter wie die Kacheln der Übersicht
+        $this->get(route('admin.learners.index', ['warnung' => 'beobachten']))->assertOk()
+            ->assertSee('Laufendtest')->assertDontSee('Abschlusstest');
+        $this->get(route('admin.learners.index', ['warnung' => 'kritisch']))->assertOk()
+            ->assertDontSee('Laufendtest')->assertDontSee('Abschlusstest');
 
         // Das Dashboard der Berufsbildnerin fragt nur nach der laufenden Lehre.
         $this->actingAs($bb)->get(route('trainer.dashboard'))->assertOk()

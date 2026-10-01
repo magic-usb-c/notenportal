@@ -1,10 +1,14 @@
 {{-- Status-Etiketten einer Lernenden-Zeile. Erwartet $l, $z, $tagSeit, $grenze, $frist, $bereich.
      Farbe nur mit Bedeutung: Hinweise gelb, Notenschnitt rot, ungelesene Noten wie in Mail mit blauem Punkt.
-     Inaktive Konten tragen nur «Inaktiv», abgeschlossene Lehren nur «Abgeschlossen»: Warnungen dazu lösen nichts mehr aus. --}}
+     Vorne die Ampel wie in den Übersichten (Gründe im Tooltip). Inaktive Konten tragen nur «Inaktiv», abgeschlossene
+     Lehren nur die Ampel «Abgeschlossen»: Warnungen dazu lösen nichts mehr aus. --}}
 @php
     $aktiv = (bool) $l->benutzer->aktiv;
     $laufend = $aktiv && $z->stand->status !== \App\Services\Auswertung\Lernstand::ABGESCHLOSSEN;
 @endphp
+@if($aktiv)
+    <x-status :status="$z->stand->status" :title="implode(' · ', $z->stand->gruende) ?: null" class="mr-1" />
+@endif
 @if($aktiv && $z->ungelesen > 0)
     <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-accent-text"><span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>{{ __(':anzahl neu', ['anzahl' => $z->ungelesen]) }}</span>
 @endif
@@ -19,9 +23,6 @@
 @endif
 @if($z->bms)
     <span class="np-marke text-muted">BMS</span>
-@endif
-@if($aktiv && ! $laufend)
-    <span class="np-marke text-muted">{{ __('Abgeschlossen') }}</span>
 @endif
 @unless($aktiv)
     <span class="np-marke text-muted">{{ __('Inaktiv') }}</span>

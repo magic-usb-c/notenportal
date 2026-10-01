@@ -82,6 +82,8 @@
                     <label for="warnung" class="sr-only">{{ __('Warnung') }}</label>
                     <select name="warnung" id="warnung" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
                         <option value="">{{ __('Warnung: alle') }}</option>
+                        <option value="kritisch" @selected($filter['warnung'] === 'kritisch')>{{ __('Kritisch') }}</option>
+                        <option value="beobachten" @selected($filter['warnung'] === 'beobachten')>{{ __('Beobachten') }}</option>
                         <option value="tief_avg" @selected($filter['warnung'] === 'tief_avg')>{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</option>
                         <option value="keine_noten" @selected($filter['warnung'] === 'keine_noten')>{{ __('Kein Eintrag seit :tage Tagen', ['tage' => $frist]) }}</option>
                         @if($bereich === 'admin')
@@ -153,7 +155,7 @@
                                     @endif
                                     <td class="text-right tabular-nums">{{ $z->anzahl }}</td>
                                     <td class="text-right whitespace-nowrap text-muted">{{ $wann($tagSeit) }}</td>
-                                    <td class="text-right"><x-note :wert="$z->avg" :stellen="2" /></td>
+                                    <td class="text-right"><x-note :wert="$z->avg" :stellen="1" /></td>
                                     <td>
                                         <div class="flex flex-wrap gap-1">@include('verwaltung.lernende._status')</div>
                                     </td>

@@ -684,5 +684,7 @@
     "Leere Felder setzen keine Bedingung.": "Empty fields set no condition.",
     "Notenkategorie": "Grade category",
     "Gewicht im Gesamtschnitt": "Weight in overall average",
-    "Automatisch": "Automatic"
+    "Automatisch": "Automatic",
+    ":anzahl kritisch bei :name": ":anzahl critical with :name",
+    ":anzahl zu beobachten bei :name": ":anzahl to watch with :name"
 }

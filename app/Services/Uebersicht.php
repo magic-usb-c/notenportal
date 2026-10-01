@@ -217,6 +217,7 @@ final class Uebersicht
             $neu = $neuJeBb[(int) $bb->berufsbildner_id] ?? 0;
 
             return (object) [
+                'id' => (int) $bb->berufsbildner_id,
                 'name' => $bb->vorname.' '.$bb->nachname,
                 'lernende' => count($betreut),
                 'rot' => count(array_filter($betreut, fn ($id) => ($staende[$id] ?? null)?->status === Lernstand::ROT)),
