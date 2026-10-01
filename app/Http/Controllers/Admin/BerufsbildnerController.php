@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
 use App\Support\Betrieb;
 use App\Support\NotenSkala;
@@ -67,6 +68,8 @@ class BerufsbildnerController extends Controller
             ->whereNull('l.geloescht_am')
             ->whereNull('b.geloescht_am')
             ->where('b.aktiv', 1)
+            // Abgeschlossene Lehren erwarten keine Noten mehr – wie der Filter «keine_noten» der Lernendenliste.
+            ->where(fn ($q) => $q->whereNull('l.lehrende')->orWhere('l.lehrende', '>=', $today))
             ->where(fn ($q) => $q->whereNull('nn.last_entry')->orWhere('nn.last_entry', '<', $cutoff))
             ->groupBy('bt.berufsbildner_id')
             ->select(['bt.berufsbildner_id', DB::raw('COUNT(*) as cnt')])
@@ -90,9 +93,10 @@ class BerufsbildnerController extends Controller
         $tiefAvgCount = $betreut
             ->groupBy('berufsbildner_id')
             ->map(fn ($rows) => $rows->filter(function ($r) use ($staende, $grenze) {
-                $avg = $staende[(int) $r->lernender_id]->auswertung->gesamtNote;
+                $stand = $staende[(int) $r->lernender_id];
+                $avg = $stand->auswertung->gesamtNote;
 
-                return $avg !== null && $avg < $grenze;
+                return $stand->status !== Lernstand::ABGESCHLOSSEN && $avg !== null && $avg < $grenze;
             })->count());
 
         $stats = $berufsbildner->map(function ($bb) use ($lernendeCount, $ohneNotenCount, $tiefAvgCount) {

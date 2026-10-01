@@ -226,7 +226,7 @@ final class Uebersicht
 
         $feedbackOffen = Feedback::hauptmeldungen()->where('status', 'offen')->count();
         $einrichtung = $this->einrichtungsluecken(
-            $lernende->filter(fn (Lernender $l) => ! $l->lehrende || ! $l->lehrende->isPast())->pluck('lernender_id')->map(fn ($v) => (int) $v)->all(),
+            $lernende->filter(fn (Lernender $l) => ! $l->lehrende || ! $l->lehrende->lt(today()))->pluck('lernender_id')->map(fn ($v) => (int) $v)->all(),
             $betreuung
         );
         $kritisch = $lernende->filter(fn (Lernender $l) => $staende[$l->lernender_id]->status === Lernstand::ROT)

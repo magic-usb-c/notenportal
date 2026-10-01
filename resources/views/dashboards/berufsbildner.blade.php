@@ -174,15 +174,23 @@
                                         $z = $eintrag['zeile'];
                                         $b = $z->lernender->benutzer;
                                         $gruende = implode(' · ', $eintrag['gruende']);
+                                        // Gleiche Zuordnung wie <x-status>: neue Noten holen auch laufende und abgeschlossene Lehren hierher.
+                                        [$punkt, $wort] = match ($z->stand->status) {
+                                            'rot' => ['bg-note-ungenuegend', __('Kritisch')],
+                                            'gelb' => ['bg-note-knapp', __('Beobachten')],
+                                            'neutral' => ['bg-muted', __('Offen')],
+                                            'abgeschlossen' => ['bg-muted', __('Abgeschlossen')],
+                                            default => ['bg-note-gut', __('Im Plan')],
+                                        };
                                     @endphp
                                     <li>
                                         <a href="{{ route('trainer.learners.show', $z->lernender->lernender_id) }}" class="flex min-h-13 items-center gap-3 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-fill-2">
                                             <span class="relative shrink-0" aria-hidden="true">
                                                 <span class="np-monogramm size-9 text-xs">{{ mb_substr($b->vorname, 0, 1).mb_substr($b->nachname, 0, 1) }}</span>
-                                                <span class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-card {{ $z->stand->status === 'rot' ? 'bg-note-ungenuegend' : 'bg-note-knapp' }}"></span>
+                                                <span class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full border-2 border-card {{ $punkt }}"></span>
                                             </span>
                                             <span class="min-w-0 flex-1">
-                                                <span class="block truncate text-sm font-medium text-text">{{ $b->vorname }} {{ $b->nachname }}<span class="sr-only">, {{ $z->stand->status === 'rot' ? __('kritisch') : __('beobachten') }}</span></span>
+                                                <span class="block truncate text-sm font-medium text-text">{{ $b->vorname }} {{ $b->nachname }}<span class="sr-only">, {{ $wort }}</span></span>
                                                 <span class="line-clamp-2 text-xs text-muted" title="{{ $gruende }}">{{ $gruende }}</span>
                                             </span>
                                             <x-symbol name="chevron-right" strich="2" class="size-3.5 shrink-0 text-faint" />

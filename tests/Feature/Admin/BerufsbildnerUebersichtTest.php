@@ -81,4 +81,37 @@ class BerufsbildnerUebersichtTest extends TestCase
         $this->assertSame([$lernende[20]], $ohneNote());
         $this->actingAs($admin)->get(route('admin.learners.index'))->assertSee(__('Kein Eintrag seit :tage Tagen', ['tage' => 14]));
     }
+
+    #[Test]
+    public function abgeschlossene_lehre_zaehlt_in_keiner_warnung(): void
+    {
+        Semester::factory()->create();
+        $bb = User::factory()->berufsbildner()->create();
+        $modul = Modul::factory()->create();
+        $lernende = [];
+        foreach (['laufend' => now()->addYear(), 'abgeschlossen' => now()->subDays(2)] as $art => $ende) {
+            $lernender = User::factory()->lernender()->create();
+            $this->betreue($bb, $lernender->lernender);
+            DB::table('lehrberuf_module')->insertOrIgnore([
+                'lehrberuf_id' => $lernender->lernender->lehrberuf_id,
+                'modul_id' => $modul->modul_id,
+                'kategorie_id' => Kategorie::where('code', 'FACH')->value('kategorie_id'),
+            ]);
+            $this->actingAs($lernender)->post(route('learner.grades.store'), [
+                'typ' => 'modul', 'modul_id' => $modul->modul_id, 'pruefungsdatum' => now()->subDays(60)->toDateString(), 'note_wert' => 3.0,
+            ])->assertSessionHasNoErrors();
+            $lernender->lernender->update(['lehrende' => $ende->toDateString()]);
+            $lernende[$art] = $lernender->lernender->lernender_id;
+        }
+        $admin = User::factory()->admin()->create();
+        $stats = $this->actingAs($admin)->get(route('admin.trainers.index'))->assertOk()->viewData('stats')[$bb->berufsbildner->berufsbildner_id];
+        $liste = fn (string $warnung) => $this->actingAs($admin)->get(route('admin.learners.index', ['warnung' => $warnung]))->assertOk()
+            ->viewData('zeilen')->map(fn ($z) => $z->lernender->lernender_id)->values()->all();
+
+        // Kennzahl und Ziel des Links stimmen überein: nur die laufende Lehre.
+        $this->assertSame(1, $stats->ohne_noten);
+        $this->assertSame(1, $stats->tief_avg);
+        $this->assertSame([$lernende['laufend']], $liste('keine_noten'));
+        $this->assertSame([$lernende['laufend']], $liste('tief_avg'));
+    }
 }
