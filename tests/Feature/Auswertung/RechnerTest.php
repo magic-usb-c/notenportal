@@ -90,6 +90,20 @@ class RechnerTest extends TestCase
     }
 
     #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function rechner_spricht_in_der_verwaltung_die_person_an_statt_du(string $bereich): void
+    {
+        $verwalter = $this->verwalter($bereich, $this->lernender);
+
+        $html = (string) $this->actingAs($verwalter)->get(route("{$bereich}.learners.calculator", $this->lernender->lernender_id))->assertOk()->getContent();
+        $this->assertStringContainsString(' braucht mindestens :note', $html);
+        $this->assertStringNotContainsString('Du brauchst', $html);
+        $this->assertStringNotContainsString('Was brauchst du', $html);
+
+        $this->actingAs($this->user)->get(route('learner.grades.calculator'))->assertOk()->assertSee('Du brauchst mindestens :note', false);
+    }
+
+    #[Test]
     public function berechnet_benoetigte_note_und_schlaegt_restgewicht_vor(): void
     {
         $this->modulNote(4.0, 50);

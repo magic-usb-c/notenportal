@@ -1,6 +1,6 @@
 // Noten-Rechner und Live-Vorschau im Notenformular. Gerechnet wird serverseitig (eine Engine),
 // die Oberfläche schickt nur das Szenario.
-import { bedarfKlasse, format, notenKlasse, postJson } from './np';
+import { bedarfKlasse, format, notenKlasse, postJson, stufenFarbe } from './np';
 
 const SPEICHERBAR = ['gesamt', 'kategorie', 'fach', 'modul'];
 let zeilenNummer = 0;
@@ -135,8 +135,8 @@ export function registriereRechner(Alpine) {
             const l = this.ergebnis?.loesung;
             if (!l) return '';
             if (l.status === 'benoetigt') return bedarfKlasse(l.note, this.grenzen);
-            if (l.status === 'erreicht') return notenKlasse(6, this.grenzen);
-            if (l.status === 'unerreichbar') return notenKlasse(1, this.grenzen);
+            if (l.status === 'erreicht') return stufenFarbe(6, this.grenzen);
+            if (l.status === 'unerreichbar') return stufenFarbe(1, this.grenzen);
             return notenKlasse(l.resultat ?? l.aktuell, this.grenzen);
         },
 

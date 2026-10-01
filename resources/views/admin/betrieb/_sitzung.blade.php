@@ -30,7 +30,7 @@
             @csrf
             @method('PUT')
             <x-einstellung :label="__('Feedback-Knopf')" fuer="feedback_knopf" name="feedback_knopf"
-                           :hinweis="__('Schwebender Knopf, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden.')">
+                           :hinweis="__('Knopf in der Symbolleiste, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden.')">
                 <input id="feedback_knopf" name="feedback_knopf" type="checkbox" role="switch" value="1" @checked(old('feedback_knopf', $feedbackKnopfAktiv))
                        data-sofort class="np-schalter">
                 <noscript><button type="submit" class="np-knopf np-knopf-sekundaer">{{ __('Speichern') }}</button></noscript>

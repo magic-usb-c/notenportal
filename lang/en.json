@@ -212,7 +212,6 @@
     "Feedback-Knopf geändert": "Feedback button changed",
     "Fehler": "Error",
     "Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Mit": "Found a bug, have an idea, a question or something else? With",
-    "Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über den Knopf unten rechts oder mit": "Found a bug, have an idea, a question or something else? Use the button at the bottom right or",
     "Fehler, Ideen, Fragen oder sonst etwas – alles ist willkommen.": "Bugs, ideas, questions or anything else – everything is welcome.",
     "Fehlgeschlagene Anfragen:": "Failed requests:",
     "Filter": "Filter",
@@ -579,5 +578,19 @@
     "Kritisch": "Critical",
     "Beobachten": "Watch",
     "Offen": "Open",
-    "Im Plan": "On track"
+    "Im Plan": "On track",
+    "Häufige Ziele": "Common goals",
+    "Danach": "After",
+    "Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über «Feedback» oben rechts oder mit": "Found a bug, have an idea, a question or something else? Use «Feedback» at the top right or",
+    "Was braucht :person im Schnitt über alle Fächer und Module, um ein bestimmtes Ziel zu erreichen?": "What does :person need in the average across all subjects and modules to reach a specific target?",
+    "Was braucht :person in einer Kategorie (z. B. Berufskenntnisse), um dort ein bestimmtes Ziel zu erreichen?": "What does :person need in a category (e.g. vocational knowledge) to reach a specific target there?",
+    "Was braucht :person in einem Semester, um dort ein bestimmtes Ziel zu erreichen?": "What does :person need in a semester to reach a specific target there?",
+    "Welche Note braucht :person in der nächsten Prüfung eines Fachs, um auf einen bestimmten Schnitt zu kommen?": "What grade does :person need in the next exam of a subject to reach a specific average?",
+    "Welche Note braucht :person in der nächsten Prüfung eines Moduls, um auf einen bestimmten Schnitt zu kommen?": "What grade does :person need in the next exam of a module to reach a specific average?",
+    ":person braucht mindestens :note in der nächsten Prüfung, um :bezug auf :ziel zu kommen.": ":person needs at least :note in the next exam to reach :ziel :bezug.",
+    ":person braucht mindestens :note in jeder der :n offenen Prüfungen, um :bezug auf :ziel zu kommen.": ":person needs at least :note in each of the :n open exams to reach :ziel :bezug.",
+    "Das Ziel ist bereits erreicht: Selbst mit der tiefsten Note (1.0) in den restlichen Prüfungen bleibt :person :bezug bei mindestens :minimum, das Ziel war :ziel.": "The target is already reached: even with the lowest grade (1.0) in the remaining exams, :person stays :bezug at :minimum or higher; the target was :ziel.",
+    "Ziel nicht erreichbar: Selbst mit der Bestnote (6.0) in allen offenen Prüfungen kommt :person :bezug höchstens auf :maximum, das Ziel war :ziel.": "Target not reachable: even with the best grade (6.0) in all open exams, :person reaches at most :maximum :bezug; the target was :ziel.",
+    "Ziel erreicht: :person steht :bezug bei :resultat.": "Target reached: :person stands :bezug at :resultat.",
+    "Ziel noch nicht erreicht: :person steht :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: :person stands :bezug at :resultat, :differenz is missing."
 }

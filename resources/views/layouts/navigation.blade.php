@@ -12,7 +12,6 @@
     $initialen = mb_strtoupper(mb_substr($u->vorname ?? '', 0, 1).mb_substr($u->nachname ?? '', 0, 1)) ?: mb_strtoupper(mb_substr($name, 0, 1));
     // Einmal bestimmen: Menüpunkt und Dialog hängen beide davon ab (Profil «Darstellung»).
     $tastenkuerzelAktiv = $u && \App\Support\Darstellung::fuer($u)['tastenkuerzel'] === \App\Support\Darstellung::TASTENKUERZEL_AN;
-    $feedbackSymbol = $u && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') === '0';
 
     // Seitenleiste: erst die Bereiche, dann die Abschnitte mit Titel (HIG «Sidebars»: höchstens zwei Ebenen)
     $bereiche = array_values(array_filter($eintraege, fn ($e) => ! isset($e['kinder'])));
@@ -79,7 +78,7 @@
      (Navigation «oben»), hinten die Aktionen der Seite, die Suche und das Konto. Durchsichtig; erst wenn Inhalt darunter
      liegt, trennt ein weicher Rand (Scroll Edge) sie vom Inhalt. --}}
 <header class="np-symbolleiste print:hidden" x-data="npSymbolleiste">
-    <div data-symbolleiste-zeile class="mx-auto flex min-h-(--np-symbolleiste-hoehe) np-seite flex-wrap items-center gap-x-3 gap-y-2 px-8 py-2.5">
+    <div data-symbolleiste-zeile class="relative mx-auto flex min-h-(--np-symbolleiste-hoehe) np-seite flex-wrap items-center gap-x-3 gap-y-2 px-8 py-2.5">
         <div data-symbolleiste-anfang class="-ml-1.5 flex min-w-0 flex-1 basis-0 items-center gap-1">
             <button type="button" data-seitenleiste-zeigen x-data @click="$dispatch('np-seitenleiste-zeigen')" class="np-knopf np-knopf-symbol seite:lg:hidden"
                     aria-controls="np-seitenleiste" aria-label="{{ __('Seitenleiste einblenden') }}" title="{{ __('Seitenleiste einblenden') }}">
@@ -169,13 +168,8 @@
                 <div class="flex items-center gap-2">{!! $aktionen !!}</div>
             @endif
 
-            {{-- Nur wenn der schwebende Knopf ausgeschaltet ist: sonst zwei Wege zum selben Dialog --}}
-            @if($feedbackSymbol)
-                <button type="button" x-data @click="$dispatch('open-modal', 'feedback')" class="np-knopf np-knopf-symbol"
-                        aria-label="{{ __('Feedback melden') }}" title="{{ __('Feedback melden') }}">
-                    <x-symbol name="chat-bubble-left-ellipsis" />
-                </button>
-            @endif
+            {{-- Feedback (Schalter in Betrieb › Bedienung); das Popover hängt am rechten Rand dieser Zeile --}}
+            <x-feedback-widget />
 
             {{-- Suche (HIG «Search fields»: globale Suche hinten in der Symbolleiste) mit der Befehlspalette --}}
             <div x-data="npSuche({{ \Illuminate\Support\Js::from(['eintraege' => $palette, 'url' => $suchUrl]) }})" class="flex">

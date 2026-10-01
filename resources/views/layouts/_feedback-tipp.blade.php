@@ -10,7 +10,7 @@
         <x-symbol name="chat-bubble-left-ellipsis" class="size-5 text-accent-text" />
         <p class="flex-1 text-text">
             @if($feedbackKnopfAktiv)
-                {{ __('Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über den Knopf unten rechts oder mit') }}
+                {{ __('Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über «Feedback» oben rechts oder mit') }}
             @else
                 {{ __('Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Mit') }}
             @endif

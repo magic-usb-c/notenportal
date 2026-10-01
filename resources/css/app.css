@@ -166,6 +166,18 @@
     background-color: rgb(var(--accent) / 0.22);
   }
 
+  /* Zahlenfelder ohne Browser-Pfeile wie ein macOS-Textfeld; Pfeiltasten und Mausrad bleiben,
+     wo ein Schritt sinnvoll ist, steht ein eigener Stepper daneben */
+  input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   /* Tastaturfokus: ein Ring im Akzent, der der Form des Elements folgt (HIG «Focus and selection») */
   :where(a, button, summary, [role='button'], [role='tab'], [role='menuitem'], [role='option'], [tabindex]):focus-visible {
     outline: 2px solid rgb(var(--ring));

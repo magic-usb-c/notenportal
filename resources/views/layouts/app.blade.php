@@ -159,7 +159,7 @@
                 @include('layouts._systemhinweis')
             @endif
 
-            {{-- Der Tipp zeigt auf den schwebenden Feedback-Knopf; unten bleibt Platz, damit der Knopf am Seitenende nichts verdeckt --}}
+            {{-- Der Tipp nennt den Feedback-Knopf in der Symbolleiste, wenn er eingeschaltet ist --}}
             @php
                 $feedbackKnopfAktiv = auth()->check() && \App\Support\Einstellungen::get(\App\Support\Einstellungen::FEEDBACK_KNOPF, '1') !== '0';
             @endphp
@@ -174,7 +174,7 @@
                 </div>
             @endisset
 
-            <main id="inhalt" tabindex="-1" @class(['flex-1 focus:outline-none', $feedbackKnopfAktiv ? 'pb-20' : 'pb-10'])>
+            <main id="inhalt" tabindex="-1" class="flex-1 pb-10 focus:outline-none">
                 {{ $slot }}
             </main>
         </div>
@@ -193,8 +193,6 @@
 
         {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...', art: 'fehler' } })), art optional --}}
         <x-toast art="erfolg" />
-
-        <x-feedback-widget />
 
         <x-bestaetigung />
 

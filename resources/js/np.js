@@ -63,7 +63,16 @@ export function stufe(wert, grenzen = STANDARD_GRENZEN) {
     return 'ungenuegend';
 }
 
+// Wie NotenSkala::text(): gut und genügend neutral, knapp und ungenügend farbig, ungenügend zusätzlich
+// unterstrichen (nie nur Farbe). Die volle Stufenfarbe (NotenSkala::farbe) nur, wo sie etwas aussagt.
 const TEXT = {
+    gut: 'text-text',
+    genuegend: 'text-text',
+    knapp: 'text-note-knapp',
+    ungenuegend: 'text-note-ungenuegend underline decoration-2 underline-offset-4',
+};
+
+const FARBE = {
     gut: 'text-note-gut',
     genuegend: 'text-note-genuegend',
     knapp: 'text-note-knapp',
@@ -74,13 +83,17 @@ export function notenKlasse(wert, grenzen) {
     return TEXT[stufe(wert, grenzen)] ?? 'text-muted';
 }
 
-// Benötigte Note nach Schwierigkeit einfärben (hoch = schwer)
+export function stufenFarbe(wert, grenzen = STANDARD_GRENZEN) {
+    return FARBE[stufe(wert, grenzen)] ?? 'text-muted';
+}
+
+// Benötigte Note nach Schwierigkeit einfärben (hoch = schwer), wie NotenSkala::bedarf()
 export function bedarfKlasse(wert, grenzen = STANDARD_GRENZEN) {
     const v = parseFloat(wert);
     if (!Number.isFinite(v)) return 'text-muted';
-    if (v <= grenzen.genuegend + 0.5) return TEXT.gut;
-    if (v <= grenzen.gut + 0.25) return TEXT.knapp;
-    return TEXT.ungenuegend;
+    if (v <= grenzen.genuegend + 0.5) return FARBE.gut;
+    if (v <= grenzen.gut + 0.25) return FARBE.knapp;
+    return FARBE.ungenuegend;
 }
 
 export function format(wert, stellen = null) {

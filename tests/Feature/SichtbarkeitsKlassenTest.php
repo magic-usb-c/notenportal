@@ -91,14 +91,27 @@ class SichtbarkeitsKlassenTest extends TestCase
     }
 
     #[Test]
-    public function feedback_symbol_in_der_leiste_nur_ohne_schwebenden_knopf(): void
+    public function feedback_knopf_steht_in_der_symbolleiste_und_folgt_der_einstellung(): void
     {
         $user = User::factory()->lernender()->create();
+        $leiste = function () use ($user): string {
+            $html = (string) $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->getContent();
+            $start = mb_strpos($html, 'data-symbolleiste-zeile');
+            $this->assertNotFalse($start);
 
+            return mb_substr($html, $start, mb_strpos($html, '</header>', $start) - $start);
+        };
+
+        // Kein schwebender Knopf mehr über dem Inhalt: Knopf und Popover liegen in der Symbolleiste
         Einstellungen::set(Einstellungen::FEEDBACK_KNOPF, '1');
-        $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->assertDontSee('title="'.__('Feedback melden').'"', false);
+        $an = $leiste();
+        $this->assertStringContainsString('<button type="button" data-feedback-knopf', $an);
+        $this->assertStringContainsString('id="feedback-panel-titel"', $an);
 
+        // Ausgeschaltet bleibt der Dialog für Befehlspalette und Feedback-Seite erreichbar, nur ohne Knopf
         Einstellungen::set(Einstellungen::FEEDBACK_KNOPF, '0');
-        $this->actingAs($user)->get(route('learner.dashboard'))->assertOk()->assertSee('title="'.__('Feedback melden').'"', false);
+        $aus = $leiste();
+        $this->assertStringNotContainsString('<button type="button" data-feedback-knopf', $aus);
+        $this->assertStringContainsString('id="feedback-panel-titel"', $aus);
     }
 }

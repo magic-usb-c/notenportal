@@ -614,7 +614,6 @@
     "Sitzung und Rückmeldungen": "Session and feedback",
     "Abmelden nach Inaktivität von": "Sign out after inactivity of",
     ":dauer (Standard)": ":dauer (default)",
-    "Schwebender Knopf, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden.": "Floating button signed-in users can use to report feedback and bugs during the test phase.",
     "Im Benutzermenü und im Profil": "In the user menu and profile",
     "Notengrenzen": "Grade thresholds",
     "Auswertung und Fristen": "Evaluation and deadlines",
@@ -689,5 +688,6 @@
     "Zu diesem Fach gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this subject. Deactivate it instead.",
     "Aufbau": "Structure",
     "Notenbaum «:name» deaktivieren?": "Deactivate grade tree “:name”?",
-    ":teil zählt": ":teil counts"
+    ":teil zählt": ":teil counts",
+    "Knopf in der Symbolleiste, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden.": "Toolbar button signed-in users can use to report feedback and bugs during the test phase."
 }
