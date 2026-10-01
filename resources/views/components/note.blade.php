@@ -23,6 +23,9 @@
     <span {{ $attributes->merge(['class' => $variante === 'badge'
         ? 'inline-flex h-6 min-w-11 items-center justify-center rounded-md bg-surface-2 px-1.5 text-sm font-semibold text-text'
         : 'font-semibold text-text']) }} title="{{ $skala::stufeText($stufe) }}">{{ $skala::stufeKurz($stufe) }}</span>
+@elseif($wert === null)
+    {{-- Platzhalter leicht und dünn: als Heldenzahl wirkte der fette Strich wie ein Balken (01.10.2026) --}}
+    <span {{ $attributes->merge(['class' => $klasse]) }}><span class="font-normal text-faint">{{ $skala::format(null, $anzeigeStellen) }}</span></span>
 @else
     <span {{ $attributes->merge(['class' => $klasse]) }}>{{ $skala::format($wert, $anzeigeStellen) }}</span>
 @endif

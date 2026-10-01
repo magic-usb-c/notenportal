@@ -31,6 +31,7 @@ class DashboardKartenTest extends TestCase
         $this->actingAs($user)->get(route('learner.dashboard'))
             ->assertOk()
             ->assertSee(__('Stand'))
+            ->assertDontSee(__('Erste Note erfassen'))
             ->assertDontSee(__('Als Nächstes'));
     }
 

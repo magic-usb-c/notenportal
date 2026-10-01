@@ -677,32 +677,16 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 }
 
 @utility np-scroll-edge {
-  /* eigener Scrollbereich (Seitenleiste, Listen): Inhalt verblasst am oberen Rand */
-  position: relative;
-  &::before {
-    content: '';
-    position: sticky;
-    display: block;
-    top: 0;
-    height: 0.75rem;
-    margin-bottom: -0.75rem;
-    background: linear-gradient(to bottom, rgb(var(--card-rgb) / 0.9), rgb(var(--card-rgb) / 0));
-    pointer-events: none;
-    z-index: 20;
-  }
-  &::after {
-    content: '';
-    position: sticky;
-    display: block;
-    bottom: 0;
-    height: 0.75rem;
-    margin-top: -0.75rem;
-    background: linear-gradient(to top, rgb(var(--card-rgb) / 0.9), rgb(var(--card-rgb) / 0));
-    pointer-events: none;
-    z-index: 20;
-  }
+  /* eigener Scrollbereich (Seitenleiste, Listen): die Kante, hinter der noch Inhalt liegt, blendet aus
+     (HIG «scroll edge effect»). np.js setzt data-np-kante="oben" | "unten" | "oben unten" – ohne Überlauf
+     keine Kante. Maske statt Farbverlauf: flächenunabhängig (gemessen 01.10.2026: der Verlauf in --card
+     zeichnete helle Bänder in die dunklere Seitenleiste, auch wenn nichts scrollte). Schwarz ist hier nur
+     der Alphakanal der Maske, keine Farbe. */
+  &[data-np-kante='oben'] { mask-image: linear-gradient(to bottom, transparent, black 1.5rem); }
+  &[data-np-kante='unten'] { mask-image: linear-gradient(to top, transparent, black 1.5rem); }
+  &[data-np-kante='oben unten'] { mask-image: linear-gradient(to bottom, transparent, black 1.5rem, black calc(100% - 1.5rem), transparent); }
   @media (prefers-reduced-transparency: reduce) {
-    &::before, &::after { display: none; }
+    &[data-np-kante] { mask-image: none; }
   }
 }
 

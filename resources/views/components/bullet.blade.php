@@ -24,20 +24,21 @@
         .($ziel !== null ? ', '.__('Ziel :wert', ['wert' => $f($ziel)]) : '')
         .', '.__('genügend ab :wert', ['wert' => $f($g['genuegend'])]).', '.__('gut ab :wert', ['wert' => $f($g['gut'])]);
     $baender = [
-        [1, $g['kritisch'], 'bg-muted/30'],
-        [$g['kritisch'], $g['genuegend'], 'bg-muted/22'],
-        [$g['genuegend'], $g['gut'], 'bg-muted/14'],
-        [$g['gut'], 6, 'bg-muted/8'],
+        [1, $g['kritisch'], 'bg-muted/40'],
+        [$g['kritisch'], $g['genuegend'], 'bg-muted/28'],
+        [$g['genuegend'], $g['gut'], 'bg-muted/18'],
+        [$g['gut'], 6, 'bg-muted/10'],
     ];
 @endphp
 <div {{ $attributes->class(['w-full']) }}>
     <div class="relative py-1" role="img" aria-label="{{ $satz }}">
-        <div class="relative h-2.5 overflow-hidden rounded-full">
+        {{-- Balken schmaler als die Spur, damit die Bänder (ungenügend/knapp/genügend/gut) sichtbar bleiben --}}
+        <div class="relative h-3 overflow-hidden rounded-full">
             @foreach($baender as [$von, $bis, $klasse])
                 <div class="absolute inset-y-0 {{ $klasse }}" style="left: {{ $pos($von) }}%; width: {{ $pos($bis) - $pos($von) }}%"></div>
             @endforeach
             @if($wert !== null)
-                <div class="absolute inset-y-0 left-0 rounded-full {{ $balken }}" style="width: {{ $pos($wert) }}%"></div>
+                <div class="absolute inset-y-1 left-0 rounded-full {{ $balken }}" style="width: {{ $pos($wert) }}%"></div>
             @endif
         </div>
         @if($ziel !== null)

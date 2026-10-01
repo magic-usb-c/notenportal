@@ -9,7 +9,7 @@
     <div class="np-karte flex items-center gap-3 py-2.5 pl-4 pr-2.5 text-sm">
         <x-symbol name="chat-bubble-left-ellipsis" class="size-5 text-accent-text" />
         <p class="flex-1 text-text">
-            @if($feedbackKnopfAktiv)
+            @if($feedbackKnopfAktiv && ! request()->routeIs('feedback.index'))
                 {{ __('Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Über «Feedback» oben rechts oder mit') }}
             @else
                 {{ __('Fehler gefunden, eine Idee, eine Frage oder sonst etwas? Mit') }}

@@ -205,10 +205,16 @@
                                 <div class="mt-1 text-display font-bold" :class="heroKlasse">
                                     <span x-show="ergebnis.loesung.status === 'benoetigt'" x-text="fmt(ergebnis.loesung.note, 2)"></span>
                                     <span x-show="ergebnis.loesung.status === 'erreicht'">✓</span>
-                                    <span x-show="['unerreichbar', 'ohne_einfluss', 'keine_unbekannten'].includes(ergebnis.loesung.status)" x-text="fmt(ergebnis.loesung.resultat ?? ergebnis.loesung.aktuell)"></span>
+                                    <span x-show="['unerreichbar', 'ohne_einfluss', 'keine_unbekannten'].includes(ergebnis.loesung.status) && (ergebnis.loesung.resultat ?? ergebnis.loesung.aktuell) != null" x-text="fmt(ergebnis.loesung.resultat ?? ergebnis.loesung.aktuell)"></span>
                                 </div>
 
                                 <p class="mx-auto mt-3 max-w-lg text-base text-text" x-text="heroSatz"></p>
+                                @if(! $lernender)
+                                    {{-- Ohne eine einzige Note gibt es nichts zu rechnen: Weiterweg statt Strich --}}
+                                    <a x-show="ergebnis.loesung.resultat == null && ergebnis.loesung.aktuell == null" x-cloak
+                                       href="{{ route('learner.grades.create') }}" @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
+                                       class="np-knopf np-knopf-sekundaer mt-4">{{ __('Note erfassen') }}</a>
+                                @endif
                             </div>
                         </template>
                     </section>

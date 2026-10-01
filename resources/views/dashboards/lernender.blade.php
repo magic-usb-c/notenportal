@@ -90,12 +90,15 @@
                         </div>
 
                         @if($kategorien)
-                            <ul class="grid grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))] gap-x-5 gap-y-4 self-end">
+                            {{-- Kategoriewerte gelten für die ganze Lehrzeit (die Notenseite zeigt je Semester) --}}
+                            <div class="self-end">
+                            <p class="mb-2 text-xs text-muted">{{ __('Lehrzeit') }}</p>
+                            <ul class="grid grid-cols-[repeat(auto-fit,minmax(8.5rem,1fr))] gap-x-5 gap-y-4">
                                 @foreach($kategorien as $kat)
                                     <li class="min-w-0 border-l border-border pl-5">
                                         <a href="{{ route('learner.grades.index', ['kategorie_id' => $kat['id']]) }}" class="group block rounded-md">
                                             <span class="block truncate text-sm text-muted transition-colors duration-100 group-hover:text-text">{{ $kat['name'] }}</span>
-                                            <span class="mt-1.5 flex items-end justify-between gap-3">
+                                            <span class="mt-1.5 flex items-end gap-4">
                                                 <x-note :wert="$kat['note']" :stellen="1" class="text-xl leading-none" />
                                                 <x-sparkline :werte="$kat['verlauf']" :breite="64" :hoehe="24" :zahl="false" :label="__('Verlauf :name', ['name' => $kat['name']])" />
                                             </span>
@@ -103,6 +106,7 @@
                                     </li>
                                 @endforeach
                             </ul>
+                            </div>
                         @endif
                     </div>
 

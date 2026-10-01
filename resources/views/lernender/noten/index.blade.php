@@ -29,7 +29,7 @@
 
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Noten') }}">
-            <div class="flex flex-col items-center gap-0.5">
+            <div class="flex items-center gap-3">
                 <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}">
                     <a class="{{ $pfeil }}" aria-label="{{ __('Vorheriges Semester') }}"
                        @if($prevSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-left" strich="2" /></a>
@@ -38,7 +38,7 @@
                        @if($nextSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-right" strich="2" /></a>
                 </div>
                 @if($semesterRest)
-                    <span class="text-2xs text-muted">{{ $semesterRest }}</span>
+                    <span class="text-xs text-muted">{{ $semesterRest }}</span>
                 @endif
             </div>
             <x-slot:aktionen>
@@ -187,7 +187,7 @@
                                                 <td class="text-muted">
                                                     <span class="flex items-center gap-3" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
                                                         <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
-                                                        <span class="w-5 shrink-0" aria-hidden="true">{{ $anzahl }}</span>
+                                                        <span class="w-5 shrink-0 text-right tabular-nums" aria-hidden="true">{{ $anzahl }}</span>
                                                         @if($fortschritt !== null)
                                                             <span class="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-fill" aria-hidden="true">
                                                                 <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>

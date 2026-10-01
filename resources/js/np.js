@@ -119,7 +119,28 @@ export function notenFarbe(wert, grenzen, alpha = 1) {
 
 // Scrollbare Tabellen (overflow-x-auto) in den Tab-Weg holen und benennen (axe scrollable-region-focusable).
 // Name: <caption>, sonst nächstliegende Überschrift (h1–h3) in Karte oder Seitenkopf, sonst Fallback.
+// Scroll-Kanten (np-scroll-edge): nur die Seite ausblenden, hinter der noch Inhalt liegt – wie die
+// Scroll-Edge-Effekte von macOS. Ohne Überlauf keine Kante.
+function scrollKante(el) {
+    const oben = el.scrollTop > 1;
+    const unten = el.scrollHeight - el.clientHeight - el.scrollTop > 1;
+    const wert = [oben && 'oben', unten && 'unten'].filter(Boolean).join(' ');
+    if (el.dataset.npKante !== wert) el.dataset.npKante = wert;
+}
+
+export function registriereScrollKanten(root = document) {
+    root.querySelectorAll('.np-scroll-edge').forEach((el) => {
+        if (el.dataset.npKanteAktiv) return;
+        el.dataset.npKanteAktiv = '1';
+        scrollKante(el);
+        el.addEventListener('scroll', () => scrollKante(el), { passive: true });
+        new ResizeObserver(() => scrollKante(el)).observe(el);
+        new MutationObserver(() => scrollKante(el)).observe(el, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class', 'hidden'] });
+    });
+}
+
 export function registriereScrollbereiche() {
+    registriereScrollKanten();
     document.querySelectorAll('.overflow-x-auto').forEach((el) => {
         if (el.hasAttribute('role') || !el.querySelector('table')) return;
 
