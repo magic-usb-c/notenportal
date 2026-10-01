@@ -65,7 +65,6 @@
     "Drucken / PDF": "Print / PDF",
     "Ebene": "Level",
     "Einstellungen des Kalenders → «Privatadresse im iCal-Format».": "Calendar settings → “Secret address in iCal format”.",
-    "Einzelnoten": "Individual grades",
     "Entfernen": "Remove",
     "Ergebnis in Abhängigkeit der Note": "Result depending on the grade",
     "Ergebnis je Note in den offenen Prüfungen": "Result by grade in the remaining exams",
@@ -100,7 +99,6 @@
     "Hallo :name": "Hello :name",
     "Hochladen": "Upload",
     "Höchstens :max Kalender. Bitte zuerst einen entfernen.": "At most :max calendars. Please remove one first.",
-    "Import": "Import",
     "Jetzt abgleichen": "Sync now",
     "Kalender": "Calendar",
     "Kalender entfernen?": "Remove calendar?",
@@ -347,5 +345,6 @@
     "Dokument «:titel» löschen?": "Delete document “:titel”?",
     "Dokument hochladen": "Upload document",
     "PDF, Bild, Word, Excel, CSV · bis :mb MB": "PDF, image, Word, Excel, CSV · up to :mb MB",
-    "Noch keine Abschlussrechnung": "No qualification calculation yet"
+    "Noch keine Abschlussrechnung": "No qualification calculation yet",
+    "Importieren…": "Import…"
 }

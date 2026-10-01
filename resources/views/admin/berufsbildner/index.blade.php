@@ -16,7 +16,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-8">
             @if($berufsbildner->isEmpty())
                 <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
                     {{ __('Keine aktiven Berufsbildner.') }}

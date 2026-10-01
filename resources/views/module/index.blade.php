@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-8 space-y-4">
 
             <form method="GET" action="{{ route('modules.index') }}" class="flex items-center gap-3">
                 <x-suchfeld name="suche" :value="$suche" :platzhalter="__('Nummer oder Titel')" :label="__('Module suchen')"

@@ -27,7 +27,7 @@
                       :untertitel="$bereich ? $lernender->benutzer->vorname.' '.$lernender->benutzer->nachname : null">
             @if($darfHochladen)
                 <x-slot:aktionen>
-                    <button type="button" class="np-knopf np-knopf-primaer" x-data @click="$dispatch('open-modal', 'dokument-hochladen')">
+                    <button type="button" class="np-knopf np-knopf-primaer" x-data @click="$dispatch('open-modal', 'upload-document')">
                         <x-symbol name="plus" strich="2" />{{ __('Hochladen…') }}
                     </button>
                 </x-slot:aktionen>
@@ -36,7 +36,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite flex flex-col gap-5 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite flex flex-col gap-5 px-8">
             @if($dokumente->isEmpty())
                 <div class="np-karte">
                     <x-leer symbol="document-text" :titel="__('Noch keine Dokumente')"
@@ -116,12 +116,12 @@
     </div>
 
     @if($darfHochladen)
-        <x-modal name="dokument-hochladen" maxWidth="lg" :show="$hochladenFehler" focusable>
-            <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" role="dialog" aria-modal="true" aria-labelledby="dokument-hochladen-titel"
+        <x-modal name="upload-document" maxWidth="lg" :show="$hochladenFehler" focusable>
+            <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" role="dialog" aria-modal="true" aria-labelledby="upload-document-title"
                   x-data="{ loading: false, name: '', ueber: false }" @submit="if (! $event.defaultPrevented) loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="dokument-hochladen-titel" class="text-lg font-semibold text-text">{{ __('Dokument hochladen') }}</h2>
+                    <h2 id="upload-document-title" class="text-lg font-semibold text-text">{{ __('Dokument hochladen') }}</h2>
 
                     <div>
                         <label for="datei" class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors duration-100"
@@ -169,7 +169,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 px-6 pb-6">
-                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'dokument-hochladen')">{{ __('Abbrechen') }}</button>
+                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'upload-document')">{{ __('Abbrechen') }}</button>
                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Hochladen') }}</button>
                 </div>
             </form>

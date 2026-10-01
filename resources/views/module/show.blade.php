@@ -19,7 +19,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-8 space-y-4">
 
             <div class="np-karte p-5 space-y-3">
                 <div class="flex flex-wrap items-center gap-2 text-xs text-muted">

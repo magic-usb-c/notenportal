@@ -10,7 +10,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
+        <div class="mx-auto np-seite px-8 flex flex-col gap-4">
             @if($leer)
                 <div class="np-karte">
                     <x-leer symbol="clock" :titel="__('Noch keine Einträge im Aktivitätsprotokoll.')" />

@@ -12,10 +12,10 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Notenbäume')" :zaehler="$baeume->count() ?: null">
             <x-slot:aktionen>
-                <button type="button" class="np-knopf np-knopf-sekundaer" x-data @click="$dispatch('open-modal', 'notenbaum-import')">
+                <button type="button" class="np-knopf np-knopf-sekundaer" x-data @click="$dispatch('open-modal', 'import-grade-tree')">
                     {{ __('Importieren…') }}
                 </button>
-                <button type="button" class="np-knopf np-knopf-primaer" x-data @click="$dispatch('open-modal', 'notenbaum-vorlage')">
+                <button type="button" class="np-knopf np-knopf-primaer" x-data @click="$dispatch('open-modal', 'load-grade-tree-template')">
                     <x-symbol name="plus" strich="2" />{{ __('Vorlage laden…') }}
                 </button>
             </x-slot:aktionen>
@@ -23,7 +23,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-8">
             @if($baeume->isEmpty())
                 <div class="np-karte">
                     <x-leer symbol="queue-list" :titel="__('Noch keine Notenbäume')" />
@@ -68,12 +68,12 @@
         </div>
     </div>
 
-    <x-modal name="notenbaum-vorlage" maxWidth="lg" :show="$vorlageFehler" focusable>
-        <form method="POST" action="{{ route('admin.master-data.grade-trees.template') }}" role="dialog" aria-modal="true" aria-labelledby="notenbaum-vorlage-titel"
+    <x-modal name="load-grade-tree-template" maxWidth="lg" :show="$vorlageFehler" focusable>
+        <form method="POST" action="{{ route('admin.master-data.grade-trees.template') }}" role="dialog" aria-modal="true" aria-labelledby="load-grade-tree-template-title"
               x-data="{ loading: false, vorlage: @js(old('vorlage', array_key_first($vorlagen) ?? '')), bezuege: @js($bezuege) }" @submit="loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
-                <h2 id="notenbaum-vorlage-titel" class="text-lg font-semibold text-text">{{ __('Vorlage laden') }}</h2>
+                <h2 id="load-grade-tree-template-title" class="text-lg font-semibold text-text">{{ __('Vorlage laden') }}</h2>
                 <div>
                     <label for="vorlage" class="text-sm font-medium text-text">{{ __('Vorlage') }} <span class="text-note-ungenuegend">*</span></label>
                     <select id="vorlage" name="vorlage" x-model="vorlage" required class="{{ $feld }}" @error('vorlage') aria-invalid="true" aria-describedby="vorlage-fehler" @enderror>
@@ -96,18 +96,18 @@
                 </div>
             </div>
             <div class="flex justify-end gap-2 px-6 pb-6">
-                <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'notenbaum-vorlage')">{{ __('Abbrechen') }}</button>
+                <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'load-grade-tree-template')">{{ __('Abbrechen') }}</button>
                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Laden') }}</button>
             </div>
         </form>
     </x-modal>
 
-    <x-modal name="notenbaum-import" maxWidth="lg" :show="$importFehler" focusable>
+    <x-modal name="import-grade-tree" maxWidth="lg" :show="$importFehler" focusable>
         <form method="POST" action="{{ route('admin.master-data.grade-trees.import') }}" enctype="multipart/form-data" role="dialog" aria-modal="true"
-              aria-labelledby="notenbaum-import-titel" x-data="{ loading: false }" @submit="loading = true">
+              aria-labelledby="import-grade-tree-title" x-data="{ loading: false }" @submit="loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
-                <h2 id="notenbaum-import-titel" class="text-lg font-semibold text-text">{{ __('Datei importieren') }}</h2>
+                <h2 id="import-grade-tree-title" class="text-lg font-semibold text-text">{{ __('Datei importieren') }}</h2>
                 <div>
                     <label for="datei" class="text-sm font-medium text-text">{{ __('Datei (JSON)') }} <span class="text-note-ungenuegend">*</span></label>
                     <x-datei-feld id="datei" name="datei" accept=".json,application/json" required
@@ -127,7 +127,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-2 px-6 pb-6">
-                <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'notenbaum-import')">{{ __('Abbrechen') }}</button>
+                <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'import-grade-tree')">{{ __('Abbrechen') }}</button>
                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Importieren') }}</button>
             </div>
         </form>

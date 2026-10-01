@@ -169,7 +169,7 @@
 
             {{-- Grosser Titel im selben Container wie der Inhalt: eine bündige Achse --}}
             @isset($header)
-                <div class="mx-auto w-full np-seite px-4 pt-2 sm:px-6 lg:px-8">
+                <div class="mx-auto w-full np-seite px-8 pt-2">
                     {{ $header }}
                 </div>
             @endisset

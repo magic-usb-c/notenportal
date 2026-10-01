@@ -23,13 +23,13 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto grid np-seite grid-cols-12 items-start gap-5 px-8">
 
             <x-karte :titel="__('Module')" :polster="false" class="col-span-8">
                 <x-slot:aktionen>
                     <span class="text-sm text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneModule->count()]) }}</span>
                     @if($verfuegbareModule->isNotEmpty())
-                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'modul-zuweisen')">
+                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'assign-module')">
                             <x-symbol name="plus" strich="2" />{{ __('Modul hinzufügen…') }}
                         </button>
                     @endif
@@ -122,7 +122,7 @@
                 <x-slot:aktionen>
                     <span class="text-sm text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneFaecher->count()]) }}</span>
                     @if($verfuegbareFaecher->isNotEmpty())
-                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'fach-zuweisen')">
+                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'assign-subject')">
                             <x-symbol name="plus" strich="2" />{{ __('Fach hinzufügen…') }}
                         </button>
                     @endif
@@ -188,12 +188,12 @@
     </div>
 
     @if($verfuegbareModule->isNotEmpty())
-        <x-modal name="modul-zuweisen" maxWidth="lg" :show="$modulFehler->any()" focusable>
+        <x-modal name="assign-module" maxWidth="lg" :show="$modulFehler->any()" focusable>
             <form method="POST" action="{{ route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id) }}"
-                  role="dialog" aria-modal="true" aria-labelledby="modul-zuweisen-titel" x-data="{ loading: false }" @submit="loading = true">
+                  role="dialog" aria-modal="true" aria-labelledby="assign-module-title" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="modul-zuweisen-titel" class="text-lg font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
+                    <h2 id="assign-module-title" class="text-lg font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
                     <div>
                         <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul') }} <span class="text-note-ungenuegend">*</span></label>
                         <select id="modul_id" name="modul_id" required class="{{ $feld }}"
@@ -231,7 +231,7 @@
                     </label>
                 </div>
                 <div class="flex justify-end gap-2 px-6 pb-6">
-                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'modul-zuweisen')">{{ __('Abbrechen') }}</button>
+                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'assign-module')">{{ __('Abbrechen') }}</button>
                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
                 </div>
             </form>
@@ -239,12 +239,12 @@
     @endif
 
     @if($verfuegbareFaecher->isNotEmpty())
-        <x-modal name="fach-zuweisen" maxWidth="md" :show="$fachFehler->any()" focusable>
+        <x-modal name="assign-subject" maxWidth="md" :show="$fachFehler->any()" focusable>
             <form method="POST" action="{{ route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id) }}"
-                  role="dialog" aria-modal="true" aria-labelledby="fach-zuweisen-titel" x-data="{ loading: false }" @submit="loading = true">
+                  role="dialog" aria-modal="true" aria-labelledby="assign-subject-title" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="fach-zuweisen-titel" class="text-lg font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
+                    <h2 id="assign-subject-title" class="text-lg font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
                     <div>
                         <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach') }} <span class="text-note-ungenuegend">*</span></label>
                         <select id="fach_id" name="fach_id" required class="{{ $feld }}"
@@ -258,7 +258,7 @@
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 px-6 pb-6">
-                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'fach-zuweisen')">{{ __('Abbrechen') }}</button>
+                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'assign-subject')">{{ __('Abbrechen') }}</button>
                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
                 </div>
             </form>

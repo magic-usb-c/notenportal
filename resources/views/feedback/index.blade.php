@@ -14,7 +14,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite flex flex-col gap-4 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite flex flex-col gap-4 px-8">
             @if($meldungen->isEmpty())
                 <div class="np-karte">
                     <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />

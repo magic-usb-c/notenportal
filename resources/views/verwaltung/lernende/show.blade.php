@@ -34,7 +34,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-8 flex flex-col gap-5">
 
             @if(session('startpasswort'))
                 <div class="np-karte p-5 flex flex-wrap items-center justify-between gap-4"

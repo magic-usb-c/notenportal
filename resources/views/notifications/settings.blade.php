@@ -7,7 +7,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-8">
         <div class="max-w-3xl">
 
             <form method="POST" action="{{ route('notifications.settings.update') }}" class="flex flex-col gap-8"

@@ -38,7 +38,7 @@
 
     <div class="py-6"
          x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start, 'texte' => $texte]))">
-        <div class="np-seite mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="np-seite mx-auto px-8 flex flex-col gap-5">
 
             {{-- Gespeicherte Ziele --}}
             <div class="flex flex-wrap items-center gap-2" x-show="ziele.length" x-cloak>

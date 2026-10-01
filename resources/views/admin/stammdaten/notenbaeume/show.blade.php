@@ -41,7 +41,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite flex flex-col gap-5 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite flex flex-col gap-5 px-8">
             <form id="notenbaum" method="POST" action="{{ route('admin.master-data.grade-trees.update', $baum->baum_id) }}" class="flex flex-col gap-5">
                 @csrf
                 @method('PUT')

@@ -44,7 +44,6 @@
             <x-slot:aktionen>
                 <a href="{{ route('learner.grades.index') }}?rechner=1" x-data @click.prevent="$dispatch('open-drawer', 'rechner')"
                    class="np-knopf np-knopf-sekundaer">{{ __('Notenrechner') }}</a>
-                <a href="{{ route('learner.grades.import.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Import') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button type="button" aria-label="{{ __('Weitere Aktionen') }}" class="np-knopf np-knopf-sekundaer np-knopf-rund">
@@ -52,6 +51,7 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
+                        <a href="{{ route('learner.grades.import.index') }}" class="np-menue-eintrag">{{ __('Importieren…') }}</a>
                         <a href="{{ route('learner.grades.print') }}" target="_blank" rel="noopener noreferrer" class="np-menue-eintrag">{{ __('Drucken') }}</a>
                         <a href="{{ route('learner.grades.export') }}" class="np-menue-eintrag">{{ __('CSV exportieren') }}</a>
                     </x-slot>
@@ -65,12 +65,12 @@
     </x-slot>
 
     <div class="py-6" x-data="{ ansicht: @js(request('ansicht') === 'alle' ? 'alle' : 'semester') }">
-        <div class="mx-auto flex np-seite flex-col gap-6 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto flex np-seite flex-col gap-6 px-8">
 
             {{-- Statuszeile --}}
-            <dl class="flex flex-wrap items-baseline gap-x-5 gap-y-2 sm:gap-x-3">
+            <dl class="flex flex-wrap items-baseline gap-x-3 gap-y-2">
                 @foreach($status as [$label, $wert])
-                    @unless($loop->first)<span class="hidden text-muted sm:inline" aria-hidden="true">·</span>@endunless
+                    @unless($loop->first)<span class="text-muted" aria-hidden="true">·</span>@endunless
                     <div class="flex items-baseline gap-2">
                         <dt class="text-xs text-muted">{{ $label }}</dt>
                         <dd><x-note :wert="$wert" :stellen="1" class="text-2xl" /></dd>
@@ -114,15 +114,22 @@
                             </div>
                         </div>
 
-                        <div class="np-karte overflow-x-auto">
-                            <table class="w-full text-sm tabular-nums">
+                        {{-- Gliederung wie eine macOS-Outline-Ansicht: feste Spalten in allen Kategorien, Pfeil vor dem Namen,
+                             die Prüfungen darunter im selben Raster (Gewicht unter «Prüfungen», Note unter «Schnitt») --}}
+                        <div class="np-karte overflow-hidden">
+                            <table class="w-full table-fixed text-sm tabular-nums">
+                                <colgroup>
+                                    <col>
+                                    <col class="w-72">
+                                    <col class="w-24">
+                                    <col class="w-28">
+                                </colgroup>
                                 <thead>
                                     <tr class="border-b border-border">
-                                        <th scope="col" class="h-8 w-full max-w-0 px-4 text-left text-xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="h-8 pl-10 pr-3 text-left text-xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
                                         <th scope="col" class="h-8 px-3 text-left text-xs font-medium text-muted">{{ __('Prüfungen') }}</th>
-                                        <th scope="col" class="hidden h-8 whitespace-nowrap px-3 text-right text-xs font-medium text-muted sm:table-cell">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="h-8 px-3 text-right text-xs font-medium text-muted">{{ __('Zeugnis') }}</th>
-                                        <th scope="col" class="h-8 w-10"><span class="sr-only">{{ __('Einzelnoten') }}</span></th>
+                                        <th scope="col" class="h-8 px-3 text-right text-xs font-medium text-muted">{{ __('Schnitt') }}</th>
+                                        <th scope="col" class="h-8 px-4 text-right text-xs font-medium text-muted">{{ __('Zeugnis') }}</th>
                                     </tr>
                                 </thead>
                                 @foreach($g->elemente as $el)
@@ -135,44 +142,42 @@
                                         $anzahl = $el->noten->count();
                                     @endphp
                                     <tbody x-data="{ offen: @js($offeneNote > 0 && $el->noten->contains('note_id', $offeneNote)) }" class="border-b border-border last:border-0">
-                                        <tr class="h-12 cursor-pointer transition-colors duration-100 hover:bg-surface-2/60" @click="offen = ! offen">
-                                            <th scope="row" class="w-full max-w-0 px-4 text-left font-normal">
+                                        <tr class="h-11 cursor-pointer transition-colors duration-100 hover:bg-surface-2/60" @click="offen = ! offen">
+                                            <th scope="row" class="px-3 text-left font-normal">
                                                 <button type="button" @click.stop="offen = ! offen" :aria-expanded="offen" aria-controls="{{ $zeileId }}"
-                                                        class="flex w-full min-w-0 items-baseline gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
-                                                    <span class="line-clamp-2 font-medium text-text sm:line-clamp-none sm:truncate">{{ $el->label }}</span>
+                                                        class="flex w-full min-w-0 items-center gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
+                                                    <x-symbol name="chevron-right" strich="2" class="size-3.5 shrink-0 text-muted transition-transform duration-200" ::class="offen && 'rotate-90'" />
+                                                    <span class="ml-1.5 truncate font-medium text-text">{{ $el->label }}</span>
                                                     @if($beleg && $beleg['versuche'] > 1)
                                                         <span class="shrink-0 text-xs text-muted">{{ __(':n. Versuch', ['n' => $beleg['versuche']]) }}</span>
                                                     @endif
                                                 </button>
                                             </th>
-                                            <td class="whitespace-nowrap px-3 text-muted">
-                                                <span class="inline-flex items-center gap-2" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
+                                            <td class="px-3 text-muted">
+                                                <span class="flex items-center gap-3" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
                                                     <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
-                                                    <span aria-hidden="true">{{ $anzahl }}</span>
+                                                    <span class="w-5 text-right" aria-hidden="true">{{ $anzahl }}</span>
                                                     @if($fortschritt !== null)
-                                                        <span class="hidden h-1 w-16 overflow-hidden rounded-full bg-fill sm:block" aria-hidden="true">
+                                                        <span class="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-fill" aria-hidden="true">
                                                             <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>
                                                         </span>
-                                                        <span class="hidden text-xs md:inline">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
+                                                        <span class="truncate text-xs">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
                                                     @endif
                                                 </span>
                                             </td>
-                                            <td class="hidden px-3 text-right text-muted sm:table-cell" title="{{ __('Schnitt vor Rundung') }}">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
-                                            <td class="px-3 text-right"><x-note :wert="$e?->note" variante="badge" /></td>
-                                            <td class="w-10 pr-3 text-right text-muted">
-                                                <svg class="ml-auto size-4 transition-transform duration-200" :class="offen && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 10.94l3.71-3.71a.75.75 0 1 1 1.06 1.06l-4.24 4.24a.75.75 0 0 1-1.06 0L5.21 8.27a.75.75 0 0 1 .02-1.06z" clip-rule="evenodd"/></svg>
-                                            </td>
+                                            <td class="px-3 text-right text-muted" title="{{ __('Schnitt vor Rundung') }}">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
+                                            <td class="px-4 text-right"><x-note :wert="$e?->note" variante="badge" /></td>
                                         </tr>
                                         <tr id="{{ $zeileId }}" x-show="offen" x-cloak>
-                                            <td colspan="5" class="border-t border-border p-0">
+                                            <td colspan="4" class="border-t border-border p-0">
                                                 @php
                                                     $ms = $e ? ($modulstatus[$e->schluessel] ?? null) : null;
                                                     $mbk = $beleg['mbk'] ?? null;
                                                 @endphp
                                                 @if($mbk || ($ms && ($ms['dauer_seit_beginn'] || $ms['naechster_termin'] || $ms['bewerteter_anteil_prozent'] !== null)))
-                                                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-b border-border/70 bg-fill-2 px-4 py-2 text-xs text-muted">
+                                                    <div class="flex items-center gap-x-5 border-b border-border/70 bg-fill-2 py-2 pl-10 pr-4 text-xs text-muted">
                                                         @if($ms && $ms['dauer_seit_beginn'])
-                                                            <span>{{ $ms['dauer_seit_beginn'] }}</span>
+                                                            <span class="shrink-0">{{ $ms['dauer_seit_beginn'] }}</span>
                                                         @endif
                                                         @if($ms && $ms['naechster_termin'])
                                                             <span class="inline-flex min-w-0 items-center gap-1">
@@ -191,7 +196,7 @@
                                                         @endif
                                                         @if($mbk)
                                                             <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer"
-                                                               class="ml-auto shrink-0 text-accent-text underline underline-offset-2">
+                                                               class="ml-auto shrink-0 text-accent-text underline-offset-2 hover:underline">
                                                                 {{ __('Modulbeschreibung') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span>
                                                             </a>
                                                         @endif
@@ -202,7 +207,7 @@
                                                         @include('lernender.noten.partials.note', ['n' => $n, 'ich' => $ich])
                                                     @endforeach
                                                     @if($beleg)
-                                                        <div class="flex justify-end px-3 py-1.5">
+                                                        <div class="flex justify-end px-4 py-2">
                                                             <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
                                                                   @if($beleg['offen']) data-bestaetigen="{{ __('Modul wiederholen?') }}" data-bestaetigen-text="{{ __('Ab der nächsten Note zählt nur der neue Versuch.') }}" data-bestaetigen-knopf="{{ __('Wiederholen') }}" data-bestaetigen-art="normal" @endif
                                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

@@ -36,7 +36,7 @@
     <div class="py-6">
         {{-- Oben die Kennzahlen, darunter links Handlungsbedarf und Berufsbildner (8/12),
              rechts Aktivität und Lehrende (4/12). --}}
-        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
+        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-8">
 
             <ul class="col-span-12 grid grid-cols-6 gap-4" aria-label="{{ __('Kennzahlen') }}">
                 @foreach($kacheln as [$name, $symbol, $farbe, $wert, $link])

@@ -34,7 +34,7 @@
     @endphp
 
     <div class="py-6" x-data="{ tagAusgewaehlt: null }">
-        <div class="np-seite mx-auto flex flex-col gap-6 px-4 sm:px-6 lg:px-8">
+        <div class="np-seite mx-auto flex flex-col gap-6 px-8">
 
             {{-- Legende und Stundenplan-Schalter als Symbolleiste über dem Inhalt --}}
             <div class="flex flex-wrap items-center gap-x-5 gap-y-2 {{ $breite }}">

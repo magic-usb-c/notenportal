@@ -43,7 +43,7 @@
     <div class="py-6">
         {{-- Links (8/12) Stand, darunter Wo stehe ich und Verlauf nebeneinander und gleich hoch; rechts (4/12)
              Als Nächstes, Ziele und Letzte Noten. Fehlt eine Seite, nimmt die andere die ganze Breite. --}}
-        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
+        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-8">
 
             @if($links)
             <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>

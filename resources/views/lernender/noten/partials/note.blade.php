@@ -10,53 +10,50 @@
 @endphp
 <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
          x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
-    <summary class="flex min-h-12 cursor-pointer select-none list-none items-center justify-between gap-3 py-2 pl-4 pr-3 transition-colors duration-100 hover:bg-surface-2/60">
-        <div class="flex min-w-0 items-center gap-2">
-            <span class="np-chevron shrink-0 text-muted" aria-hidden="true">
-                <svg class="size-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24c.3.3.3.77 0 1.06l-4.24 4.24a.75.75 0 0 1-1.06.02z" clip-rule="evenodd"/></svg>
-            </span>
+    {{-- Raster wie die Spalten der Notentabelle (lernender/noten/index): Gewicht unter «Prüfungen», Note unter «Schnitt» --}}
+    <summary class="grid min-h-11 cursor-pointer select-none list-none grid-cols-[minmax(0,1fr)_18rem_6rem_7rem] items-center py-1.5 transition-colors duration-100 hover:bg-surface-2/60">
+        <div class="flex min-w-0 items-center gap-2 pl-10 pr-3">
+            <span class="np-chevron shrink-0 text-muted" aria-hidden="true"><x-symbol name="chevron-right" strich="2" class="size-3" /></span>
             <div class="flex min-w-0 flex-col gap-0.5">
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm">
-                    <span class="tabular-nums text-muted">{{ $n->pruefungsdatum?->format('d.m.Y') }}</span>
+                <div class="flex min-w-0 items-center gap-2 text-sm">
+                    <time datetime="{{ $n->pruefungsdatum?->toDateString() }}" class="shrink-0 tabular-nums text-muted">{{ $n->pruefungsdatum?->format('d.m.Y') }}</time>
                     <span class="truncate text-text" x-text="titel || ''">{{ $n->titel }}</span>
                     @if($bbHatGesehen)
                         <span class="inline-flex shrink-0 text-muted" role="img" aria-label="{{ __('Von der Berufsbildnerin oder dem Berufsbildner gesehen') }}" title="{{ __('Von der Berufsbildnerin oder dem Berufsbildner gesehen') }}"><x-symbol name="eye" class="size-4" /></span>
                     @endif
                     @if($neuerKommentar)
-                        <span class="np-marke bg-accent/12 text-accent-text">{{ __('Neu') }}</span>
+                        <span class="np-marke shrink-0 bg-accent/12 text-accent-text">{{ __('Neu') }}</span>
                     @endif
                 </div>
                 <x-note-geaendert :note="$n" :lernender-benutzer-id="$ich" />
                 @if($letzter)
-                    <div class="max-w-xs truncate text-xs text-muted">
-                        <span class="font-medium">{{ $letzter->autor?->vorname }}</span>: {{ Str::limit($letzter->kommentar_text, 70) }}
+                    <div class="truncate text-xs text-muted">
+                        <span class="font-medium">{{ $letzter->autor?->vorname }}</span>: {{ Str::limit($letzter->kommentar_text, 120) }}
                     </div>
                 @endif
             </div>
         </div>
-        <div class="flex shrink-0 items-center gap-2">
-            <span class="hidden text-xs tabular-nums text-muted sm:inline">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
-            <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
-            <div class="flex items-center" onclick="event.stopPropagation()">
-                <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
-                   @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
-                   class="np-knopf np-knopf-symbol"><x-symbol name="pencil-square" />
-                </a>
-                <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
-                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                      data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
-                    @csrf
-                    @method('DELETE')
-                    <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
-                            class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr"><x-symbol name="trash" />
-                    </button>
-                </form>
-            </div>
+        <span class="px-3 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
+        <span class="px-3 text-right"><x-note :wert="$n->note_wert" :stufe="$n->note_stufe" /></span>
+        <div class="flex items-center justify-end pr-2.5" onclick="event.stopPropagation()">
+            <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
+               @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
+               class="np-knopf np-knopf-symbol"><x-symbol name="pencil-square" />
+            </a>
+            <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
+                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                  data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+                @csrf
+                @method('DELETE')
+                <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
+                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr"><x-symbol name="trash" />
+                </button>
+            </form>
         </div>
     </summary>
 
     <div class="border-t border-border bg-fill-2">
-        <div class="flex items-center gap-2 px-5 pt-3 text-sm">
+        <div class="flex items-center gap-2 pl-15 pr-5 pt-3 text-sm">
             <span class="shrink-0 text-xs font-medium text-muted">{{ __('Notiz') }}</span>
             <template x-if="!editingTitel">
                 <button type="button" @click="startTitelEdit()" class="inline-flex min-h-9 min-w-0 items-center gap-1.5 text-left hover:text-accent-text"
@@ -77,7 +74,7 @@
             </template>
         </div>
 
-        <div class="flex flex-col gap-2 px-5 py-4">
+        <div class="flex max-w-4xl flex-col gap-2 pl-15 pr-5 py-4">
             <div class="text-xs font-medium text-muted">{{ __('Kommentare') }}</div>
             @forelse($n->kommentare as $k)
                 <div class="rounded-xl bg-card px-3.5 py-2.5 shadow-e1">
@@ -102,11 +99,11 @@
             @endforelse
         </div>
 
-        <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="flex gap-2 border-t border-border px-5 py-4"
+        <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="flex gap-2 border-t border-border py-3 pl-15 pr-4"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="text" name="kommentar_text" placeholder="{{ __('Kommentar schreiben') }}" aria-label="{{ __('Kommentar schreiben') }}" maxlength="2000" required
-                   class="min-w-0 flex-1 {{ $feld }}">
+                   class="min-w-0 max-w-4xl flex-1 {{ $feld }}">
             <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
         </form>
     </div>

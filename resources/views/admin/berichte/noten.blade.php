@@ -35,7 +35,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="np-seite mx-auto flex flex-col gap-6 px-4 sm:px-6 lg:px-8">
+        <div class="np-seite mx-auto flex flex-col gap-6 px-8">
             <div class="print:hidden">
                 <x-filterleiste :action="route('admin.reports.grades')" :aktive-filter="$aktiveFilter" :zurueck="route('admin.reports.grades')">
                     <x-slot:hidden>

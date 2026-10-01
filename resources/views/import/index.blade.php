@@ -10,7 +10,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-5">
+        <div class="mx-auto np-seite px-8 flex flex-col gap-5">
             @if(! $vorschau)
                 <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="np-karte p-6 flex flex-col gap-4 max-w-3xl w-full"
                       x-data="{ loading: false, name: '', ueber: false }" @submit="if (!$event.defaultPrevented) loading = true">

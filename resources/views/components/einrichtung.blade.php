@@ -12,7 +12,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 grid grid-cols-[14rem_minmax(0,1fr)] gap-10">
+        <div class="mx-auto np-seite px-8 grid grid-cols-[14rem_minmax(0,1fr)] gap-10">
             <nav aria-label="{{ __('Schritte der Einrichtung') }}" class="sticky top-24 self-start">
                 <ol class="flex flex-col gap-0.5">
                     @foreach($schritte as $key => $name)

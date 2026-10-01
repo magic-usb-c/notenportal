@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-8">
             <div class="max-w-3xl">
             <div class="np-karte p-6 space-y-5">
                 @if(empty($bezugOptionen))

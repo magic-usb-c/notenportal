@@ -148,7 +148,7 @@ class DokumenteTest extends TestCase
         $this->actingAs($user)->get(route('learner.documents.index'))
             ->assertOk()
             ->assertSee($abgleich, false)
-            ->assertSee('dokument-hochladen', false);
+            ->assertSee('upload-document', false);
 
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('admin.learners.documents.index', $lernenderId))

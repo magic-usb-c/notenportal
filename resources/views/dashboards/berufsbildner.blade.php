@@ -36,7 +36,7 @@
     <div class="py-6">
         {{-- Oben die Filterkacheln über die ganze Breite, darunter links die Klassentabelle (8/12) und rechts
              Aufmerksamkeit, Termine und Lehrende (4/12). --}}
-        <div class="np-raster mx-auto flex np-seite flex-col gap-5 px-4 sm:px-6 lg:px-8"
+        <div class="np-raster mx-auto flex np-seite flex-col gap-5 px-8"
              x-data="{
                  filter: 'alle',
                  suche: '',

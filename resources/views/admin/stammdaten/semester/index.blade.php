@@ -15,7 +15,7 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto np-seite px-8">
             @if($semester->isEmpty())
                 <div class="np-karte">
                     <x-leer symbol="calendar" :titel="__('Noch keine Semester erfasst.')" />
