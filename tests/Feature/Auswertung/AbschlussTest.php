@@ -100,6 +100,27 @@ class AbschlussTest extends TestCase
     }
 
     #[Test]
+    public function speichern_steht_in_der_symbolleiste_und_ein_fehler_haengt_am_feld(): void
+    {
+        $lernender = $this->lernenderMitBeruf();
+        $this->efzBaum();
+        $ipa = $this->knoten('ipa');
+        $this->actingAs($lernender->benutzer);
+
+        $this->get(route('learner.qualification.index'))->assertOk()
+            ->assertSee('<form id="abschluss"', false)
+            ->assertSee('form="abschluss"', false);
+
+        $this->from(route('learner.qualification.index'))
+            ->put(route('learner.qualification.update'), ['werte' => [$ipa => '6.5']])
+            ->assertSessionHasErrors("werte.$ipa");
+        $this->get(route('learner.qualification.index'))->assertOk()
+            ->assertSee('aria-describedby="wert-'.$ipa.'-fehler"', false)
+            ->assertSee('id="wert-'.$ipa.'-fehler"', false)
+            ->assertSee('value="6.5"', false);
+    }
+
+    #[Test]
     public function lernender_kann_keine_fremde_id_unterschieben(): void
     {
         $ich = $this->lernenderMitBeruf();

@@ -346,5 +346,6 @@
     "Hochgeladen": "Uploaded",
     "Dokument «:titel» löschen?": "Delete document “:titel”?",
     "Dokument hochladen": "Upload document",
-    "PDF, Bild, Word, Excel, CSV · bis :mb MB": "PDF, image, Word, Excel, CSV · up to :mb MB"
+    "PDF, Bild, Word, Excel, CSV · bis :mb MB": "PDF, image, Word, Excel, CSV · up to :mb MB",
+    "Noch keine Abschlussrechnung": "No qualification calculation yet"
 }

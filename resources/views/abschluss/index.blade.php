@@ -1,11 +1,12 @@
-{{-- Abschluss (QV, Berufsmaturität): Ergebnis je Notenbaum, Positionen von Hand. Lernende und Verwaltung teilen die Ansicht. --}}
+{{-- Abschluss (QV, Berufsmaturität): je Notenbaum links das Ergebnis mit Status und Gründen, rechts der Aufbau mit
+     Anteil und Note. Positionen von Hand werden direkt in der Tabelle erfasst; «Speichern» steht in der Symbolleiste.
+     Lernende und Verwaltung teilen die Ansicht. --}}
 @use('App\Services\Auswertung\Notenbaum\BaumErgebnis')
 @use('App\Services\Auswertung\Notenbaum\Knoten')
 @use('App\Support\NotenSkala')
 @php
     $name = $lernender ? trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname) : null;
-    // Auf dem Handy halber Einzug, sonst frisst die Tiefe die Namensspalte
-    $einzug = ['pl-4 sm:pl-5', 'pl-6 sm:pl-9', 'pl-8 sm:pl-13', 'pl-10 sm:pl-17', 'pl-12 sm:pl-21'];
+    $einzug = ['pl-3', 'pl-8', 'pl-13', 'pl-18', 'pl-23'];
     $prozent = fn (float $anteil) => rtrim(rtrim(number_format($anteil * 100, 1, '.', ''), '0'), '.')."\u{00A0}%";
 
     // Baum flach in Anzeige-Reihenfolge, mit Tiefe und Anteil am Elternknoten
@@ -40,34 +41,58 @@
 <x-app-layout>
     <x-slot name="title">{{ $name ? __('Abschluss').' · '.$name : __('Abschluss') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :zurueck="$lernender ? route($bereich.'.learners.show', $lernender->lernender_id) : null" :titel="__('Abschluss')" :untertitel="$name" />
+        <x-seitenkopf :zurueck="$lernender ? route($bereich.'.learners.show', $lernender->lernender_id) : null" :titel="__('Abschluss')" :untertitel="$name">
+            @if($ergebnisse !== [] && $hatManuell)
+                <x-slot:aktionen>
+                    <button type="submit" form="abschluss" class="np-knopf np-knopf-primaer"
+                            x-data="{ loading: false }" :disabled="loading"
+                            @submit.window="if ($event.target.id === 'abschluss' && ! $event.defaultPrevented) loading = true"
+                            @pageshow.window="loading = false">
+                        {{ __('Speichern') }}
+                    </button>
+                </x-slot:aktionen>
+            @endif
+        </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
         <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">
             @if($ergebnisse === [])
-                <p class="np-karte flex flex-wrap items-center gap-3 px-5 py-4 text-sm text-muted">
-                    {{ __('Für diese Ausbildung ist noch keine Gewichtung bis zur Gesamtnote hinterlegt.') }}
-                    @if(auth()->user()->hasRole('Admin'))
-                        <a href="{{ route('admin.master-data.grade-trees.index') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Notenbaum laden') }}</a>
-                    @endif
-                </p>
+                <div class="np-karte">
+                    <x-leer symbol="academic-cap" :titel="__('Noch keine Abschlussrechnung')"
+                            :text="__('Für diese Ausbildung ist noch keine Gewichtung bis zur Gesamtnote hinterlegt.')">
+                        @if(auth()->user()->hasRole('Admin'))
+                            <a href="{{ route('admin.master-data.grade-trees.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Notenbaum laden') }}</a>
+                        @endif
+                    </x-leer>
+                </div>
             @else
-                <form method="POST" action="{{ $speichernUrl }}" x-data="{ loading: false }" @submit="loading = true"
-                      @class(['grid grid-cols-1 items-start gap-5', 'max-w-4xl' => count($ergebnisse) === 1, 'xl:grid-cols-2' => count($ergebnisse) > 1])>
+                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-8">
                     @csrf
                     @method('PUT')
 
                     @foreach($ergebnisse as $i => $e)
                         @php
                             $wurzel = $e->wurzel();
-                            $definitiv = collect($e->gruende)->contains(fn ($g) => $g->definitiv);
                         @endphp
-                        <section class="np-karte" aria-labelledby="baum-{{ $e->baum->id }}">
-                            <header class="flex flex-wrap items-start justify-between gap-4 px-5 pt-5">
-                                <div class="min-w-0">
-                                    <h2 id="baum-{{ $e->baum->id }}" class="text-sm font-semibold text-text">{{ $e->baum->name }}</h2>
-                                    <div class="mt-2 flex items-baseline gap-3">
+                        <section class="grid grid-cols-12 items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
+                            <div class="np-karte col-span-4 flex flex-col gap-4 p-5">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h2 id="baum-{{ $e->baum->id }}" class="min-w-0 text-base font-semibold text-text">{{ $e->baum->name }}</h2>
+                                    @switch($e->status)
+                                        @case(BaumErgebnis::BESTANDEN)
+                                            <span class="np-marke shrink-0 bg-note-gut/14 text-note-gut">{{ __('Bestanden') }}</span>
+                                            @break
+                                        @case(BaumErgebnis::NICHT_BESTANDEN)
+                                            <span class="np-marke shrink-0 gap-1 bg-note-ungenuegend/14 text-note-ungenuegend"><span aria-hidden="true">▼</span>{{ __('Nicht bestanden') }}</span>
+                                            @break
+                                        @default
+                                            <span class="np-marke shrink-0 text-muted">{{ __('Offen') }}</span>
+                                    @endswitch
+                                </div>
+
+                                <div>
+                                    <div class="flex items-baseline gap-3">
                                         @if($wurzel->note !== null)
                                             <x-note :wert="$wurzel->note" variante="hero" :stellen="1" @class(['leading-none', 'text-display' => $i === 0, 'text-2xl' => $i > 0]) />
                                         @else
@@ -76,39 +101,29 @@
                                         <span class="text-sm text-muted">{{ $wurzel->vollstaendig ? __('Gesamtnote') : __('Prognose') }}</span>
                                     </div>
                                     @if($r = $bestehen($wurzel->knoten))
-                                        <p class="mt-2 text-xs text-muted">{{ implode(' · ', $r) }}</p>
+                                        <p class="mt-2 text-sm text-muted">{{ implode(' · ', $r) }}</p>
                                     @endif
                                 </div>
-                                @switch($e->status)
-                                    @case(BaumErgebnis::BESTANDEN)
-                                        <span class="inline-flex h-7 items-center rounded-md bg-note-gut/14 px-2.5 text-sm font-medium text-note-gut">{{ __('Bestanden') }}</span>
-                                        @break
-                                    @case(BaumErgebnis::NICHT_BESTANDEN)
-                                        <span class="inline-flex h-7 items-center gap-1.5 rounded-md bg-note-ungenuegend/14 px-2.5 text-sm font-medium text-note-ungenuegend"><span aria-hidden="true">▼</span>{{ __('Nicht bestanden') }}</span>
-                                        @break
-                                    @default
-                                        <span class="inline-flex h-7 items-center rounded-md bg-surface-2 px-2.5 text-sm font-medium text-muted">{{ __('Offen') }}</span>
-                                @endswitch
-                            </header>
 
-                            @if($e->gruende)
-                                <ul class="mx-5 mt-4 flex flex-col gap-1.5 rounded-lg bg-fill-2 px-4 py-3 text-sm">
-                                    @foreach($e->gruende as $g)
-                                        <li class="flex items-center gap-2">
-                                            <span @class(['size-1.5 shrink-0 rounded-full', 'bg-note-ungenuegend' => $g->definitiv || $wurzel->vollstaendig, 'bg-note-knapp' => ! $g->definitiv && ! $wurzel->vollstaendig]) aria-hidden="true"></span>
-                                            <span class="text-text">{{ $g->text() }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @endif
+                                @if($e->gruende)
+                                    <ul class="flex flex-col gap-1.5 rounded-lg bg-fill-2 px-4 py-3 text-sm">
+                                        @foreach($e->gruende as $g)
+                                            <li class="flex items-baseline gap-2">
+                                                <span @class(['size-1.5 shrink-0 -translate-y-0.5 rounded-full', 'bg-note-ungenuegend' => $g->definitiv || $wurzel->vollstaendig, 'bg-note-knapp' => ! $g->definitiv && ! $wurzel->vollstaendig]) aria-hidden="true"></span>
+                                                <span class="text-text">{{ $g->text() }}</span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
+                            </div>
 
-                            <div class="mt-4 overflow-x-auto border-t border-border">
-                                <table class="np-tabelle text-sm">
+                            <div class="np-karte col-span-8 p-2">
+                                <table class="np-tabelle table-fixed text-sm">
                                     <thead>
                                         <tr>
                                             <th scope="col">{{ __('Teil') }}</th>
-                                            <th scope="col" class="hidden text-right sm:table-cell">{{ __('Anteil') }}</th>
-                                            <th scope="col" class="w-20 text-right sm:w-32">{{ __('Note') }}</th>
+                                            <th scope="col" class="w-28 text-right">{{ __('Anteil') }}</th>
+                                            <th scope="col" class="w-32 text-right">{{ __('Note') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -123,11 +138,13 @@
                                             @endphp
                                             <tr>
                                                 <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
-                                                    <div @class(['text-text wrap-break-word', 'font-medium' => $gruppe])>{{ $k->name }}</div>
-                                                    {{-- Auf dem Handy steht der Anteil hier statt in einer eigenen Spalte --}}
-                                                    <div class="text-xs text-muted wrap-break-word"><span class="sm:hidden">{{ $anteil }}@if($r) · @endif</span>{{ $r ? implode(' · ', $r) : '' }}</div>
+                                                    <div @class(['wrap-break-word text-text', 'font-medium' => $gruppe])>{{ $k->name }}</div>
+                                                    @if($r)
+                                                        <div class="wrap-break-word text-xs text-muted">{{ implode(' · ', $r) }}</div>
+                                                    @endif
+                                                    @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                 </td>
-                                                <td class="hidden whitespace-nowrap text-right text-muted sm:table-cell">{{ $anteil }}</td>
+                                                <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>
                                                 <td class="text-right">
                                                     @if($k->entfaellt)
                                                         <span class="text-muted">–</span>
@@ -136,9 +153,7 @@
                                                         <input id="wert-{{ $k->id }}" name="werte[{{ $k->id }}]" inputmode="decimal" autocomplete="off"
                                                                value="{{ old($feld, $position ? NotenSkala::format($position->note_wert) : '') }}"
                                                                @error($feld) aria-invalid="true" aria-describedby="wert-{{ $k->id }}-fehler" @enderror
-                                                               class="np-feld np-feld-klein w-16 px-2 text-right tabular-nums"
-                                                               placeholder="–">
-                                                        @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                                                               class="np-feld np-feld-klein ml-auto w-18 px-2 text-right tabular-nums" placeholder="–">
                                                     @elseif($z['e']->note !== null)
                                                         <x-note :wert="$z['e']->note" :stellen="$k->rundung === 1.0 || $k->rundung === 0.5 ? null : 1" />
                                                     @else
@@ -152,15 +167,6 @@
                             </div>
                         </section>
                     @endforeach
-
-                    @if($hatManuell)
-                        <div @class(['flex justify-end', 'xl:col-span-2' => count($ergebnisse) > 1])>
-                            <button type="submit" :disabled="loading"
-                                    class="np-knopf np-knopf-primaer">
-                                {{ __('Speichern') }}
-                            </button>
-                        </div>
-                    @endif
                 </form>
             @endif
         </div>
