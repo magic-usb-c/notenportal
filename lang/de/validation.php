@@ -240,7 +240,6 @@ return [
         'schrift' => 'Schriftgrösse',
         'schriftart' => 'Schriftart',
         'bewegung' => 'Bewegung',
-        'bewegung_reduziert' => 'Bewegungen reduzieren',
         'dichte' => 'Dichte',
         'diagramm' => 'Diagrammfarben',
         'notenanzeige' => 'Notenanzeige',

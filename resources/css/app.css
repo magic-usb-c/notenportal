@@ -1327,6 +1327,27 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
+/* Farbwähler «Eigene Farbe», solange keine gewählt ist: Farbrad statt eines Farbpunkts, der wie eine der
+   Akzentfarben aussähe (macOS Systemeinstellungen, Akzentfarbe «Mehrfarbig»). Reine Bildmarke, kein Token. */
+@utility np-farbrad {
+  background-image: conic-gradient(
+    oklch(0.68 0.19 25),
+    oklch(0.78 0.16 85),
+    oklch(0.72 0.18 145),
+    oklch(0.7 0.13 205),
+    oklch(0.6 0.2 265),
+    oklch(0.62 0.22 325),
+    oklch(0.68 0.19 25)
+  );
+
+  &::-webkit-color-swatch {
+    opacity: 0;
+  }
+  &::-moz-color-swatch {
+    opacity: 0;
+  }
+}
+
 /* ==========================================================================
    Trefferfläche. Die Human Interface Guidelines verlangen «a hit region of at
    least 44x44 pt» für Touch. Am Zeigegerät gilt die WCAG-Schwelle von 24 px –

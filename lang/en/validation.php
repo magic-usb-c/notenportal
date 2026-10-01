@@ -303,7 +303,6 @@ return [
         'schrift' => 'font size',
         'schriftart' => 'font family',
         'bewegung' => 'motion',
-        'bewegung_reduziert' => 'reduce motion',
         'dichte' => 'density',
         'diagramm' => 'chart colours',
         'notenanzeige' => 'grade display',

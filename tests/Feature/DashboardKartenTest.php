@@ -98,17 +98,8 @@ class DashboardKartenTest extends TestCase
         $user = User::factory()->admin()->create();
 
         $this->actingAs($user)
-            ->from(route('settings.profile'))
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'vorname' => $user->vorname,
-                'nachname' => $user->nachname,
-                'darstellung' => 'system',
-                'schrift' => 'normal',
-                'karten_uebermittelt' => '1',
-                'karten' => ['handlungsbedarf'],
-            ])
-            ->assertSessionHasErrors('karten.0');
+            ->patchJson(route('profile.preferences'), ['karten' => ['handlungsbedarf']])
+            ->assertJsonValidationErrors('karten.0');
 
         $this->assertNull($user->refresh()->praeferenzen);
     }

@@ -10,29 +10,28 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Profilformular «Darstellung» (Block Z, Persönliche Darstellung II): eigene Akzentfarbe,
- * Schriftart, Ecken, Transparenz, Tastenkürzel, Startseite und «Auf Standard zurücksetzen».
- * Siehe ProfileController::update/resetPreferences, ProfileUpdateRequest, Darstellung::fuer.
+ * Persönliche Darstellung in den Einstellungen: jede Änderung geht einzeln an PATCH /profile/preferences
+ * (eigene Akzentfarbe, Schriftart, Ecken, Transparenz, Tastenkürzel, Startseite …) und gilt sofort;
+ * dazu «Auf Standard zurücksetzen». Das Kontoformular (profile.update) lässt sie unberührt.
+ * Siehe ProfileController::preferences/resetPreferences, PraeferenzenRequest, Darstellung::fuer.
  */
 class DarstellungProfilTest extends TestCase
 {
     #[Test]
-    public function eigene_farbe_wird_gespeichert(): void
+    public function eigene_farbe_wird_gespeichert_und_liefert_die_geprueften_tokens(): void
     {
         $user = User::factory()->lernender()->create();
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'akzent' => 'eigen', 'akzent_eigen' => '#3355FF',
-            ])
-            ->assertSessionHasNoErrors();
+        $antwort = $this->actingAs($user)
+            ->patchJson(route('profile.preferences'), ['akzent' => 'eigen', 'akzent_eigen' => '#3355FF'])
+            ->assertOk()
+            ->assertJsonPath('ok', true);
 
         $user->refresh();
         $this->assertSame('eigen', $user->praeferenzen['akzent']);
-        $this->assertSame('#3355FF', $user->praeferenzen['akzent_eigen']);
-        // Beim Lesen (Darstellung::fuer) wird unabhängig von der Gross-/Kleinschreibung normalisiert.
-        $this->assertSame('#3355ff', Darstellung::fuer($user)['akzent_eigen']);
+        $this->assertSame('#3355ff', $user->praeferenzen['akzent_eigen']);
+        // Dieselben Tokens wie <x-akzent-eigen-stil> beim Laden, damit die Vorschau nicht vom gespeicherten Stand abweicht
+        $this->assertStringContainsString('--accent:', (string) $antwort->json('akzent_stil'));
     }
 
     #[Test]
@@ -41,24 +40,36 @@ class DarstellungProfilTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'akzent' => 'eigen', 'akzent_eigen' => 'nicht-hex',
-            ])
-            ->assertSessionHasErrors('akzent_eigen');
+            ->patchJson(route('profile.preferences'), ['akzent' => 'eigen', 'akzent_eigen' => 'nicht-hex'])
+            ->assertJsonValidationErrors('akzent_eigen');
+
+        $this->assertNull($user->refresh()->praeferenzen);
     }
 
     #[Test]
-    public function akzent_eigen_ohne_akzent_eigen_gewaehlt_ist_pflicht(): void
+    public function eigene_farbe_ohne_gespeicherte_oder_mitgesendete_farbe_ist_pflicht(): void
     {
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'akzent' => 'eigen', 'akzent_eigen' => '',
-            ])
-            ->assertSessionHasErrors('akzent_eigen');
+            ->patchJson(route('profile.preferences'), ['akzent' => 'eigen'])
+            ->assertJsonValidationErrors('akzent_eigen');
+
+        $this->actingAs($user)
+            ->patchJson(route('profile.preferences'), ['akzent' => 'eigen', 'akzent_eigen' => ''])
+            ->assertJsonValidationErrors('akzent_eigen');
+    }
+
+    #[Test]
+    public function zurueck_zur_eigenen_farbe_nutzt_die_gespeicherte(): void
+    {
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['akzent' => 'eigen', 'akzent_eigen' => '#3355ff']]);
+
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['akzent_eigen' => '#aa2200'])->assertOk();
+        $this->assertSame('#aa2200', $user->refresh()->praeferenzen['akzent_eigen']);
+
+        $this->patchJson(route('profile.preferences'), ['akzent' => 'eigen'])->assertOk();
+        $this->assertSame('#aa2200', $user->refresh()->praeferenzen['akzent_eigen']);
     }
 
     #[Test]
@@ -67,11 +78,9 @@ class DarstellungProfilTest extends TestCase
         $user = User::factory()->lernender()->create(['praeferenzen' => ['akzent' => 'eigen', 'akzent_eigen' => '#3355ff']]);
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'akzent' => 'gruen', 'akzent_eigen' => '#3355ff',
-            ])
-            ->assertSessionHasNoErrors();
+            ->patchJson(route('profile.preferences'), ['akzent' => 'gruen'])
+            ->assertOk()
+            ->assertJsonPath('akzent_stil', '');
 
         $user->refresh();
         $this->assertSame('gruen', $user->praeferenzen['akzent']);
@@ -79,41 +88,37 @@ class DarstellungProfilTest extends TestCase
     }
 
     #[Test]
-    public function schriftart_ecken_transparenz_tastenkuerzel_werden_gespeichert(): void
+    public function schriftart_ecken_transparenz_tastenkuerzel_werden_einzeln_gespeichert(): void
     {
         $user = User::factory()->lernender()->create();
+        $this->actingAs($user);
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'schriftart' => 'lesefreundlich', 'ecken' => 'eckig',
-                'transparenz' => 'reduziert', 'tastenkuerzel' => 'aus',
-            ])
-            ->assertSessionHasNoErrors();
+        foreach (['schriftart' => 'lesefreundlich', 'ecken' => 'eckig', 'transparenz' => 'reduziert', 'tastenkuerzel' => 'aus'] as $schluessel => $wert) {
+            $this->patchJson(route('profile.preferences'), [$schluessel => $wert])->assertExactJson(['ok' => true]);
+        }
 
         $user->refresh();
         $this->assertSame('lesefreundlich', $user->praeferenzen['schriftart']);
         $this->assertSame('eckig', $user->praeferenzen['ecken']);
         $this->assertSame('reduziert', $user->praeferenzen['transparenz']);
         $this->assertSame('aus', $user->praeferenzen['tastenkuerzel']);
+        // Was nicht gesendet wurde, bleibt beim Standard
+        $this->assertSame(Darstellung::SCHRIFT_NORMAL, $user->praeferenzen['schrift']);
     }
 
     #[Test]
     public function ungueltige_werte_werden_abgewiesen(): void
     {
         $user = User::factory()->lernender()->create();
+        $this->actingAs($user);
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'schriftart' => 'kursiv'])
-            ->assertSessionHasErrors('schriftart');
+        foreach (['schriftart' => 'kursiv', 'ecken' => 'rundlich', 'transparenz' => 'halb', 'diagramm' => 'infrarot', 'notenanzeige' => '3', 'darstellung' => 'grau'] as $schluessel => $wert) {
+            $this->patchJson(route('profile.preferences'), [$schluessel => $wert])->assertJsonValidationErrors($schluessel);
+        }
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'ecken' => 'rundlich'])
-            ->assertSessionHasErrors('ecken');
-
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'transparenz' => 'halb'])
-            ->assertSessionHasErrors('transparenz');
+        $this->assertNull($user->refresh()->praeferenzen);
+        // Ohne bekannten Schlüssel gibt es nichts zu speichern
+        $this->patchJson(route('profile.preferences'), ['unbekannt' => 'x'])->assertUnprocessable();
     }
 
     #[Test]
@@ -121,14 +126,39 @@ class DarstellungProfilTest extends TestCase
     {
         $lernender = User::factory()->lernender()->create();
 
-        $this->actingAs($lernender)
-            ->patch(route('profile.update'), ['email' => $lernender->email, 'darstellung' => 'hell', 'startseite' => 'noten'])
-            ->assertSessionHasNoErrors();
+        $this->actingAs($lernender)->patchJson(route('profile.preferences'), ['startseite' => 'noten'])->assertOk();
         $this->assertSame('noten', $lernender->refresh()->praeferenzen['startseite']);
 
-        $this->actingAs($lernender)
-            ->patch(route('profile.update'), ['email' => $lernender->email, 'darstellung' => 'hell', 'startseite' => 'lernende'])
-            ->assertSessionHasErrors('startseite');
+        $this->patchJson(route('profile.preferences'), ['startseite' => 'lernende'])->assertJsonValidationErrors('startseite');
+        $this->assertSame('noten', $lernender->refresh()->praeferenzen['startseite']);
+    }
+
+    #[Test]
+    public function erscheinungsbild_wird_gespeichert_ohne_die_praeferenzen_anzufassen(): void
+    {
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['schrift' => 'gross']]);
+
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['darstellung' => 'dunkel'])->assertExactJson(['ok' => true]);
+
+        $user->refresh();
+        $this->assertSame('dunkel', $user->darstellung);
+        $this->assertSame(['schrift' => 'gross'], $user->praeferenzen);
+    }
+
+    #[Test]
+    public function kontoformular_laesst_die_darstellung_unberuehrt(): void
+    {
+        $user = User::factory()->admin()->create(['praeferenzen' => ['akzent' => 'gruen', 'schrift' => 'gross']]);
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'vorname' => $user->vorname, 'nachname' => $user->nachname, 'email' => $user->email,
+                'akzent' => 'rot', 'schrift' => 'klein', 'navigation' => 'unten',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame(['akzent' => 'gruen', 'schrift' => 'gross'], $user->refresh()->praeferenzen);
     }
 
     #[Test]
@@ -164,10 +194,9 @@ class DarstellungProfilTest extends TestCase
     }
 
     #[Test]
-    public function seitenleiste_laesst_sich_im_profil_und_per_schalter_waehlen(): void
+    public function seitenleiste_laesst_sich_in_den_einstellungen_und_per_schalter_waehlen(): void
     {
         $user = User::factory()->admin()->create();
-        $profil = fn (array $mehr) => ['vorname' => $user->vorname, 'nachname' => $user->nachname, 'email' => $user->email, 'darstellung' => 'hell'] + $mehr;
 
         // Standard: Seitenleiste (HIG «Sidebars»: nicht standardmässig ausblenden) mit beiden Schaltern
         $this->actingAs($user)->get(route('admin.master-data.subjects.index'))->assertOk()
@@ -175,24 +204,17 @@ class DarstellungProfilTest extends TestCase
             ->assertSee(__('Seitenleiste ausblenden'))->assertSee(__('Seitenleiste einblenden'))
             ->assertSeeInOrder([__('Stammdaten'), __('Fächer'), __('Betrieb'), __('Einstellungen')]);
 
-        $this->patch(route('profile.update'), $profil(['navigation' => 'oben']))->assertSessionHasNoErrors();
+        $this->patchJson(route('profile.preferences'), ['navigation' => 'oben'])->assertOk();
         $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
         $this->get(route('admin.dashboard'))->assertOk()
             ->assertSee('data-navigation="oben"', false)->assertDontSee('data-navigation="seite"', false);
 
-        // Schalter in der Leiste (PATCH /profile/preferences) ändert nur diesen Schlüssel
         $this->patchJson(route('profile.preferences'), ['navigation' => 'seite'])->assertOk();
-        $user->refresh();
-        $this->assertSame('seite', $user->praeferenzen['navigation']);
+        $this->assertSame('seite', $user->refresh()->praeferenzen['navigation']);
         $this->patchJson(route('profile.preferences'), ['navigation' => 'links'])->assertUnprocessable();
-        $this->patch(route('profile.update'), $profil(['navigation' => 'unten']))->assertSessionHasErrors('navigation');
 
-        // Profil speichern ohne das Feld lässt die Wahl stehen
+        // Ein Schnellwechsel einer anderen Einstellung (Befehlspalette) lässt die Wahl stehen
         $this->patchJson(route('profile.preferences'), ['navigation' => 'oben'])->assertOk();
-        $this->patch(route('profile.update'), $profil([]))->assertSessionHasNoErrors();
-        $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
-
-        // Ein Schnellwechsel einer anderen Einstellung (Befehlspalette) lässt sie ebenfalls stehen
         $this->patchJson(route('profile.preferences'), ['dichte' => Darstellung::DICHTEN[0]])->assertOk();
         $this->assertSame('oben', $user->refresh()->praeferenzen['navigation']);
     }
@@ -202,12 +224,7 @@ class DarstellungProfilTest extends TestCase
     {
         $user = User::factory()->lernender()->create();
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email, 'darstellung' => 'hell',
-                'diagramm' => 'farbenblind', 'notenanzeige' => '2',
-            ])
-            ->assertSessionHasNoErrors();
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['diagramm' => 'farbenblind', 'notenanzeige' => '2'])->assertOk();
 
         $user->refresh();
         $this->assertSame('farbenblind', $user->praeferenzen['diagramm']);
@@ -215,22 +232,20 @@ class DarstellungProfilTest extends TestCase
     }
 
     #[Test]
-    public function ungueltige_diagramm_und_notenanzeige_werte_werden_abgewiesen(): void
+    public function einstellungsseite_zeigt_die_gespeicherte_wahl(): void
     {
-        $user = User::factory()->lernender()->create();
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['schriftart' => 'serif', 'ecken' => 'eckig']]);
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'diagramm' => 'infrarot'])
-            ->assertSessionHasErrors('diagramm');
+        $html = (string) $this->actingAs($user)->get(route('settings.profile'))->assertOk()->getContent();
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'notenanzeige' => '3'])
-            ->assertSessionHasErrors('notenanzeige');
+        $this->assertMatchesRegularExpression('/name="schriftart"[^>]*value="serif"[^>]*checked|value="serif"[^>]*name="schriftart"[^>]*checked/s', $html);
+        $this->assertMatchesRegularExpression('/name="ecken"[^>]*value="eckig"[^>]*checked|value="eckig"[^>]*name="ecken"[^>]*checked/s', $html);
     }
 
     #[Test]
-    public function gast_wird_bei_reset_umgeleitet(): void
+    public function gast_wird_umgeleitet(): void
     {
         $this->delete(route('profile.preferences.reset'))->assertRedirect(route('login'));
+        $this->patchJson(route('profile.preferences'), ['schrift' => 'gross'])->assertUnauthorized();
     }
 }

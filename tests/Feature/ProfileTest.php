@@ -69,16 +69,15 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
+            ->patchJson(route('profile.preferences'), [
                 'darstellung' => 'system',
                 'theme' => 'wald',
                 'akzent' => 'petrol',
                 'schrift' => 'gross',
-                'bewegung_reduziert' => '1',
+                'bewegung' => 'reduziert',
                 'dichte' => 'kompakt',
             ])
-            ->assertSessionHasNoErrors();
+            ->assertOk();
 
         $user->refresh();
         $this->assertSame([
@@ -102,19 +101,13 @@ class ProfileTest extends TestCase
     }
 
     #[Test]
-    public function dashboard_karten_werden_beim_speichern_ausgeblendet(): void
+    public function dashboard_karten_werden_als_sichtbare_liste_gespeichert(): void
     {
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'darstellung' => 'system',
-                'schrift' => 'normal',
-                'karten_uebermittelt' => '1',
-                'karten' => ['stand', 'ziele'],
-            ])
-            ->assertSessionHasNoErrors();
+            ->patchJson(route('profile.preferences'), ['karten' => ['stand', 'ziele']])
+            ->assertOk();
 
         $ausgeblendet = $user->refresh()->praeferenzen['karten_ausgeblendet'];
         sort($ausgeblendet);
@@ -127,15 +120,8 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('settings.profile'))
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'darstellung' => 'system',
-                'schrift' => 'normal',
-                'karten_uebermittelt' => '1',
-                'karten' => ['stand', 'nicht-vorhanden'],
-            ])
-            ->assertSessionHasErrors('karten.1');
+            ->patchJson(route('profile.preferences'), ['karten' => ['stand', 'nicht-vorhanden']])
+            ->assertJsonValidationErrors('karten.1');
 
         $this->assertNull($user->refresh()->praeferenzen);
     }
@@ -146,15 +132,8 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('settings.profile'))
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'darstellung' => 'system',
-                'schrift' => 'normal',
-                'karten_uebermittelt' => '1',
-                'karten' => [],
-            ])
-            ->assertSessionHasErrors('karten');
+            ->patchJson(route('profile.preferences'), ['karten' => []])
+            ->assertJsonValidationErrors('karten');
 
         $this->assertNull($user->refresh()->praeferenzen);
     }
@@ -162,17 +141,11 @@ class ProfileTest extends TestCase
     #[Test]
     public function darstellungspraeferenzen_ohne_theme_und_akzent_werden_als_wie_betrieb_gespeichert(): void
     {
-        $user = User::factory()->lernender()->create();
+        $user = User::factory()->lernender()->create(['praeferenzen' => ['theme' => 'wald', 'akzent' => 'petrol']]);
 
         $this->actingAs($user)
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'darstellung' => 'system',
-                'theme' => '',
-                'akzent' => '',
-                'schrift' => 'normal',
-            ])
-            ->assertSessionHasNoErrors();
+            ->patchJson(route('profile.preferences'), ['theme' => '', 'akzent' => ''])
+            ->assertOk();
 
         $user->refresh();
         $this->assertNull($user->praeferenzen['theme']);
@@ -187,6 +160,8 @@ class ProfileTest extends TestCase
             'unbekanntes Theme' => ['theme', 'neon'],
             'unbekannter Akzent' => ['akzent', 'himbeer'],
             'unbekannte Schriftgroesse' => ['schrift', 'winzig'],
+            'unbekannte Bewegung' => ['bewegung', 'wild'],
+            'unbekannte Dichte' => ['dichte', 'luftig'],
         ];
     }
 
@@ -197,13 +172,8 @@ class ProfileTest extends TestCase
         $user = User::factory()->lernender()->create();
 
         $this->actingAs($user)
-            ->from(route('settings.profile'))
-            ->patch(route('profile.update'), [
-                'email' => $user->email,
-                'darstellung' => 'system',
-                $feld => $wert,
-            ])
-            ->assertSessionHasErrors($feld);
+            ->patchJson(route('profile.preferences'), [$feld => $wert])
+            ->assertJsonValidationErrors($feld);
 
         $this->assertNull($user->refresh()->praeferenzen);
     }

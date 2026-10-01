@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Middleware\SetLocale;
+use App\Http\Requests\PraeferenzenRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Lernender;
 use App\Models\User;
 use App\Support\Darstellung;
 use App\Support\DashboardKarten;
+use App\Support\Farbe;
 use App\Support\Theme;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -20,6 +22,10 @@ use Illuminate\Validation\Rule;
 
 class ProfileController extends Controller
 {
+    /**
+     * Konto (Name, E-Mail, Klassen). Die persönliche Darstellung speichert jede Änderung einzeln über
+     * preferences(); nur ohne Spalte «praeferenzen» stehen Hell/Dunkel und Kontrast hier im Formular.
+     */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $user = $request->user();
@@ -28,29 +34,7 @@ class ProfileController extends Controller
 
         $user->fill(Arr::only($daten, $lernender ? ['email', 'darstellung'] : ['vorname', 'nachname', 'email', 'darstellung']));
 
-        if (Darstellung::praeferenzenOptionVerfuegbar()) {
-            $theme = $daten['theme'] ?? null ?: null;
-            $akzent = ($daten['akzent'] ?? null) ?: null;
-            $user->praeferenzen = [
-                'theme' => $theme,
-                'akzent' => $akzent,
-                'akzent_eigen' => $akzent === Darstellung::AKZENT_EIGEN ? ($daten['akzent_eigen'] ?? null) : null,
-                'schrift' => $daten['schrift'] ?? Darstellung::SCHRIFT_NORMAL,
-                'schriftart' => $daten['schriftart'] ?? Darstellung::SCHRIFTART_STANDARD,
-                'bewegung' => $request->boolean('bewegung_reduziert') ? Darstellung::BEWEGUNG_REDUZIERT : Darstellung::BEWEGUNG_NORMAL,
-                'dichte' => $daten['dichte'] ?? Darstellung::DICHTE_NORMAL,
-                'diagramm' => $daten['diagramm'] ?? Darstellung::DIAGRAMM_STANDARD,
-                'notenanzeige' => $daten['notenanzeige'] ?? Darstellung::NOTENANZEIGE_1,
-                'ecken' => $daten['ecken'] ?? Darstellung::ECKEN_RUND,
-                'transparenz' => $daten['transparenz'] ?? Darstellung::TRANSPARENZ_NORMAL,
-                'tastenkuerzel' => $daten['tastenkuerzel'] ?? Darstellung::TASTENKUERZEL_AN,
-                'navigation' => $daten['navigation'] ?? Darstellung::fuer($user)['navigation'],
-                'startseite' => $daten['startseite'] ?? 'dashboard',
-                'karten_ausgeblendet' => $this->kartenAusgeblendet($request, $user),
-            ];
-            // Alt-Logik (Theme::fuer ohne Präferenzen) bleibt konsistent: Kontrast auch hier gesetzt.
-            $user->kontrast = $theme === Theme::KONTRAST;
-        } elseif (Theme::kontrastOptionVerfuegbar()) {
+        if (! Darstellung::praeferenzenOptionVerfuegbar() && Theme::kontrastOptionVerfuegbar()) {
             $user->kontrast = $request->boolean('kontrast');
         }
 
@@ -114,69 +98,62 @@ class ProfileController extends Controller
     }
 
     /**
-     * Schnellwechsel aus der Befehlspalette (resources/js/suche.js, window.npBefehl): ändert nur
-     * den einen übergebenen Schlüssel, alle anderen Präferenzen bleiben unangetastet. Dashboard-
-     * Karten werden hier nicht geändert (dafür: Profil-Formular).
+     * Einzelne Darstellungs-Einstellungen ohne Neuladen: aus den Einstellungen, wo jede Änderung sofort
+     * gilt (wie in den Systemeinstellungen), und aus der Befehlspalette (resources/js/suche.js). Geändert
+     * werden nur die übergebenen Schlüssel, alle anderen bleiben unangetastet. Bei einer eigenen
+     * Akzentfarbe kommen die serverseitig auf Kontrast geprüften Tokens zurück (App\Support\Farbe).
      */
-    public function preferences(Request $request): JsonResponse
+    public function preferences(PraeferenzenRequest $request): JsonResponse
     {
         abort_unless(Darstellung::praeferenzenOptionVerfuegbar(), 404);
 
-        $regeln = [];
-        if ($request->has('darstellung')) {
-            $regeln['darstellung'] = ['in:system,hell,dunkel'];
-        }
-        if ($request->has('theme')) {
-            $regeln['theme'] = ['nullable', Rule::in(array_keys(Theme::THEMES))];
-        }
-        if ($request->has('akzent')) {
-            $regeln['akzent'] = ['nullable', Rule::in(array_keys(Darstellung::AKZENTE))];
-        }
-        if ($request->has('schrift')) {
-            $regeln['schrift'] = [Rule::in(Darstellung::SCHRIFTGROESSEN)];
-        }
-        if ($request->has('dichte')) {
-            $regeln['dichte'] = [Rule::in(Darstellung::DICHTEN)];
-        }
-        if ($request->has('diagramm')) {
-            $regeln['diagramm'] = [Rule::in(Darstellung::DIAGRAMME)];
-        }
-        if ($request->has('bewegung')) {
-            $regeln['bewegung'] = [Rule::in(Darstellung::BEWEGUNGEN)];
-        }
-        if ($request->has('navigation')) {
-            $regeln['navigation'] = [Rule::in(Darstellung::NAVIGATIONEN)];
-        }
-        abort_if($regeln === [], 422);
+        $validiert = $request->validated();
+        abort_if($validiert === [], 422);
 
-        $validiert = $request->validate($regeln);
-        $user = $request->user();
+        // Gesperrt gelesen und geschrieben: zwei Änderungen kurz nacheinander (zweiter Tab, Befehlspalette)
+        // überschreiben sich sonst gegenseitig, weil jede das ganze JSON zurückschreibt.
+        $user = DB::transaction(function () use ($request, $validiert): User {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
 
-        if (array_key_exists('darstellung', $validiert)) {
-            $user->darstellung = $validiert['darstellung'];
-        }
-
-        $praefSchluessel = array_intersect_key($validiert, array_flip(['theme', 'akzent', 'schrift', 'dichte', 'diagramm', 'bewegung', 'navigation']));
-        if ($praefSchluessel !== []) {
-            $aktuell = Darstellung::fuer($user);
-            $theme = array_key_exists('theme', $praefSchluessel) ? ($praefSchluessel['theme'] ?: null) : $aktuell['theme'];
-            $akzent = array_key_exists('akzent', $praefSchluessel) ? ($praefSchluessel['akzent'] ?: null) : $aktuell['akzent'];
-
-            // Vom aktuellen Stand ausgehen: der Schnellwechsel ändert nur die übergebenen Schlüssel,
-            // alle anderen Einstellungen (Schriftart, Ecken, Startseite …) bleiben erhalten.
-            $user->praeferenzen = array_merge($aktuell, $praefSchluessel, [
-                'theme' => $theme,
-                'akzent' => $akzent,
-                'akzent_eigen' => $akzent === Darstellung::AKZENT_EIGEN ? $aktuell['akzent_eigen'] : null,
-            ]);
-            if (array_key_exists('theme', $praefSchluessel)) {
-                $user->kontrast = $theme === Theme::KONTRAST;
+            if (array_key_exists('darstellung', $validiert)) {
+                $user->darstellung = $validiert['darstellung'];
             }
+
+            $praef = Arr::except($validiert, ['darstellung', 'akzent_eigen', 'karten']);
+            if ($praef !== [] || array_key_exists('akzent_eigen', $validiert) || array_key_exists('karten', $validiert)) {
+                $aktuell = Darstellung::fuer($user);
+                $theme = array_key_exists('theme', $praef) ? ($praef['theme'] ?: null) : $aktuell['theme'];
+                $akzent = array_key_exists('akzent', $praef) ? ($praef['akzent'] ?: null) : $aktuell['akzent'];
+                $akzentEigen = $validiert['akzent_eigen'] ?? $aktuell['akzent_eigen'];
+
+                $neu = array_merge($aktuell, $praef, [
+                    'theme' => $theme,
+                    'akzent' => $akzent,
+                    // Die eigene Farbe gilt nur, solange «Eigene Farbe» gewählt ist (wie Darstellung::fuer)
+                    'akzent_eigen' => $akzent === Darstellung::AKZENT_EIGEN && $akzentEigen !== null ? strtolower($akzentEigen) : null,
+                ]);
+                if (array_key_exists('karten', $validiert)) {
+                    $alle = array_keys(DashboardKarten::fuerRolle(DashboardKarten::rolleFuer($user)));
+                    $neu['karten_ausgeblendet'] = array_values(array_diff($alle, $validiert['karten']));
+                }
+                $user->praeferenzen = $neu;
+
+                if (array_key_exists('theme', $praef)) {
+                    $user->kontrast = $theme === Theme::KONTRAST;
+                }
+            }
+
+            $user->save();
+
+            return $user;
+        });
+
+        $antwort = ['ok' => true];
+        if (array_key_exists('akzent', $validiert) || array_key_exists('akzent_eigen', $validiert)) {
+            $antwort['akzent_stil'] = Farbe::styleBlock($user->praeferenzen['akzent_eigen'] ?? null);
         }
 
-        $user->save();
-
-        return response()->json(['ok' => true]);
+        return response()->json($antwort);
     }
 
     /** Sprache aus Benutzermenü oder Profil; Gäste nur für die Session. Nur bei eingeschalteter Sprachwahl. */
@@ -189,24 +166,6 @@ class ProfileController extends Controller
         $request->session()->put(SetLocale::SESSION, $locale);
 
         return back()->with('success', __('Sprache gespeichert.', [], $locale));
-    }
-
-    /**
-     * Ausgeblendete Dashboard-Karten aus dem Profilformular. Das Häkchenfeld erscheint nur, wenn
-     * der Benutzer eine Dashboard-Rolle hat; ohne das versteckte Feld «karten_uebermittelt»
-     * (z. B. alter Formularstand) bleibt die gespeicherte Auswahl unverändert – kein versehentliches
-     * Ausblenden aller Karten, nur weil das Feld im Request fehlte.
-     */
-    private function kartenAusgeblendet(ProfileUpdateRequest $request, User $user): array
-    {
-        if (! $request->boolean('karten_uebermittelt')) {
-            return Darstellung::fuer($user)['karten_ausgeblendet'];
-        }
-
-        $alle = array_keys(DashboardKarten::fuerRolle(DashboardKarten::rolleFuer($user)));
-        $sichtbar = (array) $request->input('karten', []);
-
-        return array_values(array_diff($alle, $sichtbar));
     }
 
     /** Duplikat aus SettingsController::hatAktivenBmsTrack() (bewusst, siehe docs/audit-backlog.md). */

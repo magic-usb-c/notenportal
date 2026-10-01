@@ -86,16 +86,12 @@ class ThemeTest extends TestCase
 
         $this->actingAs($user)->get(route('settings.profile'))->assertSee('name="theme"', false);
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => 'kontrast'])
-            ->assertSessionHasNoErrors();
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['theme' => 'kontrast'])->assertOk();
         $this->assertTrue($user->refresh()->kontrast);
         $this->assertSame('kontrast', $user->praeferenzen['theme']);
         $this->actingAs($user)->get(route('learner.dashboard'))->assertSee('data-theme="kontrast"', false);
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => ''])
-            ->assertSessionHasNoErrors();
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['theme' => ''])->assertOk();
         $this->assertFalse($user->refresh()->kontrast);
         $this->assertNull($user->praeferenzen['theme']);
         $this->actingAs($user)->get(route('learner.dashboard'))->assertSee('data-theme="sandstein"', false);
@@ -186,9 +182,7 @@ class ThemeTest extends TestCase
     {
         $user = User::factory()->lernender()->create();
 
-        $this->actingAs($user)
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => $theme])
-            ->assertSessionHasNoErrors();
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['theme' => $theme])->assertOk();
 
         $this->assertSame($theme, $user->refresh()->praeferenzen['theme']);
         $this->actingAs($user)->get(route('learner.dashboard'))->assertSee('data-theme="'.$theme.'"', false);
@@ -281,13 +275,14 @@ class ThemeTest extends TestCase
     }
 
     #[Test]
-    public function abgewiesener_wert_zeigt_wieder_die_gespeicherte_wahl(): void
+    public function abgewiesener_wert_laesst_die_gespeicherte_wahl_stehen(): void
     {
         $user = User::factory()->lernender()->create(['praeferenzen' => ['theme' => 'wald', 'akzent' => 'rot']]);
 
-        $html = $this->actingAs($user)->from(route('settings.profile'))->followingRedirects()
-            ->patch(route('profile.update'), ['email' => $user->email, 'darstellung' => 'hell', 'theme' => 'gibtsnicht', 'akzent' => 'lila'])
-            ->assertOk()->getContent();
+        $this->actingAs($user)->patchJson(route('profile.preferences'), ['theme' => 'gibtsnicht', 'akzent' => 'lila'])
+            ->assertJsonValidationErrors(['theme', 'akzent']);
+
+        $html = (string) $this->get(route('settings.profile'))->assertOk()->getContent();
 
         $this->assertMatchesRegularExpression('/name="theme" value="wald"[^>]*checked/', $html);
         $this->assertMatchesRegularExpression('/name="akzent" value="rot"[^>]*checked/', $html);
