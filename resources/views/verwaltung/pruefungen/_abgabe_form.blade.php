@@ -43,9 +43,8 @@
             @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="abgabe-gewichtung" class="{{ $label }}">{{ __('Gewichtung %') }}</label>
-            <input type="number" id="abgabe-gewichtung" name="gewichtung_prozent" min="0" max="100" step="0.01"
-                   value="{{ old('gewichtung_prozent', $b?->gewichtung_prozent) }}" class="{{ $feld }}">
+            <label for="abgabe-gewichtung" class="{{ $label }}">{{ __('Gewichtung') }}</label>
+            <x-gewicht-feld id="abgabe-gewichtung" :wert="old('gewichtung_prozent', $b?->gewichtung_prozent)" />
             @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>

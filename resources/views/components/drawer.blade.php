@@ -6,12 +6,13 @@
 ])
 
 @php
-    $breiten = ['sm' => 'sm:w-[22rem]', 'md' => 'sm:w-[28rem]', 'lg' => 'sm:w-[36rem]'][$breite] ?? 'sm:w-[28rem]';
+    $breiten = ['sm' => 'w-[22rem]', 'md' => 'w-[28rem]', 'lg' => 'w-[36rem]'][$breite] ?? 'w-[28rem]';
 @endphp
 
 {{--
-    Generischer Drawer (Erfassen, Bearbeiten, Planen): schwebt rechts über der Seite, Scrim schliesst,
-    Esc schliesst, Fokus bleibt innerhalb und kehrt danach zum Auslöser zurück. Öffnen per Alpine-Event: $dispatch('open-drawer', 'name').
+    Generischer Drawer (Erfassen, Bearbeiten, Planen): schwebt rechts mit Abstand zum Fensterrand wie die
+    Seitenleiste links, Scrim schliesst, Esc schliesst. Der Fokus springt ins erste Eingabefeld (wie ein
+    macOS-Sheet), bleibt innerhalb und kehrt danach zum Auslöser zurück. Öffnen: $dispatch('open-drawer', 'name').
 --}}
 <div
     x-data="{
@@ -22,12 +23,13 @@
             return [...$el.querySelectorAll(selector)].filter(el => ! el.hasAttribute('disabled') && el.getClientRects().length > 0)
         },
         ersterFokus() { return this.focusables()[0] },
+        startFokus() { return this.focusables().find(el => el.matches('input, select, textarea')) || this.ersterFokus() },
         letzterFokus() { return this.focusables().slice(-1)[0] },
         naechsterFokus() { return this.focusables()[(this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1)] || this.ersterFokus() },
         vorherigerFokus() { return this.focusables()[Math.max(0, this.focusables().indexOf(document.activeElement)) - 1] || this.letzterFokus() },
     }"
-    x-init="offen && $nextTick(() => ersterFokus()?.focus()); $watch('offen', v => { if (! v && ausloeser?.isConnected) { ausloeser.focus(); ausloeser = null } })"
-    x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { ausloeser = document.activeElement; offen = true; $nextTick(() => ersterFokus()?.focus()) }"
+    x-init="offen && $nextTick(() => startFokus()?.focus()); $watch('offen', v => { if (! v && ausloeser?.isConnected) { ausloeser.focus(); ausloeser = null } })"
+    x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { ausloeser = document.activeElement; offen = true; $nextTick(() => startFokus()?.focus()) }"
     x-on:close-drawer.window="$event.detail === '{{ $name }}' ? offen = false : null"
     x-on:keydown.escape.window="offen = false"
     x-on:keydown.tab.prevent="$event.shiftKey || naechsterFokus().focus()"
@@ -53,15 +55,15 @@
     <aside
         x-show="offen"
         x-transition:enter="transition-transform ease-out duration-200"
-        x-transition:enter-start="translate-x-full"
+        x-transition:enter-start="translate-x-[calc(100%+1rem)]"
         x-transition:enter-end="translate-x-0"
         x-transition:leave="transition-transform ease-in duration-150"
         x-transition:leave-start="translate-x-0"
-        x-transition:leave-end="translate-x-full"
+        x-transition:leave-end="translate-x-[calc(100%+1rem)]"
         role="dialog"
         aria-modal="true"
         @if($titel) aria-label="{{ $titel }}" @endif
-        class="absolute inset-y-0 right-0 w-full {{ $breiten }} bg-card border-l border-border shadow-e3 flex flex-col"
+        class="absolute inset-y-2 right-2 {{ $breiten }} flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-e3"
     >
         @if($titel || isset($kopf))
             <div class="flex items-center justify-between gap-3 px-5 h-14 shrink-0 border-b border-border">

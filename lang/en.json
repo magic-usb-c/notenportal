@@ -592,5 +592,7 @@
     "Das Ziel ist bereits erreicht: Selbst mit der tiefsten Note (1.0) in den restlichen Prüfungen bleibt :person :bezug bei mindestens :minimum, das Ziel war :ziel.": "The target is already reached: even with the lowest grade (1.0) in the remaining exams, :person stays :bezug at :minimum or higher; the target was :ziel.",
     "Ziel nicht erreichbar: Selbst mit der Bestnote (6.0) in allen offenen Prüfungen kommt :person :bezug höchstens auf :maximum, das Ziel war :ziel.": "Target not reachable: even with the best grade (6.0) in all open exams, :person reaches at most :maximum :bezug; the target was :ziel.",
     "Ziel erreicht: :person steht :bezug bei :resultat.": "Target reached: :person stands :bezug at :resultat.",
-    "Ziel noch nicht erreicht: :person steht :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: :person stands :bezug at :resultat, :differenz is missing."
+    "Ziel noch nicht erreicht: :person steht :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: :person stands :bezug at :resultat, :differenz is missing.",
+    "Häufige Gewichtungen": "Common weightings",
+    "Gewichtung": "Weighting"
 }

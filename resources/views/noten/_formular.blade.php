@@ -90,19 +90,12 @@
             <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }} <span class="text-note-ungenuegend">*</span></label>
             <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="{{ $feld }}">
             <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
-               x-text="semester ? @js(__('Semester ')) + semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
+               x-text="semester ? semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
             @error('pruefungsdatum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
-            <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung %') }}</label>
-            <input type="number" id="gewichtung_prozent" name="gewichtung_prozent" step="0.01" min="0" max="100" x-model="gewicht" class="{{ $feld }}">
-            <div class="mt-1.5 flex gap-1.5">
-                @foreach([25, 50, 100] as $g)
-                    <button type="button" @click="gewicht = '{{ $g }}'"
-                            class="h-9 min-w-12 rounded-lg border px-3 text-xs transition-colors duration-100"
-                            :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border-strong/60 text-muted hover:text-text'">{{ $g }}%</button>
-                @endforeach
-            </div>
+            <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung') }}</label>
+            <x-gewicht-feld id="gewichtung_prozent" model="gewicht" />
             @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>

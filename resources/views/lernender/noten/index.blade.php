@@ -268,7 +268,7 @@
                         </div>
                         <input type="date" x-model="z.datum" class="np-feld" aria-label="{{ __('Prüfungsdatum') }}">
                         <p class="text-xs" :class="semesterVon(z.datum) ? 'text-muted' : 'text-note-knapp'"
-                           x-text="semesterVon(z.datum) ? @js(__('Semester ')) + semesterVon(z.datum).name : (z.datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
+                           x-text="semesterVon(z.datum) ? semesterVon(z.datum).name : (z.datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
                         <div class="flex items-end gap-2">
                             <label class="flex w-24 shrink-0 flex-col gap-1">
                                 <span class="text-xs text-muted">{{ __('Gewichtung') }}</span>

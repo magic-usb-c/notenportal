@@ -22,7 +22,7 @@
                 'fach_id' => __('Zuordnung'), 'modul_id' => __('Zuordnung'), 'titel' => __('Titel'),
                 'datum' => __('Datum'), 'uhrzeit' => __('Uhrzeit'), 'dauer_minuten' => __('Dauer (Min.)'),
                 'pruefungsart' => __('Prüfungsart'), 'hilfsmittel' => __('Erlaubte Hilfsmittel'),
-                'stoff' => __('Prüfungsstoff'), 'gewichtung_prozent' => __('Gewichtung %'),
+                'stoff' => __('Prüfungsstoff'), 'gewichtung_prozent' => __('Gewichtung'),
             ];
             $lokalListe = [];
             foreach ($b->lokal_gesperrt as $feld => $quellwert) {
@@ -85,14 +85,8 @@
     </div>
 
     <div>
-        <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung %') }}</label>
-        <input type="number" id="gewichtung_prozent" name="gewichtung_prozent" min="0" max="100" step="0.01" required x-model="gewicht" class="{{ $feld }}">
-        <div class="flex gap-1.5 mt-2">
-            @foreach([25, 50, 100] as $g)
-                <button type="button" @click="gewicht = '{{ $g }}'" class="min-h-9 min-w-12 px-3 rounded-lg border text-xs transition-colors"
-                        :class="parseFloat(gewicht) === {{ $g }} ? 'border-accent/50 bg-accent/10 text-accent-text' : 'border-border text-muted hover:text-text'">{{ $g }}%</button>
-            @endforeach
-        </div>
+        <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung') }}</label>
+        <x-gewicht-feld id="gewichtung_prozent" model="gewicht" required />
         @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
