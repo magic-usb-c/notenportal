@@ -17,6 +17,9 @@ final readonly class Lernstand
 
     public const string GRUEN = 'gruen';
 
+    /** Lehrende liegt zurück: nichts mehr zu beobachten, die Noten bleiben einsehbar. */
+    public const string ABGESCHLOSSEN = 'abgeschlossen';
+
     /**
      * @param  list<?float>  $verlauf  Semesterschnitt je Semester mit Noten (chronologisch)
      * @param  list<Element>  $ungenuegend  Zeugnisnoten unter der Genügend-Grenze im Bezugssemester
@@ -57,6 +60,7 @@ final readonly class Lernstand
         return match ($this->status) {
             self::ROT => 0,
             self::GELB => 1,
+            self::ABGESCHLOSSEN => 3,
             default => 2,
         };
     }

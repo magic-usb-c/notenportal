@@ -41,6 +41,7 @@ class DashboardDiagrammTest extends TestCase
         $this->actingAs($bb)
             ->get(route('trainer.dashboard'))
             ->assertOk()
-            ->assertSee('Alle 0 Lernenden im Plan');
+            ->assertSee('Keine aktiv betreuten Lernenden')
+            ->assertDontSee('Alle 0 Lernenden im Plan');
     }
 }

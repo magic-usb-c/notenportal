@@ -8,7 +8,8 @@
             'lehrende' => ($sichtbar['lehrende'] ?? true) && $lehrende->isNotEmpty(),
         ];
         $rechts = $zeigen['aufmerksamkeit'] || $zeigen['agenda'] || $zeigen['lehrende'];
-        $imPlan = ! count($aufmerksamkeit) ? __('Alle :anzahl Lernenden im Plan', ['anzahl' => $zeilen->count()]) : null;
+        $laufend = $zeilen->filter(fn ($z) => $z->stand->status !== \App\Services\Auswertung\Lernstand::ABGESCHLOSSEN)->count();
+        $imPlan = ! count($aufmerksamkeit) && $laufend ? __('Alle :anzahl Lernenden im Plan', ['anzahl' => $laufend]) : null;
         // Intelligente Listen wie in Erinnerungen: Zähler oben, ein Klick filtert die Tabelle
         $listen = [
             ['alle', __('Alle'), 'users', 'bg-accent/12 text-accent-text', $zeilen->count()],

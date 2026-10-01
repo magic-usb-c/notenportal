@@ -18,12 +18,16 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 /** Notenbericht über den Betrieb; ohne Semesterwahl gilt das laufende Semester, «alle» die ganze Lehrzeit. */
 class BerichtController extends Controller
 {
-    private const array STATUS = [Lernstand::ROT => 'kritisch', Lernstand::GELB => 'beobachten', Lernstand::GRUEN => 'im Plan'];
-
     /** Übersetzte Anzeige der Status-Konstante für den CSV-Export. */
     private function statusText(string $status): string
     {
-        return __(self::STATUS[$status]);
+        // Wörtlich übersetzt, damit die Schlüsselprüfung jeden Text findet.
+        return match ($status) {
+            Lernstand::ROT => __('kritisch'),
+            Lernstand::GELB => __('beobachten'),
+            Lernstand::ABGESCHLOSSEN => __('abgeschlossen'),
+            default => __('im Plan'),
+        };
     }
 
     public function __construct(private readonly Bericht $bericht) {}

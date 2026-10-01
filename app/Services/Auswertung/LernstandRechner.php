@@ -33,7 +33,8 @@ final class LernstandRechner
             ->groupBy('lernender_id')->selectRaw('lernender_id, MAX(pruefungsdatum) as letzte')->pluck('letzte', 'lernender_id');
         $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->whereNull('note_id')->whereNull('abgesagt_am')->where('datum', '<', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, COUNT(*) as anzahl')->pluck('anzahl', 'lernender_id');
-        $lehrbeginn = DB::table('lernende')->whereIn('lernender_id', $lernenderIds)->pluck('lehrbeginn', 'lernender_id');
+        $lehrzeit = DB::table('lernende')->whereIn('lernender_id', $lernenderIds)->get(['lernender_id', 'lehrbeginn', 'lehrende'])->keyBy('lernender_id');
+        $lehrbeginn = $lehrzeit->pluck('lehrbeginn', 'lernender_id');
         // In einem Rutsch vorladen statt pro Person: verhindert N+1 bei Lehrsemester::nummer()
         // (personalisierte Semesternamen), das verlauf()/toArray() weiter unten je Person nutzt.
         Lehrsemester::vorladen($lehrbeginn->all());
@@ -46,13 +47,14 @@ final class LernstandRechner
                 isset($letzte[$id]) ? Carbon::parse($letzte[$id]) : null,
                 (int) ($ueberfaellig[$id] ?? 0),
                 isset($lehrbeginn[$id]) ? Carbon::parse($lehrbeginn[$id]) : null,
+                isset($lehrzeit[$id]->lehrende) ? Carbon::parse($lehrzeit[$id]->lehrende) : null,
             );
         }
 
         return $out;
     }
 
-    public function berechne(int $id, Auswertung $a, ?Carbon $letzte, int $ueberfaellig, ?Carbon $lehrbeginn): Lernstand
+    public function berechne(int $id, Auswertung $a, ?Carbon $letzte, int $ueberfaellig, ?Carbon $lehrbeginn, ?Carbon $lehrende = null): Lernstand
     {
         $a->lernenderId ??= $id;
         $k = $a->konfiguration;
@@ -137,6 +139,11 @@ final class LernstandRechner
         }
 
         $status = $rot !== [] ? Lernstand::ROT : ($gelb !== [] ? Lernstand::GELB : Lernstand::GRUEN);
+        // Nach dem Lehrende gibt es nichts mehr nachzuholen oder abzuwenden: weder fehlende Noten noch
+        // Promotionen sind dann ein Auftrag an die Berufsbildnerin.
+        if ($lehrende !== null && $lehrende->lt(today())) {
+            [$status, $rot, $gelb] = [Lernstand::ABGESCHLOSSEN, [], []];
+        }
 
         return new Lernstand(
             lernenderId: $id,

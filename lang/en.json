@@ -594,5 +594,8 @@
     "Ziel erreicht: :person steht :bezug bei :resultat.": "Target reached: :person stands :bezug at :resultat.",
     "Ziel noch nicht erreicht: :person steht :bezug bei :resultat, es fehlen :differenz.": "Target not yet reached: :person stands :bezug at :resultat, :differenz is missing.",
     "Häufige Gewichtungen": "Common weightings",
-    "Gewichtung": "Weighting"
+    "Gewichtung": "Weighting",
+    "Abgeschlossen": "Completed",
+    "abgeschlossen": "completed",
+    "im Plan": "on track"
 }

@@ -626,7 +626,7 @@ final class Uebersicht
      */
     private function bbAufmerksamkeit(Collection $zeilen): array
     {
-        return $zeilen->filter(fn ($z) => $z->stand->status !== Lernstand::GRUEN || $z->neu > 0)
+        return $zeilen->filter(fn ($z) => in_array($z->stand->status, [Lernstand::ROT, Lernstand::GELB], true) || $z->neu > 0)
             ->map(fn ($z) => ['zeile' => $z, 'gruende' => $this->bbGruende($z)])
             ->values()->all();
     }

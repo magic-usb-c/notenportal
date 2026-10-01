@@ -5,6 +5,7 @@
         'rot' => ['bg-note-ungenuegend', __('Kritisch')],
         'gelb' => ['bg-note-knapp', __('Beobachten')],
         'neutral' => ['bg-muted', __('Offen')],
+        'abgeschlossen' => ['bg-muted', __('Abgeschlossen')],
         default => ['bg-note-gut', __('Im Plan')],
     };
 @endphp

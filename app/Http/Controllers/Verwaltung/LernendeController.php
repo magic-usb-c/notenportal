@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Berufsbildner;
 use App\Models\Lernender;
+use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
@@ -84,6 +85,8 @@ class LernendeController extends VerwaltungController
         $grenze = NotenSkala::genuegend();
         $zeilen = $zeilen
             ->when($filter['lehrjahr'], fn ($z, $jahr) => $z->filter(fn ($r) => $r->lehrjahr === $jahr))
+            // Warnungen gelten wie die Etiketten in der Zeile nur für laufende Lehren aktiver Konten.
+            ->when($filter['warnung'] !== '', fn ($z) => $z->filter(fn ($r) => $r->lernender->benutzer->aktiv && $r->stand->status !== Lernstand::ABGESCHLOSSEN))
             ->when($filter['warnung'] === 'tief_avg', fn ($z) => $z->filter(fn ($r) => $r->avg !== null && $r->avg < $grenze))
             ->when($filter['warnung'] === 'keine_noten', fn ($z) => $z->filter(fn ($r) => ! $r->lastNote || $r->lastNote < $cutoff))
             ->when($filter['warnung'] === 'ohne_betreuung', fn ($z) => $z->filter(fn ($r) => ! $r->betreuer))

@@ -8,6 +8,8 @@ use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Semester;
 use App\Models\User;
+use App\Services\Auswertung\Lernstand;
+use App\Services\Auswertung\LernstandRechner;
 use App\Support\Einstellungen;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -86,5 +88,30 @@ class LernendeListeTest extends TestCase
         Einstellungen::set(Einstellungen::FRIST_INAKTIV_TAGE, '14');
 
         $this->assertContains(__('Seit :tage Tagen keine Note', ['tage' => 20]), $marken());
+    }
+
+    #[Test]
+    public function abgeschlossene_lehre_meldet_keine_warnungen_mehr(): void
+    {
+        $bb = User::factory()->berufsbildner()->create();
+        $fertig = $this->neuerLernender(['vorname' => 'Abschlusstest'], ['lehrbeginn' => now()->subYears(4)->toDateString(), 'lehrende' => now()->subDays(2)->toDateString()]);
+        $laufend = $this->neuerLernender(['vorname' => 'Laufendtest'], ['lehrbeginn' => now()->subYear()->toDateString()]);
+        $this->betreue($bb, $fertig);
+        $this->betreue($bb, $laufend);
+
+        $staende = app(LernstandRechner::class)->fuer([$fertig->lernender_id, $laufend->lernender_id]);
+        $this->assertSame(Lernstand::ABGESCHLOSSEN, $staende[$fertig->lernender_id]->status);
+        $this->assertSame([], $staende[$fertig->lernender_id]->gruende);
+        $this->assertSame(Lernstand::GELB, $staende[$laufend->lernender_id]->status, 'Ein Jahr ohne Note bleibt eine Warnung');
+
+        $marken = collect(iterator_to_array($this->dom((string) $this->actingAs(User::factory()->admin()->create())->get(route('admin.learners.index'))->assertOk()->getContent())
+            ->query("//tbody/tr[.//a[contains(., 'Abschlusstest')]]//span[contains(@class,'np-marke')]")))->map(fn (\DOMElement $s) => trim($s->textContent))->all();
+        $this->assertSame([__('Abgeschlossen')], $marken);
+        $this->get(route('admin.learners.index', ['warnung' => 'keine_noten']))->assertOk()
+            ->assertSee('Laufendtest')->assertDontSee('Abschlusstest');
+
+        // Das Dashboard der Berufsbildnerin fragt nur nach der laufenden Lehre.
+        $this->actingAs($bb)->get(route('trainer.dashboard'))->assertOk()
+            ->assertViewHas('aufmerksamkeit', fn (array $liste) => array_map(fn ($e) => $e['zeile']->lernender->lernender_id, $liste) === [$laufend->lernender_id]);
     }
 }
