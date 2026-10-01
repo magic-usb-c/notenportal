@@ -1,40 +1,18 @@
-<x-guest-layout>
-    <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text">{{ __('Eigenes Passwort festlegen') }}</h1>
-    </div>
-
-    <form method="POST" action="{{ route('password.initial.update') }}" class="space-y-4"
+<x-guest-layout :titel="__('Eigenes Passwort festlegen')">
+    <form method="POST" action="{{ route('password.initial.update') }}" class="flex flex-col gap-5"
           x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         @method('PUT')
-
-        <div>
-            <label for="password" class="block text-sm font-medium text-text mb-1.5">{{ __('Neues Passwort') }} *</label>
-            <input id="password" type="password" name="password" required autofocus autocomplete="new-password"
-                   class="np-feld block h-11 @error('password') border-note-ungenuegend! @enderror">
-            @error('password')
-                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-text mb-1.5">{{ __('Passwort wiederholen') }} *</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                   class="np-feld block h-11">
-        </div>
-
-        <div class="pt-2">
-            <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                {{ __('Speichern') }}
-            </button>
-        </div>
+        @include('auth._feld', ['name' => 'password', 'typ' => 'password', 'label' => __('Neues Passwort'), 'autocomplete' => 'new-password', 'autofocus' => true,
+                                'hinweis' => __('Mindestens 10 Zeichen mit Buchstaben und Ziffern')])
+        @include('auth._feld', ['name' => 'password_confirmation', 'typ' => 'password', 'label' => __('Passwort wiederholen'), 'autocomplete' => 'new-password'])
+        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross mt-1 w-full">{{ __('Speichern') }}</button>
     </form>
 
-    <form method="POST" action="{{ route('logout') }}" class="mt-4 text-center">
-        @csrf
-        <button type="submit" class="text-sm text-muted hover:text-text rounded-md focus:outline-hidden focus:ring-2 focus:ring-accent/50">
-            {{ __('Abmelden') }}
-        </button>
-    </form>
+    <x-slot:fuss>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="inline-flex min-h-6 items-center text-muted hover:text-text">{{ __('Abmelden') }}</button>
+        </form>
+    </x-slot:fuss>
 </x-guest-layout>

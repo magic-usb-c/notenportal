@@ -1,34 +1,14 @@
-<x-guest-layout>
-    <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text">{{ __('Passwort vergessen') }}</h1>
-        <p class="mt-2 text-sm text-muted">{{ __('Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link zum Zurücksetzen.') }}</p>
-    </div>
+<x-guest-layout :titel="__('Passwort vergessen')" :text="__('Gib deine E-Mail-Adresse ein. Wir schicken dir einen Link zum Zurücksetzen.')">
+    <x-auth-session-status class="mb-6" :status="session('status')" />
 
-    <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    <form method="POST" action="{{ route('password.email') }}" class="space-y-4"
-          x-data="{ loading: false }" @submit="loading = true">
+    <form method="POST" action="{{ route('password.email') }}" class="flex flex-col gap-5"
+          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
-
-        <div>
-            <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus
-                   autocomplete="username" placeholder="{{ __('name@firma.ch') }}"
-                   class="np-feld block h-11 @error('email') border-note-ungenuegend @enderror">
-            @error('email')
-                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div class="pt-2">
-            <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                {{ __('Link zusenden') }}
-            </button>
-        </div>
+        @include('auth._feld', ['name' => 'email', 'typ' => 'email', 'label' => __('E-Mail'), 'autocomplete' => 'username', 'wert' => old('email'), 'autofocus' => true])
+        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross mt-1 w-full">{{ __('Link zusenden') }}</button>
     </form>
 
-    <p class="mt-6 text-center text-sm">
-        <a href="{{ route('login') }}" class="text-muted hover:text-text">{{ __('Zurück zur Anmeldung') }}</a>
-    </p>
+    <x-slot:fuss>
+        <a href="{{ route('login') }}" class="inline-flex min-h-6 items-center text-accent-text hover:underline underline-offset-2">{{ __('Zurück zur Anmeldung') }}</a>
+    </x-slot:fuss>
 </x-guest-layout>

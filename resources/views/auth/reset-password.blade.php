@@ -1,43 +1,16 @@
-<x-guest-layout>
-    <div class="text-center mb-6">
-        <h1 class="text-2xl font-bold text-text">{{ __('Neues Passwort festlegen') }}</h1>
-    </div>
-
-    <form method="POST" action="{{ route('password.store') }}" class="space-y-4"
-          x-data="{ loading: false }" @submit="loading = true">
+<x-guest-layout :titel="__('Neues Passwort festlegen')">
+    <form method="POST" action="{{ route('password.store') }}" class="flex flex-col gap-5"
+          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
-
-        <div>
-            <label for="email" class="block text-sm font-medium text-text mb-1.5">{{ __('E-Mail') }}</label>
-            <input id="email" type="email" name="email" value="{{ old('email', $email) }}" required autofocus
-                   autocomplete="username"
-                   class="np-feld block h-11 @error('email') border-note-ungenuegend @enderror">
-            @error('email')
-                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="password" class="block text-sm font-medium text-text mb-1.5">{{ __('Neues Passwort') }}</label>
-            <input id="password" type="password" name="password" required autocomplete="new-password"
-                   class="np-feld block h-11 @error('password') border-note-ungenuegend @enderror">
-            @error('password')
-                <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
-            @enderror
-        </div>
-
-        <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-text mb-1.5">{{ __('Passwort bestätigen') }}</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                   class="np-feld block h-11">
-        </div>
-
-        <div class="pt-2">
-            <button type="submit" :disabled="loading"
-                    class="np-knopf np-knopf-primaer np-knopf-gross w-full">
-                {{ __('Passwort speichern') }}
-            </button>
-        </div>
+        @include('auth._feld', ['name' => 'email', 'typ' => 'email', 'label' => __('E-Mail'), 'autocomplete' => 'username', 'wert' => old('email', $email)])
+        @include('auth._feld', ['name' => 'password', 'typ' => 'password', 'label' => __('Neues Passwort'), 'autocomplete' => 'new-password', 'autofocus' => true,
+                                'hinweis' => __('Mindestens 10 Zeichen mit Buchstaben und Ziffern')])
+        @include('auth._feld', ['name' => 'password_confirmation', 'typ' => 'password', 'label' => __('Passwort wiederholen'), 'autocomplete' => 'new-password'])
+        <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross mt-1 w-full">{{ __('Passwort speichern') }}</button>
     </form>
+
+    <x-slot:fuss>
+        <a href="{{ route('login') }}" class="inline-flex min-h-6 items-center text-accent-text hover:underline underline-offset-2">{{ __('Zurück zur Anmeldung') }}</a>
+    </x-slot:fuss>
 </x-guest-layout>

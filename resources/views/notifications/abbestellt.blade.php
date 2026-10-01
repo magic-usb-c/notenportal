@@ -1,9 +1,7 @@
-<x-guest-layout>
-    <div class="text-center">
-        <h1 class="text-2xl font-bold text-text">{{ __('Abbestellt') }}</h1>
-        <p class="mt-2 text-sm text-muted">{{ __('Du erhältst keine Mails mehr zu «:label».', ['label' => $label]) }}</p>
-        <p class="mt-6 text-sm">
-            <a href="{{ route('notifications.settings') }}" class="text-accent-text font-medium hover:underline">{{ __('Zu den Benachrichtigungen anmelden') }}</a>
-        </p>
-    </div>
+<x-guest-layout :titel="__('Abbestellt')">
+    <p class="text-center text-sm text-muted">{{ __('Du erhältst keine Mails mehr zu «:label».', ['label' => $label]) }}</p>
+
+    <x-slot:fuss>
+        <a href="{{ route('notifications.settings') }}" class="inline-flex min-h-6 items-center text-accent-text hover:underline underline-offset-2">{{ __('Zu den Benachrichtigungen anmelden') }}</a>
+    </x-slot:fuss>
 </x-guest-layout>

@@ -13,7 +13,8 @@
 
         @include('layouts._darstellung')
 
-        @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif<title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>
+        @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif
+        <title>{{ $titel ? $titel.' – '.config('app.name', 'Notenportal') : config('app.name', 'Notenportal') }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">
         @include('layouts._pwa-head')
 
@@ -23,14 +24,26 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
-        <div class="min-h-screen flex flex-col justify-center items-center px-4 py-8 bg-bg">
-            <div class="w-full max-w-sm rounded-2xl border border-border bg-card overflow-hidden px-6 py-8">
-                {{ $slot }}
-            </div>
+        {{-- Wie die Anmeldefenster von macOS: App-Symbol und Titel frei über einer einzelnen Karte,
+             Nebenaktionen (Passwort vergessen, Zurück) als ruhige Links darunter. --}}
+        <main class="flex min-h-screen flex-col items-center justify-center px-4 py-16">
+            <div class="w-full max-w-100">
+                <div class="mb-8 flex flex-col items-center text-center">
+                    <x-application-logo class="mb-5 h-16 max-w-full" />
+                    <h1 class="text-2xl font-semibold text-text">{{ $titel ?? config('app.name', 'Notenportal') }}</h1>
+                    @if($text ?? ($titel ? null : $betriebName))
+                        <p class="mt-1.5 max-w-80 text-sm text-muted">{{ $text ?? $betriebName }}</p>
+                    @endif
+                </div>
 
-            <div class="mt-6 text-xs text-muted">
-                Notenportal{{ $betriebName ? ' · '.$betriebName : '' }} · {{ now()->year }}
+                <div class="np-karte p-8">
+                    {{ $slot }}
+                </div>
+
+                @isset($fuss)
+                    <div class="mt-6 flex flex-col items-center gap-2 text-sm">{{ $fuss }}</div>
+                @endisset
             </div>
-        </div>
+        </main>
     </body>
 </html>
