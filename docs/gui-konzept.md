@@ -2,7 +2,21 @@
 
 Stand 11.09.2026. Ziel: ruhiger, klarer, eigenständiger – weg vom Einheitslook generierter Dashboards («Glas überall, Kachelreihe, Glow, Grossbuchstaben-Labels»), hin zu dem, was Linear, Stripe, GitHub oder Datawrapper tun: wenige, gut gewählte Flächen, Hierarchie über Typografie, Farbe nur mit Bedeutung.
 
-Screenshots des Ist-Stands: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
+## Stand Rebuild R1–R5 (Desktop, 01.10.2026) – gilt vor allem darunter
+
+Seit dem Rebuild ist das Portal **nur für den Desktop-Browser** gebaut (Zielbreiten 1920×1080/1200 und 2560×1440, ab 1280 px tragfähig). Alles Mobile weiter unten (390 px, `h-11 mobil`, `max-md:`, `sm:w-[28rem]`, Kartenansichten von Tabellen, D12) ist historisch und gilt nicht mehr. Verbindliche Regeln stehen im Skill `notenportal-ui`; hier nur die Eckpunkte.
+
+| Bereich | Stand |
+|---|---|
+| Typografie | macOS-Textstile (HIG «Specifications», macOS): `3xs` 10/13 · `2xs` 11/14 · `xs` 12/16 · **`sm` 13/18 = UI-Grundschrift** · `base` 15/20 · `lg` 17/22 · `xl` 22/26 · `2xl` 26/32 (h1, fett, nur über `<x-seitenkopf>`) · `display` 48 (eine Heldenzahl). Ersetzt die iOS-Tabelle in c). |
+| Fenster | Seitenleiste als Standardnavigation (`np-seitenleiste`), Symbolleiste mit Titel und Aktionen (`np-symbolleiste`), Seitenwechsel per View Transitions (Überblendung, bei reduzierter Bewegung aus). Breakpoint-Varianten gibt es nur noch in der Navigation (`max-xl:`). |
+| Seite | `py-6` › `mx-auto np-seite px-8` (`np-seite` = höchstens 128rem). Formulare `max-w-3xl`, Detailseiten `grid grid-cols-12` mit `col-span-8` Inhalt / `col-span-4` Begleitendes. |
+| Komponenten | `np-knopf` (+ `-primaer` `-sekundaer` `-schlicht` `-gefahr` `-symbol` `-klein` `-gross`), `np-feld`/`np-feld-klein`, `np-karte`, `np-tabelle` (Zebra wie macOS-Tabellen, `table-fixed` + `colgroup`, leere Spalten entfallen), `np-marke`, `np-segment`, `np-schalter`. Ersetzt die Muster in g). |
+| Rückmeldung | Bestätigungen über `data-bestaetigen` (Dialog statt `window.confirm`), Flash nur als Toast, keine Spinner. Pflichtfelder mit schlichtem ` *`. |
+| Status | `<x-status>`: Kritisch · Beobachten · Offen · Im Plan · **Abgeschlossen** (Lehrende vorbei, löst keine Warnung mehr aus). |
+| Prüfung | Screenshots 1920 und 2560, hell und dunkel; JS-Fehlerlauf über alle Rollen; `nutzung.mjs` für Breitenausnutzung. |
+
+Screenshots des Ist-Stands vor dem Rebuild: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
 
 ## a) Diagnose
 
