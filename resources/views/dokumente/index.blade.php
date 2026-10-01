@@ -151,7 +151,7 @@
 
                     <div>
                         <label for="titel" class="{{ $label }}">{{ __('Titel') }}</label>
-                        <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" class="{{ $feld }}"
+                        <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" placeholder="{{ __('Optional') }}" class="{{ $feld }}"
                                @error('titel') aria-invalid="true" aria-describedby="titel-fehler" @enderror>
                         @error('titel')<p id="titel-fehler" class="{{ $fehlerText }}">{{ $message }}</p>@enderror
                     </div>
