@@ -37,6 +37,9 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite flex flex-col gap-5 px-8">
+            @if($bereich)
+                @include('verwaltung.lernende._tabs', ['lernender' => $lernender, 'bereich' => $bereich, 'aktiv' => 'documents', 'klasse' => '-mb-1'])
+            @endif
             @if($dokumente->isEmpty())
                 <x-leer symbol="document-text" :titel="__('Noch keine Dokumente')"
                         :text="$bereich === null ? __('Zeugnisse ablegen und Noten aus PDF-Zeugnissen abgleichen.') : null">

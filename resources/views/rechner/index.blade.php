@@ -12,6 +12,8 @@
         // Ein Satz pro Ebene, was sie beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
         // Lernende lesen «du», Berufsbildner und Admins den Vornamen der Person, deren Noten sie rechnen.
         $person = $lernender?->benutzer->vorname;
+        // Verwaltung: Bereich (admin|trainer) aus dem Routennamen, für die Cockpit-Navigation
+        $cockpitBereich = \Illuminate\Support\Str::before((string) \Illuminate\Support\Facades\Route::currentRouteName(), '.');
         // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
         $texte = [
             'ebene' => [
@@ -44,6 +46,9 @@
     <div class="py-6"
          x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start, 'texte' => $texte]))">
         <div class="np-seite mx-auto flex flex-col gap-5 px-8">
+            @if($lernender)
+                @include('verwaltung.lernende._tabs', ['lernender' => $lernender, 'bereich' => $cockpitBereich, 'aktiv' => 'calculator', 'klasse' => '-mb-1'])
+            @endif
 
             {{-- Gespeicherte Ziele --}}
             <div class="flex flex-wrap items-center gap-2" x-show="ziele.length" x-cloak>

@@ -61,13 +61,7 @@
                         history.replaceState(null, '', u);
                     },
                  }">
-                <nav aria-label="{{ __('Bereiche') }}" class="np-segment">
-                    <button type="button" :aria-current="tab === 'overview' ? 'page' : null" @click="wechsleTab('overview')">{{ __('Übersicht') }}</button>
-                    <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}">{{ __('Noten') }}</a>
-                    <a href="{{ route("{$bereich}.learners.documents.index", $lernender->lernender_id) }}">{{ __('Dokumente') }}</a>
-                    <a href="{{ route("{$bereich}.learners.calculator", $lernender->lernender_id) }}">{{ __('Rechner') }}</a>
-                    <button type="button" :aria-current="tab === 'profil' ? 'page' : null" @click="wechsleTab('profil')">{{ __('Profil & Betreuung') }}</button>
-                </nav>
+                @include('verwaltung.lernende._tabs', ['lernender' => $lernender, 'bereich' => $bereich, 'aktiv' => request('tab') === 'profil' ? 'profil' : 'overview', 'alpine' => true])
 
                 <div class="pt-4" x-show="tab === 'overview'">
                     @include('verwaltung.lernende._cockpit.uebersicht')

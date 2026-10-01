@@ -25,7 +25,7 @@
         : 'font-semibold text-text']) }} title="{{ $skala::stufeText($stufe) }}">{{ $skala::stufeKurz($stufe) }}</span>
 @elseif($wert === null)
     {{-- Platzhalter leicht und dünn in Sekundärfarbe: fett wirkte er als Heldenzahl wie ein Balken, zu blass wie ein Ladeplatzhalter (01.10.2026) --}}
-    <span {{ $attributes->merge(['class' => $klasse]) }}><span class="font-normal text-muted">{{ $skala::format(null, $anzeigeStellen) }}</span></span>
+    <span {{ $attributes->merge(['class' => $klasse]) }}><span @class(['font-normal text-muted', 'text-xl' => $variante === 'hero'])>{{ $skala::format(null, $anzeigeStellen) }}</span></span>
 @else
     <span {{ $attributes->merge(['class' => $klasse]) }}>{{ $skala::format($wert, $anzeigeStellen) }}</span>
 @endif
