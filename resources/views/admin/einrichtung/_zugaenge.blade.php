@@ -2,7 +2,7 @@
     <section class="np-karte overflow-hidden">
         <div class="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
             <h3 class="text-sm font-semibold text-text">{{ __('Zugänge') }} · {{ count($zugaenge) }}</h3>
-            <button type="button" onclick="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
+            <button type="button" x-data x-on:click="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
         </div>
         <div class="overflow-x-auto px-2 pb-2">
             <table class="np-tabelle text-sm">

@@ -11,18 +11,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        {{-- Modus hell/dunkel vor CSS setzen, damit nichts flackert (Theme kommt serverseitig) --}}
-        <script>
-            (function () {
-                try {
-                    const stored = localStorage.getItem('theme'); // 'dark' | 'light' | null
-                    const useDark = stored ? (stored === 'dark') : true;
-                    document.documentElement.classList.toggle('dark', useDark);
-                } catch (e) {
-                    // Falls localStorage blockiert ist: nichts tun
-                }
-            })();
-        </script>
+        @include('layouts._darstellung')
 
         @if(app()->getLocale() !== 'de')<script>window.npI18n = {{ \Illuminate\Support\Js::from(\App\Support\JsTexte::uebersetzt()) }};</script>@endif<title>{{ isset($title) ? $title . " – " . config("app.name", "Notenportal") : config("app.name", "Notenportal") }}</title>
         <link rel="icon" type="image/svg+xml" href="/favicon.svg">

@@ -15,7 +15,7 @@
                     <div>
                         <label for="modul_nummer" class="text-sm font-medium text-text">{{ __('Modulnummer') }} *</label>
                         <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
-                               class="np-feld mt-1 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 max-w-48 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
                         @error('modul_nummer')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -31,15 +31,14 @@
                     </div>
 
                     <div>
-                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}
-                            <span class="text-xs font-normal">({{ __('optional, nur für Module aus dem Modulbaukasten') }})</span></label>
-                        <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2"
-                               class="np-feld mt-1 tabular-nums @error('version') border-note-ungenuegend @enderror">
+                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}</label>
+                        <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2" placeholder="1" aria-describedby="version-hilfe"
+                               class="np-feld mt-1 max-w-24 tabular-nums @error('version') border-note-ungenuegend @enderror">
                         @error('version')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
                         @php($mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $modul->version))
-                        <p class="mt-1 text-xs text-muted">
+                        <p id="version-hilfe" class="mt-1 text-xs text-muted">
                             @if($mbk)
                                 <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer" class="text-accent-text underline underline-offset-2">{{ __('Im Modulbaukasten öffnen') }}</a>
                             @else
@@ -49,7 +48,7 @@
                     </div>
 
                     <div>
-                        <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }} <span class="text-xs font-normal">({{ __('optional') }})</span></label>
+                        <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }}</label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
                                   class="np-feld mt-1 @error('beschreibung') border-note-ungenuegend @enderror">{{ old('beschreibung', $modul->beschreibung) }}</textarea>
                         @error('beschreibung')
@@ -62,7 +61,7 @@
                         <input type="number" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default"
                                value="{{ old('ziel_gewicht_summe_default', $modul->ziel_gewicht_summe_default) }}"
                                step="0.01" min="0"
-                               class="np-feld mt-1 @error('ziel_gewicht_summe_default') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 max-w-32 tabular-nums @error('ziel_gewicht_summe_default') border-note-ungenuegend @enderror">
                         @error('ziel_gewicht_summe_default')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror

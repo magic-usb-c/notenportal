@@ -193,7 +193,7 @@
                   role="dialog" aria-modal="true" aria-labelledby="assign-module-title" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="assign-module-title" class="text-lg font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
+                    <h2 id="assign-module-title" class="text-base font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
                     <div>
                         <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul') }} *</label>
                         <select id="modul_id" name="modul_id" required class="{{ $feld }}"
@@ -244,7 +244,7 @@
                   role="dialog" aria-modal="true" aria-labelledby="assign-subject-title" x-data="{ loading: false }" @submit="loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="assign-subject-title" class="text-lg font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
+                    <h2 id="assign-subject-title" class="text-base font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
                     <div>
                         <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach') }} *</label>
                         <select id="fach_id" name="fach_id" required class="{{ $feld }}"

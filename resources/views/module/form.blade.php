@@ -24,10 +24,10 @@
                     @endunless
 
                     <div>
-                        <label for="modul_nummer" class="{{ $label }}">{{ __('Modulnummer') }} * <span class="text-xs font-normal">({{ __('z.B. M100') }})</span></label>
-                        <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
+                        <label for="modul_nummer" class="{{ $label }}">{{ __('Modulnummer') }} *</label>
+                        <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50" placeholder="M100"
                                @unless($neu || auth()->user()->hasRole('Admin')) readonly @endunless
-                               class="{{ $feld }} tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
+                               class="{{ $feld }} max-w-48 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
                         @unless($neu || auth()->user()->hasRole('Admin'))
                             <p class="mt-1 text-xs text-muted">{{ __('Die Nummer bleibt fest: an ihr hängen die Noten aller, die dieses Modul führen.') }}</p>
                         @endunless
@@ -42,34 +42,34 @@
                     </div>
 
                     <div>
-                        <label for="version" class="{{ $label }}">{{ __('Katalogversion') }}
-                            <span class="text-xs font-normal">({{ __('optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten') }})</span></label>
-                        <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2"
-                               class="{{ $feld }} tabular-nums @error('version') border-note-ungenuegend @enderror">
+                        <label for="version" class="{{ $label }}">{{ __('Katalogversion') }}</label>
+                        <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2" placeholder="1" aria-describedby="version-hilfe"
+                               class="{{ $feld }} max-w-24 tabular-nums @error('version') border-note-ungenuegend @enderror">
+                        <p id="version-hilfe" class="mt-1 text-xs text-muted">{{ __('Erzeugt den Verweis auf den Modulbaukasten.') }}</p>
                         @error('version')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
-                        <label for="link" class="{{ $label }}">{{ __('Verweis') }} <span class="text-xs font-normal">({{ __('optional, z.B. die Modulseite der Schule') }})</span></label>
-                        <input type="url" id="link" name="link" value="{{ old('link', $modul->link) }}" maxlength="500" placeholder="https://"
+                        <label for="link" class="{{ $label }}">{{ __('Verweis') }}</label>
+                        <input type="url" id="link" name="link" value="{{ old('link', $modul->link) }}" maxlength="500" placeholder="https://" aria-describedby="link-hilfe"
                                class="{{ $feld }} @error('link') border-note-ungenuegend @enderror">
+                        <p id="link-hilfe" class="mt-1 text-xs text-muted">{{ __('Etwa die Modulseite der Schule.') }}</p>
                         @error('link')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
-                        <label for="beschreibung" class="{{ $label }}">{{ __('Beschreibung') }} <span class="text-xs font-normal">({{ __('optional') }})</span></label>
+                        <label for="beschreibung" class="{{ $label }}">{{ __('Beschreibung') }}</label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
                                   class="{{ $feld }} @error('beschreibung') border-note-ungenuegend @enderror">{{ old('beschreibung', $modul->beschreibung) }}</textarea>
                         @error('beschreibung')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
-                        <label for="handlungsziele" class="{{ $label }}">{{ __('Handlungsziele und Handlungskompetenzen') }}
-                            <span class="text-xs font-normal">({{ __('optional, eine Zeile je Ziel – eine führende Nummer wird übernommen') }})</span></label>
-                        <textarea id="handlungsziele" name="handlungsziele" rows="8" maxlength="8000"
+                        <label for="handlungsziele" class="{{ $label }}">{{ __('Handlungsziele und Handlungskompetenzen') }}</label>
+                        <textarea id="handlungsziele" name="handlungsziele" rows="8" maxlength="8000" aria-describedby="handlungsziele-hilfe"
                                   placeholder="{{ __('1 Analysiert die Ausgangslage und leitet Anforderungen ab.') }}"
                                   class="{{ $feld }} @error('handlungsziele') border-note-ungenuegend @enderror">{{ old('handlungsziele', $ziele) }}</textarea>
-                        <p class="mt-1 text-xs text-muted">{{ __('Leer lassen ändert die bestehenden Ziele nicht.') }}</p>
+                        <p id="handlungsziele-hilfe" class="mt-1 text-xs text-muted">{{ __('Eine Zeile je Ziel, eine führende Nummer wird übernommen.') }}@unless($neu) {{ __('Leer lassen ändert die bestehenden Ziele nicht.') }}@endunless</p>
                         @error('handlungsziele')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 

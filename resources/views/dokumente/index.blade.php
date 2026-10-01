@@ -121,7 +121,7 @@
                   x-data="{ loading: false, name: '', ueber: false }" @submit="if (! $event.defaultPrevented) loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
-                    <h2 id="upload-document-title" class="text-lg font-semibold text-text">{{ __('Dokument hochladen') }}</h2>
+                    <h2 id="upload-document-title" class="text-base font-semibold text-text">{{ __('Dokument hochladen') }}</h2>
 
                     <div>
                         <label for="datei" class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors duration-100"

@@ -17,20 +17,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        {{-- Darstellung: im Profil gespeichert (hell/dunkel) oder wie Gerät; vor CSS setzen, damit nichts flackert --}}
+        @include('layouts._darstellung')
         <script>
-            (function () {
-                const gespeichert = @js($darstellung);
-                window.npDarstellung = gespeichert;
-                if (gespeichert !== 'system') return;
-                let dunkel = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                try {
-                    const lokal = localStorage.getItem('theme');
-                    if (lokal) dunkel = lokal === 'dark';
-                } catch (e) {}
-                document.documentElement.classList.toggle('dark', dunkel);
-            })();
-
             {{-- Meldung im vorhandenen Toast (siehe <x-toast> weiter unten),
                  wenn ein optimistisch übernommener Schnellwechsel nicht gespeichert werden konnte. --}}
             function npFehlermeldung() {
@@ -38,8 +26,19 @@
             }
 
             window.npToggleTheme = function () {
-                const vorherDunkel = document.documentElement.classList.contains('dark');
-                const dunkel = document.documentElement.classList.toggle('dark');
+                const vorher = window.npDarstellung;
+                const dunkel = !document.documentElement.classList.contains('dark');
+                const zurueck = function () {
+                    window.npDarstellung = vorher;
+                    window.npDarstellungAnwenden();
+                    try {
+                        if (vorher === 'system') localStorage.removeItem('theme');
+                        else localStorage.setItem('theme', vorher === 'dunkel' ? 'dark' : 'light');
+                    } catch (e) {}
+                    npFehlermeldung();
+                };
+                window.npDarstellung = dunkel ? 'dunkel' : 'hell';
+                window.npDarstellungAnwenden();
                 try { localStorage.setItem('theme', dunkel ? 'dark' : 'light'); } catch (e) {}
                 fetch(@js(route('profile.appearance')), {
                     method: 'PATCH',
@@ -50,15 +49,8 @@
                     },
                     body: JSON.stringify({ darstellung: dunkel ? 'dunkel' : 'hell' }),
                 }).then(function (antwort) {
-                    if (antwort.ok) return;
-                    document.documentElement.classList.toggle('dark', vorherDunkel);
-                    try { localStorage.setItem('theme', vorherDunkel ? 'dark' : 'light'); } catch (e) {}
-                    npFehlermeldung();
-                }).catch(function () {
-                    document.documentElement.classList.toggle('dark', vorherDunkel);
-                    try { localStorage.setItem('theme', vorherDunkel ? 'dark' : 'light'); } catch (e) {}
-                    npFehlermeldung();
-                });
+                    if (!antwort.ok) zurueck();
+                }).catch(zurueck);
             };
 
             {{-- Schnellwechsel aus der Befehlspalette (resources/js/suche.js): '#art:wert' –
@@ -75,7 +67,7 @@
                 const neutral = { schrift: 'normal', dichte: 'normal', diagramm: 'standard' };
 
                 const vorher = {
-                    dunkel: root.classList.contains('dark'),
+                    darstellung: window.npDarstellung,
                     theme: root.dataset.theme,
                     schrift: root.dataset.schrift,
                     dichte: root.dataset.dichte,
@@ -83,7 +75,12 @@
                     navigation: root.dataset.navigation,
                 };
                 const zuruecksetzen = function () {
-                    root.classList.toggle('dark', vorher.dunkel);
+                    window.npDarstellung = vorher.darstellung;
+                    window.npDarstellungAnwenden();
+                    try {
+                        if (vorher.darstellung === 'system') localStorage.removeItem('theme');
+                        else localStorage.setItem('theme', vorher.darstellung === 'dunkel' ? 'dark' : 'light');
+                    } catch (e) {}
                     if (vorher.theme === undefined) delete root.dataset.theme; else root.dataset.theme = vorher.theme;
                     if (vorher.schrift === undefined) delete root.dataset.schrift; else root.dataset.schrift = vorher.schrift;
                     if (vorher.dichte === undefined) delete root.dataset.dichte; else root.dataset.dichte = vorher.dichte;
@@ -94,14 +91,11 @@
                 };
 
                 if (art === 'darstellung') {
-                    let dunkel = wert === 'dunkel';
-                    if (wert === 'system') {
-                        dunkel = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-                    }
-                    root.classList.toggle('dark', dunkel);
+                    window.npDarstellung = wert;
+                    window.npDarstellungAnwenden();
                     try {
                         if (wert === 'system') localStorage.removeItem('theme');
-                        else localStorage.setItem('theme', dunkel ? 'dark' : 'light');
+                        else localStorage.setItem('theme', wert === 'dunkel' ? 'dark' : 'light');
                     } catch (e) {}
                 } else if (art === 'theme') {
                     root.dataset.theme = wert;

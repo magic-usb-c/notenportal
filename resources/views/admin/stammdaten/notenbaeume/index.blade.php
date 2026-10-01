@@ -73,7 +73,7 @@
               x-data="{ loading: false, vorlage: @js(old('vorlage', array_key_first($vorlagen) ?? '')), bezuege: @js($bezuege) }" @submit="loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
-                <h2 id="load-grade-tree-template-title" class="text-lg font-semibold text-text">{{ __('Vorlage laden') }}</h2>
+                <h2 id="load-grade-tree-template-title" class="text-base font-semibold text-text">{{ __('Vorlage laden') }}</h2>
                 <div>
                     <label for="vorlage" class="text-sm font-medium text-text">{{ __('Vorlage') }} *</label>
                     <select id="vorlage" name="vorlage" x-model="vorlage" required class="{{ $feld }}" @error('vorlage') aria-invalid="true" aria-describedby="vorlage-fehler" @enderror>
@@ -107,7 +107,7 @@
               aria-labelledby="import-grade-tree-title" x-data="{ loading: false }" @submit="loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
-                <h2 id="import-grade-tree-title" class="text-lg font-semibold text-text">{{ __('Datei importieren') }}</h2>
+                <h2 id="import-grade-tree-title" class="text-base font-semibold text-text">{{ __('Datei importieren') }}</h2>
                 <div>
                     <label for="datei" class="text-sm font-medium text-text">{{ __('Datei (JSON)') }} *</label>
                     <x-datei-feld id="datei" name="datei" accept=".json,application/json" required

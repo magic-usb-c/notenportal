@@ -35,7 +35,7 @@
         </div>
         <span class="px-3 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
         <span class="px-3 text-right"><x-note :wert="$n->note_wert" :stufe="$n->note_stufe" /></span>
-        <div class="flex items-center justify-end pr-2.5" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-end pr-2.5" x-on:click.stop>
             <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
                @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
                class="np-knopf np-knopf-symbol"><x-symbol name="pencil-square" />

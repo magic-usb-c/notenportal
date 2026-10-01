@@ -262,7 +262,7 @@
                          «aus», das Häkchen überschreibt es mit «an» (gleicher Name, das letzte Feld gewinnt). --}}
                     <x-einstellung :label="__('Tastenkürzel')" fuer="tastenkuerzel" name="tastenkuerzel">
                         @if($altTastenkuerzel === 'an')
-                            <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-tastenkuerzel'))"
+                            <button type="button" x-data x-on:click="$dispatch('open-tastenkuerzel')"
                                     class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Anzeigen') }}</button>
                         @endif
                         <input type="hidden" name="tastenkuerzel" value="aus">

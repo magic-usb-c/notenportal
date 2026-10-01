@@ -49,7 +49,7 @@
         <label for="note_wert" class="{{ $label }}">{{ __('Note') }} *</label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
                x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
-               class="np-feld h-20 w-36 border-2 text-center text-4xl font-semibold tabular-nums">
+               class="np-feld h-20 w-36 border-2 text-center text-3xl font-semibold tabular-nums">
         @error('note_wert')<p id="note_wert-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 

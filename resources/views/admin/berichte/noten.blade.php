@@ -26,7 +26,7 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Berichte')" :untertitel="$semesterName">
             <x-slot:aktionen>
-                <button type="button" onclick="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
+                <button type="button" x-data x-on:click="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
                 <a href="{{ route('admin.reports.grades.export', $filterParameter) }}" class="np-knopf np-knopf-sekundaer print:hidden">
                     <x-symbol name="arrow-down-tray" />{{ __('Exportieren') }}
                 </a>

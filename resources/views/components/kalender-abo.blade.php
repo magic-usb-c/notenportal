@@ -6,7 +6,7 @@
 @endphp
 <div class="np-karte np-gruppe">
     <div class="flex items-center gap-2 px-4 py-3" x-data="{ kopiert: false }">
-        <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" onclick="this.select()" aria-label="{{ __('Abo-Link') }}"
+        <input type="text" readonly value="{{ $exportUrl }}" x-ref="link" x-on:click="$el.select()" aria-label="{{ __('Abo-Link') }}"
                class="np-feld min-w-0 flex-1 font-mono text-xs">
         <button type="button" class="np-knopf np-knopf-sekundaer min-w-24 shrink-0"
                 @click="if (await np.kopieren($refs.link.value)) { kopiert = true; setTimeout(() => kopiert = false, 2000) } else { $refs.link.select() }">

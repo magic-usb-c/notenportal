@@ -19,6 +19,8 @@ if [[ "$datei" != */views/mail/* && "$datei" != */views/vendor/mail/* && "$datei
     [[ -n "$akzent" ]] && befunde+="text-accent für Text (eigene Akzentfarbe garantiert nur 3:1) – text-accent-text verwenden:\n$akzent\n"
     versal="$(grep -nE "uppercase[^\"]*tracking-widest|tracking-widest[^\"]*uppercase|font-(extrabold|black)" "$datei")"
     [[ -n "$versal" ]] && befunde+="Versalien-Label oder font-extrabold/black (Satzschreibung text-sm font-medium, Gewicht höchstens font-bold):\n$versal\n"
+    groesse="$(grep -nE "(^|[\" ':])text-([4-9]xl|\[[0-9.]+(px|rem|em)\])([\"' /]|$)|style=\"[^\"]*font-size" "$datei")"
+    [[ -n "$groesse" ]] && befunde+="Schriftgrösse ausserhalb der Skala (nur text-3xs … text-3xl, text-display; fehlende Stufe als Token in app.css):\n$groesse\n"
 fi
 
 [[ -z "$befunde" ]] && exit 0

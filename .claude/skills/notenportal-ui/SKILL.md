@@ -71,12 +71,14 @@ damit die persönliche Schriftgrösse alles mitskaliert. Kein eigenes Tracking (
 | `text-lg` | 17/22 | Title 2 | Abschnittstitel auf Leseseiten |
 | `text-xl` | 22/26 | Title 1 | Kennzahl in Kacheln |
 | `text-2xl` | 26/32 | Large Title | **Seitentitel h1** (nur über `<x-seitenkopf>`, `font-bold`) |
+| `text-3xl` | 36/40 | – | grosse Ziffer: Noteneingabe, Gesamtschnitt im Cockpit |
 | `text-display` | 48 px | – | **eine** Heldenzahl pro Seite |
 
 - Labels in Satzschreibung: `text-sm font-medium text-text`; Pflichtfeld mit ` *` im Label (gleiche Farbe, kein Rot).
   **Verboten:** `uppercase tracking-widest`-Labels, `font-extrabold`, `font-black`. `font-bold` nur für h1 (Large Title) und die Heldenzahl.
 - `tabular-nums` nur, wo Zahlen untereinander stehen (Tabellen, Listen). Zahlenspalten rechtsbündig.
-- Schriftgrössen nie hart setzen (`text-[15px]`, `style="font-size:…"`) – nur die Klassen oben.
+- Schriftgrössen nie hart setzen (`text-[15px]`, `style="font-size:…"`) – nur die Klassen oben. Tailwinds übrige Stufen
+  (`text-4xl` …) sind per `--text-*: initial` abgeschaltet und erzeugen kein CSS; der View-Hook meldet sie.
   Wer eine Stufe vermisst, ergänzt sie als Token, nicht in der View.
 
 ## 5. Flächen, Materialien, Radien, Abstände

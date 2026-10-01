@@ -169,7 +169,7 @@
                                         <header class="flex items-start gap-4 border-b border-border px-6 py-5">
                                             <span class="np-monogramm size-10 shrink-0 text-sm" aria-hidden="true">{{ mb_strtoupper(mb_substr($m->vorname ?? '', 0, 1).mb_substr($m->nachname ?? '', 0, 1)) ?: '?' }}</span>
                                             <div class="min-w-0 flex-1">
-                                                <h2 id="meldung-titel-{{ $id }}" class="truncate text-lg font-semibold text-text">{{ $name($m) }}</h2>
+                                                <h2 id="meldung-titel-{{ $id }}" class="truncate text-base font-semibold text-text">{{ $name($m) }}</h2>
                                                 <p class="truncate text-sm text-muted">{{ $m->email }}@if($rollen) <span aria-hidden="true">·</span> {{ $rollen }}@endif</p>
                                             </div>
                                             <time datetime="{{ $m->erstellt_am->toIso8601String() }}" class="shrink-0 pt-1 text-sm tabular-nums text-muted">

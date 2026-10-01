@@ -39,8 +39,9 @@
                         @error('email')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div>
-                        <label for="benutzername" class="{{ $label }}">{{ __('Benutzername *') }} <span class="font-normal">{{ __('(Buchstaben, Ziffern, . _ -)') }}</span></label>
-                        <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername') }}" required maxlength="50" class="{{ $feld }} tabular-nums">
+                        <label for="benutzername" class="{{ $label }}">{{ __('Benutzername *') }}</label>
+                        <input id="benutzername" type="text" name="benutzername" value="{{ old('benutzername') }}" required maxlength="50" aria-describedby="benutzername-hilfe" class="{{ $feld }} tabular-nums">
+                        <p id="benutzername-hilfe" class="mt-1 text-xs text-muted">{{ __('Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich.') }}</p>
                         @error('benutzername')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                 </div>

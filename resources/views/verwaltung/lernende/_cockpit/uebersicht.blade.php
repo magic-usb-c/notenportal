@@ -3,7 +3,7 @@
     $delta = $stand->delta();
     $heute = today();
 @endphp
-<div class="grid grid-cols-12 gap-5">
+<div class="grid grid-cols-12 items-start gap-5">
     <div class="col-span-8 flex flex-col gap-5">
         {{-- Stand --}}
         <section class="np-karte p-5 flex flex-wrap items-center gap-6">
@@ -13,7 +13,7 @@
                 @else
                     <div class="text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
                 @endif
-                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="block text-4xl mt-0.5" />
+                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="mt-0.5 block text-3xl" />
             </div>
             <x-sparkline :werte="$stand->verlauf" :breite="140" :hoehe="40" :zahl="false" />
             <div class="ml-auto text-right">
@@ -32,7 +32,7 @@
         </section>
 
         {{-- Zeugnisnoten --}}
-        <x-karte :titel="__('Zeugnisnoten')" :polster="false" class="flex-1">
+        <x-karte :titel="__('Zeugnisnoten')" :polster="false">
             @if($heatmap['gruppen'])
                 <div class="px-5 pb-2 pt-1"><x-noten-legende art="zellen" /></div>
             @endif

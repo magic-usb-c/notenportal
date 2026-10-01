@@ -29,7 +29,7 @@
                  role="dialog" aria-modal="false" aria-labelledby="feedback-panel-titel"
                  class="absolute right-8 top-full z-50 mt-1 max-h-[calc(100dvh-5rem)] w-104 overflow-y-auto rounded-2xl border border-border bg-card p-5 text-text shadow-e3">
                 <div class="mb-1 flex items-center justify-between">
-                    <h2 id="feedback-panel-titel" class="text-lg font-semibold text-text">{{ __('Feedback melden') }}</h2>
+                    <h2 id="feedback-panel-titel" class="text-base font-semibold text-text">{{ __('Feedback melden') }}</h2>
                     <button type="button" @click="schliessen()" aria-label="{{ __('Schliessen') }}" class="np-knopf np-knopf-symbol -mr-1.5">
                         <x-symbol name="x-mark" strich="2" />
                     </button>

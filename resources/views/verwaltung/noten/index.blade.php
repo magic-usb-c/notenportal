@@ -72,7 +72,7 @@
             <x-filterleiste :action="$zuruecksetzen" :zaehler="$notes->total()" zaehler-label="{{ __('Prüfungen') }}"
                             :zurueck="$zuruecksetzen" :aktive-filter="(int) request()->filled('kategorie_id') + (int) request()->filled('semester_id')">
                 <label for="lernenden_wechseln" class="sr-only">{{ __('Lernender') }}</label>
-                <select id="lernenden_wechseln" class="np-feld np-feld-klein w-auto max-w-64" onchange="if (this.value) window.location.href = this.value">
+                <select id="lernenden_wechseln" class="np-feld np-feld-klein w-auto max-w-64" x-data x-on:change="if ($el.value) window.location.href = $el.value">
                     @foreach($switcher as $l)
                         <option value="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}" @selected($l->lernender_id === $lernender->lernender_id)>
                             {{ $l->benutzer->nachname }} {{ $l->benutzer->vorname }}

@@ -92,6 +92,9 @@
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* Nur diese Skala: Tailwinds übrige Stufen (text-4xl …) gibt es nicht. */
+  --text-*: initial;
+
   --text-3xs: 0.625rem;
   --text-3xs--line-height: 0.8125rem;
   --text-2xs: 0.6875rem;
@@ -108,6 +111,8 @@
   --text-xl--line-height: 1.625rem;
   --text-2xl: 1.625rem;
   --text-2xl--line-height: 2rem;
+  --text-3xl: 2.25rem;              /* grosse Ziffer: Noteneingabe, Gesamtschnitt im Cockpit */
+  --text-3xl--line-height: 2.5rem;
   --text-display: 3rem;             /* eine Heldenzahl pro Seite */
   --text-display--line-height: 1;
   --text-display--font-weight: 650;

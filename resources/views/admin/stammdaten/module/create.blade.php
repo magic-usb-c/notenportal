@@ -12,9 +12,9 @@
                     @csrf
 
                     <div>
-                        <label for="modul_nummer" class="text-sm font-medium text-text">{{ __('Modulnummer') }} * <span class="text-xs font-normal">({{ __('z.B. M100') }})</span></label>
-                        <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer') }}" required maxlength="50"
-                               class="np-feld mt-1 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
+                        <label for="modul_nummer" class="text-sm font-medium text-text">{{ __('Modulnummer') }} *</label>
+                        <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer') }}" required maxlength="50" placeholder="M100"
+                               class="np-feld mt-1 max-w-48 tabular-nums @error('modul_nummer') border-note-ungenuegend @enderror">
                         @error('modul_nummer')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -30,17 +30,17 @@
                     </div>
 
                     <div>
-                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}
-                            <span class="text-xs font-normal">({{ __('optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten') }})</span></label>
-                        <input type="text" id="version" name="version" value="{{ old('version') }}" inputmode="numeric" maxlength="2"
-                               class="np-feld mt-1 tabular-nums @error('version') border-note-ungenuegend @enderror">
+                        <label for="version" class="text-sm font-medium text-text">{{ __('Katalogversion') }}</label>
+                        <input type="text" id="version" name="version" value="{{ old('version') }}" inputmode="numeric" maxlength="2" placeholder="1" aria-describedby="version-hilfe"
+                               class="np-feld mt-1 max-w-24 tabular-nums @error('version') border-note-ungenuegend @enderror">
+                        <p id="version-hilfe" class="mt-1 text-xs text-muted">{{ __('Erzeugt den Verweis auf den Modulbaukasten.') }}</p>
                         @error('version')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }} <span class="text-xs font-normal">({{ __('optional') }})</span></label>
+                        <label for="beschreibung" class="text-sm font-medium text-text">{{ __('Beschreibung') }}</label>
                         <textarea id="beschreibung" name="beschreibung" rows="3" maxlength="2000"
                                   class="np-feld mt-1 @error('beschreibung') border-note-ungenuegend @enderror">{{ old('beschreibung') }}</textarea>
                         @error('beschreibung')
@@ -49,10 +49,10 @@
                     </div>
 
                     <div>
-                        <label for="ziel_gewicht_summe_default" class="text-sm font-medium text-text">{{ __('Ziel-Gewicht-Summe') }} <span class="text-xs font-normal">({{ __('Standard: 100') }})</span></label>
+                        <label for="ziel_gewicht_summe_default" class="text-sm font-medium text-text">{{ __('Ziel-Gewicht-Summe') }}</label>
                         <input type="number" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default" value="{{ old('ziel_gewicht_summe_default', 100) }}"
                                step="0.01" min="0"
-                               class="np-feld mt-1 @error('ziel_gewicht_summe_default') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 max-w-32 tabular-nums @error('ziel_gewicht_summe_default') border-note-ungenuegend @enderror">
                         @error('ziel_gewicht_summe_default')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror

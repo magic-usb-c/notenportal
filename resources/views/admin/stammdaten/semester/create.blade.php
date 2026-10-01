@@ -12,9 +12,9 @@
                     @csrf
 
                     <div>
-                        <label for="bezeichnung" class="text-sm font-medium text-text">{{ __('Bezeichnung') }} * <span class="text-xs font-normal">({{ __('z.B. 2025/1') }})</span></label>
-                        <input type="text" id="bezeichnung" name="bezeichnung" value="{{ old('bezeichnung') }}" required maxlength="20"
-                               class="np-feld mt-1 @error('bezeichnung') border-note-ungenuegend @enderror">
+                        <label for="bezeichnung" class="text-sm font-medium text-text">{{ __('Bezeichnung') }} *</label>
+                        <input type="text" id="bezeichnung" name="bezeichnung" value="{{ old('bezeichnung') }}" required maxlength="20" placeholder="2025/1"
+                               class="np-feld mt-1 max-w-48 @error('bezeichnung') border-note-ungenuegend @enderror">
                         @error('bezeichnung')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror
@@ -42,7 +42,7 @@
                     <div>
                         <label for="sortierung" class="text-sm font-medium text-text">{{ __('Sortierung') }}</label>
                         <input type="number" id="sortierung" name="sortierung" value="{{ old('sortierung') }}" min="0"
-                               class="np-feld mt-1 @error('sortierung') border-note-ungenuegend @enderror">
+                               class="np-feld mt-1 max-w-24 tabular-nums @error('sortierung') border-note-ungenuegend @enderror">
                         @error('sortierung')
                             <p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>
                         @enderror

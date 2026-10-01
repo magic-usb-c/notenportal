@@ -385,10 +385,6 @@
     "Offline": "Offline",
     "Ohne Version gibt es keinen Verweis auf den Modulbaukasten.": "Without a version there is no link to the Modulbaukasten.",
     "Online": "Online",
-    "optional, eine Zeile je Ziel – eine führende Nummer wird übernommen": "optional, one line per objective – a leading number is kept",
-    "optional, nur für Module aus dem Modulbaukasten": "optional, only for modules from the Modulbaukasten",
-    "optional, z.B. 1 – erzeugt den Verweis auf den Modulbaukasten": "optional, e.g. 1 – creates the link to the Modulbaukasten",
-    "optional, z.B. die Modulseite der Schule": "optional, e.g. the school's module page",
     "Orange": "Orange",
     "Passwort": "Password",
     "Passwort aktualisiert.": "Password updated.",
@@ -602,5 +598,9 @@
     "Element": "Component",
     "Prüfungsform": "Assessment type",
     "Gewicht": "Weight",
-    "In deinen Modulen": "In your modules"
+    "In deinen Modulen": "In your modules",
+    "Erzeugt den Verweis auf den Modulbaukasten.": "Creates the link to the Modulbaukasten.",
+    "Etwa die Modulseite der Schule.": "For example the school's module page.",
+    "Eine Zeile je Ziel, eine führende Nummer wird übernommen.": "One line per objective; a leading number is kept.",
+    "Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich.": "Letters, digits, full stop, underscore and hyphen."
 }
