@@ -339,6 +339,10 @@ class EnglischeSeitenTest extends TestCase
     {
         $spalten = [
             ['module', 'titel'],
+            ['module', 'beschreibung'],
+            ['modul_handlungsziele', 'text'],
+            ['modul_lbv_elemente', 'bezeichnung'],
+            ['modul_lbv_elemente', 'pruefungsform'],
             ['faecher', 'name'],
             ['lehrberufe', 'name'],
             ['kategorien', 'name'],

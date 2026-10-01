@@ -537,4 +537,96 @@ export function registriereAuswahlliste(Alpine) {
             });
         },
     }));
+
+    // Quellliste, deren Einträge eigene Seiten öffnen (x-data="npQuellliste({ name, suche })", Module): Tippen filtert
+    // ohne Neuladen, Pfeiltasten wandern durch die sichtbaren Einträge, Eingabe öffnet den ersten Treffer. Der Filter
+    // reist im Link mit, und die Liste steht auf der nächsten Seite wieder an derselben Stelle – wie eine Seitenleiste,
+    // die beim Wechsel stehen bleibt. Der Fokus kehrt zum gewählten Eintrag zurück, wenn er aus der Liste kam.
+    Alpine.data('npQuellliste', (cfg) => ({
+        q: cfg.suche ?? '',
+        treffer: 0,
+
+        init() {
+            this.filtern();
+            const liste = this.$refs.liste;
+            const stand = this.merken('lesen');
+            if (stand?.scroll !== undefined) liste.scrollTop = stand.scroll;
+            const aktiv = liste.querySelector('[aria-current="page"]');
+            if (!aktiv) return;
+            if (aktiv.offsetTop < liste.scrollTop || aktiv.offsetTop + aktiv.offsetHeight > liste.scrollTop + liste.clientHeight) {
+                liste.scrollTop = aktiv.offsetTop - (liste.clientHeight - aktiv.offsetHeight) / 2;
+            }
+            if (stand?.fokus) aktiv.focus({ preventScroll: true });
+        },
+
+        // Stand pro Fenster (sessionStorage); ohne Speicher (privates Fenster, gesperrt) bleibt die Liste einfach oben
+        merken(art, wert = null) {
+            const schluessel = `np-quellliste:${cfg.name}`;
+            try {
+                if (art === 'lesen') {
+                    const s = JSON.parse(sessionStorage.getItem(schluessel) ?? 'null');
+                    sessionStorage.removeItem(schluessel);
+                    return s;
+                }
+                sessionStorage.setItem(schluessel, JSON.stringify(wert));
+            } catch {
+                return null;
+            }
+            return null;
+        },
+
+        sichtbar() {
+            return [...this.$refs.liste.querySelectorAll('a[data-suchtext]:not([hidden])')];
+        },
+
+        filtern() {
+            const begriffe = this.q.trim().toLowerCase().split(/\s+/).filter(Boolean);
+            let n = 0;
+            this.$refs.liste.querySelectorAll('a[data-suchtext]').forEach((el) => {
+                const passt = begriffe.every((b) => el.dataset.suchtext.includes(b));
+                el.hidden = !passt;
+                if (passt) n++;
+            });
+            this.$refs.liste.querySelectorAll('[data-gruppe]').forEach((g) => {
+                g.hidden = !g.querySelector('a[data-suchtext]:not([hidden])');
+            });
+            this.treffer = n;
+        },
+
+        leeren(ev) {
+            if (!this.q) return;
+            ev.preventDefault();
+            this.q = '';
+            this.filtern();
+        },
+
+        ersten() {
+            this.sichtbar()[0]?.click();
+        },
+
+        // Klick auf einen Eintrag: Filter an den Link hängen, Scrollstand und Fokusherkunft merken
+        oeffnen(ev) {
+            const a = ev.target.closest('a[href]');
+            if (!a || ev.defaultPrevented) return;
+            const url = new URL(a.href);
+            const q = this.q.trim();
+            if (q) url.searchParams.set('suche', q);
+            else url.searchParams.delete('suche');
+            a.href = url.toString();
+            this.merken('schreiben', { scroll: this.$refs.liste.scrollTop, fokus: ev.detail === 0 });
+        },
+
+        bewegen(schritt) {
+            const liste = this.sichtbar();
+            if (!liste.length) return;
+            const i = liste.indexOf(document.activeElement);
+            if (i === 0 && schritt < 0) {
+                this.$root.querySelector('input[type="search"]')?.focus();
+                return;
+            }
+            const ziel = i === -1 ? liste[0] : liste[Math.min(i + schritt, liste.length - 1)];
+            ziel.focus({ preventScroll: true });
+            ziel.scrollIntoView({ block: 'nearest' });
+        },
+    }));
 }

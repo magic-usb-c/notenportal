@@ -11,6 +11,7 @@ use App\Services\Noten\NoteService;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -30,35 +31,65 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ModulController extends Controller
 {
+    /** Ohne Auswahl öffnet wie in Notizen das erste Modul – bei einer Suche der erste Treffer. */
     public function index(Request $request): View
     {
-        $suche = trim((string) $request->input('suche', ''));
+        $module = $this->liste();
+        $begriffe = $this->suchbegriffe($request);
+        $erstes = $module->first(fn (Modul $m) => collect($begriffe)->every(
+            fn (string $b) => str_contains(mb_strtolower($m->modul_nummer.' '.$m->titel), $b)
+        ));
 
-        $module = Modul::query()
-            ->select(['modul_id', 'modul_nummer', 'titel', 'version', 'quelle', 'aktiv'])
-            ->withCount(['handlungsziele', 'dokumente'])
-            ->when($suche !== '', function ($q) use ($suche) {
-                $like = '%'.addcslashes($suche, '%_\\').'%';
-                $q->where(fn ($w) => $w->where('modul_nummer', 'like', $like)->orWhere('titel', 'like', $like));
-            })
-            ->orderBy('modul_nummer')
-            ->paginate(50)
-            ->withQueryString();
-
-        return view('module.index', ['module' => $module, 'suche' => $suche]);
+        return $this->ansicht($request, $module, $erstes?->modul_id);
     }
 
-    public function show(int $modul_id): View
+    public function show(Request $request, int $modul_id): View
     {
-        $modul = Modul::query()
-            ->with(['handlungsziele', 'lbvElemente', 'dokumente.hochgeladenVon', 'ersteller'])
-            ->findOrFail($modul_id);
+        return $this->ansicht($request, $this->liste(), $modul_id);
+    }
 
-        return view('module.show', [
+    /**
+     * Quellliste links mit allen Modulen (gefiltert wird beim Tippen im Browser), rechts das gewählte Modul.
+     * Lernende sehen in der Liste, welche Module sie selbst führen.
+     *
+     * @param  Collection<int, Modul>  $module
+     */
+    private function ansicht(Request $request, Collection $module, ?int $modulId): View
+    {
+        $modul = $modulId === null ? null : Modul::query()
+            ->with(['handlungsziele', 'lbvElemente', 'dokumente.hochgeladenVon', 'ersteller'])
+            ->findOrFail($modulId);
+        $lernenderId = (int) ($request->user()->lernender?->lernender_id ?? 0);
+        $belegte = $lernenderId === 0 ? collect() : DB::table('modul_belegungen')
+            ->where('lernender_id', $lernenderId)->whereNull('end_datum')->pluck('modul_id')->map(fn ($id) => (int) $id);
+
+        return view('module.index', [
+            'module' => $module,
+            'suche' => implode(' ', $this->suchbegriffe($request, klein: false)),
             'modul' => $modul,
-            'belegt' => $this->istBelegt($modul->modul_id),
-            'mbkVersion' => $this->katalogversion($modul),
+            'belegte' => $belegte,
+            'belegt' => $modul !== null && $belegte->contains($modul->modul_id),
+            'mbkVersion' => $modul ? $this->katalogversion($modul) : null,
         ]);
+    }
+
+    /** @return Collection<int, Modul> */
+    private function liste(): Collection
+    {
+        return Modul::query()
+            ->select(['modul_id', 'modul_nummer', 'titel', 'aktiv'])
+            ->withCount('dokumente')
+            ->orderBy('modul_nummer')
+            ->get();
+    }
+
+    /** @return list<string> */
+    private function suchbegriffe(Request $request, bool $klein = true): array
+    {
+        $suche = mb_substr(trim((string) $request->input('suche', '')), 0, 100);
+        $begriffe = preg_split('/\s+/u', $klein ? mb_strtolower($suche) : $suche, -1, PREG_SPLIT_NO_EMPTY);
+
+        return $begriffe ?: [];
     }
 
     /**
@@ -255,18 +286,6 @@ class ModulController extends Controller
         return $ausZuordnung !== null && trim((string) $ausZuordnung) !== ''
             ? (string) $ausZuordnung
             : $modul->version;
-    }
-
-    /** Führt die angemeldete Person dieses Modul bereits selbst? (Nur Lernende haben Belegungen.) */
-    private function istBelegt(int $modulId): bool
-    {
-        $lernenderId = (int) (request()->user()->lernender?->lernender_id ?? 0);
-
-        return $lernenderId > 0 && DB::table('modul_belegungen')
-            ->where('lernender_id', $lernenderId)
-            ->where('modul_id', $modulId)
-            ->whereNull('end_datum')
-            ->exists();
     }
 
     private function darfNummerAendern(Request $request): bool

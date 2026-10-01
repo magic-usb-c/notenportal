@@ -73,6 +73,7 @@
                         @error('handlungsziele')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
 
+                    <p class="text-xs text-muted">{{ __('Was du hier ergänzt, steht sofort allen zur Verfügung. Deine Noten bleiben privat.') }}</p>
                     <x-formular-aktionen :abbrechen="$neu ? route('modules.index') : route('modules.show', $modul->modul_id)">{{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}</x-formular-aktionen>
                 </form>
             </div>

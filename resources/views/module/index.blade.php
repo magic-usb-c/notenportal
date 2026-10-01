@@ -1,68 +1,66 @@
 <x-app-layout>
-    <x-slot name="title">{{ __('Module') }}</x-slot>
+    <x-slot name="title">{{ $modul ? $modul->modul_nummer.' '.$modul->titel : __('Module') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Module')" :untertitel="__('Gemeinsame Modulliste – alle sehen dieselben Angaben.')">
+        <x-seitenkopf :titel="__('Module')" :zaehler="$module->count()">
             <x-slot:aktionen>
-                <a href="{{ route('modules.create') }}"
-                   class="np-knopf np-knopf-primaer">
-                    <x-symbol name="plus" strich="2" />{{ __('Modul anlegen') }}
-                </a>
+                <a href="{{ route('modules.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="plus" strich="2" />{{ __('Modul anlegen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-8 space-y-4">
-
-            <form method="GET" action="{{ route('modules.index') }}" class="flex items-center gap-3">
-                <x-suchfeld name="suche" :value="$suche" :platzhalter="__('Nummer oder Titel')" :label="__('Module suchen')"
-                            x-on:input.debounce.400ms="$el.form.requestSubmit()" class="w-full max-w-xs" />
-                @if($suche !== '')
-                    <a href="{{ route('modules.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Zurücksetzen') }}</a>
-                @endif
-                <noscript><button type="submit" class="np-knopf np-knopf-sekundaer">{{ __('Suchen') }}</button></noscript>
-            </form>
-
-            <div class="np-karte">
-                <div class="overflow-x-auto p-2">
-                    <table class="np-tabelle text-sm">
-                        <thead>
-                            <tr>
-                                <th scope="col">{{ __('Nummer') }}</th>
-                                <th scope="col">{{ __('Titel') }}</th>
-                                <th scope="col" class="text-right">{{ __('Ziele') }}</th>
-                                <th scope="col" class="text-right">{{ __('Unterlagen') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($module as $m)
-                                <tr>
-                                    <td class="whitespace-nowrap font-medium">
-                                        <a href="{{ route('modules.show', $m->modul_id) }}" class="text-text hover:text-accent-text">{{ $m->modul_nummer }}</a>
-                                        @if($m->version)<span class="ml-1.5 text-2xs font-normal text-muted">V{{ $m->version }}</span>@endif
-                                    </td>
-                                    <td class="text-text">
-                                        <a href="{{ route('modules.show', $m->modul_id) }}" class="hover:text-accent-text">{{ $m->titel }}</a>
-                                        @unless($m->aktiv)<span class="np-marke ml-2 text-muted">{{ __('Inaktiv') }}</span>@endunless
-                                    </td>
-                                    <td class="text-right text-muted">{{ $m->handlungsziele_count }}</td>
-                                    <td class="text-right text-muted">{{ $m->dokumente_count }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-muted">
-                                        {{ $suche !== '' ? __('Kein Modul gefunden. Leg es an, dann sehen es alle.') : __('Noch keine Module erfasst.') }}
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+        {{-- Wie Notizen: links die Quellliste aller Module (filtert beim Tippen), rechts das gewählte Modul --}}
+        <div class="np-seite mx-auto grid grid-cols-[22rem_minmax(0,1fr)] items-start gap-8 px-8">
+            <div class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex max-h-[calc(100dvh-var(--np-symbolleiste-hoehe)-2rem)] flex-col"
+                 x-data="npQuellliste({ name: 'module', suche: @js($suche) })">
+                <form method="GET" action="{{ route('modules.index') }}" role="search" class="p-3 pb-2" @submit.prevent="ersten()">
+                    <x-suchfeld name="suche" :value="$suche" :platzhalter="__('Nummer oder Titel')" :label="__('Module suchen')" autocomplete="off"
+                                x-model="q" x-on:input="filtern()" x-on:keydown.arrow-down.prevent="bewegen(1)" x-on:keydown.escape="leeren($event)" class="w-full" />
+                </form>
+                <nav x-ref="liste" class="relative flex min-h-0 flex-col gap-px overflow-y-auto p-1.5 pt-0" aria-label="{{ __('Module') }}"
+                     @click="oeffnen($event)" @keydown.arrow-down.prevent="bewegen(1)" @keydown.arrow-up.prevent="bewegen(-1)">
+                    @php
+                        // Lernende sehen ihre eigenen Module zuoberst, wie eine eigene Gruppe in der Seitenleiste
+                        $gruppen = $belegte->isEmpty() ? [[null, $module]] : [
+                            [__('Deine Module'), $module->filter(fn ($m) => $belegte->contains($m->modul_id))],
+                            [__('Weitere Module'), $module->reject(fn ($m) => $belegte->contains($m->modul_id))],
+                        ];
+                    @endphp
+                    @foreach($gruppen as [$gruppe, $eintraege])
+                        @continue($eintraege->isEmpty())
+                        <div data-gruppe class="flex flex-col gap-px">
+                            @if($gruppe)<h2 class="px-2.5 pb-1 pt-3 text-2xs font-semibold text-muted">{{ $gruppe }}</h2>@endif
+                            @foreach($eintraege as $m)
+                                <a href="{{ route('modules.show', $m->modul_id) }}" data-suchtext="{{ mb_strtolower($m->modul_nummer.' '.$m->titel) }}"
+                                   @if($modul?->modul_id === $m->modul_id) aria-current="page" @endif class="np-leistenzeile">
+                                    <span class="min-w-12 shrink-0 font-medium tabular-nums">{{ $m->modul_nummer }}</span>
+                                    <span @class(['min-w-0 flex-1 truncate', 'text-muted' => ! $m->aktiv])>{{ $m->titel }}</span>
+                                    @unless($m->aktiv)<span class="sr-only">({{ __('Inaktiv') }})</span>@endunless
+                                    @if($m->dokumente_count > 0)
+                                        <span class="flex shrink-0 items-center gap-0.5 text-xs tabular-nums text-muted" title="{{ __('Unterlagen') }}">
+                                            <x-symbol name="paper-clip" class="size-3.5" />{{ $m->dokumente_count }}<span class="sr-only"> {{ __('Unterlagen') }}</span>
+                                        </span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </div>
+                    @endforeach
+                    <p x-show="treffer === 0" x-cloak class="px-2.5 py-6 text-center text-sm text-muted">
+                        {{ $module->isEmpty() ? __('Noch keine Module erfasst.') : __('Kein Modul gefunden. Leg es an, dann sehen es alle.') }}
+                    </p>
+                </nav>
             </div>
 
-            <div class="px-1">{{ $module->links() }}</div>
-
-            <p class="px-1 text-xs text-muted">{{ __('Was du hier ergänzt, steht sofort allen zur Verfügung. Deine Noten bleiben privat.') }}</p>
+            <div class="min-w-0">
+                @if($modul)
+                    @include('module._detail')
+                @else
+                    <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
+                        {{ __('Noch keine Module erfasst.') }}
+                        <a href="{{ route('modules.create') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Modul anlegen') }}</a>
+                    </p>
+                @endif
+            </div>
         </div>
     </div>
 </x-app-layout>

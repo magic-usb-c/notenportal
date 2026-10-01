@@ -45,6 +45,28 @@ class DemoSeeder extends Seeder
         'Sicherheit umsetzen', 'Cloud betreiben', 'Daten auswerten',
     ];
 
+    /**
+     * Frei erfundene Modulinhalte für die Demo – je Schulthema eine Beschreibung und drei Handlungsziele.
+     * Absichtlich allgemein formuliert und nicht aus einem Modulkatalog übernommen.
+     */
+    private const array MODUL_INHALTE = [
+        'Daten modellieren' => ['Vom fachlichen Begriff zum normalisierten Datenmodell, das eine Anwendung trägt.', [
+            'Erfasst die Begriffe eines Auftrags und ihre Beziehungen in einem konzeptionellen Modell.',
+            'Leitet daraus ein logisches Modell ab und normalisiert es bis zur dritten Normalform.',
+            'Setzt das Modell in einer relationalen Datenbank mit Schlüsseln und Einschränkungen um.',
+        ]],
+        'Netzwerke aufbauen' => ['Ein kleines Firmennetz planen, in Betrieb nehmen und seine Erreichbarkeit nachweisen.', [
+            'Plant Adressbereiche und Segmente für einen vorgegebenen Standort.',
+            'Konfiguriert Switches und Router nach Plan und dokumentiert die Einstellungen.',
+            'Prüft die Verbindungen systematisch und hält die Ergebnisse in einem Protokoll fest.',
+        ]],
+        'Software testen' => ['Testfälle aus Anforderungen ableiten, automatisieren und die Ergebnisse nachvollziehbar festhalten.', [
+            'Leitet aus Anforderungen Testfälle mit Eingaben und erwarteten Ergebnissen ab.',
+            'Automatisiert wiederkehrende Tests und führt sie bei jeder Änderung aus.',
+            'Wertet Testergebnisse aus und meldet Fehler reproduzierbar.',
+        ]],
+    ];
+
     private const array UEK_THEMEN = ['Arbeitsplatz einrichten', 'Hardware in Betrieb nehmen', 'Kundensupport leisten', 'Web-Applikation umsetzen', 'Server betreiben'];
 
     private const array FAECHER = [
@@ -183,8 +205,20 @@ class DemoSeeder extends Seeder
 
     private function modul(int $lehrberufId, string $nummer, string $thema, int $semester, string $kategorie): array
     {
-        $id = DB::table('module')->where('modul_nummer', $nummer)->value('modul_id')
-            ?? DB::table('module')->insertGetId(['modul_nummer' => $nummer, 'titel' => $thema, 'ziel_gewicht_summe_default' => 100.00, 'aktiv' => 1]);
+        $id = DB::table('module')->where('modul_nummer', $nummer)->value('modul_id');
+        if ($id === null) {
+            [$beschreibung, $ziele] = self::MODUL_INHALTE[$thema] ?? [null, []];
+            $id = DB::table('module')->insertGetId(['modul_nummer' => $nummer, 'titel' => $thema, 'beschreibung' => $beschreibung, 'ziel_gewicht_summe_default' => 100.00, 'aktiv' => 1]);
+            foreach ($ziele as $i => $text) {
+                DB::table('modul_handlungsziele')->insert(['modul_id' => $id, 'nummer' => (string) ($i + 1), 'text' => $text, 'sortierung' => $i + 1]);
+            }
+            if ($ziele !== []) {
+                DB::table('modul_lbv_elemente')->insert([
+                    ['modul_id' => $id, 'bezeichnung' => 'Zwischenprüfung', 'gewichtung_prozent' => 40, 'pruefungsform' => 'Schriftlich', 'sortierung' => 1],
+                    ['modul_id' => $id, 'bezeichnung' => 'Praxisauftrag', 'gewichtung_prozent' => 60, 'pruefungsform' => 'Praktische Arbeit', 'sortierung' => 2],
+                ]);
+            }
+        }
 
         DB::table('lehrberuf_module')->updateOrInsert(
             ['lehrberuf_id' => $lehrberufId, 'modul_id' => $id],
