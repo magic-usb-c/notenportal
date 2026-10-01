@@ -156,7 +156,7 @@ class ModulController extends Controller
     public function dokumentSpeichern(Request $request, int $modul_id, Modulablage $ablage): RedirectResponse
     {
         $modul = Modul::query()->findOrFail($modul_id);
-        $request->validate(Modulablage::regeln(), [], ['datei' => __('Datei')]);
+        $request->validate(Modulablage::regeln());
 
         $dokument = $ablage->speichern(
             $modul,

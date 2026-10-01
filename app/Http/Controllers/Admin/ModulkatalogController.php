@@ -67,7 +67,7 @@ class ModulkatalogController extends Controller
             'datei' => ['required', 'file', 'max:'.self::MAX_KB, 'extensions:json', 'mimetypes:application/json,text/plain'],
             'ohne_berufe' => ['sometimes', 'boolean'],
             'eigene_uebernehmen' => ['sometimes', 'boolean'],
-        ], [], ['datei' => __('Datei')]);
+        ]);
 
         $datei = $request->file('datei');
         $ohneBerufe = $request->boolean('ohne_berufe');

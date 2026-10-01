@@ -65,9 +65,4 @@ class ProfileUpdateRequest extends FormRequest
             'nachname' => ['required', 'string', 'max:100'],
         ];
     }
-
-    public function attributes(): array
-    {
-        return ['current_password' => __('aktuelles Passwort')];
-    }
 }

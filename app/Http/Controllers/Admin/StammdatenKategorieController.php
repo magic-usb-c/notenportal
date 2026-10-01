@@ -39,7 +39,7 @@ class StammdatenKategorieController extends Controller
             'code' => ['required', 'string', 'max:30', 'unique:kategorien,code'],
             'name' => ['required', 'string', 'max:50', 'unique:kategorien,name'],
             'sortierung' => ['nullable', 'integer', 'min:0'],
-            ...$this->rechenregelRules(),
+            ...KategorieRegeln::regeln(),
         ]);
 
         $sortierung = $validated['sortierung'] ?? (DB::table('kategorien')->max('sortierung') ?? 0) + 1;
@@ -71,7 +71,7 @@ class StammdatenKategorieController extends Controller
             'name' => ['required', 'string', 'max:50', Rule::unique('kategorien', 'name')->ignore($kategorie_id, 'kategorie_id')],
             'sortierung' => ['nullable', 'integer', 'min:0'],
             'aktiv' => ['boolean'],
-            ...$this->rechenregelRules(),
+            ...KategorieRegeln::regeln(),
         ]);
 
         DB::table('kategorien')
@@ -87,14 +87,6 @@ class StammdatenKategorieController extends Controller
         return redirect()
             ->route('admin.master-data.categories.index')
             ->with('success', __('Kategorie aktualisiert.'));
-    }
-
-    /**
-     * Validierungsregeln für die Rechenregeln einer Kategorie (docs/notenlogik.md).
-     */
-    private function rechenregelRules(): array
-    {
-        return KategorieRegeln::regeln();
     }
 
     private function rechenregelWerte(array $validated): array

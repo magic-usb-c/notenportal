@@ -40,23 +40,6 @@ class EinrichtungController extends Controller
     /** Länge der Spalte lehrberufe.kuerzel; geprüft wird das grossgeschriebene Kürzel («ß» wird zu «SS»). */
     private const int KUERZEL_MAX = 10;
 
-    private const array ATTRIBUTE = [
-        'kategorien.*.name' => 'Name', 'kategorien.*.gewicht_gesamt' => 'Gewicht',
-        'kategorien.*.promotion_min_schnitt' => 'Promotion Ø', 'kategorien.*.promotion_max_ungenuegend' => 'max. ungenügend',
-        'kategorien.*.promotion_max_minuspunkte' => 'max. Minuspunkte',
-        'eigene.*.kuerzel' => 'Kürzel', 'eigene.*.name' => 'Lehrberuf',
-        'personen.*.vorname' => 'Vorname', 'personen.*.nachname' => 'Nachname', 'personen.*.email' => 'E-Mail', 'personen.*.rolle' => 'Rolle',
-        'lernende.*.vorname' => 'Vorname', 'lernende.*.nachname' => 'Nachname', 'lernende.*.email' => 'E-Mail',
-        'lernende.*.lehrberuf_id' => 'Lehrberuf', 'lernende.*.lehrbeginn' => 'Lehrbeginn', 'lernende.*.lehrende' => 'Lehrende',
-        'lernende.*.berufsbildner_id' => 'Berufsbildner', 'lernende.*.track' => 'Track',
-    ];
-
-    /** @return array<string, string> übersetzte Attribut-Labels für Validierungsmeldungen. */
-    private static function attribute(): array
-    {
-        return array_map('__', self::ATTRIBUTE);
-    }
-
     /** Startpasswörter bleiben bis zum Abschluss sichtbar (Session), damit keine Liste verloren geht. */
     private const string ZUGAENGE = 'einrichtung_zugaenge';
 
@@ -96,7 +79,7 @@ class EinrichtungController extends Controller
             'kategorien.*.name' => ['required', 'string', 'max:50', 'distinct'],
             'kategorien.*.aktiv' => ['boolean'],
             ...KategorieRegeln::regeln('kategorien.*.'),
-        ], [], self::attribute());
+        ]);
 
         $ids = DB::table('kategorien')->pluck('kategorie_id')->map(fn ($id) => (int) $id)->all();
         DB::transaction(function () use ($daten, $ids) {
@@ -186,7 +169,7 @@ class EinrichtungController extends Controller
             'faecher' => ['array'],
             'faecher.*' => ['string', Rule::in(array_map([StammdatenVorlage::class, 'fachSchluessel'], $vorlage['faecher'] ?? []))],
             'notenbaeume' => ['sometimes', 'boolean'],
-        ], [], self::attribute());
+        ]);
 
         // Das Kürzel eines Lehrberufs der Vorlage gehört diesem; unter fremdem Namen würde er falsch angelegt
         $vorlageBerufe = collect($vorlage['lehrberufe'] ?? [])->mapWithKeys(fn ($l) => [$l['kuerzel'] => mb_strtolower(trim($l['name']))]);
@@ -247,7 +230,7 @@ class EinrichtungController extends Controller
             'schule' => ['nullable', 'string', 'max:20000'],
             'uek' => ['nullable', 'string', 'max:20000'],
             'ziel' => ['required', 'numeric', 'min:1', 'max:9999'],
-        ]);
+        ], [], ['ziel' => __('Gewichtssumme je Modul')]);
 
         $kategorien = DB::table('kategorien')->whereIn('code', ['FACH', 'UEK'])->pluck('kategorie_id', 'code');
         $zeilen = [];
@@ -299,7 +282,7 @@ class EinrichtungController extends Controller
             'personen.*.nachname' => ['required', 'string', 'max:100'],
             'personen.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:benutzer,email'],
             'personen.*.rolle' => ['required', 'in:Berufsbildner,Admin'],
-        ], [], self::attribute());
+        ]);
 
         $rollen = DB::table('rollen')->pluck('rolle_id', 'name');
         $neueBenutzer = [];
@@ -350,7 +333,7 @@ class EinrichtungController extends Controller
             'lernende.*.lehrende' => ['nullable', 'date', 'after:lernende.*.lehrbeginn'],
             'lernende.*.berufsbildner_id' => ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')],
             'lernende.*.track' => ['nullable', 'in:BMS,ABU'],
-        ], [], self::attribute());
+        ]);
 
         $konfig = Konfiguration::ausDb();
         $fehler = [];

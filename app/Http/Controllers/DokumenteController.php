@@ -50,7 +50,7 @@ class DokumenteController extends Controller
 
         $regeln = Ablage::regeln();
         $regeln['pruefung_id'] = ['nullable', 'integer', Rule::exists('pruefungen', 'pruefung_id')->where('lernender_id', $lernender->lernender_id)];
-        $daten = $request->validate($regeln, [], ['datei' => __('Datei'), 'art' => __('Art'), 'semester_id' => __('Semester'), 'titel' => __('Titel')]);
+        $daten = $request->validate($regeln);
         $pruefungId = $daten['pruefung_id'] ?? null;
         $dokument = $this->ablage->speichern($lernender, $request->file('datei'), $daten, (int) $request->user()->benutzer_id, $pruefungId ? (int) $pruefungId : null);
 

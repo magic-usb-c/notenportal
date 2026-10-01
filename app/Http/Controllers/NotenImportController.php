@@ -60,7 +60,7 @@ class NotenImportController extends Controller
         [$lernender, $bereich] = $this->kontext($request);
         $request->validate([
             'datei' => ['required', 'file', 'max:'.Ablage::MAX_KB, 'extensions:xlsx,xls,ods,csv,txt,pdf'],
-        ], [], ['datei' => __('Datei')]);
+        ]);
 
         $datei = $request->file('datei');
         try {
