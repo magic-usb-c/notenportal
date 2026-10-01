@@ -28,6 +28,7 @@ const BREITEN = (A.breiten || [1920, 2560]).map(b => ({ breite: b, hoehe: HOEHE[
 const ORDNER = A.ordner || '/root/.notenportal/rundgang'
 const MAX_BILDER = A.maxBilder || 20
 const BUENDEL = A.buendel || 4
+const PRUEF_BUENDEL = A.pruefBuendel || 3 // Befunde je Verifikationsrunde (zwei opus-xhigh-Agenten pro Befund)
 const MAX_SEITEN = A.maxSeiten || 150
 
 const PW = 'export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\\s*=\\s*\'\\K[^\']+" database/seeders/DemoSeeder.php)'
@@ -170,15 +171,27 @@ const ergebnisse = await pipeline(
   async (lauf) => {
     if (!lauf) return null
     const { r, b, befunde } = lauf
-    const geprueft = await parallel(befunde.map((f, i) => async () => {
-      const [bild, ursache] = await parallel([
-        () => agent(pruefBild(f), { label: `bild-check:${r.rolle}@${b.breite}#${i + 1}`, phase: 'Verifikation', schema: VERDICT_SCHEMA, model: 'opus', effort: 'xhigh' }),
-        () => agent(pruefUrsache(f, r), { label: `ursache:${r.rolle}@${b.breite}#${i + 1}`, phase: 'Verifikation', schema: VERDICT_SCHEMA, model: 'opus', effort: 'xhigh' }),
-      ])
-      const real = !!(bild && bild.real && ursache && ursache.real)
-      return { ...f, rolle: r.rolle, breite: b.breite, real, bild_urteil: bild, ursache_urteil: ursache }
-    }))
-    return { ...lauf, geprueft: geprueft.filter(Boolean) }
+    // Prüfer in Bündeln statt alle auf einmal: parallele opus-xhigh-Agenten brauchen das
+    // Nutzungslimit der Sitzung in Minuten auf (SETUP-CLAUDE.md §12.11). Fällt ein Prüfer aus
+    // (agent() → null), gilt der Befund als ungeprüft, nie als verworfen.
+    const geprueft = []
+    let n = 0
+    for (const buendel of teile(befunde, PRUEF_BUENDEL)) {
+      const teil = await parallel(buendel.map((f) => async () => {
+        const i = ++n
+        const [bild, ursache] = await parallel([
+          () => agent(pruefBild(f), { label: `bild-check:${r.rolle}@${b.breite}#${i}`, phase: 'Verifikation', schema: VERDICT_SCHEMA, model: 'opus', effort: 'xhigh' }),
+          () => agent(pruefUrsache(f, r), { label: `ursache:${r.rolle}@${b.breite}#${i}`, phase: 'Verifikation', schema: VERDICT_SCHEMA, model: 'opus', effort: 'xhigh' }),
+        ])
+        const ungeprueft = !bild || !ursache
+        const real = !ungeprueft && !!(bild.real && ursache.real)
+        return { ...f, rolle: r.rolle, breite: b.breite, real, ungeprueft, bild_urteil: bild, ursache_urteil: ursache }
+      }))
+      geprueft.push(...teil.filter(Boolean))
+      const ausgefallen = buendel.length - teil.filter(Boolean).length
+      if (ausgefallen) log(`${r.rolle}@${b.breite}: ${ausgefallen} Befunde ohne Prüfer (Agent abgebrochen)`)
+    }
+    return { ...lauf, geprueft }
   },
 )
 
@@ -186,7 +199,8 @@ const laeufe = ergebnisse.filter(Boolean)
 const RANG = { hoch: 0, mittel: 1, niedrig: 2 }
 const alleBefunde = laeufe.flatMap(l => l.geprueft)
 const bestaetigt = alleBefunde.filter(f => f.real).sort((x, y) => RANG[x.schwere] - RANG[y.schwere])
-const verworfen = alleBefunde.filter(f => !f.real)
+const verworfen = alleBefunde.filter(f => !f.real && !f.ungeprueft)
+const ungeprueft = alleBefunde.filter(f => f.ungeprueft)
 
 const messung = laeufe.map(l => ({
   rolle: l.r.rolle, breite: l.b.breite, hoehe: l.b.hoehe, ordner: l.dir,
@@ -197,7 +211,8 @@ const messung = laeufe.map(l => ({
 
 const fehlend = LAEUFE.length - laeufe.length
 if (fehlend) log(`${fehlend} Läufe ohne Ergebnis (Agent abgebrochen) – nicht als geprüft zählen`)
-log(`Fertig: ${bestaetigt.length} bestätigte Sichtbefunde, ${verworfen.length} verworfen, ${messung.reduce((s, m) => s + m.messbefunde.length, 0)} Messbefunde aus rundgang.mjs`)
+if (ungeprueft.length) log(`${ungeprueft.length} Sichtbefunde ohne Prüferurteil (Agent abgebrochen, z. B. Nutzungslimit) – ungeprüft, nicht verworfen; nach dem Reset mit resumeFromRunId fortsetzen`)
+log(`Fertig: ${bestaetigt.length} bestätigte Sichtbefunde, ${verworfen.length} verworfen, ${ungeprueft.length} ungeprüft, ${messung.reduce((s, m) => s + m.messbefunde.length, 0)} Messbefunde aus rundgang.mjs`)
 
 return {
   bestaetigt: bestaetigt.map(f => ({
@@ -205,6 +220,8 @@ return {
     datei: f.ursache_urteil.datei, zeile: f.ursache_urteil.zeile, fix: f.ursache_urteil.fix,
   })),
   verworfen: verworfen.map(f => ({ rolle: f.rolle, breite: f.breite, titel: f.titel, bild: f.bild, grund: [f.bild_urteil && f.bild_urteil.begruendung, f.ursache_urteil && f.ursache_urteil.begruendung].filter(Boolean).join(' | ') })),
+  ungeprueft: ungeprueft.map(f => ({ rolle: f.rolle, breite: f.breite, schwere: f.schwere, titel: f.titel, stelle: f.stelle, bild: f.bild, fehlt: [!f.bild_urteil && 'Bildprüfer', !f.ursache_urteil && 'Ursachenprüfer'].filter(Boolean).join(' + ') })),
   messung,
-  unvollstaendig: fehlend,
+  // Läufe ohne Aufnahme und Befunde ohne Prüferurteil – beides heisst «nicht geprüft», nicht «in Ordnung»
+  unvollstaendig: { laeufe: fehlend, befunde: ungeprueft.length },
 }

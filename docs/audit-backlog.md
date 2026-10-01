@@ -670,3 +670,19 @@ ausgeblendeten Werte in der Namenszelle nach.
   `pruefung_id`/`ersetzt` bei Lernenden) prüfen eigene Tests, nicht der Sweep.
 - **«Ctrl K» in der Leiste** steht fest statt über `__('Strg/Cmd K')` wie an anderer Stelle; auf Schweizer
   Tastaturen heisst die Taste Ctrl. Vereinheitlichen, wenn die Tastenbeschriftung je Plattform kommt.
+
+## Dunkelmodus nach HIG: bewusst gelassen (01.10.2026)
+
+- **Vierte Flächenstufe (systemGray3, 72 72 74) ist nicht möglich**, solange `--muted` 174 174 178
+  bleibt: gemessen 4.24:1, unter 4.5:1. Overlays liegen deshalb auf `surface-2` (58 58 60, e52ab7a).
+  Wer eine weitere Stufe braucht, hellt zuerst `--muted` auf (etwa 180 180 184 → 4.55:1 auf gray3)
+  und prüft alle 24 Theme-Blöcke mit `~/tools/kontrast/alpha.mjs`.
+- **`--note-ungenuegend` (253 115 109) auf getönter Fläche**: auf `surface-2` erreicht die Farbe
+  ungetönt 4.24:1, mit `bg-note-ungenuegend/14` auf der Karte noch weniger; `hover:/22` kann 4.5:1 nie
+  erreichen. Ein Wert wie 255 145 140 gäbe 4.94:1 auf `/14`, verschiebt aber die ganze Notenampel.
+  Das ist ein Token-Entscheid (Skill `notenportal-dunkelmodus` §1 müsste Notentext aufnehmen), kein
+  View-Fix. Bis dahin bleibt die Unterstreichung die zweite Kodierung (nie nur Farbe).
+- **Zehn Sichtbefunde des Rauchtests `notenportal-dunkel-rundgang`** (01.10., Lernende 1920/2560)
+  blieben ohne Prüferurteil, weil die Sitzung ihr Nutzungslimit erreichte. Sie gelten als ungeprüft
+  und werden im vollen Lauf über alle drei Rollen (R4) neu aufgenommen, nicht aus dem alten Journal
+  übernommen.

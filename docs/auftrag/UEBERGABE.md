@@ -79,6 +79,14 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   notenportal-audit.js und notenportal-dunkel-rundgang.js. Befehl /weiter. Massstab
                   neu: Desktop 1920–2560 px, Dunkelmodus; hell und schmal nur «darf nicht brechen».
                   Alles in docs/auftrag/SETUP-CLAUDE.md (Abbild, /-Befehle, Modelltabelle, Lücken).
+[Q] 01.10. 09:40  Setup abgeschlossen (ed52264 2dd5acf + Folgecommits): Rauchtest beider Workflows.
+                  notenportal-audit lief durch (Aufnahme, zwei Linsen, Verwerfungen mit Grund);
+                  notenportal-dunkel-rundgang lief bis zur Verifikation, dann Nutzungslimit – 22 von
+                  29 Agenten abgebrochen (SETUP-CLAUDE §12.11). Beide Skripte zählen ausgefallene
+                  Prüfer jetzt als «ungeprüft» und prüfen in Bündeln. Bestätigte Befunde behoben:
+                  Overlays im Dunkeln eine Stufe über der Karte (e52ab7a, HIG base/elevated,
+                  gemessen), Direktlabels im Verlauf in Textfarbe mit Punkt in Linienfarbe.
+                  Offen aus dem Rundgang: 10 Sichtbefunde ohne Urteil – kommen im vollen R4-Lauf dran.
 ```
 
 ---

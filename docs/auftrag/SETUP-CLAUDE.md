@@ -535,6 +535,15 @@ Hier steht, was sich nicht sauber belegen liess. Nichts davon ist als Tatsache i
    Subagent-Seite selbst wurde nicht gelesen. Im Repo setzt kein Agent den Schlüssel.
 10. **Plugin-Sichtbarkeit:** ob eine laufende Sitzung ein vom Hook installiertes Plugin ohne
     `/reload-plugins` lädt, ist nicht gemessen.
+11. **Nutzungslimit in Workflows (gemessen 01.10., 09:20 UTC):** erreicht die Sitzung ihr Limit,
+    bricht jeder weitere `agent()`-Aufruf mit «You've hit your session limit» ab, das Journal
+    führt ihn als `failed` ohne `agentId`, und `agent()` liefert `null`. Im Rauchtest von
+    `notenportal-dunkel-rundgang` fielen so 22 von 29 Agenten aus – fast alle Prüfer, weil die
+    parallelen `opus xhigh`-Verifikationen das Limit in Minuten aufbrauchen. Folgen für Skripte:
+    `null` eines Prüfers heisst «ungeprüft», nie «verworfen»; Prüfer laufen in Bündeln statt alle
+    gleichzeitig; nach dem Reset mit `resumeFromRunId` fortsetzen, die fertigen Befunde kommen aus
+    dem Cache. Wie viel Kontingent eine Fable-Sitzung je Tag hat, zeigt keine Dokumentation; nur
+    die Meldung mit der Reset-Zeit.
 
 ---
 

@@ -153,17 +153,23 @@ const linsen = [
   },
 ]
 
+// Verifikation in Bündeln: je Befund zwei opus-xhigh-Agenten; alle auf einmal reissen das
+// Nutzungslimit der Sitzung in Minuten (SETUP-CLAUDE.md §12.11)
+const PRUEF_BUENDEL = (args && args.pruefBuendel) || 3
+const teile = (liste, n) => Array.from({ length: Math.ceil(liste.length / n) }, (_, i) => liste.slice(i * n, i * n + n))
+
 phase('Audit')
 const ergebnisse = await pipeline(
   gewaehlt,
   d => agent(d.prompt.replaceAll('${MAX}', String(MAX)), {
     label: `audit:${d.key}`, phase: 'Audit', schema: FINDINGS_SCHEMA, model: 'sonnet', effort: 'high',
   }),
-  (res, dim) => {
+  async (res, dim) => {
     const roh = (res && res.findings) ? res.findings.slice(0, MAX) : []
     if (!roh.length) { log(`${dim.key}: keine Befunde`); return [] }
-    log(`${dim.key}: ${roh.length} Befunde, Verifikation mit zwei Linsen`)
-    return parallel(roh.map(f => () =>
+    log(`${dim.key}: ${roh.length} Befunde, Verifikation mit zwei Linsen in Bündeln zu ${PRUEF_BUENDEL}`)
+    const geprueft = []
+    for (const buendel of teile(roh, PRUEF_BUENDEL)) geprueft.push(...await parallel(buendel.map(f => () =>
       parallel(linsen.map(l => () =>
         agent(`${KONTEXT}
 Du bist gegnerischer Verifizierer. Ein Prüfagent behauptet:
@@ -179,18 +185,23 @@ Im Zweifel real=false.`,
       )).then(urteile => ({
         ...f,
         dimension: dim.key,
-        urteile: linsen.map((l, i) => ({ linse: l.key, ...(urteile[i] || { real: false, begruendung: 'keine Antwort', aufwand: 'mittel' }) })),
+        // Ausgefallener Prüfer (agent() → null, z. B. Nutzungslimit): real=null heisst ungeprüft, nie verworfen
+        urteile: linsen.map((l, i) => ({ linse: l.key, ...(urteile[i] || { real: null, begruendung: 'kein Urteil – Agent abgebrochen', aufwand: null }) })),
       }))
-    ))
+    )))
+    return geprueft
   }
 )
 
 const alle = ergebnisse.filter(Boolean).flat().filter(Boolean)
-const bestaetigt = alle.filter(f => f.urteile.every(u => u.real))
-const verworfen = alle.length - bestaetigt.length
+const bestaetigt = alle.filter(f => f.urteile.every(u => u.real === true))
+// Eine Linse mit real=false verwirft; fehlt ein Urteil und keine Linse hat verworfen, bleibt der Befund ungeprüft
+const verworfenListe = alle.filter(f => f.urteile.some(u => u.real === false))
+const ungeprueft = alle.filter(f => !f.urteile.some(u => u.real === false) && f.urteile.some(u => u.real !== true))
 const rang = { hoch: 0, mittel: 1, niedrig: 2 }
 bestaetigt.sort((a, b) => (rang[a.schweregrad] ?? 3) - (rang[b.schweregrad] ?? 3))
-log(`Bestätigt: ${bestaetigt.length} von ${alle.length} Befunden (${verworfen} verworfen)`)
+if (ungeprueft.length) log(`${ungeprueft.length} Befunde ohne vollständiges Prüferurteil (Agent abgebrochen, z. B. Nutzungslimit) – ungeprüft, nicht verworfen; nach dem Reset mit resumeFromRunId fortsetzen`)
+log(`Bestätigt: ${bestaetigt.length} von ${alle.length} Befunden (${verworfenListe.length} verworfen, ${ungeprueft.length} ungeprüft)`)
 
 return {
   bestaetigt: bestaetigt.map(f => ({
@@ -206,8 +217,13 @@ return {
     nachweis: f.urteile.find(u => u.linse === 'nachweis')?.begruendung || '',
     nutzen: f.urteile.find(u => u.linse === 'nutzen')?.begruendung || '',
   })),
-  verworfen: alle.filter(f => !f.urteile.every(u => u.real)).map(f => ({
+  verworfen: verworfenListe.map(f => ({
     dimension: f.dimension, titel: f.titel, datei: f.datei,
-    grund: f.urteile.filter(u => !u.real).map(u => `${u.linse}: ${u.begruendung}`).join(' | '),
+    grund: f.urteile.filter(u => u.real === false).map(u => `${u.linse}: ${u.begruendung}`).join(' | '),
+  })),
+  // Ohne vollständiges Urteil: nicht in Ordnung, sondern offen – im nächsten Lauf neu prüfen
+  ungeprueft: ungeprueft.map(f => ({
+    dimension: f.dimension, schweregrad: f.schweregrad, titel: f.titel, datei: f.datei, zeile: f.zeile || null,
+    fehlt: f.urteile.filter(u => u.real !== true).map(u => u.linse).join(' + '),
   })),
 }
