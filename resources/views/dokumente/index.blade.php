@@ -118,26 +118,14 @@
     @if($darfHochladen)
         <x-modal name="upload-document" maxWidth="lg" :show="$hochladenFehler" focusable>
             <form method="POST" action="{{ $r('store') }}" enctype="multipart/form-data" role="dialog" aria-modal="true" aria-labelledby="upload-document-title"
-                  x-data="{ loading: false, name: '', ueber: false }" @submit="if (! $event.defaultPrevented) loading = true">
+                  x-data="{ loading: false }" @submit="if (! $event.defaultPrevented) loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
                     <h2 id="upload-document-title" class="text-base font-semibold text-text">{{ __('Dokument hochladen') }}</h2>
 
-                    <div>
-                        <label for="datei" class="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors duration-100"
-                               :class="ueber ? 'border-accent bg-accent/5' : 'border-border-strong/60 hover:border-accent/60'"
-                               @dragover.prevent="ueber = true" @dragleave.prevent="ueber = false"
-                               @drop.prevent="ueber = false; $refs.datei.files = $event.dataTransfer.files; name = $event.dataTransfer.files[0]?.name ?? ''">
-                            <svg class="size-7 text-accent-text" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
-                            <span class="max-w-full truncate text-sm font-medium text-text" x-text="name || @js(__('Datei wählen oder hierher ziehen'))">{{ __('Datei wählen oder hierher ziehen') }}</span>
-                            <span class="text-xs text-muted">{{ __('PDF, Bild, Word, Excel, CSV · bis :mb MB', ['mb' => intdiv(Ablage::MAX_KB, 1024)]) }}</span>
-                            <input id="datei" x-ref="datei" name="datei" type="file" required class="sr-only"
-                                   accept="{{ collect(Ablage::ENDUNGEN)->map(fn ($e) => '.'.$e)->implode(',') }}"
-                                   @change="name = $event.target.files[0]?.name ?? ''"
-                                   @error('datei') aria-invalid="true" aria-describedby="datei-fehler" @enderror>
-                        </label>
-                        @error('datei')<p id="datei-fehler" class="{{ $fehlerText }}">{{ $message }}</p>@enderror
-                    </div>
+                    <x-ablagezone required :accept="collect(Ablage::ENDUNGEN)->map(fn ($e) => '.'.$e)->implode(',')"
+                                  :titel="__('Datei wählen oder hierher ziehen')"
+                                  :hinweis="__('PDF, Bild, Word, Excel, CSV · bis :mb MB', ['mb' => intdiv(Ablage::MAX_KB, 1024)])" />
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
