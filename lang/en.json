@@ -63,7 +63,7 @@
     "Benutzer wählen die Sprache selbst": "Users choose their own language",
     "Benutzerkonten": "User accounts",
     "Benutzerkonto anlegen": "Create user account",
-    "beobachten": "monitor",
+    "beobachten": "watch",
     "Berechnung fehlgeschlagen.": "Calculation failed.",
     "Berichte": "Reports",
     "Berufsbildner": "Trainer",
@@ -249,7 +249,6 @@
     "höchstens :anzahl ungenügend": "at most :anzahl insufficient",
     "Idee": "Idea",
     "Im Modulbaukasten öffnen": "Open in the Modulbaukasten",
-    "im Plan": "on track",
     "In Kalender öffnen": "Open in calendar",
     "IP-Adresse": "IP address",
     "Jemand anderes hat dieses Modul inzwischen geändert. Öffne die Seite neu und trag deine Ergänzung dort ein, damit nichts verloren geht.": "Someone else has changed this module in the meantime. Reload the page and add your contribution there so nothing is lost.",
@@ -578,5 +577,9 @@
     "Der bisherige Link funktioniert danach nicht mehr.": "The previous link will stop working.",
     "Ja": "Yes",
     "Nein": "No",
-    "Gespeichert.": "Saved."
+    "Gespeichert.": "Saved.",
+    "Kritisch": "Critical",
+    "Beobachten": "Watch",
+    "Offen": "Open",
+    "Im Plan": "On track"
 }

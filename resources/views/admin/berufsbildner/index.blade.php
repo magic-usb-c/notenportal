@@ -23,7 +23,7 @@
                     <a href="{{ route('admin.users.create') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Berufsbildner erfassen') }}</a>
                 </p>
             @else
-                <div class="np-karte @container overflow-hidden">
+                <div class="np-karte overflow-hidden">
                     <div class="p-2">
                         <table class="np-tabelle text-sm">
                             <thead>

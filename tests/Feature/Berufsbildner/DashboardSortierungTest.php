@@ -92,7 +92,7 @@ class DashboardSortierungTest extends TestCase
     }
 
     #[Test]
-    public function mobiler_segmentfilter_ist_nicht_ab_sm_versteckt(): void
+    public function vier_filterkacheln_stehen_ueber_der_tabelle(): void
     {
         $bb = User::factory()->berufsbildner()->create();
         $lernender = User::factory()->lernender()->create();
@@ -104,9 +104,10 @@ class DashboardSortierungTest extends TestCase
 
         $html = $this->actingAs($bb)->get(route('trainer.dashboard'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('role="radiogroup"', $html);
-        $this->assertStringNotContainsString('hidden items-center gap-1 rounded-lg bg-surface-2 p-0.5 text-xs sm:inline-flex', $html);
-        $this->assertStringContainsString('overflow-x-auto', $html);
+        $kacheln = '<div role="radiogroup" x-radiogroup aria-label="'.__('Filter').'"';
+        $start = strpos($html, $kacheln);
+        $this->assertNotFalse($start);
+        $this->assertSame(4, substr_count(substr($html, $start, strpos($html, '<table') - $start), 'role="radio"'));
     }
 
     /** Nur der Tabellenkörper «Meine Lernenden»: Namen stehen weiter oben schon in «Handlungsbedarf» (andere Reihenfolge). */

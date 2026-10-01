@@ -39,7 +39,7 @@
             </x-filterleiste>
 
             <div class="np-karte overflow-hidden">
-                <div class="@container p-2">
+                <div class="p-2">
                     <table class="np-tabelle text-sm">
                         <thead>
                             <tr>

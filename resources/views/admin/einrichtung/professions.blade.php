@@ -77,8 +77,7 @@
                 <h3 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h3>
                 <a href="{{ route('admin.master-data.subjects.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Alle Fächer bearbeiten') }}</a>
             </div>
-            {{-- Spalten nach Breite des Inhalts: mit Seitenleiste wären drei Spalten zu schmal für «Stufe · zählt nicht» --}}
-            <div class="@container"><div class="grid grid-cols-1 gap-6 @3xl:grid-cols-3">
+            <div class="flex flex-col gap-6">
                 @foreach(['BMS', 'ABU', StammdatenVorlage::OHNE_TRACK] as $track)
                     @continue(! $gruppen->has($track))
                     <div>
@@ -105,7 +104,7 @@
                         </div>
                     </div>
                 @endforeach
-            </div></div>
+            </div>
         </section>
 
         @if($baeume->isNotEmpty())

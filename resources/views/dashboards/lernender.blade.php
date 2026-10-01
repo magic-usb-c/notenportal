@@ -22,8 +22,6 @@
         $links = $zeigen['stand'] || $zeigen['wo_stehe_ich'] || $zeigen['verlauf'];
         $rechts = $zeigen['als_naechstes'] || $zeigen['ziele'] || $zeigen['letzte_noten'];
         $paar = $zeigen['wo_stehe_ich'] && $zeigen['verlauf'];
-        // Linke Fläche: 8 von 12 Spalten neben der rechten Spalte, sonst alle 12
-        $breitLinks = $rechts ? '@min-[56rem]:col-span-8' : '@min-[56rem]:col-span-12';
         $qv = $a->gesamtNote !== null ? \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($a) : null;
         $kachel = [
             'rot' => ['exclamation-triangle', 'bg-note-ungenuegend/12 text-note-ungenuegend'],
@@ -43,19 +41,18 @@
     </x-slot>
 
     <div class="py-6">
-        {{-- Raster nach Breite des Inhalts (Container Query, die Seitenleiste zählt nicht mit):
-             ab 56rem links Stand, darunter Wo stehe ich und Verlauf (8/12), rechts eine Spalte über beide Zeilen (4/12);
-             ab 88rem (1920 und 2560 px) stehen Wo stehe ich und Verlauf nebeneinander und gleich hoch.
-             Die letzte Zeile 1fr schluckt, was rechts länger ist, damit keine Karte gestreckt wird.
-             DOM-Reihenfolge = Lesereihenfolge schmal: Stand, Als Nächstes, Ziele, Letzte Noten, Wo stehe ich, Verlauf. --}}
-        <div class="@container mx-auto np-seite px-4 sm:px-6 lg:px-8">
-        <div class="np-raster grid grid-cols-1 items-start gap-5 @min-[56rem]:grid-cols-12 @min-[56rem]:grid-rows-[auto_1fr]">
+        {{-- Links (8/12) Stand, darunter Wo stehe ich und Verlauf nebeneinander und gleich hoch; rechts (4/12)
+             Als Nächstes, Ziele und Letzte Noten. Fehlt eine Seite, nimmt die andere die ganze Breite. --}}
+        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
+
+            @if($links)
+            <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
 
             {{-- Stand: Heldenzahl mit Semesterverlauf, Kategorien als Kennzahlen, Bullet Graph über die ganze Breite --}}
             @if($zeigen['stand'])
-            <x-karte titel="{{ __('Stand') }}" symbol="chart-bar" @class(['@container/stand min-w-0 @min-[56rem]:col-start-1', $breitLinks])>
+            <x-karte titel="{{ __('Stand') }}" symbol="chart-bar" class="min-w-0">
                 @if($a->gesamtNote !== null)
-                    <div class="grid gap-x-8 gap-y-5 @min-[40rem]/stand:grid-cols-[auto_minmax(0,1fr)]">
+                    <div class="grid grid-cols-[auto_minmax(0,1fr)] gap-x-8 gap-y-5">
                         <div class="min-w-0">
                             @if($qv)
                                 <a href="{{ route('learner.qualification.index') }}" class="inline-flex min-h-6 items-center gap-0.5 text-sm font-medium text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}<x-symbol name="chevron-right" strich="2" class="size-3.5" /></a>
@@ -110,7 +107,114 @@
             </x-karte>
             @endif
 
-            <div @class(['flex min-w-0 flex-col gap-5', '@min-[56rem]:col-span-4 @min-[56rem]:col-start-9 @min-[56rem]:row-span-2 @min-[56rem]:row-start-1' => $links, '@min-[56rem]:col-span-12' => ! $links])>
+            @if($zeigen['wo_stehe_ich'] || $zeigen['verlauf'])
+            <div @class(['grid min-w-0 gap-5', 'grid-cols-2' => $paar])>
+            {{-- Wo stehe ich pro Fach und Modul --}}
+            @if($zeigen['wo_stehe_ich'])
+                <x-karte titel="{{ __('Wo stehe ich') }}" symbol="chart-bar-square" class="min-w-0"
+                         x-data="{ modus: {{ \Illuminate\Support\Js::from($balkenModus) }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
+                    <x-slot:aktionen>
+                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
+                            <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length" x-text="d.semester.name"></button>
+                            <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'">{{ __('Lehrzeit') }}</button>
+                        </div>
+                    </x-slot:aktionen>
+                    <div class="flex h-full flex-col">
+                    <div class="shrink-0" x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 30 + 56)}px`"
+                         x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
+                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
+                    </div>
+                    <x-noten-legende class="mb-3 mt-3" />
+                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
+                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
+                            {{ __('Als Tabelle') }}
+                        </summary>
+                        <div class="overflow-x-auto pb-1 pt-1">
+                            <table class="np-tabelle text-sm">
+                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{{ __('Fach / Modul') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Note') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Stufe') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
+                                        <tr>
+                                            <td class="text-text">{{ $label }}</td>
+                                            <td class="text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
+                                            <td class="text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                    </div>
+                </x-karte>
+            @endif
+
+            {{-- Verlauf je Semester: Kategorien oder ein Fach --}}
+            @if($zeigen['verlauf'])
+                <x-karte titel="{{ __('Verlauf') }}" symbol="arrow-trending-up" class="min-w-0"
+                         x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }">
+                    <x-slot:aktionen>
+                        <select x-show="modus === 'fach'" x-cloak x-model.number="fach" class="np-feld np-feld-klein np-auswahl h-7 w-auto min-w-0 max-w-44 truncate text-xs" aria-label="{{ __('Fach') }}">
+                            <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
+                        </select>
+                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
+                            <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'">{{ __('Kategorien') }}</button>
+                            <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length">{{ __('Fach') }}</button>
+                        </div>
+                    </x-slot:aktionen>
+                    <div class="flex h-full flex-col">
+                    <div class="mb-3 h-72 shrink-0" x-data="npChart('verlauf')"
+                         x-effect="zeichne(modus === 'fach' && d.faecher[fach]
+                            ? { labels: d.labels, grenze: d.grenze, serien: [{ name: d.faecher[fach].name, werte: d.faecher[fach].werte, farbe: '--accent', dick: true }] }
+                            : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
+                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
+                    </div>
+                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
+                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
+                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
+                            {{ __('Als Tabelle') }}
+                        </summary>
+                        <div class="overflow-x-auto pb-1 pt-1">
+                            <table class="np-tabelle text-sm">
+                                <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{{ __('Semester') }}</th>
+                                        @foreach($verlauf['serien'] as $s)
+                                            <th scope="col" class="text-right">{{ $s['name'] }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($verlauf['labels'] as $i => $label)
+                                        <tr>
+                                            <th scope="row" class="text-left font-normal text-text">{{ $label }}</th>
+                                            @foreach($verlauf['serien'] as $s)
+                                                <td class="text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                    </div>
+                </x-karte>
+            @endif
+            </div>
+            @endif
+            </div>
+            @endif
+
+            @if($rechts)
+            <div @class(['flex min-w-0 flex-col gap-5', 'col-span-4' => $links, 'col-span-12' => ! $links])>
             {{-- Als Nächstes: Überfälliges oben, dann Hinweise, Prüfungen, fehlende Module --}}
             @if($zeigen['als_naechstes'])
             <x-karte titel="{{ __('Als Nächstes') }}" symbol="calendar-days" :polster="false" :link="route('learner.exams.index')" :link-text="__('Agenda')">
@@ -207,118 +311,8 @@
                 </x-karte>
             @endif
             </div>
-
-            @if($zeigen['wo_stehe_ich'] || $zeigen['verlauf'])
-            <div @class(['grid min-w-0 gap-5 @min-[56rem]:col-start-1', $breitLinks, '@min-[88rem]:grid-cols-2' => $paar])>
-            {{-- Wo stehe ich pro Fach und Modul --}}
-            @if($zeigen['wo_stehe_ich'])
-                <x-karte titel="{{ __('Wo stehe ich') }}" symbol="chart-bar-square" class="min-w-0"
-                         x-data="{ modus: {{ \Illuminate\Support\Js::from($balkenModus) }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
-                    <x-slot:aktionen>
-                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
-                            <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length" x-text="d.semester.name"></button>
-                            <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'">{{ __('Lehrzeit') }}</button>
-                        </div>
-                    </x-slot:aktionen>
-                    <div class="flex h-full flex-col">
-                    <div class="shrink-0" x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 30 + 56)}px`"
-                         x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
-                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
-                    </div>
-                    <x-noten-legende class="mb-3 mt-3" />
-                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
-                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
-                            {{ __('Als Tabelle') }}
-                        </summary>
-                        <div class="overflow-x-auto pb-1 pt-1">
-                            <table class="np-tabelle text-sm">
-                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Note') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Stufe') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
-                                        <tr>
-                                            <td class="text-text">{{ $label }}</td>
-                                            <td class="text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
-                                            <td class="text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                    </div>
-                </x-karte>
             @endif
 
-            {{-- Verlauf je Semester: Kategorien oder ein Fach --}}
-            @if($zeigen['verlauf'])
-                <x-karte titel="{{ __('Verlauf') }}" symbol="arrow-trending-up" class="min-w-0"
-                         x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }">
-                    <x-slot:aktionen>
-                        <select x-show="modus === 'fach'" x-cloak x-model.number="fach" class="np-feld np-feld-klein np-auswahl h-7 w-auto min-w-0 max-w-44 truncate text-xs" aria-label="{{ __('Fach') }}">
-                            <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
-                        </select>
-                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
-                            <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'">{{ __('Kategorien') }}</button>
-                            <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length">{{ __('Fach') }}</button>
-                        </div>
-                    </x-slot:aktionen>
-                    <div class="flex h-full flex-col">
-                    <div class="mb-3 h-72 shrink-0" x-data="npChart('verlauf')"
-                         x-effect="zeichne(modus === 'fach' && d.faecher[fach]
-                            ? { labels: d.labels, grenze: d.grenze, serien: [{ name: d.faecher[fach].name, werte: d.faecher[fach].werte, farbe: '--accent', dick: true }] }
-                            : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
-                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
-                    </div>
-                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
-                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
-                            {{ __('Als Tabelle') }}
-                        </summary>
-                        <div class="overflow-x-auto pb-1 pt-1">
-                            <table class="np-tabelle text-xs sm:text-sm">
-                                <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">{{ __('Semester') }}</th>
-                                        @foreach($verlauf['serien'] as $s)
-                                            <th scope="col" class="hyphens-auto text-right">
-                                                {{-- Schmal «Ø» statt «Semesterschnitt», vorgelesen wird immer der volle Name --}}
-                                                @if($s['name'] === __('Semesterschnitt'))<span class="sm:hidden" aria-hidden="true">Ø</span><span class="sr-only sm:not-sr-only">{{ $s['name'] }}</span>@else{{ $s['name'] }}@endif
-                                            </th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($verlauf['labels'] as $i => $label)
-                                        <tr>
-                                            {{-- Spaltenkopf heisst schon «Semester»: schmal reicht die Nummer, sonst scrollt die Tabelle quer --}}
-                                            <th scope="row" class="text-left font-normal text-text">
-                                                @if(str_ends_with($label, ' '.__('Semester')))<span class="sm:hidden">{{ \Illuminate\Support\Str::beforeLast($label, ' ') }}</span><span class="hidden sm:inline">{{ $label }}</span>@else{{ $label }}@endif
-                                            </th>
-                                            @foreach($verlauf['serien'] as $s)
-                                                <td class="text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                    </div>
-                </x-karte>
-            @endif
-            </div>
-            @endif
-
-        </div>
         </div>
     </div>
 

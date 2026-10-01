@@ -35,11 +35,10 @@
 
     <div class="py-6">
         {{-- Oben die Kennzahlen, darunter links Handlungsbedarf und Berufsbildner (8/12),
-             rechts Aktivität und Lehrende (4/12). Schmal untereinander. --}}
-        <div class="@container mx-auto np-seite px-4 sm:px-6 lg:px-8">
-        <div class="np-raster grid grid-cols-1 items-start gap-5 @min-[60rem]:grid-cols-12">
+             rechts Aktivität und Lehrende (4/12). --}}
+        <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
 
-            <ul class="grid grid-cols-2 gap-3 @min-[40rem]:grid-cols-3 @min-[80rem]:grid-cols-6 @min-[60rem]:col-span-12" aria-label="{{ __('Kennzahlen') }}">
+            <ul class="col-span-12 grid grid-cols-6 gap-4" aria-label="{{ __('Kennzahlen') }}">
                 @foreach($kacheln as [$name, $symbol, $farbe, $wert, $link])
                     <li>
                         <a href="{{ $link }}" class="np-karte np-karte-klickbar flex h-full items-start justify-between gap-3 p-4">
@@ -49,14 +48,14 @@
                                 </span>
                                 <span class="truncate text-sm font-medium text-muted" title="{{ $name }}">{{ $name }}</span>
                             </span>
-                            <span class="text-2xl font-bold tabular-nums leading-none text-text">{{ $wert }}</span>
+                            <span class="text-2xl font-semibold tabular-nums leading-none text-text">{{ $wert }}</span>
                         </a>
                     </li>
                 @endforeach
             </ul>
 
             @if($links)
-            <div @class(['flex min-w-0 flex-col gap-5', '@min-[60rem]:col-span-8' => $rechts, '@min-[60rem]:col-span-12' => ! $rechts])>
+            <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
                 {{-- Handlungsbedarf: eine Liste für Einrichtungslücken, Sicherung, Meldungen, Fehler und kritische Lernende --}}
                 @if($zeigen['handlungsbedarf'])
                     <x-karte :titel="__('Handlungsbedarf')" symbol="bell" :polster="false">
@@ -140,12 +139,12 @@
             @endif
 
             @if($rechts)
-            <div @class(['flex min-w-0 flex-col gap-5', '@min-[60rem]:col-span-4' => $links, '@min-[60rem]:col-span-12' => ! $links])>
+            <div @class(['flex min-w-0 flex-col gap-5', 'col-span-4' => $links, 'col-span-12' => ! $links])>
                 {{-- Erfasste Noten pro Woche: Summe als Kennzahl über dem Diagramm wie in Health --}}
                 @if($zeigen['aktivitaet'])
                     <x-karte :titel="__('Erfasste Noten pro Woche')" symbol="chart-bar">
                         <p class="flex items-baseline gap-2">
-                            <span class="text-2xl font-bold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
+                            <span class="text-2xl font-semibold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
                             <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => count($aktivitaet['werte'])]) }}</span>
                         </p>
                         <div class="mt-3 h-48" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">
@@ -175,7 +174,6 @@
             </div>
             @endif
 
-        </div>
         </div>
     </div>
 </x-app-layout>
