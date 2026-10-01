@@ -79,6 +79,9 @@ const direktlabelPlugin = {
         if (!chart.options.plugins?.npDirektlabel?.aktiv) return;
         const { ctx, chartArea } = chart;
         const zeile = 13;
+        // Text in Textfarbe (Linienfarben erreichen im Dunkeln keine 4.5:1), Zuordnung über einen
+        // Punkt in Linienfarbe davor (Grafik, 3:1 genügt)
+        const punkt = 9;
         ctx.save();
         ctx.font = `600 11px ${Chart.defaults.font.family}`;
         ctx.textBaseline = 'middle';
@@ -92,10 +95,10 @@ const direktlabelPlugin = {
             const punkte = meta.data.filter((p, j) => p && !p.skip && ds.data[j] !== null && ds.data[j] !== undefined && Number.isFinite(p.y));
             const letzter = punkte[punkte.length - 1];
             if (!letzter) return;
-            const breite = ctx.measureText(ds.label).width;
+            const breite = ctx.measureText(ds.label).width + punkt;
             // Immer rechts neben dem Plotbereich verankert (nie auf der Linie), Höhe nach dem letzten Punkt der Reihe
             const x = Math.min(chartArea.right + 6, chart.width - breite - 2);
-            labels.push({ text: ds.label, farbe: ds.borderColor, x, breite, y: letzter.y });
+            labels.push({ text: ds.label, farbe: ds.npLabelFarbe ?? tokenFarbe('--text'), linie: ds.borderColor, x, breite, y: letzter.y });
         });
 
         const ueberdeckt = (a, b) => a.x < b.x + b.breite && b.x < a.x + a.breite;
@@ -117,8 +120,12 @@ const direktlabelPlugin = {
         }
 
         labels.forEach((l) => {
+            ctx.fillStyle = l.linie;
+            ctx.beginPath();
+            ctx.arc(l.x + 3, l.y, 3, 0, Math.PI * 2);
+            ctx.fill();
             ctx.fillStyle = l.farbe;
-            ctx.fillText(l.text, l.x, l.y);
+            ctx.fillText(l.text, l.x + punkt, l.y);
         });
         ctx.restore();
     },
@@ -246,12 +253,13 @@ const BAUER = {
                 pointRadius: gedaempft ? 0 : 3.5, pointHoverRadius: gedaempft ? 3 : 5.5,
                 pointBackgroundColor: farbe, pointBorderColor: tokenFarbe('--card'), pointBorderWidth: 1.5, pointHoverBorderWidth: 2,
                 fill: flaeche ? 'start' : false, order: s.dick ? 1 : 2,
+                npLabelFarbe: tokenFarbe(gedaempft ? '--muted' : '--text'),
             };
         });
         if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, t('genügend :wert', { wert: format(d.grenze, 1) })));
         const direkt = o.direktlabels !== false && d.serien.length > 1;
         const namen = d.serien.filter((s) => !s.name?.startsWith('_')).map((s) => s.name ?? '');
-        const padRechts = direkt ? Math.min(140, Math.max(40, Math.max(0, ...namen.map((n) => n.length)) * 6 + 14)) : 8;
+        const padRechts = direkt ? Math.min(140, Math.max(40, Math.max(0, ...namen.map((n) => n.length)) * 6 + 23)) : 8;
         return {
             type: 'line', data: { labels: d.labels, datasets },
             options: {
