@@ -205,4 +205,22 @@ class AbgabeterminTest extends TestCase
             ->assertOk()
             ->assertSee(__('Abgabetermin'));
     }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function ohne_auswahl_fragt_das_menue_fuer_wen(string $rolle): void
+    {
+        $lernender = $this->lernender();
+        $fremd = $this->neuerLernender(['vorname' => 'Fremdperson']);
+        $user = $this->verwalter($rolle, $lernender);
+        $ziel = route("{$rolle}.exams.index", ['lernender_id' => $lernender->lernender_id, 'planen' => 1]);
+
+        $seite = $this->actingAs($user)->get(route("{$rolle}.exams.index"))->assertOk()
+            ->assertSee(__('Für wen?'))->assertSee($ziel)->assertDontSee('disabled class="np-knopf np-knopf-primaer"', false);
+        // Der Berufsbildner sieht im Menü nur betreute Lernende
+        $rolle === 'trainer' ? $seite->assertDontSee('Fremdperson') : $seite->assertSee('Fremdperson');
+
+        // Der Menüeintrag öffnet das Formular für genau diese Person
+        $this->get($ziel)->assertOk()->assertSee('name="lernender_id" value="'.$lernender->lernender_id.'"', false);
+    }
 }
