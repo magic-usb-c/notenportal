@@ -5,29 +5,45 @@
 @endphp
 <div class="grid grid-cols-12 items-start gap-5">
     <div class="col-span-8 flex flex-col gap-5">
-        {{-- Stand --}}
-        <section class="np-karte p-5 flex flex-wrap items-center gap-6">
-            <div>
-                @if($qv = \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($stand->auswertung))
-                    <a href="{{ route($bereich.'.learners.qualification', $stand->auswertung->lernenderId) }}" class="inline-flex min-h-6 items-center text-xs font-medium text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}</a>
+        {{-- Stand als Kennzahlenleiste: vier gleich gewichtete Werte mit Bezeichnung und Erläuterung darunter --}}
+        @php
+            $qv = \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($stand->auswertung);
+            $naechste = $pruefungen->first(fn ($p) => $p->datum->gte($heute));
+        @endphp
+        <section class="np-karte grid grid-cols-4 divide-x divide-border" aria-label="{{ __('Stand') }}">
+            <div class="flex flex-col gap-1 px-5 py-4">
+                @if($qv)
+                    <a href="{{ route($bereich.'.learners.qualification', $stand->auswertung->lernenderId) }}" class="inline-flex min-h-6 items-center self-start text-xs font-medium text-accent-text underline-offset-2 hover:underline">{{ $qv->wurzel()->vollstaendig ? __('QV-Gesamtnote') : __('QV-Prognose') }}</a>
                 @else
-                    <div class="text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
+                    <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
                 @endif
-                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="mt-0.5 block text-3xl" />
+                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="text-3xl leading-none" />
+                @if($qv && ! $qv->wurzel()->vollstaendig)
+                    <div class="text-xs tabular-nums text-muted">{{ __(':anteil % erfasst', ['anteil' => (int) round($qv->erfasst() * 100)]) }}</div>
+                @endif
             </div>
-            <x-sparkline :werte="$stand->verlauf" :breite="140" :hoehe="40" :zahl="false" />
-            <div class="ml-auto text-right">
-                <div class="text-xs font-medium text-muted"><x-semester :id="$stand->semesterId" :lernender="$stand->auswertung->lernenderId" /></div>
-                <div class="flex items-baseline justify-end gap-2">
-                    <x-note :wert="$stand->semesterNote" :stellen="1" class="text-xl" />
-                    @if($delta !== null && $delta != 0)
-                        <span class="text-xs font-semibold {{ $delta > 0 ? 'text-text' : 'text-note-knapp' }}">{{ $delta > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format(abs($delta), 1) }}</span>
-                    @endif
-                </div>
+            <div class="flex flex-col gap-1 px-5 py-4">
+                <div class="flex min-h-6 items-center text-xs font-medium text-muted"><x-semester :id="$stand->semesterId" :lernender="$stand->auswertung->lernenderId" /></div>
+                <x-note :wert="$stand->semesterNote" variante="hero" :stellen="1" class="text-3xl leading-none" />
+                @if($delta !== null && $delta != 0)
+                    <div @class(['text-xs', 'text-muted' => $delta > 0, 'font-medium text-note-knapp' => $delta < 0])>
+                        <span aria-hidden="true">{{ $delta > 0 ? '▲' : '▼' }}</span> {{ __(':delta zum Vorsemester', ['delta' => ($delta > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($delta), 1)]) }}
+                    </div>
+                @endif
             </div>
-            <div class="text-right text-xs text-muted">
-                <div>{{ __('Letzte Prüfung') }}</div>
-                <div class="text-sm text-text">{{ $stand->letztePruefung?->format('d.m.Y') ?? '–' }}</div>
+            <div class="flex min-w-0 flex-col gap-1 px-5 py-4">
+                <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Nächste Prüfung') }}</div>
+                <div class="text-3xl font-semibold leading-none text-text">{{ $naechste ? \App\Support\Format::date($naechste->datum, 'tag_monat') : '–' }}</div>
+                @if($naechste)
+                    <div class="truncate text-xs text-muted">{{ $naechste->bezeichnung() }} · {{ \App\Support\Format::wann($naechste->datum) }}</div>
+                @endif
+            </div>
+            <div class="flex flex-col gap-1 px-5 py-4">
+                <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Letzte Prüfung') }}</div>
+                <div class="text-3xl font-semibold leading-none text-text">{{ $stand->letztePruefung ? \App\Support\Format::date($stand->letztePruefung, 'tag_monat') : '–' }}</div>
+                @if($stand->letztePruefung)
+                    <div class="text-xs text-muted">{{ \App\Support\Format::wann($stand->letztePruefung) }}</div>
+                @endif
             </div>
         </section>
 
