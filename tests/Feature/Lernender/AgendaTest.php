@@ -537,7 +537,10 @@ class AgendaTest extends TestCase
             ->assertSee(__('Kalender meldet: :wert', ['wert' => 'Alter Titel']))
             ->assertSee(__('Kalender meldet: :wert', ['wert' => '15.01.2026']))
             ->assertSee(__('Wieder vom Kalender übernehmen'))
-            ->assertSee(route('learner.exams.unlock', $p->pruefung_id), false);
+            ->assertSee(route('learner.exams.unlock', $p->pruefung_id), false)
+            // Der Block «Lokal angepasst» läuft über eine Schleife; deren Variable darf die Feldklasse
+            // $feld nicht überschreiben, sonst stehen alle Felder darunter ohne Gestaltung (01.10.2026).
+            ->assertSee('id="bezug" name="bezug" required class="np-feld', false);
     }
 
     #[Test]

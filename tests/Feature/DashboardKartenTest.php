@@ -25,9 +25,12 @@ class DashboardKartenTest extends TestCase
         $user = User::factory()->lernender()->create([
             'praeferenzen' => ['karten_ausgeblendet' => ['als_naechstes']],
         ]);
+        // Mit Note, sonst zeigt das Dashboard den Leerzustand und «Als Nächstes» fehlt ohnehin
+        Note::factory()->create(['lernender_id' => $user->lernender->lernender_id]);
 
         $this->actingAs($user)->get(route('learner.dashboard'))
             ->assertOk()
+            ->assertSee(__('Stand'))
             ->assertDontSee(__('Als Nächstes'));
     }
 
@@ -115,7 +118,7 @@ class DashboardKartenTest extends TestCase
             ->assertOk()
             ->assertSee(__('Stand'))
             ->assertSee(__('Als Nächstes'))
-            ->assertDontSee(__('Willkommen, :name', ['name' => $user->vorname]));
+            ->assertDontSee(__('Erste Note erfassen'));
     }
 
     #[Test]
@@ -125,7 +128,7 @@ class DashboardKartenTest extends TestCase
 
         $this->actingAs($user)->get(route('learner.dashboard'))
             ->assertOk()
-            ->assertSee(__('Willkommen, :name', ['name' => $user->vorname]))
+            ->assertSee(__('Noch keine Noten'))
             ->assertSee(__('Erste Note erfassen'))
             ->assertDontSee(__('Als Nächstes'));
     }

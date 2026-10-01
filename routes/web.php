@@ -102,11 +102,11 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/print', [LernenderNotenController::class, 'drucken'])->name('print');
         Route::get('/export', [LernenderNotenController::class, 'export'])->name('export');
         Route::get('/calculator', [LernenderRechnerController::class, 'index'])->name('calculator');
-        Route::post('/calculator', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('calculator.calculate');
-        Route::post('/calculator/simulate', [LernenderRechnerController::class, 'simulieren'])->middleware('throttle:30,1')->name('calculator.simulate');
+        Route::post('/calculator', [LernenderRechnerController::class, 'berechnen'])->middleware('throttle:120,1,calculator')->name('calculator.calculate');
+        Route::post('/calculator/simulate', [LernenderRechnerController::class, 'simulieren'])->middleware('throttle:30,1,calculator-simulate')->name('calculator.simulate');
         Route::get('/import', [NotenImportController::class, 'index'])->name('import.index');
-        Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('import.read');
-        Route::post('/import/validate', [NotenImportController::class, 'pruefen'])->middleware('throttle:60,1')->name('import.validate');
+        Route::post('/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1,import-read')->name('import.read');
+        Route::post('/import/validate', [NotenImportController::class, 'pruefen'])->middleware('throttle:60,1,import-validate')->name('import.validate');
         Route::post('/import/apply', [NotenImportController::class, 'uebernehmen'])->name('import.apply');
         Route::post('/import/discard', [NotenImportController::class, 'verwerfen'])->name('import.discard');
         Route::get('/import/template', [NotenImportController::class, 'vorlage'])->name('import.template');
@@ -147,7 +147,7 @@ Route::middleware(['auth'])
     ->group(function () {
         Route::get('/', [ModulController::class, 'index'])->name('index');
         Route::get('/create', [ModulController::class, 'create'])->name('create');
-        Route::post('/', [ModulController::class, 'store'])->middleware('throttle:30,1')->name('store');
+        Route::post('/', [ModulController::class, 'store'])->middleware('throttle:30,1,modules-store')->name('store');
         Route::get('/{modul_id}', [ModulController::class, 'show'])->whereNumber('modul_id')->name('show');
         Route::get('/{modul_id}/edit', [ModulController::class, 'edit'])->whereNumber('modul_id')->name('edit');
         Route::put('/{modul_id}', [ModulController::class, 'update'])->whereNumber('modul_id')->name('update');
@@ -157,7 +157,7 @@ Route::middleware(['auth'])
             ->whereNumber('modul_id')->middleware('role:Lernender')->name('enroll');
 
         Route::post('/{modul_id}/documents', [ModulController::class, 'dokumentSpeichern'])
-            ->whereNumber('modul_id')->middleware('throttle:30,1')->name('documents.store');
+            ->whereNumber('modul_id')->middleware('throttle:30,1,module-documents')->name('documents.store');
         Route::get('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentZeigen'])
             ->whereNumber(['modul_id', 'modul_dokument_id'])->name('documents.show');
         Route::delete('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentLoeschen'])
@@ -172,7 +172,7 @@ Route::middleware(['auth', 'role:Lernender'])
     ->name('learner.documents.')
     ->group(function () {
         Route::get('/', [DokumenteController::class, 'index'])->name('index');
-        Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('store');
+        Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1,documents-store')->name('store');
         Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('show');
         Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('destroy');
         Route::get('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('reconcile');
@@ -304,7 +304,7 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/master-data/modules/catalog', [ModulkatalogController::class, 'index'])
             ->name('master-data.modules.catalog');
         Route::post('/master-data/modules/catalog', [ModulkatalogController::class, 'lesen'])
-            ->middleware('throttle:30,1')->name('master-data.modules.catalog.read');
+            ->middleware('throttle:30,1,catalog-read')->name('master-data.modules.catalog.read');
         Route::post('/master-data/modules/catalog/apply', [ModulkatalogController::class, 'anwenden'])
             ->name('master-data.modules.catalog.apply');
         Route::post('/master-data/modules/catalog/discard', [ModulkatalogController::class, 'verwerfen'])
@@ -333,7 +333,7 @@ Route::middleware(['auth', 'role:Admin'])
         Route::post('/master-data/grade-trees/template', [StammdatenNotenbaeumeController::class, 'laden'])
             ->name('master-data.grade-trees.template');
         Route::post('/master-data/grade-trees/import', [StammdatenNotenbaeumeController::class, 'importieren'])
-            ->middleware('throttle:30,1')->name('master-data.grade-trees.import');
+            ->middleware('throttle:30,1,grade-tree-import')->name('master-data.grade-trees.import');
         Route::get('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'show'])
             ->whereNumber('baum_id')->name('master-data.grade-trees.show');
         Route::put('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'update'])
@@ -397,7 +397,7 @@ Route::middleware(['auth', 'role:Admin'])
 Route::middleware('auth')->group(function () {
     Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
     Route::post('/feedback', [FeedbackController::class, 'store'])
-        ->middleware('throttle:10,1')->name('feedback.store');
+        ->middleware('throttle:10,1,feedback-store')->name('feedback.store');
     Route::post('/feedback/hint', [FeedbackController::class, 'hinweisSchliessen'])->name('feedback.hint.dismiss');
     Route::get('/feedback/similar', [FeedbackController::class, 'aehnliche'])
         ->middleware('throttle:60,1,feedback-similar')->name('feedback.similar');

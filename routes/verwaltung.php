@@ -49,7 +49,7 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::get('/qualification', [AbschlussController::class, 'index'])->name('learners.qualification');
     Route::put('/qualification', [AbschlussController::class, 'update'])->name('learners.qualification.update');
     Route::get('/calculator', [RechnerController::class, 'index'])->name('learners.calculator');
-    Route::post('/calculator', [RechnerController::class, 'berechnen'])->middleware('throttle:120,1')->name('learners.calculator.calculate');
+    Route::post('/calculator', [RechnerController::class, 'berechnen'])->middleware('throttle:120,1,calculator')->name('learners.calculator.calculate');
     Route::get('/grades', [LernendeNotenController::class, 'index'])->name('learners.grades.index');
     Route::get('/grades/create', [LernendeNotenController::class, 'create'])->name('learners.grades.create');
     Route::post('/grades', [LernendeNotenController::class, 'store'])->name('learners.grades.store');
@@ -57,13 +57,13 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::get('/grades/export', [NotenExportController::class, 'lernender'])->name('learners.grades.export');
     Route::post('/grades/seen-all', [NotenGesehenController::class, 'alle'])->name('learners.grades.seen_all');
     Route::get('/grades/import', [NotenImportController::class, 'index'])->name('learners.grades.import.index');
-    Route::post('/grades/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1')->name('learners.grades.import.read');
-    Route::post('/grades/import/validate', [NotenImportController::class, 'pruefen'])->middleware('throttle:60,1')->name('learners.grades.import.validate');
+    Route::post('/grades/import', [NotenImportController::class, 'lesen'])->middleware('throttle:30,1,import-read')->name('learners.grades.import.read');
+    Route::post('/grades/import/validate', [NotenImportController::class, 'pruefen'])->middleware('throttle:60,1,import-validate')->name('learners.grades.import.validate');
     Route::post('/grades/import/apply', [NotenImportController::class, 'uebernehmen'])->name('learners.grades.import.apply');
     Route::post('/grades/import/discard', [NotenImportController::class, 'verwerfen'])->name('learners.grades.import.discard');
     Route::get('/grades/import/template', [NotenImportController::class, 'vorlage'])->name('learners.grades.import.template');
     Route::get('/documents', [DokumenteController::class, 'index'])->name('learners.documents.index');
-    Route::post('/documents', [DokumenteController::class, 'store'])->middleware('throttle:30,1')->name('learners.documents.store');
+    Route::post('/documents', [DokumenteController::class, 'store'])->middleware('throttle:30,1,documents-store')->name('learners.documents.store');
     Route::get('/documents/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('learners.documents.show');
     Route::delete('/documents/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('learners.documents.destroy');
     Route::get('/documents/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('learners.documents.reconcile');
