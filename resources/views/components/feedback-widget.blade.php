@@ -10,7 +10,7 @@
          «contents» lässt den Knopf am Flex der Symbolleiste teilnehmen; das Popover richtet sich an deren rechtem Rand aus. --}}
     <div x-data="feedbackDialog({ url: @js(route('feedback.store')), routeName: @js(request()->route()?->getName()), pfad: @js(request()->getRequestUri()) })"
          class="contents print:hidden">
-        @if($feedbackKnopfAktiv)
+        @if($feedbackKnopfAktiv && ! request()->routeIs('feedback.index'))
             <button type="button" data-feedback-knopf @click="open ? schliessen() : $dispatch('open-modal', 'feedback')" :aria-expanded="open" aria-haspopup="dialog"
                     aria-label="{{ __('Feedback / Fehler melden') }}" title="{{ __('Feedback / Fehler melden') }}"
                     class="np-glas-gruppe gap-2 px-2.5 text-sm text-muted transition-colors duration-100 hover:text-text aria-expanded:text-text xl:pr-3.5">

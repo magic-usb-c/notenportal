@@ -44,7 +44,7 @@
         @if($a->gesamtNote === null && $letzteNoten->isEmpty() && ! $alsNaechstes && ! $zeigen['ziele'])
         {{-- Ganz am Anfang: eine Ansicht, ein Leerzustand (HIG «Content unavailable») statt zweier fast leerer Karten --}}
         <div class="mx-auto np-seite px-8">
-            <x-leer symbol="academic-cap" :titel="__('Willkommen, :name', ['name' => auth()->user()->vorname])"
+            <x-leer symbol="academic-cap" :titel="__('Noch keine Noten')"
                     :text="__('Sobald Noten oder Prüfungen erfasst sind, siehst du hier deinen Stand und was als Nächstes ansteht.')">
                 <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                    class="np-knopf np-knopf-sekundaer">{{ __('Erste Note erfassen') }}</a>
@@ -70,7 +70,7 @@
                                 <p class="flex min-h-6 items-center text-sm font-medium text-muted">{{ __('Gesamtschnitt') }}</p>
                             @endif
                             <div class="mt-1 flex items-end gap-5">
-                                <x-note :wert="$a->gesamtNote" variante="hero" :stellen="1" class="text-display leading-none tracking-tight" />
+                                <x-note :wert="$a->gesamtNote" variante="hero" :stellen="1" class="text-display leading-none" />
                                 @if(count(array_filter($stand->verlauf, fn ($v) => $v !== null)) > 1)
                                     <x-sparkline class="mb-1.5" :werte="$stand->verlauf" :breite="112" :hoehe="36" :zahl="false" :label="__('Semesterschnitte')" />
                                 @endif
@@ -96,7 +96,7 @@
                                         <a href="{{ route('learner.grades.index', ['kategorie_id' => $kat['id']]) }}" class="group block rounded-md">
                                             <span class="block truncate text-sm text-muted transition-colors duration-100 group-hover:text-text">{{ $kat['name'] }}</span>
                                             <span class="mt-1.5 flex items-end justify-between gap-3">
-                                                <x-note :wert="$kat['note']" :stellen="1" class="text-2xl leading-none" />
+                                                <x-note :wert="$kat['note']" :stellen="1" class="text-xl leading-none" />
                                                 <x-sparkline :werte="$kat['verlauf']" :breite="64" :hoehe="24" :zahl="false" :label="__('Verlauf :name', ['name' => $kat['name']])" />
                                             </span>
                                         </a>
@@ -141,8 +141,9 @@
                             {{ __('Als Tabelle') }}
                         </summary>
                         <div class="overflow-x-auto pb-1 pt-1">
-                            <table class="np-tabelle text-sm">
+                            <table class="np-tabelle table-fixed text-sm">
                                 <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
+                                <colgroup><col><col class="w-20"><col class="w-28"></colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Fach / Modul') }}</th>
@@ -192,20 +193,21 @@
                             {{ __('Als Tabelle') }}
                         </summary>
                         <div class="overflow-x-auto pb-1 pt-1">
+                            {{-- Kein table-fixed: Seriennamen sind konfigurierbar und dürfen nicht abgeschnitten werden; bei Bedarf scrollt die Tabelle --}}
                             <table class="np-tabelle text-sm">
                                 <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
                                 <thead>
                                     <tr>
-                                        <th scope="col">{{ __('Semester') }}</th>
+                                        <th scope="col" class="w-28">{{ __('Semester') }}</th>
                                         @foreach($verlauf['serien'] as $s)
-                                            <th scope="col" class="text-right">{{ $s['name'] }}</th>
+                                            <th scope="col" class="whitespace-nowrap text-right">{{ $s['name'] }}</th>
                                         @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($verlauf['labels'] as $i => $label)
                                         <tr>
-                                            <th scope="row" class="text-left font-normal text-text">{{ $label }}</th>
+                                            <th scope="row" class="whitespace-nowrap text-left font-normal text-text">{{ $label }}</th>
                                             @foreach($verlauf['serien'] as $s)
                                                 <td class="text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
                                             @endforeach
@@ -236,7 +238,7 @@
                                 <a href="{{ $t['link'] }}" class="flex min-h-13 items-center gap-3 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-fill-2">
                                     @if($t['datum'])
                                         <span class="flex size-9 shrink-0 flex-col items-center justify-center rounded-lg bg-fill leading-none" aria-hidden="true">
-                                            <span class="text-3xs font-semibold uppercase text-muted">{{ rtrim($t['datum']->isoFormat('MMM'), '.') }}</span>
+                                            <span class="text-2xs font-medium text-muted">{{ \App\Support\Format::datum($t['datum'], 'M') }}</span>
                                             <span class="mt-0.5 text-base font-semibold tabular-nums text-text">{{ $t['datum']->format('j') }}</span>
                                         </span>
                                     @else

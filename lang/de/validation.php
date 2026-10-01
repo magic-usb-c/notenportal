@@ -283,7 +283,7 @@ return [
         'note_kritisch' => 'Knapp ab',
         'rundung_gesamt' => 'Rundung Gesamtschnitt',
         'frist_inaktiv_tage' => 'Frist ohne neue Note',
-        'frist_lehrende_tage' => 'Ankündigung Lehrende',
+        'frist_lehrende_tage' => 'Ankündigung Ende der Lehre',
         'sitzung_minuten' => 'Abmelden nach Inaktivität',
         'sprachwahl_aktiv' => 'Sprachwahl',
         'logo' => 'Logo',

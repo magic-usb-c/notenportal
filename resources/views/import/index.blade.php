@@ -22,7 +22,7 @@
                         <a href="{{ $r('template') }}" class="np-knopf np-knopf-schlicht">{{ __('Vorlage (CSV)') }}</a>
                         <div class="flex items-center gap-3">
                             <span role="status" class="inline-flex items-center gap-2 text-sm text-muted" x-show="loading" x-cloak>
-                                <span class="size-4 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
+                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Datei wird gelesen …') }}
                             </span>
                             <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Datei lesen') }}</button>
@@ -96,7 +96,7 @@
                             <div class="truncate text-sm font-semibold text-text" title="{{ $vorschau['datei'] }}">{{ $vorschau['datei'] }}</div>
                             <div class="mt-1.5 flex flex-wrap gap-1.5">
                                 @if($vorschau['format'] ?? null)
-                                    <span class="np-marke bg-accent/12 text-accent-text">{{ $vorschau['format'] }}</span>
+                                    <span class="np-marke bg-fill text-muted">{{ $vorschau['format'] }}</span>
                                 @endif
                                 @foreach($vorschau['erkannt'] as $art => $index)
                                     <span class="np-marke text-muted">{{ $namen[$art] ?? $art }} ← {{ $spalte($index) }}</span>
@@ -107,7 +107,7 @@
                             @foreach(['ok' => [__('bereit'), 'bg-note-gut'], 'warnung' => [__('Warnung'), 'bg-note-knapp'], 'pruefen' => [__('prüfen'), 'bg-note-knapp'], 'doppelt' => [__('bereits erfasst'), 'bg-faint'], 'fehler' => [__('Fehler'), 'bg-note-ungenuegend']] as $status => [$text, $punkt])
                                 <div>
                                     <dt class="flex items-center gap-1.5 text-xs text-muted"><span class="size-2 rounded-full {{ $punkt }}" aria-hidden="true"></span>{{ $text }}</dt>
-                                    <dd class="mt-0.5 text-2xl font-semibold tabular-nums" :class="anzahl(@js($status)) === 0 && 'text-muted'"
+                                    <dd class="mt-0.5 text-xl font-semibold tabular-nums" :class="anzahl(@js($status)) === 0 && 'text-muted'"
                                         x-text="anzahl(@js($status))">{{ $anzahl[$status] ?? 0 }}</dd>
                                 </div>
                             @endforeach
@@ -189,13 +189,13 @@
                             <button type="submit" form="import-verwerfen" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Verwerfen') }}</button>
                             <button type="button" :disabled="loading || pruefeLaedt" @click="erneutPruefen()"
                                     class="np-knopf np-knopf-sekundaer">
-                                <span class="size-4 animate-spin rounded-full border-2 border-accent border-t-transparent" x-show="pruefeLaedt" x-cloak aria-hidden="true"></span>
+                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" x-show="pruefeLaedt" x-cloak aria-hidden="true"></span>
                                 <span x-text="pruefeLaedt ? @js(__('Prüfe …')) : @js(__('Erneut prüfen'))"></span>
                             </button>
                         </div>
                         <div class="flex items-center gap-3">
                             <span role="status" class="inline-flex items-center gap-2 text-sm text-muted" x-show="loading" x-cloak>
-                                <span class="size-4 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
+                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Noten werden importiert …') }}
                             </span>
                             <button type="submit" :disabled="loading || pruefeLaedt || gewaehlt === 0"

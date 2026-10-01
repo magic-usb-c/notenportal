@@ -9,7 +9,7 @@
         $feld = 'np-feld';
         $label = 'text-sm font-medium text-text';
         $ebenen = ['gesamt' => __('Gesamt'), 'kategorie' => __('Kategorie'), 'semester' => __('Semester'), 'fach' => __('Fach'), 'modul' => __('Modul')];
-        // Ein Satz pro Tab, was er beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
+        // Ein Satz pro Ebene, was sie beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
         // Lernende lesen «du», Berufsbildner und Admins den Vornamen der Person, deren Noten sie rechnen.
         $person = $lernender?->benutzer->vorname;
         // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
@@ -17,7 +17,7 @@
             'ebene' => [
                 'gesamt' => __('im Gesamtschnitt'),
                 'kategorie' => __('in der Kategorie :name'),
-                'semester' => __('im Semester :name'),
+                'semester' => __('im :name'),
                 'fach' => __('im Fach :name'),
                 'modul' => __('im Modul :name'),
             ],
@@ -73,9 +73,9 @@
                 {{-- Eingaben --}}
                 <div class="col-span-6 flex flex-col gap-5">
                     <section class="np-karte flex flex-col gap-5 p-5" aria-label="{{ __('Ziel') }}">
-                        <div role="tablist" aria-label="{{ __('Ebene') }}" class="np-segment flex w-full">
+                        <div role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}" class="np-segment flex w-full">
                             @foreach($ebenen as $wert => $name)
-                                <button type="button" role="tab" class="flex-1" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')">{{ $name }}</button>
+                                <button type="button" role="radio" class="flex-1" :aria-checked="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')">{{ $name }}</button>
                             @endforeach
                         </div>
 
@@ -190,8 +190,12 @@
 
                 {{-- Ergebnis --}}
                 <div class="col-span-6 flex flex-col gap-5">
-                    <section class="np-karte flex min-h-56 flex-col items-center justify-center px-10 py-8 text-center transition-opacity duration-150" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
-                        <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
+                    <section class="np-karte flex min-h-56 flex-col items-center justify-center px-10 py-8 text-center transition-opacity duration-150" :class="laedt ? 'opacity-70' : ''" :aria-busy="laedt" aria-live="polite">
+                        {{-- Fehler mit Weiterweg (HIG «Alerts»: Ursache und Handlung) --}}
+                        <div x-show="fehler" x-cloak class="flex flex-col items-center gap-3">
+                            <p class="text-sm text-note-ungenuegend" x-text="fehler"></p>
+                            <button type="button" class="np-knopf np-knopf-sekundaer" @click="berechnen()">{{ __('Erneut berechnen') }}</button>
+                        </div>
 
                         <template x-if="ergebnis && !fehler">
                             <div>
@@ -215,18 +219,24 @@
                         </div>
                     </x-karte>
 
-                    <x-karte :titel="__('Auswirkung')" :polster="false" x-show="ergebnis?.vergleich?.length" x-cloak>
+                    <x-karte :titel="__('Auswirkung')" :polster="false" x-show="ergebnis?.vergleich?.some((v) => v.vorher != null || v.nachher != null)" x-cloak>
                         <x-slot:aktionen>
                             <span class="text-sm tabular-nums text-muted" x-show="ergebnis?.loesung.status === 'benoetigt'" x-text="@js(__('mit ')) + fmt(ergebnis?.loesung.note, 2)"></span>
                         </x-slot:aktionen>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <colgroup>
+                                    <col>
+                                    <col class="w-24">
+                                    <col class="w-24">
+                                    <col class="w-24">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Bereich') }}</th>
-                                        <th scope="col" class="w-24 text-right">{{ __('Heute') }}</th>
-                                        <th scope="col" class="w-24 text-right">{{ __('Danach') }}</th>
-                                        <th scope="col" class="w-24 text-right">{{ __('Differenz') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Heute') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Danach') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Differenz') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -247,13 +257,20 @@
                     <x-karte :titel="__('Promotion')" :polster="false" x-show="ergebnis?.promotion?.length" x-cloak>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <colgroup>
+                                    <col>
+                                    <col class="w-24">
+                                    <col class="w-28">
+                                    <col class="w-28">
+                                    <col class="w-32">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Kategorie') }}</th>
-                                        <th scope="col" class="w-24 text-right">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('Ungenügend') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('Minuspunkte') }}</th>
-                                        <th scope="col" class="w-32 text-right">{{ __('Status') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Schnitt') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Ungenügend') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Minuspunkte') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

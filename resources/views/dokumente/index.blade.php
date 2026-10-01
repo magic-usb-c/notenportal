@@ -53,15 +53,24 @@
                         </x-slot:aktionen>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <colgroup>
+                                    <col>
+                                    <col class="w-24">
+                                    <col class="w-56">
+                                    <col class="w-32">
+                                    <col class="w-56">
+                                    <col class="w-24">
+                                    <col class="w-52">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Titel') }}</th>
-                                        <th scope="col" class="w-24">{{ __('Typ') }}</th>
-                                        <th scope="col" class="w-56">{{ __('Semester') }}</th>
-                                        <th scope="col" class="w-32">{{ __('Hochgeladen') }}</th>
-                                        <th scope="col" class="w-56">{{ __('Von') }}</th>
-                                        <th scope="col" class="w-24 text-right">{{ __('Grösse') }}</th>
-                                        <th scope="col" class="w-52"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                        <th scope="col">{{ __('Typ') }}</th>
+                                        <th scope="col">{{ __('Semester') }}</th>
+                                        <th scope="col">{{ __('Hochgeladen') }}</th>
+                                        <th scope="col">{{ __('Von') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Grösse') }}</th>
+                                        <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>

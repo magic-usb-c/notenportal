@@ -31,6 +31,7 @@ final class JsTexte
         'Tabelle',
         'Änderung konnte nicht gespeichert werden.',
         'Ziel :wert',
+        'Zu viele Anfragen – bitte kurz warten.',
         'genügend :wert',
     ];
 

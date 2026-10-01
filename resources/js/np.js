@@ -23,9 +23,18 @@ export async function postJson(url, body) {
     const daten = await res.json().catch(() => null);
     if (!res.ok) {
         const meldung = daten?.errors ? Object.values(daten.errors).flat()[0] : null;
-        throw new Error(meldung || t('Berechnung fehlgeschlagen.'));
+        throw new Error(meldung || statusMeldung(res.status));
     }
     return daten;
+}
+
+// Der Grund steht im Status: Drosselung (429) und abgelaufene Sitzung (419/401) sind behebbar und
+// werden gesagt; alles andere bleibt die kurze Sammelmeldung (gemessen 01.10.2026: der Rundgang sah
+// nur «Berechnung fehlgeschlagen.» ohne Weiterweg).
+function statusMeldung(status) {
+    if (status === 429) return t('Zu viele Anfragen – bitte kurz warten.');
+    if (status === 419 || status === 401) return t('Sitzung abgelaufen. Seite bitte neu laden.');
+    return t('Berechnung fehlgeschlagen.');
 }
 
 // Text in die Zwischenablage. navigator.clipboard gibt es nur über HTTPS (oder localhost) –

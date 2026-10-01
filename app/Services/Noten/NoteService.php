@@ -406,7 +406,7 @@ class NoteService
 
         if ($lernender->lehrende && $date > (string) $lernender->lehrende) {
             throw ValidationException::withMessages([
-                'pruefungsdatum' => __('Das Prüfungsdatum liegt nach dem Lehrende.'),
+                'pruefungsdatum' => __('Das Prüfungsdatum liegt nach dem Ende der Lehre.'),
             ]);
         }
 

@@ -16,17 +16,26 @@
     <div class="py-6">
         <div class="mx-auto np-seite flex flex-col gap-4 px-8">
             @if($meldungen->isEmpty())
-                <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
+                <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')">
+                    <button type="button" class="np-knopf np-knopf-sekundaer" x-data @click="$dispatch('open-modal', 'feedback')">{{ __('Meldung erfassen') }}</button>
+                </x-leer>
             @else
                 <div class="np-karte p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <colgroup>
+                            <col class="w-36">
+                            <col class="w-36">
+                            <col>
+                            <col class="w-32">
+                            <col class="w-1/3">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col" class="w-36">{{ __('Datum') }}</th>
-                                <th scope="col" class="w-36">{{ __('Kategorie') }}</th>
+                                <th scope="col">{{ __('Datum') }}</th>
+                                <th scope="col">{{ __('Kategorie') }}</th>
                                 <th scope="col">{{ __('Text') }}</th>
-                                <th scope="col" class="w-32">{{ __('Status') }}</th>
-                                <th scope="col" class="w-1/3">{{ __('Antwort') }}</th>
+                                <th scope="col">{{ __('Status') }}</th>
+                                <th scope="col">{{ __('Antwort') }}</th>
                             </tr>
                         </thead>
                         <tbody>

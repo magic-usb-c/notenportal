@@ -284,7 +284,7 @@ Block AF: Notenrechner-Drawer auf der Notenseite (`learner.grades.index`, Knopf 
 - Bewusst als «Ampelstatus» nur die bestehende Noten-Farbcodierung (`App\Support\NotenSkala`, gut/genügend/knapp/ungenügend – dieselben Klassen wie auf der echten Notenseite) plus der Promotionsstand aus `Rechner::promotionen()` gezeigt, nicht das grössere `Lernstand`/`LernstandRechner`-Dashboardkonzept (überfällige Prüfungen, mehrsemestrige Trends, Lehrbeginn/-ende). Letzteres ist für eine einzelne hypothetische Zeile nicht sinnvoll berechenbar und für Trainer-/Admin-Dashboards gedacht, nicht für die Lernenden-Notenseite.
 - Bewusst keine eigene «keine Benachrichtigung»-Prüfung über `Notifier`/`GradeWatcher` nötig: Diese werden ausschliesslich von `NotenController::store()`/`update()` aufgerufen (echtes Speichern einer `Note`), nie vom Simulations-Endpunkt – der Test prüft das indirekt über eine unveränderte `MailLog`-Anzahl.
 - Bewusst kein eigenes Protokoll-/Audit-Log-Ereignis (`App\Support\Protokoll`, siehe Block AB oben): Es gibt keinen sicherheitsrelevanten Kontoeingriff und keine tatsächliche Datenänderung, die ein Ereignis rechtfertigen würde; eine reine Leseoperation wird im bestehenden Aktivitäten-Katalog auch sonst nirgends protokolliert.
-- Neue EN-Schlüssel (nur Ergänzungen, nichts umsortiert/gelöscht) in `lang/areas/learner/en.json`: `"Note entfernen"`, `"Note hinzufügen"`, `"Notenrechner"`, `"Nur eine Simulation – es wird nichts gespeichert."`. Alle übrigen im Drawer verwendeten Texte (Feldbeschriftungen, Fehlermeldungen, «erfüllt»/«gefährdet») nutzen bereits vorhandene Schlüssel aus `lang/en.json` bzw. `lang/areas/learner/en.json`.
+- Neue EN-Schlüssel (nur Ergänzungen, nichts umsortiert/gelöscht) in `lang/areas/learner/en.json`: `"Note entfernen"`, `"Note hinzufügen"`, `"Notenrechner"`, `"Nur eine Simulation – es wird nichts gespeichert."` (Letzterer seit 01.10.2026 entfernt, Hinweis gestrichen). Alle übrigen im Drawer verwendeten Texte (Feldbeschriftungen, Fehlermeldungen, «erfüllt»/«gefährdet») nutzen bereits vorhandene Schlüssel aus `lang/en.json` bzw. `lang/areas/learner/en.json`.
 - `resources/js/rechner.js` musste sofort nach dem Hinzufügen des Drawer-Markups gebaut werden (`npm run build`), da die View die neue Alpine-Komponente `npNotenrechnerDrawer` sofort referenziert und Prod aus dieser Arbeitskopie läuft – kurzzeitiger JS-Fehler auf `/grades` während der Bearbeitung wurde vom Koordinator gemeldet und durch den Build behoben (`curl /login` = 200 danach geprüft).
 
 ## Systemhinweis & Sitzungs-Timeout (11.09.2026)
@@ -717,6 +717,7 @@ ausgeblendeten Werte in der Namenszelle nach.
   trägt ihre natürliche Höhe; Strecken würde das Mitlaufen zerstören.
 - **Primärknopf in der Symbolleiste rechts, Lesespalte mittig** (Abschluss, Import bei 2560): Konvention
   der macOS-Toolbar, gilt portalweit; keine Ausnahme je Seite.
-- **Datumsfelder in Screenshots in US-Schreibweise**: `browser.mjs` setzt `locale: 'de-CH'`, Chromium
-  formatiert `<input type=date>` aber nach seiner UI-Sprache – Werkzeuggrenze, kein Portal-Fehler.
+- **Dashboard Lernende: Kartenkanten der linken und rechten Spalte laufen versetzt** (Stand 389 px gegen
+  Als Nächstes 410 px): zwei inhaltsgetriebene Spalten mit 2 gegen 3 Karten; gleiche Reihenhöhen hiessen leere
+  Flächen in den kürzeren Karten. Apple-Dashboards (Health, Aktien) richten Spalten ebenfalls nicht reihenweise aus.
 

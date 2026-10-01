@@ -43,8 +43,8 @@
     <div class="py-6" x-data="{ tagAusgewaehlt: null }">
         <div class="np-seite mx-auto flex flex-col gap-6 px-8">
 
-            {{-- Legende und Stundenplan-Schalter als Symbolleiste über dem Inhalt --}}
-            <div class="flex items-center gap-x-5">
+            {{-- Legende und Stundenplan-Schalter als Symbolleiste über dem Inhalt; in der Liste so breit wie Liste und Monat (100rem) --}}
+            <div @class(['flex items-center gap-x-5', 'max-w-[100rem]' => $ansicht === 'liste'])>
                 @foreach(\App\Support\AgendaArt::ARTEN as $art)
                     @continue($art === 'lektion' && ! $zeigeLektionen)
                     <span class="inline-flex items-center gap-1.5 text-xs text-muted">
@@ -73,7 +73,7 @@
                     ]);
                 @endphp
                 {{-- Liste über die ganze Breite, daneben der Mini-Monat wie die Seitenleiste in Apple Kalender --}}
-                <div class="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8">
+                <div class="grid grid-cols-[minmax(0,78rem)_20rem] items-start gap-8">
                 <div class="flex min-w-0 flex-col gap-8">
                     @foreach($abschnitte as $abschnitt)
                         {{-- Gruppierte Liste (HIG «Lists and tables», Stil «inset grouped»): Überschrift über der Fläche --}}

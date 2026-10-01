@@ -36,7 +36,7 @@
             <div x-show="email !== original" x-cloak>
                 <x-einstellung :label="__('Aktuelles Passwort')" :hinweis="__('Zur Bestätigung der neuen Adresse')" fuer="current_password" name="current_password">
                     <input id="current_password" name="current_password" type="password" autocomplete="current-password"
-                           class="{{ $feld }}" @error('current_password') aria-invalid="true" aria-describedby="current_password-fehler" @enderror>
+                           class="{{ $feld }}" aria-describedby="current_password-hinweis @error('current_password') current_password-fehler @enderror" @error('current_password') aria-invalid="true" @enderror>
                 </x-einstellung>
             </div>
             @if($lernender)
@@ -196,7 +196,7 @@
                 </x-einstellung>
                 {{-- Notenanzeige: Nachkommastellen der Durchschnitte auf interaktiven Seiten (<x-note>), wirkt ab der nächsten Seite --}}
                 <x-einstellung :label="__('Notenanzeige')" name="notenanzeige"
-                               :hinweis="__('Nachkommastellen bei Notendurchschnitten (nur Anzeige, nicht bei Notenblatt und Exporten).')">
+                               :hinweis="__('Gilt für die Anzeige, nicht für Notenblatt und Exporte.')">
                     <x-segment-auswahl name="notenanzeige" :wert="$p['notenanzeige']" x-model="notenanzeige" x-on:change="setzen({ notenanzeige })"
                                        :optionen="['1' => __('1 Nachkommastelle'), '2' => __('2 Nachkommastellen')]" />
                 </x-einstellung>
@@ -213,8 +213,7 @@
                 </x-einstellung>
                 @if($startseitenOptionen)
                     {{-- Startseite: nur die für die eigene Rolle gültigen Ziele (App\Support\Darstellung::STARTSEITEN) --}}
-                    <x-einstellung :label="__('Startseite')" name="startseite"
-                                   :hinweis="__('Ziel nach der Anmeldung, sofern kein Link direkt auf eine andere Seite führte.')">
+                    <x-einstellung :label="__('Startseite')" name="startseite">
                         <x-segment-auswahl name="startseite" :wert="$p['startseite']" x-model="startseite" x-on:change="setzen({ startseite })"
                                            :optionen="collect($startseitenOptionen)->mapWithKeys(fn ($_, $w) => [$w => __(\App\Support\Darstellung::STARTSEITE_BEZEICHNUNG[$w] ?? $w)])->all()" />
                     </x-einstellung>

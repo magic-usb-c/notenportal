@@ -1,9 +1,9 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Mein Profil') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Mein Profil')" schmal>
-            @include('settings._tabs')
-        </x-seitenkopf>
+        <x-seitenkopf :titel="__('Mein Profil')" schmal />
+        {{-- Tabs auf eigener Zeile: ortsfest, unabhängig von der Breite des wechselnden Titels --}}
+        <div class="np-spalte mt-4">@include('settings._tabs')</div>
     </x-slot>
 
     <div class="py-6">

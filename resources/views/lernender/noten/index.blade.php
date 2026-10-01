@@ -31,11 +31,11 @@
         <x-seitenkopf titel="{{ __('Noten') }}">
             <div class="flex flex-col items-center gap-0.5">
                 <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}">
-                    <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $prevSemesterId])
-                       href="{{ $prevSemesterId ? route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) : '#' }}" aria-label="{{ __('Vorheriges Semester') }}"><x-symbol name="chevron-left" strich="2" /></a>
+                    <a class="{{ $pfeil }}" aria-label="{{ __('Vorheriges Semester') }}"
+                       @if($prevSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-left" strich="2" /></a>
                     <x-semester :id="$selectedSemesterId ?: null" :lernender="$a->lernenderId" class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text" />
-                    <a @class([$pfeil, 'pointer-events-none opacity-30' => ! $nextSemesterId])
-                       href="{{ $nextSemesterId ? route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) : '#' }}" aria-label="{{ __('Nächstes Semester') }}"><x-symbol name="chevron-right" strich="2" /></a>
+                    <a class="{{ $pfeil }}" aria-label="{{ __('Nächstes Semester') }}"
+                       @if($nextSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-right" strich="2" /></a>
                 </div>
                 @if($semesterRest)
                     <span class="text-2xs text-muted">{{ $semesterRest }}</span>
@@ -73,7 +73,7 @@
                     @unless($loop->first)<span class="text-muted" aria-hidden="true">·</span>@endunless
                     <div class="flex items-baseline gap-2">
                         <dt class="text-xs text-muted">{{ $label }}</dt>
-                        <dd><x-note :wert="$wert" :stellen="1" class="text-2xl" /></dd>
+                        <dd><x-note :wert="$wert" :stellen="1" class="text-xl" /></dd>
                     </div>
                 @endforeach
             </dl>
@@ -264,8 +264,15 @@
                 </div>
                 @endforeach
                 </div>
+                @elseif($a->elemente === [] && ! $kategorieId)
+                    {{-- Noch gar keine Noten: eine Ansicht, ein Leerzustand --}}
+                    <x-leer symbol="clipboard-document-check" :titel="__('Noch keine Noten')">
+                        <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
+                           class="np-knopf np-knopf-sekundaer">{{ __('Note erfassen') }}</a>
+                    </x-leer>
                 @else
-                    <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
+                    {{-- Semester oder Kategorie ohne Noten: nur eine Zeile --}}
+                    <p class="flex items-center gap-3 px-1 py-2 text-sm text-muted">
                         {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                            class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
@@ -286,8 +293,6 @@
                 'grenzen' => \App\Support\NotenSkala::grenzen(),
                 'heute' => now()->toDateString(),
             ]))" class="flex flex-col gap-5">
-            <p class="text-sm text-muted">{{ __('Nur eine Simulation – es wird nichts gespeichert.') }}</p>
-
             <div class="flex flex-col gap-3">
                 <template x-for="z in zeilen" :key="z.nr">
                     <div class="flex flex-col gap-2 rounded-xl bg-fill-2 p-3">
@@ -335,7 +340,7 @@
 
             <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
 
-            <section x-show="vergleich.length" x-cloak class="np-karte overflow-hidden transition-opacity" :class="laedt ? 'opacity-70' : ''">
+            <section x-show="vergleich.length" x-cloak class="np-karte overflow-hidden transition-opacity" :class="laedt ? 'opacity-70' : ''" :aria-busy="laedt">
                 <div class="border-b border-border/70 px-4 py-2.5">
                     <h3 class="text-sm font-semibold text-text">{{ __('Auswirkung') }}</h3>
                 </div>
@@ -347,16 +352,15 @@
                                 <span class="text-muted" x-text="fmt(v.vorher)"></span>
                                 <span class="text-muted" aria-hidden="true">→</span>
                                 <span class="min-w-10 text-right font-semibold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></span>
-                                <span class="w-12 text-right text-xs"
-                                      :class="delta(v.vorher, v.nachher) > 0 ? 'text-note-gut' : (delta(v.vorher, v.nachher) < 0 ? 'text-note-ungenuegend' : 'text-muted')"
-                                      x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '' : (delta(v.vorher, v.nachher) > 0 ? '+' : '') + fmt(delta(v.vorher, v.nachher), 2)"></span>
+                                <span class="w-16 text-right text-xs text-muted"
+                                      x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '' : (delta(v.vorher, v.nachher) > 0 ? '▲ ' : '▼ ') + fmt(Math.abs(delta(v.vorher, v.nachher)), 2)"></span>
                             </span>
                         </div>
                     </template>
                 </div>
             </section>
 
-            <section x-show="promotion.length" x-cloak class="flex flex-col gap-2">
+            <section x-show="promotion.length" x-cloak class="flex flex-col gap-2" :aria-busy="laedt">
                 <h3 class="text-sm font-semibold text-text">{{ __('Promotion') }}</h3>
                 <template x-for="p in promotion" :key="p.kategorie + p.semester">
                     <div class="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-fill-2 px-3 py-2.5">

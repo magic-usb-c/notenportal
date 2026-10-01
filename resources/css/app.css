@@ -690,8 +690,19 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     pointer-events: none;
     z-index: 20;
   }
+  &::after {
+    content: '';
+    position: sticky;
+    display: block;
+    bottom: 0;
+    height: 0.75rem;
+    margin-top: -0.75rem;
+    background: linear-gradient(to top, rgb(var(--card-rgb) / 0.9), rgb(var(--card-rgb) / 0));
+    pointer-events: none;
+    z-index: 20;
+  }
   @media (prefers-reduced-transparency: reduce) {
-    &::before { display: none; }
+    &::before, &::after { display: none; }
   }
 }
 

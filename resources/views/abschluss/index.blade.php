@@ -153,11 +153,16 @@
 
                             <div class="np-karte max-w-3xl p-2">
                                 <table class="np-tabelle table-fixed text-sm">
+                                    <colgroup>
+                                        <col>
+                                        <col class="w-28">
+                                        <col class="w-32">
+                                    </colgroup>
                                     <thead>
                                         <tr>
                                             <th scope="col">{{ __('Teil') }}</th>
-                                            <th scope="col" class="w-28 text-right">{{ __('Anteil') }}</th>
-                                            <th scope="col" class="w-32 text-right">{{ __('Note') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Anteil') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Note') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>

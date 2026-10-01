@@ -36,9 +36,13 @@
             </form>
 
             @if(! $ergebnis['text'])
-                <div class="np-karte px-5 py-12 text-center text-sm text-muted">{{ __('Kein Text im PDF erkannt') }}</div>
+                <x-leer symbol="document-text" :titel="__('Kein Text im PDF erkannt')">
+                    <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="np-knopf np-knopf-sekundaer">{{ __('Zeugnis öffnen') }}</a>
+                </x-leer>
             @elseif($zeilen === [])
-                <div class="np-karte px-5 py-12 text-center text-sm text-muted">{{ __('Keine Fächer oder Module erkannt') }}</div>
+                <x-leer symbol="magnifying-glass" :titel="__('Keine Fächer oder Module erkannt')">
+                    <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="np-knopf np-knopf-sekundaer">{{ __('Zeugnis öffnen') }}</a>
+                </x-leer>
             @else
                 <form method="POST" action="{{ $r('reconcile.apply', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -47,13 +51,20 @@
                     <section class="np-karte overflow-hidden">
                         <div class="p-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <colgroup>
+                                    <col>
+                                    <col class="w-28">
+                                    <col class="w-28">
+                                    <col class="w-28">
+                                    <col class="w-56">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('Zeugnis') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('Portal') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('Differenz') }}</th>
-                                        <th scope="col" class="w-56">{{ __('Status') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Zeugnis') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Portal') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Differenz') }}</th>
+                                        <th scope="col">{{ __('Status') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>

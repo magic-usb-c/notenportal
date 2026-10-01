@@ -25,27 +25,31 @@
                 'stoff' => __('Prüfungsstoff'), 'gewichtung_prozent' => __('Gewichtung'),
             ];
             $lokalListe = [];
-            foreach ($b->lokal_gesperrt as $feld => $quellwert) {
-                $wert = match ($feld) {
+            // Schleifenvariable nicht «$feld»: das würde die Feldklasse von oben überschreiben
+            foreach ($b->lokal_gesperrt as $gesperrt => $quellwert) {
+                $wert = match ($gesperrt) {
                     'fach_id' => $quellwert !== null ? (\App\Models\Fach::find($quellwert)?->name ?? __('unbekannt')) : '–',
                     'modul_id' => $quellwert !== null ? (($m = \App\Models\Modul::find($quellwert)) ? trim($m->modul_nummer.' '.$m->titel) : __('unbekannt')) : '–',
                     'datum' => $quellwert ? \Carbon\CarbonImmutable::parse($quellwert)->format('d.m.Y') : '–',
                     'gewichtung_prozent' => \App\Support\Zahl::prozent($quellwert),
                     default => $quellwert !== null && $quellwert !== '' ? (string) $quellwert : '–',
                 };
-                $lokalListe[] = ['label' => $feldLabels[$feld] ?? $feld, 'wert' => $wert];
+                $lokalListe[] = ['label' => $feldLabels[$gesperrt] ?? $gesperrt, 'wert' => $wert];
             }
         @endphp
         <div class="flex flex-col gap-2 rounded-xl bg-fill-2 px-4 py-3 text-xs">
             <p class="text-text font-medium">{{ __('Lokal angepasst') }}</p>
-            <p class="text-muted">{{ __('Diese Felder wurden von Hand geändert und werden beim nächsten Abgleich nicht mehr vom Kalender überschrieben.') }}</p>
+            <p class="text-muted">{{ __('Der Kalender überschreibt diese Felder nicht mehr.') }}</p>
             <ul class="flex flex-col gap-0.5 text-muted">
                 @foreach($lokalListe as $eintrag)
                     <li>{{ $eintrag['label'] }}: {{ __('Kalender meldet: :wert', ['wert' => $eintrag['wert']]) }}</li>
                 @endforeach
             </ul>
             <div>
-                <button form="pruefung-entsperren" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Wieder vom Kalender übernehmen') }}</button>
+                <button form="pruefung-entsperren" class="np-knopf np-knopf-sekundaer np-knopf-klein"
+                        x-data="{ loading: false }" :disabled="loading"
+                        @submit.window="if ($event.target.id === 'pruefung-entsperren' && ! $event.defaultPrevented) loading = true"
+                        @pageshow.window="loading = false">{{ __('Wieder vom Kalender übernehmen') }}</button>
             </div>
         </div>
     @endif
@@ -149,7 +153,10 @@
             @forelse($b->dokumente as $d)
                 <div class="flex items-center justify-between gap-2 rounded-xl bg-fill-2 py-1 pl-4 pr-1">
                     <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="truncate text-sm text-accent-text hover:underline">{{ $d->titel }}</a>
-                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="np-knopf np-knopf-symbol np-knopf-klein" aria-label="{{ __('Entfernen') }}"><x-symbol name="x-mark" class="size-4" /></button>
+                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="np-knopf np-knopf-symbol np-knopf-klein" aria-label="{{ __(':titel entfernen', ['titel' => $d->titel]) }}"
+                            x-data="{ loading: false }" :disabled="loading"
+                            @submit.window="if ($event.target.id === 'anhang-entfernen-{{ $d->dokument_id }}' && ! $event.defaultPrevented) loading = true"
+                            @pageshow.window="loading = false"><x-symbol name="x-mark" class="size-4" /></button>
                 </div>
             @empty
                 <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
@@ -157,7 +164,10 @@
             <div class="flex items-center gap-2">
                 <x-datei-feld id="anhang-datei" rahmen="flex-1" name="datei" form="anhang-hochladen" required :aria-label="__('Datei anhängen')"
                               :aria-invalid="$errors->has('datei') ? 'true' : null" :aria-describedby="$errors->has('datei') ? 'datei-fehler' : null" />
-                <button form="anhang-hochladen" class="np-knopf np-knopf-sekundaer shrink-0">{{ __('Anhängen') }}</button>
+                <button form="anhang-hochladen" class="np-knopf np-knopf-sekundaer shrink-0"
+                        x-data="{ loading: false }" :disabled="loading"
+                        @submit.window="if ($event.target.id === 'anhang-hochladen' && ! $event.defaultPrevented) loading = true"
+                        @pageshow.window="loading = false">{{ __('Anhängen') }}</button>
             </div>
             @error('datei')<p id="datei-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

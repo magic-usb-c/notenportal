@@ -49,15 +49,21 @@ function chromiumPfad() {
   return undefined;
 }
 
+function startOptionen() {
+  return { env: { ...process.env, LANG: 'de_CH.UTF-8', LC_ALL: 'de_CH.UTF-8' } };
+}
+
 export async function starteBrowser(opt) {
   const { chromium } = await ladePlaywright();
   let browser;
   try {
-    browser = await chromium.launch();
+    // Chromium formatiert <input type=date> nach der Systemsprache (LANG), nicht nach context.locale –
+    // ohne de_CH stünde in Screenshots 08/01/2026 statt 01.08.2026 (gemessen 01.10.2026).
+    browser = await chromium.launch(startOptionen());
   } catch (e) {
     const pfad = chromiumPfad();
     if (!pfad) throw e;
-    browser = await chromium.launch({ executablePath: pfad });
+    browser = await chromium.launch({ ...startOptionen(), executablePath: pfad });
   }
   const ctx = await browser.newContext({
     viewport: { width: Number(opt.breite || 1920), height: Number(opt.hoehe || 1080) },

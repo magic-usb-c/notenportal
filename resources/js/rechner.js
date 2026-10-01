@@ -168,11 +168,12 @@ export function registriereRechner(Alpine) {
             if (l.status === 'unerreichbar') {
                 return formatiere(cfg.texte.unerreichbar, { bezug, maximum: this.fmt(l.maximum), ziel });
             }
-            if (l.status === 'ohne_einfluss') {
-                return formatiere(cfg.texte.ohneEinfluss, { bezug, resultat: this.fmt(l.resultat ?? l.aktuell) });
-            }
+            // Ohne eine einzige Note gibt es keinen Wert, der «bleibt» – das gilt vor «ohne Einfluss».
             if (l.resultat == null && l.aktuell == null) {
                 return formatiere(cfg.texte.keineNoten, { bezug });
+            }
+            if (l.status === 'ohne_einfluss') {
+                return formatiere(cfg.texte.ohneEinfluss, { bezug, resultat: this.fmt(l.resultat ?? l.aktuell) });
             }
             const resultat = l.resultat ?? 0;
             return resultat >= this.ergebnis.ziel.zielwert

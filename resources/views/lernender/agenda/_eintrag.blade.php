@@ -8,6 +8,10 @@
         $p->pruefungsart,
         $p->dauer_minuten ? __(':anzahl Minuten', ['anzahl' => $p->dauer_minuten]) : null,
     ] : [$e['nebentext']]);
+    // Name des Notenlinks: der Wert wie im Badge, Sport-Stufen als Kürzel
+    $notenText = $p?->note
+        ? (filled($p->note->note_stufe) ? \App\Support\NotenSkala::stufeKurz($p->note->note_stufe) : \App\Support\NotenSkala::format($p->note->note_wert))
+        : null;
 @endphp
 {{-- Eine Zeile der Agenda wie in Apple Erinnerungen: Datum wie das Kalendersymbol (Monat über Tag), Titel mit
      Kennpunkt, darunter Wochentag, Art, Gewicht und der Zeitpunkt in seiner Farbe; rechts nur die Aktionen. --}}
@@ -36,7 +40,8 @@
     <div class="flex items-center justify-end gap-1">
         @if($e['art'] === 'pruefung')
             @if($p->note)
-                <a href="{{ route('learner.grades.index', ['_open' => $p->note->note_id]) }}" class="mr-1 inline-flex" title="{{ __('Note ansehen') }}">
+                <a href="{{ route('learner.grades.index', ['_open' => $p->note->note_id]) }}" class="mr-1 inline-flex"
+                   aria-label="{{ __('Note :wert ansehen', ['wert' => $notenText]) }}" title="{{ __('Note ansehen') }}">
                     <x-note :wert="$p->note->note_wert" :stufe="$p->note->note_stufe" variante="badge" />
                 </a>
             @elseif($tage <= 0)

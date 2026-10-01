@@ -25,12 +25,10 @@
                 <section>
                     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Modul') }}</h2>
                     <div class="np-karte np-gruppe">
-                        <x-einstellung :label="__('Modulnummer')" fuer="modul_nummer" name="modul_nummer"
-                                       :hinweis="$nummerFest ? __('Die Nummer bleibt fest: an ihr hängen die Noten aller, die dieses Modul führen.') : null">
+                        <x-einstellung :label="__('Modulnummer')" fuer="modul_nummer" name="modul_nummer">
                             <input type="text" id="modul_nummer" name="modul_nummer" value="{{ old('modul_nummer', $modul->modul_nummer) }}" required maxlength="50"
                                    placeholder="M100" spellcheck="false" @if($nummerFest) readonly @endif
-                                   @if($b = $beschrieben('modul_nummer', $nummerFest)) aria-describedby="{{ $b }}" @endif
-                                   class="np-feld w-32 tabular-nums" @error('modul_nummer') aria-invalid="true" @enderror>
+                                   class="np-feld w-32 tabular-nums" @error('modul_nummer') aria-invalid="true" aria-describedby="modul_nummer-fehler" @enderror>
                         </x-einstellung>
                         <x-einstellung :label="__('Titel')" fuer="titel" name="titel">
                             <input type="text" id="titel" name="titel" value="{{ old('titel', $modul->titel) }}" required maxlength="255"
@@ -41,10 +39,9 @@
                                    aria-describedby="{{ $beschrieben('version') }}"
                                    class="np-feld w-24 text-right tabular-nums" @error('version') aria-invalid="true" @enderror>
                         </x-einstellung>
-                        <x-einstellung :label="__('Verweis')" fuer="link" name="link" :hinweis="__('Etwa die Modulseite der Schule.')">
+                        <x-einstellung :label="__('Verweis')" fuer="link" name="link">
                             <input type="url" id="link" name="link" value="{{ old('link', $modul->link) }}" maxlength="500" placeholder="https://"
-                                   aria-describedby="{{ $beschrieben('link') }}"
-                                   class="np-feld w-80" @error('link') aria-invalid="true" @enderror>
+                                   class="np-feld w-80" @error('link') aria-invalid="true" aria-describedby="link-fehler" @enderror>
                         </x-einstellung>
                     </div>
                 </section>

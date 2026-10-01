@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ $modul ? $modul->modul_nummer.' '.$modul->titel : __('Module') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Module')" :zaehler="$module->count()">
+        <x-seitenkopf :titel="__('Module')" :zaehler="$module->count() ?: null">
             <x-slot:aktionen>
                 <a href="{{ route('modules.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="plus" strich="2" />{{ __('Modul anlegen') }}</a>
             </x-slot:aktionen>
@@ -9,6 +9,13 @@
     </x-slot>
 
     <div class="py-6">
+        @if($module->isEmpty())
+            <div class="np-seite mx-auto px-8">
+                <x-leer symbol="rectangle-stack" :titel="__('Noch keine Module erfasst.')">
+                    <a href="{{ route('modules.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Modul anlegen') }}</a>
+                </x-leer>
+            </div>
+        @else
         {{-- Wie Notizen: links die Quellliste aller Module (filtert beim Tippen), rechts das gewählte Modul --}}
         {{-- Höhe der Liste: Fenster minus Symbolleiste minus Platz darüber (Seitenkopf, Seitenrand) und darunter, damit sie bei oberster Scrollposition ganz im Fenster endet --}}
         <div class="np-seite mx-auto grid grid-cols-[22rem_minmax(0,1fr)] items-start gap-8 px-8">
@@ -47,9 +54,7 @@
                                 @endforeach
                             </div>
                         @endforeach
-                        <p x-show="treffer === 0" x-cloak class="px-2.5 py-6 text-center text-sm text-muted">
-                            {{ $module->isEmpty() ? __('Noch keine Module erfasst.') : __('Kein Modul gefunden. Leg es an, dann sehen es alle.') }}
-                        </p>
+                        <p x-show="treffer === 0" x-cloak class="px-2.5 py-6 text-center text-sm text-muted">{{ __('Kein Modul gefunden.') }}</p>
                     </div>
                 </nav>
             </div>
@@ -57,13 +62,9 @@
             <div class="min-w-0">
                 @if($modul)
                     @include('module._detail')
-                @else
-                    <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
-                        {{ __('Noch keine Module erfasst.') }}
-                        <a href="{{ route('modules.create') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Modul anlegen') }}</a>
-                    </p>
                 @endif
             </div>
         </div>
+        @endif
     </div>
 </x-app-layout>

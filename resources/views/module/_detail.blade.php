@@ -30,8 +30,7 @@
             @if($kannBelegen)
                 <form method="POST" action="{{ route('modules.enroll', $modul->modul_id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
-                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer"
-                            title="{{ __('Danach kannst du hier eigene Noten erfassen.') }}">{{ __('Zu meinen Modulen hinzufügen') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zu meinen Modulen hinzufügen') }}</button>
                 </form>
             @endif
         </div>
@@ -122,12 +121,12 @@
                 <h3 id="modul-unterlagen" class="text-sm font-semibold text-text">{{ __('Unterlagen') }}</h3>
 
                 @if($modul->dokumente->isEmpty())
-                    <p class="text-sm text-muted">{{ __('Noch keine Unterlagen. Lade die Modulbeschreibung hoch – alle sehen sie danach.') }}</p>
+                    <p class="text-sm text-muted">{{ __('Noch keine Unterlagen.') }}</p>
                 @else
                     <ul class="np-gruppe">
                         @foreach($modul->dokumente as $d)
                             <li class="flex items-center gap-3 py-2.5">
-                                <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-3xs font-semibold text-accent-text">{{ strtoupper($d->endung()) }}</span>
+                                <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-fill text-3xs font-semibold text-muted">{{ strtoupper($d->endung()) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate text-sm font-medium text-text">{{ $d->titel }}</div>
                                     <div class="truncate text-xs text-muted">
