@@ -19,6 +19,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use App\Services\Auswertung\Rechner;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
@@ -248,6 +249,116 @@ class RechnerTest extends TestCase
         ])->assertOk();
 
         $this->assertEquals(5.0, $antwort->json('loesung.resultat'));
+    }
+
+    /** Eine Fach-Note im Semester des Tests (Schnitt-Grundlage der Vorschau-Tests). */
+    private function fachNote(float $wert): Note
+    {
+        return Note::factory()->create([
+            'lernender_id' => $this->lernender->lernender_id,
+            'kategorie_id' => Kategorie::where('code', 'BMS')->value('kategorie_id'),
+            'semester_id' => $this->semester->semester_id,
+            'fach_id' => $this->fach->fach_id,
+            'modul_belegung_id' => null,
+            'pruefungsdatum' => now()->toDateString(),
+            'note_wert' => $wert,
+            'gewichtung_prozent' => 100,
+            'erfasst_von_benutzer_id' => $this->user->benutzer_id,
+        ]);
+    }
+
+    /**
+     * Nutzlast der Live-Vorschau (npNotenFormular.laden()); $ersetzt ist beim Bearbeiten die ID der gespeicherten Note.
+     *
+     * @return array<string, mixed>
+     */
+    private function vorschau(float $wert, ?int $ersetzt): array
+    {
+        $element = "fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}";
+
+        return [
+            'ziel' => $element, 'zielwert' => 4, 'ersetzt' => $ersetzt,
+            'zeilen' => [['element' => $element, 'gewicht' => 100, 'wert' => $wert, 'datum' => now()->toDateString()]],
+        ];
+    }
+
+    /** @return array<string, array{0: ?float, 1: ?float}> Label => [vorher, nachher] */
+    private function vergleichsZeilen(TestResponse $antwort): array
+    {
+        return collect($antwort->json('vergleich'))->mapWithKeys(fn (array $z) => [$z['label'] => [$z['vorher'], $z['nachher']]])->all();
+    }
+
+    #[Test]
+    public function bearbeiten_ohne_aenderung_zeigt_keine_veraenderung_in_der_vorschau(): void
+    {
+        $bearbeitet = $this->fachNote(4.0);
+        $this->fachNote(5.0);
+
+        $antwort = $this->actingAs($this->user)
+            ->postJson(route('learner.grades.calculator.calculate'), $this->vorschau(4.0, $bearbeitet->note_id))->assertOk();
+
+        $zeilen = $this->vergleichsZeilen($antwort);
+        $this->assertNotEmpty($zeilen);
+        foreach ($zeilen as $label => [$vorher, $nachher]) {
+            $this->assertNotNull($vorher, "{$label}: «vorher» ist der heutige Stand inklusive der gespeicherten Note");
+            $this->assertEquals($vorher, $nachher, $label);
+        }
+        $this->assertEquals(4.5, array_values($zeilen)[0][0]);
+    }
+
+    #[Test]
+    public function bearbeiten_mit_geaenderter_note_vergleicht_den_heutigen_stand_mit_dem_neuen(): void
+    {
+        $bearbeitet = $this->fachNote(4.0);
+        $this->fachNote(5.0);
+
+        $antwort = $this->actingAs($this->user)
+            ->postJson(route('learner.grades.calculator.calculate'), $this->vorschau(6.0, $bearbeitet->note_id))->assertOk();
+
+        // Heute (4.0 und 5.0): 4.5. Mit der Formularnote statt der gespeicherten (6.0 und 5.0): 5.5 – nicht «5.0 → 5.5»
+        $ziel = collect($antwort->json('vergleich'))->firstWhere('ist_ziel', true);
+        $this->assertEquals(4.5, $ziel['vorher']);
+        $this->assertEquals(5.5, $ziel['nachher']);
+    }
+
+    #[Test]
+    public function erfassen_vergleicht_den_heutigen_stand_mit_der_zusaetzlichen_note(): void
+    {
+        // Erstes Fach-Ergebnis: vorher gibt es keinen Schnitt
+        $antwort = $this->actingAs($this->user)
+            ->postJson(route('learner.grades.calculator.calculate'), $this->vorschau(4.5, null))->assertOk();
+        $ziel = collect($antwort->json('vergleich'))->firstWhere('ist_ziel', true);
+        $this->assertNull($ziel['vorher']);
+        $this->assertEquals(4.5, $ziel['nachher']);
+
+        // Mit bestehenden Noten (4.0, 5.0): die neue 6.0 kommt dazu → 4.5 → 5.0
+        $this->fachNote(4.0);
+        $this->fachNote(5.0);
+        $antwort = $this->actingAs($this->user)
+            ->postJson(route('learner.grades.calculator.calculate'), $this->vorschau(6.0, null))->assertOk();
+        $ziel = collect($antwort->json('vergleich'))->firstWhere('ist_ziel', true);
+        $this->assertEquals(4.5, $ziel['vorher']);
+        $this->assertEquals(5.0, $ziel['nachher']);
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function bearbeiten_im_verwaltungsbereich_vergleicht_mit_dem_heutigen_stand(string $bereich): void
+    {
+        $bearbeitet = $this->fachNote(4.0);
+        $this->fachNote(5.0);
+        $verwalter = $this->verwalter($bereich, $this->lernender);
+        $url = route("{$bereich}.learners.calculator.calculate", $this->lernender->lernender_id);
+
+        $unveraendert = $this->actingAs($verwalter)->postJson($url, $this->vorschau(4.0, $bearbeitet->note_id))->assertOk();
+        foreach ($this->vergleichsZeilen($unveraendert) as $label => [$vorher, $nachher]) {
+            $this->assertEquals($vorher, $nachher, $label);
+        }
+
+        $geaendert = $this->actingAs($verwalter)->postJson($url, $this->vorschau(6.0, $bearbeitet->note_id))->assertOk();
+        $ziel = collect($geaendert->json('vergleich'))->firstWhere('ist_ziel', true);
+        $this->assertEquals(4.5, $ziel['vorher']);
+        $this->assertEquals(5.5, $ziel['nachher']);
     }
 
     #[Test]

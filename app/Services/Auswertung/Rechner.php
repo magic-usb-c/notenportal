@@ -268,7 +268,9 @@ final class Rechner
         $ziel = $this->parse($eingabe['ziel'], 'ziel');
         $katalog = $this->katalog($lernender);
 
-        $basis = $this->quelle->fuerLernenden((int) $lernender->lernender_id);
+        // «Vorher» ist der heutige Stand inklusive der gespeicherten Note; nur das Szenario ($alle) ersetzt sie.
+        $heute = $this->quelle->fuerLernenden((int) $lernender->lernender_id);
+        $basis = $heute;
         if (! empty($eingabe['ersetzt'])) {
             // Nur Noten ersetzen: Positionen eines Notenbaums tragen ihre eigene ID (position_id)
             $basis = array_values(array_filter($basis, fn (Leistung $l) => $l->knotenId !== null || $l->id !== (int) $eingabe['ersetzt']));
@@ -285,7 +287,7 @@ final class Rechner
 
         $x = $loesung['status'] === Zielrechner::BENOETIGT ? $loesung['note'] : null;
         $lernenderId = (int) $lernender->lernender_id;
-        $vorher = $this->kern->auswerten($basis, $k);
+        $vorher = $this->kern->auswerten($heute, $k);
         $vorher->lernenderId = $lernenderId;
         $nachher = $this->kern->auswerten($x !== null ? $this->zielrechner->mitGesuchterNote($alle, $ziel, $x, $k) : $alle, $k);
         $nachher->lernenderId = $lernenderId;

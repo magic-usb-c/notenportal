@@ -242,7 +242,8 @@ export function registriereRechner(Alpine) {
                     ziel: element, zielwert: 4, ersetzt: cfg.ersetzt ?? null,
                     zeilen: [{ element, gewicht: Number.isFinite(g) ? g : 100, wert: w, datum: this.datum }],
                 });
-                this.vorschau = r.vergleich.filter((z) => z.vorher !== z.nachher || z.ist_ziel);
+                // Beim Erfassen bleibt die Zielzeile immer stehen (neue Note); beim Bearbeiten nur, was sich ändert
+                this.vorschau = r.vergleich.filter((z) => z.vorher !== z.nachher || (z.ist_ziel && !cfg.ersetzt));
             } catch {
                 this.vorschau = [];
             }
