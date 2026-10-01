@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Auswertung;
 
+use App\Services\Auswertung\Leistung;
+use App\Services\Auswertung\Notenbaum\Baum;
 use App\Services\Auswertung\Zielgroesse;
 use App\Services\Auswertung\Zielrechner;
 use PHPUnit\Framework\Attributes\Test;
@@ -86,6 +88,30 @@ class ZielrechnerTest extends TestCase
 
         $this->assertSame(Zielrechner::BENOETIGT, $r['status']);
         $this->assertSame(4, $r['unbekannte']);
+    }
+
+    #[Test]
+    public function zaehlt_im_notenbaum_nur_was_die_wurzel_traegt(): void
+    {
+        // Wurzel = IPA (Position) und Fachunterricht; ÜK hängt mit Gewicht 0 daneben, BMS gar nicht im Baum.
+        $baum = Baum::ausArray(1, 'QV', ['id' => 1, 'code' => 'qv', 'typ' => 'gruppe', 'rundung' => 0.1, 'kinder' => [
+            ['id' => 2, 'code' => 'ipa', 'typ' => 'manuell', 'gewicht' => 1],
+            ['id' => 3, 'code' => 'fach', 'typ' => 'kategorie', 'kategorie_id' => self::FACH, 'gewicht' => 1],
+            ['id' => 4, 'code' => 'uek', 'typ' => 'kategorie', 'kategorie_id' => self::UEK, 'gewicht' => 0],
+        ]]);
+        $k = $this->testKonfiguration()->mitBaeumen([$baum]);
+        $leistungen = [
+            $this->modul(100, 4.0, 50), $this->modul(100, null, 50), Leistung::position(2, null),
+            $this->modul(101, null, kategorie: self::UEK), $this->fach(self::MATHE, 1, null),
+        ];
+
+        $r = (new Zielrechner)->loese($leistungen, Zielgroesse::parse('gesamt'), 4.5, $k);
+        $this->assertSame(Zielrechner::BENOETIGT, $r['status']);
+        $this->assertSame(2, $r['unbekannte']);
+
+        // Ist die IPA schon erfasst, bewegt eine zweite, offene Position nichts mehr.
+        $erfasst = [...$leistungen, Leistung::position(2, 5.0)];
+        $this->assertSame(1, (new Zielrechner)->loese($erfasst, Zielgroesse::parse('gesamt'), 4.5, $k)['unbekannte']);
     }
 
     #[Test]

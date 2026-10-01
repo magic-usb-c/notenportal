@@ -112,10 +112,18 @@ final class Zielrechner
         }
         $haupt = $ziel->ebene === 'gesamt' ? $k->hauptbaum() : null;
         $blaetter = $haupt !== null ? $this->tragendeBlaetter($haupt->wurzel) : null;
+        // Eine Position ist ein einzelner Wert je Knoten, ihr Gewicht zählt nicht; ist sie schon erfasst, bleibt eine offene wirkungslos.
+        $erfasst = [];
+        foreach ($leistungen as $l) {
+            if ($l->istPosition() && ! $l->istUnbekannt()) {
+                $erfasst[(int) $l->knotenId] = true;
+            }
+        }
 
         $anzahl = 0;
         foreach ($leistungen as $i => $l) {
-            if ($l->istUnbekannt() && $l->gewicht > 0
+            $wirkt = $l->istPosition() ? ! isset($erfasst[(int) $l->knotenId]) : $l->gewicht > 0;
+            if ($l->istUnbekannt() && $wirkt
                 && $this->fliesstEin($l, $elementVon[spl_object_id($gefuellt[$i])] ?? null, $ziel, $k, $blaetter)) {
                 $anzahl++;
             }
