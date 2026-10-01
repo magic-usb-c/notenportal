@@ -595,5 +595,7 @@
     "Für wen?": "For whom?",
     "Noch keine Noten :bezug.": "No grades yet :bezug.",
     "Erneut berechnen": "Calculate again",
-    "Zu viele Anfragen – bitte kurz warten.": "Too many requests – please wait a moment."
+    "Zu viele Anfragen – bitte kurz warten.": "Too many requests – please wait a moment.",
+    ":anzahl ohne Note": ":anzahl without a grade",
+    "Was du hier ergänzt, steht sofort allen zur Verfügung.": "Whatever you add here is available to everyone right away."
 }

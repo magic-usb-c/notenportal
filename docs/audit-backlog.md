@@ -748,3 +748,12 @@ ausgeblendeten Werte in der Namenszelle nach.
   unter R4 Lernende – ein Schritt für alle Diagramme.
 - **`admin/benutzer/_person.blade.php`: Hinweis «Buchstaben, Ziffern und . _ -»** unter dem Benutzernamen
   ist erklärend; kommt mit dem Admin-Block (Validierungsmeldung statt Dauerhinweis).
+- **Prüfungstermine (Verwaltung): Nebenspalte «Lernende» endet bei 2560 rund 385 px vor der Symbolleiste**
+  (`verwaltung/pruefungen/index.blade.php`, Raster `minmax(0,78rem)_20rem`): dieselbe Entscheidung wie die
+  Agenda der Lernenden (R4 Lernende, «Deckel 78 rem») – Terminzeilen mit 300 px Inhalt auf 1600 px zu strecken
+  bringt nichts; die Zähler sind jetzt beschriftet («9 ohne Note»).
+- **Schul-Track nur beim Erfassen, nicht beim Bearbeiten** (`verwaltung/lernende/_formular.blade.php`,
+  `@unless($lernender)`): ein laufender Track hat Startsemester und Verlauf und wird im Cockpit unter
+  «Profil & Betreuung» gestartet oder beendet; im Bearbeiten-Formular wäre eine Änderung mehrdeutig.
+- **Bildprüfer-Befund «Letzte Note» linksbündig**: nicht bestätigt – Zelle und Kopf sind `text-right`,
+  «vor 24 Tagen» endet an derselben Kante wie «–» (1920/_trainer_learners.png, x≈1340).

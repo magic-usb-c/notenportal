@@ -141,6 +141,7 @@
     "Name": "Name",
     "Name, E-Mail, Benutzername": "Name, email, username",
     "Neu": "New",
+    "Neue Note als gesehen markieren": "Mark new grade as seen",
     "Neue Note erfasst": "New grade recorded",
     "Neue Noten": "New grades",
     "Neuer Kommentar": "New comment",
@@ -238,5 +239,6 @@
     "Intern": "Internal",
     "Bemerkung": "Note",
     "Für Lernende nicht sichtbar.": "Not visible to apprentices.",
-    "Das Endsemester liegt vor dem Startsemester.": "The end semester is before the start semester."
+    "Das Endsemester liegt vor dem Startsemester.": "The end semester is before the start semester.",
+    "Mit neuen Noten": "With new grades"
 }

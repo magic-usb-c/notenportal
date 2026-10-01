@@ -15,7 +15,7 @@
             ['alle', __('Alle'), 'users', 'bg-accent/12 text-accent-text', $zeilen->count()],
             ['rot', __('Kritisch'), 'exclamation-triangle', 'bg-note-ungenuegend/12 text-note-ungenuegend', $zeilen->filter(fn ($z) => $z->stand->status === 'rot')->count()],
             ['gelb', __('Beobachten'), 'eye', 'bg-note-knapp/14 text-note-knapp', $zeilen->filter(fn ($z) => $z->stand->status === 'gelb')->count()],
-            ['neu', __('Neue Noten'), 'inbox-stack', 'bg-fill text-muted', $zeilen->filter(fn ($z) => $z->neu > 0)->count()],
+            ['neu', __('Mit neuen Noten'), 'inbox-stack', 'bg-fill text-muted', $zeilen->filter(fn ($z) => $z->neu > 0)->count()],
         ];
         // Filter und Suche prüfen im Browser dieselben Werte, die die Zeile zeigt
         $filterDaten = $zeilen->map(fn ($z) => [

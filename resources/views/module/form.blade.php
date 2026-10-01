@@ -60,7 +60,7 @@
                                       class="np-feld" @error('handlungsziele') aria-invalid="true" @enderror>{{ old('handlungsziele', $ziele) }}</textarea>
                         </x-einstellung>
                     </div>
-                    <p class="mt-2 px-1 text-xs text-muted">{{ __('Was du hier ergänzt, steht sofort allen zur Verfügung. Deine Noten bleiben privat.') }}</p>
+                    <p class="mt-2 px-1 text-xs text-muted">{{ auth()->user()->hasRole('Lernender') ? __('Was du hier ergänzt, steht sofort allen zur Verfügung. Deine Noten bleiben privat.') : __('Was du hier ergänzt, steht sofort allen zur Verfügung.') }}</p>
                 </section>
 
                 <x-formular-aktionen :abbrechen="$neu ? route('modules.index') : route('modules.show', $modul->modul_id)">{{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}</x-formular-aktionen>

@@ -35,14 +35,14 @@
             </div>
             <div class="flex min-w-0 flex-col gap-1 px-5 py-4">
                 <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Nächste Prüfung') }}</div>
-                <div class="flex min-h-9 items-center text-xl font-semibold text-text">{{ $naechste ? \App\Support\Format::date($naechste->datum, 'tag_monat') : '–' }}</div>
+                <div class="flex min-h-9 items-center text-xl font-semibold text-text">@if($naechste){{ \App\Support\Format::date($naechste->datum, 'tag_monat') }}@else<span class="font-normal text-muted">{{ \App\Support\NotenSkala::format(null) }}</span>@endif</div>
                 @if($naechste)
                     <div class="truncate text-xs text-muted">{{ $naechste->bezeichnung() }} · {{ \App\Support\Format::wann($naechste->datum) }}</div>
                 @endif
             </div>
             <div class="flex flex-col gap-1 px-5 py-4">
                 <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Letzte Prüfung') }}</div>
-                <div class="flex min-h-9 items-center text-xl font-semibold text-text">{{ $stand->letztePruefung ? \App\Support\Format::date($stand->letztePruefung, 'tag_monat') : '–' }}</div>
+                <div class="flex min-h-9 items-center text-xl font-semibold text-text">@if($stand->letztePruefung){{ \App\Support\Format::date($stand->letztePruefung, 'tag_monat') }}@else<span class="font-normal text-muted">{{ \App\Support\NotenSkala::format(null) }}</span>@endif</div>
                 @if($stand->letztePruefung)
                     <div class="text-xs text-muted">{{ \App\Support\Format::wann($stand->letztePruefung) }}</div>
                 @endif

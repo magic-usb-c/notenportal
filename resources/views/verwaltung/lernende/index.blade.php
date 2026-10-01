@@ -4,12 +4,13 @@
     $aktiveFilter = collect([$filter['suche'], $filter['lehrberuf_id'], $filter['lehrjahr'], $filter['berufsbildner_id'],
         $filter['bms'], $filter['warnung'], $filter['inaktive']])->filter()->count();
 
-    $sortLink = function (string $spalte, string $label) use ($filter) {
+    // Rechtsbündige Spalten: Pfeil vor dem Text (flex-row-reverse), damit der Kopf mit den Zahlen bündig bleibt
+    $sortLink = function (string $spalte, string $label, bool $rechts = false) use ($filter) {
         $aktiv = $filter['sort'] === $spalte;
         $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
         $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
 
-        return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text '.($aktiv ? 'text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
+        return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text'.($rechts ? ' flex-row-reverse' : '').($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
     };
     // Die Richtung sagt aria-sort am Spaltenkopf an, der Pfeil ist nur fürs Auge
     $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
@@ -124,9 +125,9 @@
                         <table class="np-tabelle table-fixed text-sm">
                             <caption class="sr-only">{{ __('Lernende') }}</caption>
                             <colgroup>
-                                <col><col class="w-32">
+                                <col class="w-72"><col class="w-32">
                                 @if($bereich === 'admin')<col class="w-48">@endif
-                                <col class="w-20"><col class="w-32"><col class="w-28"><col class="w-80"><col class="w-24">
+                                <col class="w-20"><col class="w-32"><col class="w-28"><col class="w-80"><col>
                             </colgroup>
                             <thead>
                                 <tr>
@@ -136,10 +137,10 @@
                                         <th scope="col" class="whitespace-nowrap">{{ __('Berufsbildner') }}</th>
                                     @endif
                                     <th scope="col" class="text-right whitespace-nowrap">{{ __('Noten') }}</th>
-                                    <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note')) !!}</th>
-                                    <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt')) !!}</th>
+                                    <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note'), true) !!}</th>
+                                    <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt'), true) !!}</th>
                                     <th scope="col">{{ __('Status') }}</th>
-                                    <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -177,7 +178,7 @@
                                         <td>
                                             <div class="flex flex-wrap items-center gap-1">@include('verwaltung.lernende._status')</div>
                                         </td>
-                                        <td class="text-right">
+                                        <td>
                                             <x-zeilen-link :href="route($bereich.'.learners.grades.index', $l->lernender_id)" :label="__('Noten')" :zeile="$z->vorname.' '.$z->nachname" />
                                         </td>
                                     </tr>

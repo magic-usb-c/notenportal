@@ -23,6 +23,10 @@
     $letzter = end($punkte) ?: null;
     $text = collect($punkte)->map(fn ($p) => $skala::format($p[2], 1))->implode(', ');
 @endphp
+@if(! $punkte)
+    {{-- Ohne Noten kein leeres Band (wirkte wie ein Ladeplatzhalter), nur der Platzhalterstrich --}}
+    <span {{ $attributes->merge(['class' => 'inline-flex items-center text-xs text-muted']) }} role="img" aria-label="{{ $label }}: {{ __('keine Noten') }}">{{ $skala::format(null) }}</span>
+@else
 <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1.5']) }}>
     <svg class="shrink-0 overflow-visible" width="{{ $breite }}" height="{{ $hoehe }}" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img"
          aria-label="{{ $label }}{{ $text !== '' ? ': '.$text : ': '.__('keine Noten') }}">
@@ -39,3 +43,4 @@
         <span class="text-xs font-medium tabular-nums {{ $skala::text($letzter[2]) }}" aria-hidden="true">{{ $skala::format($letzter[2], 1) }}</span>
     @endif
 </span>
+@endif
