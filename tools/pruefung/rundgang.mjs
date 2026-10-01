@@ -30,8 +30,12 @@ const befunde = [];
 let abgebrochen = 0;
 try {
   await anmelden(page, email);
+  // Lesende POSTs des Rechners (berechnen/simulieren schreiben nichts) laufen durch – sonst zeigt die
+  // Rechnerseite im Rundgang «Berechnung fehlgeschlagen», ein Werkzeug-, kein Portalbefund (01.10.2026).
+  const lesendePosts = /\/calculator(\/simulate)?$/;
   await page.route('**/*', (r) => {
-    if (r.request().method() === 'GET') return r.continue();
+    const req = r.request();
+    if (req.method() === 'GET' || (req.method() === 'POST' && lesendePosts.test(new URL(req.url()).pathname))) return r.continue();
     abgebrochen++;
     return r.abort();
   });
