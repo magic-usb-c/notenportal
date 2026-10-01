@@ -61,7 +61,6 @@
     "Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.": "This subject is not enabled for this occupation or track.",
     "Dieses Fach oder Modul ist nicht verfügbar.": "This subject or module is not available.",
     "Differenz": "Difference",
-    "Dokument löschen?": "Delete document?",
     "Drucken": "Print",
     "Drucken / PDF": "Print / PDF",
     "Ebene": "Level",
@@ -187,7 +186,6 @@
     "Offene Prüfungen": "Remaining exams",
     "Online": "Online",
     "Outlook": "Outlook",
-    "PDF, Bild, Excel, CSV · bis 10 MB": "PDF, image, Excel, CSV · up to 10 MB",
     "Planen": "Plan",
     "Portal": "Portal",
     "Praktisch": "Practical",
@@ -342,5 +340,11 @@
     "Monatsübersicht": "Month overview",
     "Modul wiederholen?": "Repeat module?",
     "Ab der nächsten Note zählt nur der neue Versuch.": "From the next grade onward, only the new attempt counts.",
-    "Wiederholen": "Repeat"
+    "Wiederholen": "Repeat",
+    "Hochladen…": "Upload…",
+    "Typ": "Type",
+    "Hochgeladen": "Uploaded",
+    "Dokument «:titel» löschen?": "Delete document “:titel”?",
+    "Dokument hochladen": "Upload document",
+    "PDF, Bild, Word, Excel, CSV · bis :mb MB": "PDF, image, Word, Excel, CSV · up to :mb MB"
 }

@@ -131,4 +131,43 @@ class DokumenteTest extends TestCase
         }
         $this->assertSame(0, Dokument::count());
     }
+
+    #[Test]
+    public function ein_pdf_zeugnis_bietet_den_abgleich_nur_in_der_eigenen_ablage(): void
+    {
+        // Den Abgleich gibt es nur unter learner.*; früher suchte die Verwaltungsansicht eine Route, die fehlt (500)
+        $user = User::factory()->lernender()->create();
+        $lernenderId = (int) $user->lernender->lernender_id;
+        $dokumentId = DB::table('dokumente')->insertGetId([
+            'lernender_id' => $lernenderId, 'art' => 'zeugnis', 'titel' => 'Zeugnis 1. Semester', 'originalname' => 'z.pdf',
+            'pfad' => 'lernende/'.$lernenderId.'/dokumente/z.pdf', 'mime' => 'application/pdf', 'groesse' => 2048,
+            'sha256' => str_repeat('a', 64), 'hochgeladen_von_benutzer_id' => $user->benutzer_id, 'erstellt_am' => now(), 'aktualisiert_am' => now(),
+        ]);
+        $abgleich = route('learner.documents.reconcile', $dokumentId);
+
+        $this->actingAs($user)->get(route('learner.documents.index'))
+            ->assertOk()
+            ->assertSee($abgleich, false)
+            ->assertSee('dokument-hochladen', false);
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->get(route('admin.learners.documents.index', $lernenderId))
+            ->assertOk()
+            ->assertSee('Zeugnis 1. Semester')
+            ->assertDontSee('reconcile', false);
+    }
+
+    #[Test]
+    public function ein_fehler_beim_hochladen_oeffnet_das_sheet_wieder(): void
+    {
+        $this->actingAs(User::factory()->lernender()->create())
+            ->from(route('learner.documents.index'))
+            ->post(route('learner.documents.store'), ['art' => 'zeugnis'])
+            ->assertSessionHasErrors('datei');
+
+        $this->get(route('learner.documents.index'))
+            ->assertOk()
+            ->assertSee('id="datei-fehler"', false)
+            ->assertSee('show: true', false);
+    }
 }
