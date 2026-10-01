@@ -23,6 +23,14 @@ PID_DATEI="$ZUSTAND/demo-server.pid"
 LOG="$ZUSTAND/demo-server.log"
 mkdir -p "$ZUSTAND"
 
+# Cloud: der SessionStart-Hook legt den APP_KEY unter $ZUSTAND/app_key ab. Läuft der Hook von Hand
+# (ohne CLAUDE_ENV_FILE), fehlt die Variable in der Sitzung – hier nachladen, sonst antwortet jede
+# Seite mit 500 «No application encryption key». Auf der VM steht der Schlüssel in der .env.
+if [ -z "${APP_KEY:-}" ] && [ -s "$ZUSTAND/app_key" ]; then
+    APP_KEY="$(cat "$ZUSTAND/app_key")"
+    export APP_KEY
+fi
+
 laeuft() { curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$URL/login" 2>/dev/null | grep -q '^200$'; }
 
 starten() {

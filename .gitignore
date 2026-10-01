@@ -31,3 +31,5 @@ Thumbs.db
 
 # Von install.sh aus /etc/ssl/<instanz>/ca.crt kopiert, damit die Lernenden sie laden können.
 /public/lab-ca.crt
+/composer.local.json
+/composer.local.lock

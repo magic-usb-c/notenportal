@@ -26,7 +26,7 @@ melde() { MELDUNGEN+=("$1"); echo "[session-start] $1" >>"$LOG"; }
 SOCKET=/run/mysqld/mysqld.sock
 
 export DEBIAN_FRONTEND=noninteractive
-export COMPOSER_ALLOW_SUPERUSER=1 COMPOSER=composer.local.json
+export COMPOSER_ALLOW_SUPERUSER=1
 export npm_config_update_notifier=false npm_config_fund=false npm_config_audit=false
 export DB_CONNECTION=mariadb DB_HOST=localhost DB_SOCKET="$SOCKET" DB_USERNAME=root DB_PASSWORD=
 export DB_MIGRATE_USERNAME=root DB_MIGRATE_PASSWORD=
@@ -39,10 +39,23 @@ if ! command -v mysqld_safe >/dev/null 2>&1; then
     apt-get update -qq >>"$LOG" 2>&1 && apt-get install -y -qq mariadb-server mariadb-client >>"$LOG" 2>&1 \
         || melde "FEHLER: MariaDB-Installation fehlgeschlagen (siehe $LOG)"
 fi
+# Ohne .env liest phpdotenv bei jedem Hochfahren ins Leere; Collision zählt die unterdrückte Warnung je Test
+# («1066 warnings», gemessen 01.10.2026). Die Werte kommen aus der Umgebung, die Datei bleibt leer und ist gitignored.
+[ -f "$PROJEKT/.env" ] || printf '# Umgebung kommt aus .claude/hooks/session-start.sh (Cloud-Sitzung)\n' > "$PROJEKT/.env"
+
+# ssh-keygen braucht SicherungKopieTest (app/Services/Betrieb/SicherungKopie.php); im Container fehlt openssh-client.
+if ! command -v ssh-keygen >/dev/null 2>&1; then
+    apt-get update -qq >>"$LOG" 2>&1; apt-get install -y -qq openssh-client >>"$LOG" 2>&1 \
+        || melde "openssh-client nicht installiert – SicherungKopieTest fällt (siehe $LOG)"
+fi
 if command -v mysqld_safe >/dev/null 2>&1 && ! mysqladmin --socket="$SOCKET" ping >/dev/null 2>&1; then
-    mkdir -p /run/mysqld
+    # mysqld_safe startet mariadbd als Benutzer mysql. Socket-, Protokoll- und Datenverzeichnis müssen
+    # ihm gehören, sonst stirbt der Dienst ohne sichtbare Meldung (Syslog gibt es im Container nicht;
+    # gemessen 01.10.2026: /run/mysqld gehörte root, der Socket liess sich nicht anlegen).
+    install -d -o mysql -g mysql /run/mysqld /var/log/mysql
+    chown -R mysql:mysql /var/lib/mysql
     rm -f /run/mysqld/mysqld.pid "$SOCKET"
-    (nohup mysqld_safe >"$ZUSTAND/mariadb.log" 2>&1 &)
+    (nohup mysqld_safe --log-error=/var/log/mysql/error.log >"$ZUSTAND/mariadb.log" 2>&1 &)
     for _ in $(seq 1 40); do mysqladmin --socket="$SOCKET" ping >/dev/null 2>&1 && break; sleep 1; done
 fi
 if mysqladmin --socket="$SOCKET" ping >/dev/null 2>&1; then
@@ -51,13 +64,25 @@ if mysqladmin --socket="$SOCKET" ping >/dev/null 2>&1; then
     done
     melde "MariaDB läuft ($(mysql --socket="$SOCKET" -u root -N -e 'SELECT VERSION()' 2>/dev/null)), Datenbanken notenportal_test und notenportal_demo vorhanden"
 else
-    melde "FEHLER: MariaDB läuft nicht – Tests und Demo-Server stehen nicht zur Verfügung"
+    melde "FEHLER: MariaDB läuft nicht – Tests und Demo-Server stehen nicht zur Verfügung ($(grep ERROR /var/log/mysql/error.log 2>/dev/null | tail -2 | tr '\n' ' '))"
 fi
 
 # 2. Composer
 if [ ! -f vendor/autoload.php ]; then
-    melde "composer install läuft"
-    composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1 || melde "FEHLER: composer install (siehe $LOG)"
+    # Dist-Archive kommen von api.github.com. Sperrt die Netzrichtlinie den Host (CONNECT 403, gemessen
+    # 01.10.2026), scheitert jeder Dist-Versuch, und phpstan/phpstan hat keine Git-Quelle – composer
+    # install bricht dann auch mit --prefer-source ab. composer-spiegel.sh schreibt deshalb eine
+    # composer.local.lock mit denselben Versionen, deren Archive vom Packagist-Spiegel kommen (unter
+    # einer Minute statt über zehn Minuten Klonen).
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://api.github.com/ 2>/dev/null)" = "403" ]; then
+        melde "api.github.com gesperrt – composer install über den Packagist-Spiegel (composer.local.lock)"
+        bash "$PROJEKT/.claude/hooks/composer-spiegel.sh" >>"$LOG" 2>&1 \
+            && COMPOSER=composer.local.json composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1 \
+            || melde "FEHLER: composer install über den Spiegel (siehe $LOG)"
+    else
+        melde "composer install läuft"
+        composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1 || melde "FEHLER: composer install (siehe $LOG)"
+    fi
 fi
 
 # 3. APP_KEY – einmal erzeugen, dann beständig
@@ -88,7 +113,7 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     {
         echo "export DB_CONNECTION=mariadb DB_HOST=localhost DB_SOCKET=$SOCKET DB_USERNAME=root DB_PASSWORD="
         echo "export DB_MIGRATE_USERNAME=root DB_MIGRATE_PASSWORD="
-        echo "export COMPOSER_ALLOW_SUPERUSER=1 COMPOSER=composer.local.json"
+        echo "export COMPOSER_ALLOW_SUPERUSER=1"
         echo "export npm_config_update_notifier=false npm_config_fund=false"
         echo "export APP_TIMEZONE=Europe/Zurich APP_LOCALE=de APP_FALLBACK_LOCALE=de APP_FAKER_LOCALE=de_CH"
         echo "export NP_URL=$NP_URL"
@@ -114,6 +139,9 @@ fi
 # 7. Plugins aus dem offiziellen Marktplatz (enabledPlugins in .claude/settings.json schaltet nur ein,
 #    installiert aber nichts – jeder Container muss selbst installieren; geprüft mit CLI 2.1.286)
 if command -v claude >/dev/null 2>&1; then
+    # Die mitgelieferte Kopie des Marktplatzes ist im frischen Container veraltet und kennt die Plugins
+    # nicht («not found in marketplace», 01.10.2026) – deshalb zuerst aktualisieren.
+    timeout 120 claude plugin marketplace update claude-plugins-official >>"$LOG" 2>&1 || melde "Marktplatz claude-plugins-official nicht aktualisiert (siehe $LOG)"
     for PLUGIN in php-lsp@claude-plugins-official frontend-design@claude-plugins-official; do
         if grep -q "\"$PLUGIN\"" "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null; then
             continue
