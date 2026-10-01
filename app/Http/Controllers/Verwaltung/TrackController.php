@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Verwaltung;
 
+use App\Models\Semester;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -38,7 +39,7 @@ class TrackController extends VerwaltungController
         ]);
 
         return redirect()
-            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', [$lernender_id, 'tab' => 'profil']))
             ->with('success', __('Track gestartet.'));
     }
 
@@ -53,6 +54,13 @@ class TrackController extends VerwaltungController
             'end_semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
         ]);
 
+        $reihenfolge = Semester::query()
+            ->whereKey([$track->start_semester_id, (int) $daten['end_semester_id']])
+            ->pluck('sortierung', 'semester_id');
+        if ($reihenfolge[(int) $daten['end_semester_id']] < ($reihenfolge[$track->start_semester_id] ?? PHP_INT_MIN)) {
+            return back()->with('error', __('Das Endsemester liegt vor dem Startsemester.'));
+        }
+
         // DB-Constraint end_datum >= start_datum: ein künftiger Track endet an seinem Starttag.
         $track->update([
             'end_datum' => max(today(), $track->start_datum)->toDateString(),
@@ -60,7 +68,7 @@ class TrackController extends VerwaltungController
         ]);
 
         return redirect()
-            ->to($this->zuRoute($request, 'learners.show', $lernender_id))
+            ->to($this->zuRoute($request, 'learners.show', [$lernender_id, 'tab' => 'profil']))
             ->with('success', __('Track beendet.'));
     }
 }

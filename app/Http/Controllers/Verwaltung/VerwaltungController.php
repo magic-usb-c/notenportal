@@ -35,13 +35,13 @@ abstract class VerwaltungController extends Controller
         return route($this->bereich($request).'.'.$name, $parameter);
     }
 
-    /** Nach Übergabe oder Beenden einer Betreuung ist der Lernende evtl. nicht mehr sichtbar. */
+    /** Nach Übergabe oder Beenden einer Betreuung ist der Lernende evtl. nicht mehr sichtbar; sonst zurück zum Profil-Tab. */
     protected function zurueckZumLernenden(Request $request, int $lernenderId, string $meldung): RedirectResponse
     {
         $sichtbar = Lernender::sichtbarFuer($request->user())->whereKey($lernenderId)->exists();
 
         return redirect()
-            ->to($sichtbar ? $this->zuRoute($request, 'learners.show', $lernenderId) : $this->zuRoute($request, 'learners.index'))
+            ->to($sichtbar ? $this->zuRoute($request, 'learners.show', [$lernenderId, 'tab' => 'profil']) : $this->zuRoute($request, 'learners.index'))
             ->with('success', $meldung);
     }
 }

@@ -240,5 +240,6 @@
     "Startsemester": "Starting semester",
     "Intern": "Internal",
     "Bemerkung": "Note",
-    "Für Lernende nicht sichtbar.": "Not visible to apprentices."
+    "Für Lernende nicht sichtbar.": "Not visible to apprentices.",
+    "Das Endsemester liegt vor dem Startsemester.": "The end semester is before the start semester."
 }

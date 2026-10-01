@@ -43,14 +43,14 @@ class BetreuungTest extends TestCase
                 'berufsbildner_id' => $bb->berufsbildner->berufsbildner_id,
                 'gueltig_von' => now()->subMonth()->toDateString(),
             ])
-            ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
+            ->assertRedirect(route('admin.learners.show', [$lernender->lernender_id, 'tab' => 'profil']));
 
         $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertOk();
 
         $betreuung = $lernender->betreuungen()->sole();
         $this->actingAs($admin)
             ->post(route('admin.supervisions.end', [$lernender->lernender_id, $betreuung->betreuung_id]))
-            ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
+            ->assertRedirect(route('admin.learners.show', [$lernender->lernender_id, 'tab' => 'profil']));
 
         $this->actingAs($bb)->get(route('trainer.learners.show', $lernender->lernender_id))->assertNotFound();
     }

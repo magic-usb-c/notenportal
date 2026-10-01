@@ -94,26 +94,28 @@
         </div>
         @can('betreuungVerwalten', $lernender)
             <form method="POST" action="{{ route("{$bereich}.learners.supervision.store", $lernender->lernender_id) }}"
-                  class="mt-auto grid grid-cols-[minmax(0,1fr)_10rem_auto] items-end gap-3 border-t border-border bg-bg/40 px-5 py-4"
+                  class="mt-auto grid grid-cols-[minmax(0,1fr)_10rem_auto] items-end gap-3 border-t border-border bg-fill-2 px-5 py-4"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                   @if($hatOffeneBetreuung) data-bestaetigen="{{ __('Betreuung zuweisen?') }}" data-bestaetigen-text="{{ __('Die bisherige Betreuung endet am Vortag.') }}" data-bestaetigen-knopf="{{ __('Zuweisen') }}" data-bestaetigen-art="normal" @endif>
                 @csrf
                 <div>
-                    <label for="berufsbildner_id" class="{{ $feldLabel }}">{{ __('Berufsbildner') }} *</label>
-                    <select id="berufsbildner_id" name="berufsbildner_id" required class="{{ $feld }}">
-                        <option value="">{{ __('Bitte wählen') }}</option>
+                    <label for="berufsbildner_id" class="{{ $feldLabel }}">{{ __('Berufsbildner') }}</label>
+                    <select id="berufsbildner_id" name="berufsbildner_id" required class="{{ $feld }}"
+                            @error('berufsbildner_id') aria-invalid="true" aria-describedby="berufsbildner_id-fehler" @enderror>
+                        <option value="">{{ __('Bitte wählen…') }}</option>
                         @foreach($berufsbildnerListe as $bb)
                             <option value="{{ $bb->berufsbildner_id }}" @selected(old('berufsbildner_id') == $bb->berufsbildner_id)>
                                 {{ $bb->benutzer->nachname }} {{ $bb->benutzer->vorname }}
                             </option>
                         @endforeach
                     </select>
-                    @error('berufsbildner_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    @error('berufsbildner_id')<p id="berufsbildner_id-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="gueltig_von" class="{{ $feldLabel }}">{{ __('Ab') }} *</label>
-                    <input id="gueltig_von" type="date" name="gueltig_von" required value="{{ old('gueltig_von', now()->toDateString()) }}" class="{{ $feld }}">
-                    @error('gueltig_von')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <label for="gueltig_von" class="{{ $feldLabel }}">{{ __('Ab') }}</label>
+                    <input id="gueltig_von" type="date" name="gueltig_von" required value="{{ old('gueltig_von', now()->toDateString()) }}" class="{{ $feld }} tabular-nums"
+                           @error('gueltig_von') aria-invalid="true" aria-describedby="gueltig_von-fehler" @enderror>
+                    @error('gueltig_von')<p id="gueltig_von-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
             </form>
@@ -137,6 +139,13 @@
                     </div>
                     @if(! $t->end_datum)
                         @can('verwalten', $lernender)
+                            @php
+                                // Endsemester: nicht vor dem Startsemester; vorgewählt ist das Semester, in dem der Track endet.
+                                $startSortierung = $semesterListe->firstWhere('semester_id', $t->start_semester_id)?->sortierung ?? PHP_INT_MIN;
+                                $endOptionen = $semesterListe->filter(fn ($s) => $s->sortierung >= $startSortierung);
+                                $endStichtag = max(today(), $t->start_datum)->toDateString();
+                                $endStandard = ($endOptionen->filter(fn ($s) => $s->start_datum <= $endStichtag)->last() ?? $endOptionen->first())?->semester_id;
+                            @endphp
                             <form method="POST" action="{{ route("{$bereich}.tracks.end", [$lernender->lernender_id, $t->lernender_track_id]) }}"
                                   class="flex items-center gap-2"
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
@@ -145,8 +154,8 @@
                                 <label for="end_semester_{{ $t->lernender_track_id }}" class="sr-only">{{ __('Endsemester') }}</label>
                                 <select id="end_semester_{{ $t->lernender_track_id }}" name="end_semester_id" required
                                         class="np-feld np-feld-klein w-auto shrink-0">
-                                    @foreach($semesterListe as $s)
-                                        <option value="{{ $s->semester_id }}">{{ $semesterName($s->semester_id) }}</option>
+                                    @foreach($endOptionen as $s)
+                                        <option value="{{ $s->semester_id }}" @selected((int) $s->semester_id === (int) $endStandard)>{{ $semesterName($s->semester_id) }}</option>
                                     @endforeach
                                 </select>
                                 <button type="submit" :disabled="loading"
@@ -161,30 +170,47 @@
         </div>
         @can('verwalten', $lernender)
             <form method="POST" action="{{ route("{$bereich}.learners.tracks.store", $lernender->lernender_id) }}"
-                  class="mt-auto grid grid-cols-[6rem_10rem_minmax(0,1fr)_auto] items-end gap-3 border-t border-border bg-bg/40 px-5 py-4"
-                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                  class="mt-auto grid grid-cols-[6rem_10rem_minmax(0,1fr)_auto] items-end gap-3 border-t border-border bg-fill-2 px-5 py-4"
+                  x-data="{
+                      loading: false,
+                      start: {{ Js::from((string) old('start_datum', now()->toDateString())) }},
+                      semesterId: {{ Js::from((string) old('start_semester_id', '')) }},
+                      beruehrt: {{ Js::from(old('start_semester_id') !== null) }},
+                      zeitraeume: {{ Js::from($semesterListe->map(fn ($s) => [(string) $s->semester_id, $s->start_datum, $s->end_datum])->values()) }},
+                      semesterNachStart() {
+                          if (this.beruehrt || !this.start) return;
+                          const treffer = this.zeitraeume.find(([, beginn, ende]) => beginn <= this.start && this.start <= ende);
+                          if (treffer) this.semesterId = treffer[0];
+                      },
+                  }"
+                  x-init="semesterNachStart()" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <div>
-                    <label for="track_typ" class="{{ $feldLabel }}">{{ __('Track') }} *</label>
-                    <select id="track_typ" name="track_typ" required class="{{ $feld }}">
-                        <option value="BMS">BMS</option>
-                        <option value="ABU">ABU</option>
+                    <label for="track_typ" class="{{ $feldLabel }}">{{ __('Track') }}</label>
+                    <select id="track_typ" name="track_typ" required class="{{ $feld }}"
+                            @error('track_typ') aria-invalid="true" aria-describedby="track_typ-fehler" @enderror>
+                        <option value="BMS" @selected(old('track_typ') === 'BMS')>BMS</option>
+                        <option value="ABU" @selected(old('track_typ') === 'ABU')>ABU</option>
                     </select>
-                    @error('track_typ')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    @error('track_typ')<p id="track_typ-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="start_datum" class="{{ $feldLabel }}">{{ __('Start') }} *</label>
-                    <input id="start_datum" type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}" class="{{ $feld }}">
-                    @error('start_datum')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <label for="start_datum" class="{{ $feldLabel }}">{{ __('Start') }}</label>
+                    <input id="start_datum" type="date" name="start_datum" required value="{{ old('start_datum', now()->toDateString()) }}" class="{{ $feld }} tabular-nums"
+                           x-model="start" x-on:change="semesterNachStart()"
+                           @error('start_datum') aria-invalid="true" aria-describedby="start_datum-fehler" @enderror>
+                    @error('start_datum')<p id="start_datum-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="start_semester_id" class="{{ $feldLabel }}">{{ __('Semester') }} *</label>
-                    <select id="start_semester_id" name="start_semester_id" required class="{{ $feld }}">
+                    <label for="start_semester_id" class="{{ $feldLabel }}">{{ __('Semester') }}</label>
+                    <select id="start_semester_id" name="start_semester_id" required class="{{ $feld }}" x-model="semesterId" @change="beruehrt = true"
+                            @error('start_semester_id') aria-invalid="true" aria-describedby="start_semester_id-fehler" @enderror>
+                        <option value="">{{ __('Bitte wählen…') }}</option>
                         @foreach($semesterListe as $s)
                             <option value="{{ $s->semester_id }}">{{ $semesterName($s->semester_id) }}</option>
                         @endforeach
                     </select>
-                    @error('start_semester_id')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    @error('start_semester_id')<p id="start_semester_id-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Track starten') }}</button>
             </form>

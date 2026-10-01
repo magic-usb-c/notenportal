@@ -18,7 +18,7 @@ class TrackTest extends TestCase
         $lernender = $this->neuerLernender();
         $verwalter = $this->verwalter($bereich, $lernender);
         $start = Semester::factory()->create();
-        $ende = Semester::factory()->create();
+        $ende = Semester::factory()->create(['sortierung' => $start->sortierung + 1]);
 
         $this->actingAs($verwalter)
             ->post(route("{$bereich}.learners.tracks.store", $lernender->lernender_id), [
@@ -26,7 +26,7 @@ class TrackTest extends TestCase
                 'start_datum' => $start->start_datum->toDateString(),
                 'start_semester_id' => $start->semester_id,
             ])
-            ->assertRedirect(route("{$bereich}.learners.show", $lernender->lernender_id))
+            ->assertRedirect(route("{$bereich}.learners.show", [$lernender->lernender_id, 'tab' => 'profil']))
             ->assertSessionHas('success');
 
         $track = $lernender->tracks()->sole();
@@ -62,5 +62,24 @@ class TrackTest extends TestCase
             ->assertSessionHas('error');
 
         $this->assertSame(1, $lernender->tracks()->count());
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function endsemester_vor_dem_startsemester_wird_abgewiesen(string $bereich): void
+    {
+        $lernender = $this->neuerLernender();
+        $verwalter = $this->verwalter($bereich, $lernender);
+        $start = Semester::factory()->create(['sortierung' => 500]);
+        $frueher = Semester::factory()->create(['sortierung' => 499]);
+        $track = $this->bmsTrack($lernender, $start->semester_id);
+
+        $this->actingAs($verwalter)
+            ->post(route("{$bereich}.tracks.end", [$lernender->lernender_id, $track->lernender_track_id]), [
+                'end_semester_id' => $frueher->semester_id,
+            ])
+            ->assertSessionHas('error');
+
+        $this->assertNull($track->refresh()->end_datum);
     }
 }
