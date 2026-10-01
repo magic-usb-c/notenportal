@@ -1225,6 +1225,31 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
+@utility np-listenzeile {
+  /* Zeile einer Inhaltsliste mit Auswahl (Mail, Notizen): gewählte Zeile als ruhige Fläche, solange der Fokus
+     in der Liste liegt in Akzentfarbe wie unter macOS. Platz links für einen Status-Punkt. */
+  position: relative;
+  display: block;
+  padding: 0.625rem 0.875rem 0.75rem 1.5rem;
+  border-radius: var(--radius-lg);
+  cursor: default;
+  user-select: none;
+  transition: background-color 100ms var(--ease-out);
+  &:hover {
+    background-color: rgb(var(--text) / 0.04);
+  }
+  &[aria-selected='true'] {
+    background-color: rgb(var(--text) / 0.085);
+  }
+  [role='listbox']:focus-within > &[aria-selected='true'] {
+    background-color: rgb(var(--accent) / 0.14);
+  }
+  &:focus-visible {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: -2px;
+  }
+}
+
 @utility np-marke {
   /* Marke (Badge): kurzer Status oder Zähler */
   display: inline-flex;

@@ -144,6 +144,27 @@ class FeedbackTest extends TestCase
     }
 
     #[Test]
+    public function admin_index_sucht_woertlich_in_text_und_name_und_sortiert_aelteste_zuerst(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $person = User::factory()->lernender()->create(['vorname' => 'Ursina', 'nachname' => 'Caflisch']);
+
+        Feedback::factory()->create(['text' => 'Alte Meldung zum Rechner', 'erstellt_am' => now()->subDays(3)]);
+        Feedback::factory()->create(['benutzer_id' => $person->benutzer_id, 'text' => 'Neue Meldung zum Export', 'erstellt_am' => now()]);
+
+        $nachName = $this->actingAs($admin)->get(route('admin.feedback.index', ['suche' => 'Caflisch Ursina']));
+        $nachName->assertSee('Neue Meldung zum Export');
+        $nachName->assertDontSee('Alte Meldung zum Rechner');
+
+        // % und _ sind keine Platzhalter
+        $this->actingAs($admin)->get(route('admin.feedback.index', ['suche' => '%']))
+            ->assertSee(__('Keine Meldungen für diese Filter.'));
+
+        $inhalt = $this->actingAs($admin)->get(route('admin.feedback.index', ['sort' => 'aelteste']))->getContent();
+        $this->assertLessThan(strpos($inhalt, 'Neue Meldung zum Export'), strpos($inhalt, 'Alte Meldung zum Rechner'));
+    }
+
+    #[Test]
     public function admin_index_blendet_duplikate_standardmaessig_aus(): void
     {
         $admin = User::factory()->admin()->create();

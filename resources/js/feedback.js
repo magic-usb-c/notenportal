@@ -128,7 +128,109 @@ async function erstelleScreenshot() {
     }
 }
 
+function toast(message, art = 'erfolg') {
+    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message, art } }));
+}
+
+async function patchJson(url, body) {
+    return fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        },
+        body: JSON.stringify(body),
+    });
+}
+
 export function registriereFeedback(Alpine) {
+    // Postfach der Meldungen (Admin): Liste links, gewählte Meldung rechts wie in Mail. Auswahl per Klick oder
+    // Pfeiltasten; die Adresse merkt sie als #meldung-ID, damit Links auf ein Original direkt dorthin führen.
+    Alpine.data('npFeedbackPostfach', (cfg) => ({
+        meldungen: Object.fromEntries(Object.entries(cfg.meldungen).map(([id, m]) => [
+            id, { ...m, statusGespeichert: m.status, notizGespeichert: m.notiz },
+        ])),
+        statusLabels: cfg.statusLabels,
+        gewaehlt: null,
+        speichert: false,
+        duplikatSpeichert: false,
+        duplikatFehler: '',
+
+        init() {
+            this.gewaehlt = this.ausAdresse() ?? cfg.reihenfolge[0] ?? null;
+            window.addEventListener('hashchange', () => {
+                const id = this.ausAdresse();
+                if (id !== null) this.waehlen(id, false);
+            });
+        },
+
+        ausAdresse() {
+            const id = Number((window.location.hash.match(/^#meldung-(\d+)$/) ?? [])[1]);
+            return cfg.reihenfolge.includes(id) ? id : null;
+        },
+
+        waehlen(id, adresseSetzen = true) {
+            if (this.gewaehlt === id) return;
+            this.gewaehlt = id;
+            this.duplikatFehler = '';
+            if (adresseSetzen) history.replaceState(null, '', `#meldung-${id}`);
+            this.$nextTick(() => this.$refs.detail?.scrollTo({ top: 0 }));
+        },
+
+        // Pfeil auf/ab, Pos1/Ende: nächste Meldung wählen und den Fokus mitnehmen (ARIA-Listbox)
+        bewegen(schritt) {
+            const liste = cfg.reihenfolge;
+            const i = liste.indexOf(this.gewaehlt);
+            const id = liste[Math.min(Math.max(i + schritt, 0), liste.length - 1)];
+            this.waehlen(id);
+            this.$nextTick(() => this.$refs.liste?.querySelector(`[data-meldung="${id}"]`)?.focus());
+        },
+
+        geaendert(id) {
+            const m = this.meldungen[id];
+            return m.status !== m.statusGespeichert || m.notiz !== m.notizGespeichert;
+        },
+
+        async speichern(id) {
+            const m = this.meldungen[id];
+            this.speichert = true;
+            try {
+                const res = await patchJson(cfg.urls.speichern.replace('__ID__', id), { status: m.status, admin_notiz: m.notiz });
+                if (res.status === 419) throw new Error(t('Sitzung abgelaufen. Seite bitte neu laden.'));
+                if (!res.ok) throw new Error(t('Änderung konnte nicht gespeichert werden.'));
+                m.statusGespeichert = m.status;
+                m.notizGespeichert = m.notiz;
+                toast(t('Gespeichert.'));
+            } catch (e) {
+                toast(e.message || t('Änderung konnte nicht gespeichert werden.'), 'fehler');
+            } finally {
+                this.speichert = false;
+            }
+        },
+
+        async duplikatUmschalten(id) {
+            const m = this.meldungen[id];
+            this.duplikatFehler = '';
+            this.duplikatSpeichert = true;
+            try {
+                const res = await patchJson(cfg.urls.duplikat.replace('__ID__', id), {
+                    duplikat_von: m.duplikatVon ? null : Number(m.duplikatEingabe),
+                });
+                if (res.ok) {
+                    window.location.reload();
+                    return;
+                }
+                const daten = res.status === 422 ? await res.json().catch(() => null) : null;
+                this.duplikatFehler = Object.values(daten?.errors ?? {}).flat().join(' ') || t('Bitte Eingaben prüfen.');
+            } catch {
+                this.duplikatFehler = t('Bitte Eingaben prüfen.');
+            } finally {
+                this.duplikatSpeichert = false;
+            }
+        },
+    }));
+
     Alpine.data('feedbackDialog', (cfg) => ({
         open: false,
         kategorie: 'idee',

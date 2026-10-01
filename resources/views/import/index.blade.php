@@ -75,7 +75,7 @@
                                     }
                                     this.zeilen = (await antwort.json()).zeilen;
                                 } catch (e) {
-                                    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Erneute Prüfung fehlgeschlagen.')) } }));
+                                    window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Erneute Prüfung fehlgeschlagen.')), art: 'fehler' } }));
                                 } finally {
                                     this.pruefeLaedt = false;
                                 }

@@ -34,7 +34,7 @@
             {{-- Meldung im vorhandenen Toast (siehe <x-toast> weiter unten),
                  wenn ein optimistisch übernommener Schnellwechsel nicht gespeichert werden konnte. --}}
             function npFehlermeldung() {
-                window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Änderung konnte nicht gespeichert werden.')) } }));
+                window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Änderung konnte nicht gespeichert werden.')), art: 'fehler' } }));
             }
 
             window.npToggleTheme = function () {
@@ -191,7 +191,7 @@
             <x-toast art="fehler" :meldung="$flashError" />
         @endif
 
-        {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...' } })) --}}
+        {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...', art: 'fehler' } })), art optional --}}
         <x-toast art="erfolg" />
 
         <x-feedback-widget />

@@ -18,6 +18,7 @@ final class JsTexte
         'Danke, deine Meldung ist eingegangen.',
         'Die Anhänge sind zusammen zu gross. Bitte weniger oder kleinere Dateien wählen.',
         'Ergebnis',
+        'Gespeichert.',
         'Ergebnis: :wert',
         'Gerade viele Meldungen unterwegs – bitte kurz warten.',
         'Meldung konnte nicht gesendet werden.',
@@ -28,6 +29,7 @@ final class JsTexte
         'Senden',
         'Senden…',
         'Tabelle',
+        'Änderung konnte nicht gespeichert werden.',
         'Ziel :wert',
         'genügend :wert',
     ];

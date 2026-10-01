@@ -1,387 +1,318 @@
+{{-- Feedback als Postfach (Mail): links die Meldungen, rechts die gewählte mit Inhalt und Kontext, daneben die
+     Bearbeitung als Inspektor. Auswahl per Klick oder Pfeiltasten (npFeedbackPostfach in resources/js/feedback.js). --}}
+@use('App\Models\Feedback')
+@use('App\Support\Format')
+@php
+    $aktiveFilter = collect([$suche, $status, $kategorie, $rolle])->filter(fn ($w) => $w !== '')->count() + ($duplikate ? 1 : 0);
+    $auswahl = 'np-feld np-feld-klein w-auto max-w-64';
+    $wann = fn ($d) => match (true) {
+        $d->isToday() => $d->format('H:i'),
+        $d->isYesterday() => __('Gestern'),
+        $d->gt(now()->subDays(6)->startOfDay()) => Format::date($d, 'dddd'),
+        default => $d->format('d.m.Y'),
+    };
+    $name = fn ($m) => trim($m->vorname.' '.$m->nachname) ?: $m->email;
+    $stimmen = fn ($n) => (int) $n === 1 ? __('1 Stimme') : __(':n Stimmen', ['n' => (int) $n]);
+    $statusLabels = collect(Feedback::STATUS)->map(fn ($l) => __($l))->all();
+    $postfach = [
+        'statusLabels' => $statusLabels,
+        'reihenfolge' => $meldungen->map(fn ($m) => (int) $m->feedback_id)->values()->all(),
+        'meldungen' => $meldungen->mapWithKeys(fn ($m) => [(int) $m->feedback_id => [
+            'status' => $m->status,
+            'notiz' => $m->admin_notiz ?? '',
+            'duplikatVon' => $hatDuplikatSpalte ? $m->duplikat_von : null,
+            'duplikatEingabe' => $hatDuplikatSpalte ? ($m->duplikat_von ?? '') : '',
+        ]])->all(),
+        'urls' => [
+            'speichern' => route('admin.feedback.update', '__ID__'),
+            'duplikat' => $hatDuplikatSpalte ? route('admin.feedback.duplicate', '__ID__') : null,
+        ],
+    ];
+@endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Feedback') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Feedback')">
-            <x-slot:aktionen>
-                <a href="{{ route('admin.feedback.export', request()->query()) }}"
-                   class="np-knopf np-knopf-sekundaer">
-                    {{ __('CSV-Export') }}
-                </a>
-            </x-slot:aktionen>
+        <x-seitenkopf :titel="__('Feedback')" :zaehler="$gibtEs ? $meldungen->total() : null">
+            @if($gibtEs)
+                <x-slot:aktionen>
+                    <a href="{{ route('admin.feedback.export') }}" class="np-knopf np-knopf-sekundaer">
+                        <x-symbol name="arrow-down-tray" />{{ __('CSV exportieren') }}
+                    </a>
+                </x-slot:aktionen>
+            @endif
         </x-seitenkopf>
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-4">
+        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
+            @if(! $gibtEs)
+                <div class="np-karte">
+                    <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
+                </div>
+            @else
+                <x-filterleiste :action="route('admin.feedback.index')" suche-name="suche" :suche-wert="$suche"
+                                 :suche-platzhalter="__('Text, Name oder E-Mail')"
+                                 :zurueck="route('admin.feedback.index')" :aktive-filter="$aktiveFilter">
+                    <label for="status" class="sr-only">{{ __('Status') }}</label>
+                    <select name="status" id="status" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
+                        @foreach(Feedback::STATUS as $wert => $label)
+                            <option value="{{ $wert }}" @selected($status === $wert)>{{ __($label) }}</option>
+                        @endforeach
+                    </select>
 
-            @php
-                $aktiveFilter = collect([$status, $kategorie, $rolle])->filter()->count() + ($duplikate ? 1 : 0);
-            @endphp
-            <x-filterleiste :action="route('admin.feedback.index')" :zaehler="$meldungen->total()" zaehler-label="{{ __('Meldungen') }}"
-                             :zurueck="route('admin.feedback.index')" :aktive-filter="$aktiveFilter">
-                <x-slot:hidden>
-                    <input type="hidden" name="sort" value="{{ $sort }}">
-                    <input type="hidden" name="dir" value="{{ $dir }}">
-                </x-slot:hidden>
+                    <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                    <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="" @selected($kategorie === '')>{{ __('Kategorie: alle') }}</option>
+                        @foreach(Feedback::KATEGORIEN as $wert => $label)
+                            <option value="{{ $wert }}" @selected($kategorie === $wert)>{{ __($label) }}</option>
+                        @endforeach
+                    </select>
 
-                <label for="status" class="sr-only">{{ __('Status') }}</label>
-                <select name="status" id="status" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein w-auto max-w-64">
-                    <option value="" @selected($status === '')>{{ __('Status: alle') }}</option>
-                    @foreach(\App\Models\Feedback::STATUS as $value => $label)
-                        <option value="{{ $value }}" @selected($status === $value)>{{ __($label) }}</option>
-                    @endforeach
-                </select>
+                    <label for="rolle" class="sr-only">{{ __('Rolle') }}</label>
+                    <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="" @selected($rolle === '')>{{ __('Rolle: alle') }}</option>
+                        @foreach(['Admin', 'Berufsbildner', 'Lernender'] as $r)
+                            <option value="{{ $r }}" @selected($rolle === $r)>{{ __($r) }}</option>
+                        @endforeach
+                    </select>
 
-                <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
-                <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein w-auto max-w-64">
-                    <option value="" @selected($kategorie === '')>{{ __('Kategorie: alle') }}</option>
-                    @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
-                        <option value="{{ $value }}" @selected($kategorie === $value)>{{ __($label) }}</option>
-                    @endforeach
-                </select>
-
-                <label for="rolle" class="sr-only">{{ __('Rolle') }}</label>
-                <select name="rolle" id="rolle" x-on:change="$el.form.requestSubmit()"
-                        class="np-feld np-feld-klein w-auto max-w-64">
-                    <option value="" @selected($rolle === '')>{{ __('Rolle: alle') }}</option>
-                    <option value="Admin" @selected($rolle === 'Admin')>{{ __('Admin') }}</option>
-                    <option value="Berufsbildner" @selected($rolle === 'Berufsbildner')>{{ __('Berufsbildner') }}</option>
-                    <option value="Lernender" @selected($rolle === 'Lernender')>{{ __('Lernender') }}</option>
-                </select>
-
-                @if($hatDuplikatSpalte)
                     <x-slot:weitere>
-                        <label class="flex h-9 items-center gap-2 px-1 text-sm text-text">
-                            <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()"
-                                   class="np-haken">
-                            {{ __('Duplikate anzeigen') }}
-                        </label>
+                        <label for="sort" class="sr-only">{{ __('Sortierung') }}</label>
+                        <select name="sort" id="sort" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                            <option value="neueste" @selected($sort === 'neueste')>{{ __('Neueste zuerst') }}</option>
+                            <option value="aelteste" @selected($sort === 'aelteste')>{{ __('Älteste zuerst') }}</option>
+                            <option value="stimmen" @selected($sort === 'stimmen')>{{ __('Meiste Stimmen') }}</option>
+                        </select>
+                        @if($hatDuplikatSpalte)
+                            <label class="flex h-8 items-center gap-2 px-1 text-sm text-text">
+                                <input type="checkbox" name="duplikate" value="1" @checked($duplikate) x-on:change="$el.form.requestSubmit()" class="np-haken">
+                                {{ __('Duplikate anzeigen') }}
+                            </label>
+                        @endif
                     </x-slot:weitere>
-                @endif
-            </x-filterleiste>
+                </x-filterleiste>
 
-            @php
-                $sortLink = function (string $spalte, string $label) use ($sort, $dir) {
-                    if ($spalte === 'stimmen') {
-                        $aktiv = $sort === 'stimmen';
-                        $url = e(request()->fullUrlWithQuery(['sort' => 'stimmen', 'dir' => 'desc']));
-                        $pfeilAuf = false;
-                    } else {
-                        $aktiv = $sort === 'datum';
-                        $naechsteDir = $aktiv && $dir === 'asc' ? 'desc' : 'asc';
-                        $url = e(request()->fullUrlWithQuery(['sort' => 'datum', 'dir' => $naechsteDir]));
-                        $pfeilAuf = $aktiv && $dir === 'asc';
-                    }
-                    $pfeil = ! $aktiv
-                        ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
-                        : '<span aria-hidden="true">'.($pfeilAuf ? '↑' : '↓').'</span>';
+                @if($meldungen->isEmpty())
+                    <div class="np-karte">
+                        <p class="flex items-center justify-center gap-3 px-6 py-10 text-sm text-muted">
+                            {{ __('Keine Meldungen für diese Filter.') }}
+                            <a href="{{ route('admin.feedback.index') }}" class="text-accent-text hover:underline underline-offset-2">{{ __('Filter zurücksetzen') }}</a>
+                        </p>
+                    </div>
+                @else
+                    <div class="grid grid-cols-[minmax(20rem,26rem)_minmax(0,1fr)] items-start gap-4" x-data="npFeedbackPostfach(@js($postfach))">
 
-                    return '<a href="'.$url.'" class="group/sort inline-flex items-center gap-1 hover:text-text'.($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
-                };
-                $ariaSort = fn (string $spalte) => $sort === $spalte ? ($spalte === 'stimmen' || $dir === 'desc' ? 'descending' : 'ascending') : 'none';
-            @endphp
-            <div class="np-karte overflow-hidden">
-                <div class="overflow-x-auto p-2">
-                    <table class="np-tabelle text-sm">
-                        <thead>
-                            <tr>
-                                <th scope="col" class="whitespace-nowrap" aria-sort="{{ $ariaSort('datum') }}">
-                                    <span class="flex items-center gap-4">{!! $sortLink('datum', __('Datum')) !!}<span class="sm:hidden">{!! $sortLink('stimmen', __('Stimmen')) !!}</span></span>
-                                </th>
-                                <th scope="col" class="hidden sm:table-cell whitespace-nowrap">{{ __('Absender') }}</th>
-                                <th scope="col" class="hidden whitespace-nowrap sm:table-cell">{{ __('Kategorie') }}</th>
-                                <th scope="col" class="hidden sm:table-cell">{{ __('Text') }}</th>
-                                <th scope="col" class="hidden sm:table-cell whitespace-nowrap">{{ __('Status') }}</th>
-                                <th scope="col" class="hidden sm:table-cell text-right whitespace-nowrap" aria-sort="{{ $ariaSort('stimmen') }}">{!! $sortLink('stimmen', __('Stimmen')) !!}</th>
-                                <th scope="col" class="text-right whitespace-nowrap">{{ __('Aktionen') }}</th>
-                            </tr>
-                        </thead>
-                        @forelse($meldungen as $m)
-                            <tbody x-data="{
-                                    open: false,
-                                    status: '{{ $m->status }}',
-                                    notiz: @js($m->admin_notiz ?? ''),
-                                    saving: false,
-                                    savedOk: false,
-                                    duplikatVon: @js($m->duplikat_von ?? null),
-                                    duplikatEingabe: @js($m->duplikat_von ?? null),
-                                    duplikatFehler: '',
-                                    duplikatSaving: false,
-                                    async duplikatUmschalten() {
-                                        this.duplikatFehler = '';
-                                        this.duplikatSaving = true;
-                                        const ziel = this.duplikatVon ? null : (this.duplikatEingabe ? Number(this.duplikatEingabe) : null);
-                                        try {
-                                            const res = await fetch('{{ route('admin.feedback.duplicate', $m->feedback_id) }}', {
-                                                method: 'PATCH',
-                                                headers: {
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
-                                                    'Content-Type': 'application/json',
-                                                    'Accept': 'application/json',
-                                                },
-                                                body: JSON.stringify({ duplikat_von: ziel }),
-                                            });
-                                            if (res.ok) {
-                                                window.location.reload();
-                                                return;
-                                            }
-                                            if (res.status === 422) {
-                                                const daten = await res.json();
-                                                this.duplikatFehler = Object.values(daten.errors ?? {}).flat().join(' ') || @js(__('Bitte Eingaben prüfen.'));
-                                            } else {
-                                                this.duplikatFehler = @js(__('Bitte Eingaben prüfen.'));
-                                            }
-                                        } catch {
-                                            this.duplikatFehler = @js(__('Bitte Eingaben prüfen.'));
-                                        } finally {
-                                            this.duplikatSaving = false;
-                                        }
-                                    },
-                                    async speichern() {
-                                        this.saving = true;
-                                        this.savedOk = false;
-                                        try {
-                                            const res = await fetch('{{ route('admin.feedback.update', $m->feedback_id) }}', {
-                                                method: 'PATCH',
-                                                headers: {
-                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content ?? '',
-                                                    'Content-Type': 'application/json',
-                                                    'Accept': 'application/json',
-                                                },
-                                                body: JSON.stringify({ status: this.status, admin_notiz: this.notiz }),
-                                            });
-                                            if (res.ok) {
-                                                this.savedOk = true;
-                                                setTimeout(() => this.savedOk = false, 2000);
-                                            }
-                                        } finally {
-                                            this.saving = false;
-                                        }
-                                    },
-                                }"
-                               >
-                                <tr id="meldung-{{ $m->feedback_id }}">
-                                    <td class="align-top">
-                                        <div class="hidden sm:block text-muted whitespace-nowrap">{{ $m->erstellt_am->format('d.m.Y H:i') }}</div>
-                                        <div class="flex flex-col gap-1 sm:hidden">
-                                            <div class="font-medium break-words">{{ $m->nachname }} {{ $m->vorname }}</div>
-                                            <div class="text-xs text-muted">{{ $m->erstellt_am->format('d.m.Y H:i') }} · {{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</div>
-                                            <p class="whitespace-pre-wrap break-words">{{ Str::limit($m->text, 160) }}</p>
-                                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                                <x-status :status="match ($m->status) {
-                                                        \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
-                                                        \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
-                                                        default => 'gelb',
-                                                    }"
-                                                    :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
-                                                <span class="text-xs text-muted tabular-nums">{{ __('Stimmen') }} {{ $m->stimmen_anzahl ?? 0 }}</span>
+                        {{-- Liste --}}
+                        <div class="flex flex-col gap-3">
+                            <div class="np-karte p-1.5">
+                                <div role="listbox" x-ref="liste" aria-label="{{ __('Meldungen') }}" class="flex flex-col gap-0.5"
+                                     @keydown.arrow-down.prevent="bewegen(1)" @keydown.arrow-up.prevent="bewegen(-1)"
+                                     @keydown.home.prevent="bewegen(-Infinity)" @keydown.end.prevent="bewegen(Infinity)">
+                                    @foreach($meldungen as $m)
+                                        @php
+                                            $id = (int) $m->feedback_id;
+                                            $offen = $m->status === Feedback::STATUS_OFFEN;
+                                        @endphp
+                                        <div role="option" data-meldung="{{ $id }}" id="meldung-{{ $id }}"
+                                             aria-selected="{{ $loop->first ? 'true' : 'false' }}" tabindex="{{ $loop->first ? 0 : -1 }}"
+                                             :aria-selected="gewaehlt === {{ $id }} ? 'true' : 'false'" :tabindex="gewaehlt === {{ $id }} ? 0 : -1"
+                                             @click="waehlen({{ $id }})" class="np-listenzeile">
+                                            <span class="absolute left-2 top-4 size-2 rounded-full bg-accent" @if(! $offen) style="display: none" @endif
+                                                  x-show="meldungen[{{ $id }}].statusGespeichert === 'offen'"><span class="sr-only">{{ __('Offen') }}</span></span>
+                                            <div class="flex items-baseline gap-3">
+                                                <span @class(['min-w-0 flex-1 truncate text-sm text-text', 'font-semibold' => $offen, 'font-medium' => ! $offen])
+                                                      :class="{ 'font-semibold': meldungen[{{ $id }}].statusGespeichert === 'offen', 'font-medium': meldungen[{{ $id }}].statusGespeichert !== 'offen' }">{{ $name($m) }}</span>
+                                                <span class="shrink-0 text-xs tabular-nums text-muted">{{ $wann($m->erstellt_am) }}</span>
+                                            </div>
+                                            <div class="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+                                                <span class="truncate">{{ __(Feedback::kategorieLabel($m->kategorie)) }}</span>
+                                                <span x-show="meldungen[{{ $id }}].statusGespeichert !== 'offen'" @if($offen) style="display: none" @endif class="flex shrink-0 items-center gap-1.5">
+                                                    <span aria-hidden="true">·</span><span x-text="statusLabels[meldungen[{{ $id }}].statusGespeichert]">{{ $statusLabels[$m->status] ?? $m->status }}</span>
+                                                </span>
                                                 @if($hatDuplikatSpalte && $m->duplikat_von)
-                                                    <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
-                                                       class="np-marke min-h-6 text-muted hover:text-text">
-                                                        {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
-                                                    </a>
+                                                    <span class="flex shrink-0 items-center gap-1.5"><span aria-hidden="true">·</span>{{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}</span>
+                                                @elseif($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
+                                                    <span class="flex shrink-0 items-center gap-1.5"><span aria-hidden="true">·</span>{{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}</span>
+                                                @endif
+                                                @if(($m->stimmen_anzahl ?? 0) > 0)
+                                                    <span class="ml-auto shrink-0 tabular-nums">{{ $stimmen($m->stimmen_anzahl) }}</span>
+                                                @endif
+                                            </div>
+                                            <p class="mt-1 line-clamp-2 break-words text-xs text-muted">{{ Str::limit($m->text, 240) }}</p>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @if($meldungen->hasPages())
+                                <div class="px-1">{{ $meldungen->links() }}</div>
+                            @endif
+                        </div>
+
+                        {{-- Gewählte Meldung --}}
+                        <div x-ref="detail" class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)_+_0.5rem)] max-h-[calc(100dvh_-_var(--np-symbolleiste-hoehe)_-_1.5rem)] overflow-y-auto">
+                            @foreach($meldungen as $m)
+                                @php
+                                    $id = (int) $m->feedback_id;
+                                    $rollen = $m->rolle ? __($m->rolle) : ($m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : null);
+                                    $kontext = array_filter([
+                                        __('Seite') => $m->url,
+                                        __('Route') => $m->route_name,
+                                        __('Fenster') => $m->viewport,
+                                        __('Browser') => $m->browser ?? $m->user_agent,
+                                    ], fn ($w) => filled($w));
+                                    $technik = $m->technik_details ?? [];
+                                @endphp
+                                <article x-show="gewaehlt === {{ $id }}" @unless($loop->first) x-cloak @endunless aria-labelledby="meldung-titel-{{ $id }}"
+                                         class="grid grid-cols-[minmax(0,1fr)_20rem]">
+                                    <div class="min-w-0">
+                                        <header class="flex items-start gap-4 border-b border-border px-6 py-5">
+                                            <span class="np-monogramm size-10 shrink-0 text-sm" aria-hidden="true">{{ mb_strtoupper(mb_substr($m->vorname ?? '', 0, 1).mb_substr($m->nachname ?? '', 0, 1)) ?: '?' }}</span>
+                                            <div class="min-w-0 flex-1">
+                                                <h2 id="meldung-titel-{{ $id }}" class="truncate text-lg font-semibold text-text">{{ $name($m) }}</h2>
+                                                <p class="truncate text-sm text-muted">{{ $m->email }}@if($rollen) <span aria-hidden="true">·</span> {{ $rollen }}@endif</p>
+                                            </div>
+                                            <time datetime="{{ $m->erstellt_am->toIso8601String() }}" class="shrink-0 pt-1 text-sm tabular-nums text-muted">
+                                                {{ Format::date($m->erstellt_am, 'tag_monat') }} {{ $m->erstellt_am->format('Y') }}, {{ $m->erstellt_am->format('H:i') }}
+                                            </time>
+                                        </header>
+
+                                        <div class="flex flex-col gap-6 px-6 py-5">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <span class="np-marke font-medium text-text">{{ __(Feedback::kategorieLabel($m->kategorie)) }}</span>
+                                                @if(($m->stimmen_anzahl ?? 0) > 0)
+                                                    <span class="np-marke tabular-nums text-muted">{{ $stimmen($m->stimmen_anzahl) }}</span>
+                                                @endif
+                                                @if($hatDuplikatSpalte && $m->duplikat_von)
+                                                    <a href="{{ route('admin.feedback.index', ['duplikate' => 1]) }}#meldung-{{ $m->duplikat_von }}"
+                                                       class="np-marke min-h-6 text-accent-text hover:underline">{{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}</a>
                                                 @endif
                                                 @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
                                                     <span class="np-marke text-muted">{{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}</span>
                                                 @endif
+                                                <span class="ml-auto text-xs tabular-nums text-muted">#{{ $id }}</span>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">
-                                        <div class="font-medium">{{ $m->nachname }} {{ $m->vorname }}</div>
-                                        <div class="text-xs text-muted">{{ $m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : '–' }}</div>
-                                        @if($hatDuplikatSpalte && $m->duplikat_von)
-                                            <a href="{{ route('admin.feedback.index', array_merge(request()->query(), ['duplikate' => 1])) }}#meldung-{{ $m->duplikat_von }}"
-                                               class="mt-1 np-marke min-h-6 text-muted hover:text-text">
-                                                {{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}
-                                            </a>
-                                        @endif
-                                        @if($hatDuplikatSpalte && ($m->duplikate_anzahl ?? 0) > 0)
-                                            <span class="mt-1 np-marke text-muted">
-                                                {{ __('+:n Duplikate', ['n' => $m->duplikate_anzahl]) }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">{{ __(\App\Models\Feedback::kategorieLabel($m->kategorie)) }}</td>
-                                    <td class="hidden sm:table-cell max-w-sm align-top">
-                                        <span class="whitespace-pre-wrap">{{ Str::limit($m->text, 160) }}</span>
-                                    </td>
-                                    <td class="hidden sm:table-cell whitespace-nowrap align-top">
-                                        <x-status :status="match ($m->status) {
-                                                \App\Models\Feedback::STATUS_ERLEDIGT => 'gruen',
-                                                \App\Models\Feedback::STATUS_IN_ARBEIT => 'neutral',
-                                                default => 'gelb',
-                                            }"
-                                            :text="__(\App\Models\Feedback::STATUS[$m->status] ?? $m->status)" />
-                                    </td>
-                                    <td class="hidden sm:table-cell text-right align-top">{{ $m->stimmen_anzahl ?? 0 }}</td>
-                                    <td class="text-right align-top whitespace-nowrap">
-                                        <button type="button" @click="open = !open" :aria-expanded="open"
-                                                class="np-knopf np-knopf-sekundaer np-knopf-klein">
-                                            <span x-text="open ? @js(__('Schliessen')) : @js(__('Details'))"></span>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr x-show="open" x-cloak>
-                                    <td colspan="7" class="p-4 bg-surface-2/60">
-                                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            <div class="space-y-2 text-sm">
-                                                <p class="whitespace-pre-wrap">{{ $m->text }}</p>
-                                                <dl class="text-xs text-muted space-y-1">
-                                                    <div><dt class="inline font-medium">{{ __('Rolle:') }}</dt> <dd class="inline">{{ $m->rolle ? __($m->rolle) : '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('Route:') }}</dt> <dd class="inline break-all">{{ $m->route_name ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('URL:') }}</dt> <dd class="inline break-all">{{ $m->url ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('Viewport:') }}</dt> <dd class="inline">{{ $m->viewport ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('Browser:') }}</dt> <dd class="inline break-all">{{ $m->browser ?? $m->user_agent ?? '–' }}</dd></div>
-                                                    <div><dt class="inline font-medium">{{ __('E-Mail:') }}</dt> <dd class="inline break-all">{{ $m->email }}</dd></div>
-                                                </dl>
-                                                @if(!empty($m->js_fehler))
-                                                    <div>
-                                                        <p class="font-medium text-xs text-muted mt-2">{{ __('Letzte JS-Fehler') }}</p>
-                                                        <ul class="text-xs text-muted list-disc list-inside">
-                                                            @foreach($m->js_fehler as $fehler)
-                                                                <li class="break-words">{{ $fehler }}</li>
-                                                            @endforeach
-                                                        </ul>
-                                                    </div>
-                                                @endif
-                                                @if($m->hatScreenshot())
-                                                    <div>
-                                                        <p class="font-medium text-xs text-muted mt-2 mb-1">{{ __('Screenshot') }}</p>
-                                                        <a href="{{ route('admin.feedback.screenshot', $m->feedback_id) }}" target="_blank" rel="noopener">
-                                                            <img src="{{ route('admin.feedback.screenshot', $m->feedback_id) }}" alt="{{ __('Screenshot der Meldung') }}"
-                                                                 class="max-w-full max-h-64 rounded-xl border border-border">
-                                                        </a>
-                                                    </div>
-                                                @endif
-                                                @if(!empty($m->technik_details))
-                                                    <details class="mt-2">
-                                                        <summary class="cursor-pointer text-xs font-medium text-muted hover:text-text">{{ __('Technische Angaben') }}</summary>
-                                                        <dl class="mt-1 text-xs text-muted space-y-1">
-                                                            @if(!empty($m->technik_details['bildschirm']))
-                                                                <div><dt class="inline font-medium">{{ __('Bildschirm:') }}</dt> <dd class="inline">{{ $m->technik_details['bildschirm'] }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['pixelverhaeltnis']))
-                                                                <div><dt class="inline font-medium">{{ __('Pixelverhältnis:') }}</dt> <dd class="inline">{{ $m->technik_details['pixelverhaeltnis'] }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['sprache']))
-                                                                <div><dt class="inline font-medium">{{ __('Sprache:') }}</dt> <dd class="inline">{{ $m->technik_details['sprache'] }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['zeitzone']))
-                                                                <div><dt class="inline font-medium">{{ __('Zeitzone:') }}</dt> <dd class="inline">{{ $m->technik_details['zeitzone'] }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['darstellung']))
-                                                                <div><dt class="inline font-medium">{{ __('Darstellung:') }}</dt> <dd class="inline">{{ $m->technik_details['darstellung'] }}</dd></div>
-                                                            @endif
-                                                            @if(array_key_exists('online', $m->technik_details))
-                                                                <div><dt class="inline font-medium">{{ __('Verbindung:') }}</dt> <dd class="inline">{{ $m->technik_details['online'] ? __('Online') : __('Offline') }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['app_version']))
-                                                                <div><dt class="inline font-medium">{{ __('App-Version:') }}</dt> <dd class="inline">{{ $m->technik_details['app_version'] }}</dd></div>
-                                                            @endif
-                                                            @if(!empty($m->technik_details['fehlgeschlagene_requests']))
-                                                                <div>
-                                                                    <dt class="font-medium">{{ __('Fehlgeschlagene Anfragen:') }}</dt>
-                                                                    <dd>
-                                                                        <ul class="list-disc list-inside">
-                                                                            @foreach($m->technik_details['fehlgeschlagene_requests'] as $r)
-                                                                                <li class="break-words">{{ $r['status'] }} – {{ $r['pfad'] }}</li>
-                                                                            @endforeach
-                                                                        </ul>
-                                                                    </dd>
-                                                                </div>
-                                                            @endif
-                                                        </dl>
-                                                    </details>
-                                                @endif
-                                                @if($hatAnhaengeTabelle && $m->anhaenge->isNotEmpty())
-                                                    <div>
-                                                        <p class="font-medium text-xs text-muted mt-2 mb-1">{{ __('Anhänge') }}</p>
-                                                        <ul class="text-xs space-y-1">
-                                                            @foreach($m->anhaenge as $anhang)
-                                                                <li>
-                                                                    <a href="{{ route('feedback.attachment', [$m->feedback_id, $anhang->feedback_anhang_id]) }}"
-                                                                       class="text-accent-text hover:underline break-all" target="_blank" rel="noopener">
-                                                                        {{ $anhang->dateiname }}
-                                                                    </a>
-                                                                </li>
-                                                            @endforeach
-                                                        </ul>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div class="space-y-2">
-                                                <div>
-                                                    <label for="status-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Status') }}</label>
-                                                    <select id="status-{{ $m->feedback_id }}" x-model="status"
-                                                            class="np-feld mt-1">
-                                                        @foreach(\App\Models\Feedback::STATUS as $value => $label)
-                                                            <option value="{{ $value }}">{{ __($label) }}</option>
+
+                                            <p class="max-w-3xl whitespace-pre-wrap break-words text-base text-text">{{ $m->text }}</p>
+
+                                            @if($m->hatScreenshot())
+                                                <a href="{{ route('admin.feedback.screenshot', $id) }}" target="_blank" rel="noopener" class="block w-fit">
+                                                    <img src="{{ route('admin.feedback.screenshot', $id) }}" alt="{{ __('Screenshot der Meldung') }}" loading="lazy"
+                                                         class="max-h-80 max-w-full rounded-lg border border-border">
+                                                </a>
+                                            @endif
+
+                                            @if($hatAnhaengeTabelle && $m->anhaenge->isNotEmpty())
+                                                <section aria-labelledby="anhaenge-{{ $id }}">
+                                                    <h3 id="anhaenge-{{ $id }}" class="text-sm font-semibold text-text">{{ __('Anhänge') }}</h3>
+                                                    <ul class="mt-2 flex flex-wrap gap-2">
+                                                        @foreach($m->anhaenge as $anhang)
+                                                            <li>
+                                                                <a href="{{ route('feedback.attachment', [$id, $anhang->feedback_anhang_id]) }}" target="_blank" rel="noopener"
+                                                                   class="np-knopf np-knopf-sekundaer np-knopf-klein max-w-72">
+                                                                    <x-symbol name="document-text" /><span class="truncate">{{ $anhang->dateiname }}</span>
+                                                                </a>
+                                                            </li>
                                                         @endforeach
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label for="notiz-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Antwort an die meldende Person') }}</label>
-                                                    <textarea id="notiz-{{ $m->feedback_id }}" x-model="notiz" rows="3"
-                                                              class="np-feld mt-1"></textarea>
-                                                </div>
-                                                <div class="flex items-center gap-3">
-                                                    <button type="button" @click="speichern()" :disabled="saving"
-                                                            class="np-knopf np-knopf-primaer">
-                                                        <span x-show="!saving">{{ __('Speichern') }}</span>
-                                                        <span x-show="saving">…</span>
-                                                    </button>
-                                                    <span x-show="savedOk" x-cloak class="text-xs text-note-gut">{{ __('Gespeichert.') }}</span>
-                                                </div>
-                                                @if($hatDuplikatSpalte)
-                                                    <div class="border-t border-border pt-3 mt-1">
-                                                        <label for="duplikat-{{ $m->feedback_id }}" class="text-sm font-medium text-text">{{ __('Duplikat von #') }}</label>
-                                                        <div class="mt-1 flex items-center gap-2">
-                                                            <input type="number" inputmode="numeric" id="duplikat-{{ $m->feedback_id }}"
-                                                                   x-model="duplikatEingabe" :disabled="!!duplikatVon"
-                                                                   class="np-feld w-28 disabled:opacity-50">
-                                                            <button type="button" @click="duplikatUmschalten()" :disabled="duplikatSaving"
-                                                                    class="np-knopf np-knopf-sekundaer">
-                                                                <span x-text="duplikatVon ? @js(__('Markierung aufheben')) : @js(__('Als Duplikat markieren'))"></span>
-                                                            </button>
-                                                        </div>
-                                                        <p x-show="duplikatFehler" x-cloak class="mt-1 text-xs text-note-ungenuegend" x-text="duplikatFehler"></p>
+                                                    </ul>
+                                                </section>
+                                            @endif
+
+                                            @if($kontext !== [] || ! empty($m->js_fehler) || $technik !== [])
+                                                <section aria-labelledby="kontext-{{ $id }}" class="border-t border-border pt-5">
+                                                    <h3 id="kontext-{{ $id }}" class="text-sm font-semibold text-text">{{ __('Kontext') }}</h3>
+                                                    <dl class="mt-3 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-6 gap-y-1.5 text-sm">
+                                                        @foreach($kontext as $label => $wert)
+                                                            <dt class="text-muted">{{ $label }}</dt>
+                                                            <dd class="break-all text-text">{{ $wert }}</dd>
+                                                        @endforeach
+                                                        @foreach([
+                                                            'bildschirm' => __('Bildschirm'),
+                                                            'pixelverhaeltnis' => __('Pixelverhältnis'),
+                                                            'sprache' => __('Sprache'),
+                                                            'zeitzone' => __('Zeitzone'),
+                                                            'darstellung' => __('Darstellung'),
+                                                            'app_version' => __('App-Version'),
+                                                        ] as $schluessel => $label)
+                                                            @if(filled($technik[$schluessel] ?? null))
+                                                                <dt class="text-muted">{{ $label }}</dt>
+                                                                <dd class="break-all text-text">{{ $technik[$schluessel] }}</dd>
+                                                            @endif
+                                                        @endforeach
+                                                        @if(array_key_exists('online', $technik))
+                                                            <dt class="text-muted">{{ __('Verbindung') }}</dt>
+                                                            <dd class="text-text">{{ $technik['online'] ? __('Online') : __('Offline') }}</dd>
+                                                        @endif
+                                                    </dl>
+                                                    @if(! empty($technik['fehlgeschlagene_requests']))
+                                                        <h4 class="mt-4 text-sm font-medium text-text">{{ __('Fehlgeschlagene Anfragen') }}</h4>
+                                                        <ul class="mt-1 flex flex-col gap-1 text-sm text-muted">
+                                                            @foreach($technik['fehlgeschlagene_requests'] as $r)
+                                                                <li class="break-all font-mono text-xs">{{ $r['status'] ?? '' }} {{ $r['pfad'] ?? '' }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+                                                    @if(! empty($m->js_fehler))
+                                                        <h4 class="mt-4 text-sm font-medium text-text">{{ __('Letzte JS-Fehler') }}</h4>
+                                                        <ul class="mt-1 flex flex-col gap-1">
+                                                            @foreach($m->js_fehler as $fehler)
+                                                                <li class="break-words font-mono text-xs text-muted">{{ $fehler }}</li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+                                                </section>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Inspektor: Bearbeitung --}}
+                                    <aside aria-label="{{ __('Bearbeitung') }}" class="flex flex-col gap-6 border-l border-border px-5 py-5">
+                                        <fieldset>
+                                            <legend class="text-sm font-medium text-text">{{ __('Status') }}</legend>
+                                            <div class="np-segment mt-2 w-full">
+                                                @foreach(Feedback::STATUS as $wert => $label)
+                                                    <label class="flex-1 cursor-pointer">
+                                                        <input type="radio" class="sr-only" name="status-{{ $id }}" value="{{ $wert }}" x-model="meldungen[{{ $id }}].status" @checked($m->status === $wert)>{{ __($label) }}
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </fieldset>
+
+                                        <div>
+                                            <label for="notiz-{{ $id }}" class="text-sm font-medium text-text">{{ __('Antwort an die meldende Person') }}</label>
+                                            <textarea id="notiz-{{ $id }}" x-model="meldungen[{{ $id }}].notiz" rows="6" maxlength="5000"
+                                                      class="np-feld np-textfeld mt-1.5">{{ $m->admin_notiz }}</textarea>
+                                        </div>
+
+                                        <button type="button" @click="speichern({{ $id }})" :disabled="speichert || ! geaendert({{ $id }})" disabled
+                                                class="np-knopf np-knopf-primaer w-full">{{ __('Speichern') }}</button>
+
+                                        @if($hatDuplikatSpalte)
+                                            <div class="border-t border-border pt-5">
+                                                @if($m->duplikat_von)
+                                                    <p class="text-sm text-text">{{ __('Duplikat von #:id', ['id' => $m->duplikat_von]) }}</p>
+                                                    <button type="button" @click="duplikatUmschalten({{ $id }})" :disabled="duplikatSpeichert"
+                                                            class="np-knopf np-knopf-sekundaer mt-2 w-full">{{ __('Markierung aufheben') }}</button>
+                                                @else
+                                                    <label for="duplikat-{{ $id }}" class="text-sm font-medium text-text">{{ __('Duplikat von #') }}</label>
+                                                    <div class="mt-1.5 flex items-center gap-2">
+                                                        <input type="number" inputmode="numeric" min="1" id="duplikat-{{ $id }}" x-model="meldungen[{{ $id }}].duplikatEingabe"
+                                                               @keydown.enter.prevent="meldungen[{{ $id }}].duplikatEingabe && duplikatUmschalten({{ $id }})"
+                                                               class="np-feld w-24 tabular-nums" aria-describedby="duplikat-fehler-{{ $id }}">
+                                                        <button type="button" @click="duplikatUmschalten({{ $id }})" :disabled="duplikatSpeichert || ! meldungen[{{ $id }}].duplikatEingabe" disabled
+                                                                class="np-knopf np-knopf-sekundaer flex-1">{{ __('Als Duplikat markieren') }}</button>
                                                     </div>
                                                 @endif
+                                                <p id="duplikat-fehler-{{ $id }}" x-show="duplikatFehler" x-cloak class="mt-1.5 text-xs text-note-ungenuegend" x-text="duplikatFehler"></p>
                                             </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        @empty
-                            <tbody>
-                                <tr>
-                                    <td colspan="7" class="p-10 text-center text-muted">
-                                        @if(! $gibtEs)
-                                            <span class="mx-auto mb-2 inline-flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text" aria-hidden="true">
-                                                <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m-9 6l2.5-3H18a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14z"/></svg>
-                                            </span>
-                                            <p class="text-text font-medium">{{ __('Noch keine Meldungen') }}</p>
-                                        @else
-                                            <p class="flex items-center justify-center gap-3 text-sm text-muted">
-                                                {{ __('Keine Meldungen für diese Filter.') }}
-                                                <a href="{{ route('admin.feedback.index') }}" class="text-accent-text hover:underline">{{ __('Filter zurücksetzen') }}</a>
-                                            </p>
                                         @endif
-                                    </td>
-                                </tr>
-                            </tbody>
-                        @endforelse
-                    </table>
-                </div>
-            </div>
-
-            @if($meldungen->hasPages())
-                <div class="px-1">{{ $meldungen->links() }}</div>
+                                    </aside>
+                                </article>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             @endif
-
         </div>
     </div>
 </x-app-layout>

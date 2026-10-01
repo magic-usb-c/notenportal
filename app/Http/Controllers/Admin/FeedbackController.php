@@ -29,11 +29,15 @@ class FeedbackController extends Controller
         $status = (string) $request->input('status', '');
         $kategorie = (string) $request->input('kategorie', '');
         $rolle = (string) $request->input('rolle', '');
-        $sort = in_array($request->input('sort'), ['datum', 'stimmen'], true) ? $request->input('sort') : 'datum';
-        $dir = $request->input('dir') === 'asc' ? 'asc' : 'desc';
+        $suche = trim((string) $request->input('suche', ''));
         $duplikate = $request->boolean('duplikate');
         $hatDuplikatSpalte = Feedback::hatDuplikatSpalte();
         $hatStimmenTabelle = FeedbackStimme::tabelleVorhanden();
+        $sort = match ($request->input('sort')) {
+            'stimmen' => $hatStimmenTabelle ? 'stimmen' : 'neueste',
+            'aelteste' => 'aelteste',
+            default => 'neueste',
+        };
         $hatAnhaengeTabelle = Feedback::hatAnhaengeTabelle();
 
         $q = Feedback::query()
@@ -51,6 +55,13 @@ class FeedbackController extends Controller
                 '(SELECT COUNT(*) FROM feedback d WHERE d.duplikat_von = feedback.feedback_id) as duplikate_anzahl'
             ))
             ->when($hatDuplikatSpalte && ! $duplikate, fn ($qq) => $qq->whereNull('feedback.duplikat_von'))
+            ->when($suche !== '', function ($qq) use ($suche) {
+                $like = '%'.addcslashes($suche, '%_\\').'%';
+                $qq->where(fn ($w) => $w->where('feedback.text', 'like', $like)
+                    ->orWhere('b.email', 'like', $like)
+                    ->orWhereRaw("CONCAT(b.vorname, ' ', b.nachname) LIKE ?", [$like])
+                    ->orWhereRaw("CONCAT(b.nachname, ' ', b.vorname) LIKE ?", [$like]));
+            })
             ->when($status !== '', fn ($qq) => $qq->where('feedback.status', $status))
             ->when($kategorie !== '', fn ($qq) => $qq->where(
                 'feedback.kategorie',
@@ -66,16 +77,16 @@ class FeedbackController extends Controller
                 });
             });
 
-        if ($sort === 'stimmen' && $hatStimmenTabelle) {
-            $q->orderByDesc('stimmen_anzahl')->orderByDesc('feedback.erstellt_am');
-        } else {
-            $q->orderBy('feedback.erstellt_am', $dir);
-        }
+        match ($sort) {
+            'stimmen' => $q->orderByDesc('stimmen_anzahl')->orderByDesc('feedback.erstellt_am'),
+            'aelteste' => $q->orderBy('feedback.erstellt_am')->orderBy('feedback.feedback_id'),
+            default => $q->orderByDesc('feedback.erstellt_am')->orderByDesc('feedback.feedback_id'),
+        };
 
         $meldungen = $q->paginate(25)->withQueryString();
         $gibtEs = $meldungen->total() > 0 || Feedback::exists();
 
-        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'sort', 'dir', 'duplikate', 'gibtEs', 'hatDuplikatSpalte', 'hatAnhaengeTabelle'));
+        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'suche', 'sort', 'duplikate', 'gibtEs', 'hatDuplikatSpalte', 'hatAnhaengeTabelle'));
     }
 
     public function update(Request $request, int $feedback_id): JsonResponse|RedirectResponse

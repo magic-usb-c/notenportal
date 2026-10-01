@@ -57,7 +57,6 @@
     "Anmeldung fehlgeschlagen": "Login failed",
     "Anteil": "Share",
     "Anzahl": "Count",
-    "App-Version:": "App version:",
     "Auf Standard zurücksetzen": "Reset to default",
     "Aus": "Off",
     "aus dem Modulbaukasten": "from the Modulbaukasten catalogue",
@@ -493,7 +492,6 @@
     "Tageszusammenfassung": "Daily digest",
     "Tastenkürzel": "Keyboard shortcuts",
     "Tastenkürzel anzeigen": "Show keyboard shortcuts",
-    "Technische Angaben": "Technical details",
     "Technische Angaben mitsenden": "Include technical details",
     "Teil": "Part",
     "Theme-Farbe": "Theme colour",
@@ -581,5 +579,6 @@
     "Neuen Abo-Link erzeugen?": "Generate a new subscription link?",
     "Der bisherige Link funktioniert danach nicht mehr.": "The previous link will stop working.",
     "Ja": "Yes",
-    "Nein": "No"
+    "Nein": "No",
+    "Gespeichert.": "Saved."
 }
