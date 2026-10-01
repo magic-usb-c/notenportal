@@ -437,6 +437,25 @@ export function registriereSeitenleiste(Alpine) {
 // Bedienelemente der Zeile behalten ihren eigenen Klick, markierter Text bleibt markierbar, Ctrl-/Cmd- und
 // Mittelklick öffnen wie bei einem Link einen neuen Tab. Tastatur und Screenreader erreichen das Ziel über
 // den Link in der Zeile – data-href ist nur die grössere Trefferfläche für die Maus.
+// Felder mit data-sofort senden ihr Formular beim Ändern ab (Einstellungen, die sofort gelten). Ein Formular
+// geht nur einmal weg, auch wenn zwei seiner Felder kurz nacheinander ändern; ungültige Eingaben meldet der
+// Browser am Feld. Kommt die Seite aus dem Verlaufscache zurück, ist die Sperre wieder offen.
+export function registriereSofortSenden() {
+    document.addEventListener('change', (ev) => {
+        const form = ev.target.closest?.('[data-sofort]')?.form;
+        if (!form || form.dataset.sendet) return;
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        form.dataset.sendet = '1';
+        form.requestSubmit();
+    });
+    window.addEventListener('pageshow', (ev) => {
+        if (ev.persisted) document.querySelectorAll('form[data-sendet]').forEach((form) => delete form.dataset.sendet);
+    });
+}
+
 export function registriereZeilenLinks() {
     const ziel = (ev) => {
         const zeile = ev.target.closest?.('tr[data-href]');

@@ -1,7 +1,21 @@
+{{-- Lehrberuf: Module und Fächer nebeneinander. Jedes Feld einer Zeile speichert sofort (data-sofort), Hinzufügen
+     läuft über Sheets (HIG «Sheets»), die nach einem Validierungsfehler wieder öffnen. Entfernen gibt es nur ohne
+     Noten und Prüfungen von Lernenden dieses Berufs, sonst bleibt «Aktiv». --}}
+@php
+    $feld = 'np-feld mt-1.5';
+    $modulFehler = $errors->modul;
+    $fachFehler = $errors->fach;
+    $aktiveLernorte = $kategorien->where('aktiv', 1);
+    $lernortStandard = (int) old('kategorie_id', $aktiveLernorte->firstWhere('code', 'FACH')?->kategorie_id ?? $aktiveLernorte->first()?->kategorie_id);
+    $fehlerText = 'mt-1 text-xs text-note-ungenuegend';
+@endphp
 <x-app-layout>
-    <x-slot name="title">{{ __('Lehrberuf') }}</x-slot>
+    <x-slot name="title">{{ $lehrberuf->name }}</x-slot>
     <x-slot name="header">
         <x-seitenkopf :zurueck="route('admin.master-data.professions.index')" :titel="$lehrberuf->name" :untertitel="$lehrberuf->kuerzel">
+            @unless($lehrberuf->aktiv)
+                <span class="np-marke text-muted">{{ __('Inaktiv') }}</span>
+            @endunless
             <x-slot:aktionen>
                 <a href="{{ route('admin.master-data.professions.edit', $lehrberuf->lehrberuf_id) }}" class="np-knopf np-knopf-sekundaer">{{ __('Bearbeiten') }}</a>
             </x-slot:aktionen>
@@ -9,213 +23,245 @@
     </x-slot>
 
     <div class="py-6">
-        <div class="mx-auto np-seite px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="mx-auto grid np-seite grid-cols-12 items-start gap-5 px-4 sm:px-6 lg:px-8">
 
-            {{-- ========== MODULE ========== --}}
-            <div class="np-karte p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-text">{{ __('Module') }}</h3>
-                    <span class="text-xs text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneModule->count()]) }}</span>
-                </div>
+            <x-karte :titel="__('Module')" :polster="false" class="col-span-8">
+                <x-slot:aktionen>
+                    <span class="text-sm text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneModule->count()]) }}</span>
+                    @if($verfuegbareModule->isNotEmpty())
+                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'modul-zuweisen')">
+                            <x-symbol name="plus" strich="2" />{{ __('Modul hinzufügen…') }}
+                        </button>
+                    @endif
+                </x-slot:aktionen>
 
-                {{-- Zugewiesene Module: ab 48rem Container eine Tabelle, darunter je Modul eine Karte mit sichtbaren Feldnamen --}}
-                @if($zugewieseneModule->isNotEmpty())
-                    <div class="@container -mx-3 overflow-x-auto">
-                        <table class="np-tabelle text-sm @max-3xl:block">
-                            <thead class="@max-3xl:hidden">
+                @if($zugewieseneModule->isEmpty())
+                    <p class="px-5 pb-5 text-sm text-muted">{{ __('Noch keine Module zugewiesen.') }}</p>
+                @else
+                    <div class="px-2 pb-2">
+                        <table class="np-tabelle table-fixed text-sm">
+                            <thead>
                                 <tr>
-                                    <th>{{ __('Nummer') }}</th>
-                                    <th>{{ __('Titel') }}</th>
-                                    <th>{{ __('Lernort') }}</th>
-                                    <th class="text-center">{{ __('Pflicht') }}</th>
-                                    <th>{{ __('Semester') }}</th>
-                                    <th class="text-center">{{ __('Aktiv') }}</th>
-                                    <th></th>
+                                    <th scope="col" class="w-24">{{ __('Nummer') }}</th>
+                                    <th scope="col">{{ __('Titel') }}</th>
+                                    <th scope="col" class="w-52">{{ __('Lernort') }}</th>
+                                    <th scope="col" class="w-24 text-center">{{ __('Semester') }}</th>
+                                    <th scope="col" class="w-20 text-center">{{ __('Pflicht') }}</th>
+                                    <th scope="col" class="w-20 text-center">{{ __('Aktiv') }}</th>
+                                    <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
-                            <tbody class="@max-3xl:block">
+                            <tbody>
                                 @foreach($zugewieseneModule as $m)
-                                    @php $formular = 'lbm-'.$m->modul_id; @endphp
-                                    <tr @class(['opacity-60' => ! $m->aktiv, '@max-3xl:grid @max-3xl:grid-cols-3 @max-3xl:gap-x-3 @max-3xl:gap-y-2 @max-3xl:py-3'])>
-                                        <td class="text-text @max-3xl:col-span-full @max-3xl:p-0 @max-3xl:text-xs @max-3xl:text-muted">{{ $m->modul_nummer }}</td>
-                                        <td class="text-text @max-3xl:col-span-full @max-3xl:-mt-2 @max-3xl:p-0 @max-3xl:font-medium">{{ $m->titel }}</td>
-                                        <td class="@max-3xl:col-span-full @max-3xl:p-0">
-                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Lernort') }}</span>
-                                            <label for="lernort_{{ $m->modul_id }}" class="sr-only">{{ __('Lernort für :titel', ['titel' => $m->titel]) }}</label>
-                                            <select id="lernort_{{ $m->modul_id }}" name="kategorie_id" form="{{ $formular }}"
-                                                    onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                    class="np-feld min-w-40 pl-2 pr-8 text-xs @max-3xl:w-full">
+                                    @php
+                                        $formular = 'lbm-'.$m->modul_id;
+                                        $ton = $m->aktiv ? 'text-text' : 'text-muted';
+                                    @endphp
+                                    <tr>
+                                        <td class="{{ $ton }}">{{ $m->modul_nummer }}</td>
+                                        <td>
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <span class="truncate {{ $ton }}" title="{{ $m->titel }}">{{ $m->titel }}</span>
+                                                @unless($m->aktiv)
+                                                    <span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>
+                                                @endunless
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <select name="kategorie_id" form="{{ $formular }}" data-sofort class="np-feld np-feld-klein"
+                                                    aria-label="{{ __('Lernort für :titel', ['titel' => $m->titel]) }}">
                                                 @foreach($kategorien as $k)
-                                                    <option value="{{ $k->kategorie_id }}" @selected($m->kategorie_id == $k->kategorie_id)>{{ $k->name }}</option>
+                                                    @continue(! $k->aktiv && (int) $k->kategorie_id !== (int) $m->kategorie_id)
+                                                    <option value="{{ $k->kategorie_id }}" @selected((int) $m->kategorie_id === (int) $k->kategorie_id)>
+                                                        {{ $k->aktiv ? $k->name : __(':name (inaktiv)', ['name' => $k->name]) }}
+                                                    </option>
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td class="text-center @max-3xl:p-0 @max-3xl:text-left">
-                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Pflicht') }}</span>
+                                        <td>
+                                            <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}"
+                                                   form="{{ $formular }}" data-sofort placeholder="–"
+                                                   aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
+                                                   class="np-feld np-feld-klein mx-auto w-16 text-center">
+                                        </td>
+                                        <td class="text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
-                                            <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" @checked($m->pflicht) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="np-haken"></label>
+                                            <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" data-sofort @checked($m->pflicht)
+                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
                                         </td>
-                                        <td class="@max-3xl:p-0">
-                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Semester') }}</span>
-                                            <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}" form="{{ $formular }}"
-                                                   onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())" placeholder="–" aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
-                                                   class="np-feld w-16 px-2 text-xs tabular-nums">
-                                        </td>
-                                        <td class="text-center @max-3xl:p-0 @max-3xl:text-left">
-                                            <span class="hidden @max-3xl:mb-1 @max-3xl:block @max-3xl:text-2xs @max-3xl:font-medium @max-3xl:text-muted" aria-hidden="true">{{ __('Aktiv') }}</span>
+                                        <td class="text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
-                                            <label class="inline-flex items-center justify-center min-w-9 min-h-9 cursor-pointer"><input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" @checked($m->aktiv) onchange="this.form.dataset.sendet || (this.form.dataset.sendet = 1, this.form.requestSubmit())"
-                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="np-haken"></label>
+                                            <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" data-sofort @checked($m->aktiv)
+                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
                                         </td>
-                                        <td class="text-right @max-3xl:col-span-full @max-3xl:-ml-3 @max-3xl:p-0 @max-3xl:text-left">
+                                        <td class="text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
                                                   action="{{ route('admin.master-data.professions.modules.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
-                                                @csrf @method('PATCH')
+                                                @csrf
+                                                @method('PATCH')
                                             </form>
-                                            <form method="POST"
-                                                  action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
-                                                  data-bestaetigen="{{ __('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer]) }}"
-                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                                @csrf @method('DELETE')
-                                                <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
-                                            </form>
+                                            @unless($m->in_gebrauch)
+                                                <form method="POST" action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
+                                                      data-bestaetigen="{{ __('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer]) }}"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                </form>
+                                            @endunless
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
+                @endif
+            </x-karte>
+
+            <x-karte :titel="__('Fächer (berufsspezifisch)')" :polster="false" class="col-span-4">
+                <x-slot:aktionen>
+                    <span class="text-sm text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneFaecher->count()]) }}</span>
+                    @if($verfuegbareFaecher->isNotEmpty())
+                        <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-klein" x-data @click="$dispatch('open-modal', 'fach-zuweisen')">
+                            <x-symbol name="plus" strich="2" />{{ __('Fach hinzufügen…') }}
+                        </button>
+                    @endif
+                </x-slot:aktionen>
+
+                @if($zugewieseneFaecher->isEmpty())
+                    <p class="px-5 pb-5 text-sm text-muted">{{ __('Noch keine Fächer zugewiesen.') }}</p>
                 @else
-                    <p class="text-sm text-muted">{{ __('Noch keine Module zugewiesen.') }}</p>
-                @endif
-
-                {{-- Modul zuweisen --}}
-                @if($verfuegbareModule->isNotEmpty())
-                    <form method="POST"
-                          action="{{ route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id) }}"
-                          class="border-t border-border pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3 items-end"
-                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                        @csrf
-                        <div class="lg:col-span-2">
-                            <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul hinzufügen') }}</label>
-                            <select id="modul_id" name="modul_id" required
-                                    class="np-feld mt-1">
-                                <option value="">{{ __('Bitte wählen…') }}</option>
-                                @foreach($verfuegbareModule as $m)
-                                    <option value="{{ $m->modul_id }}">{{ $m->modul_nummer }} – {{ $m->titel }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Lernort *') }}</label>
-                            <select id="kategorie_id" name="kategorie_id" required
-                                    class="np-feld mt-1">
-                                @foreach($kategorien as $k)
-                                    <option value="{{ $k->kategorie_id }}" @selected($k->code === 'FACH')>{{ $k->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label for="empfohlenes_lehrsemester_nr" class="text-sm font-medium text-text">{{ __('Empfohlenes Semester') }}</label>
-                            <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
-                                   class="np-feld mt-1">
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <label class="flex items-center gap-2 text-sm text-text">
-                                <input type="checkbox" name="pflicht" value="1" checked
-                                       class="np-haken">
-                                {{ __('Pflichtmodul') }}
-                            </label>
-                        </div>
-                        <div>
-                            <button type="submit" :disabled="loading"
-                                    class="np-knopf np-knopf-primaer">
-                                {{ __('Zuweisen') }}
-                            </button>
-                        </div>
-                    </form>
-                @endif
-            </div>
-
-            {{-- ========== FÄCHER ========== --}}
-            <div class="np-karte p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h3 class="font-semibold text-text">{{ __('Fächer (berufsspezifisch)') }}</h3>
-                    <span class="text-xs text-muted">{{ __(':anzahl zugewiesen', ['anzahl' => $zugewieseneFaecher->count()]) }}</span>
-                </div>
-
-                @if($zugewieseneFaecher->isNotEmpty())
-                    <div class="@container -mx-3 overflow-x-auto">
-                        <table class="np-tabelle text-sm">
+                    <div class="px-2 pb-2">
+                        <table class="np-tabelle table-fixed text-sm">
                             <thead>
                                 <tr>
-                                    <th class="hidden @sm:table-cell">{{ __('Kürzel') }}</th>
-                                    <th>{{ __('Name') }}</th>
-                                    <th>{{ __('Track') }}</th>
-                                    <th></th>
+                                    <th scope="col" class="w-20">{{ __('Kürzel') }}</th>
+                                    <th scope="col">{{ __('Name') }}</th>
+                                    <th scope="col" class="w-16 text-center">{{ __('Aktiv') }}</th>
+                                    <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($zugewieseneFaecher as $f)
+                                    @php $ton = $f->aktiv ? 'text-text' : 'text-muted'; @endphp
                                     <tr>
-                                        <td class="hidden text-text @sm:table-cell">{{ $f->kurzname }}</td>
-                                        <td class="text-text">
-                                            <span class="block tabular-nums text-xs text-muted @sm:hidden">{{ $f->kurzname }}</span>
-                                            {{ $f->name }}
-                                        </td>
+                                        <td class="truncate {{ $ton }}">{{ $f->kurzname }}</td>
                                         <td>
-                                            @if($f->track_typ)
-                                                <span class="np-marke bg-accent/12 text-accent-text">
-                                                    {{ $f->track_typ }}
-                                                </span>
-                                            @else
-                                                <span class="text-xs text-muted">–</span>
-                                            @endif
+                                            <div class="flex min-w-0 items-center gap-2">
+                                                <span class="truncate {{ $ton }}" title="{{ $f->name }}">{{ $f->name }}</span>
+                                                @if($f->track_typ)
+                                                    <span class="np-marke shrink-0 bg-accent/12 text-accent-text">{{ $f->track_typ }}</span>
+                                                @endif
+                                                @unless($f->aktiv)
+                                                    <span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>
+                                                @endunless
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <form method="POST" action="{{ route('admin.master-data.professions.subjects.update', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="aktiv" value="0">
+                                                <input type="checkbox" name="aktiv" value="1" data-sofort @checked($f->aktiv)
+                                                       aria-label="{{ __('Fach :name aktiv', ['name' => $f->name]) }}" class="np-haken">
+                                            </form>
                                         </td>
                                         <td class="text-right">
-                                            <form method="POST"
-                                                  action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
-                                                  data-bestaetigen="{{ __('Fach :name entfernen?', ['name' => $f->name]) }}"
-                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                                @csrf @method('DELETE')
-                                                <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
-                                            </form>
+                                            @unless($f->in_gebrauch)
+                                                <form method="POST" action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
+                                                      data-bestaetigen="{{ __('Fach :name entfernen?', ['name' => $f->name]) }}"
+                                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                </form>
+                                            @endunless
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                @else
-                    <p class="text-sm text-muted">{{ __('Noch keine Fächer zugewiesen.') }}</p>
                 @endif
-
-                {{-- Fach zuweisen --}}
-                @if($verfuegbareFaecher->isNotEmpty())
-                    <form method="POST"
-                          action="{{ route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id) }}"
-                          class="border-t border-border pt-4 flex gap-3 items-end"
-                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                        @csrf
-                        <div class="flex-1">
-                            <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach hinzufügen') }}</label>
-                            <select id="fach_id" name="fach_id" required
-                                    class="np-feld mt-1">
-                                <option value="">{{ __('Bitte wählen…') }}</option>
-                                @foreach($verfuegbareFaecher as $f)
-                                    <option value="{{ $f->fach_id }}">{{ $f->kurzname }} – {{ $f->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button type="submit" :disabled="loading"
-                                class="np-knopf np-knopf-primaer">
-                            {{ __('Zuweisen') }}
-                        </button>
-                    </form>
-                @endif
-            </div>
-
+            </x-karte>
         </div>
     </div>
+
+    @if($verfuegbareModule->isNotEmpty())
+        <x-modal name="modul-zuweisen" maxWidth="lg" :show="$modulFehler->any()" focusable>
+            <form method="POST" action="{{ route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id) }}"
+                  role="dialog" aria-modal="true" aria-labelledby="modul-zuweisen-titel" x-data="{ loading: false }" @submit="loading = true">
+                @csrf
+                <div class="flex flex-col gap-4 p-6">
+                    <h2 id="modul-zuweisen-titel" class="text-lg font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
+                    <div>
+                        <label for="modul_id" class="text-sm font-medium text-text">{{ __('Modul') }} <span class="text-note-ungenuegend">*</span></label>
+                        <select id="modul_id" name="modul_id" required class="{{ $feld }}"
+                                @if($modulFehler->has('modul_id')) aria-invalid="true" aria-describedby="modul_id-fehler" @endif>
+                            <option value="">{{ __('Bitte wählen…') }}</option>
+                            @foreach($verfuegbareModule as $m)
+                                <option value="{{ $m->modul_id }}" @selected((int) old('modul_id') === (int) $m->modul_id)>{{ $m->modul_nummer }} – {{ $m->titel }}</option>
+                            @endforeach
+                        </select>
+                        @if($modulFehler->has('modul_id'))<p id="modul_id-fehler" class="{{ $fehlerText }}">{{ $modulFehler->first('modul_id') }}</p>@endif
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="kategorie_id" class="text-sm font-medium text-text">{{ __('Lernort') }} <span class="text-note-ungenuegend">*</span></label>
+                            <select id="kategorie_id" name="kategorie_id" required class="{{ $feld }}"
+                                    @if($modulFehler->has('kategorie_id')) aria-invalid="true" aria-describedby="kategorie_id-fehler" @endif>
+                                @foreach($aktiveLernorte as $k)
+                                    <option value="{{ $k->kategorie_id }}" @selected($lernortStandard === (int) $k->kategorie_id)>{{ $k->name }}</option>
+                                @endforeach
+                            </select>
+                            @if($modulFehler->has('kategorie_id'))<p id="kategorie_id-fehler" class="{{ $fehlerText }}">{{ $modulFehler->first('kategorie_id') }}</p>@endif
+                        </div>
+                        <div>
+                            <label for="empfohlenes_lehrsemester_nr" class="text-sm font-medium text-text">{{ __('Empfohlenes Semester') }}</label>
+                            <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
+                                   value="{{ old('empfohlenes_lehrsemester_nr') }}" class="{{ $feld }}"
+                                   @if($modulFehler->has('empfohlenes_lehrsemester_nr')) aria-invalid="true" aria-describedby="empfohlenes_lehrsemester_nr-fehler" @endif>
+                            @if($modulFehler->has('empfohlenes_lehrsemester_nr'))<p id="empfohlenes_lehrsemester_nr-fehler" class="{{ $fehlerText }}">{{ $modulFehler->first('empfohlenes_lehrsemester_nr') }}</p>@endif
+                        </div>
+                    </div>
+                    <label class="inline-flex min-h-6 cursor-pointer items-center gap-2.5 self-start text-sm text-text">
+                        <input type="hidden" name="pflicht" value="0">
+                        <input type="checkbox" name="pflicht" value="1" @checked(old('pflicht', '1') === '1') class="np-haken">
+                        {{ __('Pflichtmodul') }}
+                    </label>
+                </div>
+                <div class="flex justify-end gap-2 px-6 pb-6">
+                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'modul-zuweisen')">{{ __('Abbrechen') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
+                </div>
+            </form>
+        </x-modal>
+    @endif
+
+    @if($verfuegbareFaecher->isNotEmpty())
+        <x-modal name="fach-zuweisen" maxWidth="md" :show="$fachFehler->any()" focusable>
+            <form method="POST" action="{{ route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id) }}"
+                  role="dialog" aria-modal="true" aria-labelledby="fach-zuweisen-titel" x-data="{ loading: false }" @submit="loading = true">
+                @csrf
+                <div class="flex flex-col gap-4 p-6">
+                    <h2 id="fach-zuweisen-titel" class="text-lg font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>
+                    <div>
+                        <label for="fach_id" class="text-sm font-medium text-text">{{ __('Fach') }} <span class="text-note-ungenuegend">*</span></label>
+                        <select id="fach_id" name="fach_id" required class="{{ $feld }}"
+                                @if($fachFehler->has('fach_id')) aria-invalid="true" aria-describedby="fach_id-fehler" @endif>
+                            <option value="">{{ __('Bitte wählen…') }}</option>
+                            @foreach($verfuegbareFaecher as $f)
+                                <option value="{{ $f->fach_id }}" @selected((int) old('fach_id') === (int) $f->fach_id)>{{ $f->kurzname }} – {{ $f->name }}</option>
+                            @endforeach
+                        </select>
+                        @if($fachFehler->has('fach_id'))<p id="fach_id-fehler" class="{{ $fehlerText }}">{{ $fachFehler->first('fach_id') }}</p>@endif
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 px-6 pb-6">
+                    <button type="button" class="np-knopf np-knopf-sekundaer" @click="$dispatch('close-modal', 'fach-zuweisen')">{{ __('Abbrechen') }}</button>
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zuweisen') }}</button>
+                </div>
+            </form>
+        </x-modal>
+    @endif
 </x-app-layout>

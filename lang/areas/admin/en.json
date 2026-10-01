@@ -301,7 +301,6 @@
     "Lernende/r": "Apprentice",
     "Lernender": "Apprentice",
     "Lernort": "Training location",
-    "Lernort *": "Training location *",
     "Lernort für :titel": "Training location for :titel",
     "Lernstand kritisch: :name": "Status critical: :name",
     "Letzte JS-Fehler": "Latest JS errors",
@@ -681,5 +680,13 @@
     "1 Zeugnisnote": "1 report grade",
     ":anzahl Zeugnisnoten": ":anzahl report grades",
     "Gefährdet": "At risk",
-    "Keine Lernenden für diese Filter.": "No learners match these filters."
+    "Keine Lernenden für diese Filter.": "No learners match these filters.",
+    "Modul": "Module",
+    "Fach": "Subject",
+    "Modul hinzufügen…": "Add module…",
+    "Fach hinzufügen…": "Add subject…",
+    ":name (inaktiv)": ":name (inactive)",
+    "Fach :name aktiv": "Subject :name active",
+    "Zu diesem Modul gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this module. Deactivate it instead.",
+    "Zu diesem Fach gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.": "Learners in this occupation already have grades or exams for this subject. Deactivate it instead."
 }

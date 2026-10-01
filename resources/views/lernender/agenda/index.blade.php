@@ -51,7 +51,7 @@
                     @endif
                     <label for="lektionen" class="text-sm text-text">{{ __('Stundenplan') }}</label>
                     <input id="lektionen" type="checkbox" name="lektionen" value="1" role="switch" class="np-schalter"
-                           @checked($zeigeLektionen) onchange="this.form.requestSubmit()">
+                           @checked($zeigeLektionen) data-sofort>
                     <noscript><button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Anwenden') }}</button></noscript>
                 </form>
             </div>

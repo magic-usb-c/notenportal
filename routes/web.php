@@ -47,6 +47,15 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
+// IDs in Routen sind Zahlen: «/admin/master-data/professions/abc» endet mit 404 statt mit einem TypeError (500) im
+// int-typisierten Controller. Gilt auch für auth.php und notifications.php (unten eingebunden); ein neuer Parameter
+// «…_id» gehört in diese Liste, RoutenParameterTest meldet ihn sonst.
+Route::patterns(array_fill_keys([
+    'anhang_id', 'baum_id', 'benutzer_id', 'betreuung_id', 'calendar_event_id', 'dokument_id', 'fach_id', 'feedback_id',
+    'id', 'kategorie_id', 'kommentar_id', 'lehrberuf_id', 'lernender_id', 'modul_dokument_id', 'modul_id', 'note_id',
+    'pruefung_id', 'semester_id', 'track_id', 'user', 'ziel_id',
+], '[0-9]+'));
+
 Route::get('/', fn () => Auth::check()
     ? redirect()->route('dashboard')
     : redirect()->route('login'));
@@ -276,6 +285,8 @@ Route::middleware(['auth', 'role:Admin'])
             ->name('master-data.professions.subjects.assign');
         Route::delete('/master-data/professions/{lehrberuf_id}/subjects/{fach_id}', [StammdatenLehrberufeController::class, 'removeFach'])
             ->name('master-data.professions.subjects.remove');
+        Route::patch('/master-data/professions/{lehrberuf_id}/subjects/{fach_id}', [StammdatenLehrberufeController::class, 'updateFach'])
+            ->name('master-data.professions.subjects.update');
 
         // Stammdaten: Module
         Route::get('/master-data/modules', [StammdatenModuleController::class, 'index'])

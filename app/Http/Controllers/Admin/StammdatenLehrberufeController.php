@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
 class StammdatenLehrberufeController extends Controller
@@ -58,46 +59,52 @@ class StammdatenLehrberufeController extends Controller
 
     public function show(int $lehrberuf_id)
     {
-        $lehrberuf = DB::table('lehrberufe')->where('lehrberuf_id', $lehrberuf_id)->firstOrFail();
+        $lehrberuf = $this->lehrberuf($lehrberuf_id);
+        $moduleInGebrauch = $this->moduleInGebrauch($lehrberuf_id);
+        $faecherInGebrauch = $this->faecherInGebrauch($lehrberuf_id);
 
-        // Zugewiesene Module mit Pivot-Daten
         $zugewieseneModule = DB::table('lehrberuf_module as lbm')
             ->join('module as m', 'm.modul_id', '=', 'lbm.modul_id')
-            ->leftJoin('kategorien as k', 'k.kategorie_id', '=', 'lbm.kategorie_id')
             ->where('lbm.lehrberuf_id', $lehrberuf_id)
-            ->select(['m.modul_id', 'm.modul_nummer', 'm.titel', 'lbm.pflicht', 'lbm.empfohlenes_lehrsemester_nr', 'lbm.aktiv', 'lbm.kategorie_id', 'k.name as kategorie_name'])
+            ->select(['m.modul_id', 'm.modul_nummer', 'm.titel', 'lbm.pflicht', 'lbm.empfohlenes_lehrsemester_nr', 'lbm.aktiv', 'lbm.kategorie_id'])
             ->orderBy('m.modul_nummer')
-            ->get();
-
-        $zugewieseneModulIds = $zugewieseneModule->pluck('modul_id')->all();
+            ->get()
+            ->each(function ($m) use ($moduleInGebrauch) {
+                $m->in_gebrauch = in_array((int) $m->modul_id, $moduleInGebrauch, true);
+            });
 
         // Noch nicht zugewiesene aktive Module
         $verfuegbareModule = DB::table('module')
             ->where('aktiv', 1)
-            ->whereNotIn('modul_id', $zugewieseneModulIds)
+            ->whereNotIn('modul_id', $zugewieseneModule->pluck('modul_id'))
             ->orderBy('modul_nummer')
-            ->get();
+            ->get(['modul_id', 'modul_nummer', 'titel']);
 
-        // Zugewiesene Fächer
         $zugewieseneFaecher = DB::table('lehrberuf_faecher as lbf')
             ->join('faecher as f', 'f.fach_id', '=', 'lbf.fach_id')
             ->where('lbf.lehrberuf_id', $lehrberuf_id)
             ->select(['f.fach_id', 'f.name', 'f.kurzname', 'f.track_typ', 'lbf.aktiv'])
             ->orderBy('f.track_typ')
             ->orderBy('f.name')
-            ->get();
-
-        $zugewieseneFachIds = $zugewieseneFaecher->pluck('fach_id')->all();
+            ->get()
+            ->each(function ($f) use ($faecherInGebrauch) {
+                $f->in_gebrauch = in_array((int) $f->fach_id, $faecherInGebrauch, true);
+            });
 
         // Noch nicht zugewiesene aktive Fächer ohne Track (Track-Fächer sind über den Track freigegeben)
         $verfuegbareFaecher = DB::table('faecher')
             ->where('aktiv', 1)
             ->whereNull('track_typ')
-            ->whereNotIn('fach_id', $zugewieseneFachIds)
+            ->whereNotIn('fach_id', $zugewieseneFaecher->pluck('fach_id'))
             ->orderBy('name')
-            ->get();
+            ->get(['fach_id', 'kurzname', 'name']);
 
-        $kategorien = DB::table('kategorien')->where('aktiv', 1)->orderBy('sortierung')->get();
+        // Aktive Lernorte, dazu ein inaktiver, solange ein Modul ihn noch trägt: sonst zeigte die Auswahl einen
+        // anderen Lernort an und das nächste Speichern der Zeile verschöbe das Modul still dorthin.
+        $kategorien = DB::table('kategorien')
+            ->where(fn ($q) => $q->where('aktiv', 1)->orWhereIn('kategorie_id', $zugewieseneModule->pluck('kategorie_id')->filter()))
+            ->orderBy('sortierung')
+            ->get(['kategorie_id', 'code', 'name', 'aktiv']);
 
         return view('admin.stammdaten.lehrberufe.show', compact(
             'lehrberuf',
@@ -111,10 +118,12 @@ class StammdatenLehrberufeController extends Controller
 
     public function assignModul(Request $request, int $lehrberuf_id): RedirectResponse
     {
-        $validated = $request->validate([
-            'modul_id' => ['required', 'integer', 'exists:module,modul_id'],
+        $this->lehrberuf($lehrberuf_id);
+        // Eigener Fehlerbeutel: die Felder heissen wie in den Tabellenzeilen, die Meldung gehört ins Sheet
+        $validated = $request->validateWithBag('modul', [
+            'modul_id' => ['required', 'integer', Rule::exists('module', 'modul_id')->where('aktiv', 1)],
             'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
-            'pflicht' => ['boolean'],
+            'pflicht' => ['sometimes', 'boolean'],
             'empfohlenes_lehrsemester_nr' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
@@ -130,8 +139,18 @@ class StammdatenLehrberufeController extends Controller
         return back()->with('success', __('Modul zugewiesen.'));
     }
 
+    /**
+     * Zuweisung lösen – nur ohne Noten und Prüfungen von Lernenden dieses Berufs. Sonst fehlte ihnen der Lernort:
+     * geplante Prüfungen fielen aus der Rechnung, bestehende Noten liessen sich nicht mehr bearbeiten.
+     */
     public function removeModul(int $lehrberuf_id, int $modul_id): RedirectResponse
     {
+        $this->lehrberuf($lehrberuf_id);
+
+        if ($this->moduleInGebrauch($lehrberuf_id, $modul_id) !== []) {
+            return back()->with('error', __('Zu diesem Modul gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.'));
+        }
+
         DB::table('lehrberuf_module')
             ->where('lehrberuf_id', $lehrberuf_id)
             ->where('modul_id', $modul_id)
@@ -140,33 +159,61 @@ class StammdatenLehrberufeController extends Controller
         return back()->with('success', __('Modul entfernt.'));
     }
 
+    /**
+     * Lernort, Pflicht, Semester und Aktiv einer Zeile – jedes Feld speichert sofort. Ein Fehler kommt als Meldung
+     * zurück, weil die Zeile kein Feld für ihn hat (die Feldnamen gehören dem Sheet «Modul hinzufügen»).
+     */
     public function updateModulKategorie(Request $request, int $lehrberuf_id, int $modul_id): RedirectResponse
     {
-        $validated = $request->validate([
-            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
+        $zuweisung = DB::table('lehrberuf_module')->where('lehrberuf_id', $lehrberuf_id)->where('modul_id', $modul_id)->first();
+        abort_if($zuweisung === null, 404);
+
+        $validator = Validator::make($request->all(), [
+            // Der bisherige Lernort bleibt wählbar, auch wenn er inzwischen inaktiv ist
+            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')
+                ->where(fn ($q) => $q->where('aktiv', 1)->orWhere('kategorie_id', (int) $zuweisung->kategorie_id))],
             'pflicht' => ['sometimes', 'boolean'],
             'aktiv' => ['sometimes', 'boolean'],
             'empfohlenes_lehrsemester_nr' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:12'],
         ]);
+        if ($validator->fails()) {
+            return back()->with('error', $validator->errors()->first());
+        }
+        $validated = $validator->validated();
+        $kategorieId = (int) $validated['kategorie_id'];
 
-        // Nur übermittelte Felder ändern (Zeilenformular sendet alle, ältere Aufrufe nur den Lernort)
-        DB::table('lehrberuf_module')
-            ->where('lehrberuf_id', $lehrberuf_id)
-            ->where('modul_id', $modul_id)
-            ->update([
-                'kategorie_id' => $validated['kategorie_id'],
-                ...array_map(fn ($v) => is_bool($v) || $v === '0' || $v === '1' ? (bool) $v : $v,
-                    array_intersect_key($validated, array_flip(['pflicht', 'aktiv']))),
-                ...array_intersect_key($validated, array_flip(['empfohlenes_lehrsemester_nr'])),
-            ]);
+        DB::transaction(function () use ($validated, $lehrberuf_id, $modul_id, $kategorieId, $zuweisung) {
+            // Nur übermittelte Felder ändern (Zeilenformular sendet alle, ältere Aufrufe nur den Lernort)
+            DB::table('lehrberuf_module')
+                ->where('lehrberuf_id', $lehrberuf_id)
+                ->where('modul_id', $modul_id)
+                ->update([
+                    'kategorie_id' => $kategorieId,
+                    ...array_map(fn ($v) => (bool) $v, array_intersect_key($validated, array_flip(['pflicht', 'aktiv']))),
+                    ...array_intersect_key($validated, array_flip(['empfohlenes_lehrsemester_nr'])),
+                ]);
+
+            // Die Kategorie einer Note folgt aus dem Lernort (docs/notenlogik.md): bestehende Modulnoten der
+            // Lernenden dieses Berufs ziehen mit, auch gelöschte, damit sie beim Wiederherstellen stimmen.
+            if ($kategorieId !== (int) $zuweisung->kategorie_id) {
+                DB::table('noten')
+                    ->whereIn('modul_belegung_id', DB::table('modul_belegungen as mb')
+                        ->join('lernende as l', 'l.lernender_id', '=', 'mb.lernender_id')
+                        ->where('mb.modul_id', $modul_id)
+                        ->where('l.lehrberuf_id', $lehrberuf_id)
+                        ->select('mb.modul_belegung_id'))
+                    ->update(['kategorie_id' => $kategorieId]);
+            }
+        });
 
         return back()->with('success', __('Modul aktualisiert.'));
     }
 
     public function assignFach(Request $request, int $lehrberuf_id): RedirectResponse
     {
-        $validated = $request->validate([
-            'fach_id' => ['required', 'integer', Rule::exists('faecher', 'fach_id')->whereNull('track_typ')],
+        $this->lehrberuf($lehrberuf_id);
+        $validated = $request->validateWithBag('fach', [
+            'fach_id' => ['required', 'integer', Rule::exists('faecher', 'fach_id')->where('aktiv', 1)->whereNull('track_typ')],
         ]);
 
         DB::table('lehrberuf_faecher')->insertOrIgnore([
@@ -178,8 +225,33 @@ class StammdatenLehrberufeController extends Controller
         return back()->with('success', __('Fach zugewiesen.'));
     }
 
+    /** Freigabe eines Fachs im Beruf ein- oder ausschalten; ausgeschaltet bleibt es bei bestehenden Noten stehen. */
+    public function updateFach(Request $request, int $lehrberuf_id, int $fach_id): RedirectResponse
+    {
+        abort_unless(DB::table('lehrberuf_faecher')->where('lehrberuf_id', $lehrberuf_id)->where('fach_id', $fach_id)->exists(), 404);
+
+        $validator = Validator::make($request->all(), ['aktiv' => ['required', 'boolean']]);
+        if ($validator->fails()) {
+            return back()->with('error', $validator->errors()->first());
+        }
+
+        DB::table('lehrberuf_faecher')
+            ->where('lehrberuf_id', $lehrberuf_id)
+            ->where('fach_id', $fach_id)
+            ->update(['aktiv' => $request->boolean('aktiv')]);
+
+        return back()->with('success', __('Fach aktualisiert.'));
+    }
+
+    /** Freigabe lösen – wie bei Modulen nur, solange Lernende dieses Berufs im Fach nichts erfasst haben. */
     public function removeFach(int $lehrberuf_id, int $fach_id): RedirectResponse
     {
+        $this->lehrberuf($lehrberuf_id);
+
+        if ($this->faecherInGebrauch($lehrberuf_id, $fach_id) !== []) {
+            return back()->with('error', __('Zu diesem Fach gibt es in diesem Lehrberuf schon Noten oder Prüfungen. Deaktiviere es stattdessen.'));
+        }
+
         DB::table('lehrberuf_faecher')
             ->where('lehrberuf_id', $lehrberuf_id)
             ->where('fach_id', $fach_id)
@@ -216,5 +288,57 @@ class StammdatenLehrberufeController extends Controller
 
         return redirect()->route('admin.master-data.professions.index')
             ->with('success', __('Lehrberuf aktualisiert.'));
+    }
+
+    private function lehrberuf(int $lehrberufId): object
+    {
+        return DB::table('lehrberufe')->where('lehrberuf_id', $lehrberufId)->firstOrFail();
+    }
+
+    /**
+     * Module mit Noten oder Prüfungen von Lernenden dieses Berufs (optional nur ein Modul).
+     *
+     * @return list<int>
+     */
+    private function moduleInGebrauch(int $lehrberufId, ?int $modulId = null): array
+    {
+        $noten = DB::table('noten as n')
+            ->join('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->join('lernende as l', 'l.lernender_id', '=', 'mb.lernender_id')
+            ->where('l.lehrberuf_id', $lehrberufId)
+            ->whereNull('n.geloescht_am')
+            ->when($modulId, fn ($q, $id) => $q->where('mb.modul_id', $id))
+            ->distinct()
+            ->pluck('mb.modul_id');
+        $pruefungen = DB::table('pruefungen as p')
+            ->join('lernende as l', 'l.lernender_id', '=', 'p.lernender_id')
+            ->where('l.lehrberuf_id', $lehrberufId)
+            ->whereNotNull('p.modul_id')
+            ->when($modulId, fn ($q, $id) => $q->where('p.modul_id', $id))
+            ->distinct()
+            ->pluck('p.modul_id');
+
+        return $noten->merge($pruefungen)->map(fn ($id) => (int) $id)->unique()->values()->all();
+    }
+
+    /**
+     * Fächer ohne Track mit Noten oder Prüfungen von Lernenden dieses Berufs. Track-Fächer hängen nicht an der
+     * Freigabe im Beruf, ihre Zuweisung darf immer weg.
+     *
+     * @return list<int>
+     */
+    private function faecherInGebrauch(int $lehrberufId, ?int $fachId = null): array
+    {
+        $basis = fn (string $tabelle, string $alias) => DB::table("{$tabelle} as {$alias}")
+            ->join('lernende as l', 'l.lernender_id', '=', "{$alias}.lernender_id")
+            ->join('faecher as f', 'f.fach_id', '=', "{$alias}.fach_id")
+            ->where('l.lehrberuf_id', $lehrberufId)
+            ->whereNull('f.track_typ')
+            ->when($fachId, fn ($q, $id) => $q->where("{$alias}.fach_id", $id))
+            ->distinct();
+
+        return $basis('noten', 'n')->whereNull('n.geloescht_am')->pluck('n.fach_id')
+            ->merge($basis('pruefungen', 'p')->pluck('p.fach_id'))
+            ->map(fn ($id) => (int) $id)->unique()->values()->all();
     }
 }

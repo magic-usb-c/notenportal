@@ -121,7 +121,7 @@ class StammdatenCrudTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id), ['fach_id' => $fach->fach_id])
-            ->assertSessionHasErrors('fach_id');
+            ->assertSessionHasErrorsIn('fach', 'fach_id');
     }
 
     #[Test]

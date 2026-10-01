@@ -20,7 +20,7 @@
             <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="np-karte p-4 flex flex-wrap items-end gap-3">
                 <div>
                     <label for="semester_id" class="block text-sm font-medium text-text">{{ __('Semester') }}</label>
-                    <select id="semester_id" name="semester_id" onchange="this.form.submit()"
+                    <select id="semester_id" name="semester_id" data-sofort
                             class="np-feld mt-1 w-48">
                         <option value="">–</option>
                         @foreach($semester as $s)

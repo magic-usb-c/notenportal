@@ -16,7 +16,7 @@
         <form method="GET" action="{{ route('admin.setup', 'professions') }}" class="np-karte p-6 flex flex-col gap-3">
             <label for="vorlage-wahl" class="text-sm font-semibold text-text">{{ __('Vorlage') }}</label>
             <div class="flex flex-wrap items-center gap-2">
-                <select id="vorlage-wahl" name="vorlage" onchange="this.form.submit()" class="{{ $feld }} min-w-0 flex-1 truncate pr-9 sm:flex-none sm:w-96">
+                <select id="vorlage-wahl" name="vorlage" data-sofort class="{{ $feld }} min-w-0 flex-1 truncate pr-9 sm:flex-none sm:w-96">
                     @foreach($vorlagen as $schluessel => $v)
                         <option value="{{ $schluessel }}" @selected($schluessel === $vorlageSchluessel)>{{ $v['name'] }}</option>
                     @endforeach

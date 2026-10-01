@@ -7,7 +7,7 @@
         <x-einstellung :label="__('Sprache')" name="locale">
             <div class="np-segment" role="radiogroup" aria-labelledby="locale-bez">
                 @foreach(['de' => 'Deutsch', 'en' => 'English'] as $wert => $name)
-                    <label lang="{{ $wert }}"><input type="radio" name="locale" value="{{ $wert }}" class="sr-only" onchange="this.form.requestSubmit()"
+                    <label lang="{{ $wert }}"><input type="radio" name="locale" value="{{ $wert }}" class="sr-only" data-sofort
                                                      @checked(app()->getLocale() === $wert)>{{ $name }}</label>
                 @endforeach
             </div>
