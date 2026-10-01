@@ -51,7 +51,7 @@
                    class="{{ $zahl }}" @error('frist_inaktiv_tage') aria-invalid="true" aria-describedby="frist_inaktiv_tage-fehler" @enderror>
             <span class="w-20 text-sm text-muted">{{ __('Tagen') }}</span>
         </x-einstellung>
-        <x-einstellung :label="__('Lehrende ankündigen')" fuer="frist_lehrende_tage" name="frist_lehrende_tage">
+        <x-einstellung :label="__('Ende der Lehre ankündigen')" fuer="frist_lehrende_tage" name="frist_lehrende_tage">
             <input id="frist_lehrende_tage" name="frist_lehrende_tage" type="number" required min="7" max="365" value="{{ $wert('frist_lehrende_tage') }}"
                    class="{{ $zahl }}" @error('frist_lehrende_tage') aria-invalid="true" aria-describedby="frist_lehrende_tage-fehler" @enderror>
             <span class="w-20 text-sm text-muted">{{ __('Tage vorher') }}</span>

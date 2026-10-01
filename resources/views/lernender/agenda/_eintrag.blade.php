@@ -29,7 +29,7 @@
             {{ \App\Support\Format::datum($e['datum'], 'l') }}@if($e['zeit']), {{ __(':zeit Uhr', ['zeit' => $e['zeit']]) }}@endif
             @foreach($details as $d) · {{ $d }}@endforeach
             @if($p) · <span class="sr-only">{{ __('Gewichtung') }}</span><span class="tabular-nums">{{ $e['nebentext'] }}</span>@endif
-            · <span @class(['font-medium text-note-knapp' => $faellig, 'text-accent-text' => ! $faellig && $tage >= 0 && $tage <= 7])>{{ $wann }}</span>
+            · <span @class(['font-medium text-text' => $faellig, 'text-text' => ! $faellig && $tage >= 0 && $tage <= 7])>{{ $wann }}</span>
         </div>
     </div>
 

@@ -97,7 +97,7 @@
                         </select>
                     </label>
                     <label class="{{ $label }}">{{ __('Lehrbeginn') }}<input type="date" :name="`lernende[${i}][lehrbeginn]`" x-model="z.lehrbeginn" @change="lehrende(z)" required class="{{ $feld }}" :class="f(i, 'lehrbeginn') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }}">{{ __('Lehrende') }}<input type="date" :name="`lernende[${i}][lehrende]`" x-model="z.lehrende" class="{{ $feld }}" :class="f(i, 'lehrende') && 'border-note-ungenuegend!'"></label>
+                    <label class="{{ $label }}">{{ __('Ende der Lehre') }}<input type="date" :name="`lernende[${i}][lehrende]`" x-model="z.lehrende" class="{{ $feld }}" :class="f(i, 'lehrende') && 'border-note-ungenuegend!'"></label>
                     <label class="{{ $label }}">{{ __('Berufsbildner') }}
                         <select :name="`lernende[${i}][berufsbildner_id]`" x-model="z.berufsbildner_id" class="{{ $feld }}">
                             <option value="">–</option>

@@ -8,6 +8,10 @@ import { format, notenFarbe, stufe, t, tokenFarbe } from './np';
 Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
 const serie = (i, alpha = 1) => tokenFarbe(`--chart-${(i % 6) + 1}`, alpha);
+
+// Neutrale Balken (genügend, gut): Textfarbe zu 50 % – hell und dunkel ≥ 3:1 auf der Karte, in jedem Theme grau und nie
+// die Akzentfarbe von Knöpfen und Links. Die Legende (x-noten-legende neutral="bg-text/50") trägt dieselbe Farbe.
+const neutralFarbe = () => tokenFarbe('--text', 0.5);
 const serienToken = (i) => `--chart-${(i % 6) + 1}`;
 
 // Fläche unter einer Linie als senkrechter Verlauf von 22 % zu 0 % (Swift Charts: AreaMark mit Gradient)
@@ -236,6 +240,24 @@ const schwellenLabelPlugin = {
 
 Chart.register(direktlabelPlugin, schwellenLabelPlugin, balkenwertPlugin, senkrechtPlugin);
 
+// Anteil der Diagrammbreite, den die Namensachse horizontaler Balken höchstens belegt
+const ACHSENANTEIL = 0.36;
+
+// Text auf eine Pixelbreite kürzen (Auslassungszeichen am Ende), gemessen in der Schrift der Achsenbeschriftung
+function kuerzeNachBreite(chart, text, breite) {
+    const ctx = chart.ctx;
+    ctx.save();
+    ctx.font = `${Chart.defaults.font.weight ?? 'normal'} ${Chart.defaults.font.size}px ${Chart.defaults.font.family}`;
+    let ergebnis = text;
+    if (ctx.measureText(text).width > breite) {
+        let n = text.length;
+        while (n > 1 && ctx.measureText(`${text.slice(0, n).trimEnd()}…`).width > breite) n--;
+        ergebnis = `${text.slice(0, n).trimEnd()}…`;
+    }
+    ctx.restore();
+    return ergebnis;
+}
+
 const BAUER = {
     // { labels: [..], serien: [{ name, werte: [..], dick? }], grenze } – eine Serie mit dick:true wird hervorgehoben, Rest gedämpft
     verlauf(d, o = {}) {
@@ -307,7 +329,7 @@ const BAUER = {
         const g = d.grenzen ?? {};
         const zeilen = d.labels.map((label, i) => ({ label, wert: d.werte[i] ?? null }))
             .sort((a, b) => (a.wert ?? Infinity) - (b.wert ?? Infinity));
-        const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.9) : tokenFarbe('--chart-1', 0.9));
+        const farbe = (v) => (['knapp', 'ungenuegend'].includes(stufe(v, g)) ? notenFarbe(v, g, 0.9) : neutralFarbe());
         return {
             type: 'bar',
             data: { labels: zeilen.map((z) => z.label), datasets: [{ label: t('Note'), data: zeilen.map((z) => (z.wert === null ? null : [1, z.wert])),
@@ -319,8 +341,10 @@ const BAUER = {
                     npBalkenwert: { aktiv: true },
                     npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? t('genügend :wert', { wert: format(g.genuegend, 1) }) : null } },
                 scales: { x: notenAchse({ position: 'top' }), y: { grid: { display: false }, border: { display: false },
-                    // lange Fach-/Modulnamen kürzen (voller Name im Tooltip), sonst schneidet die Achse mobil ab
-                    ticks: { callback(v) { const l = String(this.getLabelForValue(v)); const max = this.chart.width < 520 ? 16 : 32; return l.length > max ? `${l.slice(0, max - 1)}…` : l; } } } },
+                    // Namensspalte höchstens 36 % der Diagrammbreite (die Balken behalten über die Hälfte); was darin nicht
+                    // ganz Platz hat, wird nach gemessener Textbreite gekürzt (voller Name im Tooltip)
+                    afterFit(achse) { achse.width = Math.min(achse.width, achse.chart.width * ACHSENANTEIL + 8); },
+                    ticks: { callback(v) { return kuerzeNachBreite(this.chart, String(this.getLabelForValue(v)), this.chart.width * ACHSENANTEIL); } } } },
             },
         };
     },
@@ -417,6 +441,9 @@ export function registriereCharts(Alpine) {
                 if (aktuell) this.zeichne(aktuell);
                 beobachter = new MutationObserver(() => aktuell && this.zeichne(aktuell));
                 beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-diagramm'] });
+                // Beschriftungen werden in der Schrift gemessen, die beim ersten Zeichnen gilt: erst nach dem Laden der Schrift
+                // neu messen (ohne Animation), sonst kürzt eine breitere Ersatzschrift Namen, die in Inter ganz hinpassen
+                document.fonts?.ready.then(() => chart?.update('none'));
             },
             zeichne(neu) {
                 if (!neu) return;

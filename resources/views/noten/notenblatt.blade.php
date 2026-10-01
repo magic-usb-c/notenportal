@@ -99,7 +99,7 @@
     <section class="eckdaten">
         <div><label>{{ __('Lehrberuf') }}</label><span>{{ $blatt['lehrberuf'] ?? '–' }}</span></div>
         <div><label>{{ __('Lehrbeginn') }}</label><span>{{ $datum($blatt['lehrbeginn']) }}</span></div>
-        <div><label>{{ __('Lehrende') }}</label><span>{{ $datum($blatt['lehrende']) }}</span></div>
+        <div><label>{{ __('Ende der Lehre') }}</label><span>{{ $datum($blatt['lehrende']) }}</span></div>
         <div class="gesamt"><label>{{ __('Gesamtnote') }}</label><strong class="{{ $stufe($blatt['gesamt']) }}">{{ NotenSkala::format($blatt['gesamt'], 1) }}</strong></div>
     </section>
 

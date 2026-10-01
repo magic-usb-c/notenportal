@@ -47,7 +47,7 @@
                        @unless($lernender) x-model="lehrbeginn" x-on:change="semesterNachLehrbeginn()" @endunless
                        @error('lehrbeginn') aria-invalid="true" aria-describedby="lehrbeginn-fehler" @enderror>
             </x-einstellung>
-            <x-einstellung :label="__('Lehrende')" fuer="lehrende" name="lehrende">
+            <x-einstellung :label="__('Ende der Lehre')" fuer="lehrende" name="lehrende">
                 <input type="date" id="lehrende" name="lehrende" class="{{ $datum }}"
                        value="{{ old('lehrende', $lernender?->lehrende?->format('Y-m-d')) }}"
                        @error('lehrende') aria-invalid="true" aria-describedby="lehrende-fehler" @enderror>

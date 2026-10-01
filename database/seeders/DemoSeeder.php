@@ -79,7 +79,7 @@ class DemoSeeder extends Seeder
         ['Nina', 'Huber'], ['Marco', 'Meier'], ['Elena', 'Fischer'], ['Lukas', 'Weber'],
         ['Julia', 'Brunner'], ['Simon', 'Zimmermann'], ['Anna', 'Graf'], ['Thomas', 'Widmer'],
         ['Sara', 'Roth'], ['Pascal', 'Bachmann'], ['Nadine', 'Moser'], ['Fabian', 'Wyss'],
-        ['Chiara', 'Kunz'], ['Reto', 'Hofer'],
+        ['Chiara', 'Kunz'], ['Reto', 'Hofer'], ['Livia', 'Gerber'],
     ];
 
     /** Reihenfolge wie NAMEN ab Index 4. */
@@ -98,6 +98,7 @@ class DemoSeeder extends Seeder
         ['beruf' => 'INBE', 'jahr' => 2024, 'track' => 'ABU', 'muster' => 'normal', 'klasse' => 'INB24'],
         ['beruf' => 'INAP', 'jahr' => 2026, 'track' => 'BMS', 'muster' => 'neu', 'klasse' => 'INF26a'],
         ['beruf' => 'INPE', 'jahr' => 2025, 'track' => 'BMS', 'muster' => 'normal', 'klasse' => 'INF25a'],
+        ['beruf' => 'INAP', 'jahr' => 2026, 'track' => 'BMS', 'muster' => 'leer', 'klasse' => 'INF26b'],
     ];
 
     private const array KOMMENTARE = [
@@ -288,6 +289,11 @@ class DemoSeeder extends Seeder
             'start_semester_id' => $semester->first()->semester_id,
             'end_semester_id' => $laufend ? null : $semester->last()->semester_id,
         ]);
+
+        // Leerzustand: Lernende ohne Noten, Prüfungen und Ziele; Betreuung kommt aus seedePersonen().
+        if ($l['muster'] === 'leer') {
+            return;
+        }
 
         $noten = [];
         $seed = $lernenderId * 7919;

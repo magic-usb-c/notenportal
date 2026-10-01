@@ -2,7 +2,7 @@
     <x-slot name="title">{{ $lernender->benutzer->vorname }} {{ $lernender->benutzer->nachname }}</x-slot>
     <x-slot name="header">
         <x-seitenkopf :zurueck="route($bereich.'.learners.index')" :titel="$lernender->benutzer->vorname.' '.$lernender->benutzer->nachname"
-                       :untertitel="collect([$lernender->lehrberuf?->name, $lernender->lehrjahr() ? __(':jahr. Lehrjahr', ['jahr' => $lernender->lehrjahr()]) : null, $lernender->lehrende ? __('Lehrende :datum', ['datum' => $lernender->lehrende->format('d.m.Y')]) : null])->filter()->implode(' · ')">
+                       :untertitel="collect([$lernender->lehrberuf?->name, $lernender->lehrjahr() ? __(':jahr. Lehrjahr', ['jahr' => $lernender->lehrjahr()]) : null, $lernender->lehrende ? __('Lehre endet :datum', ['datum' => $lernender->lehrende->format('d.m.Y')]) : null])->filter()->implode(' · ')">
             <x-status :status="$stand->status" :title="$stand->gruende ? implode(', ', $stand->gruende) : __('Keine Auffälligkeiten')" />
             <x-slot:aktionen>
                 <a href="{{ route("{$bereich}.learners.grades.index", $lernender->lernender_id) }}"

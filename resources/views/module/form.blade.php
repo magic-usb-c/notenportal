@@ -39,7 +39,7 @@
                         <x-einstellung :label="__('Katalogversion')" fuer="version" name="version" :hinweis="__('Erzeugt den Verweis auf den Modulbaukasten.')">
                             <input type="text" id="version" name="version" value="{{ old('version', $modul->version) }}" inputmode="numeric" maxlength="2" placeholder="1"
                                    aria-describedby="{{ $beschrieben('version') }}"
-                                   class="np-feld w-16 text-right tabular-nums" @error('version') aria-invalid="true" @enderror>
+                                   class="np-feld w-24 text-right tabular-nums" @error('version') aria-invalid="true" @enderror>
                         </x-einstellung>
                         <x-einstellung :label="__('Verweis')" fuer="link" name="link" :hinweis="__('Etwa die Modulseite der Schule.')">
                             <input type="url" id="link" name="link" value="{{ old('link', $modul->link) }}" maxlength="500" placeholder="https://"

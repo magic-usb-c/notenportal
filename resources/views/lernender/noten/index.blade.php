@@ -137,115 +137,127 @@
                         </div>
 
                         {{-- Gliederung wie eine macOS-Outline-Ansicht: feste Spalten in allen Kategorien, Pfeil vor dem Namen,
-                             die Prüfungen darunter im selben Raster (Gewicht unter «Prüfungen», Note unter «Schnitt») --}}
-                        <div class="np-karte overflow-hidden">
-                            <table class="w-full table-fixed text-sm tabular-nums">
-                                <colgroup>
-                                    <col>
-                                    <col class="w-56">
-                                    <col class="w-24">
-                                    <col class="w-28">
-                                </colgroup>
-                                <thead>
-                                    <tr class="border-b border-border">
-                                        <th scope="col" class="h-8 pl-10 pr-3 text-left text-xs font-medium text-muted">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="h-8 px-3 text-left text-xs font-medium text-muted">{{ __('Prüfungen') }}</th>
-                                        <th scope="col" class="h-8 px-3 text-right text-xs font-medium text-muted">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="h-8 px-4 text-right text-xs font-medium text-muted">{{ __('Zeugnis') }}</th>
-                                    </tr>
-                                </thead>
-                                @foreach($g->elemente as $el)
-                                    @php
-                                        $e = $el->element;
-                                        $beleg = $e?->typ === \App\Services\Auswertung\Element::MODUL ? ($belegungen[$e->modulId] ?? null) : null;
-                                        $offenGewicht = $e?->offenGewicht();
-                                        $fortschritt = $e && $e->zielGewicht ? (int) min(100, round($e->gewichtSumme / $e->zielGewicht * 100)) : null;
-                                        $zeileId = 'noten-'.$g->id.'-'.$loop->index;
-                                        $anzahl = $el->noten->count();
-                                    @endphp
-                                    <tbody x-data="{ offen: @js($offeneNote > 0 && $el->noten->contains('note_id', $offeneNote)) }" class="border-b border-border last:border-0">
-                                        <tr class="h-11 cursor-pointer transition-colors duration-100 hover:bg-surface-2/60" @click="offen = ! offen">
-                                            <th scope="row" class="px-3 text-left font-normal">
-                                                <button type="button" @click.stop="offen = ! offen" :aria-expanded="offen" aria-controls="{{ $zeileId }}"
-                                                        class="flex w-full min-w-0 items-center gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
-                                                    <x-symbol name="chevron-right" strich="2" class="size-3.5 shrink-0 text-muted transition-transform duration-200" ::class="offen && 'rotate-90'" />
-                                                    <span class="ml-1.5 truncate font-medium text-text">{{ $el->label }}</span>
-                                                    @if($beleg && $beleg['versuche'] > 1)
-                                                        <span class="shrink-0 text-xs text-muted">{{ __(':n. Versuch', ['n' => $beleg['versuche']]) }}</span>
-                                                    @endif
-                                                </button>
-                                            </th>
-                                            <td class="px-3 text-muted">
-                                                <span class="flex items-center gap-3" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
-                                                    <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
-                                                    <span class="w-5 text-right" aria-hidden="true">{{ $anzahl }}</span>
-                                                    @if($fortschritt !== null)
-                                                        <span class="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-fill" aria-hidden="true">
-                                                            <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>
-                                                        </span>
-                                                        <span class="truncate text-xs">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
-                                                    @endif
-                                                </span>
-                                            </td>
-                                            <td class="px-3 text-right text-muted" title="{{ __('Schnitt vor Rundung') }}">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
-                                            <td class="px-4 text-right"><x-note :wert="$e?->note" variante="badge" /></td>
+                             die Prüfungen darunter im selben Raster (Gewicht unter «Prüfungen», Note unter «Schnitt»). Ein tbody je
+                             Kategorie, damit die Streifen von np-tabelle über alle Fächer laufen; der Zustand «aufgeklappt» liegt dort. --}}
+                        @php
+                            // Deep-Link (?_open=): das Fach mit der Prüfung ist beim Laden aufgeklappt
+                            $startOffen = [];
+                            foreach ($g->elemente as $i => $el) {
+                                $startOffen['noten-'.$g->id.'-'.$i] = $offeneNote > 0 && $el->noten->contains('note_id', $offeneNote);
+                            }
+                        @endphp
+                        <div class="np-karte">
+                            <div class="px-2 pb-2">
+                                <table class="np-tabelle table-fixed text-sm">
+                                    <colgroup>
+                                        <col>
+                                        <col class="w-56">
+                                        <col class="w-24">
+                                        <col class="w-28">
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="pl-10">{{ __('Fach / Modul') }}</th>
+                                            <th scope="col">{{ __('Prüfungen') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Schnitt') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Zeugnis') }}</th>
                                         </tr>
-                                        <tr id="{{ $zeileId }}" x-show="offen" x-cloak>
-                                            <td colspan="4" class="border-t border-border p-0">
-                                                @php
-                                                    $ms = $e ? ($modulstatus[$e->schluessel] ?? null) : null;
-                                                    $mbk = $beleg['mbk'] ?? null;
-                                                @endphp
-                                                @if($mbk || ($ms && ($ms['dauer_seit_beginn'] || $ms['naechster_termin'] || $ms['bewerteter_anteil_prozent'] !== null)))
-                                                    <div class="flex items-center gap-x-5 border-b border-border/70 bg-fill-2 py-2 pl-10 pr-4 text-xs text-muted">
-                                                        @if($ms && $ms['dauer_seit_beginn'])
-                                                            <span class="shrink-0">{{ $ms['dauer_seit_beginn'] }}</span>
+                                    </thead>
+                                    <tbody x-data="{ offen: @js($startOffen) }">
+                                        @foreach($g->elemente as $el)
+                                            @php
+                                                $e = $el->element;
+                                                $beleg = $e?->typ === \App\Services\Auswertung\Element::MODUL ? ($belegungen[$e->modulId] ?? null) : null;
+                                                $offenGewicht = $e?->offenGewicht();
+                                                $fortschritt = $e && $e->zielGewicht ? (int) min(100, round($e->gewichtSumme / $e->zielGewicht * 100)) : null;
+                                                $zeileId = 'noten-'.$g->id.'-'.$loop->index;
+                                                $anzahl = $el->noten->count();
+                                            @endphp
+                                            <tr class="cursor-pointer" @click="offen['{{ $zeileId }}'] = ! offen['{{ $zeileId }}']">
+                                                <th scope="row" class="text-left font-normal">
+                                                    <button type="button" @click.stop="offen['{{ $zeileId }}'] = ! offen['{{ $zeileId }}']" :aria-expanded="offen['{{ $zeileId }}']" aria-controls="{{ $zeileId }}"
+                                                            class="flex w-full min-w-0 items-center gap-2 rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring">
+                                                        <x-symbol name="chevron-right" strich="2" class="size-3.5 shrink-0 text-muted transition-transform duration-200" ::class="offen['{{ $zeileId }}'] && 'rotate-90'" />
+                                                        <span class="ml-1.5 truncate font-medium text-text">{{ $el->label }}</span>
+                                                        @if($beleg && $beleg['versuche'] > 1)
+                                                            <span class="shrink-0 text-xs text-muted">{{ __(':n. Versuch', ['n' => $beleg['versuche']]) }}</span>
                                                         @endif
-                                                        @if($ms && $ms['naechster_termin'])
-                                                            <span class="inline-flex min-w-0 items-center gap-1">
-                                                                <span class="truncate text-text">{{ $ms['naechster_termin']['titel'] }}</span>
-                                                                <span class="shrink-0">· {{ $ms['naechster_termin']['restdauer'] }}</span>
+                                                    </button>
+                                                </th>
+                                                <td class="text-muted">
+                                                    <span class="flex items-center gap-3" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
+                                                        <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
+                                                        <span class="w-5 shrink-0" aria-hidden="true">{{ $anzahl }}</span>
+                                                        @if($fortschritt !== null)
+                                                            <span class="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-fill" aria-hidden="true">
+                                                                <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>
                                                             </span>
+                                                            <span class="truncate text-xs">{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}</span>
                                                         @endif
-                                                        @if($ms && $ms['bewerteter_anteil_prozent'] !== null)
-                                                            <span class="inline-flex shrink-0 items-center gap-1.5">
-                                                                {{ __('Bewertet') }}
-                                                                <span class="h-1 w-14 overflow-hidden rounded-full bg-fill" aria-hidden="true">
-                                                                    <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
-                                                                </span>
-                                                                {{ \App\Support\Zahl::prozent($ms['bewerteter_anteil_prozent']) }}
-                                                            </span>
+                                                    </span>
+                                                </td>
+                                                <td class="text-right text-muted" title="{{ __('Schnitt vor Rundung') }}">{{ \App\Support\NotenSkala::format($e?->schnitt, 2) }}</td>
+                                                <td class="text-right"><x-note :wert="$e?->note" variante="badge" /></td>
+                                            </tr>
+                                            <tr id="{{ $zeileId }}" x-show="offen['{{ $zeileId }}']" x-cloak>
+                                                <td colspan="4" class="bg-transparent p-0">
+                                                    <div class="overflow-hidden rounded-lg">
+                                                        @php
+                                                            $ms = $e ? ($modulstatus[$e->schluessel] ?? null) : null;
+                                                            $mbk = $beleg['mbk'] ?? null;
+                                                        @endphp
+                                                        @if($mbk || ($ms && ($ms['dauer_seit_beginn'] || $ms['naechster_termin'] || $ms['bewerteter_anteil_prozent'] !== null)))
+                                                            <div class="flex items-center gap-x-5 border-b border-border/70 bg-fill-2 py-2 pl-10 pr-4 text-xs text-muted">
+                                                                @if($ms && $ms['dauer_seit_beginn'])
+                                                                    <span class="shrink-0">{{ $ms['dauer_seit_beginn'] }}</span>
+                                                                @endif
+                                                                @if($ms && $ms['naechster_termin'])
+                                                                    <span class="inline-flex min-w-0 items-center gap-1">
+                                                                        <span class="truncate text-text">{{ $ms['naechster_termin']['titel'] }}</span>
+                                                                        <span class="shrink-0">· {{ $ms['naechster_termin']['restdauer'] }}</span>
+                                                                    </span>
+                                                                @endif
+                                                                @if($ms && $ms['bewerteter_anteil_prozent'] !== null)
+                                                                    <span class="inline-flex shrink-0 items-center gap-1.5">
+                                                                        {{ __('Bewertet') }}
+                                                                        <span class="h-1 w-14 overflow-hidden rounded-full bg-fill" aria-hidden="true">
+                                                                            <span class="block h-full bg-chart-6" style="width: {{ $ms['bewerteter_anteil_prozent'] }}%"></span>
+                                                                        </span>
+                                                                        {{ \App\Support\Zahl::prozent($ms['bewerteter_anteil_prozent']) }}
+                                                                    </span>
+                                                                @endif
+                                                                @if($mbk)
+                                                                    <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer"
+                                                                       class="ml-auto shrink-0 text-accent-text underline-offset-2 hover:underline">
+                                                                        {{ __('Modulbeschreibung') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span>
+                                                                    </a>
+                                                                @endif
+                                                            </div>
                                                         @endif
-                                                        @if($mbk)
-                                                            <a href="{{ $mbk }}" target="_blank" rel="noopener noreferrer"
-                                                               class="ml-auto shrink-0 text-accent-text underline-offset-2 hover:underline">
-                                                                {{ __('Modulbeschreibung') }}<span class="sr-only"> ({{ __('neues Fenster') }})</span>
-                                                            </a>
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                                <div class="divide-y divide-border">
-                                                    @foreach($el->noten as $n)
-                                                        @include('lernender.noten.partials.note', ['n' => $n, 'ich' => $ich])
-                                                    @endforeach
-                                                    @if($beleg)
-                                                        <div class="flex justify-end px-4 py-2">
-                                                            <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
-                                                                  @if($beleg['offen']) data-bestaetigen="{{ __('Modul wiederholen?') }}" data-bestaetigen-text="{{ __('Ab der nächsten Note zählt nur der neue Versuch.') }}" data-bestaetigen-knopf="{{ __('Wiederholen') }}" data-bestaetigen-art="normal" @endif
-                                                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                                                                @csrf
-                                                                <button :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">
-                                                                    {{ $beleg['offen'] ? __('Modul wiederholen') : __('Wiederholung zurücknehmen') }}
-                                                                </button>
-                                                            </form>
+                                                        <div class="divide-y divide-border">
+                                                            @foreach($el->noten as $n)
+                                                                @include('lernender.noten.partials.note', ['n' => $n, 'ich' => $ich])
+                                                            @endforeach
+                                                            @if($beleg)
+                                                                <div class="flex justify-end px-4 py-2">
+                                                                    <form method="POST" action="{{ route($beleg['offen'] ? 'learner.grades.module.repeat' : 'learner.grades.module.resume', $e->modulId) }}"
+                                                                          @if($beleg['offen']) data-bestaetigen="{{ __('Modul wiederholen?') }}" data-bestaetigen-text="{{ __('Ab der nächsten Note zählt nur der neue Versuch.') }}" data-bestaetigen-knopf="{{ __('Wiederholen') }}" data-bestaetigen-art="normal" @endif
+                                                                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                                                        @csrf
+                                                                        <button :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">
+                                                                            {{ $beleg['offen'] ? __('Modul wiederholen') : __('Wiederholung zurücknehmen') }}
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            @endif
                                                         </div>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
-                                @endforeach
-                            </table>
+                                </table>
+                            </div>
                         </div>
                     </section>
                 @endforeach
@@ -256,7 +268,7 @@
                     <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
                         {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
-                           class="text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
+                           class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
                     </p>
                 @endif
             </div>

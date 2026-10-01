@@ -54,14 +54,12 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($ergebnisse === [])
-                <div class="np-karte">
-                    <x-leer symbol="academic-cap" :titel="__('Noch keine Abschlussrechnung')"
-                            :text="__('Für diese Ausbildung ist noch keine Gewichtung bis zur Gesamtnote hinterlegt.')">
-                        @if(auth()->user()->hasRole('Admin'))
-                            <a href="{{ route('admin.master-data.grade-trees.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Notenbaum laden') }}</a>
-                        @endif
-                    </x-leer>
-                </div>
+                <x-leer symbol="academic-cap" :titel="__('Noch keine Abschlussrechnung')"
+                        :text="__('Für diese Ausbildung ist noch keine Gewichtung bis zur Gesamtnote hinterlegt.')">
+                    @if(auth()->user()->hasRole('Admin'))
+                        <a href="{{ route('admin.master-data.grade-trees.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Notenbaum laden') }}</a>
+                    @endif
+                </x-leer>
             @else
                 <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10">
                     @csrf
@@ -72,7 +70,7 @@
                             $wurzel = $e->wurzel();
                             $erfasst = (int) round($e->erfasst() * 100);
                         @endphp
-                        {{-- Links fest neben dem Aufbau: bei langen Bäumen (Berufsmaturität) bleibt das Ergebnis im Blick --}}
+                        {{-- Links fest neben dem Aufbau: bei langen Bäumen (Berufsmaturität) bleibt das Ergebnis im Blick; die Tabelle bleibt eine Lesespalte --}}
                         <section class="grid grid-cols-[26rem_minmax(0,1fr)] items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
                             <div class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex flex-col p-5">
                                 <div class="flex items-start justify-between gap-3">
@@ -153,7 +151,7 @@
                                 @endif
                             </div>
 
-                            <div class="np-karte p-2">
+                            <div class="np-karte max-w-3xl p-2">
                                 <table class="np-tabelle table-fixed text-sm">
                                     <thead>
                                         <tr>

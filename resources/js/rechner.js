@@ -1,6 +1,6 @@
 // Noten-Rechner und Live-Vorschau im Notenformular. Gerechnet wird serverseitig (eine Engine),
 // die Oberfläche schickt nur das Szenario.
-import { bedarfKlasse, format, notenKlasse, postJson, stufenFarbe } from './np';
+import { format, notenKlasse, postJson, stufenFarbe } from './np';
 
 const SPEICHERBAR = ['gesamt', 'kategorie', 'fach', 'modul'];
 let zeilenNummer = 0;
@@ -134,7 +134,8 @@ export function registriereRechner(Alpine) {
         get heroKlasse() {
             const l = this.ergebnis?.loesung;
             if (!l) return '';
-            if (l.status === 'benoetigt') return bedarfKlasse(l.note, this.grenzen);
+            // Eine benötigte Note ist keine Notenstufe: neutral, den Schwierigkeitsgrad tragen Zahl und Satz
+            if (l.status === 'benoetigt') return 'text-text';
             if (l.status === 'erreicht') return stufenFarbe(6, this.grenzen);
             if (l.status === 'unerreichbar') return stufenFarbe(1, this.grenzen);
             return notenKlasse(l.resultat ?? l.aktuell, this.grenzen);
@@ -169,6 +170,9 @@ export function registriereRechner(Alpine) {
             }
             if (l.status === 'ohne_einfluss') {
                 return formatiere(cfg.texte.ohneEinfluss, { bezug, resultat: this.fmt(l.resultat ?? l.aktuell) });
+            }
+            if (l.resultat == null && l.aktuell == null) {
+                return formatiere(cfg.texte.keineNoten, { bezug });
             }
             const resultat = l.resultat ?? 0;
             return resultat >= this.ergebnis.ziel.zielwert

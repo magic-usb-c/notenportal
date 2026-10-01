@@ -19,7 +19,7 @@
             <div><dt class="{{ $label }}">{{ __('E-Mail') }}</dt><dd class="text-text break-all"><a href="mailto:{{ $benutzer->email }}" class="hover:text-accent-text">{{ $benutzer->email }}</a></dd></div>
             <div><dt class="{{ $label }}">{{ __('Benutzername') }}</dt><dd class="text-text tabular-nums">{{ $benutzer->benutzername }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Lehrbeginn') }}</dt><dd class="text-text">{{ $datum($lernender->lehrbeginn) }}</dd></div>
-            <div><dt class="{{ $label }}">{{ __('Lehrende') }}</dt><dd class="text-text">{{ $datum($lernender->lehrende) }}</dd></div>
+            <div><dt class="{{ $label }}">{{ __('Ende der Lehre') }}</dt><dd class="text-text">{{ $datum($lernender->lehrende) }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Klasse Schule') }}</dt><dd class="text-text">{{ $lernender->klasse_schule ?: '–' }}</dd></div>
             <div><dt class="{{ $label }}">{{ __('Klasse BMS') }}</dt><dd class="text-text">{{ $lernender->klasse_bms ?: '–' }}</dd></div>
             <div class="col-span-2">

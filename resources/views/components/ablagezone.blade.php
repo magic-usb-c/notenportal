@@ -23,5 +23,9 @@
                @change="dateiname = $event.target.files[0]?.name ?? ''"
                @if($fehler) aria-invalid="true" aria-describedby="{{ $id }}-fehler" @endif>
     </label>
-    @error($name)<p id="{{ $id }}-fehler" class="mt-1.5 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+    @error($name)
+        <p id="{{ $id }}-fehler" class="mt-1.5 flex items-center gap-1.5 text-xs text-note-ungenuegend">
+            <x-symbol name="exclamation-triangle" class="size-4 shrink-0" />{{ $message }}
+        </p>
+    @enderror
 </div>

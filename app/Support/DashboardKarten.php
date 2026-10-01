@@ -26,13 +26,13 @@ final class DashboardKarten
             'handlungsbedarf' => 'Handlungsbedarf',
             'berufsbildner' => 'Berufsbildner',
             'aktivitaet' => 'Erfasste Noten pro Woche',
-            'lehrende' => 'Lehrende bald',
+            'lehrende' => 'Lehre endet bald',
         ],
         self::BERUFSBILDNER => [
             'aufmerksamkeit' => 'Braucht Aufmerksamkeit',
             'lernende' => 'Meine Lernenden',
             'agenda' => 'Nächste 14 Tage',
-            'lehrende' => 'Lehrende bald',
+            'lehrende' => 'Lehre endet bald',
         ],
         self::LERNENDER => [
             'stand' => 'Stand',

@@ -26,12 +26,12 @@ class DemoSeederTest extends TestCase
     #[Test]
     public function seedet_die_erwarteten_personen_und_rollen(): void
     {
-        $this->assertSame(14, Lernender::count());
+        $this->assertSame(15, Lernender::count());
         $this->assertSame(3, DB::table('berufsbildner')->count());
 
         $this->assertSame(1, User::whereHas('rollen', fn ($q) => $q->where('name', 'Admin'))->count());
         $this->assertSame(3, User::whereHas('rollen', fn ($q) => $q->where('name', 'Berufsbildner'))->count());
-        $this->assertSame(14, User::whereHas('rollen', fn ($q) => $q->where('name', 'Lernender'))->count());
+        $this->assertSame(15, User::whereHas('rollen', fn ($q) => $q->where('name', 'Lernender'))->count());
     }
 
     #[Test]
@@ -96,6 +96,26 @@ class DemoSeederTest extends TestCase
         $this->actingAs($lernenderUser)->get(route('learner.grades.index'))->assertOk();
         $this->actingAs($berufsbildnerUser)->get(route('trainer.dashboard'))->assertOk();
         $this->actingAs($adminUser)->get(route('admin.dashboard'))->assertOk();
+    }
+
+    #[Test]
+    public function lernende_ohne_noten_laden_alle_seiten_fehlerfrei(): void
+    {
+        $user = User::query()->where('email', 'livia.gerber@demo.example')->firstOrFail();
+        $lernenderId = $user->lernender->lernender_id;
+
+        $this->assertSame(0, DB::table('noten')->where('lernender_id', $lernenderId)->count());
+        $this->assertSame(0, DB::table('pruefungen')->where('lernender_id', $lernenderId)->count());
+        $this->assertSame(0, DB::table('ziele')->where('lernender_id', $lernenderId)->count());
+        $this->assertSame(1, Betreuung::query()->aktiv()->where('lernender_id', $lernenderId)->count());
+
+        foreach ([
+            'learner.dashboard', 'learner.grades.index', 'learner.exams.index', 'learner.qualification.index',
+            'learner.grades.calculator', 'learner.documents.index', 'learner.grades.create', 'learner.grades.import.index',
+            'learner.grades.print',
+        ] as $route) {
+            $this->actingAs($user)->get(route($route))->assertOk();
+        }
     }
 
     #[Test]

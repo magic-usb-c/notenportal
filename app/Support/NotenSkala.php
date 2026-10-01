@@ -142,21 +142,6 @@ final class NotenSkala
         return self::BADGE[self::stufe($wert)] ?? 'bg-surface-2 text-muted';
     }
 
-    /** Farbe einer benötigten Note nach Schwierigkeit: bis Genügend+0.5 gut machbar, ab Gut+0.25 schwer. */
-    public static function bedarf(float|string|null $wert): string
-    {
-        if ($wert === null || $wert === '') {
-            return 'text-muted';
-        }
-        $g = self::grenzen();
-
-        return match (true) {
-            (float) $wert <= $g['genuegend'] + 0.5 => self::FARBE[self::GUT],
-            (float) $wert <= $g['gut'] + 0.25 => self::FARBE[self::KNAPP],
-            default => self::FARBE[self::UNGENUEGEND],
-        };
-    }
-
     /** Stufe (Sport) so, wie sie im Zeugnis steht: A/B/C, «d» ausgeschrieben als dispensiert. */
     public static function stufeText(?string $stufe): string
     {

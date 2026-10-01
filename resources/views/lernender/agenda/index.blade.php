@@ -78,7 +78,7 @@
                     @foreach($abschnitte as $abschnitt)
                         {{-- Gruppierte Liste (HIG «Lists and tables», Stil «inset grouped»): Überschrift über der Fläche --}}
                         <section class="flex flex-col gap-2">
-                            <h2 @class(['flex items-baseline gap-2 px-1 text-sm font-semibold', 'text-note-knapp' => $abschnitt['faellig'], 'text-text' => ! $abschnitt['faellig']])>
+                            <h2 class="flex items-baseline gap-2 px-1 text-sm font-semibold text-text">
                                 {{ $abschnitt['titel'] }}
                                 <span class="text-xs font-normal tabular-nums text-muted">{{ $abschnitt['eintraege']->count() }}</span>
                             </h2>

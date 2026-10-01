@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Lernender;
+use App\Models\Note;
 use App\Models\User;
 use App\Support\Darstellung;
 use App\Support\DashboardKarten;
@@ -108,10 +109,24 @@ class DashboardKartenTest extends TestCase
     public function ohne_ausgeblendete_karten_bleibt_alles_sichtbar(): void
     {
         $user = User::factory()->lernender()->create();
+        Note::factory()->create(['lernender_id' => $user->lernender->lernender_id]);
 
         $this->actingAs($user)->get(route('learner.dashboard'))
             ->assertOk()
             ->assertSee(__('Stand'))
-            ->assertSee(__('Als Nächstes'));
+            ->assertSee(__('Als Nächstes'))
+            ->assertDontSee(__('Willkommen, :name', ['name' => $user->vorname]));
+    }
+
+    #[Test]
+    public function ohne_noten_und_termine_zeigt_das_dashboard_einen_leerzustand(): void
+    {
+        $user = User::factory()->lernender()->create();
+
+        $this->actingAs($user)->get(route('learner.dashboard'))
+            ->assertOk()
+            ->assertSee(__('Willkommen, :name', ['name' => $user->vorname]))
+            ->assertSee(__('Erste Note erfassen'))
+            ->assertDontSee(__('Als Nächstes'));
     }
 }

@@ -90,15 +90,6 @@ export function stufenFarbe(wert, grenzen = STANDARD_GRENZEN) {
     return FARBE[stufe(wert, grenzen)] ?? 'text-muted';
 }
 
-// Benötigte Note nach Schwierigkeit einfärben (hoch = schwer), wie NotenSkala::bedarf()
-export function bedarfKlasse(wert, grenzen = STANDARD_GRENZEN) {
-    const v = parseFloat(wert);
-    if (!Number.isFinite(v)) return 'text-muted';
-    if (v <= grenzen.genuegend + 0.5) return FARBE.gut;
-    if (v <= grenzen.gut + 0.25) return FARBE.knapp;
-    return FARBE.ungenuegend;
-}
-
 export function format(wert, stellen = null) {
     const v = parseFloat(wert);
     if (!Number.isFinite(v)) return '–';

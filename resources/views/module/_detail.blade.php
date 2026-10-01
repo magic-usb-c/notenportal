@@ -6,6 +6,8 @@
     $istAdmin = auth()->user()->hasRole('Admin');
     $lernender = \Illuminate\Support\Facades\Route::has('modules.enroll') && auth()->user()->hasRole('Lernender');
     $kannBelegen = $lernender && ! $belegt;
+    $lbvForm = $modul->lbvElemente->contains(fn ($e) => filled($e->pruefungsform));
+    $lbvGewicht = $modul->lbvElemente->contains(fn ($e) => $e->gewichtung_prozent !== null);
     $meta = collect([
         $modul->version ? __('Katalogversion').' '.$modul->version : null,
         $modul->ausKatalog() ? __('aus dem Modulbaukasten')
@@ -59,26 +61,33 @@
             @endif
 
             @if($modul->lbvElemente->isNotEmpty())
-                <section class="np-karte overflow-hidden" aria-labelledby="modul-lbv">
-                    <h3 id="modul-lbv" class="px-5 pb-3 pt-5 text-sm font-semibold text-text">{{ __('Leistungsbeurteilung') }}</h3>
-                    <table class="w-full text-sm">
-                        <thead>
-                            <tr class="border-y border-border bg-surface-2">
-                                <th scope="col" class="h-9 px-5 text-left text-2xs font-medium text-muted">{{ __('Element') }}</th>
-                                <th scope="col" class="h-9 px-3 text-left text-2xs font-medium text-muted">{{ __('Prüfungsform') }}</th>
-                                <th scope="col" class="h-9 px-5 text-right text-2xs font-medium text-muted">{{ __('Gewicht') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($modul->lbvElemente as $element)
-                                <tr class="border-b border-border last:border-0">
-                                    <td class="h-11 px-5 text-text">{{ $element->bezeichnung }}</td>
-                                    <td class="h-11 px-3 text-muted">{{ $element->pruefungsform ?: '–' }}</td>
-                                    <td class="h-11 px-5 text-right tabular-nums text-text">{{ $element->gewichtung_prozent !== null ? (int) $element->gewichtung_prozent.' %' : '–' }}</td>
+                <section class="np-karte" aria-labelledby="modul-lbv">
+                    <h3 id="modul-lbv" class="px-5 pb-2 pt-5 text-sm font-semibold text-text">{{ __('Leistungsbeurteilung') }}</h3>
+                    <div class="px-2 pb-2">
+                        <table class="np-tabelle table-fixed text-sm">
+                            <colgroup>
+                                <col>
+                                @if($lbvForm)<col class="w-56">@endif
+                                @if($lbvGewicht)<col class="w-24">@endif
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th scope="col">{{ __('Element') }}</th>
+                                    @if($lbvForm)<th scope="col">{{ __('Prüfungsform') }}</th>@endif
+                                    @if($lbvGewicht)<th scope="col" class="text-right">{{ __('Gewicht') }}</th>@endif
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($modul->lbvElemente as $element)
+                                    <tr>
+                                        <td class="text-text">{{ $element->bezeichnung }}</td>
+                                        @if($lbvForm)<td class="text-muted">{{ $element->pruefungsform ?: '–' }}</td>@endif
+                                        @if($lbvGewicht)<td class="text-right tabular-nums text-text">{{ $element->gewichtung_prozent !== null ? (int) $element->gewichtung_prozent.' %' : '–' }}</td>@endif
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             @endif
 
@@ -115,9 +124,9 @@
                 @if($modul->dokumente->isEmpty())
                     <p class="text-sm text-muted">{{ __('Noch keine Unterlagen. Lade die Modulbeschreibung hoch – alle sehen sie danach.') }}</p>
                 @else
-                    <ul class="divide-y divide-border overflow-hidden rounded-xl border border-border">
+                    <ul class="np-gruppe">
                         @foreach($modul->dokumente as $d)
-                            <li class="flex items-center gap-3 px-3 py-2.5">
+                            <li class="flex items-center gap-3 py-2.5">
                                 <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-3xs font-semibold text-accent-text">{{ strtoupper($d->endung()) }}</span>
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate text-sm font-medium text-text">{{ $d->titel }}</div>

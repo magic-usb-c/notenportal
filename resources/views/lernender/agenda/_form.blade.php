@@ -161,8 +161,6 @@
             </div>
             @error('datei')<p id="datei-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
-    @else
-        <p class="text-xs text-muted">{{ __('Anhänge können nach dem Speichern hinzugefügt werden.') }}</p>
     @endif
 
     <x-formular-aktionen schliessen="pruefung">{{ $b ? __('Speichern') : __('Planen') }}</x-formular-aktionen>

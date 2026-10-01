@@ -19,7 +19,7 @@ Leitsatz: ruhig, Hierarchie über Typografie und Abstand, **Farbe nur mit Bedeut
 |---|---|
 | Seitengrund | `bg-bg` |
 | Karte, Tabelle, Formular, Dialog | `bg-card` |
-| Tabellenkopf, Zeilen-Hover, Segment-Grund | `bg-surface-2` (Hover: `hover:bg-surface-2/60`) |
+| Segment-Grund, Hover klickbarer Karten, Sticky-Kopf einer Handtabelle | `bg-surface-2` (Hover: `hover:bg-surface-2/60`). Der Kopf einer `np-tabelle` hat **keine** Fläche (Linie unten, `text-muted`), ihre Zeilen streifen und hovern selbst – Tabellen immer als `np-tabelle`, nicht von Hand. |
 | Eingabefeld | `bg-input` |
 | Text / Sekundärtext | `text-text` / `text-muted` |
 | Inaktives Bedienelement / reine Dekoration | `text-faint` / `text-ghost` – **nie für lesbaren Text** |

@@ -23,7 +23,7 @@
                             <span class="text-sm text-muted tabular-nums">{{ $lernender->lehrbeginn?->format('d.m.Y') ?? '–' }}</span>
                         </x-einstellung>
                         @if($lernender->lehrende)
-                            <x-einstellung :label="__('Lehrende')">
+                            <x-einstellung :label="__('Ende der Lehre')">
                                 <span class="text-sm text-muted tabular-nums">{{ $lernender->lehrende->format('d.m.Y') }}</span>
                             </x-einstellung>
                         @endif

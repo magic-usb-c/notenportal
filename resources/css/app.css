@@ -764,6 +764,14 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   &:active {
     background-color: color-mix(in srgb, rgb(var(--accent)) 80%, black);
   }
+  /* Nicht verfügbar heisst nicht Akzent: neutrale Fläche und Schrift wie ein deaktivierter Sekundärknopf
+     (die Abdunkelung kommt von np-knopf). Auch der Zustand «sendet» – :disabled="loading" – liest sich so. */
+  &:disabled,
+  &[aria-disabled='true'] {
+    background-color: rgb(var(--text) / 0.07);
+    color: rgb(var(--text));
+    box-shadow: none;
+  }
 }
 
 @utility np-knopf-sekundaer {

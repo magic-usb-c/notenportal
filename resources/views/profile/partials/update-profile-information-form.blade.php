@@ -240,6 +240,17 @@
             </div>
         </section>
 
+        {{-- Zurücksetzen: betrifft Darstellung und Bedienung, nicht die Übersichtskarten (ProfileController::resetPreferences) --}}
+        <section>
+            <div class="{{ $gruppe }}">
+                <x-einstellung :label="__('Darstellung und Bedienung')">
+                    <button type="submit" form="praeferenzen-zuruecksetzen" class="np-knopf np-knopf-schlicht np-knopf-klein">
+                        {{ __('Auf Standard zurücksetzen') }}
+                    </button>
+                </x-einstellung>
+            </div>
+        </section>
+
         {{-- Übersicht: Dashboard-Karten der eigenen Rolle ein-/ausblenden (App\Support\DashboardKarten); die letzte bleibt an --}}
         @if(($dashboardRolle ?? null) && ($dashboardKarten ?? []))
             <section>
@@ -254,15 +265,9 @@
                         </x-einstellung>
                     @endforeach
                 </div>
-                <p id="karten-hinweis" class="mt-2 px-1 text-xs text-muted">{{ __('Karten auf dem Dashboard ein- oder ausblenden. Eine bleibt immer sichtbar.') }}</p>
+                <p id="karten-hinweis" class="mt-2 px-1 text-xs text-muted">{{ __('Eine Karte bleibt immer sichtbar.') }}</p>
             </section>
         @endif
-
-        <div>
-            <button type="submit" form="praeferenzen-zuruecksetzen" class="np-knopf np-knopf-schlicht">
-                {{ __('Auf Standard zurücksetzen') }}
-            </button>
-        </div>
     </div>
 
     <form id="praeferenzen-zuruecksetzen" method="POST" action="{{ route('profile.preferences.reset') }}" class="hidden"

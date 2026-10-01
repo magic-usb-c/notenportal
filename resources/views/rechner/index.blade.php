@@ -12,19 +12,6 @@
         // Ein Satz pro Tab, was er beantwortet (übersichtlicher: David/PO-Rückmeldung #10).
         // Lernende lesen «du», Berufsbildner und Admins den Vornamen der Person, deren Noten sie rechnen.
         $person = $lernender?->benutzer->vorname;
-        $fragen = $person === null ? [
-            'gesamt' => __('Was brauchst du im Schnitt über alle Fächer und Module, um ein bestimmtes Ziel zu erreichen?'),
-            'kategorie' => __('Was brauchst du in einer Kategorie (z. B. Berufskenntnisse), um dort ein bestimmtes Ziel zu erreichen?'),
-            'semester' => __('Was brauchst du in einem Semester, um dort ein bestimmtes Ziel zu erreichen?'),
-            'fach' => __('Welche Note brauchst du in der nächsten Prüfung eines Fachs, um auf einen bestimmten Schnitt zu kommen?'),
-            'modul' => __('Welche Note brauchst du in der nächsten Prüfung eines Moduls, um auf einen bestimmten Schnitt zu kommen?'),
-        ] : [
-            'gesamt' => __('Was braucht :person im Schnitt über alle Fächer und Module, um ein bestimmtes Ziel zu erreichen?', ['person' => $person]),
-            'kategorie' => __('Was braucht :person in einer Kategorie (z. B. Berufskenntnisse), um dort ein bestimmtes Ziel zu erreichen?', ['person' => $person]),
-            'semester' => __('Was braucht :person in einem Semester, um dort ein bestimmtes Ziel zu erreichen?', ['person' => $person]),
-            'fach' => __('Welche Note braucht :person in der nächsten Prüfung eines Fachs, um auf einen bestimmten Schnitt zu kommen?', ['person' => $person]),
-            'modul' => __('Welche Note braucht :person in der nächsten Prüfung eines Moduls, um auf einen bestimmten Schnitt zu kommen?', ['person' => $person]),
-        ];
         // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
         $texte = [
             'ebene' => [
@@ -35,6 +22,7 @@
                 'modul' => __('im Modul :name'),
             ],
             'ohneEinfluss' => __('Die offenen Prüfungen wirken sich :bezug nicht aus; der Wert bleibt bei :resultat.'),
+            'keineNoten' => __('Noch keine Noten :bezug.'),
         ] + ($person === null ? [
             'benoetigtEine' => __('Du brauchst mindestens :note in der nächsten Prüfung, um :bezug auf :ziel zu kommen.'),
             'benoetigtMehrere' => __('Du brauchst mindestens :note in jeder der :n offenen Prüfungen, um :bezug auf :ziel zu kommen.'),
@@ -90,8 +78,6 @@
                                 <button type="button" role="tab" class="flex-1" :aria-selected="ebene === '{{ $wert }}'" @click="waehleEbene('{{ $wert }}')">{{ $name }}</button>
                             @endforeach
                         </div>
-
-                        <p class="text-sm text-muted" x-text="@js($fragen)[ebene]"></p>
 
                         <div class="grid grid-cols-2 gap-4" x-show="ebene !== 'gesamt'" x-cloak>
                             <div :class="['kategorie', 'fach'].includes(ebene) ? '' : 'col-span-2'">
@@ -181,8 +167,8 @@
                                             <template x-for="s in katalog.semester" :key="s.id"><option :value="String(s.id)" x-text="s.name" :selected="String(s.id) === z.semester"></option></template>
                                         </select>
                                         <div class="flex min-w-0 items-center gap-1.5 text-xs text-muted" x-show="z.typ !== 'fach'">
-                                            <span x-show="z.quelle === 'rest'" class="np-marke shrink-0 bg-accent/12 text-accent-text">{{ __('Rest') }}</span>
-                                            <span x-show="z.quelle === 'geplant'" class="np-marke shrink-0 bg-accent/12 text-accent-text">{{ __('geplant') }}</span>
+                                            <span x-show="z.quelle === 'rest'" class="np-marke shrink-0">{{ __('Rest') }}</span>
+                                            <span x-show="z.quelle === 'geplant'" class="np-marke shrink-0">{{ __('geplant') }}</span>
                                             <span class="truncate" x-text="z.titel ?? ''" :title="z.titel ?? ''"></span>
                                         </div>
                                     </div>
@@ -191,7 +177,7 @@
                                         <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                     </span>
                                     <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
-                                           class="np-feld np-feld-klein px-1 text-center font-semibold tabular-nums placeholder:font-semibold placeholder:text-accent-text"
+                                           class="np-feld np-feld-klein px-1 text-center font-semibold tabular-nums placeholder:font-semibold placeholder:text-muted"
                                            :class="klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}">
                                     <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __('Prüfung entfernen') }}" title="{{ __('Entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-4" /></button>
                                 </div>
@@ -249,9 +235,8 @@
                                             <td class="truncate" :class="v.ist_ziel ? 'font-semibold text-text' : 'text-text'" x-text="v.label"></td>
                                             <td class="text-right text-muted" x-text="fmt(v.vorher)"></td>
                                             <td class="text-right font-semibold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></td>
-                                            <td class="text-right"
-                                                :class="delta(v.vorher, v.nachher) > 0 ? 'text-note-gut' : (delta(v.vorher, v.nachher) < 0 ? 'text-note-ungenuegend' : 'text-muted')"
-                                                x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '–' : (delta(v.vorher, v.nachher) > 0 ? '+' : '−') + fmt(Math.abs(delta(v.vorher, v.nachher)), 2)"></td>
+                                            <td class="text-right tabular-nums text-muted"
+                                                x-text="delta(v.vorher, v.nachher) === null || delta(v.vorher, v.nachher) === 0 ? '–' : (delta(v.vorher, v.nachher) > 0 ? '▲ ' : '▼ ') + fmt(Math.abs(delta(v.vorher, v.nachher)), 2)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -266,7 +251,7 @@
                                     <tr>
                                         <th scope="col">{{ __('Kategorie') }}</th>
                                         <th scope="col" class="w-24 text-right">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="w-28 text-right">{{ __('ungenügend') }}</th>
+                                        <th scope="col" class="w-28 text-right">{{ __('Ungenügend') }}</th>
                                         <th scope="col" class="w-28 text-right">{{ __('Minuspunkte') }}</th>
                                         <th scope="col" class="w-32 text-right">{{ __('Status') }}</th>
                                     </tr>

@@ -11,7 +11,7 @@
 <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
          x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
     {{-- Raster wie die Spalten der Notentabelle (lernender/noten/index): Gewicht unter «Prüfungen», Note unter «Schnitt» --}}
-    <summary class="grid min-h-11 cursor-pointer select-none list-none grid-cols-[minmax(0,1fr)_14rem_6rem_7rem] items-center py-1.5 transition-colors duration-100 hover:bg-surface-2/60">
+    <summary class="grid min-h-9 cursor-pointer select-none list-none grid-cols-[minmax(0,1fr)_14rem_6rem_7rem] items-center py-1 transition-colors duration-100 hover:bg-surface-2/60">
         <div class="flex min-w-0 items-center gap-2 pl-10 pr-3">
             <span class="np-chevron shrink-0 text-muted" aria-hidden="true"><x-symbol name="chevron-right" strich="2" class="size-3" /></span>
             <div class="flex min-w-0 flex-col gap-0.5">
@@ -35,10 +35,10 @@
         </div>
         <span class="px-3 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
         <span class="px-3 text-right"><x-note :wert="$n->note_wert" :stufe="$n->note_stufe" /></span>
-        <div class="flex items-center justify-end pr-2.5" x-on:click.stop>
+        <div class="flex items-center justify-end pr-1.5" x-on:click.stop>
             <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
                @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
-               class="np-knopf np-knopf-symbol"><x-symbol name="pencil-square" />
+               class="np-knopf np-knopf-symbol np-knopf-klein"><x-symbol name="pencil-square" />
             </a>
             <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
@@ -46,7 +46,7 @@
                 @csrf
                 @method('DELETE')
                 <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
-                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr"><x-symbol name="trash" />
+                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" />
                 </button>
             </form>
         </div>
@@ -74,36 +74,38 @@
             </template>
         </div>
 
-        <div class="flex max-w-4xl flex-col gap-2 pl-15 pr-5 py-4">
+        <div class="pl-15 pr-5 py-4">
             <div class="text-xs font-medium text-muted">{{ __('Kommentare') }}</div>
-            @forelse($n->kommentare as $k)
-                <div class="rounded-xl bg-card px-3.5 py-2.5 shadow-e1">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="text-xs text-muted">
-                            <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span> · {{ $k->erstellt_am->format('d.m.Y H:i') }}
+            <div class="np-gruppe mt-1">
+                @forelse($n->kommentare as $k)
+                    <div class="py-2.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="text-xs text-muted">
+                                <span class="font-medium text-text">{{ $k->autor?->vorname }} {{ $k->autor?->nachname }}</span> · {{ $k->erstellt_am->format('d.m.Y H:i') }}
+                            </div>
+                            @if((int) $k->autor_benutzer_id === $ich)
+                                <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
+                                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                      data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
+                                </form>
+                            @endif
                         </div>
-                        @if((int) $k->autor_benutzer_id === $ich)
-                            <form method="POST" action="{{ route('comments.destroy', $k->kommentar_id) }}"
-                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                                  data-bestaetigen="{{ __('Kommentar löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
-                                @csrf
-                                @method('DELETE')
-                                <button :disabled="loading" aria-label="{{ __('Kommentar löschen') }}" title="{{ __('Löschen') }}" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" /></button>
-                            </form>
-                        @endif
+                        <div class="whitespace-pre-line text-sm text-text">{{ $k->kommentar_text }}</div>
                     </div>
-                    <div class="whitespace-pre-line text-sm text-text">{{ $k->kommentar_text }}</div>
-                </div>
-            @empty
-                <div class="text-sm text-muted">{{ __('Noch keine Kommentare') }}</div>
-            @endforelse
+                @empty
+                    <div class="py-2 text-sm text-muted">{{ __('Noch keine Kommentare') }}</div>
+                @endforelse
+            </div>
         </div>
 
         <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="flex gap-2 border-t border-border py-3 pl-15 pr-4"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="text" name="kommentar_text" placeholder="{{ __('Kommentar schreiben') }}" aria-label="{{ __('Kommentar schreiben') }}" maxlength="2000" required
-                   class="min-w-0 max-w-4xl flex-1 {{ $feld }}">
+                   class="min-w-0 flex-1 {{ $feld }}">
             <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
         </form>
     </div>

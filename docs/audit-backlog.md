@@ -686,3 +686,37 @@ ausgeblendeten Werte in der Namenszelle nach.
   blieben ohne Prüferurteil, weil die Sitzung ihr Nutzungslimit erreichte. Sie gelten als ungeprüft
   und werden im vollen Lauf über alle drei Rollen (R4) neu aufgenommen, nicht aus dem alten Journal
   übernommen.
+
+## R4 Lernende: bewusst gelassen (01.10.2026)
+
+- **Ziel-Chip im Rechner trägt `bg-accent/12`** (rechner/index.blade.php, Kopfzeile «Ziele»): er ist ein
+  Auswahlzustand (`aria-pressed`), kein Schmuck; Akzent ist dort nach HIG gerechtfertigt.
+- **Promotion-Marke «erfüllt» in `note-gut`-Grün** (rechner/index.blade.php, Tabelle Promotion): ein
+  Status, keine Notenstufe – gleiches Muster wie `x-status` «Im Plan». Bleibt, bis Status-Grün ein eigenes
+  Token bekommt.
+- **Offene Prüfungen im Rechner bleiben ein CSS-Grid**, keine `np-tabelle`: jede Zeile trägt Eingabefelder,
+  ein Tabellenumbau wäre ein Umbau auf Verdacht.
+- **Differenz-Glyphen ▲/▼ ohne Screenreader-Text** (Rechner «Auswirkung», Dashboard «Stand»): Zahl und
+  Vorzeichen stehen daneben; ein `sr-only`-Wort kommt, wenn die Diagramme ihre Textalternativen bekommen.
+- **Modulliste (`module/index.blade.php`) beim Scrollen 112 px über dem Fensterrand**: sticky mit fester
+  Höhe `calc(100dvh − Symbolleiste − 8rem)`; exakt nur mit JS lösbar, nicht wert.
+- **Zebra der `np-tabelle` im Dunkeln (3 %)** ist kaum sichtbar; stärker würde die Flächenstufen brechen
+  (Skill `notenportal-dunkelmodus` §2). Die Haarlinien tragen die Zeilen.
+- **Statuszeile auf /grades nutzt `x-note` in `text-2xl`** wie `kachel.blade.php` und das Dashboard;
+  der Skill reserviert `text-2xl` für h1 – Kennzahlenregel einmal gesamt klären, nicht je View.
+- **«Keine Noten in 2. Semester»** (lang/en.json, Leerzustand Notenliste) ist grammatisch «im»; der
+  Schlüssel wird mit dem Semesterwähler in einem Zug überarbeitet.
+- **Neutrale Diagrammfarbe uneinheitlich**: «Wo stehe ich» nutzt `text/50`, `NotenSkala::BALKEN`,
+  Histogramm und Sparkline noch `chart-1`; die Legende (`x-noten-legende`, Prop `neutral`) folgt jeweils
+  ihren Balken. Vereinheitlichen auf Grau in einem eigenen Schritt (Admin-Bericht, Cockpit-Sparklines).
+- **`Symbole.php` kennt kein `arrow-path`**: der Lade-Spinner im Import ist CSS (`animate-spin` +
+  Rahmen) nach dem Muster von `admin/betrieb/_logo`.
+- **Weiss auf Akzent 4.57:1** (`--accent-contrast`): WCAG AA erfüllt, 7:1 nicht; jede Alternative
+  (dunkler Akzent, getönter Text) verfehlt AA oder den HIG-Blauton. Token-Entscheid, kein View-Fix.
+- **Abschluss: Ergebniskarte und Aufbau-Tabelle enden nicht bündig** (18 px): die Karte ist sticky und
+  trägt ihre natürliche Höhe; Strecken würde das Mitlaufen zerstören.
+- **Primärknopf in der Symbolleiste rechts, Lesespalte mittig** (Abschluss, Import bei 2560): Konvention
+  der macOS-Toolbar, gilt portalweit; keine Ausnahme je Seite.
+- **Datumsfelder in Screenshots in US-Schreibweise**: `browser.mjs` setzt `locale: 'de-CH'`, Chromium
+  formatiert `<input type=date>` aber nach seiner UI-Sprache – Werkzeuggrenze, kein Portal-Fehler.
+

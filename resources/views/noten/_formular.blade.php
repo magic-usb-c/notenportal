@@ -56,13 +56,12 @@
 
     <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak @error('note_stufe') aria-describedby="note_stufe-fehler" @enderror>
         <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }}</legend>
-        <div class="inline-flex gap-0.5 rounded-2xl bg-fill p-1" role="radiogroup">
+        {{-- Segmentsteuerung wie im Rechner (np-segment, Radio-Variante), als Fokus der Eingabe eine Stufe grösser --}}
+        <div class="np-segment h-12" role="radiogroup">
             @foreach(\App\Services\Noten\NoteService::STUFEN as $s)
-                <label class="relative">
-                    <input type="radio" name="note_stufe" value="{{ $s }}" x-model="stufe" :disabled="!istStufe" class="peer sr-only">
-                    <span class="flex h-14 min-w-14 cursor-pointer items-center justify-center rounded-xl px-4 text-2xl font-semibold text-muted transition-colors duration-150 hover:text-text peer-checked:bg-accent peer-checked:text-accent-contrast peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring">
-                        {{ \App\Support\NotenSkala::stufeKurz($s) }}
-                    </span>
+                <label class="min-w-14 cursor-pointer px-5 text-lg font-semibold">
+                    <input type="radio" name="note_stufe" value="{{ $s }}" x-model="stufe" :disabled="!istStufe" class="sr-only">
+                    {{ \App\Support\NotenSkala::stufeKurz($s) }}
                 </label>
             @endforeach
         </div>

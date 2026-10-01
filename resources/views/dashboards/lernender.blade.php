@@ -25,7 +25,7 @@
         $qv = $a->gesamtNote !== null ? \App\Services\Auswertung\Notenbaum\Abschluss::hauptergebnis($a) : null;
         $kachel = [
             'rot' => ['exclamation-triangle', 'bg-note-ungenuegend/12 text-note-ungenuegend'],
-            'gelb' => ['pencil-square', 'bg-note-knapp/14 text-note-knapp'],
+            'gelb' => ['pencil-square', 'bg-fill text-muted'],
             'accent' => ['chat-bubble-left-ellipsis', 'bg-accent/12 text-accent-text'],
             'neutral' => ['rectangle-stack', 'bg-fill text-muted'],
         ];
@@ -41,6 +41,16 @@
     </x-slot>
 
     <div class="py-6">
+        @if($a->gesamtNote === null && $letzteNoten->isEmpty() && ! $alsNaechstes && ! $zeigen['ziele'])
+        {{-- Ganz am Anfang: eine Ansicht, ein Leerzustand (HIG «Content unavailable») statt zweier fast leerer Karten --}}
+        <div class="mx-auto np-seite px-8">
+            <x-leer symbol="academic-cap" :titel="__('Willkommen, :name', ['name' => auth()->user()->vorname])"
+                    :text="__('Sobald Noten oder Prüfungen erfasst sind, siehst du hier deinen Stand und was als Nächstes ansteht.')">
+                <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
+                   class="np-knopf np-knopf-sekundaer">{{ __('Erste Note erfassen') }}</a>
+            </x-leer>
+        </div>
+        @else
         {{-- Links (8/12) Stand, darunter Wo stehe ich und Verlauf nebeneinander und gleich hoch; rechts (4/12)
              Als Nächstes, Ziele und Letzte Noten. Fehlt eine Seite, nimmt die andere die ganze Breite. --}}
         <div class="np-raster mx-auto grid np-seite grid-cols-12 items-start gap-5 px-8">
@@ -124,7 +134,7 @@
                          x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
                         <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
                     </div>
-                    <x-noten-legende class="mb-3 mt-3" />
+                    <x-noten-legende class="mb-3 mt-3" neutral="bg-text/50" />
                     <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
                         <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
                             <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
@@ -226,7 +236,7 @@
                                 <a href="{{ $t['link'] }}" class="flex min-h-13 items-center gap-3 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-fill-2">
                                     @if($t['datum'])
                                         <span class="flex size-9 shrink-0 flex-col items-center justify-center rounded-lg bg-fill leading-none" aria-hidden="true">
-                                            <span class="text-3xs font-semibold uppercase text-accent-text">{{ rtrim($t['datum']->isoFormat('MMM'), '.') }}</span>
+                                            <span class="text-3xs font-semibold uppercase text-muted">{{ rtrim($t['datum']->isoFormat('MMM'), '.') }}</span>
                                             <span class="mt-0.5 text-base font-semibold tabular-nums text-text">{{ $t['datum']->format('j') }}</span>
                                         </span>
                                     @else
@@ -273,7 +283,7 @@
                                         @switch($l['status'])
                                             @case('benoetigt')
                                                 {{ $l['unbekannte'] === 1 ? __('Nötig in der offenen Prüfung:') : __('Nötig in den :anzahl offenen Prüfungen:', ['anzahl' => $l['unbekannte']]) }}
-                                                <span class="font-semibold tabular-nums {{ $skala::bedarf($l['note']) }}">{{ $skala::format($l['note'], 2) }}</span>
+                                                <span class="font-semibold tabular-nums text-text">{{ $skala::format($l['note'], 2) }}</span>
                                                 @break
                                             @case('erreicht')
                                                 {{ __('Gesichert') }}
@@ -314,6 +324,7 @@
             @endif
 
         </div>
+        @endif
     </div>
 
     {{-- Erfassen im Drawer wie auf /grades --}}

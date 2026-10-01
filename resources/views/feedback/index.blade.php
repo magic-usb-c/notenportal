@@ -1,5 +1,5 @@
 {{-- Eigene Meldungen: Tabelle mit Datum, Kategorie, Text, Status und der Antwort des Admins. Erfassen öffnet das
-     Feedback-Fenster. Farbe nur beim Status mit Bedeutung: in Arbeit Akzent, erledigt grün, offen neutral. --}}
+     Feedback-Fenster. Status als Punkt mit Wort: Farbe nur bei erledigt (grün), offen und in Arbeit neutral. --}}
 @use('App\Models\Feedback')
 <x-app-layout>
     <x-slot name="title">{{ __('Meine Meldungen') }}</x-slot>
@@ -16,9 +16,7 @@
     <div class="py-6">
         <div class="mx-auto np-seite flex flex-col gap-4 px-8">
             @if($meldungen->isEmpty())
-                <div class="np-karte">
-                    <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
-                </div>
+                <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
             @else
                 <div class="np-karte p-2">
                     <table class="np-tabelle table-fixed text-sm">
@@ -34,11 +32,7 @@
                         <tbody>
                             @foreach($meldungen as $m)
                                 @php
-                                    $statusKlasse = match ($m->status) {
-                                        Feedback::STATUS_ERLEDIGT => 'bg-note-gut/14 text-note-gut',
-                                        Feedback::STATUS_IN_ARBEIT => 'bg-accent/12 text-accent-text',
-                                        default => 'text-muted',
-                                    };
+                                    $statusTon = $m->status === Feedback::STATUS_ERLEDIGT ? 'gruen' : 'neutral';
                                     $gekuerzt = mb_strlen($m->text) > 240;
                                 @endphp
                                 <tr>
@@ -65,7 +59,7 @@
                                         @endif
                                     </td>
                                     <td class="align-top">
-                                        <span class="np-marke {{ $statusKlasse }}">{{ __(Feedback::STATUS[$m->status] ?? $m->status) }}</span>
+                                        <x-status :status="$statusTon" :text="__(Feedback::STATUS[$m->status] ?? $m->status)" class="-mt-0.5" />
                                     </td>
                                     <td class="align-top">
                                         @if($m->admin_notiz)

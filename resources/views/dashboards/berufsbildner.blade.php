@@ -237,7 +237,7 @@
                     @endif
 
                     @if($zeigen['lehrende'])
-                        <x-karte :titel="__('Lehrende bald')" symbol="academic-cap" :polster="false">
+                        <x-karte :titel="__('Lehre endet bald')" symbol="academic-cap" :polster="false">
                             <ul class="np-liste-eingerueckt px-2 pb-2">
                                 @foreach($lehrende as $l)
                                     <li>

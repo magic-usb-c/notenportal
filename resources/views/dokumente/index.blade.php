@@ -38,10 +38,12 @@
     <div class="py-6">
         <div class="mx-auto np-seite flex flex-col gap-5 px-8">
             @if($dokumente->isEmpty())
-                <div class="np-karte">
-                    <x-leer symbol="document-text" :titel="__('Noch keine Dokumente')"
-                            :text="$bereich === null ? __('Leg hier Zeugnisse und Semesterberichte ab. Aus einem PDF-Zeugnis kannst du deine Noten danach mit dem Portal abgleichen.') : null" />
-                </div>
+                <x-leer symbol="document-text" :titel="__('Noch keine Dokumente')"
+                        :text="$bereich === null ? __('Zeugnisse ablegen und Noten aus PDF-Zeugnissen abgleichen.') : null">
+                    @if($darfHochladen)
+                        <button type="button" class="np-knopf np-knopf-sekundaer" x-data @click="$dispatch('open-modal', 'upload-document')">{{ __('Hochladen…') }}</button>
+                    @endif
+                </x-leer>
             @else
                 @foreach(Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))

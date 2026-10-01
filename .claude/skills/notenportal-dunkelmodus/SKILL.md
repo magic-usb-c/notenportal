@@ -88,8 +88,9 @@ und [Materials](https://developer.apple.com/design/human-interface-guidelines/ma
 Quelle: [Typography](https://developer.apple.com/design/human-interface-guidelines/typography)
 (Abschnitte Ensuring legibility, Conveying hierarchy, Specifications macOS).
 
-- **macOS: Standardgrösse 13 pt, Minimum 10 pt.** Im Portal: `text-2xs` (12 px) ist die kleinste
-  Stufe für Lesbares, darunter nichts.
+- **macOS: Standardgrösse 13 pt, Minimum 10 pt.** Im Portal (`resources/css/app.css`): `text-2xs`
+  (11 px) ist die kleinste Stufe für Lesbares (Nebentext, Legenden), `text-3xs` (10 px) nur für
+  Fussnoten und Beschriftungen in Diagrammen und Heatmaps – nie für Zahlen, die jemand vergleicht.
 - **Keine leichten Gewichte.** Regular, Medium, Semibold, Bold; kein Ultralight, Thin, Light. Im
   Portal zusätzlich: kein `font-extrabold`/`font-black` (`notenportal-ui` §4).
 - **Hierarchie über Gewicht, Grösse und Farbe**, nicht über Rahmen. Wenige Schriften: eine
