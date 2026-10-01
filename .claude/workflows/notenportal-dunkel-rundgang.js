@@ -11,7 +11,9 @@ export const meta = {
 
 // Aufruf: Workflow({name: 'notenportal-dunkel-rundgang'}) oder mit args:
 //   { rollen: ['lernende','berufsbildner','admin'], breiten: [1920, 2560],
-//     ordner: '/root/.notenportal/rundgang', maxBilder: 20, buendel: 4, maxSeiten: 150 }
+//     ordner: '/root/.notenportal/rundgang', maxBilder: 20, buendel: 4, pruefBuendel: 3, maxSeiten: 150 }
+// Rückgabe: { bestaetigt, verworfen, ungeprueft, messung, unvollstaendig: { laeufe, befunde } } –
+// «ungeprüft» sind Befunde, deren Prüfer abbrach (Nutzungslimit); nach dem Reset mit resumeFromRunId weiter.
 // Kein Date.now() im Skript – wer einen Zeitstempel im Ordnernamen will, gibt ihn per args.ordner mit.
 
 const A = args || {}
@@ -188,8 +190,8 @@ const ergebnisse = await pipeline(
         return { ...f, rolle: r.rolle, breite: b.breite, real, ungeprueft, bild_urteil: bild, ursache_urteil: ursache }
       }))
       geprueft.push(...teil.filter(Boolean))
-      const ausgefallen = buendel.length - teil.filter(Boolean).length
-      if (ausgefallen) log(`${r.rolle}@${b.breite}: ${ausgefallen} Befunde ohne Prüfer (Agent abgebrochen)`)
+      const offen = teil.filter(t => t && t.ungeprueft).length
+      if (offen) log(`${r.rolle}@${b.breite}: ${offen} Befunde ohne Prüferurteil (Agent abgebrochen)`)
     }
     return { ...lauf, geprueft }
   },
