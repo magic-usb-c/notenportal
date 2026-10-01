@@ -54,56 +54,62 @@ Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunke
 - Chart.js liest Farben per `tokenFarbe('--chart-1')` / `notenFarbe()` (`resources/js/np.js`) – nie Farben im JS hartcodieren.
 
 ## 4. Typografie
-Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via Vite). Keine Google-/Bunny-Fonts, kein CDN.
+Schrift: **Inter Variable**, selbst gehostet (`@fontsource-variable/inter`, via Vite). Keine Google-/Bunny-Fonts, kein CDN, kein SF Pro.
 
-Die Skala folgt den Text Styles der **Apple Human Interface Guidelines** (Abschnitt
-«Specifications», iOS/iPadOS Dynamic Type, Stufe «Large»); das Tracking stammt aus
-Apples macOS-Tabelle. Grösse/Zeilenhöhe stehen als Tokens in `resources/css/app.css`,
-die Klassennamen bleiben die von Tailwind.
+Das Portal ist eine **Desktop-Anwendung** (1920–2560 px). Die Skala folgt deshalb den **macOS-Textstilen**
+der Apple Human Interface Guidelines (Typography → Specifications → macOS built-in text styles):
+Body 13 pt ist die Grundschrift, 10 pt das Minimum. Tokens in `resources/css/app.css` (`@theme`), in rem,
+damit die persönliche Schriftgrösse alles mitskaliert. Kein eigenes Tracking (Inter bringt es mit).
 
-| Klasse | Grösse/Zeile | Apple Text Style | Einsatz |
+| Klasse | Grösse/Zeile | macOS-Stil | Einsatz |
 |---|---|---|---|
-| `text-3xs` | 11/13 | Caption 2 | Zähler-Badge, Kalenderzelle, Skalenmarken |
-| `text-2xs` | 12/16 | Caption 1 | Tabellenkopf, Achsen, Meta |
-| `text-xs` | 13/18 | Footnote | Hilfetext, Sekundärzeile |
-| `text-sm` | 15/20 | Subhead | **UI-Grundschrift**, Tabellen, Buttons (`font-medium`) |
-| `text-base` | 17/26 | Body | Fliesstext, Formulare mobil |
-| `text-lg` | 20/25 | Title 3 | Kartentitel gross, Drawer-Titel (`font-semibold`) |
-| `text-xl` | 22/28 | Title 2 | Seitentitel h1 (`font-semibold`, Sperrung schon im Token) |
-| `text-2xl` | 28/34 | Title 1 | Kennzahl in Statuszeile |
-| `text-display` | 48 px | – | **eine** Heldenzahl pro Seite (600, ohne `tabular-nums`) |
+| `text-3xs` | 10/13 | Footnote, Caption | Zähler-Badge, Kalenderzelle, Skalenmarken |
+| `text-2xs` | 11/14 | Subheadline | Tabellenkopf, Achsen, Marken |
+| `text-xs` | 12/16 | Callout | Hilfetext, Sekundärzeile, Metazeile |
+| `text-sm` | 13/18 | Body / Headline | **Grundschrift** aller Bedienelemente, Tabellen, Formulare; Kartentitel `font-semibold` |
+| `text-base` | 15/20 | Title 3 | Drawer-/Dialogtitel |
+| `text-lg` | 17/22 | Title 2 | Abschnittstitel auf Leseseiten |
+| `text-xl` | 22/26 | Title 1 | Kennzahl in Kacheln |
+| `text-2xl` | 26/32 | Large Title | **Seitentitel h1** (nur über `<x-seitenkopf>`, `font-bold`) |
+| `text-display` | 48 px | – | **eine** Heldenzahl pro Seite |
 
-- Labels in Satzschreibung: `text-sm font-medium text-text`. **Verboten:** `uppercase tracking-widest`-Labels, `font-extrabold`, `font-black`. `font-bold` nur für die Heldenzahl.
+- Labels in Satzschreibung: `text-sm font-medium text-text`; Pflichtfeld mit ` *` im Label (gleiche Farbe, kein Rot).
+  **Verboten:** `uppercase tracking-widest`-Labels, `font-extrabold`, `font-black`. `font-bold` nur für h1 (Large Title) und die Heldenzahl.
 - `tabular-nums` nur, wo Zahlen untereinander stehen (Tabellen, Listen). Zahlenspalten rechtsbündig.
 - Schriftgrössen nie hart setzen (`text-[15px]`, `style="font-size:…"`) – nur die Klassen oben.
   Wer eine Stufe vermisst, ergänzt sie als Token, nicht in der View.
 
-## 5. Flächen, Glas, Radien, Abstände
+## 5. Flächen, Materialien, Radien, Abstände
 
-| Klasse | Stufe | Einsatz |
-|---|---|---|
-| `rounded-xl border border-border bg-card` | E0 | **Standard für alle Inhaltskarten** |
-| `glass` (Bestand) | = E0 | feste Karte; auf `role="dialog"` automatisch E3-Schatten. Neu nicht mehr verwenden. |
-| `glass-bar` | G1 | nur Hauptnavigation, Sticky-Toolbar |
-| `glass-overlay` | G2 | Befehlspalette, Menüs, Toasts, Popover |
-| `glass-scrim` | Scrim | hinter Drawer/Modal |
-| `transition-colors duration-100 hover:border-border-strong/50 hover:bg-surface-2/60` | E1 | Hover klickbarer Karten/Zeilen (keine Bewegung) |
+**Nur Desktop.** Keine Breakpoint-Varianten (`sm:`, `md:`, `lg:`, `xl:`) schreiben – ab 1280 px gelten sie
+ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptnavigation
+(`layouts/navigation.blade.php`, `max-xl:` für die eingeklappte Leiste unter 1280 px).
+
+| Klasse (`app.css`) | Einsatz |
+|---|---|
+| `np-karte` | **Standard für alle Inhaltskarten** (Karte, Formular, Tabelle): `bg-card`, `rounded-xl`, Schatten E1 statt Rahmen |
+| `np-karte-klickbar` | ganze Karte als Link (Hover hellt auf, keine Bewegung) |
+| `np-gruppe` | gruppierte Liste in einer Karte (Haarlinie zwischen Zeilen) |
+| `np-tabelle` | macOS-Tabelle: Kopf ohne Fläche, Zeilen im Wechsel hinterlegt, Hover gerundet. Mehrere Tabellen untereinander: `table-fixed` + `<colgroup>` mit festen Breiten, damit die Spalten bündig stehen. Spalten ohne einen einzigen Wert entfallen. |
+| `np-marke` | Badge/Zähler (Pille, `text-2xs` 600); Bedeutung über `bg-note-…/14 text-note-…` |
+| `np-feld` · `np-feld-klein` | Eingabefeld/Auswahl 36 px bzw. 28 px (Filterleiste) |
+| `glass-bar` / `np-symbolleiste` | nur Hauptnavigation und Symbolleiste |
+| `glass-overlay` | Befehlspalette, Menüs, Toasts, Popover |
+| `glass-scrim` | hinter Drawer/Modal |
 
 - Glas **nie** auf Karten, Tabellen, Formularen, Diagrammen oder grossen Panels.
-- Entfernt (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-text-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, `NotenSkala::glow()`, Radial-Gradient auf `body`, globale `transition` auf `*`, Scale-Effekte (`active:scale-*`, `hover:scale-*`), `blur-3xl`-Deko-Orbs.
-- Radien: `rounded-md` Badge · `rounded-lg` Button/Input/Segment · `rounded-xl` Karte/Tabelle · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Avatar/Punkt. `rounded-3xl` verboten (ist Alias auf 16 px).
-- Abstände im 4-px-Raster: Karte `p-4`/`p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`/`gap-10`.
-- **Trefferfläche:** jedes Bedienelement mindestens 24x24 px (WCAG 2.5.8) – Textlinks als Aktion
-  deshalb `inline-flex min-h-6 items-center`, nicht nackt. Zusätzlich `np-ziel`: streckt die
-  Trefferfläche **nur auf Touch-Geräten** auf die von Apple geforderten 44x44 pt, ohne die Optik zu
-  ändern. Am Zeigergerät bewusst nicht – überlappende 44er legten in dichten Notentabellen Klicks
-  auf den falschen Knopf. Geprüft mit `~/tools/visual/zielgroesse.mjs`.
-- `np-scroll-edge` blendet Inhalt am oberen Rand eines eigenen Scrollbereichs aus (Apples Scroll Edge
-  Effect). Für die Hauptnavigation **nicht** nötig: `glass-bar` erfüllt das bereits mit Blur.
-- Container überall `np-seite mx-auto px-4 sm:px-6 lg:px-8`; Seitenkopf im selben Container. `np-seite` (Utility in `app.css`) füllt das Fenster, Deckel 2048 px. `max-w-7xl` nicht mehr schreiben. Lese-/Formularseiten `max-w-3xl` links bündig.
-- Seitenkopf nur über `<x-seitenkopf titel untertitel zaehler schmal>` im Slot `header` (Layout setzt ihn ohne Band in den Container); Aktionen im Slot `aktionen`, höchstens eine Primäraktion; Default-Slot = Bedienelement neben dem Titel. Inhalt darunter: `<div class="py-6"><div class="mx-auto np-seite px-4 sm:px-6 lg:px-8">` (Formular: innen `<div class="max-w-3xl">` + `schmal`).
-- Toast nur über `<x-toast art="erfolg|fehler">` (Layout rendert Flash automatisch), Menüs über `<x-dropdown>` (G2). Modal und Drawer liegen auf `z-[70]` über der Navigation.
-- Notenfarben kommen aus `NotenSkala::text()/badge()` (Einsatzregel eingebaut: gut/genügend neutral, knapp/ungenügend farbig, ungenügend unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()` (Legenden), Punkte `NotenSkala::punkt()`.
+- Entfernt (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, Scale-Effekte, Deko-Orbs, mobile Kartenansichten von Tabellen.
+- Radien: `rounded-md` Badge-Ecke · `rounded-lg` Feld/Segment · `rounded-xl` Karte · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Knopf, Marke, Avatar, Punkt.
+- Abstände im 4-px-Raster: Karte `p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`.
+- **Trefferfläche:** jedes Bedienelement mindestens 24x24 px (WCAG 2.5.8); Textlinks als Aktion `inline-flex min-h-6 items-center`.
+- **Seitengerüst:** Inhalt `<div class="py-6"><div class="mx-auto np-seite px-8">` (`np-seite` füllt das Fenster, Deckel 2048 px). Lese-/Formularseiten innen `max-w-3xl` links bündig + `schmal` am Seitenkopf. Übersichten mit Haupt- und Nebenspalte: `grid grid-cols-12 items-start gap-4`, `col-span-8` / `col-span-4`.
+- **Seitenkopf** nur über `<x-seitenkopf titel untertitel zaehler zurueck schmal>` im Slot `header`. Aktionen im Slot `aktionen` – sie wandern in die Symbolleiste oben rechts (höchstens **eine** Primäraktion), der Zurück-Knopf (`zurueck`) vorne. Metadaten als `untertitel` (eine Zeile, mit ` · ` getrennt), nicht als eigene Karte.
+- Datensätze bearbeiten im **Drawer** (`<x-drawer>`, schwebend rechts), Bestätigungen über `data-bestaetigen` (HIG-Dialog, nie `window.confirm`).
+- Toast nur über `<x-toast>` (Layout rendert Flash automatisch), Menüs über `<x-dropdown>` (G2). Modal und Drawer liegen auf `z-[70]`.
+- Klickbare Tabellenzeilen: `data-href` auf `<tr>` (ganze Zeile klickbar, Tastatur über den Link in der ersten Zelle).
+- Zahlenfelder ohne Pfeile (Spinner sind global ausgeblendet); Gewichtungen über `<x-gewicht-feld>`.
+- Lernstand nur über `<x-status status>`: rot «Kritisch», gelb «Beobachten», grün «Im Plan», grau «Offen» und «Abgeschlossen» (Lehrende vorbei – keine Warnungen mehr).
+- Notenfarben kommen aus `NotenSkala::text()/badge()` (gut/genügend neutral, knapp/ungenügend farbig, ungenügend zusätzlich unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()`, Punkte `NotenSkala::punkt()`.
 
 ## 6. Bewegung
 - Transitions nur pro Komponente: `transition-colors duration-100` (Hover), 150 ms (Menü, Segment), 200 ms (Akkordeon, Drawer), 300 ms (Modal). Easing `ease-out`.
@@ -112,52 +118,46 @@ die Klassennamen bleiben die von Tailwind.
 ## 7. Muster (kopieren)
 
 ```blade
-{{-- Primärbutton – genau einer pro Ansicht --}}
-<button class="inline-flex h-9 items-center gap-2 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-contrast np-btn-primary disabled:opacity-50">
-{{-- Sekundär --}}
-<a class="inline-flex h-9 items-center gap-2 rounded-lg glass-btn px-3.5 text-sm font-medium text-text">
-{{-- Tertiär --}}
-<button class="inline-flex h-9 items-center rounded-lg px-2.5 text-sm text-muted hover:bg-surface-2 hover:text-text">
-{{-- Gefährlich (solid nur im Bestätigungsdialog) --}}
-<button class="inline-flex h-9 items-center rounded-lg px-3 text-sm text-note-ungenuegend hover:bg-note-ungenuegend/10">
-{{-- Grössen: h-8 Tabelle · h-9 Standard · h-11 mobil/Formularabschluss --}}
+{{-- Knöpfe (32 px, Pille). Genau eine Primäraktion pro Ansicht, in der Symbolleiste. --}}
+<button class="np-knopf np-knopf-primaer">Speichern</button>
+<a class="np-knopf np-knopf-sekundaer">Bearbeiten</a>
+<button class="np-knopf np-knopf-schlicht">Abbrechen</button>
+<button class="np-knopf np-knopf-gefahr">Löschen</button>            {{-- voll rot nur im Bestätigungsdialog: np-knopf-gefahr-voll --}}
+<button class="np-knopf np-knopf-symbol" aria-label="…"><x-symbol name="pencil-square" /></button>
+{{-- Grössen: np-knopf-klein (28 px, in Tabellen) · Standard 32 px · np-knopf-gross (40 px, Anmeldung) --}}
 
 {{-- Formularfeld --}}
-<label for="x" class="text-sm font-medium text-text">Gewichtung <span class="text-note-ungenuegend">*</span></label>
-<input id="x" name="x" class="mt-1.5 h-10 w-full rounded-lg border border-border-strong/70 bg-input px-3 text-sm text-text placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-ring/30" aria-describedby="x-fehler">
+<label for="x" class="text-sm font-medium text-text">{{ __('Gewichtung *') }}</label>
+<input id="x" name="x" class="np-feld mt-1" aria-describedby="x-fehler">
 @error('x')<p id="x-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
 
 {{-- Karte --}}
-<section class="rounded-xl border border-border bg-card">
-  <header class="flex h-12 items-center justify-between px-5"><h2 class="text-sm font-semibold text-text">…</h2></header>
-  <div class="px-5 pb-5">…</div>
+<section class="np-karte p-5">
+  <h2 class="text-sm font-semibold text-text">…</h2>
+  <div class="mt-3">…</div>
 </section>
 
 {{-- Tabelle --}}
-<div class="overflow-x-auto rounded-xl border border-border bg-card">
-<table class="w-full text-sm tabular-nums">
-  <th class="sticky top-0 h-9 bg-surface-2 px-3 text-left text-2xs font-medium text-muted">   {{-- Zahlen: text-right --}}
-  <tr class="border-b border-border last:border-0 hover:bg-surface-2/60">
-  <td class="h-11 px-3">
+<section class="np-karte">
+  <div class="px-2 pb-2"><table class="np-tabelle table-fixed text-sm">
+    <colgroup><col class="w-32"><col><col class="w-28"></colgroup>
+    <thead><tr><th scope="col">Datum</th><th scope="col">Fach</th><th scope="col" class="text-right">Note</th></tr></thead>
+    <tbody><tr data-href="…"><td>…</td>…</tr></tbody>
+  </table></div>
+</section>
 
-{{-- Note-Badge (Farbe nur bei knapp/ungenügend; gut höchstens Punkt, genügend in text-text) --}}
-<span class="inline-flex h-6 min-w-11 justify-center rounded-md bg-note-knapp/14 px-1.5 text-sm font-semibold tabular-nums text-note-knapp">3.8</span>
-{{-- ungenügend zusätzlich mit Form: ▼ oder underline decoration-2 (nie nur Farbe) --}}
+{{-- Note-Badge (Farbe nur bei knapp/ungenügend) --}}
+<x-note :wert="$note" />
 
-{{-- Leerzustand: eine Zeile mit nächstem Schritt, leere Karten entfallen --}}
-<p class="flex items-center gap-3 px-5 py-4 text-sm text-muted">Noch keine Noten <a class="text-accent-text hover:underline underline-offset-2" href="…">Erste Note erfassen</a></p>
-
-{{-- Accordion (np-details + np-chevron für JS-Toggle) --}}
-<details class="np-details rounded-xl border border-border bg-card">
-  <summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 hover:bg-surface-2/60">
-    <span class="np-chevron transition-transform duration-200">…</span>
+{{-- Leerzustand --}}
+<x-leer titel="Noch keine Noten" text="…" />
 ```
 
 ## 8. Pflicht bei jedem Feld und jeder Seite
 - `<label for>` + `id`, feldgenaues `@error`, Pflichtfeld mit `*` in `text-note-ungenuegend`.
 - Mutierende Formulare: Alpine `x-data="{ loading: false }"` gegen Doppelabsenden.
 - Erfolg/Fehler nur über Flash-Toast (`->with('success'|'error')`), keine Inline-Banner.
-- Touch-Targets ≥ 36 px (mobil 44 px), Icon-Buttons mit `aria-label`, Fokus sichtbar (`focus-visible:outline-2 outline-ring`).
+- Trefferfläche ≥ 24 px (WCAG 2.5.8; `np-knopf-klein` erfüllt das), Icon-Buttons mit `aria-label`, Fokus sichtbar (`focus-visible:outline-2 outline-ring`).
 - Diagrammbalken beginnen bei Note 1: Breite = (Ø − 1) / 5.
 - Browser-Titel pro Seite setzen.
 
@@ -168,5 +168,8 @@ die Klassennamen bleiben die von Tailwind.
 - Klassen, die nur per Alpine `:class` entstehen, in `@source inline(…)` eintragen.
 
 ## 10. Abschluss
-`npm run build` (muss «built in» zeigen) · `php artisan test` · ß-Grep leer · `node ~/tools/visual/breite.mjs … --breite=390` alle «✓» · Screenshots hell/dunkel/mobil mit `~/tools/visual/shot.mjs` ansehen.
-Bei Layout-/Breitenarbeit zusätzlich `node ~/tools/visual/nutzung.mjs --demo`: misst den Seitencontainer gegen die Fensterbreite (1280/1440/1920/2560) und die Spaltenzahl der Raster. Passwort bei allen Werkzeugen nur über `NP_TEST_PW`, nie als Argument.
+`npm run build` (muss «built in» zeigen) · `php artisan test` · ß-Grep leer · Hook ohne Meldung ·
+Screenshots **1920 und 2560 px, hell und dunkel** mit `shot.mjs` (`--breite=1920|2560`, `--dunkel`) ansehen ·
+JS-Fehler je Rolle mit einem Durchlauf über alle GET-Seiten prüfen.
+Bei Layout-/Breitenarbeit zusätzlich `node ~/tools/visual/nutzung.mjs --demo` (Seitencontainer gegen 1280/1440/1920/2560).
+Passwort bei allen Werkzeugen nur über `NP_TEST_PW`, nie als Argument.
