@@ -75,6 +75,20 @@ class ZielrechnerTest extends TestCase
     }
 
     #[Test]
+    public function gesuchte_note_wird_nur_in_einfliessende_unbekannte_gesetzt(): void
+    {
+        $leistungen = [$this->fach(self::MATHE, 1, null), $this->fach(self::DEUTSCH, 1, null), $this->fach(self::DEUTSCH, 1, 3.0)];
+        $rechner = new Zielrechner;
+        $k = $this->testKonfiguration();
+
+        $fach = $rechner->mitGesuchterNote($leistungen, Zielgroesse::parse('fach:10@semester:1'), 4.5, $k);
+        $this->assertSame([4.5, null, 3.0], array_map(fn (Leistung $l) => $l->wert, $fach));
+
+        $gesamt = $rechner->mitGesuchterNote($leistungen, Zielgroesse::parse('gesamt'), 4.5, $k);
+        $this->assertSame([4.5, 4.5, 3.0], array_map(fn (Leistung $l) => $l->wert, $gesamt));
+    }
+
+    #[Test]
     public function rundung_auf_zwischenebenen_verdeckt_keine_offene_pruefung(): void
     {
         // Einzeln verschluckt die Semesterrundung von Englisch jede der drei kleinen Prüfungen, gemeinsam

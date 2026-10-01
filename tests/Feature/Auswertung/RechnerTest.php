@@ -357,6 +357,45 @@ class RechnerTest extends TestCase
     }
 
     #[Test]
+    public function auswirkung_setzt_die_gesuchte_note_nur_in_pruefungen_mit_einfluss_auf_das_ziel(): void
+    {
+        $fachB = Fach::factory()->create(['track_typ' => 'BMS']);
+        $a = "fach:{$this->fach->fach_id}@semester:{$this->semester->semester_id}";
+        $b = "fach:{$fachB->fach_id}@semester:{$this->semester->semester_id}";
+        $zeilen = [['element' => $a, 'gewicht' => 100, 'wert' => null], ['element' => $b, 'gewicht' => 100, 'wert' => null]];
+        $url = route('learner.grades.calculator.calculate');
+
+        $antwort = $this->actingAs($this->user)->postJson($url, ['ziel' => $a, 'zielwert' => 4.5, 'zeilen' => $zeilen])->assertOk();
+
+        $this->assertSame('benoetigt', $antwort->json('loesung.status'));
+        $this->assertSame(1, $antwort->json('loesung.unbekannte'));
+        $vergleich = collect($antwort->json('vergleich'))->keyBy('text');
+        $this->assertEquals($antwort->json('loesung.resultat'), $vergleich[$a]['nachher']);
+        $this->assertGreaterThanOrEqual(4.5, $vergleich[$a]['nachher']);
+        $this->assertFalse($vergleich->has($b), 'Fach B fliesst nicht in das Ziel Fach A ein.');
+
+        // Gegenprobe: auf den Gesamtschnitt wirken beide, die Note steckt in beiden.
+        $gesamt = $this->actingAs($this->user)->postJson($url, ['ziel' => 'gesamt', 'zielwert' => 4.5, 'zeilen' => $zeilen])->assertOk();
+
+        $this->assertSame(2, $gesamt->json('loesung.unbekannte'));
+        $vergleich = collect($gesamt->json('vergleich'))->keyBy('text');
+        $this->assertNotNull($vergleich[$a]['nachher']);
+        $this->assertEquals($vergleich[$a]['nachher'], $vergleich[$b]['nachher']);
+    }
+
+    #[Test]
+    public function rechner_hat_fuer_lernende_keinen_zurueck_pfeil_und_fuer_verwalter_den_weg_zur_person(): void
+    {
+        $this->actingAs($this->user)->get(route('learner.grades.calculator'))
+            ->assertOk()->assertViewHas('zurueck', null);
+
+        $bb = User::factory()->berufsbildner()->create();
+        $this->betreue($bb, $this->lernender);
+        $this->actingAs($bb)->get(route('trainer.learners.calculator', $this->lernender->lernender_id))
+            ->assertOk()->assertViewHas('zurueck', route('trainer.learners.show', $this->lernender->lernender_id));
+    }
+
+    #[Test]
     public function berufsbildner_nutzt_rechner_nur_fuer_betreute(): void
     {
         $bb = User::factory()->berufsbildner()->create();

@@ -94,13 +94,38 @@ final class Zielrechner
     }
 
     /**
-     * Anzahl offener Prüfungen, die in die Zielgrösse eingehen – strukturell über Element, Kategorie,
-     * Semester und Notenbaum bestimmt, nicht durch Probieren: Rundungen auf Zwischenebenen verschlucken
-     * sonst die Wirkung einzelner Prüfungen, die gemeinsam das Ziel sehr wohl verschieben.
+     * Die Leistungen mit der Note x, aber nur in den offenen Prüfungen, die in die Zielgrösse eingehen.
+     * Übrige Unbekannte bleiben unbekannt, die Auswirkung zeigt also nur, was zum Ziel gehört.
+     *
+     * @param  list<Leistung>  $leistungen
+     * @return list<Leistung>
+     */
+    public function mitGesuchterNote(array $leistungen, Zielgroesse $ziel, float $x, Konfiguration $k): array
+    {
+        $einfliessend = array_flip($this->einfliessendeIndizes($leistungen, $ziel, $k));
+
+        return array_map(fn (Leistung $l, int $i) => isset($einfliessend[$i]) ? $l->mitWert($x) : $l, $leistungen, array_keys($leistungen));
+    }
+
+    /**
+     * Anzahl offener Prüfungen, die in die Zielgrösse eingehen.
      *
      * @param  list<Leistung>  $leistungen
      */
     private function einfliessende(array $leistungen, Zielgroesse $ziel, Konfiguration $k): int
+    {
+        return count($this->einfliessendeIndizes($leistungen, $ziel, $k));
+    }
+
+    /**
+     * Positionen der offenen Prüfungen, die in die Zielgrösse eingehen – strukturell über Element, Kategorie,
+     * Semester und Notenbaum bestimmt, nicht durch Probieren: Rundungen auf Zwischenebenen verschlucken
+     * sonst die Wirkung einzelner Prüfungen, die gemeinsam das Ziel sehr wohl verschieben.
+     *
+     * @param  list<Leistung>  $leistungen
+     * @return list<int>
+     */
+    private function einfliessendeIndizes(array $leistungen, Zielgroesse $ziel, Konfiguration $k): array
     {
         // Gefüllt rechnen, damit jedes Element samt Semester (Modul: das seiner letzten Prüfung) feststeht.
         $gefuellt = array_map(fn (Leistung $l) => $l->istUnbekannt() ? $l->mitWert(6.0) : $l, $leistungen);
@@ -120,16 +145,16 @@ final class Zielrechner
             }
         }
 
-        $anzahl = 0;
+        $indizes = [];
         foreach ($leistungen as $i => $l) {
             $wirkt = $l->istPosition() ? ! isset($erfasst[(int) $l->knotenId]) : $l->gewicht > 0;
             if ($l->istUnbekannt() && $wirkt
                 && $this->fliesstEin($l, $elementVon[spl_object_id($gefuellt[$i])] ?? null, $ziel, $k, $blaetter)) {
-                $anzahl++;
+                $indizes[] = $i;
             }
         }
 
-        return $anzahl;
+        return $indizes;
     }
 
     /** @param  list<Knoten>|null  $blaetter  Blätter des Hauptbaums, die die Gesamtnote tragen (null: ohne Baum) */

@@ -287,7 +287,7 @@ final class Rechner
         $lernenderId = (int) $lernender->lernender_id;
         $vorher = $this->kern->auswerten($basis, $k);
         $vorher->lernenderId = $lernenderId;
-        $nachher = $this->kern->auswerten($x !== null ? array_map(fn (Leistung $l) => $l->istUnbekannt() ? $l->mitWert($x) : $l, $alle) : $alle, $k);
+        $nachher = $this->kern->auswerten($x !== null ? $this->zielrechner->mitGesuchterNote($alle, $ziel, $x, $k) : $alle, $k);
         $nachher->lernenderId = $lernenderId;
 
         return [

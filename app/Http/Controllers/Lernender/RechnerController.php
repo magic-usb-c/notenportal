@@ -32,7 +32,7 @@ class RechnerController extends Controller
             'zielUrl' => route('learner.goals.store'),
             'start' => Rechner::start($request->only(['ziel', 'zielwert']), $daten),
             'lernender' => null,
-            'zurueck' => route('learner.grades.index'),
+            'zurueck' => null,
         ]);
     }
 
