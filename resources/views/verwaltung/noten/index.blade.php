@@ -217,7 +217,7 @@
                                     @csrf
                                     <textarea name="kommentar_text" rows="2" maxlength="2000" required
                                               placeholder="{{ __('Kommentar schreiben…') }}" aria-label="{{ __('Kommentar schreiben') }}"
-                                              onkeydown="if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') this.form.requestSubmit()"
+                                              x-on:keydown.ctrl.enter="$el.form.requestSubmit()" x-on:keydown.meta.enter="$el.form.requestSubmit()"
                                               class="np-feld min-w-0 flex-1 resize-y"></textarea>
                                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
                                 </form>

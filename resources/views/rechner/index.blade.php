@@ -83,7 +83,7 @@
             <div class="grid grid-cols-12 items-start gap-5">
 
                 {{-- Eingaben --}}
-                <div class="col-span-5 flex flex-col gap-5">
+                <div class="col-span-6 flex flex-col gap-5">
                     <section class="np-karte flex flex-col gap-5 p-5" aria-label="{{ __('Ziel') }}">
                         <div role="tablist" aria-label="{{ __('Ebene') }}" class="np-segment flex w-full">
                             @foreach($ebenen as $wert => $name)
@@ -161,7 +161,7 @@
 
                         {{-- Eine Zeile je Prüfung, Spalten wie eine Tabelle: Fach/Modul · Semester/Herkunft · Gewicht · Note --}}
                         <div x-show="zeilen.length" class="px-2 pb-2">
-                            <div class="grid h-8 grid-cols-[minmax(0,1fr)_9rem_5rem_4.5rem_2rem] items-center gap-2 border-b border-border px-3 text-xs font-medium text-muted" aria-hidden="true">
+                            <div class="grid h-8 grid-cols-[minmax(0,1fr)_11rem_5rem_4.5rem_2rem] items-center gap-2 border-b border-border px-3 text-xs font-medium text-muted" aria-hidden="true">
                                 <span>{{ __('Fach / Modul') }}</span>
                                 <span>{{ __('Semester') }}</span>
                                 <span class="text-right">{{ __('Gewicht') }}</span>
@@ -169,7 +169,7 @@
                                 <span></span>
                             </div>
                             <template x-for="z in zeilen" :key="z.nr">
-                                <div class="grid grid-cols-[minmax(0,1fr)_9rem_5rem_4.5rem_2rem] items-center gap-2 rounded-lg px-3 py-1.5 even:bg-text/3">
+                                <div class="grid grid-cols-[minmax(0,1fr)_11rem_5rem_4.5rem_2rem] items-center gap-2 rounded-lg px-3 py-1.5 even:bg-text/3">
                                     <select x-model="z.id" class="np-feld np-feld-klein min-w-0" :aria-label="z.typ === 'fach' ? @js(__('Fach')) : @js(__('Modul'))">
                                         <option value="">–</option>
                                         <template x-for="o in (z.typ === 'fach' ? katalog.faecher.filter(f => f.erfassbar || String(f.id) === z.id) : katalog.module)" :key="o.id">
@@ -203,7 +203,7 @@
                 </div>
 
                 {{-- Ergebnis --}}
-                <div class="col-span-7 flex flex-col gap-5">
+                <div class="col-span-6 flex flex-col gap-5">
                     <section class="np-karte flex min-h-56 flex-col items-center justify-center px-10 py-8 text-center transition-opacity duration-150" :class="laedt ? 'opacity-70' : ''" aria-live="polite">
                         <p x-show="fehler" x-cloak class="text-sm text-note-ungenuegend" x-text="fehler"></p>
 
