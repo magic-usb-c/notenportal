@@ -152,7 +152,6 @@
     "Diese Vorschau wurde bereits übernommen.": "This preview has already been applied.",
     "Diese Übersicht öffnen": "Open this overview",
     "Dieses Modul gehört nicht zum Lehrberuf. Füg es auf der Modulseite zu deinen Modulen hinzu.": "This module is not part of the occupation. Add it to your modules on the module page.",
-    "Dieses Modul steht in deiner Notenerfassung zur Auswahl.": "This module is available when you record a grade.",
     "disp.": "exempt",
     "dispensiert": "exempt",
     "Dokumente": "Documents",
@@ -597,5 +596,11 @@
     "Gewichtung": "Weighting",
     "Abgeschlossen": "Completed",
     "abgeschlossen": "completed",
-    "im Plan": "on track"
+    "im Plan": "on track",
+    "Beschreibung": "Description",
+    "Verweise": "Links",
+    "Element": "Component",
+    "Prüfungsform": "Assessment type",
+    "Gewicht": "Weight",
+    "In deinen Modulen": "In your modules"
 }
