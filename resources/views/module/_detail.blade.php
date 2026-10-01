@@ -153,16 +153,15 @@
                       class="flex flex-col gap-3 border-t border-border pt-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
-                    <div>
-                        <label for="datei" class="text-sm font-medium text-text">{{ __('Datei') }}</label>
-                        <x-datei-feld id="datei" name="datei" required accept=".pdf,.jpg,.jpeg,.png,.docx,.odt" aria-describedby="datei-hilfe" />
-                        <p id="datei-hilfe" class="mt-1 text-xs text-muted">{{ __('PDF, Bild, Word, OpenDocument · bis 20 MB') }}</p>
-                        @error('datei')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
-                    </div>
+                    <x-ablagezone polster="py-6" required
+                                  :accept="collect(\App\Services\Dokumente\Modulablage::ENDUNGEN)->map(fn ($e) => '.'.$e)->implode(',')"
+                                  :titel="__('Datei wählen oder hierher ziehen')"
+                                  :hinweis="__('PDF, Bild, Word, OpenDocument · bis :mb MB', ['mb' => intdiv(\App\Services\Dokumente\Modulablage::MAX_KB, 1024)])" />
                     <div>
                         <label for="titel" class="text-sm font-medium text-text">{{ __('Titel') }}</label>
-                        <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" class="np-feld mt-1">
-                        @error('titel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                        <input id="titel" name="titel" type="text" maxlength="150" value="{{ old('titel') }}" placeholder="{{ __('Optional') }}" class="np-feld mt-1.5 w-full"
+                               @error('titel') aria-invalid="true" aria-describedby="titel-fehler" @enderror>
+                        @error('titel')<p id="titel-fehler" class="mt-1.5 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                     </div>
                     <div class="flex justify-end">
                         <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Hochladen') }}</button>

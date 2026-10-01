@@ -395,7 +395,6 @@
     "Passwort zurücksetzen": "Reset password",
     "Passwort ändern": "Change password",
     "Passwortfelder werden dabei ausgeblendet.": "Password fields are hidden.",
-    "PDF, Bild, Word, OpenDocument · bis 20 MB": "PDF, image, Word, OpenDocument · up to 20 MB",
     "Person": "Person",
     "Personen": "People",
     "Persönliche Notenziele.": "Personal grade goals.",
@@ -605,5 +604,8 @@
     "nicht erfüllt": "not met",
     ":wert von :grenze": ":wert of :grenze",
     "Inhalt": "Content",
-    "Hinzufügen": "Add"
+    "Hinzufügen": "Add",
+    "PDF, Bild, Word, OpenDocument · bis :mb MB": "PDF, image, Word, OpenDocument · up to :mb MB",
+    "Datei wählen oder hierher ziehen": "Choose a file or drag it here",
+    "Optional": "Optional"
 }
