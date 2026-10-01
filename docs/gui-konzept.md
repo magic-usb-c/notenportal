@@ -109,7 +109,7 @@ Dunkel wird Tiefe über hellere Flächen gezeigt, nicht über Schatten; kein rei
 |---|---|---|---|
 | G0 | kein Glas | Karten, Tabellen, Formulare, Diagramme | – |
 | G1 Leiste | `rgb(var(--card-rgb)/0.78)` + `blur(16px) saturate(140%)`, Unterkante `border` | Hauptnavigation, Sticky-Toolbar | über Text-Inhalt ohne Scrollbewegung |
-| G2 Overlay | `rgb(var(--card-rgb)/0.88)` + `blur(24px)`, Rand `border-strong/30` | Befehlspalette, Menüs, Toasts, Popover | grossflächige Panels |
+| G2 Overlay | hell `rgb(var(--card-rgb)/0.86)` + Schatten `elev-2`; dunkel `rgb(var(--surface-2-rgb)/0.92)` + Haarlinie `border` (eine Stufe über der Karte, HIG Dark Mode base/elevated); je `blur(28px)` | Befehlspalette, Menüs, Toasts, Popover | grossflächige Panels |
 | Scrim | `rgb(var(--bg-rgb)/0.6)` + `blur(2px)` | hinter Drawer/Modal | – |
 
 Deckung mindestens 0.78, damit Text die Token-Kontraste hält. `@supports not (backdrop-filter: blur(1px))` und `@media (prefers-reduced-transparency: reduce)` → volle Deckung. Entfallen: `accent-glow`, `np-glow-*`, `np-text-glow-*`, `glass-lift`, `np-card-lift`, der Radial-Gradient auf `body`, `np-btn-primary`-Scale.

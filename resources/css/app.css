@@ -331,19 +331,28 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 }
 
 @utility glass-overlay {
-  /* Menüs, Befehlspalette, Toasts, Popover: Glas der schwebenden Ebene mit weichem Schatten */
+  /* Menüs, Befehlspalette, Toasts, Popover: Glas der schwebenden Ebene. Hell trägt der Schatten
+     die Tiefe; dunkel die Helligkeit (HIG Dark Mode, base/elevated): Fläche eine Stufe über der
+     Karte (surface-2) plus Haarlinie in --border, der Schatten bleibt nur als weicher Rest. */
   background-color: rgb(var(--card-rgb) / 0.86);
   backdrop-filter: blur(28px) saturate(1.8);
   box-shadow: var(--elev-2), inset 0 0.5px 0 rgb(255 255 255 / 0.5);
   @variant dark {
-    box-shadow: var(--elev-2), inset 0 0.5px 0 rgb(255 255 255 / 0.1);
+    background-color: rgb(var(--surface-2-rgb) / 0.92);
+    box-shadow: var(--elev-2), 0 0 0 1px rgb(var(--border)), inset 0 0.5px 0 rgb(255 255 255 / 0.1);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
+    @variant dark {
+      background-color: rgb(var(--surface-2));
+    }
   }
   @media (prefers-reduced-transparency: reduce) {
     background-color: rgb(var(--card));
     backdrop-filter: none;
+    @variant dark {
+      background-color: rgb(var(--surface-2));
+    }
   }
 }
 
@@ -1441,6 +1450,9 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas, .np-glas-gruppe::before) {
     background-color: rgb(var(--card));
     backdrop-filter: none;
+  }
+  .dark[data-transparenz='reduziert'] .glass-overlay {
+    background-color: rgb(var(--surface-2));
   }
   [data-transparenz='reduziert'] .np-symbolleiste::before {
     background: rgb(var(--bg));
