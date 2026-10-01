@@ -175,4 +175,45 @@ export function registrierePraeferenzen(Alpine) {
             if (css) document.documentElement.style.removeProperty('--accent');
         },
     }));
+
+    // Formular, das jede Wahl sofort speichert (Benachrichtigungen): nur die geänderte Optionsgruppe geht an die
+    // Formular-Adresse, streng nacheinander. Lehnt der Server ab, springt die Wahl auf den gespeicherten Stand zurück –
+    // ausser, sie wurde inzwischen erneut geändert. Ohne JavaScript bleibt der Knopf im <noscript>.
+    Alpine.data('npSofortSpeichern', () => ({
+        stand: {},
+        kette: Promise.resolve(),
+
+        init() {
+            this.formular = this.$root;
+            for (const feld of this.formular.querySelectorAll('input[type=radio]:checked')) this.stand[feld.name] = feld.value;
+        },
+
+        aendern(event) {
+            const { name, value, type } = event.target;
+            if (type !== 'radio' || !name) return;
+            this.kette = this.kette.then(() => this.speichern(name, value));
+        },
+
+        async speichern(name, wert) {
+            const daten = new FormData();
+            for (const feld of this.formular.querySelectorAll('input[type=hidden][name^="_"]')) daten.append(feld.name, feld.value);
+            daten.append(name, wert);
+            try {
+                const res = await fetch(this.formular.action, { method: 'POST', headers: { Accept: 'application/json' }, body: daten })
+                    .catch(() => {
+                        throw new Error(t('Änderung konnte nicht gespeichert werden.'));
+                    });
+                if (res.status === 419) throw new Error(t('Sitzung abgelaufen. Seite bitte neu laden.'));
+                if (!res.ok) throw new Error(t('Änderung konnte nicht gespeichert werden.'));
+                this.stand[name] = wert;
+            } catch (e) {
+                const gruppe = [...this.formular.querySelectorAll('input[type=radio]')].filter((f) => f.name === name);
+                if (gruppe.find((f) => f.checked)?.value === wert) {
+                    const alt = gruppe.find((f) => f.value === this.stand[name]);
+                    if (alt) alt.checked = true;
+                }
+                window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: e.message, art: 'fehler' } }));
+            }
+        },
+    }));
 }

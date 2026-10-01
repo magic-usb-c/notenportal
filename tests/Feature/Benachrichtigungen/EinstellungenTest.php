@@ -47,6 +47,37 @@ class EinstellungenTest extends TestCase
     }
 
     #[Test]
+    public function speichert_eine_einzelne_wahl_sofort_als_json(): void
+    {
+        $lernender = User::factory()->lernender()->create();
+
+        $this->actingAs($lernender)->putJson(route('notifications.settings.update'), [
+            'frequenz' => [NotificationCatalog::COMMENT_ADDED => NotificationCatalog::NEVER],
+        ])->assertOk()->assertJson(['gespeichert' => true]);
+
+        $this->assertDatabaseHas('notification_preferences', [
+            'user_id' => $lernender->benutzer_id,
+            'type' => NotificationCatalog::COMMENT_ADDED,
+            'frequency' => NotificationCatalog::NEVER,
+        ]);
+    }
+
+    #[Test]
+    public function verpflichtender_anlass_wird_per_json_abgelehnt(): void
+    {
+        $lernender = User::factory()->lernender()->create();
+
+        $this->actingAs($lernender)->putJson(route('notifications.settings.update'), [
+            'frequenz' => [NotificationCatalog::PASSWORD_CHANGED => NotificationCatalog::NEVER],
+        ])->assertStatus(422);
+
+        $this->assertDatabaseMissing('notification_preferences', [
+            'user_id' => $lernender->benutzer_id,
+            'type' => NotificationCatalog::PASSWORD_CHANGED,
+        ]);
+    }
+
+    #[Test]
     public function verpflichtender_anlass_bleibt_unveraendert_auch_bei_manipuliertem_request(): void
     {
         $lernender = User::factory()->lernender()->create();

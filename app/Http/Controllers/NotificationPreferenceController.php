@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\NotificationPreference;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -42,7 +43,8 @@ class NotificationPreferenceController extends Controller
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    /** Formular (Fallback ohne JavaScript) oder eine einzelne Wahl, die die Seite sofort speichert (JSON). */
+    public function update(Request $request): RedirectResponse|JsonResponse
     {
         $user = $request->user();
         $anlaesse = NotificationCatalog::forUser($user);
@@ -52,9 +54,12 @@ class NotificationPreferenceController extends Controller
             'frequenz.*' => ['string', Rule::in(array_keys(NotificationCatalog::FREQUENCIES))],
         ]);
 
+        $abgelehnt = false;
         foreach ($validated['frequenz'] ?? [] as $type => $frequenz) {
             $def = $anlaesse[$type] ?? null;
             if (! $def || NotificationCatalog::policy($type)['mandatory'] || ! in_array($frequenz, $def['frequencies'], true)) {
+                $abgelehnt = true;
+
                 continue;
             }
 
@@ -62,6 +67,12 @@ class NotificationPreferenceController extends Controller
                 ['user_id' => $user->benutzer_id, 'type' => $type],
                 ['frequency' => $frequenz],
             );
+        }
+
+        if ($request->expectsJson()) {
+            return $abgelehnt
+                ? response()->json(['message' => __('Änderung konnte nicht gespeichert werden.')], 422)
+                : response()->json(['gespeichert' => true]);
         }
 
         return redirect()->route('notifications.settings')->with('success', __('Benachrichtigungen gespeichert.'));

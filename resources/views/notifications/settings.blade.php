@@ -11,7 +11,7 @@
         <div class="np-spalte">
 
             <form method="POST" action="{{ route('notifications.settings.update') }}" class="flex flex-col gap-8"
-                  x-data="{ loading: false }" @submit="loading = true">
+                  x-data="npSofortSpeichern" @change="aendern($event)">
                 @csrf
                 @method('PUT')
 
@@ -44,9 +44,11 @@
 
                 <p class="-mt-6 px-1 text-xs text-muted">{{ __('Du erhältst diese Mails an') }} <span class="font-medium text-text">{{ auth()->user()->email }}</span>.</p>
 
-                <div class="flex justify-end">
-                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer min-w-24">{{ __('Speichern') }}</button>
-                </div>
+                <noscript>
+                    <div class="flex justify-end">
+                        <button type="submit" class="np-knopf np-knopf-primaer min-w-24">{{ __('Speichern') }}</button>
+                    </div>
+                </noscript>
             </form>
 
         </div>
