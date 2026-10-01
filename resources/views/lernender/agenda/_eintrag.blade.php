@@ -15,9 +15,9 @@
         $p->dauer_minuten ? __(':anzahl Minuten', ['anzahl' => $p->dauer_minuten]) : null,
     ] : [$e['nebentext']]);
 @endphp
-{{-- Eine Zeile der Agenda in festen Spalten, damit Gewicht, Zeitpunkt und Aktionen über alle Abschnitte
-     untereinander stehen: Datum wie das Kalendersymbol (Monat über Tag), Titel mit Kennpunkt, rechts die Aktionen. --}}
-<div class="grid min-h-15 grid-cols-[2.5rem_minmax(0,1fr)_5rem_8rem_18rem] items-center gap-x-5 px-4 py-2">
+{{-- Eine Zeile der Agenda wie in Apple Erinnerungen: Datum wie das Kalendersymbol (Monat über Tag), Titel mit
+     Kennpunkt, darunter Wochentag, Art, Gewicht und der Zeitpunkt in seiner Farbe; rechts nur die Aktionen. --}}
+<div class="grid min-h-15 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-x-5 px-4 py-2">
     <div class="text-center leading-none">
         <div class="text-2xs font-medium text-muted">{{ \App\Support\Format::datum($e['datum'], 'M') }}</div>
         <div @class(['mt-0.5 text-lg font-semibold tabular-nums', 'text-accent-text' => $tage === 0, 'text-text' => $tage !== 0])>{{ $e['datum']->format('j') }}</div>
@@ -34,14 +34,10 @@
         <div class="truncate pl-4 text-xs text-muted">
             {{ \App\Support\Format::datum($e['datum'], 'l') }}@if($e['zeit']), {{ __(':zeit Uhr', ['zeit' => $e['zeit']]) }}@endif
             @foreach($details as $d) · {{ $d }}@endforeach
+            @if($p) · <span class="sr-only">{{ __('Gewichtung') }}</span><span class="tabular-nums">{{ $e['nebentext'] }}</span>@endif
+            · <span @class(['font-medium text-note-knapp' => $faellig, 'text-accent-text' => ! $faellig && $tage >= 0 && $tage <= 7])>{{ $wann }}</span>
         </div>
     </div>
-
-    <div class="text-right text-sm tabular-nums text-muted">
-        @if($p)<span class="sr-only">{{ __('Gewichtung') }}</span>{{ $e['nebentext'] }}@endif
-    </div>
-
-    <div @class(['text-sm', 'font-medium text-note-knapp' => $faellig, 'text-accent-text' => ! $faellig && $tage >= 0 && $tage <= 7, 'text-muted' => ! $faellig && ($tage < 0 || $tage > 7)])>{{ $wann }}</div>
 
     <div class="flex items-center justify-end gap-1">
         @if($e['art'] === 'pruefung')
