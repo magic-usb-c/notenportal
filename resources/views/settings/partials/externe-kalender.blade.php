@@ -45,23 +45,23 @@
                         <span class="np-marke {{ $f->$feld ? 'bg-accent/12 text-accent-text' : 'text-muted line-through' }}">{{ $bezeichnung }}</span>
                     @endforeach
                 </div>
-                <div x-show="bearbeiten" x-cloak class="mt-3 ml-11 border-t border-border pt-3">
-                    @include('settings.partials._kalender-formular', ['feed' => $f])
+                <div x-show="bearbeiten" x-cloak class="-mx-4 -mb-3 mt-3 border-t border-border">
+                    @include('settings.partials._kalender-formular', ['feed' => $f, 'abbrechbar' => true])
                 </div>
             </div>
         @endforeach
 
-        @if($feeds->count() < \App\Models\CalendarFeed::MAX_PRO_LERNENDEM)
-            <div class="px-4 py-3" x-data="{ bearbeiten: {{ $feeds->isEmpty() || (old('feed_id') !== null && ! filled(old('feed_id'))) ? 'true' : 'false' }} }">
-                @if($feeds->isNotEmpty())
-                    <button type="button" @click="bearbeiten = !bearbeiten" :aria-expanded="bearbeiten" class="np-knopf np-knopf-schlicht -ml-2">
+        @if($feeds->isEmpty())
+            @include('settings.partials._kalender-formular', ['feed' => null])
+        @elseif($feeds->count() < \App\Models\CalendarFeed::MAX_PRO_LERNENDEM)
+            <div x-data="{ bearbeiten: {{ array_key_exists('feed_id', session()->getOldInput()) && ! filled(old('feed_id')) ? 'true' : 'false' }} }">
+                <div class="px-4 py-2" x-show="! bearbeiten">
+                    <button type="button" @click="bearbeiten = true" :aria-expanded="bearbeiten" class="np-knopf np-knopf-schlicht -ml-2">
                         <x-symbol name="plus" strich="2" />{{ __('Kalender hinzufügen') }}
                     </button>
-                @else
-                    <h3 class="text-sm font-medium text-text">{{ __('Kalender hinzufügen') }}</h3>
-                @endif
-                <div x-show="bearbeiten" x-cloak class="mt-3">
-                    @include('settings.partials._kalender-formular', ['feed' => null])
+                </div>
+                <div x-show="bearbeiten" x-cloak>
+                    @include('settings.partials._kalender-formular', ['feed' => null, 'abbrechbar' => true])
                 </div>
             </div>
         @else

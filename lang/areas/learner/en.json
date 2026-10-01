@@ -348,5 +348,8 @@
     "Importieren…": "Import…",
     ":titel bearbeiten": "Edit :titel",
     ":titel entfernen": "Remove :titel",
-    "Note ansehen": "View grade"
+    "Note ansehen": "View grade",
+    "Prüfungen übernehmen": "Import exams",
+    "Termine übernehmen": "Import appointments",
+    "Lektionen (Stundenplan) übernehmen": "Import lessons (timetable)"
 }
