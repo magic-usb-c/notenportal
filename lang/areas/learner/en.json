@@ -346,5 +346,8 @@
     "Dokument hochladen": "Upload document",
     "PDF, Bild, Word, Excel, CSV · bis :mb MB": "PDF, image, Word, Excel, CSV · up to :mb MB",
     "Noch keine Abschlussrechnung": "No qualification calculation yet",
-    "Importieren…": "Import…"
+    "Importieren…": "Import…",
+    ":titel bearbeiten": "Edit :titel",
+    ":titel entfernen": "Remove :titel",
+    "Note ansehen": "View grade"
 }

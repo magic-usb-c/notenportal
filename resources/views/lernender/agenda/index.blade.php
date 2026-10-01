@@ -10,7 +10,6 @@
             </nav>
             <x-slot:aktionen>
                 <a href="{{ route('settings.calendar') }}" class="np-knopf np-knopf-sekundaer">{{ __('Kalender-Abo') }}</a>
-                <a href="{{ route('learner.grades.calculator') }}" class="np-knopf np-knopf-sekundaer">{{ __('Was brauche ich?') }}</a>
                 <a href="{{ route('learner.exams.index') }}?planen=1" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'pruefung')" @endunless
                    class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Prüfung planen') }}</a>
             </x-slot:aktionen>
@@ -18,8 +17,16 @@
     </x-slot>
 
     @php
-        // Liste in Lesebreite mit Mini-Monat daneben (wie die Seitenleiste in Apple Kalender); das Monatsraster nutzt das ganze Fenster.
-        $breite = $ansicht === 'liste' ? 'xl:max-w-[calc(64rem+19rem+2rem)]' : '';
+        // Rechner-Ziel einer künftigen Prüfung: Fach im Semester ihres Datums bzw. Modul (wie Rechner::vorschlaege)
+        $konfiguration = \App\Services\Auswertung\Konfiguration::ausDb();
+        $rechnerZiel = function (\App\Models\Pruefung $p) use ($konfiguration): ?string {
+            if ($p->modul_id !== null) {
+                return 'modul:'.$p->modul_id;
+            }
+            $semester = $konfiguration->semesterFuerDatum($p->datum->toDateString());
+
+            return $semester !== null ? 'fach:'.$p->fach_id.'@semester:'.$semester : null;
+        };
         $monatsLink = fn ($m) => route('learner.exams.index', array_filter(['ansicht' => 'monat', 'monat' => $m?->format('Y-m'), 'lektionen' => $zeigeLektionen ? 1 : null]));
         // Daten eines Tages für die Tagesansicht im Drawer
         $tagDaten = fn (array $tag) => [
@@ -37,7 +44,7 @@
         <div class="np-seite mx-auto flex flex-col gap-6 px-8">
 
             {{-- Legende und Stundenplan-Schalter als Symbolleiste über dem Inhalt --}}
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-2 {{ $breite }}">
+            <div class="flex items-center gap-x-5">
                 @foreach(\App\Support\AgendaArt::ARTEN as $art)
                     @continue($art === 'lektion' && ! $zeigeLektionen)
                     <span class="inline-flex items-center gap-1.5 text-xs text-muted">
@@ -65,7 +72,8 @@
                         $gruppen['spaeter']->isNotEmpty() ? ['titel' => __('Später'), 'eintraege' => $gruppen['spaeter'], 'faellig' => false, 'immer' => false] : null,
                     ]);
                 @endphp
-                <div class="grid items-start gap-8 xl:grid-cols-[minmax(0,64rem)_19rem]">
+                {{-- Liste über die ganze Breite, daneben der Mini-Monat wie die Seitenleiste in Apple Kalender --}}
+                <div class="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-8">
                 <div class="flex min-w-0 flex-col gap-8">
                     @foreach($abschnitte as $abschnitt)
                         {{-- Gruppierte Liste (HIG «Lists and tables», Stil «inset grouped»): Überschrift über der Fläche --}}
@@ -78,14 +86,14 @@
                                 @forelse($abschnitt['eintraege'] as $e)
                                     @include('lernender.agenda._eintrag', ['e' => $e, 'faellig' => $abschnitt['faellig']])
                                 @empty
-                                    <p class="px-4 py-6 text-center text-sm text-muted">{{ __('Nichts geplant') }}</p>
+                                    <p class="px-4 py-5 text-sm text-muted">{{ __('Nichts geplant') }}</p>
                                 @endforelse
                             </div>
                         </section>
                     @endforeach
                 </div>
 
-                <aside class="np-karte hidden p-4 xl:sticky xl:top-20 xl:block" aria-label="{{ __('Monatsübersicht') }}">
+                <aside class="np-karte sticky top-20 p-4" aria-label="{{ __('Monatsübersicht') }}">
                     <div class="mb-2 flex items-center justify-between gap-2">
                         <h2 class="text-sm font-semibold text-text">{{ \App\Support\Format::datum($monat, 'F Y') }}</h2>
                         <a href="{{ $monatsLink(null) }}" class="-mr-1.5 inline-flex h-7 items-center gap-0.5 rounded-full pl-2.5 pr-1.5 text-sm text-accent-text transition-colors duration-100 hover:bg-accent/10">{{ __('Monat') }}<x-symbol name="chevron-right" strich="2" class="size-3.5" /></a>

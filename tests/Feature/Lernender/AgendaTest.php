@@ -99,6 +99,23 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function liste_bietet_je_pruefung_die_passende_naechste_aktion(): void
+    {
+        $vergangen = $this->planen(['datum' => now()->subDay()->toDateString(), 'titel' => 'LB1']);
+        $this->actingAs($this->user)->post(route('learner.exams.store'), [
+            'bezug' => 'modul:'.$this->modul->modul_id, 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 60, 'titel' => 'LB2',
+        ])->assertSessionHasNoErrors();
+        $kuenftig = Pruefung::where('titel', 'LB2')->sole();
+
+        $response = $this->actingAs($this->user)->get(route('learner.exams.index'));
+        $response->assertOk();
+        // Künftige Prüfung: Rechner mit dem Modul als Ziel; vergangene ohne Note: Note eintragen.
+        $response->assertSee(route('learner.grades.calculator', ['ziel' => 'modul:'.$kuenftig->modul_id]), false);
+        $response->assertSee(route('learner.grades.create', ['pruefung' => $vergangen->pruefung_id]), false);
+        $response->assertDontSee(route('learner.grades.create', ['pruefung' => $kuenftig->pruefung_id]), false);
+    }
+
+    #[Test]
     public function monatsansicht_rendert_ohne_fehler(): void
     {
         $this->planen();
