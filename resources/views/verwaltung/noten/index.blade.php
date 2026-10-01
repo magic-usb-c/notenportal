@@ -108,9 +108,7 @@
                     @foreach($notes as $n)
                         @php
                             $gesehen = $n->gesehen->first();
-                            $istNeu = ! $gesehen
-                                || $n->erstellt_am > $gesehen->gesehen_am
-                                || $n->kommentare->contains(fn ($k) => $k->erstellt_am > $gesehen->gesehen_am);
+                            $istNeu = \App\Support\Ungelesen::istNeu($n, $gesehen?->gesehen_am, (int) auth()->id());
                             $letzterKommentar = $n->kommentare->last();
                             $thema = $n->fach?->name
                                 ?? ($n->modulBelegung?->modul ? $n->modulBelegung->modul->modul_nummer.' – '.$n->modulBelegung->modul->titel : '–');
@@ -166,7 +164,7 @@
                                                 @csrf
                                                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Als gesehen markieren') }}</button>
                                             </form>
-                                        @else
+                                        @elseif($gesehen)
                                             <span class="text-xs text-muted">{{ __('Gesehen am :datum Uhr', ['datum' => $gesehen->gesehen_am->format('d.m.Y H:i')]) }}</span>
                                         @endif
                                         @if($darfKorrigieren)

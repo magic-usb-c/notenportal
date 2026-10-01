@@ -14,9 +14,9 @@ use App\Services\Notifications\Messages\GradeCorrected;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Support\Protokoll;
+use App\Support\Ungelesen;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -58,12 +58,7 @@ class LernendeNotenController extends VerwaltungController
         // Ungelesene Noten über alle Seiten im aktiven Filter – dieselbe Menge, die «Alle gesehen» markiert
         $neuCount = NotenGesehenController::gefilterteNoten($request, $lernender_id)
             ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
-            ->where(fn ($q) => $q->whereNull('g.gesehen_am')
-                ->orWhereColumn('n.erstellt_am', '>', 'g.gesehen_am')
-                ->orWhereExists(fn ($k) => $k->select(DB::raw(1))
-                    ->from('noten_kommentare as k')
-                    ->whereColumn('k.note_id', 'n.note_id')
-                    ->whereColumn('k.erstellt_am', '>', 'g.gesehen_am')))
+            ->where(Ungelesen::bedingung($viewerId))
             ->count();
 
         $stand = $this->lernstaende->fuer([$lernender_id])[$lernender_id];

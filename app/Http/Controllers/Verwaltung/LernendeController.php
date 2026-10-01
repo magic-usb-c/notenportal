@@ -14,6 +14,7 @@ use App\Services\Uebersicht;
 use App\Support\Betrieb;
 use App\Support\NotenSkala;
 use App\Support\Protokoll;
+use App\Support\Ungelesen;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -262,12 +263,7 @@ class LernendeController extends VerwaltungController
             ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
             ->whereIn('n.lernender_id', $ids)
             ->whereNull('n.geloescht_am')
-            ->where(fn ($q) => $q->whereNull('g.gesehen_am')
-                ->orWhereColumn('n.erstellt_am', '>', 'g.gesehen_am')
-                ->orWhereExists(fn ($k) => $k->select(DB::raw(1))
-                    ->from('noten_kommentare as k')
-                    ->whereColumn('k.note_id', 'n.note_id')
-                    ->whereColumn('k.erstellt_am', '>', 'g.gesehen_am')))
+            ->where(Ungelesen::bedingung($viewerId))
             ->groupBy('n.lernender_id')
             ->select(['n.lernender_id', DB::raw('COUNT(*) as anzahl')])
             ->pluck('anzahl', 'n.lernender_id');

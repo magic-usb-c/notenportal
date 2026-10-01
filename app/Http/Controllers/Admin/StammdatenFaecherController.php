@@ -97,7 +97,8 @@ class StammdatenFaecherController extends Controller
             'aktualisiert_am' => now(),
         ]);
         // Kategorie der bestehenden Noten folgt dem Fach (docs/notenlogik.md: «Kategorie folgt aus dem Fach»).
-        DB::table('noten')->where('fach_id', $fach_id)->update(['kategorie_id' => $validated['kategorie_id']]);
+        // Stammdatenpflege, keine Notenänderung: aktualisiert_am bleibt, sonst wären alle Noten des Fachs wieder «neu».
+        DB::table('noten')->where('fach_id', $fach_id)->update(['kategorie_id' => $validated['kategorie_id'], 'aktualisiert_am' => DB::raw('aktualisiert_am')]);
         Konfiguration::vergessen();
 
         return redirect()->route('admin.master-data.subjects.index')

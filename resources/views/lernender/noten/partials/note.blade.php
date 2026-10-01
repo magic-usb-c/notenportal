@@ -2,9 +2,9 @@
 @php
     $eigeneSicht = $n->gesehen->firstWhere('viewer_benutzer_id', $ich);
     $bbHatGesehen = $n->gesehen->where('viewer_benutzer_id', '!=', $ich)->isNotEmpty();
-    $neuerKommentar = $eigeneSicht
-        ? $n->kommentare->contains(fn ($k) => $k->erstellt_am > $eigeneSicht->gesehen_am)
-        : $n->kommentare->isNotEmpty();
+    // Wie bei Berufsbildnern: nur Kommentare anderer, die nach dem letzten Öffnen kamen
+    $neuerKommentar = $n->kommentare->contains(fn ($k) => (int) $k->autor_benutzer_id !== (int) $ich
+        && (! $eigeneSicht || $k->erstellt_am > $eigeneSicht->gesehen_am));
     $letzter = $n->kommentare->last();
     $feld = 'np-feld';
 @endphp

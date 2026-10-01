@@ -25,6 +25,7 @@ use App\Services\Betrieb\Sicherung;
 use App\Support\Betrieb;
 use App\Support\Format;
 use App\Support\NotenSkala;
+use App\Support\Ungelesen;
 use App\Support\Zahl;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -539,11 +540,7 @@ final class Uebersicht
         return DB::table('noten as n')
             ->leftJoin('noten_gesehen as ng', fn ($j) => $j->on('ng.note_id', '=', 'n.note_id')->where('ng.viewer_benutzer_id', '=', $viewerId))
             ->whereIn('n.lernender_id', $ids)->whereNull('n.geloescht_am')
-            ->where(fn ($q) => $q->whereNull('ng.gesehen_am')
-                ->orWhereColumn('n.aktualisiert_am', '>', 'ng.gesehen_am')
-                ->orWhereExists(fn ($k) => $k->select(DB::raw(1))->from('noten_kommentare as k')
-                    ->whereColumn('k.note_id', 'n.note_id')->whereColumn('k.erstellt_am', '>', 'ng.gesehen_am')
-                    ->where('k.autor_benutzer_id', '!=', $viewerId)))
+            ->where(Ungelesen::bedingung($viewerId, 'n', 'ng'))
             ->groupBy('n.lernender_id')
             ->selectRaw('n.lernender_id, COUNT(DISTINCT n.note_id) as anzahl')
             ->pluck('anzahl', 'lernender_id')
@@ -573,11 +570,7 @@ final class Uebersicht
             ->whereIn('bt.berufsbildner_id', $berufsbildnerIds)->whereIn('bt.lernender_id', $lernendeIds)
             ->where('bt.gueltig_von', '<=', $heute)
             ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', $heute))
-            ->where(fn ($q) => $q->whereNull('ng.gesehen_am')
-                ->orWhereColumn('n.aktualisiert_am', '>', 'ng.gesehen_am')
-                ->orWhereExists(fn ($k) => $k->select(DB::raw(1))->from('noten_kommentare as k')
-                    ->whereColumn('k.note_id', 'n.note_id')->whereColumn('k.erstellt_am', '>', 'ng.gesehen_am')
-                    ->whereColumn('k.autor_benutzer_id', '!=', 'bb.benutzer_id')))
+            ->where(Ungelesen::bedingung('bb.benutzer_id', 'n', 'ng'))
             ->groupBy('bt.berufsbildner_id')
             ->selectRaw('bt.berufsbildner_id, COUNT(DISTINCT n.note_id) as anzahl')
             ->pluck('anzahl', 'berufsbildner_id')
