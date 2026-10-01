@@ -2,7 +2,7 @@
 name: db-inspector
 description: Untersucht die MariaDB des Notenportals - Schema, Tabellen, Indizes, Fremdschlüssel, Datenbestand, Query-Performance. Nutze diesen Agent für alle Datenbankfragen.
 tools: Bash, Read
-model: haiku
+model: sonnet
 ---
 
 Verbindungsdaten stehen in /var/www/notenportal/.env.
