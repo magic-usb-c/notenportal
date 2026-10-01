@@ -9,6 +9,7 @@ use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Leistung;
 use App\Services\Auswertung\Notenbaum\Baum;
 use App\Services\Auswertung\Notenbaum\BaumErgebnis;
+use App\Services\Auswertung\Notenbaum\Bedingung;
 use App\Services\Auswertung\Rechenkern;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -342,6 +343,71 @@ class NotenbaumAbnahmeTest extends TestCase
         $this->assertEqualsWithDelta(3.0, $e->knoten('ab')->note, 1e-9);
         $this->assertSame([], $e->gruende);
         $this->assertSame(BaumErgebnis::BESTANDEN, $e->status);
+    }
+
+    #[Test]
+    public function bedingungen_zeigen_jede_regel_mit_stand_auch_die_erfuellten(): void
+    {
+        $stand = fn (BaumErgebnis $e) => array_map(fn (Bedingung $b) => [$b->code, $b->regel, $b->stand, $b->definitiv], $e->bedingungen);
+
+        // IPA fehlt, Informatikkompetenzen (3,5×0,8 + 4,5×0,2 = 3,7) sind vollständig und zu tief
+        $offen = $this->efz(ipa: null, abuErfahrung: 4.5, schlussarbeit: null, schlusspruefung: null, egk: 4.5, schulmodule: 3.5, uek: 4.5);
+        $this->assertSame([
+            ['qv', 'fallnote', Bedingung::ERFUELLT, false],
+            ['ipa', 'fallnote', Bedingung::OFFEN, false],
+            ['ik', 'fallnote', Bedingung::VERLETZT, false],
+        ], $stand($offen));
+        $this->assertNull($offen->bedingungen[1]->wert);
+        $this->assertEqualsWithDelta(3.7, $offen->bedingungen[2]->wert, 1e-9);
+        // Die verletzte Bedingung ist genau der Grund
+        $this->assertSame(['ik'], array_map(fn ($g) => $g->code, $offen->gruende));
+
+        $fertig = $this->efz(ipa: 5.0, abuErfahrung: 4.5, schlussarbeit: 5.0, schlusspruefung: 4.0, egk: 4.5, schulmodule: 5.0, uek: 4.0);
+        $this->assertSame([
+            ['qv', 'fallnote', Bedingung::ERFUELLT, false],
+            ['ipa', 'fallnote', Bedingung::ERFUELLT, true],
+            ['ik', 'fallnote', Bedingung::ERFUELLT, false],
+        ], $stand($fertig));
+    }
+
+    #[Test]
+    public function bedingungen_ueber_teile_zaehlen_erst_mit_dem_ersten_wert(): void
+    {
+        $baum = $this->efzBaum(['max_ungenuegend' => 1, 'max_minuspunkte' => 0.5]);
+        $basis = [$this->position('ipa', 5.0), $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+        $ab = fn (array $l) => array_values(array_filter((new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1]->bedingungen,
+            fn (Bedingung $b) => $b->code === 'ab'));
+
+        [$anzahl, $minus] = $ab($basis);
+        $this->assertSame([Bedingung::OFFEN, Bedingung::OFFEN], [$anzahl->stand, $minus->stand]);
+        $this->assertNull($anzahl->wert);
+
+        [$anzahl, $minus] = $ab([...$basis, $this->position('ab_schlussarbeit', 3.5)]);
+        $this->assertSame([Bedingung::ERFUELLT, Bedingung::ERFUELLT], [$anzahl->stand, $minus->stand]);
+        $this->assertEqualsWithDelta(1.0, $anzahl->wert, 1e-9);
+        $this->assertEqualsWithDelta(0.5, $minus->wert, 1e-9);
+
+        [$anzahl, $minus] = $ab([...$basis, $this->position('ab_schlussarbeit', 3.5), $this->position('ab_schlusspruefung', 3.0)]);
+        $this->assertSame([Bedingung::VERLETZT, Bedingung::VERLETZT], [$anzahl->stand, $minus->stand]);
+        $this->assertEqualsWithDelta(2.0, $anzahl->wert, 1e-9);
+        $this->assertEqualsWithDelta(1.5, $minus->wert, 1e-9);
+    }
+
+    #[Test]
+    public function erfasst_ist_der_gewichtete_anteil_mit_wert(): void
+    {
+        // Allgemeinbildung zu einem Drittel (Erfahrungsnote), EGK und Informatikkompetenzen ganz: (20/3 + 10 + 30) / 100
+        $offen = $this->efz(ipa: null, abuErfahrung: 4.5, schlussarbeit: null, schlusspruefung: null, egk: 4.5, schulmodule: 5.0, uek: 4.0);
+        $this->assertEqualsWithDelta((20 / 3 + 10 + 30) / 100, $offen->erfasst(), 1e-9);
+
+        $fertig = $this->efz(ipa: 5.0, abuErfahrung: 4.5, schlussarbeit: 5.0, schlusspruefung: 4.0, egk: 4.5, schulmodule: 5.0, uek: 4.0);
+        $this->assertEqualsWithDelta(1.0, $fertig->erfasst(), 1e-9);
+
+        // Ein Teil ohne Gewicht bewegt die Note nicht und fehlt deshalb auch nicht
+        $baum = $this->ausVorlage('informatiker-efz-bivo2020', 1, ['Englisch' => self::ENGLISCH, 'Mathematik' => self::MATHE], ['ipa' => ['gewicht' => 0, 'fallnote' => null]]);
+        $l = [$this->position('ab_schlussarbeit', 5.0), $this->position('ab_schlusspruefung', 5.0), $this->fach(self::ABU_FACH, 1, 5.0, self::ABU),
+            $this->fach(self::ENGLISCH, 1, 4.5, self::FACH), $this->modul(100, self::FACH, 5.0), $this->modul(200, self::UEK, 4.0)];
+        $this->assertEqualsWithDelta(1.0, (new Rechenkern)->auswerten($l, $this->konfiguration()->mitBaeumen([$baum]))->baeume[1]->erfasst(), 1e-9);
     }
 
     // ---------------------------------------------------------------------------------------------

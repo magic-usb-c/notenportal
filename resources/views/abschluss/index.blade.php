@@ -1,7 +1,9 @@
-{{-- Abschluss (QV, Berufsmaturität): je Notenbaum links das Ergebnis mit Status und Gründen, rechts der Aufbau mit
-     Anteil und Note. Positionen von Hand werden direkt in der Tabelle erfasst; «Speichern» steht in der Symbolleiste.
-     Lernende und Verwaltung teilen die Ansicht. --}}
+{{-- Abschluss (QV, Berufsmaturität): je Notenbaum links das Ergebnis – Note, wie viel davon schon erfasst ist und jede
+     Bestehensbedingung mit ihrem Stand –, rechts der Aufbau mit Anteil und Note. Positionen von Hand werden direkt in
+     der Tabelle erfasst; «Speichern» steht in der Symbolleiste. Lernende und Verwaltung teilen die Ansicht. --}}
 @use('App\Services\Auswertung\Notenbaum\BaumErgebnis')
+@use('App\Services\Auswertung\Notenbaum\Bedingung')
+@use('App\Services\Auswertung\Notenbaum\Grund')
 @use('App\Services\Auswertung\Notenbaum\Knoten')
 @use('App\Support\NotenSkala')
 @php
@@ -25,17 +27,11 @@
 
         return $out;
     };
-    $regeln = fn (Knoten $k) => array_filter([
-        $k->fallnote !== null ? __('mindestens :note', ['note' => NotenSkala::format($k->fallnote, 1)]) : null,
-        $k->maxUngenuegend !== null ? __('höchstens :anzahl ungenügend', ['anzahl' => $k->maxUngenuegend]) : null,
-        $k->maxMinuspunkte !== null ? __('höchstens :anzahl Minuspunkte', ['anzahl' => NotenSkala::format($k->maxMinuspunkte, 1)]) : null,
-    ]);
-    // Bestehensregel der Wurzel als Satz: «Bestanden ab 4.0 · höchstens 2 ungenügend …»
-    $bestehen = fn (Knoten $k) => array_filter([
-        $k->fallnote !== null ? __('Bestanden ab :note', ['note' => NotenSkala::format($k->fallnote, 1)]) : null,
-        $k->maxUngenuegend !== null ? __('höchstens :anzahl ungenügend', ['anzahl' => $k->maxUngenuegend]) : null,
-        $k->maxMinuspunkte !== null ? __('höchstens :anzahl Minuspunkte', ['anzahl' => NotenSkala::format($k->maxMinuspunkte, 1)]) : null,
-    ]);
+    $regel = fn (Bedingung $b) => match ($b->regel) {
+        Grund::FALLNOTE => __('mindestens :note', ['note' => NotenSkala::format($b->grenze, 1)]),
+        Grund::UNGENUEGEND => __('höchstens :anzahl ungenügend', ['anzahl' => (int) $b->grenze]),
+        Grund::MINUSPUNKTE => __('höchstens :anzahl Minuspunkte', ['anzahl' => NotenSkala::format($b->grenze, 1)]),
+    };
     $hatManuell = collect($ergebnisse)->contains(fn ($e) => collect($e->baum->alle())->contains(fn ($k) => $k->typ === Knoten::MANUELL && ! $k->entfaellt));
 @endphp
 <x-app-layout>
@@ -67,16 +63,18 @@
                     </x-leer>
                 </div>
             @else
-                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-8">
+                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10">
                     @csrf
                     @method('PUT')
 
                     @foreach($ergebnisse as $i => $e)
                         @php
                             $wurzel = $e->wurzel();
+                            $erfasst = (int) round($e->erfasst() * 100);
                         @endphp
-                        <section class="grid grid-cols-12 items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
-                            <div class="np-karte col-span-4 flex flex-col gap-4 p-5">
+                        {{-- Links fest neben dem Aufbau: bei langen Bäumen (Berufsmaturität) bleibt das Ergebnis im Blick --}}
+                        <section class="grid grid-cols-[26rem_minmax(0,72rem)] items-start gap-5" aria-labelledby="baum-{{ $e->baum->id }}">
+                            <div class="np-karte sticky top-[calc(var(--np-symbolleiste-hoehe)+1rem)] flex flex-col p-5">
                                 <div class="flex items-start justify-between gap-3">
                                     <h2 id="baum-{{ $e->baum->id }}" class="min-w-0 text-base font-semibold text-text">{{ $e->baum->name }}</h2>
                                     @switch($e->status)
@@ -91,33 +89,71 @@
                                     @endswitch
                                 </div>
 
-                                <div>
-                                    <div class="flex items-baseline gap-3">
-                                        @if($wurzel->note !== null)
-                                            <x-note :wert="$wurzel->note" variante="hero" :stellen="1" @class(['leading-none', 'text-display' => $i === 0, 'text-2xl' => $i > 0]) />
-                                        @else
-                                            <span @class(['font-semibold leading-none text-muted', 'text-display' => $i === 0, 'text-2xl' => $i > 0])>–</span>
-                                        @endif
-                                        <span class="text-sm text-muted">{{ $wurzel->vollstaendig ? __('Gesamtnote') : __('Prognose') }}</span>
-                                    </div>
-                                    @if($r = $bestehen($wurzel->knoten))
-                                        <p class="mt-2 text-sm text-muted">{{ implode(' · ', $r) }}</p>
+                                <div class="mt-4 flex items-baseline gap-3">
+                                    @if($wurzel->note !== null)
+                                        <x-note :wert="$wurzel->note" variante="hero" :stellen="1" @class(['leading-none', 'text-display' => $i === 0, 'text-3xl' => $i > 0]) />
+                                    @else
+                                        <span @class(['font-semibold leading-none text-muted', 'text-display' => $i === 0, 'text-3xl' => $i > 0])>–</span>
                                     @endif
+                                    <span class="text-sm text-muted">{{ $wurzel->vollstaendig ? __('Gesamtnote') : __('Prognose') }}</span>
                                 </div>
 
-                                @if($e->gruende)
-                                    <ul class="flex flex-col gap-1.5 rounded-lg bg-fill-2 px-4 py-3 text-sm">
-                                        @foreach($e->gruende as $g)
-                                            <li class="flex items-baseline gap-2">
-                                                <span @class(['size-1.5 shrink-0 -translate-y-0.5 rounded-full', 'bg-note-ungenuegend' => $g->definitiv || $wurzel->vollstaendig, 'bg-note-knapp' => ! $g->definitiv && ! $wurzel->vollstaendig]) aria-hidden="true"></span>
-                                                <span class="text-text">{{ $g->text() }}</span>
+                                @unless($wurzel->vollstaendig)
+                                    {{-- Worauf die Prognose beruht: Anteil der Gesamtnote mit erfasstem Wert --}}
+                                    <div class="mt-4">
+                                        <div class="flex items-baseline justify-between text-xs">
+                                            <span class="text-muted">{{ __('Erfasst') }}</span>
+                                            <span class="tabular-nums text-text">{{ __(':anteil % der Gesamtnote', ['anteil' => $erfasst]) }}</span>
+                                        </div>
+                                        <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-fill" aria-hidden="true">
+                                            <div class="h-full rounded-full bg-accent" style="width: {{ $erfasst }}%"></div>
+                                        </div>
+                                    </div>
+                                @endunless
+
+                                @if($e->bedingungen !== [])
+                                    <h3 class="mt-6 text-sm font-semibold text-text">{{ __('Bestehen') }}</h3>
+                                    <ul class="mt-1">
+                                        @foreach($e->bedingungen as $b)
+                                            @php
+                                                // Fest ist ein Stand, wenn er auf einer Prüfung beruht oder alles erfasst ist
+                                                $fest = $b->definitiv || $wurzel->vollstaendig;
+                                                [$symbol, $farbe, $stand] = match (true) {
+                                                    $b->stand === Bedingung::OFFEN => ['circle', 'text-faint', __('offen')],
+                                                    $b->stand === Bedingung::ERFUELLT && $fest => ['check-circle', 'text-note-gut', __('erfüllt')],
+                                                    $b->stand === Bedingung::ERFUELLT => ['check-circle', 'text-muted', __('bisher erfüllt')],
+                                                    $fest => ['x-circle', 'text-note-ungenuegend', __('nicht erfüllt')],
+                                                    default => ['exclamation-triangle', 'text-note-knapp', __('gefährdet')],
+                                                };
+                                                $wert = match (true) {
+                                                    $b->wert === null => null,
+                                                    $b->regel === Grund::FALLNOTE => null,
+                                                    $b->regel === Grund::UNGENUEGEND => __(':wert von :grenze', ['wert' => (int) $b->wert, 'grenze' => (int) $b->grenze]),
+                                                    default => __(':wert von :grenze', ['wert' => NotenSkala::format($b->wert, 1), 'grenze' => NotenSkala::format($b->grenze, 1)]),
+                                                };
+                                            @endphp
+                                            <li class="grid grid-cols-[1.25rem_minmax(0,1fr)_auto] items-center gap-x-3 border-b border-border py-2.5 last:border-0">
+                                                <x-symbol :name="$symbol" class="size-5 {{ $farbe }}" />
+                                                <div class="min-w-0">
+                                                    <div class="wrap-break-word text-sm text-text">{{ $b->code === $e->baum->wurzel->code ? __('Gesamtnote') : $b->name }}</div>
+                                                    <div class="text-xs text-muted">{{ $regel($b) }}<span class="sr-only">, {{ $stand }}</span></div>
+                                                </div>
+                                                <div class="text-right text-sm tabular-nums">
+                                                    @if($b->regel === Grund::FALLNOTE && $b->wert !== null)
+                                                        <x-note :wert="$b->wert" :stellen="1" />
+                                                    @elseif($wert !== null)
+                                                        <span class="text-text">{{ $wert }}</span>
+                                                    @else
+                                                        <span class="text-muted">–</span>
+                                                    @endif
+                                                </div>
                                             </li>
                                         @endforeach
                                     </ul>
                                 @endif
                             </div>
 
-                            <div class="np-karte col-span-8 p-2">
+                            <div class="np-karte p-2">
                                 <table class="np-tabelle table-fixed text-sm">
                                     <thead>
                                         <tr>
@@ -134,14 +170,10 @@
                                                 $feld = 'werte.'.$k->id;
                                                 $position = $positionen[$k->id] ?? null;
                                                 $anteil = $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht'));
-                                                $r = $regeln($k);
                                             @endphp
                                             <tr>
                                                 <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
                                                     <div @class(['wrap-break-word text-text', 'font-medium' => $gruppe])>{{ $k->name }}</div>
-                                                    @if($r)
-                                                        <div class="wrap-break-word text-xs text-muted">{{ implode(' · ', $r) }}</div>
-                                                    @endif
                                                     @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                 </td>
                                                 <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>

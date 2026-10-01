@@ -68,7 +68,6 @@
     "Berichte": "Reports",
     "Berufsbildner": "Trainer",
     "Bestanden": "Passed",
-    "Bestanden ab :note": "Passed from :note",
     "Bestehende Module mit derselben Nummer werden aktualisiert, nichts wird gelöscht. Vor dem ersten grossen Import lohnt sich eine Sicherung.": "Existing modules with the same number are updated, nothing is deleted. A backup is worthwhile before the first large import.",
     "Bestätigen": "Confirm",
     "Betreute Lernende mit Beginn und Ende der Betreuung.": "Supervised apprentices with start and end of supervision.",
@@ -602,5 +601,11 @@
     "Erzeugt den Verweis auf den Modulbaukasten.": "Creates the link to the Modulbaukasten.",
     "Etwa die Modulseite der Schule.": "For example the school's module page.",
     "Eine Zeile je Ziel, eine führende Nummer wird übernommen.": "One line per objective; a leading number is kept.",
-    "Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich.": "Letters, digits, full stop, underscore and hyphen."
+    "Buchstaben, Ziffern, Punkt, Unterstrich und Bindestrich.": "Letters, digits, full stop, underscore and hyphen.",
+    "Erfasst": "Recorded",
+    ":anteil % der Gesamtnote": ":anteil % of the overall grade",
+    "Bestehen": "Passing",
+    "bisher erfüllt": "met so far",
+    "nicht erfüllt": "not met",
+    ":wert von :grenze": ":wert of :grenze"
 }

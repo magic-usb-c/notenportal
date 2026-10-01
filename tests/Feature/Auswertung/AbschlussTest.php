@@ -71,6 +71,11 @@ class AbschlussTest extends TestCase
         // Nur die IPA liegt vor: die Prognose ist die IPA selbst (fehlende Teile werden übersprungen)
         $this->assertEqualsWithDelta(5.5, $a->gesamtNote, 1e-9);
         $this->get(route('learner.dashboard'))->assertSee(__('QV-Prognose'));
+        // Die IPA ist eine Prüfung: ihre Mindestnote ist fest erfüllt, die Prognose beruht auf 40 % der Gesamtnote
+        $this->get(route('learner.qualification.index'))->assertOk()
+            ->assertSee(__(':anteil % der Gesamtnote', ['anteil' => 40]))
+            ->assertSeeInOrder([__('Bestehen'), __('Gesamtnote'), __('bisher erfüllt'), 'Praktische Arbeit (IPA)',
+                __('mindestens :note', ['note' => '4.0']), ', '.__('erfüllt'), 'Informatikkompetenzen', __('offen')]);
 
         // Leeren entfernt die Position wieder
         $this->put(route('learner.qualification.update'), ['werte' => [$ipa => '']])->assertSessionHas('success');

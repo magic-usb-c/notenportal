@@ -20,6 +20,9 @@ final class BaumRechner
     /** @var list<Grund> */
     private array $gruende = [];
 
+    /** @var list<Bedingung> */
+    private array $bedingungen = [];
+
     /** @var array<string, KnotenErgebnis> */
     private array $ergebnisse = [];
 
@@ -36,6 +39,7 @@ final class BaumRechner
     public function rechnen(Baum $baum): BaumErgebnis
     {
         $this->gruende = [];
+        $this->bedingungen = [];
         $this->ergebnisse = [];
 
         $wurzel = $this->knoten($baum->wurzel);
@@ -48,7 +52,7 @@ final class BaumRechner
             default => BaumErgebnis::OFFEN,
         };
 
-        return new BaumErgebnis($baum, $this->ergebnisse, $status, $this->gruende);
+        return new BaumErgebnis($baum, $this->ergebnisse, $status, $this->gruende, $this->bedingungen);
     }
 
     private function knoten(Knoten $k): KnotenErgebnis
@@ -182,16 +186,31 @@ final class BaumRechner
     private function regelnPruefen(KnotenErgebnis $e): void
     {
         $k = $e->knoten;
-        if ($k->fallnote !== null && $e->note !== null && $e->note < $k->fallnote - 1e-9) {
-            $this->gruende[] = new Grund($k->code, $k->name, Grund::FALLNOTE, $e->note, $k->fallnote, $k->typ === Knoten::MANUELL);
+        if ($k->fallnote !== null) {
+            $verletzt = $e->note !== null && $e->note < $k->fallnote - 1e-9;
+            $definitiv = $k->typ === Knoten::MANUELL;
+            if ($verletzt) {
+                $this->gruende[] = new Grund($k->code, $k->name, Grund::FALLNOTE, $e->note, $k->fallnote, $definitiv);
+            }
+            $this->bedingungen[] = new Bedingung($k->code, $k->name, Grund::FALLNOTE, $e->note, $k->fallnote,
+                match (true) {
+                    $e->note === null => Bedingung::OFFEN,
+                    $verletzt => Bedingung::VERLETZT,
+                    default => Bedingung::ERFUELLT,
+                }, $definitiv && $e->note !== null);
         }
 
         if ($k->maxUngenuegend !== null || $k->maxMinuspunkte !== null) {
             $ungenuegend = 0;
             $minuspunkte = 0.0;
+            $mitWert = 0;
             foreach ($e->kinder as $kind) {
                 $note = $kind->massgebend();
-                if (! $kind->knoten->zaehlt || $note === null || $note >= $this->genuegend - 1e-9) {
+                if (! $kind->knoten->zaehlt || $note === null) {
+                    continue;
+                }
+                $mitWert++;
+                if ($note >= $this->genuegend - 1e-9) {
                     continue;
                 }
                 $ungenuegend++;
@@ -199,11 +218,27 @@ final class BaumRechner
             }
             $minuspunkte = round($minuspunkte, 2);
 
-            if ($k->maxUngenuegend !== null && $ungenuegend > $k->maxUngenuegend) {
-                $this->gruende[] = new Grund($k->code, $k->name, Grund::UNGENUEGEND, $ungenuegend, $k->maxUngenuegend);
+            // Ohne einen einzigen Wert gibt es noch nichts zu zählen: offen, nicht «0 ungenügend».
+            $stand = fn (bool $verletzt) => match (true) {
+                $verletzt => Bedingung::VERLETZT,
+                $mitWert === 0 => Bedingung::OFFEN,
+                default => Bedingung::ERFUELLT,
+            };
+            if ($k->maxUngenuegend !== null) {
+                $verletzt = $ungenuegend > $k->maxUngenuegend;
+                if ($verletzt) {
+                    $this->gruende[] = new Grund($k->code, $k->name, Grund::UNGENUEGEND, $ungenuegend, $k->maxUngenuegend);
+                }
+                $this->bedingungen[] = new Bedingung($k->code, $k->name, Grund::UNGENUEGEND, $mitWert === 0 ? null : $ungenuegend,
+                    $k->maxUngenuegend, $stand($verletzt), false);
             }
-            if ($k->maxMinuspunkte !== null && $minuspunkte > $k->maxMinuspunkte + 1e-9) {
-                $this->gruende[] = new Grund($k->code, $k->name, Grund::MINUSPUNKTE, $minuspunkte, $k->maxMinuspunkte);
+            if ($k->maxMinuspunkte !== null) {
+                $verletzt = $minuspunkte > $k->maxMinuspunkte + 1e-9;
+                if ($verletzt) {
+                    $this->gruende[] = new Grund($k->code, $k->name, Grund::MINUSPUNKTE, $minuspunkte, $k->maxMinuspunkte);
+                }
+                $this->bedingungen[] = new Bedingung($k->code, $k->name, Grund::MINUSPUNKTE, $mitWert === 0 ? null : $minuspunkte,
+                    $k->maxMinuspunkte, $stand($verletzt), false);
             }
         }
 
