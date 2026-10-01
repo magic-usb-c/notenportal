@@ -95,6 +95,20 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Suite jetzt 199 bestanden, 0 Warnungen. Details SETUP-CLAUDE.md §4.3, §12.12–13.
                   R4 Lernende begonnen: Basis-Rundgang 1920 Exit 0 für alle drei Rollen, Lernende bei
                   1920 und 2560 gesichtet (Scratchpad), Baustellen-Inventar liegt vor.
+[O] 01.10. 16:45  R4 Lernende abgeschlossen, Runde 1 (19572a9 Rechnerlogik, 9787b6e Oberfläche): zehn
+                  Umsetzungsgruppen parallel (Rechner, Leerzustände, Noten, Module, Import, Dashboard,
+                  Abschluss, Agenda, Profil, Demo-Lernende «Livia Gerber» ohne Noten), Bildprüfer 1920/2560,
+                  Reviewer ohne Befund, Suite 1269 grün. Rechner: gesuchte Note nur in einfliessende
+                  Prüfungen (Test fällt ohne Fix), Differenzen und «?» neutral, Lernende ohne Noten sehen
+                  «Noch keine Noten …» statt «bei 0.0». Dashboard: Leerzustand «Willkommen» statt zweier
+                  leerer Karten, Fach-Labels werden gemessen statt gekappt. Tabellen als np-tabelle mit
+                  colgroup, Leerzustände ohne Karte, Lade-Zustände im Import, Stufen-Auswahl als Segment.
+                  Begriff «Lehrende» (mehrdeutig) portalweit zu «Ende der Lehre»/«Lehre endet bald».
+                  Bewusst gelassen: docs/audit-backlog.md «R4 Lernende». Git-Historie beginnt bei 88905a4
+                  (01.10. 01:56); ältere Hashes in diesem Brett (3458e6c, 8e8af07, 171ed72 …) existieren
+                  nicht mehr – die Rotation des Prod-Testpassworts bleibt trotzdem bei David.
+                  Nächster Schritt: Runde 2 (ui-checker: Tastatur, aria, Hinweistexte, colgroup), dann
+                  Berufsbildner (Bildprüfer-Befunde liegen vor: scratchpad briefs-bb).
 ```
 
 ---
