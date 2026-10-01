@@ -2,7 +2,7 @@
 name: ui-checker
 description: Prüft Blade-Views auf Konsistenz mit den Design-Konventionen des Notenportals, Barrierefreiheit und Responsive-Verhalten. Nutze diesen Agent nach UI-Änderungen, einmal pro Rollenbereich.
 tools: Read, Grep, Glob
-model: sonnet
+model: opus
 ---
 
 Lies zuerst /var/www/notenportal/.claude/skills/notenportal-ui/SKILL.md – das ist der Massstab.
