@@ -40,9 +40,10 @@
                         @csrf
 
                         <div>
-                            <label for="datei" class="text-sm font-medium text-text">{{ __('Datei') }} *</label>
-                            <x-datei-feld id="datei" name="datei" accept=".json,application/json" required />
-                            @error('datei')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                            <label for="datei" class="text-sm font-medium text-text">{{ __('Datei') }}</label>
+                            <x-datei-feld id="datei" name="datei" accept=".json,application/json" required
+                                          :aria-invalid="$errors->has('datei') ? 'true' : null" :aria-describedby="$errors->has('datei') ? 'datei-fehler' : null" />
+                            @error('datei')<p id="datei-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
 
                         <label class="flex items-start gap-2.5 text-sm text-text">

@@ -141,7 +141,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="art" class="{{ $label }}">{{ __('Art') }} *</label>
+                            <label for="art" class="{{ $label }}">{{ __('Art') }}</label>
                             <select id="art" name="art" required class="{{ $feld }}" @error('art') aria-invalid="true" aria-describedby="art-fehler" @enderror>
                                 @foreach(Dokument::ARTEN as $wert => $text)
                                     <option value="{{ $wert }}" @selected(old('art', 'zeugnis') === $wert)>{{ Dokument::label($wert) }}</option>

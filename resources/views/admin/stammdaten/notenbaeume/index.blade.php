@@ -75,7 +75,7 @@
             <div class="flex flex-col gap-4 p-6">
                 <h2 id="load-grade-tree-template-title" class="text-base font-semibold text-text">{{ __('Vorlage laden') }}</h2>
                 <div>
-                    <label for="vorlage" class="text-sm font-medium text-text">{{ __('Vorlage') }} *</label>
+                    <label for="vorlage" class="text-sm font-medium text-text">{{ __('Vorlage') }}</label>
                     <select id="vorlage" name="vorlage" x-model="vorlage" required class="{{ $feld }}" @error('vorlage') aria-invalid="true" aria-describedby="vorlage-fehler" @enderror>
                         @foreach($vorlagen as $schluessel => $v)
                             <option value="{{ $schluessel }}">{{ $v['name'] }}</option>
@@ -84,10 +84,10 @@
                     @error('vorlage')<p id="vorlage-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div x-show="bezuege[vorlage] !== 'bildungsgang'">
-                    <label for="vorlage-lehrberuf" class="text-sm font-medium text-text">{{ __('Lehrberuf') }} *</label>
+                    <label for="vorlage-lehrberuf" class="text-sm font-medium text-text">{{ __('Lehrberuf') }}</label>
                     <select id="vorlage-lehrberuf" name="lehrberuf_id" class="{{ $feld }}" :disabled="bezuege[vorlage] === 'bildungsgang'"
                             @error('lehrberuf_id') aria-invalid="true" aria-describedby="vorlage-lehrberuf-fehler" @enderror>
-                        <option value="">{{ __('Bitte wählen') }}</option>
+                        <option value="">{{ __('Bitte wählen…') }}</option>
                         @foreach($lehrberufe as $l)
                             <option value="{{ $l->lehrberuf_id }}" @selected((int) old('lehrberuf_id') === (int) $l->lehrberuf_id || $lehrberufe->count() === 1)>{{ $l->name }}</option>
                         @endforeach
@@ -109,7 +109,7 @@
             <div class="flex flex-col gap-4 p-6">
                 <h2 id="import-grade-tree-title" class="text-base font-semibold text-text">{{ __('Datei importieren') }}</h2>
                 <div>
-                    <label for="datei" class="text-sm font-medium text-text">{{ __('Datei (JSON)') }} *</label>
+                    <label for="datei" class="text-sm font-medium text-text">{{ __('Datei (JSON)') }}</label>
                     <x-datei-feld id="datei" name="datei" accept=".json,application/json" required
                                   :aria-invalid="$errors->has('datei') ? 'true' : null" :aria-describedby="$errors->has('datei') ? 'datei-fehler' : null" />
                     @error('datei')<p id="datei-fehler" class="mt-1 whitespace-pre-line text-xs text-note-ungenuegend">{{ $message }}</p>@enderror

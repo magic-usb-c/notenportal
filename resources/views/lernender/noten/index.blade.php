@@ -281,7 +281,7 @@
                     <div class="flex flex-col gap-2 rounded-xl bg-fill-2 p-3">
                         <div class="flex items-center gap-2">
                             <select x-model="z.bezug" class="np-feld min-w-0 flex-1" aria-label="{{ __('Fach / Modul') }}">
-                                <option value="">{{ __('Bitte wählen') }}</option>
+                                <option value="">{{ __('Bitte wählen…') }}</option>
                                 @foreach($bezugOptionen as $gruppe => $optionen)
                                     <optgroup label="{{ $gruppe }}">
                                         @foreach($optionen as $o)

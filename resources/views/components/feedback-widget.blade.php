@@ -34,15 +34,10 @@
                         <x-symbol name="x-mark" strich="2" />
                     </button>
                 </div>
-                <p class="mb-4 text-sm text-muted">{{ __('Fehler, Ideen, Fragen oder sonst etwas – alles ist willkommen.') }}</p>
-
-                <div class="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-0.5" role="radiogroup" x-radiogroup aria-label="{{ __('Kategorie') }}">
+                <div class="np-segment mb-4 mt-3 flex w-full" role="radiogroup" x-radiogroup aria-label="{{ __('Kategorie') }}">
                     @foreach(\App\Models\Feedback::KATEGORIEN as $value => $label)
-                        <button type="button" @click="kategorie = '{{ $value }}'" role="radio"
-                                :aria-checked="kategorie === '{{ $value }}'"
-                                class="h-9 rounded-md px-2 text-sm font-medium text-muted transition-colors duration-150 hover:text-text aria-checked:bg-card aria-checked:text-text aria-checked:shadow-xs">
-                            {{ __($label) }}
-                        </button>
+                        <button type="button" @click="kategorie = '{{ $value }}'" role="radio" class="flex-1"
+                                :aria-checked="(kategorie === '{{ $value }}').toString()">{{ __($label) }}</button>
                     @endforeach
                 </div>
 
@@ -87,7 +82,7 @@
                          }"
                          @open-modal.window="if ($event.detail === 'feedback') laden()">
                         <template x-if="anzahl > 0">
-                            <div class="mb-4 rounded-lg border border-border bg-surface-2/60 p-3 text-sm">
+                            <div class="mb-4 rounded-xl bg-fill-2 px-4 py-3 text-sm">
                                 <p class="mb-2 font-medium text-text"
                                    x-text="anzahl === 1 ? @js(__('1 offene Meldung zu dieser Seite')) : @js(__(':anzahl offene Meldungen zu dieser Seite')).replace(':anzahl', anzahl)"></p>
                                 <ul class="space-y-2">
@@ -113,10 +108,10 @@
                     </div>
                 @endif
 
-                <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }} *</label>
+                <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }}</label>
                 <textarea id="feedback-text" x-model="text" rows="4" maxlength="5000" required
                           placeholder="{{ __('Was ist passiert, was fehlt dir, was gefällt dir?') }}"
-                          aria-describedby="feedback-fehler"
+                          aria-describedby="feedback-fehler" :aria-invalid="error ? 'true' : null"
                           class="np-feld mt-1.5"></textarea>
 
                 <label class="mt-3 flex items-start gap-2 text-sm text-text">
@@ -156,14 +151,12 @@
                         <x-datei-feld id="feedback-anhaenge" mehrere ohne-name accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,.log"
                                       @change="dateienWaehlen($event)" />
                         <p class="mt-1 text-xs text-muted">{{ __('Bis zu 3 Dateien, je maximal 5 MB (PNG, JPG, WebP, PDF, TXT, LOG).') }}</p>
-                        <ul class="mt-1.5 space-y-1" x-show="anhaenge.length > 0">
+                        <ul class="mt-2 flex flex-col gap-1.5" x-show="anhaenge.length > 0">
                             <template x-for="(datei, index) in anhaenge" :key="datei.name + index">
-                                <li class="flex items-center justify-between gap-2 rounded-md bg-surface-2 px-2.5 py-1 text-xs text-text">
+                                <li class="flex items-center justify-between gap-2 rounded-xl bg-fill-2 py-1 pl-4 pr-1 text-sm text-text">
                                     <span class="truncate" x-text="datei.name"></span>
                                     <button type="button" @click="anhangEntfernen(index)" aria-label="{{ __('Anhang entfernen') }}"
-                                            class="shrink-0 text-muted hover:text-text">
-                                        <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
+                                            class="np-knopf np-knopf-symbol np-knopf-klein shrink-0"><x-symbol name="x-mark" class="size-4" /></button>
                                 </li>
                             </template>
                         </ul>

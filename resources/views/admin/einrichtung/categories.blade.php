@@ -28,7 +28,7 @@
                 <legend class="sr-only">{{ $k->name }} ({{ $k->code }})</legend>
 
                 <div class="col-span-2">
-                    <label for="k{{ $id }}-name" class="{{ $label }}">{{ __('Name') }} *</label>
+                    <label for="k{{ $id }}-name" class="{{ $label }}">{{ __('Name') }}</label>
                     <input id="k{{ $id }}-name" name="{{ $name('name') }}" value="{{ $alt('name') }}" required maxlength="50" class="np-feld mt-1.5" {!! $fehlerAttr('name') !!}>
                     @error($schluessel('name'))<p id="k{{ $id }}-name-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
                 </div>
@@ -54,7 +54,7 @@
 
                 @foreach($zahlen as $f => [$text, $grenzen])
                     <div>
-                        <label for="k{{ $id }}-{{ $f }}" class="{{ $label }}">{{ $text }}@if($f === 'gewicht_gesamt') *@endif</label>
+                        <label for="k{{ $id }}-{{ $f }}" class="{{ $label }}">{{ $text }}</label>
                         <input type="number" id="k{{ $id }}-{{ $f }}" name="{{ $name($f) }}" value="{{ $alt($f) }}" {!! $grenzen !!} class="np-feld mt-1.5 tabular-nums" {!! $fehlerAttr($f) !!}>
                         @error($schluessel($f))<p id="k{{ $id }}-{{ $f }}-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
                     </div>

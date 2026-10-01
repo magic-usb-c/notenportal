@@ -39,17 +39,17 @@
         <section class="np-karte p-6 flex flex-col gap-5">
             <div class="grid grid-cols-3 gap-4">
                 <div>
-                    <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }} *</label>
+                    <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }}</label>
                     <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
                     @error('herbst')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="fruehling" class="{{ $label }}">{{ __('Erstes Frühlingssemester ab') }} *</label>
+                    <label for="fruehling" class="{{ $label }}">{{ __('Erstes Frühlingssemester ab') }}</label>
                     <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}">
                     @error('fruehling')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }} *</label>
+                    <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }}</label>
                     <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}">
                     @error('bis_jahr')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>

@@ -47,7 +47,7 @@
                     <a href="{{ route('admin.master-data.modules.catalog') }}" class="text-accent-text hover:underline">{{ __('Katalog einlesen') }}</a>
                 </p>
                 <div class="w-56">
-                    <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }} *</label>
+                    <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }}</label>
                     <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} tabular-nums">
                     @error('ziel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
