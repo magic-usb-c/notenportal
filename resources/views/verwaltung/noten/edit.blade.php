@@ -7,15 +7,13 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-spalte">
-            <div class="np-karte p-6">
+            <div class="np-karte np-spalte p-6">
                 @include('noten._formular', [
                     'zurueck' => route("{$bereich}.learners.grades.index", $lernender->lernender_id),
                     'vorschauUrl' => route("{$bereich}.learners.calculator.calculate", $lernender->lernender_id),
                     'action' => route("{$bereich}.learners.grades.update", [$lernender->lernender_id, $note->note_id]),
                     'note' => $note,
                 ])
-            </div>
             </div>
         </div>
     </div>

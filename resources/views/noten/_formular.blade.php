@@ -15,6 +15,7 @@
     $label = 'text-sm font-medium text-text';
     $feld = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
+    $bezugFehler = array_values(array_filter(['typ', 'fach_id', 'modul_id'], fn ($f) => $errors->has($f)));
 @endphp
 
 <form method="POST" action="{{ $action }}" class="flex flex-col gap-6" novalidate
@@ -46,15 +47,15 @@
     <input type="hidden" name="modul_id" :value="typ === 'modul' ? id : ''">
 
     <div class="flex flex-col items-center gap-2" x-show="!istStufe">
-        <label for="note_wert" class="{{ $label }}">{{ __('Note') }} *</label>
+        <label for="note_wert" class="{{ $label }}">{{ __('Note') }}</label>
         <input type="number" id="note_wert" name="note_wert" step="0.05" min="1" max="6" required autofocus
-               x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-describedby="note_wert-fehler" @enderror
+               x-model="wert" :class="klasse(wert)" :disabled="istStufe" @error('note_wert') aria-invalid="true" aria-describedby="note_wert-fehler" @enderror
                class="np-feld h-20 w-36 border-2 text-center text-3xl font-semibold tabular-nums">
         @error('note_wert')<p id="note_wert-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
-    <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak>
-        <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }} *</legend>
+    <fieldset class="flex flex-col items-center gap-2" x-show="istStufe" x-cloak @error('note_stufe') aria-describedby="note_stufe-fehler" @enderror>
+        <legend class="{{ $label }} mb-2 text-center">{{ __('Stufe') }}</legend>
         <div class="inline-flex gap-0.5 rounded-2xl bg-fill p-1" role="radiogroup">
             @foreach(\App\Services\Noten\NoteService::STUFEN as $s)
                 <label class="relative">
@@ -65,13 +66,13 @@
                 </label>
             @endforeach
         </div>
-        @error('note_stufe')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        @error('note_stufe')<p id="note_stufe-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </fieldset>
 
     <div>
-        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
-        <select id="bezug" name="bezug" x-model="bezug" required class="{{ $feld }}">
-            <option value="">{{ __('Bitte wählen') }}</option>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }}</label>
+        <select id="bezug" name="bezug" x-model="bezug" required class="{{ $feld }}" @if($bezugFehler) aria-invalid="true" aria-describedby="{{ implode(' ', array_map(fn ($f) => $f.'-fehler', $bezugFehler)) }}" @endif>
+            <option value="">{{ __('Bitte wählen…') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
                 <optgroup label="{{ $gruppe }}">
                     @foreach($optionen as $o)
@@ -80,59 +81,56 @@
                 </optgroup>
             @endforeach
         </select>
-        @foreach(['typ', 'fach_id', 'modul_id'] as $f)
-            @error($f)<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        @foreach($bezugFehler as $f)
+            <p id="{{ $f }}-fehler" class="{{ $fehler }}">{{ $errors->first($f) }}</p>
         @endforeach
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-        <div>
-            <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }} *</label>
-            <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="{{ $feld }}">
-            <p class="mt-1 text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
+    {{-- Eine Spalte: im Drawer (28rem) hätten Datum und Gewichtung mit ihren Segmenten nebeneinander keinen Platz --}}
+    <div>
+        <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }}</label>
+        <div class="mt-1.5 flex items-center gap-3">
+            <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="np-feld w-48 tabular-nums"
+                   aria-describedby="pruefungsdatum-hinweis @error('pruefungsdatum') pruefungsdatum-fehler @enderror" @error('pruefungsdatum') aria-invalid="true" @enderror>
+            <p id="pruefungsdatum-hinweis" class="text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
                x-text="semester ? semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>
-            @error('pruefungsdatum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
-        <div>
-            <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung') }}</label>
-            <x-gewicht-feld id="gewichtung_prozent" model="gewicht" />
-            @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
-        </div>
+        @error('pruefungsdatum')<p id="pruefungsdatum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
+        <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung') }}</label>
+        <x-gewicht-feld id="gewichtung_prozent" model="gewicht"
+                        :aria-invalid="$errors->has('gewichtung_prozent') ? 'true' : null"
+                        :aria-describedby="$errors->has('gewichtung_prozent') ? 'gewichtung_prozent-fehler' : null" />
+        @error('gewichtung_prozent')<p id="gewichtung_prozent-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label for="titel" class="{{ $label }}">{{ __('Titel') }}</label>
-        <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $note?->titel ?? $pruefung?->titel) }}" class="{{ $feld }}">
-        @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $note?->titel ?? $pruefung?->titel) }}" placeholder="{{ __('Optional') }}"
+               class="{{ $feld }}" @error('titel') aria-invalid="true" aria-describedby="titel-fehler" @enderror>
+        @error('titel')<p id="titel-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
-    <div x-show="vorschau.length" x-cloak class="rounded-xl border border-border bg-surface-2/60 px-4 py-3" aria-live="polite">
-        <div class="mb-1.5 text-xs font-medium text-muted">{{ __('Auswirkung') }}</div>
-        <template x-for="z in vorschau" :key="z.text">
-            <div class="flex items-center justify-between gap-3 py-1 text-sm">
-                <span class="truncate" :class="z.ist_ziel ? 'text-text font-medium' : 'text-muted'" x-text="z.label"></span>
-                <span class="shrink-0 tabular-nums">
-                    <span class="text-muted" x-text="fmt(z.vorher)"></span>
-                    <span class="text-muted" aria-hidden="true">→</span>
-                    <span class="font-semibold" :class="klasse(z.nachher)" x-text="fmt(z.nachher)"></span>
-                </span>
-            </div>
-        </template>
-    </div>
+    <section x-show="vorschau.length" x-cloak aria-live="polite">
+        <h2 class="mb-2 px-1 text-xs font-medium text-muted">{{ __('Auswirkung') }}</h2>
+        {{-- Fläche statt Karte: steht im Drawer wie in der Formularkarte; divide-y, weil das <template> erstes Kind ist --}}
+        <div class="divide-y divide-border rounded-xl bg-fill-2 px-4">
+            <template x-for="z in vorschau" :key="z.text">
+                <div class="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span class="truncate" :class="z.ist_ziel ? 'text-text font-medium' : 'text-muted'" x-text="z.label"></span>
+                    <span class="shrink-0 tabular-nums">
+                        <span class="text-muted" x-text="fmt(z.vorher)"></span>
+                        <span class="text-muted" aria-hidden="true">→</span>
+                        <span class="font-semibold" :class="klasse(z.nachher)" x-text="fmt(z.nachher)"></span>
+                    </span>
+                </div>
+            </template>
+        </div>
+    </section>
 
-    <div class="flex items-center justify-end gap-2 pt-2">
-        @if($drawer)
-            <button type="button" @click="$dispatch('close-drawer', 'note')" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Abbrechen') }}</button>
-        @else
-            <a href="{{ $zurueck }}" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Abbrechen') }}</a>
-        @endif
-        <button type="submit" :disabled="loading"
-                class="np-knopf np-knopf-primaer min-w-24">
-            <svg x-show="loading" x-cloak class="size-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-            {{ $submitLabel ?? ($note ? __('Speichern') : __('Note erfassen')) }}
-        </button>
-    </div>
+    <x-formular-aktionen :abbrechen="$zurueck" :schliessen="$drawer ? 'note' : null">
+        {{ $submitLabel ?? ($note ? __('Speichern') : __('Note erfassen')) }}
+    </x-formular-aktionen>
 </form>

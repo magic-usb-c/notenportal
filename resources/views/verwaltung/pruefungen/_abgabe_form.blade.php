@@ -16,9 +16,9 @@
     <input type="hidden" name="lernender_id" value="{{ $filter['lernender_id'] }}">
 
     <div>
-        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
-        <select id="abgabe-bezug" name="bezug" required class="{{ $feld }}">
-            <option value="">{{ __('Bitte wählen') }}</option>
+        <label for="abgabe-bezug" class="{{ $label }}">{{ __('Fach / Modul') }}</label>
+        <select id="abgabe-bezug" name="bezug" required class="{{ $feld }}" @error('bezug') aria-invalid="true" aria-describedby="abgabe-bezug-fehler" @enderror>
+            <option value="">{{ __('Bitte wählen…') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
                 <optgroup label="{{ $gruppe }}">
                     @foreach($optionen as $o)
@@ -27,27 +27,31 @@
                 </optgroup>
             @endforeach
         </select>
-        @error('bezug')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        @error('bezug')<p id="abgabe-bezug-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
-        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }} *</label>
-        <input id="abgabe-titel" name="titel" required maxlength="150" value="{{ old('titel', $b?->titel) }}" class="{{ $feld }}">
-        @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <label for="abgabe-titel" class="{{ $label }}">{{ __('Titel') }}</label>
+        <input id="abgabe-titel" name="titel" required maxlength="150" value="{{ old('titel', $b?->titel) }}"
+               class="{{ $feld }}" @error('titel') aria-invalid="true" aria-describedby="abgabe-titel-fehler" @enderror>
+        @error('titel')<p id="abgabe-titel-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }} *</label>
-            <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
-            @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }}</label>
+            <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}"
+                   class="{{ $feld }} tabular-nums" @error('datum') aria-invalid="true" aria-describedby="abgabe-datum-fehler" @enderror>
+            @error('datum')<p id="abgabe-datum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="abgabe-gewichtung" class="{{ $label }}">{{ __('Gewichtung') }}</label>
-            <x-gewicht-feld id="abgabe-gewichtung" :wert="old('gewichtung_prozent', $b?->gewichtung_prozent)" />
-            @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            <x-gewicht-feld id="abgabe-gewichtung" :wert="old('gewichtung_prozent', $b?->gewichtung_prozent)" placeholder="100"
+                            :aria-invalid="$errors->has('gewichtung_prozent') ? 'true' : null"
+                            :aria-describedby="$errors->has('gewichtung_prozent') ? 'abgabe-gewichtung-fehler' : null" />
+            @error('gewichtung_prozent')<p id="abgabe-gewichtung-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>
 
-    <x-formular-aktionen :abbrechen="route($bereich.'.exams.index', $filter)">{{ $b ? __('Speichern') : __('Erfassen') }}</x-formular-aktionen>
+    <x-formular-aktionen schliessen="abgabetermin">{{ $b ? __('Speichern') : __('Erfassen') }}</x-formular-aktionen>
 </form>

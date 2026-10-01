@@ -7,10 +7,9 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-spalte">
-            <div class="np-karte p-6 space-y-5">
+            <div class="np-karte np-spalte p-6">
                 @if(empty($bezugOptionen))
-                    <p class="text-sm text-note-knapp">{{ __('Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.') }}</p>
+                    <p class="mb-5 text-sm text-note-knapp">{{ __('Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.') }}</p>
                 @endif
 
                 @include('noten._formular', [
@@ -18,7 +17,6 @@
                     'vorschauUrl' => route("{$bereich}.learners.calculator.calculate", $lernender->lernender_id),
                     'action' => route("{$bereich}.learners.grades.store", $lernender->lernender_id),
                 ])
-            </div>
             </div>
         </div>
     </div>

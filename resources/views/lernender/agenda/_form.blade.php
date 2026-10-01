@@ -36,7 +36,7 @@
                 $lokalListe[] = ['label' => $feldLabels[$feld] ?? $feld, 'wert' => $wert];
             }
         @endphp
-        <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 flex flex-col gap-2 text-xs">
+        <div class="flex flex-col gap-2 rounded-xl bg-fill-2 px-4 py-3 text-xs">
             <p class="text-text font-medium">{{ __('Lokal angepasst') }}</p>
             <p class="text-muted">{{ __('Diese Felder wurden von Hand geändert und werden beim nächsten Abgleich nicht mehr vom Kalender überschrieben.') }}</p>
             <ul class="flex flex-col gap-0.5 text-muted">
@@ -51,9 +51,9 @@
     @endif
 
     <div>
-        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }} *</label>
-        <select id="bezug" name="bezug" required class="{{ $feld }}">
-            <option value="">{{ __('Bitte wählen') }}</option>
+        <label for="bezug" class="{{ $label }}">{{ __('Fach / Modul') }}</label>
+        <select id="bezug" name="bezug" required class="{{ $feld }}" @error('bezug') aria-invalid="true" aria-describedby="bezug-fehler" @enderror>
+            <option value="">{{ __('Bitte wählen…') }}</option>
             @foreach($bezugOptionen as $gruppe => $optionen)
                 <optgroup label="{{ $gruppe }}">
                     @foreach($optionen as $o)
@@ -62,70 +62,80 @@
                 </optgroup>
             @endforeach
         </select>
-        @error('bezug')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        @error('bezug')<p id="bezug-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label for="titel" class="{{ $label }}">{{ __('Titel') }}</label>
-        <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $b?->titel) }}" class="{{ $feld }}">
-        @error('titel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <input id="titel" name="titel" maxlength="150" value="{{ old('titel', $b?->titel) }}" placeholder="{{ __('Optional') }}"
+               class="{{ $feld }}" @error('titel') aria-invalid="true" aria-describedby="titel-fehler" @enderror>
+        @error('titel')<p id="titel-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
-            <label for="datum" class="{{ $label }}">{{ __('Datum') }} *</label>
-            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" class="{{ $feld }}">
-            @error('datum')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            <label for="datum" class="{{ $label }}">{{ __('Datum') }}</label>
+            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}"
+                   class="{{ $feld }} tabular-nums" @error('datum') aria-invalid="true" aria-describedby="datum-fehler" @enderror>
+            @error('datum')<p id="datum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="uhrzeit" class="{{ $label }}">{{ __('Uhrzeit') }}</label>
-            <input type="time" id="uhrzeit" name="uhrzeit" value="{{ old('uhrzeit', $b?->uhrzeit ? substr((string) $b->uhrzeit, 0, 5) : null) }}" class="{{ $feld }}">
-            @error('uhrzeit')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            <input type="time" id="uhrzeit" name="uhrzeit" value="{{ old('uhrzeit', $b?->uhrzeit ? substr((string) $b->uhrzeit, 0, 5) : null) }}"
+                   class="{{ $feld }} tabular-nums" @error('uhrzeit') aria-invalid="true" aria-describedby="uhrzeit-fehler" @enderror>
+            @error('uhrzeit')<p id="uhrzeit-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>
 
     <div>
         <label for="gewichtung_prozent" class="{{ $label }}">{{ __('Gewichtung') }}</label>
-        <x-gewicht-feld id="gewichtung_prozent" model="gewicht" required />
-        @error('gewichtung_prozent')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <x-gewicht-feld id="gewichtung_prozent" model="gewicht" required
+                        :aria-invalid="$errors->has('gewichtung_prozent') ? 'true' : null"
+                        :aria-describedby="$errors->has('gewichtung_prozent') ? 'gewichtung_prozent-fehler' : null" />
+        @error('gewichtung_prozent')<p id="gewichtung_prozent-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label for="pruefungsart" class="{{ $label }}">{{ __('Prüfungsart') }}</label>
-            <input id="pruefungsart" name="pruefungsart" list="pruefungsart-optionen" maxlength="150" value="{{ old('pruefungsart', $b?->pruefungsart) }}" class="{{ $feld }}">
+            <input id="pruefungsart" name="pruefungsart" list="pruefungsart-optionen" maxlength="150" value="{{ old('pruefungsart', $b?->pruefungsart) }}" placeholder="{{ __('Optional') }}"
+                   class="{{ $feld }}" @error('pruefungsart') aria-invalid="true" aria-describedby="pruefungsart-fehler" @enderror>
             <datalist id="pruefungsart-optionen">
                 <option value="{{ __('Schriftlich') }}"><option value="{{ __('Mündlich') }}"><option value="{{ __('Praktisch') }}"><option value="{{ __('Online') }}">
             </datalist>
-            @error('pruefungsart')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            @error('pruefungsart')<p id="pruefungsart-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
         <div>
             <label for="dauer_minuten" class="{{ $label }}">{{ __('Dauer (Min.)') }}</label>
-            <input type="number" id="dauer_minuten" name="dauer_minuten" min="1" max="600" value="{{ old('dauer_minuten', $b?->dauer_minuten) }}" class="{{ $feld }}">
-            @error('dauer_minuten')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            <input type="number" id="dauer_minuten" name="dauer_minuten" min="1" max="600" value="{{ old('dauer_minuten', $b?->dauer_minuten) }}" placeholder="{{ __('Optional') }}"
+                   class="{{ $feld }} text-right tabular-nums" @error('dauer_minuten') aria-invalid="true" aria-describedby="dauer_minuten-fehler" @enderror>
+            @error('dauer_minuten')<p id="dauer_minuten-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     </div>
 
     <div>
         <label for="hilfsmittel" class="{{ $label }}">{{ __('Erlaubte Hilfsmittel') }}</label>
-        <input id="hilfsmittel" name="hilfsmittel" maxlength="255" value="{{ old('hilfsmittel', $b?->hilfsmittel) }}" class="{{ $feld }}">
-        @error('hilfsmittel')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <input id="hilfsmittel" name="hilfsmittel" maxlength="255" value="{{ old('hilfsmittel', $b?->hilfsmittel) }}" placeholder="{{ __('Optional') }}"
+               class="{{ $feld }}" @error('hilfsmittel') aria-invalid="true" aria-describedby="hilfsmittel-fehler" @enderror>
+        @error('hilfsmittel')<p id="hilfsmittel-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label for="stoff" class="{{ $label }}">{{ __('Prüfungsstoff') }}</label>
-        <textarea id="stoff" name="stoff" rows="4" maxlength="5000" class="{{ $textarea }}">{{ old('stoff', $b?->stoff) }}</textarea>
-        @error('stoff')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <textarea id="stoff" name="stoff" rows="4" maxlength="5000" placeholder="{{ __('Optional') }}" class="{{ $textarea }}"
+                  @error('stoff') aria-invalid="true" aria-describedby="stoff-fehler" @enderror>{{ old('stoff', $b?->stoff) }}</textarea>
+        @error('stoff')<p id="stoff-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     <div>
         <label for="notizen" class="{{ $label }}">{{ __('Eigene Notizen') }}</label>
-        <textarea id="notizen" name="notizen" rows="3" maxlength="5000" class="{{ $textarea }}">{{ old('notizen', $b?->notizen) }}</textarea>
-        @error('notizen')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+        <textarea id="notizen" name="notizen" rows="3" maxlength="5000" placeholder="{{ __('Optional') }}" class="{{ $textarea }}"
+                  @error('notizen') aria-invalid="true" aria-describedby="notizen-fehler" @enderror>{{ old('notizen', $b?->notizen) }}</textarea>
+        @error('notizen')<p id="notizen-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
     </div>
 
     @if($b?->note)
-        <div class="rounded-lg border border-border bg-bg/40 px-3 py-2.5 flex items-center justify-between gap-3">
+        <div class="flex items-center justify-between gap-3 rounded-xl bg-fill-2 px-4 py-2.5">
             <span class="text-sm text-text">{{ __('Note') }}</span>
             <x-note :wert="$b->note->note_wert" :stufe="$b->note->note_stufe" variante="badge" />
         </div>
@@ -135,26 +145,27 @@
 
     @if($b)
         <div class="flex flex-col gap-2">
-            <span class="{{ $label }}">{{ __('Angehängte Dateien') }}</span>
+            <span id="anhaenge-bez" class="{{ $label }}">{{ __('Angehängte Dateien') }}</span>
             @forelse($b->dokumente as $d)
-                <div class="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2">
-                    <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="text-sm text-accent-text hover:underline truncate">{{ $d->titel }}</a>
-                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="text-muted hover:text-note-ungenuegend text-sm px-1" aria-label="{{ __('Entfernen') }}">×</button>
+                <div class="flex items-center justify-between gap-2 rounded-xl bg-fill-2 py-1 pl-4 pr-1">
+                    <a href="{{ route('learner.documents.show', $d->dokument_id) }}" class="truncate text-sm text-accent-text hover:underline">{{ $d->titel }}</a>
+                    <button form="anhang-entfernen-{{ $d->dokument_id }}" class="np-knopf np-knopf-symbol np-knopf-klein" aria-label="{{ __('Entfernen') }}"><x-symbol name="x-mark" class="size-4" /></button>
                 </div>
             @empty
                 <p class="text-sm text-muted">{{ __('Keine Anhänge.') }}</p>
             @endforelse
             <div class="flex items-center gap-2">
-                <x-datei-feld id="anhang-datei" rahmen="flex-1" name="datei" form="anhang-hochladen" required :aria-label="__('Datei anhängen')" />
+                <x-datei-feld id="anhang-datei" rahmen="flex-1" name="datei" form="anhang-hochladen" required :aria-label="__('Datei anhängen')"
+                              :aria-invalid="$errors->has('datei') ? 'true' : null" :aria-describedby="$errors->has('datei') ? 'datei-fehler' : null" />
                 <button form="anhang-hochladen" class="np-knopf np-knopf-sekundaer shrink-0">{{ __('Anhängen') }}</button>
             </div>
-            @error('datei')<p class="{{ $fehler }}">{{ $message }}</p>@enderror
+            @error('datei')<p id="datei-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
     @else
         <p class="text-xs text-muted">{{ __('Anhänge können nach dem Speichern hinzugefügt werden.') }}</p>
     @endif
 
-    <x-formular-aktionen :abbrechen="route('learner.exams.index')">{{ $b ? __('Speichern') : __('Planen') }}</x-formular-aktionen>
+    <x-formular-aktionen schliessen="pruefung">{{ $b ? __('Speichern') : __('Planen') }}</x-formular-aktionen>
 </form>
 
 {{-- Eigenständige Formulare ausserhalb des Hauptformulars: HTML erlaubt keine verschachtelten
