@@ -62,28 +62,31 @@ class ProfileController extends Controller
     {
         abort_unless(Darstellung::praeferenzenOptionVerfuegbar(), 404);
 
-        $user = $request->user();
-        $aktuell = Darstellung::fuer($user);
+        // Gesperrt wie preferences(): eine gleichzeitige Karten-Änderung ginge sonst verloren
+        DB::transaction(function () use ($request): void {
+            $user = User::query()->lockForUpdate()->findOrFail($request->user()->getKey());
+            $aktuell = Darstellung::fuer($user);
 
-        $user->praeferenzen = [
-            'theme' => null,
-            'akzent' => null,
-            'akzent_eigen' => null,
-            'schrift' => Darstellung::SCHRIFT_NORMAL,
-            'schriftart' => Darstellung::SCHRIFTART_STANDARD,
-            'bewegung' => Darstellung::BEWEGUNG_NORMAL,
-            'dichte' => Darstellung::DICHTE_NORMAL,
-            'diagramm' => Darstellung::DIAGRAMM_STANDARD,
-            'notenanzeige' => Darstellung::NOTENANZEIGE_1,
-            'ecken' => Darstellung::ECKEN_RUND,
-            'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
-            'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
-            'navigation' => Darstellung::NAVIGATION_SEITE,
-            'startseite' => 'dashboard',
-            'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
-        ];
-        $user->kontrast = false;
-        $user->save();
+            $user->praeferenzen = [
+                'theme' => null,
+                'akzent' => null,
+                'akzent_eigen' => null,
+                'schrift' => Darstellung::SCHRIFT_NORMAL,
+                'schriftart' => Darstellung::SCHRIFTART_STANDARD,
+                'bewegung' => Darstellung::BEWEGUNG_NORMAL,
+                'dichte' => Darstellung::DICHTE_NORMAL,
+                'diagramm' => Darstellung::DIAGRAMM_STANDARD,
+                'notenanzeige' => Darstellung::NOTENANZEIGE_1,
+                'ecken' => Darstellung::ECKEN_RUND,
+                'transparenz' => Darstellung::TRANSPARENZ_NORMAL,
+                'tastenkuerzel' => Darstellung::TASTENKUERZEL_AN,
+                'navigation' => Darstellung::NAVIGATION_SEITE,
+                'startseite' => 'dashboard',
+                'karten_ausgeblendet' => $aktuell['karten_ausgeblendet'],
+            ];
+            $user->kontrast = false;
+            $user->save();
+        });
 
         return redirect()->route('settings.profile')->with('success', __('Darstellung auf Standard zurückgesetzt.'));
     }

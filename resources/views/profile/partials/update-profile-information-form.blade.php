@@ -160,7 +160,7 @@
                             </label>
                         @endforeach
                         <label class="{{ $swatchWahl }}" title="{{ __('Eigene Farbe') }}">
-                            <input type="radio" name="akzent" value="eigen" class="sr-only" x-model="akzent" @change="setzen(akzentEigen ? { akzent, akzent_eigen: akzentEigen } : { akzent })"
+                            <input type="radio" name="akzent" value="eigen" class="sr-only" x-model="akzent" @change="eigeneFarbeWaehlen()"
                                    x-bind:disabled="effektivTheme() === 'kontrast'" @checked($p['akzent'] === 'eigen')>
                             <input type="color" x-model="akzentEigen" @input="akzent = 'eigen'; anwenden()" @change="setzen({ akzent: 'eigen', akzent_eigen: akzentEigen })"
                                    x-bind:disabled="effektivTheme() === 'kontrast'" x-bind:class="{ 'np-farbrad': akzent !== 'eigen' }"
@@ -221,7 +221,7 @@
                 @endif
                 {{-- Transparenz: schaltet Blur auf Leiste und Overlay ab (deckende Fläche) --}}
                 <x-einstellung :label="__('Transparenz reduzieren')" fuer="transparenz">
-                    <input id="transparenz" type="checkbox" role="switch" class="np-schalter" @checked($p['transparenz'] === 'reduziert')
+                    <input id="transparenz" type="checkbox" role="switch" class="np-schalter" @checked($p['transparenz'] === 'reduziert') x-bind:checked="transparenz === 'reduziert'"
                            @change="transparenz = $event.target.checked ? 'reduziert' : 'normal'; setzen({ transparenz })">
                 </x-einstellung>
                 <x-einstellung :label="__('Bewegungen reduzieren')" fuer="bewegung_reduziert">
@@ -234,7 +234,7 @@
                         <button type="button" x-show="tastenkuerzel === 'an'" x-on:click="$dispatch('open-tastenkuerzel')"
                                 class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Anzeigen') }}</button>
                     @endif
-                    <input id="tastenkuerzel" type="checkbox" role="switch" class="np-schalter" @checked($p['tastenkuerzel'] === 'an')
+                    <input id="tastenkuerzel" type="checkbox" role="switch" class="np-schalter" @checked($p['tastenkuerzel'] === 'an') x-bind:checked="tastenkuerzel === 'an'"
                            @change="tastenkuerzel = $event.target.checked ? 'an' : 'aus'; setzen({ tastenkuerzel })">
                 </x-einstellung>
             </div>
@@ -248,13 +248,13 @@
                     @foreach($dashboardKarten as $schluessel => $bezeichnung)
                         <x-einstellung :label="__($bezeichnung)" :fuer="'karte-'.$schluessel">
                             <input id="karte-{{ $schluessel }}" type="checkbox" role="switch" name="karten[]" value="{{ $schluessel }}" class="np-schalter"
-                                   aria-label="{{ __(':karte anzeigen', ['karte' => __($bezeichnung)]) }}"
+                                   aria-label="{{ __(':karte anzeigen', ['karte' => __($bezeichnung)]) }}" aria-describedby="karten-hinweis"
                                    x-model="karten" x-bind:disabled="karten.length === 1 && karten.includes(@js($schluessel))" @change="setzen({ karten: [...karten] })"
                                    @checked(in_array($schluessel, $kartenSichtbar, true))>
                         </x-einstellung>
                     @endforeach
                 </div>
-                <p class="mt-2 px-1 text-xs text-muted">{{ __('Karten auf dem Dashboard ein- oder ausblenden.') }}</p>
+                <p id="karten-hinweis" class="mt-2 px-1 text-xs text-muted">{{ __('Karten auf dem Dashboard ein- oder ausblenden. Eine bleibt immer sichtbar.') }}</p>
             </section>
         @endif
 
