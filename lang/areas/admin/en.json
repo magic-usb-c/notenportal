@@ -250,7 +250,6 @@
     "Keine Datei gewählt": "No file chosen",
     "Keine Gruppierung": "No grouping",
     "Keine Kopie ausser Haus eingerichtet.": "No off-site copy set up.",
-    "Keine Lernenden": "No apprentices",
     "Keine Meldungen für diese Filter.": "No reports match these filters.",
     "Keine Module erfasst.": "No modules recorded.",
     "Keine Module für diese Filtereinstellungen gefunden.": "No modules found for these filter settings.",
@@ -409,7 +408,6 @@
     "Notenbaum nicht gefunden.": "Grade tree not found.",
     "Notenbaum «:name» endgültig löschen?": "Permanently delete grade tree “:name”?",
     "Notenbaum «:name» geladen und aktiv.": "Grade tree “:name” loaded and active.",
-    "Notenbericht": "Grade report",
     "Notenbäume bearbeiten": "Edit grade trees",
     "Notenkategorie bearbeiten": "Edit grade category",
     "Nummer": "Number",
@@ -556,7 +554,6 @@
     "Weitere Lernende": "Another apprentice",
     "Weitere Person": "Another person",
     "Weiterer Lehrberuf": "Another occupation",
-    "Wie verteilen sich die Zeugnisnoten auf die Notenskala?": "How are the report grades distributed across the grade scale?",
     "Wiederholen alle (Tage)": "Repeat every (days)",
     "z.B. 2025/1": "e.g. 2025/1",
     "z.B. M100": "e.g. M100",
@@ -566,7 +563,6 @@
     "Zeitraum": "Period",
     "Zeitraum ueberschneidet sich mit Semester «:bezeichnung».": "Period overlaps with semester «:bezeichnung».",
     "Zeugnis hochladen": "Upload report",
-    "Zeugnisnote": "Report grade",
     "Zeugnisnoten": "Report grades",
     "Ziel": "Target",
     "Ziel-Gewicht-Summe": "Target weight total",
@@ -683,5 +679,9 @@
     "Noch keine Notenbäume": "No grade trees yet",
     "Das Semester enthält Noten, Tracks oder Dokumente und kann nicht gelöscht werden.": "This semester contains grades, tracks or documents and cannot be deleted.",
     "Semester löschen": "Delete semester",
-    "Lernende im Lehrberuf :name": "Learners in :name"
+    "Lernende im Lehrberuf :name": "Learners in :name",
+    "1 Zeugnisnote": "1 report grade",
+    ":anzahl Zeugnisnoten": ":anzahl report grades",
+    "Gefährdet": "At risk",
+    "Keine Lernenden für diese Filter.": "No learners match these filters."
 }

@@ -80,10 +80,10 @@ class Lernender extends Model
         return $this->hasMany(Ziel::class, 'lernender_id', 'lernender_id');
     }
 
-    /** Laufendes Lehrjahr (1-basiert) oder null ohne Lehrbeginn / vor Lehrbeginn. */
+    /** Laufendes Lehrjahr (1-basiert); null ohne Lehrbeginn, vor Lehrbeginn und nach dem Lehrende. */
     public function lehrjahr(): ?int
     {
-        if (! $this->lehrbeginn || $this->lehrbeginn->isFuture()) {
+        if (! $this->lehrbeginn || $this->lehrbeginn->isFuture() || $this->lehrende?->lt(today())) {
             return null;
         }
 

@@ -57,7 +57,7 @@ final class Bericht
                 'lehrberuf' => $l->kuerzel ?: $l->lehrberuf,
                 'stand' => $stand,
                 'gesamt' => $stand->auswertung->gesamtNote,
-                'lehrjahr' => (new Lernender(['lehrbeginn' => $l->lehrbeginn]))->lehrjahr(),
+                'lehrjahr' => (new Lernender(['lehrbeginn' => $l->lehrbeginn, 'lehrende' => $l->lehrende]))->lehrjahr(),
                 'semester' => $sid ? $stand->auswertung->semester($sid)['note'] : null,
                 'ungenuegend' => count(array_filter($this->zeugnisnoten($stand->auswertung, $sid), fn (Element $e) => $e->note < $grenze - 1e-9)),
                 'pruefungen' => (int) ($p?->anzahl ?? 0),
@@ -221,7 +221,7 @@ final class Bericht
                 ->where(fn ($w) => $w->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $heute))))
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')
-            ->get(['l.lernender_id', 'l.lehrbeginn', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf', 'lb.kuerzel']);
+            ->get(['l.lernender_id', 'l.lehrbeginn', 'l.lehrende', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf', 'lb.kuerzel']);
     }
 
     /**

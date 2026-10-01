@@ -19,6 +19,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Modulstatus;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechner;
+use App\Services\Auswertung\Rundung;
 use App\Services\Auswertung\Zielrechner;
 use App\Services\Betrieb\Sicherung;
 use App\Support\Betrieb;
@@ -713,9 +714,9 @@ final class Uebersicht
         ksort($gruppen);
 
         return [
-            'labels' => ['1. Lehrjahr', '2. Lehrjahr', '3. Lehrjahr', '4. Lehrjahr'],
+            'labels' => array_map(fn (int $j) => __(':jahr. Lehrjahr', ['jahr' => $j]), [1, 2, 3, 4]),
             'serien' => array_map(fn ($beruf, $jahre) => ['name' => $beruf, 'werte' => array_map(
-                fn ($j) => isset($jahre[$j]) ? round(array_sum($jahre[$j]) / count($jahre[$j]), 2) : null, [1, 2, 3, 4])], array_keys($gruppen), $gruppen),
+                fn ($j) => isset($jahre[$j]) ? round(Rundung::mittel($jahre[$j]), 2) : null, [1, 2, 3, 4])], array_keys($gruppen), $gruppen),
         ];
     }
 }

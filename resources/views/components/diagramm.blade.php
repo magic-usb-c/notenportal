@@ -6,8 +6,8 @@
 ])
 <section {{ $attributes->merge(['class' => 'np-karte flex flex-col']) }}>
     @if($titel || $frage)
-        <header class="px-5 pt-4 pb-1">
-            @if($titel)<h3 class="text-sm font-semibold text-text">{{ $titel }}</h3>@endif
+        <header class="flex min-h-13 flex-col justify-center px-5 pb-1 pt-3">
+            @if($titel)<h2 class="text-base font-semibold text-text">{{ $titel }}</h2>@endif
             @if($frage)<p class="mt-0.5 text-xs text-muted">{{ $frage }}</p>@endif
         </header>
     @endif

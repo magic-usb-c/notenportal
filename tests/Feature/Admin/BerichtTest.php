@@ -143,52 +143,49 @@ class BerichtTest extends TestCase
         $c = User::factory()->lernender(['lehrbeginn' => '2025-08-01'])->create();
         Note::factory()->create(['lernender_id' => $c->lernender->lernender_id, 'note_wert' => 5.0]);
 
+        // Lehre abgeschlossen: zählt in keinem Lehrjahr, statt als «5. Lehrjahr» aufzutauchen
+        $d = User::factory()->lernender(['lehrbeginn' => '2022-08-01', 'lehrende' => '2026-07-31'])->create();
+        Note::factory()->create(['lernender_id' => $d->lernender->lernender_id, 'note_wert' => 3.0]);
+
         $response = $this->actingAs($admin)
             ->get(route('admin.reports.grades', ['semester' => 'alle']))
             ->assertOk()
             ->assertSee('Gesamtschnitt nach Lehrjahr')
             ->assertSee('1. Lehrjahr')
-            ->assertSee('2. Lehrjahr');
+            ->assertSee('2. Lehrjahr')
+            ->assertDontSee('5. Lehrjahr');
 
-        $response->assertSeeInOrder(['1. Lehrjahr', '5.0', '2', '2. Lehrjahr', '5.0', '1']);
+        $response->assertSeeInOrder(['1. Lehrjahr', '2', '5.0', '2. Lehrjahr', '1', '5.0']);
+        $this->assertNull($d->lernender->fresh()->lehrjahr());
 
         Carbon::setTestNow();
     }
 
-    /**
-     * Schmal (Handy, Seitenleiste) blendet die Tabelle Status, Ungenügend, Prüfungen und Letzte Note aus. Die Werte
-     * bleiben in der Namenszelle stehen – vorher sah man dort nur den Status, die Gründe fehlten ganz.
-     */
+    /** Jeder Wert steht in seiner eigenen Spalte, die Zeile führt ins Profil, «Noten» in die Notenliste des Zeitraums. */
     #[Test]
-    public function namenszelle_nennt_die_werte_der_schmal_ausgeblendeten_spalten(): void
+    public function jede_spalte_steht_in_eigener_zelle_und_die_zeile_oeffnet_das_profil(): void
     {
         $admin = User::factory()->admin()->create();
-        $lernender = User::factory()->lernender()->create(['nachname' => 'Schmalmann'])->lernender;
+        $lernender = User::factory()->lernender()->create(['nachname' => 'Spaltmann'])->lernender;
         $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 3.0]);
 
-        // Mit Semesterfilter, damit auch die Semesterspalte vorkommt
-        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester_id' => $note->semester_id]))->assertOk()->getContent();
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => $note->semester_id]))->assertOk()->getContent();
         $dom = new \DOMDocument;
         @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
         $xpath = new \DOMXPath($dom);
-        $zeile = $xpath->query('//tr[td/a[contains(., "Schmalmann")]]')->item(0);
+        $zeile = $xpath->query('//tr[td//a[contains(., "Spaltmann")]]')->item(0);
         $this->assertNotNull($zeile);
+        $this->assertSame(route('admin.learners.show', $lernender->lernender_id), $zeile->getAttribute('data-href'));
+
         $text = fn (\DOMNode $n) => trim((string) preg_replace('/\s+/u', ' ', $n->textContent));
-        $namenszelle = $text($xpath->query('td[1]', $zeile)->item(0));
+        $zellen = array_map($text, iterator_to_array($xpath->query('td', $zeile)));
+        $this->assertCount(8, $zellen, 'Name, Status, Gesamt, Semester, Ungenügend, Prüfungen, Letzte Note, Aktion');
+        $this->assertSame('3.0', $zellen[2]);
+        $this->assertSame('3.0', $zellen[3]);
+        $this->assertSame('1', $zellen[4]);
+        $this->assertSame(0, $xpath->query('td[contains(concat(" ", normalize-space(@class), " "), " hidden ")]', $zeile)->length);
 
-        $this->assertStringContainsString(__(':anzahl ungenügend', ['anzahl' => 1]), $namenszelle);
-        $this->assertStringContainsString(__('1 Prüfung'), $namenszelle);
-
-        // Jede schmal ausgeblendete Spalte: jeder ihrer Werte (Status, Gründe, Semester, Ungenügend, Prüfungen, letzte Note) steht in der Namenszelle
-        $spalten = $xpath->query('td[contains(@class, "hidden") and contains(@class, ":table-cell")]', $zeile);
-        $this->assertSame(5, $spalten->length, 'Status, Semester, Ungenügend, Prüfungen, letzte Note');
-        foreach ($spalten as $td) {
-            $teile = $xpath->query('*', $td)->length ? iterator_to_array($xpath->query('*', $td)) : [$td];
-            foreach ($teile as $teil) {
-                $wert = $text($teil);
-                $this->assertNotSame('', $wert);
-                $this->assertStringContainsString($wert, $namenszelle, "Schmal fehlt «{$wert}»");
-            }
-        }
+        $noten = $xpath->query('td[last()]//a', $zeile)->item(0);
+        $this->assertSame(route('admin.learners.grades.index', ['lernender_id' => $lernender->lernender_id, 'semester_id' => $note->semester_id]), $noten->getAttribute('href'));
     }
 }
