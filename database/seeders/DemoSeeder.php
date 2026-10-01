@@ -23,6 +23,8 @@ use RuntimeException;
  * geplanten Prüfungen, Zielen, Kommentaren.
  *
  * Deterministisch (fixes Referenzdatum, Pseudozufall aus Hash). Nur gegen *_test oder *_demo.
+ * Zeitstempel wie im Betrieb: erfasst kurz nach der Prüfung, vom Berufsbildner einige Tage später
+ * gesehen und dabei kommentiert – nur die jüngsten Noten bleiben neu.
  */
 class DemoSeeder extends Seeder
 {
@@ -310,14 +312,20 @@ class DemoSeeder extends Seeder
 
         $this->ziele($lernenderId, $l, $faecher);
 
+        $stichtag = $ref->copy()->setTime(8, 0);
         foreach ($noten as $ni => $note) {
-            if ($ni % 3 === 0) {
-                NotenGesehen::create(['note_id' => $note->note_id, 'viewer_benutzer_id' => $l['bb']->benutzer_id,
-                    'gesehen_am' => Carbon::parse($note->pruefungsdatum)->addDays(3)]);
+            $gesehen = $note->erstellt_am->copy()->addDays(2 + $ni % 5)->setTime(7, 45);
+            if ($gesehen->gt($stichtag)) {
+                continue;
             }
+            NotenGesehen::create(['note_id' => $note->note_id, 'viewer_benutzer_id' => $l['bb']->benutzer_id, 'gesehen_am' => $gesehen]);
             if ($ni % 7 === 0) {
-                NotenKommentar::create(['note_id' => $note->note_id, 'autor_benutzer_id' => $l['bb']->benutzer_id,
-                    'kommentar_text' => self::KOMMENTARE[$kommentar++ % count(self::KOMMENTARE)]]);
+                (new NotenKommentar)->forceFill(['note_id' => $note->note_id, 'autor_benutzer_id' => $l['bb']->benutzer_id,
+                    'kommentar_text' => self::KOMMENTARE[$kommentar++ % count(self::KOMMENTARE)], 'erstellt_am' => $gesehen->copy()->addMinutes(4)])->save();
+                // Lernende lesen die Rückmeldung am Abend; die vom Stichtag ist noch offen.
+                if (($gelesen = $gesehen->copy()->setTime(19, 10))->lte($stichtag)) {
+                    NotenGesehen::create(['note_id' => $note->note_id, 'viewer_benutzer_id' => $benutzerId, 'gesehen_am' => $gelesen]);
+                }
             }
         }
 
@@ -377,10 +385,18 @@ class DemoSeeder extends Seeder
 
     private function note(int $lernenderId, int $benutzerId, string $kategorie, int $semesterId, ?int $fachId, ?int $belegungId, string $datum, float $wert, float $gewicht, ?string $titel): Note
     {
-        return Note::create([
+        // Erfasst am Abend des Prüfungstags oder bis zwei Tage danach, nie nach dem Stichtag.
+        $tag = (int) Carbon::parse($datum)->format('z');
+        $erfasst = Carbon::parse($datum)->addDays(($lernenderId + $tag) % 3)->setTime(17, 0)->addMinutes(($lernenderId * 37 + $tag * 11) % 210);
+        $erfasst = $erfasst->min(Carbon::parse(self::REFERENZDATUM)->setTime(7, 30));
+        $note = (new Note)->forceFill([
             'lernender_id' => $lernenderId, 'kategorie_id' => $this->kategorien[$kategorie], 'semester_id' => $semesterId,
             'fach_id' => $fachId, 'modul_belegung_id' => $belegungId, 'titel' => $titel, 'pruefungsdatum' => $datum,
             'note_wert' => $wert, 'gewichtung_prozent' => $gewicht, 'erfasst_von_benutzer_id' => $benutzerId, 'aktualisiert_von_benutzer_id' => null,
+            'erstellt_am' => $erfasst, 'aktualisiert_am' => $erfasst,
         ]);
+        $note->save();
+
+        return $note;
     }
 }

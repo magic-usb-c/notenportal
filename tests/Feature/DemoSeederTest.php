@@ -8,6 +8,7 @@ use App\Models\Betreuung;
 use App\Models\Lernender;
 use App\Models\Note;
 use App\Models\User;
+use App\Services\Uebersicht;
 use Database\Seeders\DemoSeeder;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -95,5 +96,27 @@ class DemoSeederTest extends TestCase
         $this->actingAs($lernenderUser)->get(route('learner.grades.index'))->assertOk();
         $this->actingAs($berufsbildnerUser)->get(route('trainer.dashboard'))->assertOk();
         $this->actingAs($adminUser)->get(route('admin.dashboard'))->assertOk();
+    }
+
+    #[Test]
+    public function zeitstempel_folgen_dem_betrieb_statt_dem_seedlauf(): void
+    {
+        $noten = Note::whereNull('geloescht_am')->get();
+        $this->assertTrue($noten->every(fn (Note $n) => $n->erstellt_am->toDateString() >= $n->pruefungsdatum->toDateString()
+            && $n->erstellt_am->lt(now()->subDays(7))), 'Noten müssen nach der Prüfung und lange vor dem Seedlauf erfasst sein.');
+        $this->assertGreaterThan(8, $noten->map(fn (Note $n) => $n->erstellt_am->format('o-W'))->unique()->count(), 'Erfassungen verteilen sich über viele Wochen.');
+
+        // Berufsbildner haben das Meiste gesehen, die jüngsten Noten sind neu.
+        foreach (DB::table('berufsbildner')->pluck('benutzer_id') as $benutzerId) {
+            $bb = User::findOrFail($benutzerId);
+            $neu = collect(app(Uebersicht::class)->berufsbildner($bb)['zeilen'])->sum('neu');
+            $alle = Note::whereNull('geloescht_am')->whereIn('lernender_id', Lernender::sichtbarFuer($bb)->pluck('lernender_id'))->count();
+            $this->assertGreaterThan(0, $neu);
+            $this->assertLessThan($alle / 5, $neu, "{$bb->vorname}: {$neu} von {$alle} Noten neu.");
+        }
+        // Kommentiert wird beim Ansehen: kein Kommentar ohne vorherige Sicht seines Autors.
+        $this->assertSame(0, DB::table('noten_kommentare as k')->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('noten_gesehen as g')
+            ->whereColumn('g.note_id', 'k.note_id')->whereColumn('g.viewer_benutzer_id', 'k.autor_benutzer_id')
+            ->whereColumn('g.gesehen_am', '<=', 'k.erstellt_am'))->count());
     }
 }
