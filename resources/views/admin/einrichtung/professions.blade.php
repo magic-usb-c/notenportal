@@ -30,7 +30,8 @@
     @endif
 
     <form method="POST" action="{{ route('admin.setup.professions') }}" class="flex flex-col gap-5"
-          x-data="{ loading: false, eigene: {{ \Illuminate\Support\Js::from(old('eigene', [['kuerzel' => '', 'name' => '']])) }} }"
+          x-data="{ loading: false, eigene: {{ \Illuminate\Support\Js::from(old('eigene', [['kuerzel' => '', 'name' => '']])) }}, fehler: {{ \Illuminate\Support\Js::from(array_keys($errors->getMessages())) }},
+                    f(i, feld) { return this.fehler.includes(`eigene.${i}.${feld}`); } }"
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
@@ -62,8 +63,10 @@
             <div class="flex flex-col gap-2">
                 <template x-for="(e, i) in eigene" :key="i">
                     <div class="flex gap-2">
-                        <input :name="`eigene[${i}][kuerzel]`" x-model="e.kuerzel" maxlength="10" placeholder="{{ __('Kürzel') }}" aria-label="{{ __('Kürzel') }}" class="{{ $feld }} w-28 uppercase">
-                        <input :name="`eigene[${i}][name]`" x-model="e.name" maxlength="200" placeholder="{{ __('Weiterer Lehrberuf') }}" aria-label="{{ __('Weiterer Lehrberuf') }}" class="{{ $feld }} flex-1 min-w-0">
+                        <input :name="`eigene[${i}][kuerzel]`" x-model="e.kuerzel" maxlength="10" placeholder="{{ __('Kürzel') }}" aria-label="{{ __('Kürzel') }}" class="{{ $feld }} w-28 uppercase"
+                               :aria-invalid="f(i, 'kuerzel') ? 'true' : null" :aria-describedby="f(i, 'kuerzel') ? 'professions-fehler' : null">
+                        <input :name="`eigene[${i}][name]`" x-model="e.name" maxlength="200" placeholder="{{ __('Weiterer Lehrberuf') }}" aria-label="{{ __('Weiterer Lehrberuf') }}" class="{{ $feld }} flex-1 min-w-0"
+                               :aria-invalid="f(i, 'name') ? 'true' : null" :aria-describedby="f(i, 'name') ? 'professions-fehler' : null">
                         <button type="button" @click="eigene.splice(i, 1)" x-show="eigene.length > 1" aria-label="{{ __('Zeile entfernen') }}"
                                 class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
                     </div>
@@ -125,7 +128,7 @@
         @endif
 
         @if($errors->any())
-            <ul class="np-karte px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
+            <ul id="professions-fehler" class="np-karte px-5 py-3 text-xs text-note-ungenuegend flex flex-col gap-1">
                 @foreach(collect($errors->all())->unique() as $f)<li>{{ $f }}</li>@endforeach
             </ul>
         @endif

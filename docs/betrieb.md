@@ -57,6 +57,9 @@ Entwicklungsmaschine.
   Person angeschrieben wird. `notenportal:bereitschaft` meldet das als offenen Punkt – das ist so
   gewollt und im Lab-OneNote unter «Bekannte Einschränkungen» vermerkt.
 - Ablauf der Einrichtung, Abnahme und OneNote-Dokumentation: Anleitung «Testphase starten».
+- Module → Katalog meldet «Noch nicht bereit», solange die Katalogspalten fehlen (`module.version`,
+  Tabelle `modul_handlungsziele`, Migration `2026_09_12_000015`): einmalig `php artisan notenportal:migrate`
+  als Migrations-Benutzer ausführen. Der Befehl steht seit 02.10.2026 nicht mehr in der Oberfläche.
 
 ## Neuinstallation mit install.sh
 

@@ -8,7 +8,7 @@
                 @continue($key === 'finish')
                 @php $ok = $stand[$key]['erledigt']; @endphp
                 <li class="flex items-center gap-3 px-5 py-3">
-                    <span @class(['w-7 h-7 rounded-full inline-flex items-center justify-center shrink-0 text-xs font-bold',
+                    <span @class(['w-7 h-7 rounded-full inline-flex items-center justify-center shrink-0 text-xs font-semibold',
                         'bg-note-gut/15 text-note-gut' => $ok,
                         'bg-note-knapp/15 text-note-knapp' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
                     <span class="flex-1 min-w-0">
@@ -24,12 +24,11 @@
     @include('admin.einrichtung._zugaenge')
 
     <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <a href="{{ route('admin.setup', 'people') }}" class="np-knopf np-knopf-sekundaer">{{ __('← Zurück') }}</a>
+        <a href="{{ route('admin.setup', 'mail') }}" class="np-knopf np-knopf-sekundaer">{{ __('Zurück') }}</a>
         @if(\App\Support\Einrichtung::offen())
             <form method="POST" action="{{ route('admin.setup.finish') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
-                <button type="submit" :disabled="loading" @class(['inline-flex items-center px-5 h-10 rounded-xl text-sm font-semibold disabled:opacity-60',
-                    'np-knopf np-knopf-primaer' => $offen->isEmpty(), 'np-knopf np-knopf-sekundaer' => $offen->isNotEmpty()])>
+                <button type="submit" :disabled="loading" @class(['np-knopf', 'np-knopf-primaer' => $offen->isEmpty(), 'np-knopf-sekundaer' => $offen->isNotEmpty()])>
                     {{ $offen->isEmpty() ? __('Einrichtung abschliessen') : __('Trotzdem abschliessen') }}
                 </button>
             </form>

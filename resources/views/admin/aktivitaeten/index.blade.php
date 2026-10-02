@@ -63,11 +63,11 @@
                                         </td>
                                         <td class="truncate">{{ $wer }}</td>
                                         <td class="truncate">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
-                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>{{ $ziel ?? '–' }}</td>
+                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>@if($ziel){{ $ziel }}@else<span class="text-faint">–</span>@endif</td>
                                         <td class="text-muted">
-                                            <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>{{ $details !== '' ? $details : '–' }}</div>
+                                            <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>@if($details !== ''){{ $details }}@else<span class="text-faint">–</span>@endif</div>
                                         </td>
-                                        <td class="truncate tabular-nums text-muted">{{ $e->ip ?? '–' }}</td>
+                                        <td class="truncate tabular-nums text-muted">@if($e->ip){{ $e->ip }}@else<span class="text-faint">–</span>@endif</td>
                                     </tr>
                                 @empty
                                     <tr>

@@ -176,7 +176,7 @@
                                             @endphp
                                             <tr>
                                                 <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
-                                                    <div @class(['wrap-break-word text-text', 'font-medium' => $gruppe])>{{ $k->name }}</div>
+                                                    <div @class(['wrap-break-word text-text', 'font-semibold' => $gruppe])>{{ $k->name }}</div>
                                                     @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                 </td>
                                                 <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>

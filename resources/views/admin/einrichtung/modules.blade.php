@@ -2,10 +2,7 @@
     @php
         $feld = 'np-feld mt-1';
         $label = 'text-sm font-medium text-text';
-        $beispiele = [
-            'schule' => "901 Beispielmodul Planung\n902 Beispielmodul Auswertung",
-            'uek' => "951 Beispielkurs Grundlagen\n952 Beispielkurs Vertiefung",
-        ];
+        $beispiel = "101 ".__('Modultitel')."\n102 ".__('Modultitel');
     @endphp
 
     @if($lehrberufe->isEmpty())
@@ -13,19 +10,19 @@
             <p class="text-sm text-muted">{{ __('Noch keine Lehrberufe') }}</p>
             <a href="{{ route('admin.setup', 'professions') }}" class="np-knopf np-knopf-primaer">{{ __('Lehrberufe anlegen') }}</a>
         </section>
-        @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false])
+        @include('admin.einrichtung._fuss', ['schritt' => 'modules', 'knopf' => false, 'weiterPrimaer' => false])
     @else
-        <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="{{ __('Lehrberuf') }}">
+        <nav class="flex flex-wrap gap-1.5" aria-label="{{ __('Lehrberuf') }}">
             @foreach($lehrberufe as $lb)
                 @php $ist = $aktiv && (int) $aktiv->lehrberuf_id === (int) $lb->lehrberuf_id; @endphp
-                <a href="{{ route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" role="tab" aria-selected="{{ $ist ? 'true' : 'false' }}" title="{{ $lb->name }}"
+                <a href="{{ route('admin.setup', ['schritt' => 'modules', 'lehrberuf_id' => $lb->lehrberuf_id]) }}" title="{{ $lb->name }}" @if($ist) aria-current="page" @endif
                    @class(['inline-flex items-center gap-2 px-3 min-h-9 rounded-full text-sm border transition-colors',
                        'border-accent/50 bg-accent/10 text-accent-text' => $ist, 'border-border text-muted hover:text-text' => ! $ist])>
                     {{ $lb->kuerzel }}
                     <span @class(['text-3xs tabular-nums px-1.5 rounded-full', 'bg-accent/15' => $lb->anzahl, 'bg-bg' => ! $lb->anzahl])>{{ $lb->anzahl }}</span>
                 </a>
             @endforeach
-        </div>
+        </nav>
 
         <form method="POST" action="{{ route('admin.setup.modules') }}" class="flex flex-col gap-5"
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -37,8 +34,9 @@
                     @foreach(['schule' => __('Module Schule'), 'uek' => __('Module ÜK')] as $name => $text)
                         <div>
                             <label for="{{ $name }}" class="{{ $label }}">{{ $text }}</label>
-                            <textarea id="{{ $name }}" name="{{ $name }}" rows="8" placeholder="{{ $beispiele[$name] }}" class="{{ $feld }} font-mono text-sm">{{ old($name) }}</textarea>
-                            @error($name)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                            <textarea id="{{ $name }}" name="{{ $name }}" rows="8" placeholder="{{ $beispiel }}" class="{{ $feld }}"
+                                      @error($name) aria-invalid="true" aria-describedby="{{ $name }}-fehler" @enderror>{{ old($name) }}</textarea>
+                            @error($name)<p id="{{ $name }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                         </div>
                     @endforeach
                 </div>
@@ -48,8 +46,9 @@
                 </p>
                 <div class="w-56">
                     <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }}</label>
-                    <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} tabular-nums">
-                    @error('ziel')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} tabular-nums"
+                           @error('ziel') aria-invalid="true" aria-describedby="ziel-fehler" @enderror>
+                    @error('ziel')<p id="ziel-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
             </section>
 
@@ -57,7 +56,7 @@
                 <section class="np-karte p-5">
                     <div class="flex items-baseline justify-between gap-3 mb-3">
                         <h3 class="text-sm font-semibold text-text">{{ __('Zugeordnet') }} · {{ $zugeordnet->count() }}</h3>
-                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="text-xs text-accent-text hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
+                        <a href="{{ route('admin.master-data.professions.show', $aktiv->lehrberuf_id) }}" class="inline-flex min-h-6 items-center text-xs text-accent-text hover:underline">{{ __('Pflicht, Semester und Lernort bearbeiten') }}</a>
                     </div>
                     <div class="grid grid-cols-2 gap-5">
                         @foreach($zugeordnet->groupBy(fn ($m) => $m->lernort ?? '–') as $lernort => $liste)

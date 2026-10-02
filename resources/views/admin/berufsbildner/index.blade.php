@@ -18,10 +18,11 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($berufsbildner->isEmpty())
-                <p class="np-karte flex items-center gap-3 px-5 py-4 text-sm text-muted">
-                    {{ __('Keine aktiven Berufsbildner.') }}
-                    <a href="{{ route('admin.users.create') }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Berufsbildner erfassen') }}</a>
-                </p>
+                <div class="np-karte">
+                    <x-leer symbol="identification" :titel="__('Keine aktiven Berufsbildner.')">
+                        <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Berufsbildner erfassen') }}</a>
+                    </x-leer>
+                </div>
             @else
                 <div class="np-karte overflow-hidden">
                     <div class="p-2">

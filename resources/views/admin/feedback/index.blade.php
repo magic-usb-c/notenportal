@@ -97,7 +97,7 @@
                     <div class="np-karte">
                         <p class="flex items-center justify-center gap-3 px-6 py-10 text-sm text-muted">
                             {{ __('Keine Meldungen für diese Filter.') }}
-                            <a href="{{ route('admin.feedback.index') }}" class="text-accent-text hover:underline underline-offset-2">{{ __('Filter zurücksetzen') }}</a>
+                            <a href="{{ route('admin.feedback.index') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a>
                         </p>
                     </div>
                 @else
@@ -193,7 +193,7 @@
                                                 <span class="ml-auto text-xs tabular-nums text-muted">#{{ $id }}</span>
                                             </div>
 
-                                            <p class="max-w-3xl whitespace-pre-wrap break-words text-base text-text">{{ $m->text }}</p>
+                                            <p class="max-w-3xl whitespace-pre-wrap break-words text-sm text-text">{{ $m->text }}</p>
 
                                             @if($m->hatScreenshot())
                                                 <a href="{{ route('admin.feedback.screenshot', $id) }}" target="_blank" rel="noopener" class="block w-fit">
@@ -298,7 +298,7 @@
                                                     <div class="mt-1.5 flex items-center gap-2">
                                                         <input type="number" inputmode="numeric" min="1" id="duplikat-{{ $id }}" x-model="meldungen[{{ $id }}].duplikatEingabe"
                                                                @keydown.enter.prevent="meldungen[{{ $id }}].duplikatEingabe && duplikatUmschalten({{ $id }})"
-                                                               class="np-feld w-24 tabular-nums" aria-describedby="duplikat-fehler-{{ $id }}">
+                                                               class="np-feld w-24 text-right tabular-nums" aria-describedby="duplikat-fehler-{{ $id }}">
                                                         <button type="button" @click="duplikatUmschalten({{ $id }})" :disabled="duplikatSpeichert || ! meldungen[{{ $id }}].duplikatEingabe" disabled
                                                                 class="np-knopf np-knopf-sekundaer flex-1">{{ __('Als Duplikat markieren') }}</button>
                                                     </div>

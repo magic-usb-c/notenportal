@@ -127,7 +127,7 @@
                             <colgroup>
                                 <col class="w-72"><col class="w-32">
                                 @if($bereich === 'admin')<col class="w-48">@endif
-                                <col class="w-20"><col class="w-32"><col class="w-28"><col class="w-80"><col>
+                                <col class="w-20"><col class="w-32"><col class="w-28"><col><col class="w-24">
                             </colgroup>
                             <thead>
                                 <tr>

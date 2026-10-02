@@ -17,9 +17,7 @@
                 @if(! $bereit)
                     <div class="np-karte">
                         <x-leer symbol="exclamation-triangle" :titel="__('Noch nicht bereit')"
-                                :text="__('Die Katalogspalten fehlen in der Datenbank. Einmalig auf dem Server ausführen:')">
-                            <code class="rounded-lg bg-fill-2 px-3 py-2 font-mono text-sm text-text">php artisan notenportal:migrate</code>
-                        </x-leer>
+                                :text="__('Der Katalog ist auf diesem Server noch nicht eingerichtet.')" />
                     </div>
                 @elseif($vorschau === null)
                     <form method="POST" action="{{ route('admin.master-data.modules.catalog.read') }}" enctype="multipart/form-data"
@@ -27,7 +25,7 @@
                         @csrf
 
                         <x-ablagezone accept=".json,application/json" required
-                                      :titel="__('Ernte wählen oder hierher ziehen')"
+                                      :titel="__('Katalogdatei wählen oder hierher ziehen')"
                                       :hinweis="__('JSON-Datei mit Modulen, Handlungszielen und Abschlüssen')" />
 
                         <section aria-labelledby="optionen-titel">
@@ -54,7 +52,7 @@
                     <section aria-labelledby="vorschau-titel">
                         <div class="mb-2 flex items-baseline justify-between gap-4 px-1">
                             <h2 id="vorschau-titel" class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h2>
-                            <p class="min-w-0 truncate text-xs text-muted">{{ $vorschau['name'] }} · {{ __('Ernte vom') }} {{ $vorschau['stand'] ?? __('unbekannt') }}</p>
+                            <p class="min-w-0 truncate text-xs text-muted">{{ $vorschau['name'] }} · {{ __('Stand vom') }} {{ $vorschau['stand'] ?? __('unbekannt') }}</p>
                         </div>
                         <dl class="np-karte np-gruppe">
                             @foreach([
@@ -124,9 +122,10 @@
 
                     {{-- Standardknopf ganz rechts, Verwerfen daneben (HIG «Buttons») --}}
                     <div class="flex items-center justify-end gap-2">
-                        <form method="POST" action="{{ route('admin.master-data.modules.catalog.discard') }}">
+                        <form method="POST" action="{{ route('admin.master-data.modules.catalog.discard') }}"
+                              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                             @csrf
-                            <button type="submit" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Verwerfen') }}</button>
+                            <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer min-w-24">{{ __('Verwerfen') }}</button>
                         </form>
                         <form method="POST" action="{{ route('admin.master-data.modules.catalog.apply') }}"
                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">

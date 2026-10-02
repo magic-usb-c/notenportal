@@ -275,8 +275,9 @@ Nicht raten — als offen markieren und David fragen:
 > (Seitenleiste ist Standard), R3 Dashboards fertig; R4 übrige Bereiche läuft, R5 Gesamtprüfung
 > offen (Übergabebrett). Setup und Orchestrierung modernisiert: `docs/auftrag/SETUP-CLAUDE.md`.
 >
-> **Stand 02.10.:** R4 Lernende und R4 Berufsbildner abgeschlossen (Bildprüfer, UI-Checker, Reviewer,
-> Prüfer je durch), R4 Admin und R5 Gesamtprüfung offen. Die Arbeit läuft auf dem Branch
+> **Stand 02.10.:** R4 Lernende, R4 Berufsbildner und R4 Admin abgeschlossen (Bildprüfer, UI-Checker,
+> Reviewer, Prüfer je durch; Admin: fünf Umsetzungs-Agents, Rundgang 56 Seiten, 24 Bilder 1920/2560),
+> R5 Gesamtprüfung offen. Die Arbeit läuft auf dem Branch
 > `claude/friendly-meitner-ju7e8a` mit Entwurfs-PR gegen `main` (Vorgabe der Cloud-Sitzung), `main`
 > hinkt bis zum Merge hinterher.
 

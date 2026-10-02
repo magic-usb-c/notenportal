@@ -11,9 +11,9 @@
         $rechts = $zeigen['aktivitaet'] || $zeigen['lehrende'];
         // Kennzahlen als Kacheln: Symbol, Wert, Name; Farbe nur, wenn es etwas zu tun gibt
         $kacheln = [
-            [__('Lernende'), 'users', 'bg-accent/12 text-accent-text', $kennzahlen['lernende'], route('admin.learners.index')],
-            [__('Berufsbildner'), 'identification', 'bg-accent/12 text-accent-text', $kennzahlen['berufsbildner'], route('admin.trainers.index')],
-            [__('Noten :semester', ['semester' => $kennzahlen['semester']]), 'clipboard-document-check', 'bg-accent/12 text-accent-text', $kennzahlen['noten_semester'], route('admin.reports.grades')],
+            [__('Lernende'), 'users', 'bg-fill text-muted', $kennzahlen['lernende'], route('admin.learners.index')],
+            [__('Berufsbildner'), 'identification', 'bg-fill text-muted', $kennzahlen['berufsbildner'], route('admin.trainers.index')],
+            [__('Noten :semester', ['semester' => $kennzahlen['semester']]), 'clipboard-document-check', 'bg-fill text-muted', $kennzahlen['noten_semester'], route('admin.reports.grades')],
             [__('Kritisch'), 'exclamation-triangle', $kennzahlen['rot'] ? 'bg-note-ungenuegend/12 text-note-ungenuegend' : 'bg-fill text-muted', $kennzahlen['rot'], route('admin.learners.index', ['warnung' => 'kritisch'])],
             [__('Beobachten'), 'eye', $kennzahlen['gelb'] ? 'bg-note-knapp/14 text-note-knapp' : 'bg-fill text-muted', $kennzahlen['gelb'], route('admin.learners.index', ['warnung' => 'beobachten'])],
             [__('Offene Meldungen'), 'chat-bubble-left-ellipsis', $kennzahlen['feedback'] ? 'bg-accent/12 text-accent-text' : 'bg-fill text-muted', $kennzahlen['feedback'], route('admin.feedback.index')],
@@ -28,7 +28,7 @@
         <x-seitenkopf :titel="__('Betrieb')" :untertitel="\App\Support\Format::date(now())">
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="user-plus" strich="2" />{{ __('Benutzer erfassen') }}</a>
-                <a href="{{ route('admin.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende') }}</a>
+                <a href="{{ route('admin.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -86,7 +86,7 @@
                             </ul>
                         @else
                             <p class="flex items-center gap-3 px-5 pb-4 pt-1 text-sm text-muted">
-                                <x-symbol name="check-circle" strich="1.75" class="size-5 text-note-gut" />{{ __('Kein Handlungsbedarf') }}
+                                <x-symbol name="check-circle" strich="1.75" class="size-5 text-muted" />{{ __('Kein Handlungsbedarf') }}
                             </p>
                         @endif
                     </x-karte>
@@ -126,7 +126,7 @@
                                                 <td class="text-right">
                                                     @if($bb->gelb)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'beobachten']) }}" aria-label="{{ __(':anzahl zu beobachten bei :name', ['anzahl' => $bb->gelb, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-knapp underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</a>@else<span class="text-faint">0</span>@endif
                                                 </td>
-                                                <td class="text-right {{ $bb->neu > 20 ? 'font-semibold text-accent-text' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                                <td class="text-right {{ $bb->neu > 20 ? 'font-semibold text-text' : 'text-muted' }}">{{ $bb->neu }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>

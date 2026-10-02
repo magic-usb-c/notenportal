@@ -11,7 +11,7 @@
             <section class="mt-10 np-spalte">
                 <div class="np-karte np-gruppe">
                     <x-einstellung :label="__('Fach löschen')"
-                                   :hinweis="$notenAnzahl > 0 ? __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.') : null">
+                                   :hinweis="$notenAnzahl > 0 ? __('Das Fach enthält Noten oder Prüfungen und kann nicht gelöscht werden.') : null">
                         @if($notenAnzahl > 0)
                             <button type="button" disabled class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
                         @else

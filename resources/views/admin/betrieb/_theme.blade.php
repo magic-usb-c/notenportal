@@ -10,8 +10,9 @@
         <div class="grid grid-cols-4 gap-3">
             @foreach(\App\Support\Theme::THEMES as $wert => $name)
                 <label class="cursor-pointer">
-                    <input type="radio" name="theme" value="{{ $wert }}" class="peer sr-only" @checked($theme === $wert)
-                           @change="document.documentElement.dataset.theme = $event.target.value; $event.target.form.requestSubmit()">
+                    <input type="radio" name="theme" value="{{ $wert }}" class="peer sr-only" data-sofort @checked($theme === $wert)
+                           @error('theme') aria-invalid="true" aria-describedby="theme-fehler" @enderror
+                           @change="document.documentElement.dataset.theme = $event.target.value">
                     <x-theme-vorschau :theme="$wert" x-bind:class="{ 'dark': dunkel }"
                                       class="ring-2 ring-transparent ring-offset-2 ring-offset-bg transition-shadow duration-150 peer-checked:ring-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-ring" />
                     <span class="mt-1.5 block text-center text-xs text-muted peer-checked:font-medium peer-checked:text-text">{{ $name }}</span>
@@ -19,7 +20,7 @@
             @endforeach
         </div>
     </fieldset>
-    @error('theme')<p class="mt-2 px-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+    @error('theme')<p id="theme-fehler" class="mt-2 px-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
     <p class="mt-2 px-1 text-xs text-muted">{{ __('Gilt für alle, die im Profil kein eigenes Farbthema gewählt haben.') }}</p>
     <noscript><button type="submit" class="np-knopf np-knopf-sekundaer mt-3">{{ __('Speichern') }}</button></noscript>
 </form>

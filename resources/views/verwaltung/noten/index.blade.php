@@ -268,6 +268,7 @@
                                             @if($darfLoeschen)
                                                 <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                                      @class(['mt-1 border-t border-border pt-3' => $istNeu || $darfKorrigieren])
                                                       data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                                                     @csrf
                                                     @method('DELETE')

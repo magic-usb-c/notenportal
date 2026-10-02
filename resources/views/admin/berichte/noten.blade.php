@@ -19,7 +19,7 @@
     $k = $kennzahlen;
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
-    $kopf = 'inline-flex items-center gap-1 hover:text-text';
+    $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Berichte') }}</x-slot>
@@ -213,7 +213,7 @@
                                     <td>
                                         <x-status :status="$z->stand->status" />
                                         @if($z->stand->gruende)
-                                            <div class="mt-0.5 truncate text-xs text-muted" title="{{ implode(' · ', $z->stand->gruende) }}">{{ implode(' · ', $z->stand->gruende) }}</div>
+                                            <div class="mt-0.5 text-xs text-muted">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif
                                     </td>
                                     <td class="text-right font-semibold {{ NotenSkala::text($z->gesamt) }}">{{ NotenSkala::format($z->gesamt, 1) }}</td>

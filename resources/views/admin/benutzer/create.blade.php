@@ -13,11 +13,10 @@
                 @include('admin.benutzer._person', ['user' => null])
 
                 <section>
-                    <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Rolle') }}</h2>
                     <div class="np-karte">
                         <x-einstellung :label="__('Rolle')" name="rolle_id">
                             <x-segment-auswahl name="rolle_id" required
-                                               :optionen="$rollen->mapWithKeys(fn ($r) => [$r->rolle_id => __($r->name)])"
+                                               :optionen="$rollen->sortBy(fn ($r) => $r->name === 'Berufsbildner' ? 0 : 1)->mapWithKeys(fn ($r) => [$r->rolle_id => __($r->name)])"
                                                :wert="old('rolle_id', $rollen->firstWhere('name', 'Berufsbildner')?->rolle_id)" />
                         </x-einstellung>
                     </div>

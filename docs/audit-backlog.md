@@ -731,9 +731,9 @@ ausgeblendeten Werte in der Namenszelle nach.
 
 - **Lernendenliste ohne Paginierung** (`LernendeController`, `->get()`): ein Lehrbetrieb führt Dutzende
   Lernende, keine Tausende; Suche und Filter tragen die Liste. Paginierung erst, wenn ein Betrieb sie braucht.
-- **Lernendenliste: Namensspalte dehnt sich, Status fest `w-80`**: Finder-Muster (erste Spalte wächst, Daten
-  rechts bündig). Bei 2560 liegt der freie Raum zwischen Name und Lehrberuf – die Alternative (Status wächst)
-  liess bei 2560 640 px zwischen letzter Marke und «Noten».
+- **Lernendenliste: Statusspalte wächst, «Noten» fest `w-24`** (R4 Admin, 02.10.): Die feste Statusspalte
+  `w-80` brach bei drei Lernenden die Marken zweizeilig (Zeile 60 statt 44 px). Jetzt trägt die Statusspalte
+  den freien Raum; alle Zeilen 44 px bei 1920 und 2560, gemessen mit Playwright.
 - **KPI «Neu» in Akzent** (`verwaltung/noten/index.blade.php`, `x-kachel ton=accent`): Akzent bedeutet
   dort «ungelesen», wie der Punkt vor «n neu» in der Liste und in Mail; neutral nur bei 0.
 - **Zähler «Note fehlt» in Bernstein** (`verwaltung/pruefungen/_zaehler.blade.php`): nach dem Entfärben von
@@ -807,3 +807,72 @@ ausgeblendeten Werte in der Namenszelle nach.
   die Zeile – sie trägt jetzt einen Weg zurück («Filter zurücksetzen» bzw. «Alle anzeigen»).
 - **Zeugnismatrix «Noch keine Noten» ohne Weiterweg**: die Matrix steht bei Lernenden (die keine Noten erfassen
   können) und Berufsbildnern; der Weg zum Erfassen ist die Primäraktion der Notenliste.
+
+## R4 Admin: bewusst gelassen (02.10.2026)
+
+Befunde aus vier Bildprüfer-Läufen (56 Seiten, 1920 dunkel), zwei UI-Checker-Läufen (61 Views) und der
+eigenen 2560-Sicht, die nach Prüfung am Markup oder an den Regeln nicht umgesetzt werden:
+
+- **Listenbreite der Stammdaten** (Fächer, Kategorien, Semester, Notenbäume, Lehrberufe, Benutzerkonten,
+  Berufsbildner): jede Liste füllt `np-seite` (Deckel 2048 px), die erste Spalte wächst, Zahlen stehen
+  rechts (Finder-Muster, gleiche Entscheidung wie bei der Lernendenliste). Eine Sonderbreite je Liste wäre
+  ein zweites Raster; bei 2560 bleibt der freie Raum zwischen Name und Zahlenspalten.
+- **Modulliste ohne Seitenaufteilung oder Sticky-Kopf** (`admin/stammdaten/module/index`): 68 Zeilen; die
+  Leiste bietet Suche, Lehrberuf-, Lernort-Filter und Gruppierung – das ist die Progressive Disclosure.
+- **Notenskala-Balken gesättigt** (`admin/betrieb/_felder`, Einrichtung Schritt 1): die vier Notenfarben
+  sind Tokens aus `theme.css` und gelten überall; Dämpfung wäre Theme-Arbeit mit Kontrastrechnung, nicht
+  ein View-Eingriff.
+- **Gerahmte Eingabefelder im Notenbaum-Aufbau und in den Lehrberuf-Modulen**: es sind Bearbeitungstabellen,
+  Felder ohne Rahmen wären nicht als editierbar erkennbar (HIG: Bedienelemente erkennbar). Häkchen für
+  Pflicht/Aktiv sind die Standard-Checkbox mit `text-accent`-Füllung.
+- **Namensreihenfolge** «Nachname Vorname» in Listen (Sortierschlüssel), «Vorname Nachname» in Fliesstext,
+  Dashboard und Formular. Bewusst, wie in Mac-Kontakten.
+- **Spalte «Benutzername»** in den Benutzerkonten: eigenes Feld für die Anmeldung, nicht nur der Teil vor
+  dem @; bleibt, weil es abweichen kann.
+- **Aktionsspalte «Profil» / «Bearbeiten»**: das Ziel unterscheidet sich (Lernende → Cockpit, Konten →
+  Formular); eine gemeinsame Beschriftung würde das verbergen.
+- **Rollen-Chips klein**: `np-marke` (text-2xs 600) auf `bg-fill` mit `text-muted` – dasselbe Tokenpaar
+  wie jede neutrale Marke im Portal; nicht einzeln vergrössern.
+- **Seitenleiste: alle Symbole in Akzent, aktiver Eintrag nur über die Fläche**: Navigationsentscheid aus
+  R4 Lernende (Apple-Seitenleiste), nicht je Rolle anders.
+- **Prüfungstermine (Admin): «Kürzlich vergangen, ohne Note» ohne Kürzung, Marke «n ohne Note» amber**:
+  Arbeitsliste – die Länge ist die Arbeit; amber heisst Handlungsbedarf, nicht Dekoration.
+- **Einstellungen: Seitentitel wiederholt den aktiven Tab**: Muster der Einstellungsseiten (R4 Lernende),
+  Browser-Titel und Überschrift müssen die Seite nennen.
+- **/feedback («Meine Meldungen») ohne Markierung in der Seitenleiste**: erreichbar über den
+  Symbolleisten-Knopf, bewusst kein Seitenleisteneintrag; der Admin-Eintrag «Feedback» ist der Posteingang.
+- **Cockpit-Hinweise mit gleichfarbigem Punkt**: der Punkt zeigt den Lernstand (rot/gelb) der Person, nicht
+  die Schwere jedes Hinweises; eine Schwere je Hinweis gibt es im Modell nicht.
+- **Deaktivierter roter «Löschen»-Knopf im Semester unter 3:1**: inaktive Bedienelemente sind von
+  WCAG 1.4.3 ausgenommen; die Sperre wird daneben im Text erklärt.
+- **Filter «Nur aktive» zeigt Abgeschlossene**: «aktiv» ist das Konto (`benutzer.aktiv`), nicht die
+  laufende Lehre; Abgeschlossene mit aktivem Konto bleiben sichtbar, der Filter «Warnung» blendet sie aus.
+- **Einrichtung: «Abschluss» mit Haken, obwohl Kategorien und E-Mail offen sind**: `Einrichtung::offen()`
+  ist das Flag «Assistent läuft»; der Haken heisst «Assistent abgeschlossen». Kategorien gilt erst als
+  erledigt, wenn jemand sie bestätigt hat (`KATEGORIEN_GEPRUEFT`), E-Mail erst mit konfiguriertem Versand –
+  beides optional, darum offen und trotzdem abschliessbar.
+- **Einrichtung, Schritt Kategorien als vier Karten à sechs Felder**: Formularmuster «gruppierte Liste» je
+  Kategorie; eine Tabelle mit 24 Eingabefeldern wäre dichter, aber kein Muster des Portals.
+- **Feldbezeichnung «Track»**: Fachbegriff des Portals (Fächer-Tabelle, Lehrberuf, Lernende) für BMS/ABU.
+- **Benachrichtigungen: Umbau auf `np-gruppe`/`x-einstellung`**: Formular mit vielen Array-Feldern ohne
+  Feature-Test der Feldnamen; korrigiert wurden Breite (`np-spalte`), Abstände, Ausrichtung und die
+  Fehlerverdrahtung. Umbau erst mit einem Test, der das Speichern aller Felder belegt.
+- **«Testmail senden» aktiv bei leerem Server**: die Serverseite meldet den fehlenden Server als Fehler;
+  ein clientseitiges Sperren müsste die Regel doppeln.
+- **Abschluss-Seite: «Speichern» in der Symbolleiste**: Seitenkopf-Muster (eine Primäraktion oben rechts),
+  gleich wie in Betrieb und Benachrichtigungen.
+- **Admin-Feedback-Leerzustand ohne Weiterweg**: der Admin erzeugt keine Meldungen, es gibt keinen Weg.
+- **Benutzer anlegen: Rolle als Segment, bearbeiten: Schalter**: beim Anlegen genau eine Rolle, beim
+  Bearbeiten Mehrfachrollen (`rollen[]`); verschiedene Semantik, verschiedene Bedienelemente.
+- **Lernende erfassen: Primärknopf bei 1080 px nahe dem unteren Rand**: Formularabschluss gehört unter das
+  Formular (HIG: nichts Wichtiges fixiert), die Seite scrollt.
+- **Betrieb: «älter als zwei Tage» fest im Code** (`admin/betrieb/edit.blade.php`, `subDays(2)`): Grenze der
+  Systemgesundheit (Sicherung, Kopie), keine Betriebsfrist – bleibt im Code.
+- **Benutzer bearbeiten: nach einem Validierungsfehler bei «Rollen» fallen die Schalter auf den gespeicherten
+  Stand zurück** (`old('rollen', $rollen->all())`): Wer alle Rollen abwählt, sieht nach der Fehlermeldung
+  Berufsbildner wieder eingeschaltet. Produktlogik, Fehlermeldung trägt die Information.
+- **Fach bearbeiten: Hinweis «enthält Noten oder Prüfungen» nur bei Noten** (`$notenAnzahl` zählt nur `noten`,
+  `destroy()` sperrt zusätzlich bei Prüfungen, Zielen, Notenbaum-Fächern): ein Fach mit nur Prüfungen zeigt
+  keinen Hinweis, Löschen wird aber serverseitig abgelehnt. Controller-Zählung angleichen, wenn der Fall auftritt.
+- **Notenbäume-Liste ohne Lehrberufs-Kürzel**: die Index-Query wählt `l.kuerzel` nicht; «Gilt für» unterscheidet
+  die Zeilen schon über den vollen Namen.

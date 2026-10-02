@@ -153,6 +153,26 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   nicht main direkt); «Leerung» der Bretter heisst: «bewusst gelassen» sind Entscheide,
                   «Offen für David» bleibt, alles andere wird umgesetzt oder mit Grund als erledigt/obsolet
                   markiert. Nächster Schritt: R4 Admin.
+[O] 02.10. 01:15  R4 Admin abgeschlossen (Abschluss-Commit, siehe Git). Dunkelmodus nach HIG für Übersicht,
+                  Lernendenliste, Noten-Inspektor, Rechner, Abschluss, Berufsbildner, Benutzerkonten (anlegen,
+                  bearbeiten, Passwort), Stammdaten (Lehrberufe, Module mit Katalog, Fächer, Kategorien,
+                  Notenbäume, Semester), Betrieb (Einstellungen mit Darstellung/E-Mail/Sitzung, Einrichtung
+                  Schritte 1–8, Benachrichtigungen, Versand- und Aktivitätsprotokoll, Berichte, Feedback).
+                  Fünf Umsetzungs-Agents parallel (A Übersicht/Listen, B Betrieb/Benutzer, C Einrichtung,
+                  D Stammdaten, E Verwaltung), Diffs in der Hauptsession gelesen. Umgesetzt u. a.: neutrale
+                  Kacheln und ein Akzent je Ansicht, Leerzustände mit Weg weiter («Lernende erfassen»,
+                  «Berufsbildner erfassen», «E-Mail einrichten», «Modul/Fach anlegen»), aria-invalid/
+                  aria-describedby an jedem Feld (Hinweis- und Fehler-id), Darstellung speichert per
+                  data-sofort beim Wechsel, Passwort-Augen im Feld, Einrichtung mittig (max-w-5xl) mit
+                  Zeilenfeldern je Person (_zeilenfeld), Katalogseite ohne CLI-Befehl (steht jetzt in
+                  docs/betrieb.md), Zahlen aus der DB ohne Nachkommanullen, gesperrtes «Entfernen» mit
+                  Grund statt verstecktem Knopf, Rechner zeigt Promotionswechsel «vorher → nachher»,
+                  Statusspalte der Lernendenliste wächst (alle Zeilen 44 px). Abschlussrunde: Suite 1303
+                  bestanden / 1 übersprungen, Rundgang Admin 56 Seiten und Berufsbildner 21 Seiten Exit 0,
+                  24 Screenshots 1920/2560 angesehen, SchluesselTest grün (9 EN-Schlüssel ergänzt, 4 Waisen
+                  entfernt), Hook ohne Meldung, ß-Grep leer. Bewusst gelassen (28 Punkte mit Grund):
+                  docs/audit-backlog.md «R4 Admin». Prüfer, Reviewer und UI-Checker laufen auf diesem
+                  Stand, ihre Befunde folgen im Nachtrag. Nächster Schritt: R5 Gesamtprüfung.
 ```
 
 ---

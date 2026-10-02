@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Benachrichtigungen') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Benachrichtigungen')" />
+        <x-seitenkopf :titel="__('Benachrichtigungen')" schmal />
     </x-slot>
 
     @php
@@ -11,7 +11,7 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <form method="POST" action="{{ route('admin.notifications.update') }}" class="flex flex-col gap-5"
+            <form method="POST" action="{{ route('admin.notifications.update') }}" class="flex np-spalte flex-col gap-8"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('PUT')
@@ -24,8 +24,8 @@
                         <div class="divide-y divide-border">
                             @foreach($anlaesseInGruppe as $type => $a)
                                 <div class="p-5 flex flex-col gap-3">
-                                    <div class="flex flex-wrap items-start justify-between gap-3">
-                                        <div class="min-w-0">
+                                    <div class="flex items-start justify-between gap-6">
+                                        <div class="min-w-0 flex-1">
                                             <div class="text-sm font-medium text-text flex items-center gap-2">
                                                 {{ $a['label'] }}
                                                 @if($a['locked'] ?? false)
@@ -34,7 +34,7 @@
                                                 @endif
                                             </div>
                                             <p class="text-xs text-muted mt-0.5">{{ $a['description'] }}</p>
-                                            <p class="text-3xs text-muted mt-1">{{ implode(', ', array_map('__', $a['roles'])) }}</p>
+                                            <p class="text-xs text-muted mt-1">{{ implode(', ', array_map('__', $a['roles'])) }}</p>
                                         </div>
 
                                         <div class="flex flex-wrap items-center gap-2 shrink-0">
@@ -57,7 +57,8 @@
                                         @if(count($a['frequencies']) > 1)
                                             <div>
                                                 <label for="frequency-{{ $type }}" class="text-sm font-medium text-text">{{ __('Standard-Frequenz') }}</label>
-                                                <select id="frequency-{{ $type }}" name="policies[{{ $type }}][frequency]" @disabled($a['locked'] ?? false) class="{{ $feld }}">
+                                                <select id="frequency-{{ $type }}" name="policies[{{ $type }}][frequency]" @disabled($a['locked'] ?? false) class="{{ $feld }}"
+                                                        @error('policies.'.$type.'.frequency') aria-invalid="true" aria-describedby="frequency-{{ $type }}-fehler" @enderror>
                                                     @foreach($a['frequencies'] as $f)
                                                         <option value="{{ $f }}" @selected($a['frequency'] === $f)>{{ __(\App\Services\Notifications\NotificationCatalog::FREQUENCIES[$f]) }}</option>
                                                     @endforeach
@@ -69,12 +70,13 @@
                                                 <label for="param-{{ $type }}-{{ $name }}" class="text-sm font-medium text-text">{{ $p['label'] }}</label>
                                                 <input id="param-{{ $type }}-{{ $name }}" type="number" name="policies[{{ $type }}][params][{{ $name }}]"
                                                        value="{{ old('policies.'.$type.'.params.'.$name, $a['paramWerte'][$name]) }}"
-                                                       min="{{ $p['min'] }}" max="{{ $p['max'] }}" @disabled($a['locked'] ?? false) class="{{ $feld }} tabular-nums w-24">
-                                                @error('policies.'.$type.'.params.'.$name)<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                                                       min="{{ $p['min'] }}" max="{{ $p['max'] }}" @disabled($a['locked'] ?? false) class="{{ $feld }} w-24 text-right tabular-nums"
+                                                       @error('policies.'.$type.'.params.'.$name) aria-invalid="true" aria-describedby="param-{{ $type }}-{{ $name }}-fehler" @enderror>
+                                                @error('policies.'.$type.'.params.'.$name)<p id="param-{{ $type }}-{{ $name }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                             </div>
                                         @endforeach
                                     </div>
-                                    @error('policies.'.$type.'.frequency')<p class="text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                                    @error('policies.'.$type.'.frequency')<p id="frequency-{{ $type }}-fehler" class="text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                 </div>
                             @endforeach
                         </div>
