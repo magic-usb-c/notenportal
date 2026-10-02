@@ -1,78 +1,75 @@
 ---
 name: notenportal-orchestrierung
-description: Welches Modell und welcher Effort für welche Teilaufgabe, wann Subagent, Workflow oder selbst, wie neue Agents/Skills/Workflows angelegt werden. Laden, bevor eine Aufgabe verteilt wird, die mehr als eine Datei oder mehr als einen Schritt umfasst.
+description: "Bei Aufgaben im Notenportal: Modell und Effort wählen, Arbeit passend selbst erledigen oder delegieren, Workflows sicher steuern und Ergebnisse verifizieren. Vor autonomer Fortsetzung und substanziellen Aufgaben laden."
 ---
 
 # Orchestrierung im Notenportal
 
-Die Hauptsitzung läuft als **Fable 5.1, Effort xhigh, Ultracode an, Advisor Fable** (`.claude/settings.json`).
-Sie ist Leiterin, nicht Arbeiterin: sie zerlegt, verteilt, verifiziert, committet. Sie schreibt selbst
-nur Kleinigkeiten (eine Zeile, eine Datei) oder das, was nach zwei Agent-Runden immer noch falsch ist.
+## Auftrag
 
-## 1. Modell und Effort je Aufgabe
+Du koordinierst die Arbeit im Notenportal effizient, sorgfältig und innerhalb des erteilten Auftrags. Du bist für Priorisierung, passende Aufteilung, sichere Delegation, Zusammenführung und überprüfbare Ergebnisse verantwortlich. Nutze spezialisierte Agents und Workflows, wenn sie einen klaren Vorteil bringen; delegiere nicht bloss um des Delegierens willen.
 
-| Aufgabe | Modell | Effort | Form |
-|---|---|---|---|
-| Dateien finden, Inventar, Vorkommen zählen, Routen auflisten | haiku (`Explore`) · sonnet (`explorer`) | low | `Explore`-Agent mit `model: haiku`, oder `explorer` |
-| Schema/DB nachsehen | sonnet | medium | `db-inspector` |
-| Umsetzen (Controller, Views, Tests), Texte, Doku | sonnet | high | Subagent oder Workflow-Stage |
-| Code-Review eines Diffs | sonnet | high | `reviewer` |
-| UI-Regelprüfung je Rollenbereich | opus | xhigh | `ui-checker` |
-| Sichtprüfung von Screenshots (Dunkelmodus, HIG) | opus | xhigh | `bildpruefer` |
-| Behauptung «fertig/behoben/grün» widerlegen | opus | xhigh | `pruefer` |
-| Architektur, Datenmodell, Migration mit Risiko | opus | xhigh | Subagent, dann `pruefer` |
-| Hartnäckiger Fehler nach zwei erfolglosen Runden | opus → fable | xhigh → max | Subagent, Instrument bauen, messen |
-| Letzte Verifikation, wenn opus-Prüfer sich widersprechen | fable | max | Workflow-Stage mit Mehrheitsvotum |
-| Fakten Schweizer Berufsbildung | sonnet | high | `recherche-schweiz` |
+Arbeite selbst an kleinen, klar begrenzten Änderungen oder wenn kein passender Agent beziehungsweise Workflow verfügbar ist. Bei grösseren Aufgaben delegierst du Umsetzung oder unabhängige Prüfungen und bleibst für Integration und Ergebnis verantwortlich.
 
-Vokabular (geprüft an der Claude-Code-Dokumentation, Stand 01.10.2026): `model: haiku|sonnet|opus|fable|inherit`,
-`effort: low|medium|high|xhigh|max` – im Agent-Frontmatter, in `agent(prompt, {model, effort})` eines
-Workflows und im Skill-Frontmatter. Ohne Angabe erbt ein Agent Modell und Effort der Hauptsitzung
-(= Fable xhigh): das ist für mechanische Arbeit Verschwendung, deshalb immer setzen.
+## Verbindliche Prioritäten
 
-## 2. Selbst, Subagent oder Workflow
+1. System-, Entwickler- und Sicherheitsvorgaben haben Vorrang vor diesem Skill.
+2. Danach gelten `CLAUDE.md`, einschlägige Projektregeln und der konkrete Auftrag des Benutzers.
+3. Lies vor einer autonomen Fortsetzung `docs/auftrag/LAGE.md` und `docs/auftrag/UEBERGABE.md`. Lies `CLAUDE.md` und `docs/auftrag/SETUP-CLAUDE.md`, wenn Regeln, Modellwahl oder Laufzeit relevant sind.
+4. Bei widersprüchlichen Projektangaben gilt die nachweisbare aktuelle Quelle. Halte ungeklärte Punkte als Annahme oder offene Frage fest; erfinde keine Fakten.
 
-- **Selbst:** Antwort auf eine Frage, Edit an einer Datei, Commit, Bericht.
-- **Subagent (`Agent`-Werkzeug):** eine abgegrenzte Aufgabe mit klarem Ergebnis – Suche, Review,
-  Umsetzung an genannten Dateien. Mehrere unabhängige Agents immer in einer Nachricht starten.
-- **Workflow (`Workflow`-Werkzeug, Ultracode):** jede Aufgabe mit mehreren Dimensionen, Rollen,
-  Seiten oder Befunden. Muster: Befunde parallel sammeln (`pipeline`), **jeden Befund gegnerisch
-  verifizieren** (2–3 Prüfer mit verschiedenen Blickwinkeln, Mehrheit zählt), erst dann umsetzen.
-  Vorlagen: `.claude/workflows/notenportal-audit.js` (Code und Views),
-  `.claude/workflows/notenportal-dunkel-rundgang.js` (Screenshots je Rolle im Dunkelmodus).
-  Ein bewährter Lauf wird gespeichert (`/workflows`, Taste `s`, Ziel «Projekt») und committet.
-- In der Cloud gilt `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`: Subagents starten keine Subagents.
-  Workflows laufen aus der Hauptsitzung heraus, das ist deshalb kein Hindernis.
+Ein ausdrücklicher Benutzerauftrag begrenzt den Arbeitsumfang. `/weiter` erteilt zusätzlich den Auftrag, den dokumentierten Arbeitsplan fortzuführen. Ohne diese Ermächtigung beginnst du nach Erledigung des konkreten Auftrags keinen sachfremden nächsten Backlog-Punkt.
 
-## 3. Regeln für jeden Auftrag
+## Modell- und Effortwahl
 
-- Vorlage und Pflichtblock: Skill `notenportal-agentauftrag`.
-- Subagents schreiben nie Git, Composer oder npm (auch keine Dry-Runs). Commit nur in der Hauptsitzung.
-- Parallel umsetzende Agents bekommen disjunkte Dateien; sonst `isolation: worktree` im Workflow.
-- Jede Behauptung eines Agents («Tests grün», «sieht gut aus») wird nachgemessen: Suite selbst
-  laufen lassen, Screenshot selbst ansehen, `pruefer` ansetzen.
-- Advisor (`advisor`-Werkzeug): vor dem ersten substanziellen Schritt einer Aufgabe und vor der
-  Fertigmeldung. Vorher den Stand committen.
+Die Hauptsitzung koordiniert mit dem konfigurierten Hauptmodell. Verwende für Teilaufgaben das kleinste passende Modell und den passenden Effort. Die folgende Tabelle ist eine Routing-Hilfe, keine Garantie, dass ein Modell oder Werkzeug in jeder Laufzeit verfügbar ist:
 
-## 4. Neue Agents, Skills, Workflows anlegen
+| Aufgabe | Bevorzugte Zuweisung | Effort / Form |
+|---|---|---|
+| Suche, Inventar, Vorkommen, einfache Log-Analyse | `Explore` mit Haiku, falls verfügbar; sonst Agent `explorer` | low; eng begrenzter Leseauftrag |
+| Schema und Datenbestand | Agent `db-inspector` | medium |
+| Standard-Implementierung und Tests | Agent `explorer` nur zur Orientierung; Umsetzung durch geeigneten Sonnet-Agent oder Workflow-Stage | high |
+| Code-Review | Agent `reviewer` | high |
+| Menschliche Texte | Agent `texter` | high |
+| Schweizer Berufsbildungsfakten | Agent `recherche-schweiz` | high |
+| UI-Regelprüfung | Agent `ui-checker` | xhigh |
+| Screenshot-Sichtprüfung | Agent `bildpruefer` | xhigh |
+| Gegenprüfung einer Fertig-/Fehlerbehauptung | Agent `pruefer` | xhigh |
+| Architektur oder riskante Migration | zuerst passende Fachprüfung, bei Bedarf Opus; Fable nur für echte Architektur- oder Konfliktentscheidung | xhigh; Fable max nur als letzte Verifikation |
+| Hartnäckiger Fehler | messen und lokalisieren, dann gezielte Reparatur; bei weiterem Konflikt eskalieren | nicht durch blindes Modell-Hochstufen ersetzen |
 
-Die Hauptsitzung legt sie selbst an, wenn eine Aufgabe wiederkehrt, und committet sie.
+Die Frontmatter-Werte der tatsächlich vorhandenen Agents und `docs/auftrag/SETUP-CLAUDE.md` sind massgeblich. Erfinde keine Agenten, Modelle, Effort-Stufen oder Fähigkeiten. Falls die bevorzugte Zuweisung nicht verfügbar ist, verwende die nächste verfügbare passende Option und benenne die Abweichung nur, wenn sie für die Verifikation relevant ist.
 
-- **Agent:** `.claude/agents/<name>.md` mit Frontmatter `name, description, tools, model, effort`,
-  optional `disallowedTools, maxTurns, skills, isolation: worktree, background: true`. Beschreibung so
-  schreiben, dass klar ist, *wann* er zu nehmen ist. Deutsch, max. ~40 Zeilen Anweisung.
-- **Skill:** `.claude/skills/<name>/SKILL.md` mit `name, description`, optional `model, effort,
-  allowed-tools, paths`. Nur Wissen, das sonst jedes Mal neu erarbeitet würde. Nach dem Anlegen
-  `/reload-skills`.
-- **Regel mit Pfadbezug:** `.claude/rules/<thema>.md` mit Frontmatter `paths:` – wird automatisch
-  geladen, sobald eine passende Datei bearbeitet wird (`.claude/rules/oberflaeche.md`).
-- **Workflow:** `.claude/workflows/<name>.js`, Kopf `export const meta = { name, description, phases }`
-  als reines Literal; Skript nutzt `agent()`, `pipeline()`, `parallel()`, `phase()`, `log()`;
-  JSON-Schema für strukturierte Ergebnisse. Kein `Date.now()`, kein Dateisystem. Aufruf
-  `Workflow({name})` oder `/run`.
-- **Befehl:** `.claude/commands/<name>.md` – ein Prompt mit `$ARGUMENTS`, als `/<name>` aufrufbar.
+## Arbeitsrouting
 
-## 5. Was nicht automatisiert wird
+1. **Auftrag schärfen:** Bestimme gewünschtes Ergebnis, betroffene Oberfläche und nötige Abnahmekriterien. Bei einem kleinen Auftrag arbeite direkt. Bei einem grösseren Auftrag identifiziere zunächst den kleinsten entscheidenden Codepfad und einen gezielten Check.
+2. **Workflow wählen:** Aufgaben mit Änderungen an mehreren Dateien laufen als Workflow. Nutze einen vorhandenen Workflow, wenn er zur Aufgabe passt; neue Workflow-Infrastruktur nur anlegen, wenn sie wiederverwendbar und tatsächlich nötig ist.
+3. **Teilaufgaben schneiden:** Jede Delegation erhält ein eindeutiges Ziel, konkrete Dateigrenzen, nötigen Kontext, verbotene Aktionen, Prüfauftrag und ein kurzes Rückmeldeformat. Lies vor Code-Delegation `.claude/skills/notenportal-agentauftrag/SKILL.md` und verwende dessen Pflichtblock.
+4. **Parallelisieren mit Grenzen:** Parallel laufen nur unabhängige Aufgaben. Teile gemeinsame Dateien nicht gleichzeitig mehreren Agents zu; falls nötig, nutze die im Projekt vorgesehene Isolation. In der Cloud keine verschachtelten Subagents starten. Subagents führen keine schreibenden Git-, Composer- oder npm-Befehle aus.
+5. **Workflow-Aufrufe absichern:** Setze bei jedem `agent(prompt, { model, effort })` sowohl `model` als auch `effort` ausdrücklich. Prüfe, dass jeder Aufruf im Workflow diese Werte erhält; sonst kann er das teure Hauptmodell erben. Passe Parallelität und Bündelgrösse an Laufzeit, Rate-Limits und unabhängige Arbeit an.
+6. **Ergebnisse integrieren:** Behandle Agent-Berichte als Behauptungen, nicht als Beweis. Prüfe Änderungen und Diff selbst, führe die passende fokussierte Validierung aus und löse widersprüchliche Befunde durch zusätzliche Evidenz statt Mehrheitsentscheid.
 
-Entscheide mit Aussenwirkung (Produkt, Recht, Lizenz, Passwortrotation) kommen unter «Offen für
-David» in `docs/auftrag/UEBERGABE.md`. Alles andere wird entschieden, dokumentiert, gemacht.
+## Sicherheit und Änderungsgrenzen
+
+- Lies und respektiere den bestehenden Arbeitsbaum. Überschreibe, verwerfe oder stage keine fremden Änderungen; trenne eigene und fremde Hunks.
+- Niemals `git reset --hard`, `git clean`, `git checkout` oder `git restore` verwenden, um Fehler oder nicht bestandene Tests zu kaschieren. Keine fremden Änderungen löschen. Ein Fehlschlag ist kein Grund für einen destruktiven Rollback.
+- `.env` und `tmp-testdaten/` nicht lesen, ändern, ausgeben oder in Fixtures/Dokumentation übernehmen. Geheimnisse und Passwörter nicht in Argumente, Logs, Screenshots oder Berichte schreiben; Testpasswörter ausschliesslich über die vorgesehene Umgebungsvariable verwenden.
+- Tests nur gegen die vorgesehene eigene Testdatenbank ausführen. Datenbank- und Migrationsregeln aus `CLAUDE.md` sowie `notenportal-migration` strikt einhalten; niemals produktive oder fremde Datenbanken für Tests verwenden.
+- Keine Aussenwirkung, zusätzliche Produktentscheidung oder Ausweitung des Auftrags ohne Autorisierung. Wenn eine Entscheidung tatsächlich nur der Benutzer treffen kann, dokumentiere sie unter «Offen» und arbeite an unabhängigen Teilen weiter.
+- Commit und Push nach `notenportal-blockabschluss` nur, wenn Projektvorgaben, Sitzungsberechtigungen und höherrangige Anweisungen es erlauben. Explizit betroffene Dateien stagen, niemals pauschal `git add -A`; niemals force-pushen. Keine dieser Regeln rechtfertigt das Umgehen einer Berechtigungssperre.
+
+## Fehler- und Eskalationsprotokoll
+
+1. Lies die vollständige Fehlermeldung und identifiziere den fehlgeschlagenen Schritt. Unterscheide Produktfehler, Testfehler, Umgebungsproblem und nicht reproduzierbaren Befund.
+2. Führe den kleinsten Check aus, der die vermutete Ursache bestätigen oder widerlegen kann. Bei unklarer Ursache delegiere eine eng begrenzte Diagnose an `explorer` oder den passenden Fach-Agent.
+3. Repariere nur die betroffene Ursache und wiederhole denselben fokussierten Check. Ändere nicht mehrere Hypothesen gleichzeitig.
+4. Nach zwei erfolglosen, substanziell unterschiedlichen Reparaturversuchen: stoppe spekulative Änderungen, sichere den aktuellen Arbeitsstand, dokumentiere Belege und verbleibendes Risiko. Verwende keinen automatischen Reset. Eskaliere an den passend stärkeren Fach-Agent oder melde einen echten Blocker; setze unabhängige, autorisierte Arbeit fort.
+5. Dokumentiere bewusst zurückgestellte Punkte mit Grund in `docs/audit-backlog.md`, wenn sie zum Auftrag gehören. Überspringe keinen offenen Pflichtcheck und behaupte keinen Erfolg ohne Beleg.
+
+## Validierung und Abschluss
+
+- Nach der ersten inhaltlichen Änderung folgt als nächster Schritt ein fokussierter ausführbarer Check, sofern verfügbar. Bei einem Fehlschlag repariere dieselbe Scheibe und wiederhole diesen Check, bevor du den Umfang erweiterst.
+- Wähle weitere Prüfungen nach Risiko und Projektvorgaben: passende Tests, Formatierung, Build, Text-/Hook-Prüfungen und bei sichtbaren Änderungen die vorgeschriebenen Screenshots beziehungsweise Rundgänge.
+- Vor Abschluss eines implementierten Blocks lade und befolge `.claude/skills/notenportal-blockabschluss/SKILL.md`; setze die dort geforderten Reviews und den `pruefer` passend zum geänderten Bereich ein. UI-Arbeit braucht zusätzlich die UI-, Dunkelmodus- und Prüfwerkzeug-Skills.
+- Vor dem tatsächlichen Ende einer autonomen Sitzung befolge `.claude/skills/notenportal-sessionende/SKILL.md`. Ein normaler, abgeschlossener Einzelauftrag erfordert keinen künstlichen Sessionabschluss.
+- Berichte knapp, auf Deutsch und mit belegtem Status: Änderung, ausgeführte Checks mit Ergebnis, nicht geprüfte Anforderungen, offene Punkte. Behaupte nicht, dass ein Agent, Test, Commit oder Push erfolgreich war, wenn du es nicht selbst verifiziert hast.
