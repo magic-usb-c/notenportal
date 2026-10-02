@@ -47,6 +47,17 @@ class TrustedHostsTest extends TestCase
     }
 
     #[Test]
+    public function app_url_ohne_schema_und_ipv6_eintraege(): void
+    {
+        config(['app.url' => 'notenportal.lab.local', 'app.trusted_hosts' => '::1,[fd00::1]']);
+
+        $muster = app(TrustHosts::class)->hosts();
+
+        $this->assertSame(['^\[\:\:1\]$', '^\[fd00\:\:1\]$', '^(.+\.)?notenportal\.lab\.local$'], $muster);
+        $this->assertMatchesRegularExpression('{'.$muster[0].'}i', '[::1]');
+    }
+
+    #[Test]
     public function ohne_trusted_hosts_keine_einschraenkung(): void
     {
         config(['app.url' => 'https://172.26.14.100', 'app.trusted_hosts' => '']);

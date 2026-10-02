@@ -225,6 +225,19 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   notenportal-blockabschluss/-pruefwerkzeuge/-agentauftrag, SETUP-CLAUDE 2.3 und §12.14
                   (Subagent-Doku nennt weder effort noch effortLevel – Schlüssel bleibt unbelegt,
                   Frontmatter unverändert). «Offen für David» dazu geschlossen.
+[O] 02.10. 07:15  Backlog, technische Punkte (54852d4, 6c2b03d, Ränder in diesem Commit): verwaiste
+                  Feedback-Dateien räumt notenportal:feedback-aufraeumen wöchentlich auf (Z.406); Host-
+                  Header auf TRUSTED_HOSTS plus APP_URL begrenzt (Z.328) – erst aktiv, wenn install.sh
+                  oder Hand den Wert füllt, sonst keine Begrenzung und Warnung in notenportal:bereitschaft
+                  (die Pilot-VM bleibt nach git pull erreichbar); Installer behält Hand-Einträge;
+                  Katalogversion in der Modulansicht mit derselben Version wie der Modulbaukasten-Link
+                  (Z.66); Z.356/Z.420/Z.489 als erledigt nachgetragen. Belege: Suite 1310 bestanden /
+                  1 übersprungen, Prüfer (fable low) zweimal – erste Runde drei Lücken (Test nicht
+                  beweiskräftig, Update-Pfad ohne TRUSTED_HOSTS, Hand-Einträge verloren) behoben, zweite
+                  Runde hält mit Produktionsdurchstich 400/200 und acht roten Mutanten; Ränder APP_URL
+                  ohne Schema und IPv6-Einträge danach geschlossen (Test). Bewusst offen mit Grund
+                  (Backlog-Nachträge): Z.201 Tastenkürzel-Einstieg unter 1024 px, Z.367 eigene
+                  Darstellungs-Unterseite, Z.556 LBV-Elemente nur aus dem Katalogimport.
 ```
 
 ---

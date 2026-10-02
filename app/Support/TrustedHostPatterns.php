@@ -27,12 +27,19 @@ final class TrustedHostPatterns
             return [];
         }
 
-        $patterns = array_map(fn (string $host) => '^'.preg_quote($host).'$', $hosts);
-        $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        // Symfony liefert IPv6-Hosts in eckigen Klammern («[::1]»), darum so auch das Muster
+        $patterns = array_map(fn (string $host) => '^'.preg_quote(self::ipv6Klammern($host)).'$', $hosts);
+        $appUrl = (string) config('app.url');
+        $appHost = parse_url(str_contains($appUrl, '://') ? $appUrl : '//'.$appUrl, PHP_URL_HOST);
         if (is_string($appHost) && $appHost !== '') {
             $patterns[] = '^(.+\.)?'.preg_quote($appHost).'$';
         }
 
         return $patterns;
+    }
+
+    private static function ipv6Klammern(string $host): string
+    {
+        return str_contains($host, ':') && ! str_starts_with($host, '[') ? '['.$host.']' : $host;
     }
 }
