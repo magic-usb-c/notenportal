@@ -191,6 +191,14 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   doppelte ids oder tote aria-Verweise. Nicht geprüft: Fehlerzustände von people, professions,
                   mail, theme, notifications im Browser (nur am Code).
                   Nächster Schritt: R5 Gesamtprüfung.
+[O] 02.10. 02:30  R5 Gesamtprüfung begonnen (nach Nachtrag f24bc48). Umfang, da nirgends definiert, nach
+                  gui-konzept «Prüfung» und notenportal-ui §10 festgelegt: (1) Workflow
+                  notenportal-dunkel-rundgang über alle drei Rollen, 1920 vollständig beurteilt, 2560
+                  gemessen und als Stichprobe beurteilt, jeder Befund zweifach verifiziert; (2) Workflow
+                  notenportal-audit über alle sechs Dimensionen; (3) Hell-Stichprobe je Rolle von Hand
+                  (darf nicht brechen); (4) bestätigte Befunde beheben, Suite, Prüfer; (5) LAGE §7,
+                  gui-konzept-Stand, Übergabe, PR-Beschreibung. Die zehn ungeprüften Sichtbefunde des
+                  Rauchtests vom 01.10. gelten damit als neu aufgenommen.
 ```
 
 ---
