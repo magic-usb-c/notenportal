@@ -38,16 +38,17 @@
                 </select>
             </x-filterleiste>
 
-            <div class="np-karte overflow-hidden">
+            <div class="np-karte max-w-5xl overflow-hidden">
                 <div class="p-2">
-                    <table class="np-tabelle text-sm">
+                    <table class="np-tabelle table-fixed text-sm">
+                        <colgroup><col><col class="w-48"><col class="w-48"><col class="w-32"><col class="w-28"></colgroup>
                         <thead>
                             <tr>
                                 <th scope="col">{{ __('Name') }}</th>
-                                <th scope="col" class="whitespace-nowrap">{{ __('Benutzername') }}</th>
+                                <th scope="col">{{ __('Benutzername') }}</th>
                                 <th scope="col">{{ __('Rollen') }}</th>
-                                <th scope="col" class="w-32">{{ __('Status') }}</th>
-                                <th scope="col" class="w-28 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col">{{ __('Status') }}</th>
+                                <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -66,7 +67,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="whitespace-nowrap text-muted">{{ $b->benutzername }}</td>
+                                    <td class="truncate text-muted">{{ $b->benutzername }}</td>
                                     <td>
                                         <div class="flex flex-wrap gap-1">
                                             @forelse($b->rollen ? explode(', ', $b->rollen) : [] as $rolle)

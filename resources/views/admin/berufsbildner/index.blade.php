@@ -18,22 +18,23 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($berufsbildner->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-5xl">
                     <x-leer symbol="identification" :titel="__('Keine aktiven Berufsbildner')">
                         <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Berufsbildner erfassen') }}</a>
                     </x-leer>
                 </div>
             @else
-                <div class="np-karte overflow-hidden">
+                <div class="np-karte max-w-5xl overflow-hidden">
                     <div class="p-2">
-                        <table class="np-tabelle text-sm">
+                        <table class="np-tabelle table-fixed text-sm">
+                            <colgroup><col><col class="w-32"><col class="w-56"><col class="w-40"><col class="w-28"></colgroup>
                             <thead>
                                 <tr>
                                     <th scope="col">{{ __('Name') }}</th>
-                                    <th scope="col" class="w-32 text-right">{{ __('Lernende') }}</th>
-                                    <th scope="col" class="w-56 text-right">{{ __('Ohne Note seit :tage Tagen', ['tage' => $frist]) }}</th>
-                                    <th scope="col" class="w-40 text-right">{{ __('Ø unter :grenze', ['grenze' => $grenzeText]) }}</th>
-                                    <th scope="col" class="w-28 text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col" class="text-right">{{ __('Lernende') }}</th>
+                                    <th scope="col" class="text-right">{{ __('Ohne Note seit :tage Tagen', ['tage' => $frist]) }}</th>
+                                    <th scope="col" class="text-right">{{ __('Ø unter :grenze', ['grenze' => $grenzeText]) }}</th>
+                                    <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>

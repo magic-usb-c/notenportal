@@ -24,6 +24,8 @@
         default => __('vor :tage Tagen', ['tage' => $tage]),
     };
     $spalten = $bereich === 'admin' ? 8 : 7;
+    // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte (Admin hat eine Spalte mehr)
+    $kartenbreite = $bereich === 'admin' ? 'max-w-7xl' : 'max-w-6xl';
     // Gar keine sichtbaren Lernenden (auch keine inaktiven) und kein Filter: Leerzustand für die ganze Ansicht.
     // Nur inaktive Lernende zeigen die Tabelle mit Filterleiste, damit «Inkl. inaktive» erreichbar bleibt.
     $leer = $gesamt === 0 && $aktiveFilter === 0;
@@ -49,7 +51,7 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
 
             @if($leer)
-                <div class="np-karte">
+                <div class="np-karte {{ $kartenbreite }}">
                     <x-leer symbol="users" :titel="__('Noch keine Lernenden')">
                         <a href="{{ route("{$bereich}.learners.create") }}" class="np-knopf np-knopf-sekundaer">{{ __('Lernende erfassen') }}</a>
                     </x-leer>
@@ -120,7 +122,7 @@
                     </x-slot:weitere>
                 </x-filterleiste>
 
-                <div class="np-karte overflow-hidden">
+                <div class="np-karte {{ $kartenbreite }} overflow-hidden">
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
                             <caption class="sr-only">{{ __('Lernende') }}</caption>

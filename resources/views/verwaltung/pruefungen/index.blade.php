@@ -42,7 +42,7 @@
 
     <div class="py-6">
         {{-- Termine als gruppierte Liste, daneben die Lernenden wie die Kalenderliste in Apple Kalender: Auswahl und Zähler --}}
-        <div class="np-seite mx-auto grid grid-cols-[minmax(0,78rem)_20rem] items-start gap-8 px-8">
+        <div class="np-seite mx-auto grid grid-cols-[minmax(0,64rem)_20rem] items-start gap-8 px-8">
             <div class="flex min-w-0 flex-col gap-8">
                 @forelse($gruppen as $g)
                     <section class="flex flex-col gap-2">
