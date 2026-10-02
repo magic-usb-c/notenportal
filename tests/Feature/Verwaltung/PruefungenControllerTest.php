@@ -199,6 +199,35 @@ class PruefungenControllerTest extends TestCase
 
     #[Test]
     #[DataProvider('verwalterRollen')]
+    public function notenlink_einer_benoteten_pruefung_nennt_den_wert_wie_der_badge(string $bereich): void
+    {
+        $lernender = $this->neuerLernender();
+        $verwalter = $this->verwalter($bereich, $lernender);
+        $semester = Semester::factory()->create([
+            'start_datum' => now()->subMonths(3)->toDateString(),
+            'end_datum' => now()->addMonths(3)->toDateString(),
+        ]);
+        $note = Note::create([
+            'lernender_id' => $lernender->lernender_id,
+            'kategorie_id' => DB::table('kategorien')->value('kategorie_id'),
+            'semester_id' => $semester->semester_id,
+            'fach_id' => Fach::factory()->create()->fach_id,
+            'titel' => 'Note',
+            'pruefungsdatum' => now()->toDateString(),
+            'note_wert' => 4.25,
+            'gewichtung_prozent' => 100,
+            'erfasst_von_benutzer_id' => $verwalter->benutzer_id,
+        ]);
+        $this->pruefung($lernender->lernender_id, ['titel' => 'Benotet kommend', 'note_id' => $note->note_id]);
+
+        $antwort = $this->actingAs($verwalter)->get(route("{$bereich}.exams.index"));
+
+        // Viertelnoten dürfen im zugänglichen Namen nicht gerundet werden (WCAG 2.5.3: Label in Name)
+        $antwort->assertOk()->assertSee('Note ansehen: 4.25')->assertDontSee('Note ansehen: 4.3');
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
     public function kalender_abo_link_und_token_reset(string $bereich): void
     {
         $lernender = $this->neuerLernender();

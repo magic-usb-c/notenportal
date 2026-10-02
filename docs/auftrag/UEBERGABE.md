@@ -135,7 +135,8 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Inspektor, Abschluss, Prüfungstermine, Fehlerseiten. Abschlussrunde: Rundgang 1920 Exit 0
                   (21 Seiten), Bildprüfer 1920 Kern/Module/Einstellungen und 2560 (13 Seiten, kein Befund
                   «hoch»), Reviewer (ein Befund: Hook), UI-Checker (13 Befunde), Suite 1301 bestanden /
-                  1 übersprungen, Prüfer (Urteil im Folge-Commit). Umgesetzt:
+                  1 übersprungen, Prüfer: Behauptung hält, ein Befund – aria-label des Termin-Notenlinks rundete
+                  Viertelnoten (4.25 → «4.3»), jetzt ungerundet wie der Badge, mit Regressionstest. Umgesetzt:
                   Zeilenaktion «Noten» rechtsbündig, «Modul anlegen» als Primäraktion, Kommentarfeld mit
                   @error/aria (Fehler landet an der richtigen Note, old('note_id') öffnet sie wieder),
                   Datumskachel im Dashboard wie in der Terminliste (text-muted, keine Versalien), Kacheln
