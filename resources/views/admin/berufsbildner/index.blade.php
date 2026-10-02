@@ -19,7 +19,7 @@
         <div class="mx-auto np-seite px-8">
             @if($berufsbildner->isEmpty())
                 <div class="np-karte">
-                    <x-leer symbol="identification" :titel="__('Keine aktiven Berufsbildner.')">
+                    <x-leer symbol="identification" :titel="__('Keine aktiven Berufsbildner')">
                         <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Berufsbildner erfassen') }}</a>
                     </x-leer>
                 </div>

@@ -62,10 +62,10 @@
                             <span class="font-semibold tabular-nums" x-text="'≥ ' + fmt(z.zielwert)"></span>
                         </button>
                         @if($zielUrl)
-                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1">
+                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" x-data="{ loading: false }" @submit="loading = true">
                                 @csrf
                                 @method('DELETE')
-                                <button class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-text/10 hover:text-text"
+                                <button :disabled="loading" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-text/10 hover:text-text disabled:opacity-50"
                                         :aria-label="@js(__('Ziel entfernen')) + ': ' + z.label" title="{{ __('Ziel entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-3.5" /></button>
                             </form>
                         @endif

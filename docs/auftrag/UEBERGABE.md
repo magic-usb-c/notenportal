@@ -171,8 +171,26 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   bestanden / 1 übersprungen, Rundgang Admin 56 Seiten und Berufsbildner 21 Seiten Exit 0,
                   24 Screenshots 1920/2560 angesehen, SchluesselTest grün (9 EN-Schlüssel ergänzt, 4 Waisen
                   entfernt), Hook ohne Meldung, ß-Grep leer. Bewusst gelassen (28 Punkte mit Grund):
-                  docs/audit-backlog.md «R4 Admin». Prüfer, Reviewer und UI-Checker laufen auf diesem
-                  Stand, ihre Befunde folgen im Nachtrag. Nächster Schritt: R5 Gesamtprüfung.
+                  docs/audit-backlog.md «R4 Admin». Abschluss-Commit 68c0e24. Nachtrag nach Review:
+                  Reviewer ohne Befund (XSS-Stellen nur Literale, Sperren serverseitig, Fehlerindizes und
+                  Sprachschlüssel stimmen, 122 gefilterte Tests). UI-Checker 13 Befunde, 10 umgesetzt:
+                  «0» im Dashboard text-muted statt text-faint, Kacheln text-xl, bg-bg in Karten durch
+                  bg-fill ersetzt (Einrichtung Module/Semester), Zeilen-Entfernen und «Weitere …» mit
+                  x-symbol statt Glyphe, Hinweistexte in Einrichtung Module und Katalog gestrichen,
+                  Leerzustand Einrichtung Module über x-leer, Abschluss-Status mit check-circle wie der
+                  Stepper, h3→h2 unter dem Seitentitel, Leerzustandstitel ohne Punkt, Berichte-Leerzeile
+                  mit «Filter zurücksetzen» und th scope, Platzhalter «–» einheitlich text-muted,
+                  Zahlenfelder rechtsbündig, Rechner «Ziel entfernen» mit Loading-State. Drei Punkte mit
+                  Grund im Backlog (colgroup, Lehrberuf-Felder nur aria-label, Abschluss-Fuss).
+                  Prüfer (opus, 22d989a..68c0e24): Behauptung hält, zwei Lücken behoben – Auswahlfelder in
+                  `_zeilenfeld` ohne aria-invalid/aria-describedby, und «Fach löschen» zeigte den Hinweis nur
+                  bei ungelöschten Noten, während destroy() auch bei Prüfungen, Zielen und gelöschten Noten
+                  sperrt (jetzt eine Regel `loeschSperre()` für Hinweis und Sperre, Test
+                  `fach_mit_pruefung_zeigt_loeschsperre…`, Backlog-Punkt gestrichen). Bestätigt: Theme-Radios
+                  senden einmal, in_gebrauch-Sperre serverseitig, Browser-Sonde auf 16 Admin-Seiten ohne
+                  doppelte ids oder tote aria-Verweise. Nicht geprüft: Fehlerzustände von people, professions,
+                  mail, theme, notifications im Browser (nur am Code).
+                  Nächster Schritt: R5 Gesamtprüfung.
 ```
 
 ---

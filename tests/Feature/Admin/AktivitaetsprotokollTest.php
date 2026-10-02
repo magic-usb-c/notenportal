@@ -523,7 +523,7 @@ class AktivitaetsprotokollTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.activity.index'))
             ->assertOk()
-            ->assertSee('Noch keine Einträge im Aktivitätsprotokoll.');
+            ->assertSee('Noch keine Einträge im Aktivitätsprotokoll');
     }
 
     #[Test]

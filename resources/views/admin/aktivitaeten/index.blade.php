@@ -13,7 +13,7 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
             @if($leer)
                 <div class="np-karte">
-                    <x-leer symbol="clock" :titel="__('Noch keine Einträge im Aktivitätsprotokoll.')" />
+                    <x-leer symbol="clock" :titel="__('Noch keine Einträge im Aktivitätsprotokoll')" />
                 </div>
             @else
                 <x-filterleiste :action="route('admin.activity.index')" suche-name="person" :suche-wert="$person"
@@ -63,11 +63,11 @@
                                         </td>
                                         <td class="truncate">{{ $wer }}</td>
                                         <td class="truncate">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
-                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>@if($ziel){{ $ziel }}@else<span class="text-faint">–</span>@endif</td>
+                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>@if($ziel){{ $ziel }}@else<span class="text-muted">–</span>@endif</td>
                                         <td class="text-muted">
-                                            <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>@if($details !== ''){{ $details }}@else<span class="text-faint">–</span>@endif</div>
+                                            <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>@if($details !== ''){{ $details }}@else<span class="text-muted">–</span>@endif</div>
                                         </td>
-                                        <td class="truncate tabular-nums text-muted">@if($e->ip){{ $e->ip }}@else<span class="text-faint">–</span>@endif</td>
+                                        <td class="truncate tabular-nums text-muted">@if($e->ip){{ $e->ip }}@else<span class="text-muted">–</span>@endif</td>
                                     </tr>
                                 @empty
                                     <tr>

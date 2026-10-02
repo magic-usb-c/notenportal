@@ -8,9 +8,13 @@
                 @continue($key === 'finish')
                 @php $ok = $stand[$key]['erledigt']; @endphp
                 <li class="flex items-center gap-3 px-5 py-3">
-                    <span @class(['w-7 h-7 rounded-full inline-flex items-center justify-center shrink-0 text-xs font-semibold',
-                        'bg-note-gut/15 text-note-gut' => $ok,
-                        'bg-note-knapp/15 text-note-knapp' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
+                    <span class="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
+                        @if($ok)
+                            <x-symbol name="check-circle" class="size-5 text-note-gut" />
+                        @else
+                            <span class="size-2.5 rounded-full border-[1.5px] border-border-strong"></span>
+                        @endif
+                    </span>
                     <span class="flex-1 min-w-0">
                         <span class="block text-sm font-medium text-text">{{ __($name) }}</span>
                         <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : __('offen') }}</span>

@@ -8,7 +8,8 @@
 <div class="flex min-w-0 flex-col gap-1 text-sm font-medium text-text {{ $spanne ?? '' }}">
     <label :for="{{ $idJs }}">{{ $text }}</label>
     @if($art === 'select')
-        <select :id="{{ $idJs }}" :name="`{{ $gruppe }}[${i}][{{ $schluessel }}]`" x-model="z.{{ $schluessel }}" class="{{ $klasse }}">
+        <select :id="{{ $idJs }}" :name="`{{ $gruppe }}[${i}][{{ $schluessel }}]`" x-model="z.{{ $schluessel }}" class="{{ $klasse }}"
+                :aria-invalid="f(i, '{{ $schluessel }}') ? 'true' : null" :aria-describedby="f(i, '{{ $schluessel }}') ? '{{ $gruppe }}-fehler' : null">
             @foreach($optionen as $wert => $beschriftung)<option value="{{ $wert }}">{{ $beschriftung }}</option>@endforeach
         </select>
     @else

@@ -84,7 +84,7 @@
                             <x-slot:tabelle>
                                 <table class="np-tabelle text-sm">
                                     <thead>
-                                        <tr><th>{{ __('Note') }}</th><th class="text-right">{{ __('Zeugnisnoten') }}</th><th class="text-right">{{ __('Stufe') }}</th></tr>
+                                        <tr><th scope="col">{{ __('Note') }}</th><th scope="col" class="text-right">{{ __('Zeugnisnoten') }}</th><th scope="col" class="text-right">{{ __('Stufe') }}</th></tr>
                                     </thead>
                                     <tbody>
                                         @foreach($verteilung['labels'] as $i => $label)
@@ -229,7 +229,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">{{ __('Keine Lernenden für diese Filter.') }}</td>
+                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">{{ __('Keine Lernenden für diese Filter.') }} <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a></td>
                                 </tr>
                             @endforelse
                         </tbody>

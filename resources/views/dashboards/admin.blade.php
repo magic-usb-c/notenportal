@@ -48,7 +48,7 @@
                                 </span>
                                 <span class="truncate text-sm font-medium text-muted" title="{{ $name }}">{{ $name }}</span>
                             </span>
-                            <span class="text-2xl font-semibold tabular-nums leading-none text-text">{{ $wert }}</span>
+                            <span class="text-xl font-semibold tabular-nums leading-none text-text">{{ $wert }}</span>
                         </a>
                     </li>
                 @endforeach
@@ -121,10 +121,10 @@
                                                 </td>
                                                 <td class="text-right text-text">{{ $bb->lernende }}</td>
                                                 <td class="text-right">
-                                                    @if($bb->rot)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'kritisch']) }}" aria-label="{{ __(':anzahl kritisch bei :name', ['anzahl' => $bb->rot, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-ungenuegend underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-ungenuegend" aria-hidden="true"></span>{{ $bb->rot }}</a>@else<span class="text-faint">0</span>@endif
+                                                    @if($bb->rot)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'kritisch']) }}" aria-label="{{ __(':anzahl kritisch bei :name', ['anzahl' => $bb->rot, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-ungenuegend underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-ungenuegend" aria-hidden="true"></span>{{ $bb->rot }}</a>@else<span class="text-muted">0</span>@endif
                                                 </td>
                                                 <td class="text-right">
-                                                    @if($bb->gelb)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'beobachten']) }}" aria-label="{{ __(':anzahl zu beobachten bei :name', ['anzahl' => $bb->gelb, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-knapp underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</a>@else<span class="text-faint">0</span>@endif
+                                                    @if($bb->gelb)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'beobachten']) }}" aria-label="{{ __(':anzahl zu beobachten bei :name', ['anzahl' => $bb->gelb, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-knapp underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</a>@else<span class="text-muted">0</span>@endif
                                                 </td>
                                                 <td class="text-right {{ $bb->neu > 20 ? 'font-semibold text-text' : 'text-muted' }}">{{ $bb->neu }}</td>
                                             </tr>
@@ -144,7 +144,7 @@
                 @if($zeigen['aktivitaet'])
                     <x-karte :titel="__('Erfasste Noten pro Woche')" symbol="chart-bar">
                         <p class="flex items-baseline gap-2">
-                            <span class="text-2xl font-semibold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
+                            <span class="text-xl font-semibold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
                             <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => count($aktivitaet['werte'])]) }}</span>
                         </p>
                         <div class="mt-3 h-48" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">

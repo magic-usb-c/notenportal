@@ -71,7 +71,7 @@
                                 </div>
                             @endforeach
                         </dl>
-                        <p class="{{ $fussnote }}">{{ __('Bestehende Module mit derselben Nummer werden aktualisiert, nichts wird gelöscht. Vor dem ersten grossen Import lohnt sich eine Sicherung.') }}</p>
+                        <p class="{{ $fussnote }}">{{ __('Bestehende Module mit derselben Nummer werden aktualisiert, nichts wird gelöscht.') }}</p>
                     </section>
 
                     @if($vorschau['konflikte'] !== [])

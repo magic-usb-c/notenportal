@@ -36,7 +36,7 @@
         @csrf
         <input type="hidden" name="vorlage" value="{{ $vorlageSchluessel }}">
         <section class="np-karte p-6 flex flex-col gap-4">
-            <h3 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h3>
+            <h2 class="text-sm font-semibold text-text">{{ __('Lehrberufe') }}</h2>
             <div class="grid grid-cols-2 gap-2">
                 @foreach($katalog as $l)
                     @php $da = isset($vorhandeneBerufe[$l['kuerzel']]); @endphp
@@ -68,16 +68,16 @@
                         <input :name="`eigene[${i}][name]`" x-model="e.name" maxlength="200" placeholder="{{ __('Weiterer Lehrberuf') }}" aria-label="{{ __('Weiterer Lehrberuf') }}" class="{{ $feld }} flex-1 min-w-0"
                                :aria-invalid="f(i, 'name') ? 'true' : null" :aria-describedby="f(i, 'name') ? 'professions-fehler' : null">
                         <button type="button" @click="eigene.splice(i, 1)" x-show="eigene.length > 1" aria-label="{{ __('Zeile entfernen') }}"
-                                class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
+                                class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0"><x-symbol name="x-mark" strich="2" class="size-4" /></button>
                     </div>
                 </template>
-                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="np-knopf np-knopf-schlicht self-start">+ {{ __('Weiterer Lehrberuf') }}</button>
+                <button type="button" @click="eigene.push({ kuerzel: '', name: '' })" class="np-knopf np-knopf-schlicht self-start"><x-symbol name="plus" strich="2" class="size-4" />{{ __('Weiterer Lehrberuf') }}</button>
             </div>
         </section>
 
         <section class="np-karte p-6 flex flex-col gap-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
-                <h3 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h3>
+                <h2 class="text-sm font-semibold text-text">{{ __('Fächer') }}</h2>
                 <a href="{{ route('admin.master-data.subjects.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Alle Fächer bearbeiten') }}</a>
             </div>
             <div class="flex flex-col gap-6">
@@ -113,7 +113,7 @@
         @if($baeume->isNotEmpty())
             <section class="np-karte p-6 flex flex-col gap-3">
                 <div class="flex flex-wrap items-center justify-between gap-2">
-                    <h3 class="text-sm font-semibold text-text">{{ __('Notenbäume') }}</h3>
+                    <h2 class="text-sm font-semibold text-text">{{ __('Notenbäume') }}</h2>
                     <a href="{{ route('admin.master-data.grade-trees.index') }}" class="np-knopf np-knopf-schlicht">{{ __('Notenbäume bearbeiten') }}</a>
                 </div>
                 <label class="flex items-start gap-3 cursor-pointer">

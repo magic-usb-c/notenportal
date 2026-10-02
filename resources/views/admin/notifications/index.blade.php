@@ -20,7 +20,7 @@
                     @php $anlaesseInGruppe = array_filter($anlaesse, fn ($a) => $a['group'] === $gruppenKey); @endphp
                     @continue(empty($anlaesseInGruppe))
                     <section class="np-karte overflow-hidden">
-                        <h3 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ __($gruppenLabel) }}</h3>
+                        <h2 class="px-5 pt-4 pb-3 text-sm font-semibold text-text border-b border-border">{{ __($gruppenLabel) }}</h2>
                         <div class="divide-y divide-border">
                             @foreach($anlaesseInGruppe as $type => $a)
                                 <div class="p-5 flex flex-col gap-3">

@@ -860,7 +860,8 @@ eigenen 2560-Sicht, die nach Prüfung am Markup oder an den Regeln nicht umgeset
 - **«Testmail senden» aktiv bei leerem Server**: die Serverseite meldet den fehlenden Server als Fehler;
   ein clientseitiges Sperren müsste die Regel doppeln.
 - **Abschluss-Seite: «Speichern» in der Symbolleiste**: Seitenkopf-Muster (eine Primäraktion oben rechts),
-  gleich wie in Betrieb und Benachrichtigungen.
+  gleich wie in Betrieb (Einstellungen). Benachrichtigungen speichert unter dem langen Formular – nach HIG
+  gehört der Formularabschluss unter das Formular, beide Muster sind im Skill erlaubt.
 - **Admin-Feedback-Leerzustand ohne Weiterweg**: der Admin erzeugt keine Meldungen, es gibt keinen Weg.
 - **Benutzer anlegen: Rolle als Segment, bearbeiten: Schalter**: beim Anlegen genau eine Rolle, beim
   Bearbeiten Mehrfachrollen (`rollen[]`); verschiedene Semantik, verschiedene Bedienelemente.
@@ -871,8 +872,12 @@ eigenen 2560-Sicht, die nach Prüfung am Markup oder an den Regeln nicht umgeset
 - **Benutzer bearbeiten: nach einem Validierungsfehler bei «Rollen» fallen die Schalter auf den gespeicherten
   Stand zurück** (`old('rollen', $rollen->all())`): Wer alle Rollen abwählt, sieht nach der Fehlermeldung
   Berufsbildner wieder eingeschaltet. Produktlogik, Fehlermeldung trägt die Information.
-- **Fach bearbeiten: Hinweis «enthält Noten oder Prüfungen» nur bei Noten** (`$notenAnzahl` zählt nur `noten`,
-  `destroy()` sperrt zusätzlich bei Prüfungen, Zielen, Notenbaum-Fächern): ein Fach mit nur Prüfungen zeigt
-  keinen Hinweis, Löschen wird aber serverseitig abgelehnt. Controller-Zählung angleichen, wenn der Fall auftritt.
 - **Notenbäume-Liste ohne Lehrberufs-Kürzel**: die Index-Query wählt `l.kuerzel` nicht; «Gilt für» unterscheidet
   die Zeilen schon über den vollen Namen.
+- **`table-fixed` ohne `<colgroup>`** (Versandprotokoll, Aktivitätsprotokoll, Berichte, Lehrberuf-Detail): die
+  Spaltenbreiten stehen am `th` und wirken bei `table-fixed` gleich; Umbau nur mit erneuter Bildprüfung, ohne
+  sichtbaren Nutzen (UI-Checker, mittel).
+- **Einrichtung Lehrberufe: Felder «Kürzel»/«Weiterer Lehrberuf» nur mit `aria-label` und Platzhalter**: der
+  zugängliche Name ist da; sichtbare Spaltenköpfe wie bei den Personen lohnen sich erst ab drei Feldern je Zeile.
+- **Einrichtung Abschluss: Fusszeile nicht über `_fuss`**: der Fuss trägt ein POST-Formular («Einrichtung
+  abschliessen»), das der Teil-View nicht kennt; eigener Fuss bleibt.

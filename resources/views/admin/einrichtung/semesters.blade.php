@@ -52,7 +52,7 @@
                 </div>
                 <div>
                     <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }}</label>
-                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}"
+                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }} text-right tabular-nums"
                            @error('bis_jahr') aria-invalid="true" aria-describedby="bis_jahr-fehler" @enderror>
                     @error('bis_jahr')<p id="bis_jahr-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
@@ -60,7 +60,7 @@
 
             <div>
                 <div class="flex items-baseline justify-between gap-3 mb-2">
-                    <h3 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h3>
+                    <h2 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h2>
                     <span class="text-xs text-muted" x-text="`${neu} ${labels.neu} · ${plan.length - neu} ${labels.vorhanden}`"></span>
                 </div>
                 <ul class="grid grid-cols-4 gap-2">
@@ -76,10 +76,10 @@
 
         @if($semester->isNotEmpty())
             <section class="np-karte p-5">
-                <h3 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h3>
+                <h2 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h2>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)
-                        <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }} <span class="text-muted">({{ \App\Models\Semester::neutralerName($s->start_datum) }})</span></span>
+                        <span class="px-2.5 py-1 rounded-lg bg-fill text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }} <span class="text-muted">({{ \App\Models\Semester::neutralerName($s->start_datum) }})</span></span>
                     @endforeach
                 </div>
             </section>
