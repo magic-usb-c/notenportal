@@ -23,6 +23,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
 
+        // Host-Header nur aus APP_URL (samt Subdomains) und TRUSTED_HOSTS annehmen (der Installer schreibt dort
+        // alle Namen und Adressen aus dem Zertifikat): sonst liesse sich über einen fremden Host die Adresse in
+        // erzeugten Links (Passwort-Reset, Mails) unterschieben. Lokal und in Tests aus (Laravel-Standard).
+        $middleware->trustHosts(at: fn () => array_map(
+            fn (string $host) => '^'.preg_quote($host).'$',
+            array_values(array_filter(array_map('trim', explode(',', (string) config('app.trusted_hosts'))))),
+        ));
+
         // Global statt in der web-Gruppe: so bekommen auch Redirects und Fehlerseiten aus Exceptions die Header.
         $middleware->append(SicherheitsHeader::class);
 

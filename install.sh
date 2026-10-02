@@ -612,6 +612,12 @@ merke_alias "$(hostname -s 2>/dev/null || true)"
 merke_alias "$(hostname -f 2>/dev/null || true)"
 for A in "${ADRESSEN[@]}"; do merke_alias "$A"; done
 
+# Dieselben Namen und Adressen nimmt die Anwendung als Host-Header an (TrustHosts in bootstrap/app.php);
+# jeder andere Host bekommt 400. Ohne HTTPS gleich den Config-Cache neu bauen, mit HTTPS passiert das unten.
+VERTRAUTE_HOSTS="$HOST"; for A in "${ALIASE[@]}"; do VERTRAUTE_HOSTS="$VERTRAUTE_HOSTS,$A"; done
+setze_env TRUSTED_HOSTS "$VERTRAUTE_HOSTS,localhost,127.0.0.1"
+(( HTTPS )) || als "php artisan config:clear --quiet && php artisan optimize --quiet"
+
 if (( HTTPS )); then
     schritt "Zertifikat (eigene Lab-Zertifizierungsstelle)"
     # Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen und darum kein Let's Encrypt.

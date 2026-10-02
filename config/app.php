@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Weitere Namen und Adressen (kommagetrennt), unter denen das Portal aufgerufen wird; APP_URL gilt immer (bootstrap/app.php, TrustHosts)
+    'trusted_hosts' => env('TRUSTED_HOSTS', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
