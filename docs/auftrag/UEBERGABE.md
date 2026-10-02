@@ -220,6 +220,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   «kein Test für den finish-Haken» geschlossen (EinrichtungTest). Nächster Schritt: R5
                   Teil 2 (Workflow notenportal-audit, sechs Dimensionen), dann Hell-Stichprobe,
                   LAGE/gui-konzept/PR.
+[O] 02.10. 06:40  Doku an die Agent-Konfiguration angeglichen (017131c ist massgeblich): CLAUDE.md
+                  Z.59, Tabelle im Skill notenportal-orchestrierung, Modellangaben in
+                  notenportal-blockabschluss/-pruefwerkzeuge/-agentauftrag, SETUP-CLAUDE 2.3 und §12.14
+                  (Subagent-Doku nennt weder effort noch effortLevel – Schlüssel bleibt unbelegt,
+                  Frontmatter unverändert). «Offen für David» dazu geschlossen.
 ```
 
 ---
@@ -258,10 +263,3 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
   nichts. Entscheid: Netzrichtlinie der Umgebung um `codeload.github.com` erweitern (dann läuft der
   direkte Weg mit Packagist-Hashes), eigener Spiegel, oder das Restrisiko für Wegwerf-Container
   bewusst tragen.
-- **Agent-Konfiguration vs. Doku**: die Frontmatter der Agents wurden am 01./02.10. umgestellt
-  (pruefer `claude-fable-5-1` `effortLevel: low`, texter `claude-haiku`, bildpruefer sonnet high,
-  ui-checker opus high …). `CLAUDE.md` Zeile 59 und die Tabelle im Skill `notenportal-orchestrierung`
-  nennen noch opus xhigh für pruefer/bildpruefer/ui-checker; zwei Agents schreiben `effortLevel`,
-  sechs `effort`, und keine Dokumentation belegt, welcher Schlüssel gelesen wird
-  (`SETUP-CLAUDE.md` §12.14). Entscheid: Doku an die Konfiguration anpassen oder umgekehrt, und
-  einen Schlüssel für alle acht wählen.

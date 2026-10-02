@@ -7,8 +7,9 @@ description: Vorlage für Aufträge an Subagents im Notenportal – Modell und E
 
 ## Modell und Effort
 Tabelle im Skill `notenportal-orchestrierung`. Kurz: haiku low suchen · sonnet high umsetzen/reviewen ·
-opus xhigh prüfen/entwerfen · fable max nur als letzte Instanz. Immer beides setzen, sonst erbt der
-Agent Fable xhigh.
+opus xhigh entwerfen · fable max nur als letzte Instanz. Die benannten Agents (`pruefer` fable low,
+`ui-checker` opus high, `bildpruefer` sonnet high …) bringen Modell und Effort im Frontmatter mit; bei
+`general-purpose` immer beides setzen, sonst erbt der Agent Fable xhigh.
 
 ## Test-DB je Agent
 `notenportal_test` gehört der Hauptsession. Agents nehmen `notenportal_b_test`, `_c_test`, `_d_test`,

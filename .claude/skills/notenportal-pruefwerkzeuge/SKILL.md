@@ -41,7 +41,7 @@ node tools/pruefung/rundgang.mjs michael.baumann@demo.example
 node tools/pruefung/rundgang.mjs laura.frei@demo.example
 ```
 Bilder mit `Read` ansehen – jedes, nicht nur das erste. Sichtprüfung nach Skill `notenportal-dunkelmodus`;
-für viele Bilder Agent `bildpruefer` (opus xhigh) oder Workflow `notenportal-dunkel-rundgang`.
+für viele Bilder Agent `bildpruefer` (sonnet high) oder Workflow `notenportal-dunkel-rundgang`.
 
 ## Bekannte, bereits behobene Fälle (Regressionsschutz, nicht neu reproduzieren)
 - `/grades` «Neue Note»-Drawer: Formular wurde per `x-html` neu gerendert und verlor beim Tippen den

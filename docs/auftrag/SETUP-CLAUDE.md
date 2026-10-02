@@ -118,15 +118,15 @@ verlangt einmal `/model fable` zur Einwilligung in den Kreditverbrauch.
 
 | Aufgabe | Modell | Effort | Form |
 |---|---|---|---|
-| Dateien finden, Inventar, Vorkommen zählen, Routen auflisten | haiku (`Explore`) · sonnet (`explorer`) | low | Agent |
-| Schema und Datenbestand nachsehen | sonnet | medium | `db-inspector` |
+| Dateien finden, Inventar, Vorkommen zählen, Routen auflisten | haiku (`Explore`) · sonnet (`explorer`) | low · medium | Agent |
+| Schema und Datenbestand nachsehen | opus | medium | `db-inspector` |
 | Umsetzen (Controller, Views, Tests), Dokumentation | sonnet | high | Subagent oder Workflow-Stage |
 | Code-Review eines Diffs | sonnet | high | `reviewer` |
-| Texte für Menschen | opus | high | `texter` |
-| Fakten Schweizer Berufsbildung | sonnet | high | `recherche-schweiz` |
-| UI-Regelprüfung je Rollenbereich | opus | xhigh | `ui-checker` |
-| Sichtprüfung von Screenshots | opus | xhigh | `bildpruefer` |
-| Behauptung «fertig/behoben/grün» widerlegen | opus | xhigh | `pruefer` |
+| Texte für Menschen | haiku | high | `texter` |
+| Fakten Schweizer Berufsbildung | opus | medium | `recherche-schweiz` |
+| UI-Regelprüfung je Rollenbereich | opus | high | `ui-checker` |
+| Sichtprüfung von Screenshots | sonnet | high | `bildpruefer` |
+| Behauptung «fertig/behoben/grün» widerlegen | fable | low | `pruefer` |
 | Architektur, Datenmodell, riskante Migration | opus | xhigh | Subagent, danach `pruefer` |
 | Hartnäckiger Fehler nach zwei erfolglosen Runden | opus → fable | xhigh → max | Instrument bauen, messen |
 | Letzte Verifikation bei widersprüchlichen Prüfern | fable | max | Workflow-Stage mit Mehrheitsvotum |
@@ -136,10 +136,10 @@ Die Tabelle ist die Routing-Hilfe aus dem Skill. Massgeblich ist das Frontmatter
 wurde am 01./02.10. umgestellt (Commits 96ea4bd, 017131c): bildpruefer `claude-sonnet-5-5` high ·
 db-inspector `claude-opus-5-5` medium · explorer `claude-sonnet-5-5` medium · pruefer `claude-fable-5-1`
 `effortLevel: low` · recherche-schweiz `claude-opus-5-5` medium · reviewer `claude-sonnet-5-5` high ·
-texter `claude-haiku` `effortLevel: high` · ui-checker `claude-opus-5-5` high. Zeile 59 in `CLAUDE.md`
-und die Tabelle im Skill `notenportal-orchestrierung` beschreiben noch die alte Zuordnung (pruefer,
-bildpruefer, ui-checker opus xhigh); zwei Agents schreiben `effortLevel`, sechs `effort` (Abschnitt 12,
-Punkt 14).
+texter `claude-haiku` `effortLevel: high` · ui-checker `claude-opus-5-5` high. Zeile 59 in `CLAUDE.md`,
+die Tabelle im Skill `notenportal-orchestrierung` und die Modellangaben in den Skills
+`notenportal-blockabschluss`, `notenportal-pruefwerkzeuge` und `notenportal-agentauftrag` sind seit dem
+02.10. daran angeglichen. Zwei Agents schreiben `effortLevel`, sechs `effort` (Abschnitt 12, Punkt 14).
 
 ---
 
@@ -156,7 +156,7 @@ Commit `13f0edb` (Hook, Werkzeuge, Einstellungen) und der Folgecommit (alles Üb
 | `.claude/skills/notenportal-dunkelmodus/SKILL.md` | Neu, aus den HIG-Seiten Dark Mode, Color, Materials, Typography, Layout (DocC-JSON gelesen, nicht aus dem Gedächtnis). |
 | `.claude/skills/notenportal-ui/SKILL.md` | §10 Abschluss: Werkzeuge aus `tools/pruefung`, dunkel 1920 und 2560, hell nur Stichprobe. |
 | `.claude/skills/notenportal-pruefwerkzeuge`, `-agentauftrag`, `-blockabschluss`, `-sessionende` | Auf Repo-Werkzeuge, Desktop/Dunkel und Cloud umgestellt. |
-| `.claude/agents/bildpruefer.md` | Neu (opus xhigh). |
+| `.claude/agents/bildpruefer.md` | Neu (damals opus xhigh, seit 017131c sonnet high). |
 | `.claude/agents/{db-inspector,explorer,pruefer,recherche-schweiz,texter,ui-checker}.md` | `model`/`effort` gesetzt; `ui-checker` war von David schon auf opus gestellt (9f65858). |
 | `.claude/rules/oberflaeche.md` | Neu. |
 | `.claude/workflows/notenportal-audit.js` | Neu (ersetzt `notenportal-audit-v2.js`). |
@@ -584,10 +584,15 @@ Hier steht, was sich nicht sauber belegen liess. Nichts davon ist als Tatsache i
     `@file_get_contents`; fehlt die Datei, meldet `php artisan test` je Test eine Warnung, `vendor/bin/phpunit`
     keine. Mit leerer `.env` (Hook) sind es 0.
 14. **Frontmatter-Schlüssel `effort` und `effortLevel` (Stand 02.10.):** `pruefer.md` und `texter.md`
-    tragen `effortLevel`, die übrigen sechs Agents `effort`. Die Dokumentation der Subagents nennt keinen
-    der beiden Schlüssel; welcher gelesen wird – oder ob beide ignoriert werden und der Effort der
-    Hauptsitzung erbt –, ist nicht belegt. Bis das gemessen ist, setzen Workflow-Aufrufe `effort`
-    ausdrücklich im `agent()`-Aufruf (Abschnitt 7), und die Tabelle in 2.3 bleibt eine Routing-Hilfe.
+    tragen `effortLevel`, die übrigen sechs Agents `effort`. Die Dokumentation der Subagents
+    (`code.claude.com/docs/en/sub-agents`, «Key Configuration Fields», gelesen 02.10.) nennt keinen der
+    beiden Schlüssel – sie führt `name`, `description`, `tools`, `model`, `permissionMode`, `skills`,
+    `memory`, `maxTurns`, `isolation`; der Werkzeugtext des Agent-Tools in CLI 2.1.287 sagt dagegen,
+    Modell *und* Reasoning-Effort kämen aus dem Frontmatter, ohne den Schlüssel zu nennen. Welcher
+    gelesen wird – oder ob beide ignoriert werden und der Effort der Hauptsitzung erbt –, bleibt
+    unbelegt. Bis das gemessen ist, setzen Workflow-Aufrufe `effort` ausdrücklich im `agent()`-Aufruf
+    (Abschnitt 7), die Tabelle in 2.3 bleibt eine Routing-Hilfe, und die Frontmatter bleiben, wie David
+    sie gesetzt hat (017131c).
 15. **Zwei Testsuiten gleichzeitig im selben Checkout kollidieren (gemessen 02.10.):** getrennte
     Datenbanken (`DB_DATABASE=notenportal_e_test`) reichen nicht – `Storage::fake('local')` legt für
     jeden Prozess dasselbe Verzeichnis `storage/framework/testing/disks/local` an und leert es; laufen

@@ -44,9 +44,9 @@ gegen Skill `notenportal-dunkelmodus` beurteilt. Konten: Skill `notenportal-prue
 
 ## 6. Review (eine Nachricht, parallel)
 - `reviewer` (sonnet high): «Prüfe `git diff origin/main...HEAD` plus uncommittete Änderungen (`git diff`). Block: <Name>.»
-- `ui-checker` (opus xhigh): nur wenn Views geändert; Liste der geänderten Views mitgeben
+- `ui-checker` (opus high): nur wenn Views geändert; Liste der geänderten Views mitgeben
   (`git diff --name-only origin/main -- resources/views`), einmal pro Rollenbereich.
-- `pruefer` (opus xhigh): die Fertig-Behauptung des Blocks wörtlich, mit den Beweisen aus 3 und 5.
+- `pruefer` (fable, effortLevel low): die Fertig-Behauptung des Blocks wörtlich, mit den Beweisen aus 3 und 5.
 Echte Befunde fixen, dann Schritt 3 wiederholen. Nicht Umgesetztes mit Begründung in `docs/audit-backlog.md`.
 
 ## 7. Doku
