@@ -757,3 +757,53 @@ ausgeblendeten Werte in der Namenszelle nach.
   «Profil & Betreuung» gestartet oder beendet; im Bearbeiten-Formular wäre eine Änderung mehrdeutig.
 - **Bildprüfer-Befund «Letzte Note» linksbündig**: nicht bestätigt – Zelle und Kopf sind `text-right`,
   «vor 24 Tagen» endet an derselben Kante wie «–» (1920/_trainer_learners.png, x≈1340).
+- **Cockpit-Reiter Noten und Abschluss enden bei 2560 rund 385 px vor der Symbolleiste, Übersicht und Rechner
+  nicht** (`verwaltung/noten/index.blade.php`, `max-w-[100rem]`; Commit 8037bac «bis zur Inhaltskante»): Notenliste
+  mit Inspektor und Abschlusstabelle gewinnen durch 385 px mehr Breite nichts, das Kartenraster der Übersicht und die
+  zwei Spalten des Rechners schon. Der Sprung der rechten Kante beim Reiterwechsel ist der Preis dafür.
+- **Inspektor der Notenliste «lässt rechts leer»** (Bildprüfer 1920 und 2560): Artefakt der Ganzseitenaufnahme – der
+  Inspektor ist `sticky` (`verwaltung/noten/index.blade.php:177`) und bleibt beim Scrollen neben der Liste.
+- **Datumsfelder zeigen «dd.mm.yyyy»**: Platzhalter des nativen `<input type="date">` in der Sprache des Browsers;
+  Chromium im Container läuft en-US, ein de-CH-Browser zeigt «TT.MM.JJJJ».
+- **Notenchips in der Notenliste zentriert statt am Dezimalpunkt ausgerichtet** (`<x-note>`): Marken sind Pillen
+  gleicher Breite (macOS-Badge) und werden als Marke gelesen; Spalten, in denen Noten verglichen werden
+  (Lernendenliste «Ø gesamt»), stehen rechtsbündig mit `tabular-nums`.
+- **«–» der vier Kennzahlen im Cockpit liegen 5 px auseinander** (`_cockpit/uebersicht.blade.php`): Gesamt- und
+  Semesternote sind `<x-note variante="hero">` in `text-3xl`, Nächste und Letzte Prüfung Text in `text-xl`; die
+  Grundlinie der grösseren Ziffer liegt tiefer. Angleichen hiesse, die Heldenzahl zu verkleinern.
+- **Platzhalter «–» in Heldengrösse wirkt wie ein grauer Balken** (Abschluss, «Prognose» ohne Note): derselbe
+  Platzhalter wie auf der Abschlussseite der Lernenden (`NotenSkala::format(null)`); ein Text «keine Note» neben
+  «0 % erfasst» wäre doppelt.
+- **Lernende ohne Noten (Cockpit): «Noch keine Noten» ohne Weiterweg, Primäraktion führt auf eine leere Liste**:
+  die leere Notenliste trägt «Note erfassen» als Primäraktion; ein zweiter Akzent im Cockpit wäre einer zu viel.
+- **Hinweistexte in Modul- und Einstellungsformularen** («Der Link ist geheim – nicht weitergeben», «Gilt für die
+  Anzeige, nicht für Notenblatt und Exporte», «Vom Betrieb festgelegt.», «Eine Zeile je Ziel …», «Erzeugt den Verweis
+  auf den Modulbaukasten», «Was du hier ergänzt, steht sofort allen …»): bleiben nach `notenportal-ui` §1 – jeder
+  verhindert einen Fehleintrag oder sagt, warum ein Feld gesperrt ist. Der Admin-Block prüft sie mit den übrigen
+  Formularen noch einmal.
+- **Feldrand heller als die Karten-Haarlinie** (`np-feld`, `border-border-strong/70`): im Token-Katalog so
+  festgelegt (`notenportal-ui` §2), damit das Feld auf `bg-card` als Eingabe erkennbar bleibt.
+- **Titel-Feld im Modulformular ohne Platzhalter**: Pflichtfelder tragen keinen Platzhalter, freiwillige «Optional»
+  (`notenportal-ui` §4); «M100» und «https://» sind Formatbeispiele.
+- **Karten einer Reihe ungleich hoch** (Dashboard, Rechner): `items-start` ist das Raster der Übersichten
+  (`notenportal-ui` §5); Karten mit Listen strecken sich nicht auf die Nachbarin.
+- **«Hochladen…» und «Modul anlegen» doppelt (Symbolleiste und Leerzustand)**: `<x-leer>` bietet die Aktion am Ort
+  des Lesens an, die Symbolleiste am gewohnten Ort; nur die Symbolleiste trägt den Akzent.
+- **Prüfungstermine: Lernende ohne Termin ohne Zähler**: Zähler erscheinen nur mit Inhalt (wie `zaehler` am
+  Seitenkopf); «0» wäre eine Marke ohne Aussage.
+- **Abschluss: Zeilen mit Eingabefeld 8 px höher als Zeilen ohne**: `np-feld` (36 px) in der 36-px-Zeile plus
+  Zellenabstand; `np-feld-klein` (28 px) ist für Filterleisten bestimmt, eine Noteneingabe braucht die volle
+  Trefferfläche.
+- **Akzentblau ohne Linkfunktion** (Seitenleistensymbole, Kartenkopf-Symbole): Seitenleiste ist Navigation
+  (erlaubt), die Kartenkopf-Symbole sind seit R4 Lernende so entschieden. Die Datumskachel «OKT» im Dashboard
+  war ein Befund und steht jetzt wie in der Terminliste in `text-muted` ohne Versalien.
+- **Zeugnismatrix (`components/heatmap.blade.php`) ist eine Hand-Tabelle, keine `np-tabelle`**: die Namensspalte
+  klebt (`sticky`) und braucht einen deckenden Grund; die halbtransparenten Streifen von `np-tabelle` schienen
+  durch. Begründete Ausnahme zu `notenportal-ui` §5.
+- **Dashboards mit `gap-5` statt `gap-4`**: beide Dashboards (Lernende seit R4 Lernende, Berufsbildner) halten
+  20 px zwischen den grossen Karten; `gap-4` gilt für Karten innerhalb eines Abschnitts.
+- **Leere Filterergebnisse als Tabellenzeile statt `<x-leer>`** (Lernendenliste «Keine Treffer», Dashboard
+  «Keine Lernenden für diesen Filter»): `<x-leer>` ist laut eigener Doku für leere Ansichten, in Tabellen reicht
+  die Zeile – sie trägt jetzt einen Weg zurück («Filter zurücksetzen» bzw. «Alle anzeigen»).
+- **Zeugnismatrix «Noch keine Noten» ohne Weiterweg**: die Matrix steht bei Lernenden (die keine Noten erfassen
+  können) und Berufsbildnern; der Weg zum Erfassen ist die Primäraktion der Notenliste.

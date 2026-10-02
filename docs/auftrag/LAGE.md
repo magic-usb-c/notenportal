@@ -274,6 +274,11 @@ Nicht raten — als offen markieren und David fragen:
 > **Stand 01.10.:** Desktop-Rebuild nach HIG im Dunkelmodus – R1 Fundament, R2 Fensterstruktur
 > (Seitenleiste ist Standard), R3 Dashboards fertig; R4 übrige Bereiche läuft, R5 Gesamtprüfung
 > offen (Übergabebrett). Setup und Orchestrierung modernisiert: `docs/auftrag/SETUP-CLAUDE.md`.
+>
+> **Stand 02.10.:** R4 Lernende und R4 Berufsbildner abgeschlossen (Bildprüfer, UI-Checker, Reviewer,
+> Prüfer je durch), R4 Admin und R5 Gesamtprüfung offen. Die Arbeit läuft auf dem Branch
+> `claude/friendly-meitner-ju7e8a` mit Entwurfs-PR gegen `main` (Vorgabe der Cloud-Sitzung), `main`
+> hinkt bis zum Merge hinterher.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 

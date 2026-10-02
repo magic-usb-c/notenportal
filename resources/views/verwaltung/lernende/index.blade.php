@@ -140,7 +140,7 @@
                                     <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note'), true) !!}</th>
                                     <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt'), true) !!}</th>
                                     <th scope="col">{{ __('Status') }}</th>
-                                    <th scope="col"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,13 +178,13 @@
                                         <td>
                                             <div class="flex flex-wrap items-center gap-1">@include('verwaltung.lernende._status')</div>
                                         </td>
-                                        <td>
+                                        <td class="text-right">
                                             <x-zeilen-link :href="route($bereich.'.learners.grades.index', $l->lernender_id)" :label="__('Noten')" :zeile="$z->vorname.' '.$z->nachname" />
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $spalten }}" class="h-13 text-center text-muted">{{ __('Keine Treffer') }}</td>
+                                        <td colspan="{{ $spalten }}" class="h-13 text-center text-muted">{{ __('Keine Treffer') }} <a href="{{ route("{$bereich}.learners.index") }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a></td>
                                     </tr>
                                 @endforelse
                             </tbody>

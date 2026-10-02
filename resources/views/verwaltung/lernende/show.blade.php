@@ -45,7 +45,7 @@
                     </div>
                     <button type="button"
                             @click="if (await np.kopieren($refs.pw.textContent.trim())) { kopiert = true; setTimeout(() => kopiert = false, 2000) }"
-                            class="np-knopf np-knopf-sekundaer">
+                            class="np-knopf np-knopf-sekundaer" aria-live="polite">
                         <span x-show="!kopiert">{{ __('Kopieren') }}</span>
                         <span x-show="kopiert" x-cloak>{{ __('Kopiert') }}</span>
                     </button>

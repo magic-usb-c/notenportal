@@ -30,7 +30,7 @@
 <span {{ $attributes->merge(['class' => 'inline-flex items-center gap-1.5']) }}>
     <svg class="shrink-0 overflow-visible" width="{{ $breite }}" height="{{ $hoehe }}" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img"
          aria-label="{{ $label }}{{ $text !== '' ? ': '.$text : ': '.__('keine Noten') }}">
-        <rect x="0" y="{{ $y(6) }}" width="{{ $breite }}" height="{{ round($y($grenze) - $y(6), 2) }}" rx="3" class="fill-muted/12"/>
+        <rect x="0" y="{{ $y(6) }}" width="{{ $breite }}" height="{{ round($y($grenze) - $y(6), 2) }}" rx="3" class="fill-fill"/>
         @if(count($punkte) > 1)
             <polyline fill="none" class="stroke-chart-1" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
                       points="{{ collect($punkte)->map(fn ($p) => $p[0].','.$p[1])->implode(' ') }}"/>

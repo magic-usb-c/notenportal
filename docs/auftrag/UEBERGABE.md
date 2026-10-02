@@ -129,6 +129,29 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   bei der Zahl, Semester-Kapsel mittig, Monatskarte bündig, leerer Rechner mit «Note
                   erfassen», Platzhalter «–» dünn, Throttle-Test prüft doppelte Präfixe, Feedback-Tipp
                   nicht auf «Meine Meldungen». Nächster Schritt: R4 Berufsbildner (Agents laufen).
+[O] 02.10. 02:40  R4 Berufsbildner abgeschlossen (bd769cc, 9c88675, 97afc07, 6457635, 8037bac und der
+                  Abschluss-Commit, siehe Git). Dunkelmodus nach HIG für Dashboard, Lernendenliste, Cockpit
+                  mit Reitern (Übersicht, Noten, Dokumente, Rechner, Profil & Betreuung), Notenliste mit
+                  Inspektor, Abschluss, Prüfungstermine, Fehlerseiten. Abschlussrunde: Rundgang 1920 Exit 0
+                  (21 Seiten), Bildprüfer 1920 Kern/Module/Einstellungen und 2560 (13 Seiten, kein Befund
+                  «hoch»), Reviewer (ein Befund: Hook), UI-Checker (13 Befunde), Suite 1301 bestanden /
+                  1 übersprungen, Prüfer (Urteil im Folge-Commit). Umgesetzt:
+                  Zeilenaktion «Noten» rechtsbündig, «Modul anlegen» als Primäraktion, Kommentarfeld mit
+                  @error/aria (Fehler landet an der richtigen Note, old('note_id') öffnet sie wieder),
+                  Datumskachel im Dashboard wie in der Terminliste (text-muted, keine Versalien), Kacheln
+                  text-xl, Gewichtung in «Nächste 14 Tage» beschriftet, tabular-nums, Notenflächen
+                  einheitlich /14, Marken auf bg-fill, Sparkline-Band fill-fill, Formularfuss im Profil
+                  ohne bg-fill-2, Fehlerseiten-h1 bold, Leerzeilen mit Weg zurück («Filter zurücksetzen»,
+                  «Alle anzeigen», «Alle Termine»), «Kopiert» per aria-live, Termin-Note mit aria-label.
+                  Roter Test AlleGesehenTest: Knopftext bei einer neuen Note heisst seit 8037bac «Neue Note
+                  als gesehen markieren» – Test angepasst, prüft jetzt beide Texte. Bewusst gelassen (18
+                  Punkte mit Grund): docs/audit-backlog.md «R4 Berufsbildner». Hook: Composer-Schritt mit
+                  echter Archiv-Probe (codeload 403, api 200 mit abbrechenden Downloads) und Kreuz-Rückfall;
+                  Spiegel-Vertrauen unter «Offen für David». Annahmen dieser Sitzung: Arbeit auf Branch
+                  claude/friendly-meitner-ju7e8a mit Entwurfs-PR gegen main (Vorgabe der Cloud-Sitzung,
+                  nicht main direkt); «Leerung» der Bretter heisst: «bewusst gelassen» sind Entscheide,
+                  «Offen für David» bleibt, alles andere wird umgesetzt oder mit Grund als erledigt/obsolet
+                  markiert. Nächster Schritt: R4 Admin.
 ```
 
 ---
@@ -161,3 +184,16 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
   benoteten Modulen wäre das Restgewicht passender; Beispiel und Vorschlag in `audit-backlog.md`.
 - **Lizenz und Meldeweg für Sicherheitslücken** sind weiterhin offen.
 - **Prod-Testpasswort aus Commit `171ed72`** liegt in der Git-Historie und muss rotiert werden.
+- **Packagist-Spiegel ohne Prüfsummen** (`SETUP-CLAUDE.md` §12.12): hinter dem Cloud-Proxy sind
+  GitHub-Archive nicht erreichbar, der Hook lädt dann alle 122 Pakete von `mirrors.cloud.tencent.com`,
+  und `composer.lock` trägt für GitHub-Dists keinen `shasum` – Composer prüft diese Archive gegen
+  nichts. Entscheid: Netzrichtlinie der Umgebung um `codeload.github.com` erweitern (dann läuft der
+  direkte Weg mit Packagist-Hashes), eigener Spiegel, oder das Restrisiko für Wegwerf-Container
+  bewusst tragen.
+- **Agent-Konfiguration vs. Doku**: die Frontmatter der Agents wurden am 01./02.10. umgestellt
+  (pruefer `claude-fable-5-1` `effortLevel: low`, texter `claude-haiku`, bildpruefer sonnet high,
+  ui-checker opus high …). `CLAUDE.md` Zeile 59 und die Tabelle im Skill `notenportal-orchestrierung`
+  nennen noch opus xhigh für pruefer/bildpruefer/ui-checker; zwei Agents schreiben `effortLevel`,
+  sechs `effort`, und keine Dokumentation belegt, welcher Schlüssel gelesen wird
+  (`SETUP-CLAUDE.md` §12.14). Entscheid: Doku an die Konfiguration anpassen oder umgekehrt, und
+  einen Schlüssel für alle acht wählen.

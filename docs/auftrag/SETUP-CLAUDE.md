@@ -132,9 +132,14 @@ verlangt einmal `/model fable` zur Einwilligung in den Kreditverbrauch.
 | Letzte Verifikation bei widersprüchlichen Prüfern | fable | max | Workflow-Stage mit Mehrheitsvotum |
 | Leiten, zerlegen, committen, berichten | fable | xhigh | Hauptsitzung selbst |
 
-Die Agents im Repo tragen genau diese Werte (`model`/`effort` im Frontmatter): bildpruefer opus xhigh ·
-db-inspector sonnet medium · explorer sonnet low · pruefer opus xhigh · recherche-schweiz sonnet high ·
-reviewer sonnet high · texter opus high · ui-checker opus xhigh.
+Die Tabelle ist die Routing-Hilfe aus dem Skill. Massgeblich ist das Frontmatter der Agents, und das
+wurde am 01./02.10. umgestellt (Commits 96ea4bd, 017131c): bildpruefer `claude-sonnet-5-5` high ·
+db-inspector `claude-opus-5-5` medium · explorer `claude-sonnet-5-5` medium · pruefer `claude-fable-5-1`
+`effortLevel: low` · recherche-schweiz `claude-opus-5-5` medium · reviewer `claude-sonnet-5-5` high ·
+texter `claude-haiku` `effortLevel: high` · ui-checker `claude-opus-5-5` high. Zeile 59 in `CLAUDE.md`
+und die Tabelle im Skill `notenportal-orchestrierung` beschreiben noch die alte Zuordnung (pruefer,
+bildpruefer, ui-checker opus xhigh); zwei Agents schreiben `effortLevel`, sechs `effort` (Abschnitt 12,
+Punkt 14).
 
 ---
 
@@ -191,10 +196,14 @@ Dokumentation: `https://code.claude.com/docs/en/claude-code-on-the-web` und
    Gemessen am 01.10. in einem zweiten, frischen Container (Commit 99940e5): `mysqld_safe` läuft als
    `mysql`, darum gehören `/run/mysqld`, `/var/log/mysql` und `/var/lib/mysql` vorher diesem Benutzer
    (sonst stirbt der Dienst stumm, Syslog gibt es im Container nicht; Fehlerprotokoll jetzt
-   `/var/log/mysql/error.log`). `api.github.com` ist hinter dem Proxy gesperrt (403) – `composer install`
-   läuft dann über `.claude/hooks/composer-spiegel.sh`, das die Dist-URLs aus `composer.lock` in
-   `composer.local.lock` auf einen Packagist-Spiegel umschreibt (Standard Tencent, `NP_COMPOSER_SPIEGEL`);
-   beide `composer.local.*` sind gitignored. Ohne `.env` zählt Collision je Test eine unterdrückte
+   `/var/log/mysql/error.log`). Die Dist-Archive von `api.github.com`/`codeload.github.com` sind hinter
+   dem Proxy nicht verlässlich (01.10. 403; 02.10. `api` 200, aber jeder Download bricht mit «Proxy CONNECT
+   aborted due to timeout» ab, `codeload` 403) – der Hook lädt darum probeweise ein echtes Archiv
+   (`laravel/framework` v13.0.0 von codeload) und nimmt nur bei 200 den direkten Weg; sonst
+   `.claude/hooks/composer-spiegel.sh`, das die Dist-URLs aus `composer.lock` in `composer.local.lock` auf
+   einen Packagist-Spiegel umschreibt (Standard Tencent, `NP_COMPOSER_SPIEGEL`); scheitert der gewählte
+   Weg, folgt einmal der andere. Beide `composer.local.*` sind gitignored. Der Spiegel ist ein
+   Drittanbieter ohne Prüfsummen (Abschnitt 12, Punkt 12). Ohne `.env` zählt Collision je Test eine unterdrückte
    phpdotenv-Warnung («1066 warnings») – der Hook legt eine leere `.env` an, die Werte kommen weiter
    aus der Umgebung. `openssh-client` wird nachinstalliert (`SicherungKopieTest` braucht `ssh-keygen`).
    Fehlt `APP_KEY` in einer Shell (leeres `CLAUDE_ENV_FILE` nach `compact`), liest
@@ -563,9 +572,28 @@ Hier steht, was sich nicht sauber belegen liess. Nichts davon ist als Tatsache i
     und `mirrors.aliyun.com` sind offen. Composer holt Dist-Archive aber von `api.github.com` –
     ohne Spiegel scheitert `composer install` mit «Could not authenticate against github.com».
     Abschnitt 4 Punkt 2 («Netzwerkzugriff so wählen …») reicht deshalb nicht; der Hook umgeht es.
+    Nachgemessen 02.10.: `api.github.com` antwortet 200, jeder Zipball-Download bricht aber ab
+    («Proxy CONNECT aborted due to timeout»), `codeload.github.com` 403; Composers Git-Clone-Rückfall
+    braucht zehn Minuten und scheitert an `phpstan/phpstan` (kein Git-Source). Darum prüft der Hook
+    ein echtes Archiv statt einer Wurzel-URL. **Offene Lücke:** `composer.lock` trägt für GitHub-Archive
+    keinen `shasum`, Composer prüft die Archive des Spiegels gegen nichts – ein manipuliertes Archiv
+    liefe ungeprüft in `vendor/` des Containers (dort liegt auch das Demo-Passwort aus dem Seeder).
+    Abhilfe wäre eine Netzrichtlinie, die `codeload.github.com` freigibt, ein eigener Spiegel oder eine
+    Hash-Liste je Archiv; Entscheidung unter «Offen für David» in `UEBERGABE.md`.
 13. **Collision 8.9.5 mit PHPUnit 12.5 zählt unterdrückte Warnungen:** phpdotenv liest `.env` mit
     `@file_get_contents`; fehlt die Datei, meldet `php artisan test` je Test eine Warnung, `vendor/bin/phpunit`
     keine. Mit leerer `.env` (Hook) sind es 0.
+14. **Frontmatter-Schlüssel `effort` und `effortLevel` (Stand 02.10.):** `pruefer.md` und `texter.md`
+    tragen `effortLevel`, die übrigen sechs Agents `effort`. Die Dokumentation der Subagents nennt keinen
+    der beiden Schlüssel; welcher gelesen wird – oder ob beide ignoriert werden und der Effort der
+    Hauptsitzung erbt –, ist nicht belegt. Bis das gemessen ist, setzen Workflow-Aufrufe `effort`
+    ausdrücklich im `agent()`-Aufruf (Abschnitt 7), und die Tabelle in 2.3 bleibt eine Routing-Hilfe.
+15. **Zwei Testsuiten gleichzeitig im selben Checkout kollidieren (gemessen 02.10.):** getrennte
+    Datenbanken (`DB_DATABASE=notenportal_e_test`) reichen nicht – `Storage::fake('local')` legt für
+    jeden Prozess dasselbe Verzeichnis `storage/framework/testing/disks/local` an und leert es; laufen
+    Hauptsitzung und ein Prüf-Agent parallel, fallen `SicherungTest` und `SicherungKopieTest` (Sicherung
+    weg, Exit 1). Allein laufen sie grün. Regel: nur eine ganze Suite zur Zeit; Agents prüfen mit
+    `--filter`, oder die Hauptsitzung wartet mit ihrem Lauf.
 
 ---
 

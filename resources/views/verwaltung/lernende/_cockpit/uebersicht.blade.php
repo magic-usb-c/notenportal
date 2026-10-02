@@ -149,7 +149,7 @@
                         <div class="flex items-center justify-between gap-3 px-5 py-2.5">
                             <div class="min-w-0">
                                 <div class="truncate text-sm text-text">{{ $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')) }}</div>
-                                <div class="text-xs text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}</div>
+                                <div class="text-xs tabular-nums text-muted">{{ $n->pruefungsdatum->format('d.m.Y') }}</div>
                             </div>
                             <x-note :wert="$n->note_wert" :stufe="$n->note_stufe" variante="badge" />
                         </div>

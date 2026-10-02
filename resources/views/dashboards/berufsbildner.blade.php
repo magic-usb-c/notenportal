@@ -13,7 +13,7 @@
         // Intelligente Listen wie in Erinnerungen: Zähler oben, ein Klick filtert die Tabelle
         $listen = [
             ['alle', __('Alle'), 'users', 'bg-accent/12 text-accent-text', $zeilen->count()],
-            ['rot', __('Kritisch'), 'exclamation-triangle', 'bg-note-ungenuegend/12 text-note-ungenuegend', $zeilen->filter(fn ($z) => $z->stand->status === 'rot')->count()],
+            ['rot', __('Kritisch'), 'exclamation-triangle', 'bg-note-ungenuegend/14 text-note-ungenuegend', $zeilen->filter(fn ($z) => $z->stand->status === 'rot')->count()],
             ['gelb', __('Beobachten'), 'eye', 'bg-note-knapp/14 text-note-knapp', $zeilen->filter(fn ($z) => $z->stand->status === 'gelb')->count()],
             ['neu', __('Mit neuen Noten'), 'inbox-stack', 'bg-fill text-muted', $zeilen->filter(fn ($z) => $z->neu > 0)->count()],
         ];
@@ -61,7 +61,7 @@
                                 </span>
                                 <span class="truncate text-sm font-medium text-muted">{{ $name }}</span>
                             </span>
-                            <span :class="filter === '{{ $wert }}' ? 'text-accent-text' : ''" class="text-2xl font-semibold tabular-nums leading-none">{{ $anzahl }}</span>
+                            <span :class="filter === '{{ $wert }}' ? 'text-accent-text' : ''" class="text-xl font-semibold tabular-nums leading-none">{{ $anzahl }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -130,7 +130,7 @@
                                                     <div class="truncate text-xs text-muted" title="{{ $z->lernender->lehrberuf->name }}">{{ $z->lernender->lehrberuf->kuerzel ?: $z->lernender->lehrberuf->name }}</div>
                                                 @endif
                                             </td>
-                                            <td class="text-right text-muted">{{ $z->lehrjahr ?? '–' }}</td>
+                                            <td class="text-right tabular-nums text-muted">{{ $z->lehrjahr ?? '–' }}</td>
                                             <td><x-sparkline :werte="$s->verlauf" :breite="96" :hoehe="24" :zahl="false" /></td>
                                             <td class="whitespace-nowrap text-right">
                                                 <x-note :wert="$s->semesterNote" :stellen="1" />
@@ -144,7 +144,7 @@
                                                     <a href="{{ route('trainer.learners.grades.index', $z->lernender->lernender_id) }}" class="inline-flex min-h-6 items-center gap-1.5 font-semibold text-text hover:text-accent-text"
                                                        aria-label="{{ __(':anzahl neue Noten von :name', ['anzahl' => $z->neu, 'name' => $b->vorname.' '.$b->nachname]) }}"><span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>{{ $z->neu }}</a>
                                                 @else
-                                                    <span class="text-muted">0</span>
+                                                    <span class="tabular-nums text-muted">0</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -158,7 +158,7 @@
                                         </tr>
                                     @endforeach
                                     <tr x-show="! zeilen.some((z) => passt(z))" x-cloak>
-                                        <td colspan="8" class="h-13 text-center text-muted">{{ __('Keine Lernenden für diesen Filter.') }}</td>
+                                        <td colspan="8" class="h-13 text-center text-muted">{{ __('Keine Lernenden für diesen Filter.') }} <button type="button" @click="filter = 'alle'; suche = ''" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Alle anzeigen') }}</button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -219,7 +219,7 @@
                                                 <a href="{{ route('trainer.learners.show', $p->lernender_id) }}" class="flex min-h-13 items-center gap-3 rounded-lg px-3 py-2 transition-colors duration-100 hover:bg-fill-2">
                                                     @if($loop->first)
                                                         <span class="flex size-9 shrink-0 flex-col items-center justify-center rounded-lg bg-fill leading-none" title="{{ \App\Support\Format::date($datum, 'wochentag_tag') }}">
-                                                            <span class="text-2xs font-semibold uppercase text-accent-text">{{ rtrim($datum->isoFormat('MMM'), '.') }}</span>
+                                                            <span class="text-2xs font-medium text-muted">{{ rtrim($datum->isoFormat('MMM'), '.') }}</span>
                                                             <span class="mt-0.5 text-base font-semibold tabular-nums text-text">{{ $datum->format('j') }}</span>
                                                             <span class="sr-only">{{ \App\Support\Format::date($datum, 'wochentag_tag') }}</span>
                                                         </span>
@@ -230,7 +230,7 @@
                                                         <span class="block truncate text-sm text-text">{{ $p->bezeichnung() }}</span>
                                                         <span class="block truncate text-xs text-muted">{{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}</span>
                                                     </span>
-                                                    <span class="shrink-0 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</span>
+                                                    <span class="shrink-0 text-xs tabular-nums text-muted" title="{{ __('Gewichtung') }}"><span class="sr-only">{{ __('Gewichtung') }} </span>{{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</span>
                                                 </a>
                                             </li>
                                         @endforeach

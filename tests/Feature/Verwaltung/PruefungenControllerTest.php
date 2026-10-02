@@ -65,7 +65,7 @@ class PruefungenControllerTest extends TestCase
         $this->actingAs(User::factory()->admin()->create())
             ->get(route('admin.exams.index'))
             ->assertOk()
-            ->assertSee('Keine Prüfungstermine für die aktuelle Auswahl.')
+            ->assertSee('Keine Prüfungstermine für die aktuelle Auswahl')
             ->assertDontSee('Diese Woche');
     }
 
