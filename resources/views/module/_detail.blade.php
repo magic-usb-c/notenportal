@@ -1,6 +1,7 @@
 @php
     // Verweis in den Modulbaukasten nur mit bekannter Version – siehe App\Support\Modulbaukasten.
-    $mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $mbkVersion ?? $modul->version);
+    $katalogversion = $mbkVersion ?? $modul->version;
+    $mbk = \App\Support\Modulbaukasten::modulLink($modul->modul_nummer, $katalogversion);
     $groesse = fn (int $b) => $b >= 1048576 ? number_format($b / 1048576, 1).' MB' : max(1, (int) round($b / 1024)).' KB';
     $ich = (int) auth()->user()->benutzer_id;
     $istAdmin = auth()->user()->hasRole('Admin');
@@ -9,7 +10,7 @@
     $lbvForm = $modul->lbvElemente->contains(fn ($e) => filled($e->pruefungsform));
     $lbvGewicht = $modul->lbvElemente->contains(fn ($e) => $e->gewichtung_prozent !== null);
     $meta = collect([
-        $modul->version ? __('Katalogversion').' '.$modul->version : null,
+        $katalogversion ? __('Katalogversion').' '.$katalogversion : null,
         $modul->ausKatalog() ? __('aus dem Modulbaukasten')
             : ($modul->ersteller ? __('Erfasst von :name', ['name' => trim($modul->ersteller->vorname.' '.$modul->ersteller->nachname)]) : null),
         $lernender && $belegt ? __('In deinen Modulen') : null,

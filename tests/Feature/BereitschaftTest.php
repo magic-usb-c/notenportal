@@ -68,6 +68,16 @@ class BereitschaftTest extends TestCase
     }
 
     #[Test]
+    public function trusted_hosts(): void
+    {
+        config(['app.trusted_hosts' => ' , ']);
+        $this->assertSame(Bereitschaft::WARNUNG, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'trusted_hosts'));
+
+        config(['app.trusted_hosts' => '172.26.14.100,srv-lab-dva-003']);
+        $this->assertSame(Bereitschaft::OK, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'trusted_hosts'));
+    }
+
+    #[Test]
     public function session_secure(): void
     {
         config(['session.secure' => null]);
@@ -179,7 +189,7 @@ class BereitschaftTest extends TestCase
         $ausgabe = json_decode(Artisan::output(), true);
 
         $this->assertArrayHasKey('bereit', $ausgabe);
-        $this->assertCount(11, $ausgabe['pruefungen']);
+        $this->assertCount(12, $ausgabe['pruefungen']);
         foreach ($ausgabe['pruefungen'] as $p) {
             $this->assertContains($p['status'], [Bereitschaft::OK, Bereitschaft::WARNUNG, Bereitschaft::FEHLER]);
         }

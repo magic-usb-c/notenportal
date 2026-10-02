@@ -170,7 +170,9 @@ class GemeinsameModuleTest extends TestCase
             ->get(route('modules.show', $modulId))
             ->assertOk()
             ->assertSee('modulbaukasten.ch/module/905/4/de-DE', false)
-            ->assertDontSee('modulbaukasten.ch/module/905/5/de-DE', false);
+            ->assertDontSee('modulbaukasten.ch/module/905/5/de-DE', false)
+            ->assertSee('Katalogversion 4')
+            ->assertDontSee('Katalogversion 5');
     }
 
     #[Test]

@@ -6,6 +6,7 @@ use App\Http\Middleware\RoleMiddleware;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SicherheitsHeader;
 use App\Support\Sitzung;
+use App\Support\TrustedHostPatterns;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,13 +24,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => RoleMiddleware::class,
         ]);
 
-        // Host-Header nur aus APP_URL (samt Subdomains) und TRUSTED_HOSTS annehmen (der Installer schreibt dort
-        // alle Namen und Adressen aus dem Zertifikat): sonst liesse sich über einen fremden Host die Adresse in
-        // erzeugten Links (Passwort-Reset, Mails) unterschieben. Lokal und in Tests aus (Laravel-Standard).
-        $middleware->trustHosts(at: fn () => array_map(
-            fn (string $host) => '^'.preg_quote($host).'$',
-            array_values(array_filter(array_map('trim', explode(',', (string) config('app.trusted_hosts'))))),
-        ));
+        // Host-Header nur aus TRUSTED_HOSTS und APP_URL (samt Subdomains) annehmen – der Installer schreibt nach
+        // TRUSTED_HOSTS alle Namen und Adressen aus dem Zertifikat: sonst liesse sich über einen fremden Host die
+        // Adresse in erzeugten Links (Passwort-Reset, Mails) unterschieben. Solange TRUSTED_HOSTS leer ist (etwa
+        // nach `git pull` ohne Installer), bleibt jeder Host erlaubt, damit kein Alias plötzlich 400 bekommt;
+        // `notenportal:bereitschaft` warnt dann. Lokal und in Tests aus (Laravel-Standard).
+        $middleware->trustHosts(at: fn () => TrustedHostPatterns::patterns(), subdomains: false);
 
         // Global statt in der web-Gruppe: so bekommen auch Redirects und Fehlerseiten aus Exceptions die Header.
         $middleware->append(SicherheitsHeader::class);

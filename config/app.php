@@ -54,7 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    // Weitere Namen und Adressen (kommagetrennt), unter denen das Portal aufgerufen wird; APP_URL gilt immer (bootstrap/app.php, TrustHosts)
+    // Namen und Adressen (kommagetrennt), unter denen das Portal aufgerufen wird: gefüllt sind nur sie und APP_URL als
+    // Host-Header erlaubt, leer heisst keine Begrenzung (bootstrap/app.php, App\Support\TrustedHostPatterns)
     'trusted_hosts' => env('TRUSTED_HOSTS', ''),
 
     /*

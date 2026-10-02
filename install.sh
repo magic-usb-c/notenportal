@@ -146,12 +146,14 @@ setze_env() {
     fi
 }
 
+# Einen Wert aus der .env lesen – leer, wenn Datei oder Schlüssel fehlen.
+lies_env() { [[ -f "$VERZ/.env" ]] || return 0
+             { grep -E "^$1=" "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"'; }
+
 # Alles, was der Installer am System hinterlässt, wieder abräumen – damit eine misslungene
 # Installation sauber von vorne beginnen kann, statt dass Reste die nächste Runde vergiften.
 # Die Datenbank wird vorher gesichert: ein Abräumen aus Versehen darf keine Noten kosten.
 if (( ENTFERNEN )); then
-    lies_env() { [[ -f "$VERZ/.env" ]] || return 0
-                 { grep -E "^$1=" "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"'; }
     E_DB="$(lies_env DB_DATABASE)";           E_DB="${E_DB:-$DB}"
     E_WEB="$(lies_env DB_USERNAME)";          E_WEB="${E_WEB:-${E_DB}_web}"
     E_MIG="$(lies_env DB_MIGRATE_USERNAME)";  E_MIG="${E_MIG:-${E_DB}_migrate}"
@@ -613,9 +615,14 @@ merke_alias "$(hostname -f 2>/dev/null || true)"
 for A in "${ADRESSEN[@]}"; do merke_alias "$A"; done
 
 # Dieselben Namen und Adressen nimmt die Anwendung als Host-Header an (TrustHosts in bootstrap/app.php);
-# jeder andere Host bekommt 400. Ohne HTTPS gleich den Config-Cache neu bauen, mit HTTPS passiert das unten.
-VERTRAUTE_HOSTS="$HOST"; for A in "${ALIASE[@]}"; do VERTRAUTE_HOSTS="$VERTRAUTE_HOSTS,$A"; done
-setze_env TRUSTED_HOSTS "$VERTRAUTE_HOSTS,localhost,127.0.0.1"
+# jeder andere Host bekommt 400. Von Hand in TRUSTED_HOSTS ergänzte Namen bleiben erhalten.
+# Ohne HTTPS gleich den Config-Cache neu bauen, mit HTTPS passiert das unten.
+VERTRAUTE_HOSTS="$HOST"
+merke_host() { local n="${1// /}"; [[ -n "$n" && ",$VERTRAUTE_HOSTS," != *",$n,"* ]] || return 0; VERTRAUTE_HOSTS="$VERTRAUTE_HOSTS,$n"; }
+for A in "${ALIASE[@]}" localhost 127.0.0.1; do merke_host "$A"; done
+IFS=',' read -ra BISHERIGE_HOSTS <<< "$(lies_env TRUSTED_HOSTS)"
+for A in "${BISHERIGE_HOSTS[@]}"; do merke_host "$A"; done
+setze_env TRUSTED_HOSTS "$VERTRAUTE_HOSTS"
 (( HTTPS )) || als "php artisan config:clear --quiet && php artisan optimize --quiet"
 
 if (( HTTPS )); then
