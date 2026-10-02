@@ -6,6 +6,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Lernender;
 use App\Models\User;
+use App\Services\Notifications\MailSettings;
 use App\Support\Einrichtung;
 use App\Support\Einstellungen;
 use Database\Seeders\BasisSeeder;
@@ -103,8 +104,13 @@ class EinrichtungTest extends TestCase
 
         $this->assertCount(3, session('einrichtung_zugaenge'));
         $this->get(route('admin.setup', 'finish'))->assertOk()->assertSee('nina@betrieb.ch');
+        $this->assertFalse(Einrichtung::stand()['finish']['erledigt']);
         $this->post(route('admin.setup.finish'))->assertRedirect(route('admin.dashboard'))->assertSessionMissing('einrichtung_zugaenge');
         $this->assertFalse(Einrichtung::offen());
+        // Der Haken am Abschluss verspricht «alles erledigt», nicht nur «geschlossen»: ohne Mail-Einstellung bleibt er aus
+        $this->assertFalse(Einrichtung::stand()['finish']['erledigt']);
+        Einstellungen::set(MailSettings::HOST, 'smtp.betrieb.ch');
+        $this->assertTrue(Einrichtung::stand()['finish']['erledigt']);
         $this->get(route('admin.dashboard'))->assertOk();
     }
 
