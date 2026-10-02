@@ -182,7 +182,7 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   mit «Filter zurücksetzen» und th scope, Platzhalter «–» einheitlich text-muted,
                   Zahlenfelder rechtsbündig, Rechner «Ziel entfernen» mit Loading-State. Drei Punkte mit
                   Grund im Backlog (colgroup, Lehrberuf-Felder nur aria-label, Abschluss-Fuss).
-                  Prüfer (opus, 22d989a..68c0e24): Behauptung hält, zwei Lücken behoben – Auswahlfelder in
+                  Prüfer (fable effortLevel low, 22d989a..68c0e24): Behauptung hält, zwei Lücken behoben – Auswahlfelder in
                   `_zeilenfeld` ohne aria-invalid/aria-describedby, und «Fach löschen» zeigte den Hinweis nur
                   bei ungelöschten Noten, während destroy() auch bei Prüfungen, Zielen und gelöschten Noten
                   sperrt (jetzt eine Regel `loeschSperre()` für Hinweis und Sperre, Test
@@ -199,6 +199,27 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   (darf nicht brechen); (4) bestätigte Befunde beheben, Suite, Prüfer; (5) LAGE §7,
                   gui-konzept-Stand, Übergabe, PR-Beschreibung. Die zehn ungeprüften Sichtbefunde des
                   Rauchtests vom 01.10. gelten damit als neu aufgenommen.
+[O] 02.10. 06:30  R5 Teil 1, Sichtprüfung (nach cc4ec01). Workflow notenportal-dunkel-rundgang über alle
+                  drei Rollen: 96 Seiten 1920 dunkel, Bildprüfer sonnet, 136 Befunde; die Verifikation im
+                  Workflow (272 Opus-Aufrufe) brach am Nutzungslimit ab und ihre UND-Logik verwarf bestätigte
+                  Ursachen – Workflow nicht fortgesetzt, stattdessen alle 136 Befunde in der Hauptsession am
+                  Markup nach Ursache gebündelt (Advisor-Entscheid). 31 Befunde umgesetzt (eigene Edits plus
+                  zwei Agents: Tabellenbreiten, Einrichtungsformulare), u. a. Verlauf-Reihen mit Strichmuster
+                  (nie nur Farbe), Import-Knopf bis zur Dateiwahl gesperrt (Reviewer-Befund: Drop löste kein
+                  change aus – behoben in x-ablagezone), «Gewicht» vor Prozentwerten, Aktivitätsprotokoll ohne
+                  leere Spalten, Einrichtung (Kategorien erst nach Bestätigung erledigt, Abschluss-Haken nur
+                  wenn alles erledigt, Lehrberufe/Fächer lesbar, Zahlen rechts, «neu»-Marke), Feedback-Eintrag
+                  aktiv, acht Listen mit Kartenobergrenze, Prüfungstermine-Gitter 64rem. Belege: Suite 1304
+                  bestanden / 1 übersprungen, Rundgang Lernende 19 / Berufsbildner 21 / Admin 56 Seiten Exit 0,
+                  26 Screenshots 1920 angesehen, Reviewer 1 Befund (behoben), ß-Grep leer, Hook ohne Meldung,
+                  Build. Bewusst gelassen mit Grund: docs/audit-backlog.md «R5 Sichtprüfung». Bekannte
+                  Falle: Bash ohne `source $S/env.sh` → Suite scheitert mit «Access denied root@localhost»
+                  (TCP statt Socket), 1105 rote Tests ohne Codefehler. Prüfer (fable low): hält –
+                  Import-Drop per Playwright (Zone, Feld, Knopf), Strichmuster im Build, Aktivitäten
+                  Seite 2 und Leerzustand, Hell ohne Bruch, eigener Rundgang 3 Rollen Exit 0; Lücke
+                  «kein Test für den finish-Haken» geschlossen (EinrichtungTest). Nächster Schritt: R5
+                  Teil 2 (Workflow notenportal-audit, sechs Dimensionen), dann Hell-Stichprobe,
+                  LAGE/gui-konzept/PR.
 ```
 
 ---

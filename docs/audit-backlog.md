@@ -682,10 +682,6 @@ ausgeblendeten Werte in der Namenszelle nach.
   erreichen. Ein Wert wie 255 145 140 gäbe 4.94:1 auf `/14`, verschiebt aber die ganze Notenampel.
   Das ist ein Token-Entscheid (Skill `notenportal-dunkelmodus` §1 müsste Notentext aufnehmen), kein
   View-Fix. Bis dahin bleibt die Unterstreichung die zweite Kodierung (nie nur Farbe).
-- **Zehn Sichtbefunde des Rauchtests `notenportal-dunkel-rundgang`** (01.10., Lernende 1920/2560)
-  blieben ohne Prüferurteil, weil die Sitzung ihr Nutzungslimit erreichte. Sie gelten als ungeprüft
-  und werden im vollen Lauf über alle drei Rollen (R4) neu aufgenommen, nicht aus dem alten Journal
-  übernommen.
 
 ## R4 Lernende: bewusst gelassen (01.10.2026)
 
@@ -881,3 +877,84 @@ eigenen 2560-Sicht, die nach Prüfung am Markup oder an den Regeln nicht umgeset
   zugängliche Name ist da; sichtbare Spaltenköpfe wie bei den Personen lohnen sich erst ab drei Feldern je Zeile.
 - **Einrichtung Abschluss: Fusszeile nicht über `_fuss`**: der Fuss trägt ein POST-Formular («Einrichtung
   abschliessen»), das der Teil-View nicht kennt; eigener Fuss bleibt.
+
+## R5 Sichtprüfung: bewusst gelassen (02.10.2026)
+
+Rundgang über alle drei Rollen (96 Seiten, 1920 dunkel, Workflow `notenportal-dunkel-rundgang`,
+Bildprüfer sonnet): 136 Befunde. Die gegnerische Verifikation im Workflow (272 Opus-Aufrufe) brach am
+Nutzungslimit ab und verwarf bestätigte Ursachen durch ihre UND-Logik; darum wurden alle 136 Befunde in
+der Hauptsession am Markup nach Ursache gebündelt. Umgesetzt (31 Befunde, Commit siehe Übergabe):
+Verlauf-Reihen mit Strichmuster, Spalte «Prüfungen» bündig, Import-Knopf bis zur Dateiwahl gesperrt
+(auch nach Drag-and-drop), «Gewicht» vor Prozentwerten (Lernende und Berufsbildner), ein Akzent in
+/modules, Modul-Fussnote auf einen Satz, Benachrichtigungs-Beschreibung je Rolle, «Vom Betrieb
+festgelegt.» als Schloss mit sr-only, Aktivitätsprotokoll ohne leere Spalten (Karte dann `max-w-4xl`),
+Einrichtung (Lehrberufe/Fächer lesbar mit «vorhanden», Kategorien erst nach Bestätigung erledigt,
+Abschluss-Haken nur wenn alles erledigt, Zahlenfelder rechtsbündig, neue Semester mit Marke «neu»),
+Feedback-Eintrag auf /feedback aktiv, Abschluss-Notenfelder bündig, acht Listen mit Kartenobergrenze
+(`max-w-5xl` bis `max-w-7xl`), Prüfungstermine-Gitter `minmax(0,64rem)`. Der Rest nach Regel:
+
+- **Leerflächen und ungleiche Kartenhöhen in Spaltenlayouts** (Dashboards aller Rollen, Cockpit,
+  Rechner, Abschluss, Berichte; 14 Befunde): Spalten sind unabhängig hoch, Karten folgen ihrem Inhalt;
+  Angleichen hiesse leere Fläche *in* Karten (HIG Layout: gruppieren über Negativraum). Entscheid R3/R4.
+- **Leerzustand plus Symbolleisten-Aktion** (Meldungen, Dokumente, «als gesehen markieren»): Muster
+  «eine Primäraktion in der Symbolleiste, Weg weiter im Leerzustand» (`x-leer`), kein Doppel.
+- **Seitenleisten-Symbole alle in Akzent** (alle Rollen): Entscheid R4 Lernende (Apple-Seitenleiste
+  tönt alle Glyphen, aktiv ist die Fläche), nicht je Rolle anders.
+- **Feldränder «hart/hell», Feldbreiten uneinheitlich, Platzhalter uneinheitlich** (Modulformular,
+  Lernende erfassen, Notenbaum, Semester, Betrieb; 13 Befunde): `border-border-strong/70` ist der
+  vorgeschriebene Feldrand (`notenportal-ui` §2), Breiten folgen dem Feldtyp (§7: w-72/w-32/w-24/w-44/
+  w-56) und zeigen die erwartete Länge, «Optional» steht nur an freiwilligen Feldern (§4).
+- **Hinweistexte** (Katalogversion, Handlungsziele, Kalender-Abo, Bemerkung intern, Promotion-Block,
+  Darstellung, Ablagezone): geprüft, jeder nennt eine Folge oder Grenze (wer sieht es, welches Format,
+  was passiert beim Leerlassen) – bleibt nach `notenportal-ui` §1. Entfernt wurde nur der zweite Satz
+  der Modul-Fussnote.
+- **Notenfeld ohne Platzhalter oder Formathinweis** (Note erfassen, Cockpit): Formatfehler meldet
+  `validation.custom` verständlich; ein Hinweis vor dem Fehler ist Selbstverständliches (§1).
+- **Zebra-Streifen in gruppierten Abschlusstabellen**: `np-tabelle` streift immer (macOS-Tabellen),
+  Gruppenköpfe tragen Gewicht und Einzug; Entscheid R4.
+- **Datumsfelder mit «dd.mm.yyyy» und nativem Look** (Aktivitätsprotokoll, Lernende erfassen,
+  Semester): Werkzeugartefakt – headless Chromium hat keine deutschen UI-Strings, `--lang=de-CH` und
+  `locale: 'de-CH'` ändern den Platzhalter nicht (geprüft 02.10.); im Browser steht «TT.MM.JJJJ».
+  `text-right` wirkt auf `type="date"` nicht; eine Regel auf `::-webkit-datetime-edit` wäre Browser-CSS.
+- **Knapp nur durch Farbe** (Zeugnisnoten, Berichte): `NotenSkala` färbt knapp als Vorwarnstufe und
+  unterstreicht ungenügend; die zweite Kodierung trägt die Stufe, die eine Folge hat (Token-Entscheid,
+  siehe «Dunkelmodus nach HIG»).
+- **Akzent für «Neu»-Kennzahl und «QV-Prognose»**: «QV-Prognose» ist ein Link (`text-accent-text`);
+  der Akzentpunkt bei «Neu» ist die Marke «ungesehen», gleich wie die «n neu»-Chips der Listen.
+- **Status «Beobachten»/Amber in fast allen Zeilen, zwei Notenbäume gleichen Namens, Prognose ohne
+  Wert, rote Punkte bei allen Hinweisen**: Demo-Daten bzw. Modell (Punkt = Lernstand der Person,
+  R4 Admin); keine View-Ursache.
+- **Deaktivierte Entfernen-/Löschen-Knöpfe unter 3:1**: WCAG 1.4.3 nimmt inaktive Bedienelemente aus,
+  die Sperre steht daneben im Text (R4 Admin). «Zwei Zeilen hervorgehoben» war Hover plus Zebra im
+  Moment der Aufnahme.
+- **Namensreihenfolge, «Track», Seitentitel der Einstellungen, Rollenwahl Segment/Schalter,
+  Formularabschluss nahe Unterkante, Modulliste ohne Gruppierung, Abschnittsüberschriften der
+  Prüfungstermine, Karte in Karte bei Personen, Benachrichtigungs-Umbau**: Entscheide aus R4 Admin
+  (oben), unverändert.
+- **Diagrammbalken gesättigt, Achsen 2xs ohne Achsentitel, Direktbeschriftung 3xs**: Token-Entscheid
+  (`--chart-1`), Achsen- und Beschriftungsgrössen nach `notenportal-dunkelmodus` §3 erlaubt,
+  Achsentitel steht im Kartentitel.
+- **Zurück-Pfeil vorne in der Symbolleiste, «Noten»-Aktion rechts in der Zeile, Speichern als
+  Sekundärknopf in Profil-Formularen, «Auf Standard zurücksetzen» rechts**: Seitenkopf-, Tabellen- und
+  Formularmuster (`notenportal-ui` §5/§7); Profil hat mehrere Formulare und darum keinen Primärknopf.
+- **«Lehrzeit» neben der Heldenzahl**: Überschrift der drei Kategorie-Kacheln (Lehrzeit-Schnitte
+  gegenüber dem Semesterwert), bewusst dort.
+- **Kontrast-Kachel wirkt wie zweite Auswahl**: die Kachel zeigt ihr Thema in eigener Farbe (Vorschau);
+  Auswahl ist der Ring (R4 Lernende).
+- **Doppelte Semesterübersicht in der Einrichtung**: «Vorschau» ist der Plan ab Startjahr, «Vorhanden»
+  der ganze Bestand (auch 22/23 vor dem Startjahr).
+- **Offene Schritte schwächer als erledigte** (Schrittliste): Hierarchie aktiv (fett) › erledigt
+  (`text-text` mit Haken) › offen (`text-muted`, ≥ 4.5:1).
+- **Zurückgestellt (Gestaltung, kein Regelverstoss)**: «Vorlage (CSV)» fluchtet nicht mit der
+  Dropzone; Detailkopf der Module springt bei unterschiedlich langen Titeln; Profil/Darstellung als
+  lange Seite (Themenraster aufgeklappt); «Neuen Link erzeugen» nicht bündig; Gruppen- und
+  Semesterschnitt-Zahlen kleiner als Zeilenwerte; Statustext der Berichte bricht mit Einzelwort um;
+  Titelspalte der Einstellungsseiten springt. Lösung je Punkt braucht einen Entwurf, nicht einen Fix.
+- **Lernende (Admin): Status-Spalte bekommt bei `max-w-7xl` nur 15rem**: 64rem feste Spalten plus
+  Kartenpolster füllen die höchste Stufe fast aus; drei Etiketten in einer Zeile brechen um (`flex-wrap`,
+  Zeile wird zweizeilig). Breiter ginge nur mit einer Stufe über `max-w-7xl` oder schmaleren festen
+  Spalten (Name `w-72` ist für lange Doppelnamen schon knapp).
+- **Fächer, Semester, Lehrberufe, Module: Breiten bleiben am `th`**: `table-fixed` ist gesetzt, die
+  Breiten am Kopf wirken wie ein `<colgroup>`; nur die Kartenobergrenze (`max-w-5xl` bis `max-w-7xl`)
+  ist neu. Berufsbildner und Benutzer hatten weder `table-fixed` noch Breiten und tragen jetzt ein
+  `<colgroup>`.

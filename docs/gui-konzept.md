@@ -2,7 +2,7 @@
 
 Stand 11.09.2026. Ziel: ruhiger, klarer, eigenständiger – weg vom Einheitslook generierter Dashboards («Glas überall, Kachelreihe, Glow, Grossbuchstaben-Labels»), hin zu dem, was Linear, Stripe, GitHub oder Datawrapper tun: wenige, gut gewählte Flächen, Hierarchie über Typografie, Farbe nur mit Bedeutung.
 
-## Stand Rebuild R1–R5 (Desktop, 01.10.2026) – gilt vor allem darunter
+## Stand Rebuild R1–R5 (Desktop, 02.10.2026) – gilt vor allem darunter
 
 Seit dem Rebuild ist das Portal **nur für den Desktop-Browser** gebaut (Zielbreiten 1920×1080/1200 und 2560×1440, ab 1280 px tragfähig). Alles Mobile weiter unten (390 px, `h-11 mobil`, `max-md:`, `sm:w-[28rem]`, Kartenansichten von Tabellen, D12) ist historisch und gilt nicht mehr. Verbindliche Regeln stehen im Skill `notenportal-ui`; hier nur die Eckpunkte.
 
@@ -15,7 +15,7 @@ Seit dem Rebuild ist das Portal **nur für den Desktop-Browser** gebaut (Zielbre
 | Formulare | Gruppierte Listen wie die macOS-Systemeinstellungen: Abschnitt = `<section>` mit `h2` über `np-karte np-gruppe`, Zeilen aus `<x-einstellung label fuer name hinweis gestapelt>` (Bezeichnung links, Feld rechts; `gestapelt` für mehrzeiligen Text), Fussnote `mt-2 px-1 text-xs text-muted`, Abschluss `<x-formular-aktionen>`, Löschen als eigene Gruppe darunter. Keine Sternchen: Pflicht ist der Normalfall, freiwillige Felder tragen den Platzhalter «Optional». Wenige Optionen als `<x-segment-auswahl>`, ja/nein als `np-schalter`. Hinweis und Fehler sind per `aria-describedby` an das Feld gebunden (ids `{feld}-hinweis`, `{feld}-fehler`, nie zwei Attribute). |
 | Rückmeldung | Bestätigungen über `data-bestaetigen` (Dialog statt `window.confirm`), Flash nur als Toast, keine Spinner. Formatfehler mit verständlicher Meldung aus `validation.custom`. |
 | Status | `<x-status>`: Kritisch · Beobachten · Offen · Im Plan · **Abgeschlossen** (Lehrende vorbei, löst keine Warnung mehr aus). |
-| Prüfung | Screenshots 1920 und 2560, hell und dunkel; JS-Fehlerlauf über alle Rollen; `nutzung.mjs` für Breitenausnutzung. |
+| Prüfung | Massstab dunkel 1920/2560: `tools/pruefung/shot.mjs` (jedes Bild mit Read ansehen), `rundgang.mjs` je Rolle mit Exit 0 (JS-Fehler, Überlauf, Abschnitte, Überlappung), hell nur als Stichprobe (`--hell`); Sichtbefunde durch `bildpruefer`, Entscheide mit Regelzitat in `docs/audit-backlog.md`. R5 Teil 1 (02.10.): 96 Seiten, 136 Befunde, 31 umgesetzt. |
 
 Screenshots des Ist-Stands vor dem Rebuild: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
 

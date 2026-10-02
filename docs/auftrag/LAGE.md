@@ -277,7 +277,8 @@ Nicht raten — als offen markieren und David fragen:
 >
 > **Stand 02.10.:** R4 Lernende, R4 Berufsbildner und R4 Admin abgeschlossen (Bildprüfer, UI-Checker,
 > Reviewer, Prüfer je durch; Admin: fünf Umsetzungs-Agents, Rundgang 56 Seiten, 24 Bilder 1920/2560),
-> R5 Gesamtprüfung offen. Die Arbeit läuft auf dem Branch
+> R5 Gesamtprüfung läuft: Teil 1 Sichtprüfung (136 Befunde, 31 umgesetzt, Rest mit Grund im Backlog)
+> abgeschlossen, Teil 2 Audit-Workflow offen. Die Arbeit läuft auf dem Branch
 > `claude/friendly-meitner-ju7e8a` mit Entwurfs-PR gegen `main` (Vorgabe der Cloud-Sitzung), `main`
 > hinkt bis zum Merge hinterher.
 
