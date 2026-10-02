@@ -18,7 +18,7 @@
   "alwaysThinkingEnabled": true,
   "advisorModel": "fable",
   "ultracode": true,
-  "autoCompactWindow": 350000,
+  "autoCompactWindow": 300000,
   "autoMemoryEnabled": true,
   "skipAutoPermissionPrompt": true,
   "workflowSizeGuideline": "unrestricted",
