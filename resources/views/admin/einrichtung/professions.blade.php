@@ -40,21 +40,22 @@
             <div class="grid grid-cols-2 gap-2">
                 @foreach($katalog as $l)
                     @php $da = isset($vorhandeneBerufe[$l['kuerzel']]); @endphp
-                    <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5',
-                        'cursor-pointer' => ! $da, 'opacity-60' => $da])>
+                    {{-- Vorhandenes bleibt lesbar (text-muted ≥ 4.5:1) und ist durch Text «vorhanden» markiert, nicht durch Deckkraft --}}
+                    <label @class(['flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 transition-colors',
+                        'cursor-pointer has-[:checked]:border-accent/50 has-[:checked]:bg-accent/5' => ! $da])>
                         <input type="checkbox" name="berufe[]" value="{{ $l['kuerzel'] }}" @checked($da || in_array($l['kuerzel'], $gewaehlt, true)) @disabled($da)
                                class="np-haken">
                         <span class="min-w-0 flex-1">
-                            <span class="block text-sm text-text wrap-break-word">{{ $l['name'] }}</span>
+                            <span @class(['block text-sm wrap-break-word', 'text-text' => ! $da, 'text-muted' => $da])>{{ $l['name'] }}</span>
                             <span class="text-xs text-muted">{{ $l['kuerzel'] }}</span>
                         </span>
                         @if($da)<span class="text-xs text-muted">{{ __('vorhanden') }}</span>@endif
                     </label>
                 @endforeach
                 @foreach($weitere as $lb)
-                    <div class="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11 opacity-60">
+                    <div class="flex items-center gap-3 rounded-xl border border-border px-3 py-2.5 min-h-11">
                         <input type="checkbox" checked disabled aria-label="{{ $lb->name }}" class="np-haken">
-                        <span class="min-w-0 flex-1"><span class="block text-sm text-text wrap-break-word">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
+                        <span class="min-w-0 flex-1"><span class="block text-sm text-muted wrap-break-word">{{ $lb->name }}</span><span class="text-xs text-muted">{{ $lb->kuerzel }}</span></span>
                         <span class="text-xs text-muted">{{ __('vorhanden') }}</span>
                     </div>
                 @endforeach
@@ -94,10 +95,10 @@
                                     // Vorhandene Fächer zeigen, was in der Datenbank steht, nicht die Angabe der Vorlage
                                     $skala = $da ? $db->skala : ($f['skala'] ?? 'note');
                                     $zaehlt = $da ? (bool) $db->zaehlt : ($f['zaehlt'] ?? true);
-                                    $zusatz = array_filter([$skala === 'stufe' ? __('Stufe') : null, $zaehlt ? null : __('zählt nicht')]);
+                                    $zusatz = array_filter([$da ? __('vorhanden') : null, $skala === 'stufe' ? __('Stufe') : null, $zaehlt ? null : __('zählt nicht')]);
                                 @endphp
-                                <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 min-h-9 text-sm text-text transition-colors has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10',
-                                    'cursor-pointer' => ! $da, 'opacity-60' => $da])>
+                                <label @class(['inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 min-h-9 text-sm transition-colors',
+                                    'cursor-pointer text-text has-[:checked]:border-accent/50 has-[:checked]:bg-accent/10' => ! $da, 'text-muted' => $da])>
                                     <input type="checkbox" name="faecher[]" value="{{ $schluessel }}" @checked($da || in_array($schluessel, $faecherGewaehlt, true)) @disabled($da)
                                            class="np-haken">
                                     <span class="min-w-0">{{ $f['name'] }}</span>

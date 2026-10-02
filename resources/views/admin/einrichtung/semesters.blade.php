@@ -52,7 +52,7 @@
                 </div>
                 <div>
                     <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }}</label>
-                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }} text-right tabular-nums"
+                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }} text-right"
                            @error('bis_jahr') aria-invalid="true" aria-describedby="bis_jahr-fehler" @enderror>
                     @error('bis_jahr')<p id="bis_jahr-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
@@ -66,7 +66,10 @@
                 <ul class="grid grid-cols-4 gap-2">
                     <template x-for="s in plan" :key="s.b">
                         <li class="rounded-xl border px-3 py-2" :class="s.da ? 'border-border text-muted' : 'border-accent/40 bg-accent/5 text-text'">
-                            <div class="text-sm font-semibold tabular-nums" x-text="s.b"></div>
+                            <div class="flex h-5 items-center justify-between gap-2">
+                                <span class="text-sm font-semibold tabular-nums" x-text="s.b"></span>
+                                <span class="np-marke shrink-0 bg-accent/10 text-accent-text" x-show="!s.da" x-text="labels.neu"></span>
+                            </div>
                             <div class="text-2xs text-muted tabular-nums"><span class="whitespace-nowrap" x-text="`${fmt(s.von)} –`"></span> <span class="whitespace-nowrap" x-text="fmt(s.bis)"></span></div>
                         </li>
                     </template>

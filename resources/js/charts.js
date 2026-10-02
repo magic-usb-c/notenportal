@@ -262,16 +262,21 @@ const BAUER = {
     // { labels: [..], serien: [{ name, werte: [..], dick? }], grenze } – eine Serie mit dick:true wird hervorgehoben, Rest gedämpft
     verlauf(d, o = {}) {
         const hervorgehoben = d.serien.some((s) => s.dick);
+        // Gedämpfte Reihen behalten ihren Ton (jeder --chart-Token ≥ 3:1 auf der Karte) und tragen zusätzlich
+        // ein Strichmuster – HIG «nie nur Farbe». Ein gemeinsames Grau machte sie ununterscheidbar (2.7:1).
+        const STRICH = [[6, 4], [2, 3], [10, 4, 2, 4], []];
+        let gedaempfte = 0;
         const datasets = d.serien.map((s, i) => {
             const gedaempft = hervorgehoben && !s.dick;
             const token = s.farbe ?? serienToken(i);
-            const farbe = gedaempft ? tokenFarbe('--muted', 0.5) : tokenFarbe(token);
+            const farbe = tokenFarbe(token);
             // Fläche nur unter der hervorgehobenen bzw. einzigen Linie, sonst überlagern sich die Verläufe
             const flaeche = !gedaempft && (s.dick || d.serien.length === 1);
             return {
                 label: s.name, data: s.werte, spanGaps: true, tension: 0.35, cubicInterpolationMode: 'monotone',
                 borderColor: farbe, backgroundColor: flaeche ? verlaufFlaeche(token) : 'transparent',
-                borderWidth: s.dick ? 3 : (gedaempft ? 1.25 : 2), borderCapStyle: 'round', borderJoinStyle: 'round',
+                borderWidth: s.dick ? 3 : (gedaempft ? 1.5 : 2), borderCapStyle: 'round', borderJoinStyle: 'round',
+                borderDash: gedaempft ? STRICH[gedaempfte++ % STRICH.length] : [],
                 pointRadius: gedaempft ? 0 : 3.5, pointHoverRadius: gedaempft ? 3 : 5.5,
                 pointBackgroundColor: farbe, pointBorderColor: tokenFarbe('--card'), pointBorderWidth: 1.5, pointHoverBorderWidth: 2,
                 fill: flaeche ? 'start' : false, order: s.dick ? 1 : 2,

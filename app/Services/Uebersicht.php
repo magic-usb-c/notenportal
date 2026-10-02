@@ -142,7 +142,7 @@ final class Uebersicht
                 'link' => route('learner.exams.index'),
                 'ton' => 'termin',
                 'datum' => $p->datum,
-                'rechts' => Zahl::prozent($p->gewichtung_prozent),
+                'rechts' => __('Gewicht').' '.Zahl::prozent($p->gewichtung_prozent),
             ];
         })->all();
 

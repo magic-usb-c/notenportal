@@ -84,7 +84,7 @@ final class Navigation
                 ]),
                 // «mehr»: in der Leiste oben unter 1536 px im Menü «Mehr» (HIG: Überlauf statt Umbruch)
                 self::link(__('Berichte'), 'admin.reports.grades', ['admin.reports.*'], 'bericht') + ['mehr' => true],
-                self::link(__('Feedback'), 'admin.feedback.index', ['admin.feedback.*'], 'feedback') + ['badge' => $feedbackOffen, 'mehr' => true],
+                self::link(__('Feedback'), 'admin.feedback.index', ['admin.feedback.*', 'feedback.*'], 'feedback') + ['badge' => $feedbackOffen, 'mehr' => true],
             ],
             $user->hasRole('Berufsbildner') => [
                 self::link(__('Übersicht'), 'trainer.dashboard', ['trainer.dashboard'], 'start'),

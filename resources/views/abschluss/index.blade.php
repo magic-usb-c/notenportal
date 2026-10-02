@@ -188,7 +188,7 @@
                                                         <input id="wert-{{ $k->id }}" name="werte[{{ $k->id }}]" inputmode="decimal" autocomplete="off"
                                                                value="{{ old($feld, $position ? NotenSkala::format($position->note_wert) : '') }}"
                                                                @error($feld) aria-invalid="true" aria-describedby="wert-{{ $k->id }}-fehler" @enderror
-                                                               class="np-feld np-feld-klein ml-auto w-18 px-2 text-right tabular-nums" placeholder="–">
+                                                               class="np-feld np-feld-klein -mr-2 ml-auto w-18 px-2 text-right tabular-nums" placeholder="–">
                                                     @elseif($z['e']->note !== null)
                                                         <x-note :wert="$z['e']->note" :stellen="$k->rundung === 1.0 || $k->rundung === 0.5 ? null : 1" />
                                                     @else

@@ -35,16 +35,25 @@
                     </x-slot:weitere>
                 </x-filterleiste>
 
-                <div class="np-karte overflow-hidden">
+                @php
+                    // Spalten ohne einen einzigen Wert entfallen (notenportal-ui §5) – bei lauter Anmeldungen wären Ziel und Details nur Striche
+                    $zeilen = collect($eintraege->items())->map(fn ($e) => [
+                        'wer' => $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System'),
+                        'details' => \App\Support\Protokoll::detailText($e->details),
+                    ]);
+                    $hatZiel = collect($eintraege->items())->contains(fn ($e, $i) => $e->ziel_bezeichnung && $e->ziel_bezeichnung !== $zeilen[$i]['wer']);
+                    $hatDetails = $zeilen->contains(fn ($z) => $z['details'] !== '');
+                @endphp
+                <div @class(['np-karte overflow-hidden', 'max-w-4xl' => ! $hatZiel && ! $hatDetails])>
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
                             <thead>
                                 <tr>
                                     <th scope="col" class="w-40">{{ __('Zeit') }}</th>
                                     <th scope="col" class="w-52">{{ __('Person') }}</th>
-                                    <th scope="col" class="w-72">{{ __('Aktion') }}</th>
-                                    <th scope="col" class="w-64">{{ __('Ziel') }}</th>
-                                    <th scope="col">{{ __('Details') }}</th>
+                                    <th scope="col" @class(['w-72' => $hatDetails])>{{ __('Aktion') }}</th>
+                                    @if($hatZiel)<th scope="col" class="w-64">{{ __('Ziel') }}</th>@endif
+                                    @if($hatDetails)<th scope="col">{{ __('Details') }}</th>@endif
                                     <th scope="col" class="w-36">{{ __('IP-Adresse') }}</th>
                                 </tr>
                             </thead>
@@ -52,8 +61,7 @@
                                 @forelse($eintraege as $e)
                                     @php
                                         $zeitpunkt = $e->erstellt_am?->timezone(config('app.timezone'));
-                                        $details = \App\Support\Protokoll::detailText($e->details);
-                                        $wer = $e->benutzer ? trim($e->benutzer->vorname.' '.$e->benutzer->nachname) : __('System');
+                                        ['wer' => $wer, 'details' => $details] = $zeilen[$loop->index];
                                         // Bei der eigenen Anmeldung wäre das Ziel nur die Person noch einmal
                                         $ziel = $e->ziel_bezeichnung !== $wer ? $e->ziel_bezeichnung : null;
                                     @endphp
@@ -63,15 +71,15 @@
                                         </td>
                                         <td class="truncate">{{ $wer }}</td>
                                         <td class="truncate">{{ \App\Support\Protokoll::label($e->aktion) }}</td>
-                                        <td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>@if($ziel){{ $ziel }}@else<span class="text-muted">–</span>@endif</td>
-                                        <td class="text-muted">
+                                        @if($hatZiel)<td class="truncate" @if($ziel) title="{{ $ziel }}" @endif>@if($ziel){{ $ziel }}@else<span class="text-muted">–</span>@endif</td>@endif
+                                        @if($hatDetails)<td class="text-muted">
                                             <div class="line-clamp-2 break-words" @if($details !== '') title="{{ $details }}" @endif>@if($details !== ''){{ $details }}@else<span class="text-muted">–</span>@endif</div>
-                                        </td>
+                                        </td>@endif
                                         <td class="truncate tabular-nums text-muted">@if($e->ip){{ $e->ip }}@else<span class="text-muted">–</span>@endif</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="px-3 py-6 text-center text-muted">{{ __('Keine Einträge passen zu den Filtern.') }}</td>
+                                        <td colspan="{{ 4 + (int) $hatZiel + (int) $hatDetails }}" class="px-3 py-6 text-center text-muted">{{ __('Keine Einträge passen zu den Filtern.') }}</td>
                                     </tr>
                                 @endforelse
                             </tbody>

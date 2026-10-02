@@ -696,5 +696,6 @@
     "Optionen": "Options",
     "Dem eigenen Modul eine eigene Nummer geben (etwa ABU01 statt 801) oder die Datei mit «Eigene Module überschreiben» neu einlesen, wenn es dieselben Module sind.": "Give your own module a number of its own (e.g. ABU01 instead of 801), or read the file again with «Overwrite own modules» if they are the same modules.",
     ":anzahl Module aus dem Katalog": ":anzahl modules from the catalogue",
-    "Dieselbe Datei lässt sich in einer zweiten Installation wieder einlesen. Selbst erfasste Module sind nicht dabei.": "The same file can be read into a second installation. Modules you created yourself are not included."
+    "Dieselbe Datei lässt sich in einer zweiten Installation wieder einlesen. Selbst erfasste Module sind nicht dabei.": "The same file can be read into a second installation. Modules you created yourself are not included.",
+    "noch nicht bestätigt": "not yet confirmed"
 }

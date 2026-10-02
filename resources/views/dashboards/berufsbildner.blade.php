@@ -230,7 +230,7 @@
                                                         <span class="block truncate text-sm text-text">{{ $p->bezeichnung() }}</span>
                                                         <span class="block truncate text-xs text-muted">{{ $p->lernender->benutzer->vorname }} {{ $p->lernender->benutzer->nachname }}</span>
                                                     </span>
-                                                    <span class="shrink-0 text-xs tabular-nums text-muted" title="{{ __('Gewichtung') }}"><span class="sr-only">{{ __('Gewichtung') }} </span>{{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</span>
+                                                    <span class="shrink-0 text-xs tabular-nums text-muted">{{ __('Gewicht') }} {{ \App\Support\Zahl::prozent($p->gewichtung_prozent) }}</span>
                                                 </a>
                                             </li>
                                         @endforeach
