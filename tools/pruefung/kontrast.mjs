@@ -22,14 +22,59 @@ const { opt } = optionen(process.argv.slice(2));
 const wurzel = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const css = fs.readFileSync(path.join(wurzel, 'resources/css/theme.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
 
-// Deckungen der Materialien (resources/css/app.css). Bei Änderung dort hier nachführen.
-const MATERIAL = {
-  'np-glas': { hell: ['card', 0.8], dunkel: ['card', 0.78] },
-  'glass-bar': { hell: ['card', 0.8], dunkel: ['card', 0.8] },
-  'glass-overlay': { hell: ['card', 0.86], dunkel: ['surface-2', 0.92] },
-  'np-glas-gruppe': { hell: ['card', 0.78], dunkel: ['card', 0.74] },
-};
+// Deckungen der Materialien direkt aus resources/css/app.css (@utility-Blöcke), damit nichts von Hand nachgeführt wird.
+const appCss = fs.readFileSync(path.join(wurzel, 'resources/css/app.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+function utilityBlock(name) {
+  const start = appCss.indexOf(`@utility ${name} {`);
+  if (start < 0) return null;
+  const anfang = appCss.indexOf('{', start);
+  let tiefe = 0;
+  for (let i = anfang; i < appCss.length; i++) {
+    if (appCss[i] === '{') tiefe++;
+    else if (appCss[i] === '}' && --tiefe === 0) return appCss.slice(anfang + 1, i);
+  }
+  return null;
+}
+// Liefert je Modus [Quelltoken, Deckung] der ersten Flächenangabe rgb(var(--x-rgb) / a) ausserhalb von
+// @supports/@media-Fallbacks; verschachtelte Blöcke mit «dark» zählen als dunkel.
+function materialDeckung(name) {
+  const inner = utilityBlock(name);
+  if (!inner) return null;
+  const stapel = [];
+  let puffer = '';
+  const ergebnis = {};
+  for (const ch of inner) {
+    if (ch === '{') {
+      stapel.push(puffer.trim());
+      puffer = '';
+    } else if (ch === '}') {
+      stapel.pop();
+      puffer = '';
+    } else if (ch === ';') {
+      const m = puffer.match(/background(?:-color)?\s*:\s*rgb\(var\(--([a-z0-9-]+?)(?:-rgb)?\)\s*\/\s*(0?\.\d+|1)\)/);
+      if (m && !stapel.some((x) => /@supports|@media/.test(x))) {
+        const modus = stapel.some((x) => /dark/.test(x)) ? 'dunkel' : 'hell';
+        ergebnis[modus] ??= [m[1], Number(m[2])];
+      }
+      puffer = '';
+    } else puffer += ch;
+  }
+  if (!ergebnis.hell && !ergebnis.dunkel) return null;
+  ergebnis.hell ??= ergebnis.dunkel;
+  ergebnis.dunkel ??= ergebnis.hell;
+  return ergebnis;
+}
+const MATERIAL = {};
+for (const name of ['np-glas', 'glass-bar', 'glass-seitenleiste', 'glass-overlay', 'np-glas-gruppe']) {
+  const d = materialDeckung(name);
+  if (d) MATERIAL[name] = d;
+  else console.error(`Hinweis: @utility ${name} ohne auswertbare Flächenangabe in app.css`);
+}
 if (opt.glas) MATERIAL[`glas ${opt.glas}`] = { hell: ['card', Number(opt.glas)], dunkel: ['card', Number(opt.glas)] };
+// Scrollkante (np-symbolleiste::before): Verlauf aus --bg, der den Inhalt unter der Leiste abblendet, bevor
+// er die Schrift erreicht. Für das Modell zählt der schwächste Stopp über der Textzeile (zweiter Stopp).
+const kanteStopps = [...(utilityBlock('np-symbolleiste') || '').matchAll(/rgb\(var\(--bg-rgb\)\s*\/\s*(0?\.\d+|1)\)/g)].map((m) => Number(m[1])).filter((a) => a > 0);
+const KANTE = kanteStopps.length ? Math.min(...kanteStopps) : 0;
 
 const bloecke = [];
 for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -160,7 +205,20 @@ if (opt.minimum) {
       for (let i = 0; i < 24; i++) (ok((l + h) / 2) ? (h = (l + h) / 2) : (l = (l + h) / 2));
       return h;
     })();
-    console.log(`  ${schluessel.padEnd(20)} ${r2(hi).toFixed(2)}   (nur über Grund/surface-2: ${r2(nurGrund).toFixed(2)})`);
+    const mitKante = (() => {
+      if (!KANTE) return null;
+      let l = 0;
+      let h = 1;
+      const ok = (a) => unterlagen.every((u) => {
+        const f = misch(t.card, a, misch(t.bg, KANTE, u));
+        return kontrast(t.text, f) >= schwelle && kontrast(t.muted, f) >= schwelle;
+      });
+      if (ok(0)) return 0;
+      if (!ok(1)) return 1;
+      for (let i = 0; i < 24; i++) (ok((l + h) / 2) ? (h = (l + h) / 2) : (l = (l + h) / 2));
+      return h;
+    })();
+    console.log(`  ${schluessel.padEnd(20)} ${r2(hi).toFixed(2)}   nur über Grund/surface-2: ${r2(nurGrund).toFixed(2)}   mit Scrollkante (bg ${KANTE}): ${mitKante === null ? '–' : r2(mitKante).toFixed(2)}`);
   }
   console.log('');
 }
@@ -169,6 +227,7 @@ const zeile = (e) => `${e.ok ? 'ok  ' : 'FEHL'} ${e.kontext.padEnd(34)} ${e.paar
 if (opt.alle) for (const e of alle) console.log(zeile(e));
 else for (const e of befunde) console.log(zeile(e));
 const info = alle.filter((e) => !e.ok && !e.pflicht);
+console.log(`Materialien aus app.css: ${Object.entries(MATERIAL).map(([n, d]) => `${n} hell ${d.hell[0]}/${d.hell[1]} dunkel ${d.dunkel[0]}/${d.dunkel[1]}`).join(' · ')}`);
 console.log(`${Object.keys(themes).length} Theme-Blöcke, ${Object.keys(akzente).length} Akzentblöcke, ${alle.length} Paare geprüft, ${befunde.length} Pflichtverstösse, ${info.length} Hinweise unter Schwelle.`);
 if (opt.json) fs.writeFileSync(typeof opt.json === 'string' ? opt.json : 'kontrast.json', JSON.stringify({ befunde, alle }, null, 2));
 process.exit(befunde.length ? 1 : 0);

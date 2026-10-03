@@ -1467,7 +1467,10 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 /* Persönlich reduzierte Transparenz (Profil «Darstellung»): wie prefers-reduced-transparency,
    aber per Schalter – deckende Fläche statt Glas. */
 @layer utilities {
-  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas, .np-glas-gruppe::before) {
+  /* Pseudo-Elemente sind in :is() ungültig und werden still verworfen – die Glaskapsel darum als eigene Regel
+     (gemessen 03.10.2026 mit tools/pruefung/leistung.mjs --ohne-glas: 2 Kapseln behielten ihren Weichzeichner). */
+  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas),
+  [data-transparenz='reduziert'] .np-glas-gruppe::before {
     background-color: rgb(var(--card));
     backdrop-filter: none;
   }

@@ -1,7 +1,7 @@
 // Leistungsprobe einer angemeldeten Rolle: misst je Seite Ladezeit, LCP, Glasflächen und Bildrate.
 //
 //   NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell]
-//                                                  [--frames=150] [--laeufe=1] [--palette] [--json=datei]
+//                                                  [--frames=150] [--laeufe=1] [--palette] [--ohne-glas] [--trace] [--json=datei]
 //
 // Je Pfad: HTTP-Status, DOMContentLoaded und Load (ms), LCP (ms), DOM-Knoten, Glasflächen (sichtbare
 // Elemente mit backdrop-filter, Anteil am Fenster in %), Ruhe (60 Animationsbilder ohne Eingabe:
@@ -9,6 +9,10 @@
 // und zurück: Bilddauer p50/p95/max in ms, lange Bilder > 33.4 ms = unter 30 fps, Layout-/Stil-/
 // Skriptzeit aus Chrome-DevTools-Protokoll Performance.getMetrics). --palette misst zusätzlich die
 // Befehlspalette (Strg+K öffnen, tippen, Escape): Öffnungszeit, Glasflächen im offenen Zustand, Bilddauer.
+// --ohne-glas setzt data-transparenz="reduziert" (schaltet jeden backdrop-filter ab) – derselbe Lauf mit und
+// ohne zeigt, was das Glas kostet. --trace zeichnet während Ruhe, Scrollen und Palette ein DevTools-Trace auf
+// und summiert Raster-, Paint- und Composite-Zeit sowie die Anzahl gezeichneter Bilder (DrawFrame): rAF-Dauern
+// sehen nur den Hauptthread, Glas wird auf Raster-Threads bezahlt.
 //
 // Headless-Chromium rastert in Software: absolute Werte sind nicht die eines Macs. Aussagekräftig ist der
 // Vergleich vorher/nachher auf derselben Maschine mit denselben Argumenten (--json=… sichern).
@@ -19,7 +23,7 @@ import { anmelden, basisUrl, optionen, starteBrowser, suffix } from './browser.m
 const { positionen, opt } = optionen(process.argv.slice(2));
 const [email, pfade] = positionen;
 if (!email || !pfade) {
-  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell] [--frames=150] [--laeufe=1] [--palette] [--json=datei]');
+  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell] [--frames=150] [--laeufe=1] [--palette] [--ohne-glas] [--trace] [--json=datei]');
   process.exit(1);
 }
 const anzahlBilder = Math.max(20, Number(opt.frames || 150));
@@ -52,8 +56,63 @@ await page.addInitScript(() => {
     /* kein LCP in diesem Browser */
   }
 });
+if (opt['ohne-glas']) {
+  // <html> existiert beim Init-Skript noch nicht: Attribut setzen, sobald der Knoten da ist.
+  await page.addInitScript(() => {
+    const setzen = () => {
+      if (!document.documentElement) return false;
+      document.documentElement.dataset.transparenz = 'reduziert';
+      return true;
+    };
+    if (!setzen()) {
+      const o = new MutationObserver(() => setzen() && o.disconnect());
+      o.observe(document, { childList: true });
+    }
+  });
+}
 const cdp = await page.context().newCDPSession(page);
 await cdp.send('Performance.enable');
+
+// DevTools-Trace: Raster/Paint/Composite laufen abseits des Hauptthreads und fehlen in rAF-Dauern.
+const TRACE_NAMEN = {
+  RasterTask: 'rasterMs',
+  'RasterTask::Raster': 'rasterMs',
+  Paint: 'paintMs',
+  PaintImage: 'paintMs',
+  CompositeLayers: 'compositeMs',
+  'Commit': 'commitMs',
+  UpdateLayerTree: 'layerTreeMs',
+  PrePaint: 'prePaintMs',
+};
+let traceEreignisse = [];
+cdp.on('Tracing.dataCollected', (e) => {
+  traceEreignisse.push(...e.value);
+});
+async function traceStart() {
+  if (!opt.trace) return;
+  traceEreignisse = [];
+  await cdp.send('Tracing.start', {
+    traceConfig: {
+      includedCategories: ['disabled-by-default-devtools.timeline', 'disabled-by-default-devtools.timeline.frame', 'cc', 'benchmark'],
+      excludedCategories: ['*'],
+    },
+    transferMode: 'ReportEvents',
+  });
+}
+async function traceEnde() {
+  if (!opt.trace) return undefined;
+  const fertig = new Promise((res) => cdp.once('Tracing.tracingComplete', res));
+  await cdp.send('Tracing.end');
+  await fertig;
+  const summe = {};
+  let drawFrames = 0;
+  for (const e of traceEreignisse) {
+    if (e.name === 'DrawFrame') drawFrames++;
+    const ziel = TRACE_NAMEN[e.name];
+    if (ziel && e.ph === 'X' && e.dur) summe[ziel] = (summe[ziel] || 0) + e.dur / 1000;
+  }
+  return { drawFrames, ...Object.fromEntries(Object.entries(summe).map(([k, v]) => [k, r1(v)])) };
+}
 
 async function metriken() {
   const { metrics } = await cdp.send('Performance.getMetrics');
@@ -120,6 +179,7 @@ async function aufzeichnungEnde() {
 }
 
 async function ruhe() {
+  await traceStart();
   const vorher = await metriken();
   const dauern = await page.evaluate(
     async (n) =>
@@ -138,34 +198,59 @@ async function ruhe() {
   );
   const nachher = await metriken();
   const animationen = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running').length);
-  return { ...statistik(dauern), animationen, ...delta(vorher, nachher) };
+  const trace = await traceEnde();
+  return { ...statistik(dauern), animationen, ...delta(vorher, nachher), ...(trace ? { trace } : {}) };
 }
 
 async function scrollen(n) {
+  await traceStart();
   const vorher = await metriken();
   const ergebnis = await page.evaluate(async (n) => {
-    const weg = Math.max(0, document.documentElement.scrollHeight - innerHeight);
-    scrollTo(0, 0);
+    // Scrollt das Dokument; scrollt es nicht, den grössten inneren Scrollbereich (z. B. Tabellenblatt).
+    let ziel = document.scrollingElement || document.documentElement;
+    let weg = Math.max(0, ziel.scrollHeight - innerHeight);
+    let bereich = 'dokument';
+    if (weg === 0) {
+      let best = null;
+      for (const el of document.querySelectorAll('body *')) {
+        const cs = getComputedStyle(el);
+        if (!/(auto|scroll)/.test(cs.overflowY)) continue;
+        const rest = el.scrollHeight - el.clientHeight;
+        if (rest < 24) continue;
+        const r = el.getBoundingClientRect();
+        const gewicht = rest * Math.max(1, r.width * r.height);
+        if (!best || gewicht > best.gewicht) best = { el, rest, gewicht };
+      }
+      if (best) {
+        ziel = best.el;
+        weg = best.rest;
+        bereich = [...ziel.classList].slice(0, 2).join('.') || ziel.tagName.toLowerCase();
+      }
+    }
+    const setze = (y) => (bereich === 'dokument' ? scrollTo(0, y) : (ziel.scrollTop = y));
+    setze(0);
     await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
     const d = [];
     let v = performance.now();
     const halb = n / 2;
     for (let i = 1; i <= n; i++) {
       const t = i <= halb ? i / halb : (n - i) / halb;
-      scrollTo(0, Math.round(weg * t));
+      setze(Math.round(weg * t));
       await new Promise((res) => requestAnimationFrame(res));
       const j = performance.now();
       d.push(j - v);
       v = j;
     }
-    scrollTo(0, 0);
-    return { dauern: d, scrollweg: weg };
+    setze(0);
+    return { dauern: d, scrollweg: weg, bereich };
   }, n);
   const nachher = await metriken();
-  return { scrollweg: ergebnis.scrollweg, ...statistik(ergebnis.dauern), ...delta(vorher, nachher) };
+  const trace = await traceEnde();
+  return { scrollweg: ergebnis.scrollweg, bereich: ergebnis.bereich, ...statistik(ergebnis.dauern), ...delta(vorher, nachher), ...(trace ? { trace } : {}) };
 }
 
 async function palette() {
+  await traceStart();
   const vorher = await metriken();
   const t0 = performance.now();
   await page.keyboard.press('Control+k');
@@ -173,6 +258,7 @@ async function palette() {
   try {
     await eingabe.waitFor({ state: 'visible', timeout: 3000 });
   } catch {
+    await traceEnde();
     return { fehler: 'Palette öffnet nicht (Strg+K)' };
   }
   const oeffnenMs = r1(performance.now() - t0);
@@ -187,7 +273,8 @@ async function palette() {
   await page.waitForTimeout(400);
   const schliessen = statistik(await aufzeichnungEnde());
   const nachher = await metriken();
-  return { oeffnenMs, glas, tippen, schliessen, ...delta(vorher, nachher) };
+  const trace = await traceEnde();
+  return { oeffnenMs, glas, tippen, schliessen, ...delta(vorher, nachher), ...(trace ? { trace } : {}) };
 }
 
 async function messen(pfad) {
@@ -216,6 +303,8 @@ async function messen(pfad) {
   return ergebnis;
 }
 
+const traceZeile = (t) =>
+  t ? `${t.drawFrames} Bilder · Raster ${t.rasterMs ?? 0} · Paint ${t.paintMs ?? 0} · Composite ${t.compositeMs ?? 0} · Commit ${t.commitMs ?? 0} ms` : '–';
 const zeile = (e) =>
   [
     `${e.status} ${e.pfad}`,
@@ -223,8 +312,10 @@ const zeile = (e) =>
     `Knoten ${e.knoten}`,
     `Glas ${e.glas.anzahl} (${e.glas.anteilProzent} %)`,
     `Ruhe p95 ${e.ruhe.p95} ms · Anim ${e.ruhe.animationen} · Skript ${e.ruhe.skriptMs} ms`,
-    `Scroll ${e.scroll.scrollweg}px p50 ${e.scroll.p50} / p95 ${e.scroll.p95} / max ${e.scroll.max} ms · lang ${e.scroll.lang}/${e.scroll.bilder}`,
+    `Scroll ${e.scroll.scrollweg}px (${e.scroll.bereich}) p50 ${e.scroll.p50} / p95 ${e.scroll.p95} / max ${e.scroll.max} ms · lang ${e.scroll.lang}/${e.scroll.bilder}`,
     `Layout ${e.scroll.layoutMs} ms (${e.scroll.layoutAnzahl}×) · Stil ${e.scroll.stilMs} ms · Skript ${e.scroll.skriptMs} ms`,
+    e.scroll.trace ? `Trace Scroll: ${traceZeile(e.scroll.trace)} · Ruhe: ${traceZeile(e.ruhe.trace)}` : null,
+    e.palette?.trace ? `Trace Palette: ${traceZeile(e.palette.trace)}` : null,
     e.palette
       ? e.palette.fehler ||
         `Palette öffnet ${e.palette.oeffnenMs} ms · Glas ${e.palette.glas.anzahl} (${e.palette.glas.anteilProzent} %) · Tippen p95 ${e.palette.tippen.p95} / max ${e.palette.tippen.max} ms · Schliessen p95 ${e.palette.schliessen.p95} ms`
@@ -260,7 +351,7 @@ try {
   if (fehler.length) console.log('Konsole:', fehler.join('\n'));
   if (opt.json) {
     const datei = typeof opt.json === 'string' ? opt.json : `leistung-${suffix(opt)}.json`;
-    fs.writeFileSync(datei, JSON.stringify({ email, breite: Number(opt.breite || 1920), hoehe: Number(opt.hoehe || 1080), hell: Boolean(opt.hell), frames: anzahlBilder, laeufe, ergebnisse }, null, 2));
+    fs.writeFileSync(datei, JSON.stringify({ email, breite: Number(opt.breite || 1920), hoehe: Number(opt.hoehe || 1080), hell: Boolean(opt.hell), ohneGlas: Boolean(opt['ohne-glas']), trace: Boolean(opt.trace), frames: anzahlBilder, laeufe, ergebnisse }, null, 2));
     console.log('JSON:', datei);
   }
 } finally {
