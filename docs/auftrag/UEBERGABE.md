@@ -293,6 +293,29 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   mit R6-02), LCP 188/220 bzw. 192/180 – innerhalb T 44 ms, Toleranz 10 %.
                   Review-Empfehlungen ohne Blocker nach audit-backlog («R6 Welle 1»).
                   Nächster Schritt: Welle 1b (R6-02 Material + R6-04 Diagramme).
+[O] 03.10. 12:10  Welle 1b fertig (Workflow wf_8409de06, beide Scheiben angenommen; Commits 367ff93
+                  R6-02, ad60266 R6-04). R6-02: angedockte Leiste card/0.68 ohne Weichzeichner,
+                  Schublade 0.92 + 24 px nur über html[data-leiste='schublade'], Kapseln 0.58/0.78,
+                  glass-overlay surface-2/0.94 dunkel mit @starting-style (opacity, scale),
+                  np-glas-moment, np-glanz, np-segment-marke, np-kante-hart, np-einzeichnen,
+                  [data-hauptaktion]; alle rgb(255…/0 0 0…) auf --glas-licht/--glas-schatten/
+                  --scrim; reduzierte Transparenz und Kontrast als Varianten deckend:/kontrastreich:;
+                  fünf tote Utilities weg; kontrast.mjs --quelle=card|surface-2, Materiallisten
+                  ohne glass-bar/glass-seitenleiste (4262 Paare, 0 Verstösse). R6-04: npChart
+                  setze() an Ort (Canvas bleibt, data-np-probe geprüft), externer Tipp auf
+                  glass-overlay, Tastatur ←/→/Home/End mit aria-live (geprüft: «Note in offenen
+                  Prüfungen: 1.00, Ergebnis: 3.50» → End 6.00), Rechnerkurve mit Band beste/
+                  schlechteste Endnote, Staffel beim ersten Zeichnen, bewegungRuhig statt
+                  bewegungReduziert. Gemessen (ohne Last, --laeufe=3): Glasanteil Ruhe 0.6 %
+                  (vorher 18.4 %) auf allen 9 Seiten, Ruhe p95 16.8–17.0, Anim 0; Tippen p95
+                  (Minimum aus 3) /dashboard 18.5 (Basis 33.8), /admin/reports/grades 19.8
+                  (40.6), /trainer 17.5 (33.0); Scroll 540 p95 /grades/calculator 16.9 (19.2),
+                  /dashboard 17.0 (20.2), /admin/reports/grades 17.6 (20.3), /trainer/learners/1
+                  16.9/17.0 (20.3; ein 68-ms-Bild im ersten Lauf, Wiederholung 0 lange);
+                  --ohne-glas glas 0. Suite 1346 grün, Rundgang 4 Konten Exit 0, Bilder 1920/
+                  2560/flach/ruhig geprüft. Palette-Glas 16.8 % bleibt bis R6-05 (data-palette
+                  setzt noch kein Code). Nächster Schritt: Welle 2 (R6-05 Funktionsebene + R6-06
+                  Seitenschliff).
 ```
 
 ---

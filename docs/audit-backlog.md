@@ -1052,3 +1052,33 @@ geplanten Scheiben, nicht als Nachbesserung in Welle 1.
   Toleranz 10 %, T = 44 ms). Kein Beleg für eine Verschlechterung, aber auch keiner für «gleich»;
   R6-12 misst drei Läufe als Median.
 
+## R6 Welle 1b (Materialien, npChart v2): bewusst gelassen (03.10.2026)
+
+Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine Blocker.
+
+- **`np-glas` unter `kontrastreich:`** ersetzt die ganze Schattenliste durch die 1-px-Kante,
+  `glass-overlay` behält dagegen `--elev-3` und ergänzt sie. Der Plan sagt «zusätzlich». Angleichen,
+  sobald R6-05 die Leiste in den Views anfasst; sichtbar nur im Theme kontrast / prefers-contrast.
+- **`[data-hauptaktion]` Hover/Active mit `color-mix(… black)`**: gleiches Muster wie
+  `np-knopf-primaer` und `np-knopf-gefahr` (Bestand). Ein Hover-Token je Akzent wäre sauberer –
+  Token-Arbeit über alle 24 Theme-Blöcke, nicht in R6.
+- **`np-schalter::after` dupliziert die Werte von `np-glas-moment`** (0.78/0.74, blur 8 px). Ein
+  Schieberknopf (`input[type=range]`) existiert im Repo nicht, darum nur der Schalter. Wer die
+  Glasmoment-Werte ändert, muss beide Stellen finden (Kommentar steht an beiden).
+- **Neue Utilities noch ohne Verwendung**: `np-glas-moment`, `np-glanz`, `np-segment-marke`,
+  `np-kante-hart`, `np-einzeichnen`, `[data-hauptaktion]` und die Regeln für `html[data-palette]`
+  greifen erst, wenn R6-05/R6-06 die Views und np.js (`data-palette` nach `transitionend` des
+  Scrims) nachziehen. Bis dahin bleibt der Palette-Glasanteil bei 16.8 % (zwei Kapseln behalten den
+  Weichzeichner unter der offenen Palette).
+- **Alpine-`x-transition` in dropdown/navigation/toast** übersteuert die neue scale-Transition von
+  `glass-overlay`; die Skalierung mit `--dauer-morph` wirkt erst nach R6-05.
+- **Rechnerkurve ohne `stepped`, Achse linear 1–6** (R6-04): nötig, damit der interpolierte
+  Scrub-Punkt auf der Linie liegt; die Reihen `_schlechteste`/`_beste` sind Hilfsreihen fürs Band.
+  Wechselt die Kurve zwischen flach (2 Reihen) und mit Spielraum (4 Reihen), baut `setze()` neu,
+  der Canvas bleibt. Themewechsel baut neu und wiederholt die Staffel – gewollt.
+- **Fremde Aufrufer von `x-diagramm` ohne `typ`** bekommen Glas-Tipp und Tastatur automatisch, aber
+  keine sichtbare Zusammenfassung; die Umstellung auf `<x-diagramm typ=…>` gehört zu R6-07b/08–10.
+- **Veraltete Nennungen** von `glass-bar`, `glass-seitenleiste`, `glass-btn`, `np-fade-in` und der
+  Regel «≥ 0.78» in `.claude/skills/notenportal-ui`, `notenportal-dunkelmodus`, `.claude/workflows/*`
+  und `docs/gui-konzept.md:115` tilgt R6-11.
+
