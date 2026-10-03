@@ -33,6 +33,29 @@
   }
 }
 
+/* Reduzierte Transparenz: `deckend:` gilt unter prefers-reduced-transparency, unter dem persönlichen Schalter
+   html[data-transparenz='reduziert'] und im Kontrast-Theme. Ein Regelsatz für alle Materialien: Deckung 1,
+   kein Weichzeichner, ruhiger Grund flach. */
+@custom-variant deckend {
+  @media (prefers-reduced-transparency: reduce) {
+    @slot;
+  }
+  &:where([data-transparenz='reduziert'], [data-transparenz='reduziert'] *, [data-theme='kontrast'], [data-theme='kontrast'] *) {
+    @slot;
+  }
+}
+
+/* Mehr Kontrast: `kontrastreich:` gilt unter prefers-contrast: more und im Kontrast-Theme (Materialien bekommen
+   eine 1px-Kante in --border-strong). */
+@custom-variant kontrastreich {
+  @media (prefers-contrast: more) {
+    @slot;
+  }
+  &:where([data-theme='kontrast'], [data-theme='kontrast'] *) {
+    @slot;
+  }
+}
+
 /* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
    Wechsel der Variablen (Modus, Theme) auch bei /alpha-Modifiern greift */
 @theme inline {
@@ -232,6 +255,12 @@
     --np-staffel: 30ms;
     --np-aktiv: 1;
   }
+  html {
+    transition: --np-aktiv var(--dauer-3) var(--ease-out);
+  }
+  html[data-fenster='inaktiv'] {
+    --np-aktiv: 0.4;
+  }
   html[data-bewegung='reduziert'] {
     scroll-behavior: auto;
     --ease-feder: var(--ease-out);
@@ -307,78 +336,103 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   animation: none;
 }
 
+/* Seitenwechsel mit Richtung (mitRichtung() in np.js): die alte Seite weicht seitlich, die neue kommt von
+   der Gegenseite, beide überblenden. Weg über --np-weg (unter ruhiger Bewegung 0 = reine Überblendung). */
+html:not([data-bewegung='reduziert']):active-view-transition-type(vor)::view-transition-old(root) {
+  animation: np-weg-vor-raus var(--dauer-3) var(--ease-out) both;
+}
+html:not([data-bewegung='reduziert']):active-view-transition-type(vor)::view-transition-new(root) {
+  animation: np-weg-vor-rein var(--dauer-3) var(--ease-out) both;
+}
+html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view-transition-old(root) {
+  animation: np-weg-zurueck-raus var(--dauer-3) var(--ease-out) both;
+}
+html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view-transition-new(root) {
+  animation: np-weg-zurueck-rein var(--dauer-3) var(--ease-out) both;
+}
+
+@keyframes np-weg-vor-raus {
+  to { opacity: 0; transform: translateX(calc(var(--np-weg) * -1.5rem)); }
+}
+@keyframes np-weg-vor-rein {
+  from { opacity: 0; transform: translateX(calc(var(--np-weg) * 1.5rem)); }
+}
+@keyframes np-weg-zurueck-raus {
+  to { opacity: 0; transform: translateX(calc(var(--np-weg) * 1.5rem)); }
+}
+@keyframes np-weg-zurueck-rein {
+  from { opacity: 0; transform: translateX(calc(var(--np-weg) * -1.5rem)); }
+}
+
 /* ==========================================================================
    Materialien. Die Human Interface Guidelines trennen zwei Ebenen: Liquid Glass
    gehört ausschliesslich der schwebenden Ebene aus Navigation und Bedienelementen
    (Seitenleiste, Symbolleiste, Tableiste, Menüs, Popover), nie dem Inhalt. Der
    Inhalt liegt auf festen Flächen (Karte). Glas hier: getönte Fläche aus --card,
-   Weichzeichner mit Sättigung, eine helle Lichtkante oben und ein Haarstrich
-   aussen. Deckung ≥ 0.78, damit Text die Token-Kontraste hält.
+   Lichtkante oben, Haarstrich aussen; Weichzeichner nur dort, wo Inhalt darunter
+   liegt (Kapseln, Overlays, Schublade). Alle Licht-, Kanten- und Schattenfarben
+   kommen aus den Tokens in theme.css. Die Deckung steht je Modus als erstes Zahlenliteral
+   im @utility-Block, denn kontrast.mjs und ThemeKontrastTest lesen sie von dort;
+   Zustandsregeln (Schublade, Palette, deckend) folgen darum immer danach.
    ========================================================================== */
 
 @utility np-glas {
-  background-color: rgb(var(--card-rgb) / 0.8);
-  backdrop-filter: blur(24px) saturate(1.8);
+  /* Seitenleiste angedockt: liegt nur über np-grund, darum ohne Weichzeichner */
+  background-color: rgb(var(--card) / 0.8);
+  backdrop-filter: none;
   box-shadow:
-    inset 0 0.5px 0 rgb(255 255 255 / 0.6),
-    0 0 0 0.5px rgb(0 0 0 / 0.08),
-    0 8px 28px -8px rgb(0 0 0 / 0.14);
+    inset 0 0.5px 0 rgb(var(--glas-kante) / var(--glas-kante-staerke)),
+    inset 0 1px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke)),
+    0 8px 28px -8px rgb(var(--glas-schatten) / 0.14);
   @variant dark {
-    background-color: rgb(var(--card-rgb) / 0.78);
+    background-color: rgb(var(--card) / 0.68);
     box-shadow:
-      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
-      0 0 0 0.5px rgb(0 0 0 / 0.6),
-      0 12px 32px -8px rgb(0 0 0 / 0.5);
+      inset 0 0.5px 0 rgb(var(--glas-kante) / var(--glas-kante-staerke)),
+      inset 0 1px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke)),
+      0 12px 32px -8px rgb(var(--glas-schatten) / 0.5);
   }
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    background-color: rgb(var(--card));
+  /* Schublade: liegt über dem Inhalt (html[data-leiste] setzt np.js, auch während des Schliessens) */
+  :where(html[data-leiste='schublade']) & {
+    background-color: rgb(var(--card) / 0.92);
+    backdrop-filter: blur(24px) saturate(var(--glas-saettigung));
   }
-  @media (prefers-reduced-transparency: reduce) {
+  :where(html[data-palette]) & {
+    backdrop-filter: none;
+  }
+  @variant deckend {
     background-color: rgb(var(--card));
     backdrop-filter: none;
   }
-}
-
-@utility glass-bar {
-  /* Bestand: Leiste mit Glas */
-  background-color: rgb(var(--card-rgb) / 0.8);
-  backdrop-filter: blur(24px) saturate(1.8);
-  border-bottom: 1px solid rgb(var(--border));
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    background-color: rgb(var(--card));
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    background-color: rgb(var(--card));
-    backdrop-filter: none;
-  }
-  & .glass-overlay {
-    background-color: rgb(var(--card));
-  }
-}
-
-@utility glass-seitenleiste {
-  /* Bestand: wie np-glas */
-  background-color: rgb(var(--card-rgb) / 0.8);
-  backdrop-filter: blur(24px) saturate(1.8);
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    background-color: rgb(var(--card));
-  }
-  @media (prefers-reduced-transparency: reduce) {
-    background-color: rgb(var(--card));
-    backdrop-filter: none;
+  @variant kontrastreich {
+    box-shadow: 0 0 0 1px rgb(var(--border-strong));
   }
 }
 
 @utility glass-overlay {
-  /* Menüs, Befehlspalette, Toasts, Popover: Glas der schwebenden Ebene. Hell trägt der Schatten
-     die Tiefe; dunkel die Helligkeit (HIG Dark Mode, base/elevated): Fläche eine Stufe über der
-     Karte (surface-2) plus Haarlinie in --border, der Schatten bleibt nur als weicher Rest. */
-  background-color: rgb(var(--card-rgb) / 0.86);
-  backdrop-filter: blur(28px) saturate(1.8);
-  box-shadow: var(--elev-2), inset 0 0.5px 0 rgb(255 255 255 / 0.5);
+  /* Menüs, Befehlspalette, Toasts, Popover: Glas der schwebenden Ebene. Wächst ein Menü aus seinem Auslöser, ist
+     es dicker als dessen Kapsel: höhere Deckung, tieferer Schatten (--elev-3). Hell trägt der Schatten die Tiefe;
+     dunkel die Helligkeit (HIG Dark Mode, base/elevated): Fläche eine Stufe über der Karte (surface-2) plus
+     Haarlinie in --border. Beim Einblenden startet es kleiner und durchsichtig (@starting-style); das Startmass
+     setzt morphUrsprung() als --np-von-sx/-sy, sonst gilt --np-skala-von. */
+  background-color: rgb(var(--card) / 0.92);
+  backdrop-filter: blur(28px) saturate(var(--glas-saettigung));
+  box-shadow: var(--elev-3), inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke));
+  transform-origin: var(--np-ursprung, top);
+  transition:
+    opacity var(--dauer-2) var(--ease-out),
+    scale var(--dauer-morph) var(--ease-feder);
+  @starting-style {
+    opacity: 0;
+    scale: var(--np-von-sx, var(--np-skala-von)) var(--np-von-sy, var(--np-skala-von));
+  }
+  @variant ruhig {
+    @starting-style {
+      scale: 1;
+    }
+  }
   @variant dark {
-    background-color: rgb(var(--surface-2-rgb) / 0.92);
-    box-shadow: var(--elev-2), 0 0 0 1px rgb(var(--border)), inset 0 0.5px 0 rgb(255 255 255 / 0.1);
+    background-color: rgb(var(--surface-2) / 0.94);
+    box-shadow: var(--elev-3), 0 0 0 1px rgb(var(--border)), inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke));
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     background-color: rgb(var(--card));
@@ -386,20 +440,85 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
       background-color: rgb(var(--surface-2));
     }
   }
-  @media (prefers-reduced-transparency: reduce) {
+  @variant deckend {
     background-color: rgb(var(--card));
     backdrop-filter: none;
     @variant dark {
       background-color: rgb(var(--surface-2));
     }
   }
+  @variant kontrastreich {
+    box-shadow: var(--elev-3), 0 0 0 1px rgb(var(--border-strong));
+  }
 }
 
 @utility glass-scrim {
-  /* hinter Blatt (Sheet) und Befehlspalette: dimmt, ohne den Inhalt auszulöschen */
-  background-color: rgb(0 0 0 / 0.18);
+  /* hinter Blatt (Sheet) und Befehlspalette: dimmt, ohne den Inhalt auszulöschen; ohne Weichzeichner */
+  background-color: rgb(var(--scrim) / 0.18);
   @variant dark {
-    background-color: rgb(0 0 0 / 0.45);
+    background-color: rgb(var(--scrim) / 0.45);
+  }
+}
+
+@utility np-glas-moment {
+  /* Knopf eines Schiebers oder Schalters nur im Moment des Drückens: für die Dauer der Geste Glas.
+     Dasselbe Material tragen die gedrückten Schalterknöpfe unten (np-schalter) – Werte gemeinsam ändern. */
+  &:active,
+  &[data-gedrueckt] {
+    background-color: rgb(var(--card) / 0.78);
+    backdrop-filter: blur(8px) saturate(var(--glas-saettigung));
+    box-shadow:
+      inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke)),
+      0 0 0 0.5px rgb(var(--glas-kante) / var(--glas-kante-staerke));
+    @variant dark {
+      background-color: rgb(var(--card) / 0.74);
+    }
+  }
+  @variant deckend {
+    &:active,
+    &[data-gedrueckt] {
+      background-color: rgb(var(--card));
+      backdrop-filter: none;
+    }
+  }
+}
+
+/* Licht unter dem Zeiger: Lichtschicht in Kapseln und Knöpfen (<span class="np-glanz" aria-hidden="true">).
+   x-np-licht führt --np-licht-x/-y und schaltet --np-licht; die Werte erben nicht, darum sind sie registriert. */
+@property --np-licht-x {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 50%;
+}
+@property --np-licht-y {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+@property --np-licht {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+@property --np-aktiv {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+@utility np-glanz {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    circle 7rem at var(--np-licht-x) var(--np-licht-y),
+    rgb(var(--glas-licht) / calc(var(--glas-glanz-staerke) * var(--np-licht) * var(--np-aktiv))),
+    transparent
+  );
+  transition: --np-licht var(--dauer-2) var(--ease-out);
+  @variant deckend {
+    display: none;
   }
 }
 
@@ -424,11 +543,11 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     }
   }
   &::backdrop {
-    background-color: rgb(0 0 0 / 0.18);
+    background-color: rgb(var(--scrim) / 0.18);
   }
   @variant dark {
     &::backdrop {
-      background-color: rgb(0 0 0 / 0.45);
+      background-color: rgb(var(--scrim) / 0.45);
     }
   }
 }
@@ -437,8 +556,9 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
    Symbolleiste mit Scroll-Edge-Effekt (HIG «Toolbars», «Layout»: «use a scroll
    edge effect to visually elevate controls above content» statt einer festen
    Fläche). Die Leiste selbst ist durchsichtig; darunter läuft der Inhalt in
-   einen weichen, zunehmend unscharfen Rand aus. Die Bedienelemente darauf
-   tragen eigenes Glas (np-glas-gruppe).
+   einen weichen Rand aus (Verlauf aus --bg, ohne Weichzeichner), der mit dem
+   Scrollweg (--np-kante, 0..1) einblendet; ein Schatten wächst mit. Die
+   Bedienelemente darauf tragen eigenes Glas (np-glas-gruppe).
    ========================================================================== */
 
 @utility np-symbolleiste {
@@ -446,6 +566,9 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   top: 0;
   z-index: 40;
   isolation: isolate;
+  box-shadow:
+    0 1px 0 rgb(var(--glas-schatten) / calc(var(--np-kante, 0) * 0.12)),
+    0 6px 16px -8px rgb(var(--glas-schatten) / calc(var(--np-kante, 0) * 0.16));
   &::before {
     content: '';
     position: absolute;
@@ -453,15 +576,13 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     z-index: -1;
     pointer-events: none;
     background: linear-gradient(to bottom, rgb(var(--bg-rgb) / 0.92) 0%, rgb(var(--bg-rgb) / 0.72) 55%, rgb(var(--bg-rgb) / 0) 100%);
-    backdrop-filter: blur(10px);
     mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
     opacity: var(--np-kante, 0);
     transition: opacity 200ms var(--ease-out);
   }
-  @media (prefers-reduced-transparency: reduce) {
+  @variant deckend {
     &::before {
       background: rgb(var(--bg));
-      backdrop-filter: none;
       mask-image: none;
       inset: 0;
       border-bottom: 1px solid rgb(var(--border));
@@ -472,14 +593,35 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 @utility np-glas-gruppe {
   /* Glaskapsel der Symbolleiste (Suchfeld, Tableiste). Das Glas liegt auf ::before und nicht auf dem
      Element selbst: ein backdrop-filter macht sein Element zur «Backdrop Root» (Filter Effects 2) – ein
-     Menü darin sähe dann nur noch die Kapsel statt der Seite dahinter und verlöre sein eigenes Glas. */
+     Menü darin sähe dann nur noch die Kapsel statt der Seite dahinter und verlöre sein eigenes Glas.
+     Radien konzentrisch: der Eintrag in der Kapsel rundet mit Aussenradius minus Abstand. */
+  --np-gruppe-radius: 1.125rem;
+  --np-gruppe-abstand: 0.1875rem;
   position: relative;
   isolation: isolate;
   display: inline-flex;
   align-items: center;
   height: 2.25rem;
-  padding-inline: 0.1875rem;
-  border-radius: 9999px;
+  padding-inline: var(--np-gruppe-abstand);
+  border-radius: var(--np-gruppe-radius);
+  & :is(.np-tab, [data-hauptaktion]) {
+    border-radius: calc(var(--np-gruppe-radius) - var(--np-gruppe-abstand));
+  }
+  /* Hauptaktion der Kapsel: Akzentfläche mit Kontrastschrift, das Symbol erbt die Schriftfarbe */
+  & [data-hauptaktion] {
+    background-color: rgb(var(--accent));
+    color: rgb(var(--accent-contrast));
+    transition: background-color 120ms var(--ease-out);
+    & > svg {
+      color: inherit;
+    }
+    &:hover {
+      background-color: color-mix(in srgb, rgb(var(--accent)) 90%, black);
+    }
+    &:active {
+      background-color: color-mix(in srgb, rgb(var(--accent)) 80%, black);
+    }
+  }
   &::before {
     content: '';
     position: absolute;
@@ -487,27 +629,37 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    background-color: rgb(var(--card-rgb) / 0.78);
-    backdrop-filter: blur(24px) saturate(1.8);
+    background-color: rgb(var(--card) / 0.78);
+    backdrop-filter: blur(24px) saturate(var(--glas-saettigung));
     box-shadow:
-      inset 0 0.5px 0 rgb(255 255 255 / 0.6),
-      0 0 0 0.5px rgb(0 0 0 / 0.08),
-      0 2px 12px -2px rgb(0 0 0 / 0.1);
+      inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke)),
+      0 0 0 0.5px rgb(var(--glas-schatten) / 0.08),
+      0 2px 12px -2px rgb(var(--glas-schatten) / 0.1);
   }
   :where(.dark) &::before {
-    background-color: rgb(var(--card-rgb) / 0.74);
+    background-color: rgb(var(--card) / 0.58);
     box-shadow:
-      inset 0 0.5px 0 rgb(255 255 255 / 0.12),
-      0 0 0 0.5px rgb(0 0 0 / 0.5),
-      0 2px 12px -2px rgb(0 0 0 / 0.4);
+      inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke)),
+      0 0 0 0.5px rgb(var(--glas-schatten) / 0.5),
+      0 2px 12px -2px rgb(var(--glas-schatten) / 0.4);
   }
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     &::before { background-color: rgb(var(--card)); }
   }
-  @media (prefers-reduced-transparency: reduce) {
+  /* Palette offen: hinter den Kapseln liegt schon ein Overlay, darum deckend ohne Weichzeichner */
+  :where(html[data-palette]) &::before {
+    background-color: rgb(var(--card) / 0.92);
+    backdrop-filter: none;
+  }
+  @variant deckend {
     &::before {
       background-color: rgb(var(--card));
       backdrop-filter: none;
+    }
+  }
+  @variant kontrastreich {
+    &::before {
+      box-shadow: 0 0 0 1px rgb(var(--border-strong));
     }
   }
 }
@@ -533,7 +685,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 
 /* Ruhiger Grund hinter Seitenleiste und Inhalt (GUI-R6 §2): statischer Verlauf aus Tokens, keine Bilder,
    keine Animation, kein Weichzeichner. Zweite Ebene: zarter Akzentschimmer oben links. Flach unter
-   Kontrast-Theme, reduzierter Transparenz (Systemeinstellung und persönlicher Schalter). */
+   `deckend:` (reduzierte Transparenz, Kontrast-Theme). */
 @utility np-grund {
   position: fixed;
   inset: 0;
@@ -545,13 +697,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
       radial-gradient(70rem 40rem at 12% -8%, rgb(var(--accent) / var(--grund-akzent)), transparent 70%),
       linear-gradient(168deg, rgb(var(--grund-hoch)) 0%, rgb(var(--bg)) 62%);
   }
-  :where([data-theme='kontrast']) & {
-    background: rgb(var(--bg));
-  }
-  :where(html[data-transparenz='reduziert']) & {
-    background: rgb(var(--bg));
-  }
-  @media (prefers-reduced-transparency: reduce) {
+  @variant deckend {
     background: rgb(var(--bg));
   }
 }
@@ -653,7 +799,8 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     background-color: rgb(var(--text) / 0.1);
   }
   &[aria-current='page'] {
-    background-color: rgb(var(--text) / 0.085);
+    background-color: rgb(var(--accent) / 0.16);
+    box-shadow: inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke));
   }
   &:focus-visible {
     outline-offset: -2px;
@@ -749,7 +896,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   &[data-np-kante='oben'] { mask-image: linear-gradient(to bottom, transparent, black 1.5rem); }
   &[data-np-kante='unten'] { mask-image: linear-gradient(to top, transparent, black 1.5rem); }
   &[data-np-kante='oben unten'] { mask-image: linear-gradient(to bottom, transparent, black 1.5rem, black calc(100% - 1.5rem), transparent); }
-  @media (prefers-reduced-transparency: reduce) {
+  @variant deckend {
     &[data-np-kante] { mask-image: none; }
   }
 }
@@ -816,7 +963,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 @utility np-knopf-primaer {
   background-color: rgb(var(--accent));
   color: rgb(var(--accent-contrast));
-  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(0 0 0 / 0.12);
+  box-shadow: inset 0 0.5px 0 rgb(var(--glas-licht) / 0.25), 0 1px 2px rgb(var(--glas-schatten) / 0.12);
   &:hover {
     background-color: color-mix(in srgb, rgb(var(--accent)) 90%, black);
   }
@@ -918,35 +1065,6 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
-/* Bestandsklassen, bis jede View umgebaut ist: gleiche Rollen, neue Optik */
-@utility glass-btn {
-  background-color: rgb(var(--text) / 0.07);
-  border: 1px solid transparent;
-  transition-property: background-color, color;
-  transition-duration: 120ms;
-  transition-timing-function: var(--ease-out);
-  &:hover:not(:disabled) {
-    background-color: rgb(var(--text) / 0.11);
-  }
-  &:active:not(:disabled) {
-    background-color: rgb(var(--text) / 0.16);
-  }
-}
-
-@utility np-btn-primary {
-  color: rgb(var(--accent-contrast));
-  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.25), 0 1px 2px rgb(0 0 0 / 0.12);
-  transition-property: background-color, color, opacity;
-  transition-duration: 120ms;
-  transition-timing-function: var(--ease-out);
-  &:hover:not(:disabled) {
-    background-color: color-mix(in srgb, rgb(var(--accent)) 90%, black);
-  }
-  &:active:not(:disabled) {
-    background-color: color-mix(in srgb, rgb(var(--accent)) 80%, black);
-  }
-}
-
 /* ==========================================================================
    Eingabe (HIG «Text fields», «Pop-up buttons», «Toggles», «Segmented controls»).
    Feldrand --border-strong (≥ 3:1, WCAG 1.4.11), Fokus als Akzentring wie unter
@@ -967,7 +1085,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   color: rgb(var(--text));
   font-size: var(--text-sm);
   line-height: var(--text-sm--line-height);
-  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.03);
+  box-shadow: inset 0 1px 1px rgb(var(--glas-schatten) / 0.03);
   transition: border-color 120ms var(--ease-out), box-shadow 120ms var(--ease-out);
   &::placeholder {
     color: rgb(var(--muted));
@@ -1064,9 +1182,23 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     width: 1.125rem;
     height: 1.125rem;
     border-radius: 9999px;
-    background-color: white;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25), 0 0 0 0.5px rgb(0 0 0 / 0.06);
+    background-color: rgb(var(--schalter-knopf));
+    box-shadow: 0 1px 3px rgb(var(--glas-schatten) / 0.25), 0 0 0 0.5px rgb(var(--glas-schatten) / 0.06);
     transition: translate 200ms var(--ease-out);
+  }
+  /* Gedrückt wird der Knopf zu Glas (np-glas-moment) */
+  &:active::after {
+    background-color: rgb(var(--card) / 0.78);
+    backdrop-filter: blur(8px) saturate(var(--glas-saettigung));
+  }
+  :where(.dark) &:active::after {
+    background-color: rgb(var(--card) / 0.74);
+  }
+  @variant deckend {
+    &:active::after {
+      background-color: rgb(var(--card));
+      backdrop-filter: none;
+    }
   }
   &:checked {
     background-color: rgb(var(--accent));
@@ -1101,7 +1233,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   border-radius: 0.3125rem;
   border: 1px solid rgb(var(--border-strong));
   background-color: rgb(var(--input));
-  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.04);
+  box-shadow: inset 0 1px 1px rgb(var(--glas-schatten) / 0.04);
   vertical-align: middle;
   cursor: pointer;
   print-color-adjust: exact;
@@ -1151,6 +1283,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 
 @utility np-segment {
   /* Segmentierte Steuerung: Spur als Füllung, gewähltes Segment als erhabene Fläche */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.125rem;
@@ -1158,7 +1291,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   padding: 0.125rem;
   border-radius: 9999px;
   background-color: rgb(var(--text) / 0.07);
-  & > * {
+  & > :where(:not(.np-segment-marke)) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1172,7 +1305,7 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     white-space: nowrap;
     transition: background-color 150ms var(--ease-out), color 150ms var(--ease-out), box-shadow 150ms var(--ease-out);
   }
-  & > *:hover {
+  & > :where(:not(.np-segment-marke)):hover {
     color: rgb(var(--text));
   }
   /* Radio-Variante: <label><input type=radio class=sr-only>Text</label> je Segment */
@@ -1187,13 +1320,22 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt, :has(> input:checked)) {
     background-color: rgb(var(--card));
     color: rgb(var(--text));
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.1), 0 0 0 0.5px rgb(0 0 0 / 0.06);
+    box-shadow: 0 1px 3px rgb(var(--glas-schatten) / 0.1), 0 0 0 0.5px rgb(var(--glas-schatten) / 0.06);
   }
   @variant dark {
     & > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt, :has(> input:checked)) {
       background-color: rgb(var(--text) / 0.2);
-      box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+      box-shadow: 0 1px 3px rgb(var(--glas-schatten) / 0.3);
     }
+  }
+  /* Mit gleitender Marke (np-segment-marke) trägt sie die Fläche, das gewählte Segment nur noch die Schrift */
+  &:has(> .np-segment-marke) > :where(:not(.np-segment-marke)) {
+    position: relative;
+    z-index: 1;
+  }
+  &:has(> .np-segment-marke) > :is([aria-current='page'], [aria-current='true'], [aria-pressed='true'], [aria-selected='true'], [aria-checked='true'], .np-gewaehlt, :has(> input:checked)) {
+    background-color: transparent;
+    box-shadow: none;
   }
 }
 
@@ -1203,6 +1345,32 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   &.np-segment > * {
     padding-inline: 0.625rem;
     font-size: var(--text-xs);
+  }
+}
+
+@utility np-segment-marke {
+  /* Auswahlmarke einer Segmentsteuerung als eigenes Element (<span class="np-segment-marke" aria-hidden="true">
+     direkt in .np-segment): gleitet über --np-segment-x und --np-segment-breite (px, vom Skript gesetzt) zum
+     gewählten Segment. Mit Marke verliert das gewählte Segment seine eigene Fläche. */
+  position: absolute;
+  top: 0.125rem;
+  bottom: 0.125rem;
+  left: 0;
+  width: var(--np-segment-breite, 0px);
+  translate: var(--np-segment-x, 0px) 0;
+  border-radius: 9999px;
+  pointer-events: none;
+  background-color: rgb(var(--card));
+  box-shadow: 0 1px 3px rgb(var(--glas-schatten) / 0.1), 0 0 0 0.5px rgb(var(--glas-schatten) / 0.06);
+  transition:
+    translate var(--dauer-3) var(--ease-feder),
+    width var(--dauer-3) var(--ease-feder);
+  @variant dark {
+    background-color: rgb(var(--text) / 0.2);
+    box-shadow: 0 1px 3px rgb(var(--glas-schatten) / 0.3);
+  }
+  @variant ruhig {
+    transition: none;
   }
 }
 
@@ -1275,6 +1443,17 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   & :where(tbody tr) > :last-child {
     border-start-end-radius: var(--radius-lg);
     border-end-end-radius: var(--radius-lg);
+  }
+}
+
+@utility np-kante-hart {
+  /* Angehefteter Tabellenkopf (sticky thead): deckende Karte mit Haarlinie unten statt Glas – die Zeilen laufen
+     darunter durch, nichts scheint hindurch. */
+  background-color: rgb(var(--card));
+  border-bottom: 1px solid rgb(var(--border));
+  & :where(th) {
+    background-color: rgb(var(--card));
+    border-bottom: 1px solid rgb(var(--border));
   }
 }
 
@@ -1482,7 +1661,6 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
 @layer utilities {
   .bg-accent.text-white,
   .bg-accent .text-white,
-  .np-btn-primary.text-white,
   .hover\:bg-accent.hover\:text-white:hover {
     color: rgb(var(--accent-contrast));
   }
@@ -1526,27 +1704,8 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   [data-ecken='eckig'] :is(.np-segment, .np-segment > *, .np-glas-gruppe, .np-marke) {
     border-radius: 0.25rem;
   }
-}
-
-/* Persönlich reduzierte Transparenz (Profil «Darstellung»): wie prefers-reduced-transparency,
-   aber per Schalter – deckende Fläche statt Glas. */
-@layer utilities {
-  /* Pseudo-Elemente sind in :is() ungültig und werden still verworfen – die Glaskapsel darum als eigene Regel
-     (gemessen 03.10.2026 mit tools/pruefung/leistung.mjs --ohne-glas: 2 Kapseln behielten ihren Weichzeichner). */
-  [data-transparenz='reduziert'] :is(.glass-bar, .glass-seitenleiste, .glass-overlay, .np-glas),
-  [data-transparenz='reduziert'] .np-glas-gruppe::before {
-    background-color: rgb(var(--card));
-    backdrop-filter: none;
-  }
-  .dark[data-transparenz='reduziert'] .glass-overlay {
-    background-color: rgb(var(--surface-2));
-  }
-  [data-transparenz='reduziert'] .np-symbolleiste::before {
-    background: rgb(var(--bg));
-    backdrop-filter: none;
-    mask-image: none;
-    inset: 0;
-    border-bottom: 1px solid rgb(var(--border));
+  [data-ecken='eckig'] .np-glas-gruppe {
+    --np-gruppe-radius: 0.25rem;
   }
 }
 
@@ -1571,8 +1730,17 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
   }
 }
 
-@utility np-fade-in {
-  animation: np-fade 150ms var(--ease-out) both;
+@utility np-einzeichnen {
+  /* SVG-Linie zeichnet sich ein: Pfad mit pathLength="1"; der Strich läuft beim Einfügen von 1 auf 0 */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset var(--dauer-4) var(--ease-out);
+  @starting-style {
+    stroke-dashoffset: 1;
+  }
+  @variant ruhig {
+    transition: none;
+  }
 }
 
 @layer components {

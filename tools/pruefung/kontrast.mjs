@@ -1,20 +1,20 @@
 // Kontrastrechner über alle Theme-Blöcke in resources/css/theme.css (WCAG 2.x, relative Leuchtdichte).
 //
-//   node tools/pruefung/kontrast.mjs [--alle] [--minimum] [--glas=0.74] [--glanz=0.07] [--stufen] [--json=datei]
+//   node tools/pruefung/kontrast.mjs [--alle] [--minimum [--quelle=card|surface-2]] [--glas=0.74] [--glanz=0.07] [--stufen] [--json=datei]
 //
 // Prüft je Theme (12) und Modus (hell/dunkel) sowie je Akzentvariante:
 //   Text:   text, muted auf bg/card/surface-2/input ≥ 4.5:1 (Theme «kontrast» ≥ 7:1)
 //           accent-text auf bg/card/surface-2 ≥ 4.5:1 · accent-contrast auf accent ≥ 4.5:1
 //           note-* auf card/bg und auf der eigenen Marke (note/0.14 über card) ≥ 4.5:1
 //   UI:     accent, ring, border-strong auf bg/card ≥ 3:1 · chart-* auf card ≥ 3:1
-//   Glas:   text/muted auf den Materialien (MATERIAL unten: np-glas, glass-overlay, np-glas-gruppe, np-glas-moment
-//           sowie die alten Namen glass-bar, glass-seitenleiste, solange sie in app.css stehen) als
-//           Alpha-Komposition über bg, card, surface-2 und – falls das Token existiert – grund-hoch (Deckungen aus
+//   Glas:   text/muted auf den Materialien (MATERIAL unten: np-glas, glass-overlay, np-glas-gruppe, np-glas-moment)
+//           als Alpha-Komposition über bg, card, surface-2 und – falls das Token existiert – grund-hoch (Deckungen aus
 //           app.css); saturate() wird vernachlässigt – auf grauen Flächen ändert es die Leuchtdichte kaum.
 //           ring (Fokusring) auf jedem Material ≥ 3:1; glas-kante auf surface-2 ≥ 3:1 (nur wenn das Token existiert)
 //   Zeile:  text auf accent/0.16 über card ≥ 4.5:1 (aktive Leistenzeile)
 // --alle zeigt jede Paarung, --minimum die kleinste Glas-Deckung je Theme/Modus, bei der text und
-// muted über bg noch ihre Schwelle halten (Entwurfsgrösse für neue Materialien), --glas=a rechnet
+// muted über jeder Token-Unterlage noch ihre Schwelle halten (Entwurfsgrösse für neue Materialien); --quelle wählt
+// den Ausgangston des Materials (card, Standard; surface-2 für glass-overlay dunkel), --glas=a rechnet
 // zusätzlich ein Material mit Deckung a aus --card. --glanz=a legt rgb(--glas-licht / a) über jedes Material
 // (Unterlage → Material → Glanz), bevor die Paare geprüft werden; ohne Token --glas-licht Hinweis und ohne Wirkung.
 // --stufen prüft im Dunkelmodus je Theme die Leuchtdichte bg < grund-hoch (falls vorhanden) < card < surface-2.
@@ -71,8 +71,8 @@ function materialDeckung(name) {
   return ergebnis;
 }
 const MATERIAL = {};
-// Neue und alte Namen; fehlende Utilities werden still übersprungen (Auswertung bleibt gleich, wenn sie hinzukommen).
-const MATERIAL_NAMEN = ['np-glas', 'glass-overlay', 'np-glas-gruppe', 'np-glas-moment', 'glass-bar', 'glass-seitenleiste'];
+// Fehlende Utilities werden still übersprungen (Auswertung bleibt gleich, wenn sie hinzukommen).
+const MATERIAL_NAMEN = ['np-glas', 'glass-overlay', 'np-glas-gruppe', 'np-glas-moment'];
 for (const name of MATERIAL_NAMEN) {
   const d = materialDeckung(name);
   if (d) MATERIAL[name] = d;
@@ -219,9 +219,14 @@ if (opt.stufen) {
 }
 
 if (opt.minimum) {
+  const quelle = opt.quelle === undefined ? 'card' : String(opt.quelle);
+  if (!['card', 'surface-2'].includes(quelle)) {
+    console.error('--quelle erwartet card oder surface-2');
+    process.exit(2);
+  }
   // Unterlagen, die im Portal unter einem Material liegen können: Grund, Karte, Akzentknopf,
   // Diagramm- und Notenfarben. Die Deckung muss über der schlechtesten davon halten.
-  console.log('Kleinste Glas-Deckung (card über jeder Token-Unterlage), bei der text UND muted ihre Schwelle halten:');
+  console.log(`Kleinste Glas-Deckung (${quelle} über jeder Token-Unterlage), bei der text UND muted ihre Schwelle halten:`);
   for (const [schluessel, t] of Object.entries(themes)) {
     const schwelle = schluessel.startsWith('kontrast') ? 7 : 4.5;
     const unterlagen = ['bg', 'card', 'surface-2', 'accent', 'chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5', 'chart-6', 'note-gut', 'note-genuegend', 'note-knapp', 'note-ungenuegend']
@@ -230,7 +235,7 @@ if (opt.minimum) {
     let lo = 0;
     let hi = 1;
     const haelt = (a) => unterlagen.every((u) => {
-      const f = misch(t.card, a, u);
+      const f = misch(t[quelle], a, u);
       return kontrast(t.text, f) >= schwelle && kontrast(t.muted, f) >= schwelle;
     });
     if (!haelt(1)) {
@@ -246,7 +251,7 @@ if (opt.minimum) {
       let l = 0;
       let h = 1;
       const ok = (a) => ['bg', 'surface-2'].every((n) => {
-        const f = misch(t.card, a, t[n]);
+        const f = misch(t[quelle], a, t[n]);
         return kontrast(t.text, f) >= schwelle && kontrast(t.muted, f) >= schwelle;
       });
       if (ok(0)) return 0;
@@ -258,7 +263,7 @@ if (opt.minimum) {
       let l = 0;
       let h = 1;
       const ok = (a) => unterlagen.every((u) => {
-        const f = misch(t.card, a, misch(t.bg, KANTE, u));
+        const f = misch(t[quelle], a, misch(t.bg, KANTE, u));
         return kontrast(t.text, f) >= schwelle && kontrast(t.muted, f) >= schwelle;
       });
       if (ok(0)) return 0;
