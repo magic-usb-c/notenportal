@@ -11,7 +11,13 @@ export const meta = {
 
 const A = args || {}
 const laenge = (x) => JSON.stringify(x ?? null, null, 1).length
-log(`Eingaben: synthese ${laenge(A.synthese)} Zeichen, inventare ${laenge(A.inventare)}, refutationen ${laenge(A.refutationen)} (Caps 250k/400k/80k)`)
+const QUELLEN_STANDARD = [
+  'docs/auftrag/messungen/r6-verstehen/synthese.json (Lagebild, 10 Widersprüche mit Apple-Quellen, 9 Scheibenvorschläge, 15 Statistik-Ideen, 14 Kernbehauptungen)',
+  'docs/auftrag/messungen/r6-verstehen/inventare.json (6 Leser: diagramme, material, daten, seiten, apple mit 103 HIG-/WWDC-Fakten samt URL, browser)',
+  'docs/auftrag/messungen/r6-verstehen/refutationen.json (2 Widerleger: widerlegt, bestaetigt, ungeprueft, luecken_im_plan)',
+]
+const QUELLEN = Array.isArray(A.quellen) && A.quellen.length ? A.quellen : QUELLEN_STANDARD
+log(`Faktenbasis: ${QUELLEN.length} Dateien`)
 const KONTEXT = `
 Du arbeitest im Repository-Wurzelverzeichnis des Notenportals (Cloud: $CLAUDE_PROJECT_DIR, /home/user/notenportal). Du liest nur – keine Dateien ändern, keine git-/composer-/npm-Befehle, keine Subagents. Antworte auf Deutsch (Schweizer Hochdeutsch, ss statt ß).
 
@@ -29,14 +35,18 @@ MESSWERTE (docs/auftrag/messungen/r6-leistung-baseline.md, 03.10.2026, Headless-
 - Kontrast (tools/pruefung/kontrast.mjs --minimum): kleinste Deckung von --card, bei der text UND muted 4.5:1 über JEDER Token-Unterlage (Grund, Karte, Akzent, Chart-, Notenfarben) halten: 0.72–0.91 (Gletscher hell 0.91, Gletscher dunkel 0.85). Heutige Materialien 0.74–0.92 → «mehr Transparenz» mit statischer Textfarbe ist über Inhalt NICHT möglich. MIT Scrollkante (Unterlage vorher mit --bg zu 0.72 abgeblendet): dunkle Themes 0.00–0.37 (Gletscher dunkel 0.26), helle 0.35–0.73. Unter der schwebenden Seitenleiste (position: fixed, Hauptspalte rückt per padding aus) liegt nur der Seitengrund – dort hält jede Deckung, aber das Glas hat nichts zu brechen, solange der Grund eine Vollfläche ist.
 - ThemeKontrastTest prüft jetzt auch die Materialien (Deckungen direkt aus app.css); kontrast.mjs Exit 1 bei Verstoss.
 
-ERGEBNIS DES VERSTEHEN-WORKFLOWS (6 Leser, Synthese, 2 Widerleger – als Faktenbasis; Quellenangaben übernehmen, nichts dazuerfinden):
-${JSON.stringify(A.synthese ?? {}, null, 1).slice(0, 250000)}
+FAKTENBASIS – LIES DIESE DATEIEN ZUERST UND VOLLSTÄNDIG (Ergebnis des Verstehen-Workflows: 6 Leser, Synthese, 2 Widerleger; Quellenangaben daraus übernehmen, nichts dazuerfinden; was ein Widerleger widerlegt hat, gilt nicht):
+${QUELLEN.map((q) => `- ${q}`).join('\n')}
 
-BEFUNDE DER LESER (gekürzt):
-${JSON.stringify(A.inventare ?? {}, null, 1).slice(0, 400000)}
-
-WIDERLEGUNGEN:
-${JSON.stringify(A.refutationen ?? [], null, 1).slice(0, 80000)}
+VORENTSCHEIDUNGEN DER HAUPTSITZUNG (gelten für alle Entwürfe; die Begründung kommt in GUI-R6.md, nur echte Produkt- und Rechtsfragen bleiben für David offen):
+1. Inhalt läuft NICHT unter der Seitenleiste durch. Grund: Glas über scrollendem Inhalt ist der teuerste Fall (Baseline §3), die Seitenleiste müsste dann 0.72–0.91 deckend sein (kontrast.mjs --minimum) und wäre kein Glas mehr; HIG: «more opaque in larger elements like sidebars». Die Symbolleiste behält die Scrollkante (dort läuft Inhalt schon durch). Der Grund hinter der Seitenleiste und unter dem Inhalt darf gestaltet werden: ein ruhiger, kaum wahrnehmbarer Helligkeits- oder Tonverlauf aus Tokens (--bg, leicht aufgehellt oder mit sehr kleiner Akzentdeckung), je Theme, statisch; im Kontrast-Theme und bei reduzierter Transparenz entfällt er. Keine Orbs, keine Bilder, keine Dauerbewegung.
+2. Kohortenvergleich für LERNENDE (eigene Position im Jahrgang oder Betrieb) kommt NICHT in R6 (Datenschutz; der Pilot mit 5 Lernenden erreicht keine Mindestgrösse). Berufsbildner und Admin sehen Gruppenwerte nur über die ihnen sichtbaren Personen; Median und Quartile erst ab 3 Personen, darunter Einzelpunkte.
+3. Keine neue Auswertung des Erfassungsverhaltens je Person (Rhythmus, Wochentage, Verzug) für Berufsbildner; was heute sichtbar ist (Tage ohne Note, Filter «mit neuen Noten»), bleibt. Betriebsweite Summen (Aktivität je Woche) sind erlaubt. Die Frage geht an David.
+4. Kein Vergleich der Berufsbildner untereinander für Admins in R6 (Personalfrage). Geht an David.
+5. Keine Snapshot-Tabelle und keine Schemaänderung für Trends: Semestertrends kommen aus den Personenschnitten je Semester (Auswertung), Verläufe nach Datum aus Leistung::datum mit Stichtag-Auswertung.
+6. Lichtbrechung am Glasrand höchstens als optionale letzte Stufe (nur Chromium, per JS-Erkennung, nie per @supports), wenn der Fallback vollständig ist, Text unverzerrt bleibt und der Kontrast sich nicht ändert. Ob sie in R6 gehört, entscheidet die Jury nach Nutzen und Kosten.
+7. Filterzustand liegt in der URL (replaceState) und wird serverseitig als Whitelist gelesen; Daten kommen über dieselbe Route als JSON (Accept: application/json) oder per Voll-Reload. Neue Routen nur, wenn nötig: englische Namen, Einträge in ZugriffsschutzTest, EnglischeSeitenTest, AbfragenAnzahlTest.
+8. Chart.js 4 bleibt die Diagrammbibliothek (keine neue Abhängigkeit); Blade-SVG für Sparkline, Bullet und Heatmap bleibt erlaubt. Jedes Diagramm hat eine Tabellenalternative.
 
 Lies zusätzlich selbst, bevor du schreibst: docs/auftrag/GUI-APPLE.md, docs/gui-konzept.md (Abschnitte Elevation, Glas-Stufen, Motion, Diagramme), resources/css/app.css (Materialien ab «Materialien», Fensterstruktur, Bewegung), resources/css/theme.css (Kopf, Gletscher hell/dunkel), resources/js/np.js und resources/js/charts.js (Funktionsliste), die Views resources/views/dashboards/lernender.blade.php, resources/views/dashboards/berufsbildner.blade.php, resources/views/dashboards/admin.blade.php, resources/views/lernender/noten/index.blade.php, resources/views/verwaltung/lernende/_cockpit/uebersicht.blade.php, resources/views/admin/berichte/noten.blade.php, resources/views/components/diagramm.blade.php, resources/views/layouts/navigation.blade.php, app/Services/Auswertung/Auswertung.php und app/Services/Uebersicht.php (Methodenlisten) und docs/auftrag/messungen/r6-leistung-baseline.md.
 `
