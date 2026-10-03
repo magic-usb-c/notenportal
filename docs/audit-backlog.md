@@ -1128,3 +1128,24 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Persönliche Ziele in `benoetigt`** warten auf «Offen für David» (Ziele für Berufsbildner
   sichtbar?); der Parameter `zielwert` ist vorbereitet.
 
+
+## R6 Welle 3b (R6-07b Endpunkte, npFilter, SVG-Bausteine): bewusst gelassen (03.10.2026)
+
+- **Doppelte Auswertung im HTML-Pfad des Lernenden-Dashboards** (`DashboardController::lernender`
+  lädt `StatistikDaten::lernender` für das Paket und danach `Uebersicht::lernender` für die Seite;
+  gleiches Muster in `PruefungenController` und `AbschlussController`): gemessen auf der Demo-DB
+  (nina.huber, warm) kostet der zweite Lauf 5 Abfragen und ≈2 ms, konstant in der Datenmenge
+  (`AbfragenAnzahlTest` wacht). `Auswertung` trägt die Leistungsliste nicht, darum liesse sich das
+  nur über eine neue Signatur von `Uebersicht::lernender` zusammenlegen – nicht wert, solange R6-08
+  die Dashboard-Karten ohnehin umbaut; dort entscheiden.
+- **Berichtsseite tauscht nur HTML** (`npFilter` mit `json: false`): das JSON-Paket wird dort nicht
+  gehört, weil die Diagramme als Server-SVG/Blade kommen; der JSON-Endpunkt bleibt für R6-10 und
+  die Tests bestehen. Der Untertitel (Semestername) wechselt beim Filtern noch nicht mit → R6-10.
+- **Marken (×-Pillen) sind auf der Berichtsseite nicht aktiv** (`cfg.marken` fehlt): kommt mit der
+  Neugestaltung der Filterleiste in R6-10.
+- **`x-verlauf` doppelt Teile des Markups von `x-diagramm`** (Rahmen, Tabelle «Als Tabelle»):
+  zusammenlegen, sobald R6-08 die letzte Stelle von `npChart('verlauf')` abgelöst hat.
+- **`shot.mjs` fotografiert Diagramme mitten in der Einblendung**: die Grenzlinie «genügend 4.0»
+  erscheint im Bild schräg, nach 4 s ist sie waagrecht (eigene Aufnahme `verlauf-4s.png`). Kein
+  Produktfehler; R6-12 soll `shot.mjs`/`rundgang.mjs` auf das Ende der Chart-Animation warten
+  lassen (Ereignis oder `--bewegung=reduziert` als Standard für Vergleichsbilder).

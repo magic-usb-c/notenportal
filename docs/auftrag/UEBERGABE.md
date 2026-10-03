@@ -351,6 +351,30 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   (1 skip), avg-Grep in app/Services app/Http weiter 0, Berichtsseite mit 20 Klassen
                   gesichtet (dunkel 1920). Nächster Schritt: Welle 3b (R6-07b Endpunkte, npFilter,
                   SVG-Bausteine), Hinweise in scratch r6/welle3b-hinweise.md.
+[O] 03.10. 12:55  Welle 3b fertig (Workflow wf_d6b73a72, R6-07b nachgebessert und angenommen). Neu:
+                  Support\StatistikDaten (Vertrag je Route: Paket {filter, diagramm.<name>, tabelle,
+                  zusammenfassung, meta}), Support\StatistikAntwort (json: Vary Accept + no-store; view:
+                  Vary Accept), sechs Controller liefern dieselbe Route als JSON (wantsJson) und HTML
+                  mit identischer Berechtigung (Lernenden-ID nur aus der Session, Berufsbildner nur
+                  sichtbarFuer); resources/js/statistik.js (npFilter: fängt submit/change/input, 150 ms
+                  Entprellung, replaceState, HTML-Tausch der [data-np-baustein] und cfg.ersetze, JSON
+                  nur wenn ein Diagramm hört – json:false auf der Berichtsseite; npVerlauf); Komponenten
+                  x-verlauf, x-hantel, x-punktstreifen, x-zeitleiste, sparkline/bullet mini. Welle-3b-
+                  Nachprüfung in der Hauptsitzung: Browser-Filtercheck auf /admin/reports/grades (kein
+                  Seitenwechsel, Export-Query folgt, eine HTML-Antwort mit Vary/no-store, Chart neu
+                  gezeichnet, Konsole leer), Rundgang nina/michael/laura Exit 0, Bilder dunkel 1920 und
+                  2560 gesichtet (Dashboard, Noten, Bericht, Berufsbildner), Doppelladung im HTML-Pfad
+                  gemessen (5 Abfragen, ≈2 ms, konstant → Backlog). Prüfer (xhigh, eigener Probe-Test
+                  mit 402 Assertions): Isolation bestätigt (fremde IDs in fünf Parameternamen byte-gleich
+                  ignoriert, nicht/ehemals/künftig Betreute 404, Admin-Routen 403, 30 böse Filterwerte
+                  nie 500, unauthentifiziert 401, Lernende ohne Noten 200, keine E-Mail/Hash/Pfad im
+                  JSON). Widerlegt und behoben: LernstandRechner rechnete das Delta ungerundet (4.0 −
+                  4.3 = −0.2999…, Grund «−0.3 zum Vorsemester» fehlte) → Statistik::delta() ist jetzt
+                  die eine Rundungsstelle für Lernstand, Hanteln und Personenvergleich; Regressionstest
+                  mit drei Fächern (rot ohne Fix). StatistikIsolationTest vergleicht neu alle vier
+                  Lernenden-Routen byte-gleich (?lernender, ?lernender_id, ?id, ?benutzer_id, ?user) und
+                  gibt B eine geplante Prüfung. Suite 1426 grün (1 skip). Nächster Schritt: Welle 4
+                  (R6-08 + R6-09, dann R6-10 + R6-11), Hinweise in scratch r6/welle4-hinweise.md.
 ```
 
 ---
