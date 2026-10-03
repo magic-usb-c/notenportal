@@ -2,6 +2,8 @@
 //
 //   NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell]
 //                                                  [--frames=150] [--laeufe=1] [--palette] [--ohne-glas] [--trace] [--json=datei]
+//                                                  [--menue=<CSS-Selektor des Auslösers>]
+//                                                  [--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr]
 //
 // Je Pfad: HTTP-Status, DOMContentLoaded und Load (ms), LCP (ms), DOM-Knoten, Glasflächen (sichtbare
 // Elemente mit backdrop-filter, Anteil am Fenster in %), Ruhe (60 Animationsbilder ohne Eingabe:
@@ -13,17 +15,20 @@
 // ohne zeigt, was das Glas kostet. --trace zeichnet während Ruhe, Scrollen und Palette ein DevTools-Trace auf
 // und summiert Raster-, Paint- und Composite-Zeit sowie die Anzahl gezeichneter Bilder (DrawFrame): rAF-Dauern
 // sehen nur den Hauptthread, Glas wird auf Raster-Threads bezahlt.
+// --menue=<Selektor> klickt den Auslöser (z. B. Benutzermenü: button[aria-label^="Konto"]), wartet 300 ms und misst im
+// offenen Zustand die Glasflächen (menue.glas.anteilProzent) und beim Überfahren der Menüzeilen die Bilddauer
+// (menue.hover.p95); danach schliesst Escape das Menü.
 //
 // Headless-Chromium rastert in Software: absolute Werte sind nicht die eines Macs. Aussagekräftig ist der
 // Vergleich vorher/nachher auf derselben Maschine mit denselben Argumenten (--json=… sichern).
 // Schreibt nichts: nur GET-Aufrufe und Tastatur. Ziel über NP_URL, Passwort nur über NP_TEST_PW.
 import fs from 'node:fs';
-import { anmelden, basisUrl, optionen, starteBrowser, suffix } from './browser.mjs';
+import { ZUSTAND_USAGE, anmelden, basisUrl, optionen, starteBrowser, suffix, zustandsZeile } from './browser.mjs';
 
 const { positionen, opt } = optionen(process.argv.slice(2));
 const [email, pfade] = positionen;
 if (!email || !pfade) {
-  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell] [--frames=150] [--laeufe=1] [--palette] [--ohne-glas] [--trace] [--json=datei]');
+  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/leistung.mjs <email> <pfad[,pfad…]> [--breite=1920] [--hoehe=1080] [--hell] [--frames=150] [--laeufe=1] [--palette] [--ohne-glas] [--trace] [--json=datei] [--menue=<selektor>] ' + ZUSTAND_USAGE);
   process.exit(1);
 }
 const anzahlBilder = Math.max(20, Number(opt.frames || 150));
@@ -277,6 +282,40 @@ async function palette() {
   return { oeffnenMs, glas, tippen, schliessen, ...delta(vorher, nachher), ...(trace ? { trace } : {}) };
 }
 
+// Menü öffnen (Auslöser per Selektor), 300 ms warten, Glas im sichtbaren Zustand messen, dann die Menüzeilen
+// nacheinander überfahren und dabei die Bilddauer aufzeichnen (Hover-Wechsel = Hintergrund-/Farbwechsel je Zeile).
+async function menue(selektor) {
+  await traceStart();
+  const vorher = await metriken();
+  const ausloeser = page.locator(selektor).locator('visible=true').first();
+  try {
+    await ausloeser.click({ timeout: 5000 });
+  } catch {
+    await traceEnde();
+    return { fehler: `Auslöser «${selektor}» nicht klickbar` };
+  }
+  await page.waitForTimeout(300);
+  const glas = await glasflaechen();
+  const ziele = page.locator('[role=menuitem], .np-menue-eintrag').locator('visible=true');
+  const anzahl = Math.min(await ziele.count(), 8);
+  await aufzeichnungStart();
+  for (let runde = 0; runde < 3; runde++) {
+    for (let i = 0; i < anzahl; i++) {
+      const box = await ziele.nth(i).boundingBox();
+      if (!box) continue;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 4 });
+      await page.waitForTimeout(60);
+    }
+  }
+  await page.waitForTimeout(200);
+  const hover = { eintraege: anzahl, ...statistik(await aufzeichnungEnde()) };
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(300);
+  const nachher = await metriken();
+  const trace = await traceEnde();
+  return { glas, hover, ...delta(vorher, nachher), ...(trace ? { trace } : {}) };
+}
+
 async function messen(pfad) {
   const antwort = await page.goto(basisUrl + pfad, { waitUntil: 'load' });
   await page.waitForTimeout(600);
@@ -300,6 +339,7 @@ async function messen(pfad) {
     scroll: await scrollen(anzahlBilder),
   };
   if (opt.palette) ergebnis.palette = await palette();
+  if (typeof opt.menue === 'string') ergebnis.menue = await menue(opt.menue);
   return ergebnis;
 }
 
@@ -319,6 +359,10 @@ const zeile = (e) =>
     e.palette
       ? e.palette.fehler ||
         `Palette öffnet ${e.palette.oeffnenMs} ms · Glas ${e.palette.glas.anzahl} (${e.palette.glas.anteilProzent} %) · Tippen p95 ${e.palette.tippen.p95} / max ${e.palette.tippen.max} ms · Schliessen p95 ${e.palette.schliessen.p95} ms`
+      : null,
+    e.menue
+      ? e.menue.fehler ||
+        `Menü offen: Glas ${e.menue.glas.anzahl} (${e.menue.glas.anteilProzent} %) · Hover p50 ${e.menue.hover.p50} / p95 ${e.menue.hover.p95} / max ${e.menue.hover.max} ms (${e.menue.hover.eintraege} Zeilen)`
       : null,
   ]
     .filter(Boolean)
@@ -347,6 +391,7 @@ try {
     const e = laeufe > 1 ? { ...mediane(runden), laeufe: runden } : runden[0];
     ergebnisse.push(e);
     console.log(zeile(e));
+    console.log('    ' + (await zustandsZeile(page)));
   }
   if (fehler.length) console.log('Konsole:', fehler.join('\n'));
   if (opt.json) {

@@ -2,18 +2,19 @@
 //
 //   NP_TEST_PW=… node tools/pruefung/rundgang.mjs <email> [--breite=1920] [--hoehe=1080] [--hell]
 //                                                  [--max=150] [--start=/dashboard] [--shots=dir]
+//                                                  [--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr]
 //
 // Schreibt nichts: nach der Anmeldung werden alle Nicht-GET-Requests abgebrochen.
 // Befunde (je einmal pro Art+Text): UEBERLAUF, KLEIN (<10 px), ABGESCHNITTEN, ELLIPSE<90,
 // RAND, VORFAHR-CLIP, UEBERLAPPUNG, STATUS, LADEN, JS. Exit-Code 1, wenn Befunde vorliegen.
 // Ziel über NP_URL (Standard http://127.0.0.1:8099), Passwort nur über NP_TEST_PW.
 import fs from 'node:fs';
-import { anmelden, basisUrl, optionen, starteBrowser } from './browser.mjs';
+import { ZUSTAND_USAGE, anmelden, basisUrl, optionen, starteBrowser, zustandsZeile } from './browser.mjs';
 
 const { positionen, opt } = optionen(process.argv.slice(2));
 const [email] = positionen;
 if (!email) {
-  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/rundgang.mjs <email> [--breite=1920] [--hoehe=1080] [--hell] [--max=150] [--start=/dashboard] [--shots=dir]');
+  console.error('Aufruf: NP_TEST_PW=… node tools/pruefung/rundgang.mjs <email> [--breite=1920] [--hoehe=1080] [--hell] [--max=150] [--start=/dashboard] [--shots=dir] ' + ZUSTAND_USAGE);
   process.exit(1);
 }
 const breite = Number(opt.breite || 1920);
@@ -28,6 +29,7 @@ const besucht = new Set();
 const befunde = [];
 
 let abgebrochen = 0;
+let zustand = '';
 try {
   await anmelden(page, email);
   // Lesende POSTs des Rechners (berechnen/simulieren schreiben nichts) laufen durch – sonst zeigt die
@@ -59,6 +61,8 @@ try {
       continue;
     }
     await page.waitForTimeout(250);
+    await page.bringToFront();
+    zustand ||= await zustandsZeile(page);
     const status = r?.status() ?? 0;
     if (status >= 400) {
       befunde.push([pfad, 'STATUS', String(status)]);
@@ -169,6 +173,7 @@ try {
 }
 
 console.log(`Besucht ${besucht.size} Seiten (${email}, ${breite}x${hoehe}, ${opt.hell ? 'hell' : 'dunkel'})`);
+if (zustand) console.log(zustand);
 const eindeutig = new Set();
 for (const [p, a, t] of befunde) {
   const k = a + t;

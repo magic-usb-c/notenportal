@@ -1,18 +1,24 @@
 // Kontrastrechner über alle Theme-Blöcke in resources/css/theme.css (WCAG 2.x, relative Leuchtdichte).
 //
-//   node tools/pruefung/kontrast.mjs [--alle] [--minimum] [--glas=0.74] [--json=datei]
+//   node tools/pruefung/kontrast.mjs [--alle] [--minimum] [--glas=0.74] [--glanz=0.07] [--stufen] [--json=datei]
 //
 // Prüft je Theme (12) und Modus (hell/dunkel) sowie je Akzentvariante:
 //   Text:   text, muted auf bg/card/surface-2/input ≥ 4.5:1 (Theme «kontrast» ≥ 7:1)
 //           accent-text auf bg/card/surface-2 ≥ 4.5:1 · accent-contrast auf accent ≥ 4.5:1
 //           note-* auf card/bg und auf der eigenen Marke (note/0.14 über card) ≥ 4.5:1
 //   UI:     accent, ring, border-strong auf bg/card ≥ 3:1 · chart-* auf card ≥ 3:1
-//   Glas:   text/muted auf den Materialien (np-glas, glass-bar, glass-overlay, np-glas-gruppe) als
-//           Alpha-Komposition über bg, card und surface-2 (Deckungen aus app.css); saturate() wird
-//           vernachlässigt – auf grauen Flächen ändert es die Leuchtdichte kaum.
+//   Glas:   text/muted auf den Materialien (MATERIAL unten: np-glas, glass-overlay, np-glas-gruppe, np-glas-moment
+//           sowie die alten Namen glass-bar, glass-seitenleiste, solange sie in app.css stehen) als
+//           Alpha-Komposition über bg, card, surface-2 und – falls das Token existiert – grund-hoch (Deckungen aus
+//           app.css); saturate() wird vernachlässigt – auf grauen Flächen ändert es die Leuchtdichte kaum.
+//           ring (Fokusring) auf jedem Material ≥ 3:1; glas-kante auf surface-2 ≥ 3:1 (nur wenn das Token existiert)
+//   Zeile:  text auf accent/0.16 über card ≥ 4.5:1 (aktive Leistenzeile)
 // --alle zeigt jede Paarung, --minimum die kleinste Glas-Deckung je Theme/Modus, bei der text und
 // muted über bg noch ihre Schwelle halten (Entwurfsgrösse für neue Materialien), --glas=a rechnet
-// zusätzlich ein Material mit Deckung a aus --card. Exit 1, sobald ein Pflichtpaar reisst.
+// zusätzlich ein Material mit Deckung a aus --card. --glanz=a legt rgb(--glas-licht / a) über jedes Material
+// (Unterlage → Material → Glanz), bevor die Paare geprüft werden; ohne Token --glas-licht Hinweis und ohne Wirkung.
+// --stufen prüft im Dunkelmodus je Theme die Leuchtdichte bg < grund-hoch (falls vorhanden) < card < surface-2.
+// Exit 1, sobald ein Pflichtpaar oder eine Stufe reisst.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -65,10 +71,12 @@ function materialDeckung(name) {
   return ergebnis;
 }
 const MATERIAL = {};
-for (const name of ['np-glas', 'glass-bar', 'glass-seitenleiste', 'glass-overlay', 'np-glas-gruppe']) {
+// Neue und alte Namen; fehlende Utilities werden still übersprungen (Auswertung bleibt gleich, wenn sie hinzukommen).
+const MATERIAL_NAMEN = ['np-glas', 'glass-overlay', 'np-glas-gruppe', 'np-glas-moment', 'glass-bar', 'glass-seitenleiste'];
+for (const name of MATERIAL_NAMEN) {
   const d = materialDeckung(name);
   if (d) MATERIAL[name] = d;
-  else console.error(`Hinweis: @utility ${name} ohne auswertbare Flächenangabe in app.css`);
+  else if (utilityBlock(name)) console.error(`Hinweis: @utility ${name} ohne auswertbare Flächenangabe in app.css`);
 }
 if (opt.glas) MATERIAL[`glas ${opt.glas}`] = { hell: ['card', Number(opt.glas)], dunkel: ['card', Number(opt.glas)] };
 // Scrollkante (np-symbolleiste::before): Verlauf aus --bg, der den Inhalt unter der Leiste abblendet, bevor
@@ -108,6 +116,20 @@ const kontrast = (a, b) => {
 const misch = (vorne, alpha, hinten) => vorne.map((v, i) => Math.round(v * alpha + hinten[i] * (1 - alpha)));
 const r2 = (x) => Math.round(x * 100) / 100;
 
+// Unterlagen unter den Materialien: Grund, Karte, surface-2; grund-hoch erst, wenn das Token im Theme steht (R6-01).
+const unterlagen = ['bg', 'grund-hoch', 'card', 'surface-2'];
+// --glanz=a: Glanzschicht rgb(--glas-licht / a) über dem Material. Ohne Token --glas-licht wirkungslos.
+let glanz = null;
+if (opt.glanz !== undefined) {
+  const a = Number(opt.glanz);
+  if (!(a > 0 && a <= 1)) {
+    console.error('--glanz erwartet eine Zahl in (0, 1], z. B. --glanz=0.07');
+    process.exit(2);
+  }
+  if (Object.values(themes).some((t) => t['glas-licht'])) glanz = { alpha: a };
+  else console.log('Hinweis: --glanz ignoriert – das Token --glas-licht steht in keinem Theme von theme.css.');
+}
+
 const befunde = [];
 const alle = [];
 function pruefe(kontext, vorne, hinten, name, schwelle, pflicht = true) {
@@ -139,13 +161,21 @@ for (const [schluessel, t] of Object.entries(themes)) {
   }
   for (let i = 1; i <= 6; i++) pruefe(schluessel, t[`chart-${i}`], t.card, `chart-${i} auf card (Grafik)`, 3);
   pruefe(schluessel, misch(t.text, 0.45, t.card), t.card, 'faint auf card (Info, inaktiv)', 3, false);
+  // Aktive Leistenzeile: Text auf accent/0.16 über card
+  pruefe(schluessel, t.text, misch(t.accent, 0.16, t.card), 'text auf accent/0.16 über card (aktive Zeile)', 4.5);
+  if (t['glas-kante']) pruefe(schluessel, t['glas-kante'], t['surface-2'], 'glas-kante auf surface-2 (UI)', 3);
   for (const [material, def] of Object.entries(MATERIAL)) {
     const [quelle, alpha] = def[m];
-    for (const unterlage of ['bg', 'card', 'surface-2']) {
-      const flaeche = misch(t[quelle], alpha, t[unterlage]);
-      pruefe(schluessel, t.text, flaeche, `text auf ${material} über ${unterlage}`, textSchwelle);
-      pruefe(schluessel, t.muted, flaeche, `muted auf ${material} über ${unterlage}`, textSchwelle);
-      pruefe(schluessel, t['accent-text'], flaeche, `accent-text auf ${material} über ${unterlage}`, 4.5);
+    if (!t[quelle]) continue;
+    const glanzTag = glanz ? `+glanz ${glanz.alpha}` : '';
+    for (const unterlage of unterlagen) {
+      if (!t[unterlage]) continue;
+      let flaeche = misch(t[quelle], alpha, t[unterlage]);
+      if (glanz && t['glas-licht']) flaeche = misch(t['glas-licht'], glanz.alpha, flaeche);
+      pruefe(schluessel, t.text, flaeche, `text auf ${material}${glanzTag} über ${unterlage}`, textSchwelle);
+      pruefe(schluessel, t.muted, flaeche, `muted auf ${material}${glanzTag} über ${unterlage}`, textSchwelle);
+      pruefe(schluessel, t['accent-text'], flaeche, `accent-text auf ${material}${glanzTag} über ${unterlage}`, 4.5);
+      pruefe(schluessel, t.ring, flaeche, `ring auf ${material}${glanzTag} über ${unterlage} (UI)`, 3);
     }
     // Akzentfläche als Unterlage (Primärknopf hinter einem Menü): Hinweis, keine Pflicht
     const ueberAkzent = misch(t[quelle], alpha, t.accent);
@@ -167,7 +197,25 @@ for (const [schluessel, a] of Object.entries(akzente)) {
       pruefe(k, a.ring, t[flaeche], `ring auf ${flaeche} (UI)`, 3);
     }
     if (a['chart-1']) pruefe(k, a['chart-1'], t.card, 'chart-1 auf card (Grafik)', 3);
+    pruefe(k, t.text, misch(a.accent, 0.16, t.card), 'text auf accent/0.16 über card (aktive Zeile)', 4.5);
   }
+}
+
+// Tiefenstufen im Dunkelmodus: je Theme Leuchtdichte bg < grund-hoch (falls vorhanden) < card < surface-2.
+const stufenBefunde = [];
+if (opt.stufen) {
+  console.log('Tiefenstufen dunkel (relative Leuchtdichte, streng aufsteigend):');
+  for (const [schluessel, t] of Object.entries(themes)) {
+    if (!schluessel.endsWith('/dunkel')) continue;
+    const folge = ['bg', 'grund-hoch', 'card', 'surface-2'].filter((n) => t[n]);
+    const l = folge.map((n) => leucht(t[n]));
+    const verstoesse = [];
+    for (let i = 1; i < folge.length; i++) if (!(l[i - 1] < l[i])) verstoesse.push(`${folge[i - 1]} ${l[i - 1].toFixed(4)} ≥ ${folge[i]} ${l[i].toFixed(4)}`);
+    const text = folge.map((n, i) => `${n} ${l[i].toFixed(4)}`).join(' < ');
+    console.log(`  ${verstoesse.length ? 'FEHL' : 'ok  '} ${schluessel.padEnd(20)} ${text}${t['grund-hoch'] ? '' : '   (grund-hoch fehlt im Theme)'}`);
+    if (verstoesse.length) stufenBefunde.push({ kontext: schluessel, verstoesse });
+  }
+  console.log('');
 }
 
 if (opt.minimum) {
@@ -230,4 +278,5 @@ const info = alle.filter((e) => !e.ok && !e.pflicht);
 console.log(`Materialien aus app.css: ${Object.entries(MATERIAL).map(([n, d]) => `${n} hell ${d.hell[0]}/${d.hell[1]} dunkel ${d.dunkel[0]}/${d.dunkel[1]}`).join(' · ')}`);
 console.log(`${Object.keys(themes).length} Theme-Blöcke, ${Object.keys(akzente).length} Akzentblöcke, ${alle.length} Paare geprüft, ${befunde.length} Pflichtverstösse, ${info.length} Hinweise unter Schwelle.`);
 if (opt.json) fs.writeFileSync(typeof opt.json === 'string' ? opt.json : 'kontrast.json', JSON.stringify({ befunde, alle }, null, 2));
-process.exit(befunde.length ? 1 : 0);
+if (stufenBefunde.length) console.log(`${stufenBefunde.length} Theme(s) mit verletzter Tiefenstufung.`);
+process.exit(befunde.length || stufenBefunde.length ? 1 : 0);

@@ -109,7 +109,8 @@ class ThemeKontrastTest extends TestCase
         $css = preg_replace('#/\*.*?\*/#s', '', $css);
 
         $materialien = [];
-        foreach (['np-glas', 'glass-bar', 'glass-seitenleiste', 'glass-overlay', 'np-glas-gruppe'] as $name) {
+        // Neue und alte Namen wie in tools/pruefung/kontrast.mjs (MATERIAL_NAMEN); fehlende Utilities werden übersprungen.
+        foreach (['np-glas', 'glass-overlay', 'np-glas-gruppe', 'np-glas-moment', 'glass-bar', 'glass-seitenleiste'] as $name) {
             $start = strpos($css, "@utility {$name} {");
             if ($start === false) {
                 continue;
