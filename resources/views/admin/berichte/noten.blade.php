@@ -30,7 +30,7 @@
         <x-seitenkopf :titel="__('Berichte')" :untertitel="$semesterName">
             <x-slot:aktionen>
                 <button type="button" x-data x-on:click="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
-                <a href="{{ route('admin.reports.grades.export', $filterParameter) }}" class="np-knopf np-knopf-sekundaer print:hidden">
+                <a href="{{ route('admin.reports.grades.export', $filterParameter) }}" data-behalte-filter class="np-knopf np-knopf-sekundaer print:hidden">
                     <x-symbol name="arrow-down-tray" />{{ __('Exportieren') }}
                 </a>
             </x-slot:aktionen>
@@ -40,7 +40,8 @@
     <div class="py-6">
         <div class="np-seite mx-auto flex flex-col gap-6 px-8">
             <div class="print:hidden">
-                <x-filterleiste :action="route('admin.reports.grades')" :aktive-filter="$aktiveFilter" :zurueck="route('admin.reports.grades')">
+                <x-filterleiste :action="route('admin.reports.grades')" :aktive-filter="$aktiveFilter" :zurueck="route('admin.reports.grades')"
+                                :statistik="['json' => false, 'ersetze' => ['[data-np-filterstatus]', '.np-seite.flex-col > :not(:first-child)']]">
                     <x-slot:hidden>
                         <input type="hidden" name="sort" value="{{ $sort }}">
                         <input type="hidden" name="dir" value="{{ $dir }}">

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Verwaltung;
 
 use App\Models\Berufsbildner;
 use App\Models\Lernender;
+use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
@@ -14,9 +15,14 @@ use App\Services\Uebersicht;
 use App\Support\Betrieb;
 use App\Support\NotenSkala;
 use App\Support\Protokoll;
+use App\Support\StatistikAntwort;
+use App\Support\StatistikDaten;
+use App\Support\StatistikFilter;
 use App\Support\Ungelesen;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -28,15 +34,18 @@ class LernendeController extends VerwaltungController
 {
     private const array WARNUNGEN = ['kritisch', 'beobachten', 'tief_avg', 'keine_noten', 'ohne_betreuung', 'ohne_track'];
 
-    private const array SORTIERUNGEN = ['name', 'avg', 'last_note', 'lehrjahr'];
+    /** `schnitt` ist der Name im Statistikkatalog für `avg`; `delta` sortiert nach der Veränderung zum Vorsemester. */
+    private const array SORTIERUNGEN = ['name', 'avg', 'schnitt', 'delta', 'last_note', 'lehrjahr'];
 
     public function __construct(
         private readonly LernendeErfassungService $erfassung,
         private readonly Uebersicht $uebersicht,
         private readonly LernstandRechner $lernstaende,
+        private readonly StatistikDaten $statistik,
     ) {}
 
-    public function index(Request $request): View
+    /** Liste mit Punktstreifen (S8); JSON liefert denselben gefilterten Satz Personen, nie mehr als die Liste. */
+    public function index(Request $request): Response|JsonResponse
     {
         $user = $request->user();
         $istAdmin = $user->hasRole('Admin');
@@ -51,6 +60,8 @@ class LernendeController extends VerwaltungController
             'berufsbildner_id' => $istAdmin ? ($request->integer('berufsbildner_id') ?: null) : null,
             'sort' => in_array($request->input('sort'), self::SORTIERUNGEN, true) ? $request->input('sort') : 'name',
             'dir' => $request->input('dir') === 'desc' ? 'desc' : 'asc',
+            // Kategorie nur aus den bekannten Kategorien; sie wählt, welche Note der Punktstreifen zeigt
+            'kategorie' => StatistikFilter::aus($request, ['kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))]])->wert('kategorie'),
         ];
 
         $heute = now()->toDateString();
@@ -80,7 +91,7 @@ class LernendeController extends VerwaltungController
             ->when($filter['bms'] === 'nein', fn ($q) => $q->whereDoesntHave('tracks', $bmsAktiv))
             ->get();
 
-        $zeilen = $this->mitStatistik($lernende, (int) $user->benutzer_id);
+        $zeilen = $this->mitStatistik($lernende, (int) $user->benutzer_id, $filter['kategorie']);
 
         $cutoff = Betrieb::inaktivVor();
         $grenze = NotenSkala::genuegend();
@@ -98,14 +109,31 @@ class LernendeController extends VerwaltungController
 
         $desc = $filter['dir'] === 'desc';
         $zeilen = match ($filter['sort']) {
-            'avg' => $zeilen->sortBy(fn ($r) => $r->avg ?? -1, SORT_REGULAR, $desc),
+            'avg', 'schnitt' => $zeilen->sortBy(fn ($r) => $r->avg ?? -1, SORT_REGULAR, $desc),
+            'delta' => $zeilen->sortBy(fn ($r) => $r->delta ?? 99, SORT_REGULAR, $desc),
             'last_note' => $zeilen->sortBy(fn ($r) => $r->lastNote ?? '', SORT_STRING, $desc),
             'lehrjahr' => $zeilen->sortBy(fn ($r) => $r->lehrjahr ?? 0, SORT_REGULAR, $desc),
             default => $zeilen->sortBy(fn ($r) => mb_strtolower($r->nachname.' '.$r->vorname), SORT_STRING, $desc),
         };
 
-        return view('verwaltung.lernende.index', [
-            'zeilen' => $zeilen->values(),
+        $zeilen = $zeilen->values();
+        $statistikFilter = StatistikFilter::aus($request, []);
+        $paket = StatistikAntwort::paket($statistikFilter, $this->statistik->punktstreifen($zeilen
+            ->filter(fn ($r) => $r->punktwert !== null)
+            ->map(fn ($r) => [
+                'id' => (int) $r->lernender->lernender_id,
+                'name' => $r->vorname.' '.$r->nachname,
+                'gesamt' => (float) $r->punktwert,
+                'status' => $r->stand->status,
+            ])->sortBy('gesamt')->values()->all()));
+        $paket['filter'] = array_filter($filter, fn ($wert) => $wert !== null && $wert !== '' && $wert !== false);
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
+        return StatistikAntwort::view('verwaltung.lernende.index', [
+            'statistik' => $paket,
+            'zeilen' => $zeilen,
             // Leerzustand nur, wenn es gar keine sichtbaren Lernenden gibt – auch keine inaktiven
             'gesamt' => Lernender::sichtbarFuer($user)->count(),
             'filter' => $filter,
@@ -171,16 +199,26 @@ class LernendeController extends VerwaltungController
             ->with('startpasswort', $passwort);
     }
 
-    public function show(Request $request, int $lernender_id): View
+    /** Cockpit; JSON liefert den Verlauf (S1) dieser Person, nur wenn sie für den Betrachter sichtbar ist. */
+    public function show(Request $request, int $lernender_id): Response|JsonResponse
     {
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
+
+        $geladen = $this->statistik->lernender($lernender_id);
+        $filter = StatistikFilter::aus($request, $this->statistik->regelnLernender($geladen['auswertung']), StatistikDaten::STANDARD_LERNENDER);
+        $paket = StatistikAntwort::paket($filter, $this->statistik->verlauf($filter, $geladen['leistungen'], $geladen['auswertung'], $lernender));
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
         $lernender->load([
             'lehrberuf',
             'tracks' => fn ($q) => $q->with(['startSemester', 'endSemester'])->orderByDesc('start_datum'),
             'betreuungen' => fn ($q) => $q->with('berufsbildner.benutzer')->orderByDesc('gueltig_von'),
         ]);
 
-        return view('verwaltung.lernende.show', [
+        return StatistikAntwort::view('verwaltung.lernende.show', [
+            'statistik' => $paket,
             'lernender' => $lernender,
             ...$this->uebersicht->lernendenDetail($lernender, $this->bereich($request), $request->user()),
             'semesterListe' => DB::table('semester')->orderBy('sortierung')->get(),
@@ -247,7 +285,7 @@ class LernendeController extends VerwaltungController
      *
      * @param  Collection<int, Lernender>  $lernende
      */
-    private function mitStatistik(Collection $lernende, int $viewerId): Collection
+    private function mitStatistik(Collection $lernende, int $viewerId, ?int $kategorieId = null): Collection
     {
         $ids = $lernende->modelKeys();
 
@@ -275,7 +313,7 @@ class LernendeController extends VerwaltungController
 
         $heute = now()->toDateString();
 
-        return $lernende->map(function (Lernender $l) use ($noten, $ungelesen, $heute, $staende) {
+        return $lernende->map(function (Lernender $l) use ($noten, $ungelesen, $heute, $staende, $kategorieId) {
             $n = $noten->get($l->lernender_id);
             $betreuer = $l->betreuungen->first()?->berufsbildner?->benutzer;
 
@@ -293,6 +331,10 @@ class LernendeController extends VerwaltungController
                 'anzahl' => (int) ($n->anzahl ?? 0),
                 'lastNote' => $n->letzte ?? null,
                 'avg' => $staende[$l->lernender_id]->auswertung->gesamtNote,
+                // Statistik (Punktstreifen, Mini-Hantel, Sparkline): alles aus dem schon berechneten Lernstand
+                'punktwert' => $kategorieId !== null ? ($staende[$l->lernender_id]->auswertung->kategorien[$kategorieId]['note'] ?? null) : $staende[$l->lernender_id]->auswertung->gesamtNote,
+                'delta' => $staende[$l->lernender_id]->delta(),
+                'semesterschnitte' => array_values(array_filter($staende[$l->lernender_id]->verlauf, fn ($note) => $note !== null)),
                 'stand' => $staende[$l->lernender_id],
                 'ungelesen' => (int) ($ungelesen[$l->lernender_id] ?? 0),
             ];

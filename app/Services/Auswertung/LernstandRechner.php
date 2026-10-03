@@ -96,7 +96,8 @@ final class LernstandRechner
 
         $frist = Betrieb::fristInaktivTage();
         $tage = $letzte ? (int) $letzte->copy()->startOfDay()->diffInDays(now()->startOfDay()) : null;
-        $delta = $semesterNote !== null && $vorsemesterNote !== null ? $semesterNote - $vorsemesterNote : null;
+        // gerundet wie überall (Statistik::delta): 4.0 − 4.3 ist sonst −0.2999… und fällt unter die Schwelle −0.3
+        $delta = Statistik::delta($semesterNote, $vorsemesterNote);
 
         $rot = [];
         $gelb = [];

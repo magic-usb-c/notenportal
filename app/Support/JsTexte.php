@@ -18,6 +18,7 @@ final class JsTexte
         'Danke, deine Meldung ist eingegangen.',
         'Die Anhänge sind zusammen zu gross. Bitte weniger oder kleinere Dateien wählen.',
         'Ergebnis',
+        'Filter entfernen: :name',
         'Gespeichert.',
         'Ergebnis: :wert',
         'Gerade viele Meldungen unterwegs – bitte kurz warten.',

@@ -90,6 +90,12 @@ final class Statistik
      *
      * @return list<array{schluessel: string, fach: string, kategorie_id: int, vorher: ?float, jetzt: ?float, delta: ?float}>
      */
+    /** Veränderung zweier Noten, eine Rundungsregel für Hanteln, Lernstand und Personenvergleich. */
+    public static function delta(?float $jetzt, ?float $vorher): ?float
+    {
+        return $jetzt !== null && $vorher !== null ? round($jetzt - $vorher, 2) : null;
+    }
+
     public function hanteln(Auswertung $a, int $semesterId, ?int $vorsemesterId, ?int $kategorieId = null): array
     {
         $jetzt = $this->nachSchluessel($a->semester($semesterId, $kategorieId)['elemente']);
@@ -105,7 +111,7 @@ final class Statistik
                 'kategorie_id' => $element->kategorieId,
                 'vorher' => $v,
                 'jetzt' => $j,
-                'delta' => $j !== null && $v !== null ? round($j - $v, 2) : null,
+                'delta' => self::delta($j, $v),
             ];
         }
 

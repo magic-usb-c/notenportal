@@ -202,4 +202,15 @@ class StatistikTest extends TestCase
         $this->assertSame([$behalten->note_id], array_column($r['punkte'], 'id'));
         $this->assertSame(5.0, $r['reihe'][0]['wert']);
     }
+
+    #[Test]
+    public function delta_rundet_auf_hundertstel_bevor_jemand_vergleicht(): void
+    {
+        // 4.0 − 4.3 ist in Fliesskomma −0.2999…; ungerundet fiele der Wert unter jede Schwelle «≤ −0.3»
+        $this->assertSame(-0.3, Statistik::delta(4.0, 4.3));
+        $this->assertTrue(Statistik::delta(4.0, 4.3) <= -0.3);
+        $this->assertSame(0.25, Statistik::delta(4.35, 4.1));
+        $this->assertNull(Statistik::delta(null, 4.0));
+        $this->assertNull(Statistik::delta(4.0, null));
+    }
 }

@@ -4,11 +4,16 @@
     'hoehe' => 28,
     'zahl' => true,   // letzter Wert als Zahl daneben
     'label' => __('Verlauf'),
+    'mini' => false,  // Zeilenformat für Tabellen: 56 × 16, ohne Zahl; die Linie zeichnet sich beim Einfügen ein
 ])
 {{-- Sparkline (Tufte): graues Band von genügend bis 6, Linie in der Diagrammfarbe, letzter Punkt wie die Balken
-     (knapp/ungenügend in Notenfarbe) --}}
+     (knapp/ungenügend in Notenfarbe). Die Linie zeichnet sich beim Einfügen ein (np-einzeichnen, bei reduzierter Bewegung
+     steht sie sofort). --}}
 @php
     $skala = \App\Support\NotenSkala::class;
+    if ($mini) {
+        [$breite, $hoehe, $zahl] = [56, 16, false];
+    }
     $werte = array_values($werte);
     $n = count($werte);
     $grenze = $skala::genuegend();
@@ -32,11 +37,11 @@
          aria-label="{{ $label }}{{ $text !== '' ? ': '.$text : ': '.__('keine Noten') }}">
         <rect x="0" y="{{ $y(6) }}" width="{{ $breite }}" height="{{ round($y($grenze) - $y(6), 2) }}" rx="3" class="fill-fill"/>
         @if(count($punkte) > 1)
-            <polyline fill="none" class="stroke-chart-1" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
+            <polyline fill="none" class="np-einzeichnen stroke-chart-1" pathLength="1" stroke-width="{{ $mini ? 1.25 : 1.5 }}" stroke-linejoin="round" stroke-linecap="round"
                       points="{{ collect($punkte)->map(fn ($p) => $p[0].','.$p[1])->implode(' ') }}"/>
         @endif
         @if($letzter)
-            <circle cx="{{ $letzter[0] }}" cy="{{ $letzter[1] }}" r="2.75" class="{{ str_replace('bg-', 'fill-', $skala::balken($letzter[2])) }}"/>
+            <circle cx="{{ $letzter[0] }}" cy="{{ $letzter[1] }}" r="{{ $mini ? 2 : 2.75 }}" class="{{ str_replace('bg-', 'fill-', $skala::balken($letzter[2])) }}"/>
         @endif
     </svg>
     @if($zahl && $letzter)

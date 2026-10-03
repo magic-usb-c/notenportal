@@ -9,6 +9,7 @@ import { registrierePraeferenzen } from './praeferenzen';
 import { registrierePwa } from './pwa';
 import { registriereRechner } from './rechner';
 import { registriereSitzung } from './sitzung';
+import { registriereStatistik } from './statistik';
 import { registriereSuche } from './suche';
 import { registriereTastenkuerzel } from './tastenkuerzel';
 
@@ -21,6 +22,7 @@ window.npMorph = morphStarten;
 
 registriereBestaetigung();
 registriereCharts(Alpine);
+registriereStatistik(Alpine);
 registriereFeedback(Alpine);
 registriereAuswahlliste(Alpine);
 registriereRadiogroup(Alpine);
