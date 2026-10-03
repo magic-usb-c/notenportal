@@ -51,33 +51,25 @@ $maxWidth = [
     x-on:keydown.escape.window="show = false"
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
     x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
-    x-show="show"
+    x-cloak
+    :inert="! show"
+    :class="show ? 'visible' : 'invisible pointer-events-none transition-[visibility] duration-200 ruhig:duration-150'"
     class="fixed inset-0 z-[70] overflow-y-auto px-4 pb-6 pt-[12vh]"
-    style="display: {{ $show ? 'block' : 'none' }};"
 >
-    {{-- Scrim über der ganzen Seite, auch über der Navigation (z-50) --}}
+    {{-- Scrim über der ganzen Seite, auch über der Navigation (z-50). Bewegung (B3): CSS-Transition über Klassen,
+         mitten im Lauf umkehrbar; öffnen 300 ms ease-out, schliessen 200 ms ease-in; unter ruhiger Bewegung nur Überblendung. --}}
     <div
-        x-show="show"
         class="fixed inset-0 glass-scrim"
+        :class="show ? 'opacity-100 transition-opacity duration-300 ease-out ruhig:duration-150' : 'opacity-0 transition-opacity duration-200 ease-in ruhig:duration-150'"
         x-on:click="show = false"
         aria-hidden="true"
-        x-transition:enter="transition-opacity ease-out duration-300"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition-opacity ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
     ></div>
 
     <div
-        x-show="show"
         class="relative mb-6 overflow-hidden rounded-2xl border border-border-strong/30 bg-card text-text shadow-e3 mx-auto w-full {{ $maxWidth }}"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-2 motion-reduce:translate-y-0"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
+        :class="show
+            ? 'translate-y-0 opacity-100 transition-[translate,opacity] duration-300 ease-out ruhig:duration-150'
+            : 'translate-y-2 ruhig:translate-y-0 opacity-0 transition-[translate,opacity] duration-200 ease-in ruhig:duration-150'"
     >
         {{ $slot }}
     </div>

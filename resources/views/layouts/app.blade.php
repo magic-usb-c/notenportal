@@ -25,6 +25,41 @@
                 window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: @js(__('Änderung konnte nicht gespeichert werden.')), art: 'fehler' } }));
             }
 
+            {{-- Menü wächst aus seinem Auslöser (GUI-R6 B1, G9). Setzt am Panel Startmass (--np-von-sx/-sy) und Ursprung
+                 (--np-ursprung, Mitte des Auslösers im Koordinatensystem des Panels) und startet die Öffnungsbewegung
+                 (@starting-style von glass-overlay) neu, damit sie mit diesen Werten läuft. Aufrufen, wenn das Panel
+                 schon angezeigt wird (nach $nextTick). Gleiche Rechnung wie morphUrsprung() in np.js; sobald diese
+                 Funktion an window.np hängt, nimmt npMorph sie. Ohne Mass (Panel noch versteckt) passiert nichts. --}}
+            window.npMorph = function (ausloeser, panel) {
+                try {
+                    if (!ausloeser || !panel) return false;
+                    if (window.np && typeof window.np.morphUrsprung === 'function') {
+                        if (!window.np.morphUrsprung(ausloeser, panel)) return false;
+                    } else {
+                        const a = ausloeser.getBoundingClientRect();
+                        const p = panel.getBoundingClientRect();
+                        const breite = panel.offsetWidth;
+                        const hoehe = panel.offsetHeight;
+                        if (!breite || !hoehe || !a.width || !a.height) return false;
+                        const skala = p.width / breite || 1;
+                        const von = function (wert) { return Math.min(1, Math.max(0.01, wert)); };
+                        panel.style.setProperty('--np-von-sx', von(a.width / breite).toFixed(3));
+                        panel.style.setProperty('--np-von-sy', von(a.height / hoehe).toFixed(3));
+                        panel.style.setProperty('--np-ursprung', ((a.left + a.width / 2 - p.left) / skala).toFixed(1) + 'px ' + ((a.top + a.height / 2 - p.top) / skala).toFixed(1) + 'px');
+                    }
+                    const ruhig = window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.bewegung === 'reduziert';
+                    if (!ruhig) {
+                        const anzeige = panel.style.display;
+                        panel.style.display = 'none';
+                        void panel.offsetWidth;
+                        panel.style.display = anzeige;
+                    }
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            };
+
             window.npToggleTheme = function () {
                 const vorher = window.npDarstellung;
                 const dunkel = !document.documentElement.classList.contains('dark');
@@ -176,20 +211,23 @@
             </main>
         </div>
 
-        {{-- Globale Flash-Messages (Toast unten rechts) --}}
+        {{-- Mitteilungen (Toast) oben rechts unter der Symbolleiste, übereinander: höchstens drei gleichzeitig (Erfolg,
+             Fehler aus der Sitzung, Meldung aus JS). Flash aus der Sitzung steht serverseitig im Markup. --}}
         @php
             $flashSuccess = session('success') ?? session('status');
             $flashError   = session('error');
         @endphp
-        @if($flashSuccess)
-            <x-toast art="erfolg" :meldung="$flashSuccess" />
-        @endif
-        @if($flashError)
-            <x-toast art="fehler" :meldung="$flashError" />
-        @endif
+        <div class="pointer-events-none fixed right-4 top-[calc(var(--np-symbolleiste-hoehe)+0.5rem)] z-[60] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2 print:hidden">
+            @if($flashSuccess)
+                <x-toast art="erfolg" :meldung="$flashSuccess" />
+            @endif
+            @if($flashError)
+                <x-toast art="fehler" :meldung="$flashError" />
+            @endif
 
-        {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...', art: 'fehler' } })), art optional --}}
-        <x-toast art="erfolg" />
+            {{-- JS-ausgelöster Toast: window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: '...', art: 'fehler' } })), art optional --}}
+            <x-toast art="erfolg" />
+        </div>
 
         <x-bestaetigung />
 

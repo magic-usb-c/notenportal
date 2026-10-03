@@ -21,6 +21,10 @@
     $titelKlein = trim($__env->yieldPushContent('np-titel'));
     $zurueck = trim($__env->yieldPushContent('np-zurueck'));
     $aktionen = trim($__env->yieldPushContent('np-aktionen'));
+
+    // Auswahlmarke (View Transition, B5): genau ein leerer Marker je Name und Seite, sonst bricht die Transition ab
+    $leisteMarke = false;
+    $tabMarke = false;
 @endphp
 
 {{-- Seitenleiste: schwebt als Glasfläche über dem Fensterrand. Ab 1024 px mit Navigation «Seite» fest, sonst
@@ -41,7 +45,11 @@
         <ul role="list" class="flex flex-col gap-px">
             @foreach($bereiche as $e)
                 <li>
-                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif class="np-leistenzeile">
+                    <a href="{{ $e['url'] }}" @if($e['aktiv']) aria-current="page" @endif class="np-leistenzeile relative isolate">
+                        @if($e['aktiv'] && ! $leisteMarke)
+                            @php($leisteMarke = true)
+                            <span class="np-leiste-auswahl absolute inset-0 -z-10 rounded-[inherit] [view-transition-name:np-leiste-auswahl]" aria-hidden="true"></span>
+                        @endif
                         <x-symbol :name="$e['symbol']" />
                         <span class="min-w-0 flex-1 truncate">{{ $e['label'] }}</span>
                         @if(($e['badge'] ?? 0) > 0)
@@ -61,7 +69,11 @@
                 <ul role="list" id="np-abschnitt-{{ $loop->index }}" x-show="auf" class="mt-0.5 flex flex-col gap-px">
                     @foreach($e['kinder'] as $k)
                         <li>
-                            <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif class="np-leistenzeile">
+                            <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif class="np-leistenzeile relative isolate">
+                                @if($k['aktiv'] && ! $leisteMarke)
+                                    @php($leisteMarke = true)
+                                    <span class="np-leiste-auswahl absolute inset-0 -z-10 rounded-[inherit] [view-transition-name:np-leiste-auswahl]" aria-hidden="true"></span>
+                                @endif
                                 <x-symbol :name="$k['symbol']" />
                                 <span class="min-w-0 flex-1 truncate">{{ $k['label'] }}</span>
                             </a>
@@ -93,20 +105,26 @@
         {{-- Tableiste (Navigation «oben», ab 1024 px). Priority+ (npLeistenUeberlauf): was nicht passt, wandert von
              hinten in «Mehr» – bei jeder Schriftgrösse aus dem Profil, in jeder Sprache und neben jedem Firmennamen. --}}
         <nav class="hidden min-w-0 shrink-0 oben:lg:flex" aria-label="{{ __('Hauptnavigation') }}">
+            {{-- Der Glanz sitzt in einer Hülle um die Kapsel, nicht in der Kapsel: npLeistenUeberlauf misst deren Kinder --}}
+            <div class="relative isolate flex rounded-(--np-gruppe-radius,1.125rem)" x-np-licht>
             <div class="np-glas-gruppe gap-0.5" x-data="npLeistenUeberlauf">
                 @foreach($eintraege as $i => $e)
                     @if(isset($e['kinder']))
                         <div data-ueberlauf="{{ $i }}" @if($e['aktiv']) data-aktiv @endif class="relative"
-                             x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
-                            <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab" @if($e['aktiv']) data-aktiv @endif>
+                             x-data="npLeistenMenue" x-init="$watch('auf', (v) => v && $nextTick(() => window.npMorph?.($refs.knopf, $refs.panel)))"
+                             @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                            <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab relative isolate" @if($e['aktiv']) data-aktiv @endif>
+                                @if($e['aktiv'] && ! $tabMarke)
+                                    @php($tabMarke = true)
+                                    <span class="np-tab-auswahl absolute inset-0 -z-10 rounded-[inherit] [view-transition-name:np-tab-auswahl]" aria-hidden="true"></span>
+                                @endif
                                 {{ $e['label'] }}
                                 <x-symbol name="chevron-down" strich="2" />
                             </button>
                             <div x-show="auf" x-cloak
-                                 x-transition:enter="transition-opacity ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                                 x-transition:leave="transition-opacity ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                                 x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                                  class="absolute left-0 top-full z-50 w-60 pt-2">
-                                <ul role="list" class="rounded-xl p-1.5 glass-overlay">
+                                <ul role="list" x-ref="panel" class="rounded-xl p-1.5 glass-overlay">
                                     @foreach($e['kinder'] as $k)
                                         <li>
                                             <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif class="np-menue-eintrag aria-[current=page]:font-semibold">
@@ -118,7 +136,11 @@
                             </div>
                         </div>
                     @else
-                        <a href="{{ $e['url'] }}" data-ueberlauf="{{ $i }}" data-badge="{{ (int) ($e['badge'] ?? 0) }}" @if($e['aktiv']) data-aktiv aria-current="page" @endif class="np-tab">
+                        <a href="{{ $e['url'] }}" data-ueberlauf="{{ $i }}" data-badge="{{ (int) ($e['badge'] ?? 0) }}" @if($e['aktiv']) data-aktiv aria-current="page" @endif class="np-tab relative isolate">
+                            @if($e['aktiv'] && ! $tabMarke)
+                                @php($tabMarke = true)
+                                <span class="np-tab-auswahl absolute inset-0 -z-10 rounded-[inherit] [view-transition-name:np-tab-auswahl]" aria-hidden="true"></span>
+                            @endif
                             {{ $e['label'] }}
                             @if(($e['badge'] ?? 0) > 0)
                                 <span class="np-marke h-4.5 bg-accent px-1.5 text-accent-contrast tabular-nums">{{ $e['badge'] }}</span>
@@ -127,17 +149,17 @@
                     @endif
                 @endforeach
                 <div data-mehr-menue class="relative" hidden
-                     x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                     x-data="npLeistenMenue" x-init="$watch('auf', (v) => v && $nextTick(() => window.npMorph?.($refs.knopf, $refs.panel)))"
+                     @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
                     <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab">
                         {{ __('Mehr') }}
                         <span data-mehr-badge class="np-marke h-4.5 bg-accent px-1.5 text-accent-contrast tabular-nums" hidden>0</span>
                         <x-symbol name="chevron-down" strich="2" />
                     </button>
                     <div x-show="auf" x-cloak
-                         x-transition:enter="transition-opacity ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                         x-transition:leave="transition-opacity ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                         x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                          class="absolute right-0 top-full z-50 max-h-[calc(100dvh-5rem)] w-60 overflow-y-auto pt-2">
-                        <div class="rounded-xl p-1.5 glass-overlay">
+                        <div x-ref="panel" class="rounded-xl p-1.5 glass-overlay">
                             @foreach($eintraege as $i => $e)
                                 @if(isset($e['kinder']))
                                     <div data-mehr="{{ $i }}" role="group" aria-label="{{ $e['label'] }}" hidden>
@@ -160,6 +182,8 @@
                     </div>
                 </div>
             </div>
+            <span class="np-glanz" aria-hidden="true"></span>
+            </div>
         </nav>
 
         {{-- Alle Elemente der Symbolleiste in einer Höhe wie Suchfeld und Konto (36 px) --}}
@@ -173,8 +197,9 @@
 
             {{-- Suche (HIG «Search fields»: globale Suche hinten in der Symbolleiste) mit der Befehlspalette --}}
             <div x-data="npSuche({{ \Illuminate\Support\Js::from(['eintraege' => $palette, 'url' => $suchUrl]) }})" class="flex">
-                <button type="button" @click="oeffnen()" class="np-glas-gruppe gap-2 pl-3 pr-2 text-sm text-muted transition-colors duration-100 hover:text-text xl:w-56"
+                <button type="button" @click="oeffnen()" x-np-licht class="np-glas-gruppe gap-2 pl-3 pr-2 text-sm text-muted transition-colors duration-100 hover:text-text xl:w-56"
                         aria-label="{{ __('Suchen') }}" aria-keyshortcuts="Control+K Meta+K">
+                    <span class="np-glanz" aria-hidden="true"></span>
                     <x-symbol name="magnifying-glass" class="size-4" strich="2" />
                     <span class="max-xl:sr-only">{{ __('Suchen') }}</span>
                     <kbd class="np-taste ml-auto max-xl:hidden" x-data x-text="/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘ K' : 'Ctrl K'">Ctrl K</kbd>
@@ -183,9 +208,15 @@
                 <template x-teleport="body">
                     <div x-show="offen" x-cloak class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" @keydown.escape.window="schliessen()"
                          @keydown.tab.window="if (offen) { $event.preventDefault(); $refs.eingabe?.focus(); }">
-                        <div class="absolute inset-0 glass-scrim" @click="schliessen()" x-show="offen" x-transition.opacity.duration.200ms aria-hidden="true"></div>
-                        <div class="relative w-full max-w-2xl overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
-                             x-show="offen" x-transition.opacity.duration.150ms>
+                        {{-- Scrim: nur Deckkraft, ohne Weichzeichner; html[data-palette] folgt erst nach dessen Einblenden (suche.js) --}}
+                        <div x-ref="scrim" class="absolute inset-0 glass-scrim" @click="schliessen()" x-show="offen"
+                             x-transition:enter="transition-opacity ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                             aria-hidden="true"></div>
+                        {{-- Panel: Öffnen über @starting-style von glass-overlay, nur das Ausblenden läuft über Alpine --}}
+                        <div class="relative w-full max-w-[40rem] overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
+                             x-show="offen"
+                             x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                             <div class="flex items-center gap-3 px-4">
                                 <x-symbol name="magnifying-glass" class="size-5 text-muted" strich="2" />
                                 <input x-ref="eingabe" x-model="q" @keydown="taste($event)" type="text" autocomplete="off"
@@ -195,7 +226,7 @@
                                        class="h-14 flex-1 border-0 bg-transparent px-0 text-lg text-text placeholder:text-muted focus:ring-0" aria-label="{{ __('Suchbegriff') }}">
                                 <kbd class="np-taste">Esc</kbd>
                             </div>
-                            <div id="np-palette-treffer" role="listbox" aria-label="{{ __('Suchen') }}" class="max-h-[52vh] overflow-y-auto border-t border-border p-1.5">
+                            <div id="np-palette-treffer" role="listbox" aria-label="{{ __('Suchen') }}" class="max-h-[28rem] overflow-y-auto border-t border-border p-1.5">
                                 <template x-for="(t, i) in liste" :key="t.url + t.label">
                                     <a :href="t.url" tabindex="-1" role="option" :id="'np-palette-treffer-' + i" :aria-selected="i === index ? 'true' : 'false'" @mouseenter="index = i"
                                        @click="t.url.startsWith('#') ? ($event.preventDefault(), gehe(t)) : null"

@@ -311,11 +311,29 @@
    Blitz, keine springende Leiste. Seitenleiste und Symbolleiste sind auf beiden
    Seiten deckungsgleich und bleiben dadurch stehen; eigene Namen bekommen sie
    nicht, denn ein view-transition-name macht sein Element zur Backdrop Root und
-   nähme dem Glas darin den Hintergrund. Browser ohne Unterstützung laden wie bisher.
+   nähme dem Glas darin den Hintergrund. Nur die leeren Auswahlmarker
+   (np-leiste-auswahl, np-tab-auswahl, R6-05) tragen einen Namen und wandern beim
+   Seitenwechsel zur neuen Zeile. Browser ohne Unterstützung laden wie bisher.
    ========================================================================== */
 
 @view-transition {
   navigation: auto;
+}
+
+::view-transition-group(np-leiste-auswahl),
+::view-transition-group(np-tab-auswahl) {
+  animation-duration: var(--dauer-3);
+  animation-timing-function: var(--ease-feder);
+}
+html[data-bewegung='reduziert']::view-transition-group(np-leiste-auswahl),
+html[data-bewegung='reduziert']::view-transition-group(np-tab-auswahl) {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(np-leiste-auswahl),
+  ::view-transition-group(np-tab-auswahl) {
+    animation: none;
+  }
 }
 
 ::view-transition-old(root),
@@ -798,13 +816,25 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
   &:active {
     background-color: rgb(var(--text) / 0.1);
   }
-  &[aria-current='page'] {
+  &[aria-current='page']:not(:has(> .np-leiste-auswahl)) {
     background-color: rgb(var(--accent) / 0.16);
     box-shadow: inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke));
   }
   &:focus-visible {
     outline-offset: -2px;
   }
+}
+
+@utility np-leiste-auswahl {
+  /* Auswahlmarker der Seitenleiste (leerer Span in der aktiven Zeile): trägt deren Fläche und wandert
+     per view-transition-name beim Seitenwechsel zur neuen Zeile (R6-05). */
+  background-color: rgb(var(--accent) / 0.16);
+  box-shadow: inset 0 0.5px 0 rgb(var(--glas-licht) / var(--glas-licht-staerke));
+}
+
+@utility np-tab-auswahl {
+  /* Auswahlmarker der Tableiste, wie np-leiste-auswahl */
+  background-color: rgb(var(--text) / 0.08);
 }
 
 @utility np-leistenabschnitt {
@@ -868,6 +898,8 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
   &[aria-current='page'],
   &[data-aktiv] {
     color: rgb(var(--accent-text));
+  }
+  &:is([aria-current='page'], [data-aktiv]):not(:has(> .np-tab-auswahl)) {
     background-color: rgb(var(--text) / 0.08);
   }
   &:focus-visible {
@@ -1704,6 +1736,7 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
   [data-ecken='eckig'] :is(.np-segment, .np-segment > *, .np-glas-gruppe, .np-marke) {
     border-radius: 0.25rem;
   }
+  [data-ecken='eckig'],
   [data-ecken='eckig'] .np-glas-gruppe {
     --np-gruppe-radius: 0.25rem;
   }

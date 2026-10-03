@@ -3,8 +3,10 @@
     data-bestaetigen="Frage?" öffnet ihn statt window.confirm (resources/js/bestaetigung.js):
     data-bestaetigen-text ergänzt die Folge in einem Satz, data-bestaetigen-knopf benennt die Aktion mit einem Verb,
     data-bestaetigen-art="normal" für Aktionen ohne Datenverlust (sonst rot, Abbrechen hat den Fokus).
+    Öffnen: CSS von np-alert (@starting-style); Schliessen: data-schliesst setzt die Klassen am Dialog (bestaetigung.js),
+    danach schliesst das Skript den Dialog. Deckend (bg-card), keine Feder.
 --}}
-<dialog id="np-bestaetigung" class="np-alert" role="alertdialog" aria-modal="true"
+<dialog id="np-bestaetigung" class="np-alert bg-card data-schliesst:scale-95 data-schliesst:opacity-0 data-schliesst:duration-200 data-schliesst:ease-in ruhig:data-schliesst:scale-100" role="alertdialog" aria-modal="true"
         aria-labelledby="np-bestaetigung-titel" aria-describedby="np-bestaetigung-text"
         data-standard-knopf="{{ __('Bestätigen') }}">
     <div class="px-5 pt-5 pb-4 text-center">

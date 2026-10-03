@@ -12,16 +12,17 @@
          class="contents print:hidden">
         @if($feedbackKnopfAktiv && ! request()->routeIs('feedback.index'))
             <button type="button" data-feedback-knopf @click="open ? schliessen() : $dispatch('open-modal', 'feedback')" :aria-expanded="open" aria-haspopup="dialog"
-                    aria-label="{{ __('Feedback / Fehler melden') }}" title="{{ __('Feedback / Fehler melden') }}"
+                    x-np-licht aria-label="{{ __('Feedback / Fehler melden') }}" title="{{ __('Feedback / Fehler melden') }}"
                     class="np-glas-gruppe gap-2 px-2.5 text-sm text-muted transition-colors duration-100 hover:text-text aria-expanded:text-text xl:pr-3.5">
-                <x-symbol name="chat-bubble-left-ellipsis" class="size-4.5 text-accent-text" />
+                <span class="np-glanz" aria-hidden="true"></span>
+                <x-symbol name="chat-bubble-left-ellipsis" class="size-4.5" />
                 <span class="max-xl:sr-only">{{ __('Feedback') }}</span>
             </button>
         @endif
 
             <div x-show="open" x-cloak @click.outside="$event.target.closest('[data-feedback-knopf]') || schliessen()" @keydown.escape.window="schliessen()"
                  x-transition:enter="transition ease-out duration-150"
-                 x-transition:enter-start="opacity-0 -translate-y-1 motion-reduce:translate-y-0"
+                 x-transition:enter-start="opacity-0 -translate-y-1 ruhig:translate-y-0"
                  x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-100"
                  x-transition:leave-start="opacity-100"

@@ -342,30 +342,6 @@ export function registriereRadiogroup(Alpine) {
     });
 }
 
-// Toast (<x-toast>): Flash-Meldung vom Server oder per Event np-toast { message, art: 'fehler' } aus JS.
-// Fehler bleiben länger stehen; unter dem Zeiger läuft die Zeit nicht ab.
-export function registriereToast(Alpine) {
-    Alpine.data('npToast', (cfg) => ({
-        show: cfg.show,
-        message: cfg.message,
-        fehler: cfg.fehler,
-        timer: null,
-        init() {
-            if (this.show) this.start();
-        },
-        start() {
-            clearTimeout(this.timer);
-            this.timer = setTimeout(() => { this.show = false; }, this.fehler ? Math.max(6000, cfg.dauer) : cfg.dauer);
-        },
-        zeigen(detail) {
-            this.message = detail.message;
-            this.fehler = detail.art === 'fehler';
-            this.show = true;
-            this.start();
-        },
-    }));
-}
-
 export function registriereFormhilfen(Alpine) {
     // Bereiche einer Einstellungsseite (macOS-Einstellungsfenster): ein Bereich sichtbar, gewählt per Segment.
     // Der Bereich steht im Fragment – Formulare posten an «…#bereich», und der Browser übernimmt das Fragment
