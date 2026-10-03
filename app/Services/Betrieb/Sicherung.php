@@ -63,7 +63,7 @@ final class Sicherung
             }
             $zip->addFile($dump, 'datenbank.sql');
             // Alle Ablagen unter storage/app/private mit Benutzerdaten – Liste deckt sich mit anleitung() und docs/betrieb.md.
-            // modulkatalog/ fehlt bewusst: nur Zwischenablage des Katalogimports, ModulkatalogController::aufraeumen() löscht sie nach 24 h.
+            // modulkatalog/ fehlt bewusst: nur Zwischenablage des Katalogimports; ModulkatalogController::aufraeumen() löscht beim nächsten Katalog-Upload, was älter als 24 h ist.
             foreach (['lernende', 'betrieb', 'feedback', 'module'] as $ordner) {
                 foreach (Storage::disk(self::DISK)->allFiles($ordner) as $datei) {
                     $zip->addFile(Storage::disk(self::DISK)->path($datei), 'dateien/'.$datei);

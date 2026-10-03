@@ -238,6 +238,19 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   ohne Schema und IPv6-Einträge danach geschlossen (Test). Bewusst offen mit Grund
                   (Backlog-Nachträge): Z.201 Tastenkürzel-Einstieg unter 1024 px, Z.367 eigene
                   Darstellungs-Unterseite, Z.556 LBV-Elemente nur aus dem Katalogimport.
+[O] 03.10. 04:45  R5 Teil 2, Audit (142b02e, Wortlaut-Nachtrag in diesem Commit). Workflow notenportal-audit
+                  über alle drei Rollen: 33 Befunde, 20 nach gegnerischer Verifikation bestätigt und umgesetzt,
+                  13 verworfen. Umgesetzt u. a.: Notenimport prüft das Datum tagesgenau am Lehrbeginn/-ende und
+                  springt ins importierte Semester; Sicherung enthält Modulunterlagen (module/); Befehlspalette
+                  als Combobox mit aria-activedescendant und Fokusrückgabe; Menüs schliessen beim Heraustabben;
+                  Sitzungs- und Feedback-Dialog geben den Fokus zurück; Abschluss springt zum Fehlerfeld.
+                  Belege: Suite 1321 bestanden / 1 übersprungen (umgebungsbedingt, root), Fokusprobe 15/15,
+                  12 Screenshots dunkel und Hell-Stichprobe 6 Seiten/3 Rollen ohne Bruch, Reviewer 0 hoch,
+                  Prüfer (fable low) hält mit eigenen Mutanten und Browserproben (14/14); seine zwei Lücken
+                  geschlossen: SicherungTest auf HEAD grün (3 Tests), «nach 24 h gelöscht» präzisiert (das
+                  Aufräumen läuft beim nächsten Katalog-Upload). R5 damit abgeschlossen. Nächster Schritt:
+                  R6 GUI-Rebuild – Instrumente und Baseline stehen (tools/pruefung/leistung.mjs, kontrast.mjs,
+                  docs/auftrag/messungen/r6-leistung-baseline.md), Verstehen-Workflow läuft.
 ```
 
 ---

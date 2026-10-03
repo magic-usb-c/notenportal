@@ -281,6 +281,16 @@ Nicht raten — als offen markieren und David fragen:
 > abgeschlossen, Teil 2 Audit-Workflow offen. Die Arbeit läuft auf dem Branch
 > `claude/friendly-meitner-ju7e8a` mit Entwurfs-PR gegen `main` (Vorgabe der Cloud-Sitzung), `main`
 > hinkt bis zum Merge hinterher.
+>
+> **Stand 03.10.:** R5 abgeschlossen – Teil 2 Audit-Workflow über alle drei Rollen (33 Befunde, 20
+> gegnerisch bestätigt und umgesetzt, 13 verworfen; Prüfer hält, Übergabebrett 03.10. 04:45). R6
+> GUI-Rebuild begonnen (Auftrag David: Liquid Glass, Bewegung, filterbare Statistiken auf Apple-Niveau):
+> zuerst Instrumente und Baseline – `tools/pruefung/leistung.mjs` (Bildrate, LCP, Glasflächen, Palette,
+> `--ohne-glas`), `tools/pruefung/kontrast.mjs` (alle Theme-, Akzent- und Materialblöcke, `--minimum`),
+> `ThemeKontrastTest` prüft die Materialien, Messwerte in `docs/auftrag/messungen/r6-leistung-baseline.md`.
+> Kernzahl: Text auf Glas über beliebigem Inhalt braucht Deckung 0.72–0.91, mit Scrollkante reichen im
+> Dunkeln 0.00–0.37 – Transparenz wird über die Kante gekauft, nicht über die Deckung. Plan folgt in
+> `docs/auftrag/GUI-R6.md`.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 
