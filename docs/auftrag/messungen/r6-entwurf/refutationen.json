@@ -1,0 +1,178 @@
+{
+ "quellen": {
+  "widerlegt": [
+   {
+    "behauptung": "G21: «applying a background extension effect» (HIG sidebars#Best-practices) stützt np-grund statt Inhalt unter der Seitenleiste.",
+    "beleg": "HIG sidebars#Best-practices: «To reinforce the separation, you can extend content beneath the sidebar either by letting it horizontally scroll or by applying a background extension effect. A background extension effect mirrors adjacent content to give the impression of stretching it under the sidebar.» – adopting-liquid-glass: «A background extension effect mirrors the adjacent content to give the impression of stretching it under the sidebar, and applies a blur to maintain legibility of the sidebar or inspector.» Apple meint gespiegelten Inhalt plus Weichzeichner; np-grund ist ein statischer Token-Verlauf hinter allem, und Vorentscheidung 1 tut das Gegenteil des Satzzwecks («extend content beneath»). Teilstütze nur WWDC25/356: «Use it for hero images, tinted backgrounds, or any surface meant to feel expansive.»",
+    "folge_fuer_plan": "G21 als «angelehnt» kennzeichnen, nicht als Apple-Vorgabe; Zitat durch WWDC25/356 «tinted backgrounds» ergänzen und offen sagen, dass Apples Effekt Inhalt spiegelt und weichzeichnet, np-grund nicht. Kernbehauptung «Stütze für np-grund» entsprechend abschwächen."
+   },
+   {
+    "behauptung": "G17: «consider offering the data in other ways, such as in a list or table» (HIG charting-data) begründet «Tabelle immer» neben dem Diagramm.",
+    "beleg": "HIG charting-data, voller Satz: «Not every collection of data needs to be displayed in a chart. If you simply need to provide data – and you don’t need to convey information about it or help people analyze it – consider offering the data in other ways, such as in a list or table that people can scroll, search, and sort.» Gemeint ist eine Tabelle STATT eines Diagramms, nicht zusätzlich. Passende Quelle für die Zusammenfassung: HIG charts#Enhancing-the-accessibility-of-a-chart «If you don’t use Audio Graphs, you need to provide an overview of the chart’s structure and purpose.»",
+    "folge_fuer_plan": "«Tabelle immer» als Repo-Entscheidung (Vorentscheidung 8) ohne Apple-Zuschreibung führen; als Apple-Quelle für die Zusammenfassung den Audio-Graphs-Satz zitieren. Für die Filter die echte HIG-Grundlage ergänzen: charting-data «you might let people choose to view different levels of detail or subsets of data to match their interest»."
+   },
+   {
+    "behauptung": "G3/§9: Rückmeldung «durch Licht, nicht durch Grösse», Knöpfe skalieren nie – mit Apple begründet («illuminates from within»).",
+    "beleg": "WWDC25/219: «Liquid Glass responds to interaction by instantly flexing and energizing with light.» und «Reduced Motion decreases the intensity of some effects and disables any elastic properties for the material.» Apples Rückmeldung ist Licht UND Verformung; der Zitatsatz «illuminates from within» stimmt wörtlich, trägt aber das «nicht durch Grösse» nicht.",
+    "folge_fuer_plan": "«Knöpfe skalieren nie» als Repo-Regel (app.css:702-705) ausweisen, nicht als Apple-Grundsatz; G3 nur für den Licht-Teil auf WWDC25/219 stützen."
+   },
+   {
+    "behauptung": "G4: «Limit the use of Liquid Glass effects onscreen at the same time.» (SwiftUI applying-liquid-glass-to-custom-views) als Gestaltungsgrundsatz «sparsam».",
+    "beleg": "Der Satz steht unter «Optimize performance when using Liquid Glass effects»: «Creating too many Liquid Glass effect containers and applying too many effects to views outside of containers can degrade performance. Limit the use of Liquid Glass effects onscreen at the same time.» Die gestalterische Quelle ist HIG materials#Liquid-Glass: «Use Liquid Glass effects sparingly. … Limit these effects to the most important functional elements in your app.»",
+    "folge_fuer_plan": "G4 auf HIG materials#Liquid-Glass umstellen; das SwiftUI-Zitat nur als Leistungsbegründung für das Glas-Budget (§4.2) verwenden – dort passt es."
+   },
+   {
+    "behauptung": "G10: Abdunkelung «bei Palette, Schublade, Dialog» mit WWDC25/356 «pair Liquid Glass with a dimming layer to help center attention».",
+    "beleg": "WWDC25/356, Satz und Folgesatz: «When a task interrupts the main flow, pair Liquid Glass with a dimming layer to help center attention, making the sheet feel like a clear, purposeful space. On the other hand, when a task happens in parallel, Liquid Glass creates a natural separation to help keep things clear without breaking the flow.» Abdunkelung nur bei unterbrechenden Aufgaben.",
+    "folge_fuer_plan": "Für Palette und Dialog trägt das Zitat. Für die Schublade (Navigation) begründen, warum sie den Ablauf unterbricht, oder die Zitatstütze auf Palette/Dialog beschränken und den Schubladen-Scrim als Repo-Entscheidung führen."
+   },
+   {
+    "behauptung": "§9 Weichzeichner in der Scrollkante: «die Kante ist laut HIG kein Glas («aren’t decorative»)».",
+    "beleg": "HIG scroll-views#Scroll-edge-effects: «Scroll edge effects aren’t decorative. They don’t block or darken like overlays; they exist to ensure controls stay visually distinct.» Der Satz sagt nichts darüber, ob die Kante Glas ist. Was die Trennung belegt: WWDC25/219 «Scroll edge effects work in concert with Liquid Glass to maintain that crucial separation between the UI and content layers».",
+    "folge_fuer_plan": "Begründung umformulieren: Scrollkante ist eigener Effekt neben dem Glas (WWDC25/219 «work in concert with Liquid Glass»); «aren’t decorative» nur als Beleg für «Kante nur, wo Inhalt unter schwebenden Elementen läuft» verwenden. Verwerfungsgrund Kosten/Repo-Regel bleibt."
+   },
+   {
+    "behauptung": "§9 Scroll-getriebene Animationen verworfen wegen «peripheral motion» (HIG accessibility#Cognitive).",
+    "beleg": "HIG accessibility#Cognitive: «People who are prone to these effects can turn on the Reduce Motion accessibility setting. When this setting is active, ensure your app or game responds by reducing automatic and repetitive animations, including zooming, scaling, and peripheral motion.» Gilt nur bei aktivem Reduce Motion, kein allgemeines Verbot.",
+    "folge_fuer_plan": "Verwerfung auf G14 (HIG motion «Don’t add motion for the sake of adding motion», «generally avoid adding motion to UI interactions that occur frequently») stützen; peripheral motion nur als Pflicht für die Variante ruhig zitieren."
+   },
+   {
+    "behauptung": "B5: Auswahlmarke gleitet per View Transition, gestützt auf WWDC25/219 «dynamically morphs between the controls».",
+    "beleg": "WWDC25/219 vollständig: «As you go between states in an app, Liquid Glass dynamically morphs between the controls in each context. This maintains the concept of having a singular floating plane that the controls live on.» Gemeint ist der Wechsel der Bedienelemente zwischen App-Zuständen, nicht eine gleitende Auswahlmarke. Das Zitat selbst ist echt (im Textauszug als «thecontrols» zusammengeschrieben).",
+    "folge_fuer_plan": "B5/B6 als «angelehnt» kennzeichnen; Quelle bleibt zitierbar, aber nicht als direkte Vorgabe für Auswahlmarken."
+   },
+   {
+    "behauptung": "Quellenanker «charts#Enhancing-the-accessibility» (G19, Kernbehauptung).",
+    "beleg": "Die Anker der HIG-Seite charts (charts.json) lauten Anatomy, Axes, Best-practices, Color, Descriptive-content, Enhancing-the-accessibility-of-a-chart, Marks … – «Enhancing-the-accessibility» allein gibt es nicht.",
+    "folge_fuer_plan": "Anker auf https://developer.apple.com/design/human-interface-guidelines/charts#Enhancing-the-accessibility-of-a-chart korrigieren."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "Gesamtbefund: Jeder in §3, §4.1, §5, §9 und in den Kernbehauptungen zitierte Apple-Satz steht wörtlich in der genannten Quelle (nach Vereinheitlichung von Apostrophen und Gedankenstrichen); alle 43 Zitate stehen zudem in inventare.json. Alle HIG-Anker sind echt, ausser charts#Enhancing-the-accessibility (siehe widerlegt).",
+    "beleg": "Abgerufen am 03.10.2026 mit HTTP 200: /tutorials/data/design/human-interface-guidelines/{materials,color,scroll-views,toolbars,buttons,menus,popovers,sheets,sidebars,charts,charting-data,motion,accessibility,dark-mode}.json, /tutorials/data/documentation/technologyoverviews/adopting-liquid-glass.json, /tutorials/data/documentation/swiftui/applying-liquid-glass-to-custom-views.json, https://developer.apple.com/videos/play/wwdc2025/219/ und /356/. Anker-Abgleich über die «anchor»-Felder der JSON-Dateien (u. a. Liquid-Glass, Liquid-Glass-color, Scroll-edge-effects, Item-groupings, Actions, Icons, Axes, Color, Cognitive, Best-practices)."
+   },
+   {
+    "behauptung": "G1 «Don’t use Liquid Glass in the content layer.» – HIG materials#Liquid-Glass",
+    "beleg": "HIG materials#Liquid-Glass: «Don’t use Liquid Glass in the content layer. Liquid Glass works best when it provides a clear distinction between interactive elements and content … Instead, use standard materials for elements in the content layer, such as app backgrounds.» Ergänzend WWDC25/219: «it is best reserved for the navigation layer that floats above the content of your app. Consider this tableview: making it Liquid Glass would make it compete with other elements and muddy the hierarchy.»"
+   },
+   {
+    "behauptung": "G2 Bedienelemente im Inhalt heben sich nur während der Interaktion ins Glas – WWDC25/219",
+    "beleg": "WWDC25/219: «Elements can even lift up into Liquid Glass temporarily, such as when you interact with a component. This lets the resting state stay visually quiet, while it comes to life on touch.» Stärkere, im Plan nicht zitierte Quellen: HIG materials#Liquid-Glass «An exception to this is for controls in the content layer with a transient interactive element like sliders and toggles; in these cases, the element takes on a Liquid Glass appearance to emphasize its interactivity when a person activates it.» und adopting-liquid-glass «For controls like sliders and toggles, the knob transforms into Liquid Glass during interaction»."
+   },
+   {
+    "behauptung": "G3 «the material illuminates from within as a form of feedback» – WWDC25/219; «Always include a press state for a custom button.» – HIG buttons#Best-practices",
+    "beleg": "WWDC25/219: «When you interact with Liquid Glass, the material illuminates from within as a form of feedback.» HIG buttons#Best-practices: «Always include a press state for a custom button. Without a press state, a button can feel unresponsive»."
+   },
+   {
+    "behauptung": "G5 «always avoid glass on glass» – WWDC25/219, Elemente auf Glas nur Füllungen",
+    "beleg": "WWDC25/219: «Similarly, always avoid glass on glass … When placing elements on top of Liquid Glass, avoid applying the material to both layers. Instead, use fills, transparency, and vibrancy for the top elements to make them feel like a thin overlay that is part of the material.»"
+   },
+   {
+    "behauptung": "G6 «Liquid Glass appears more opaque in larger elements like sidebars to preserve legibility» – HIG color#Liquid-Glass-color",
+    "beleg": "HIG color#Liquid-Glass-color: «Liquid Glass appears more opaque in larger elements like sidebars to preserve legibility over complex backgrounds and accommodate richer content on the material’s surface.»"
+   },
+   {
+    "behauptung": "G7 «Apply one scroll edge effect per view.» – HIG scroll-views; «As text scrolls underneath, shadows become more prominent» – WWDC25/219",
+    "beleg": "HIG scroll-views#Scroll-edge-effects: «Apply one scroll edge effect per view. In split view layouts on iPad and Mac, each pane can have its own scroll edge effect». WWDC25/219: «each layer continuously adapts based on what’s behind it. As text scrolls underneath, shadows become more prominent to create additional separation.»"
+   },
+   {
+    "behauptung": "G8 «Hard … pinned table headers» stammt aus WWDC25/356, nicht 219",
+    "beleg": "WWDC25/356: «Hard is mostly used on macOS. It creates a stronger, more opaque boundary—ideal for interactive text, controls without backgrounds, or pinned table headers that need extra clarity.» In 219 nicht vorhanden."
+   },
+   {
+    "behauptung": "G9 «buttons fluidly morph into menus and popovers.» – adopting-liquid-glass; «the bubble simply pops open … right where you just tapped» – WWDC25/219",
+    "beleg": "adopting-liquid-glass: «For controls like sliders and toggles, the knob transforms into Liquid Glass during interaction, and buttons fluidly morph into menus and popovers.» WWDC25/219: «When showing a menu, the bubble simply pops open to reveal the content contained within. This lightweight, in-line transition keeps everything right where you just tapped.»"
+   },
+   {
+    "behauptung": "G10 «Show one popover at a time.» – HIG popovers; «Display only one sheet at a time» – HIG sheets",
+    "beleg": "HIG popovers#Best-practices: «Show one popover at a time. Displaying multiple popovers clutters the interface and causes confusion.» HIG sheets#Best-practices: «Display only one sheet at a time from the main interface.»"
+   },
+   {
+    "behauptung": "G11 «Liquid Glass shifts its appearance and visually recedes to guide attention.» – WWDC25/219",
+    "beleg": "WWDC25/219: «For example, when a window loses focus on the Mac or iPad, Liquid Glass shifts its appearance and visually recedes to guide attention.»"
+   },
+   {
+    "behauptung": "G12 Gruppen, Hauptaktion, Farbe auf die Fläche – HIG toolbars/color",
+    "beleg": "HIG toolbars#Item-groupings: «Minimize the number of groups. … In general, aim for a maximum of three.» HIG toolbars#Actions: «Only specify one primary action, and put it on the trailing side of the toolbar.» HIG color#Liquid-Glass-color: «To emphasize primary actions, apply color to the background rather than to symbols or text.»"
+   },
+   {
+    "behauptung": "G13 «concentric shapes calculate their radius by subtracting padding from the parent’s» – WWDC25/356",
+    "beleg": "WWDC25/356: «And concentric shapes calculate their radius by subtracting padding from the parent’s.»"
+   },
+   {
+    "behauptung": "G14 Bewegung mit Zweck, abbrechbar, nicht bei Häufigem – HIG motion",
+    "beleg": "HIG motion: «Don’t add motion for the sake of adding motion.» · «Let people cancel motion. As much as possible, don’t make people wait for an animation to complete» · «In apps, generally avoid adding motion to UI interactions that occur frequently.»"
+   },
+   {
+    "behauptung": "G15 «Replacing transitions in x-, y-, and z-axes with fades» · «Avoiding animating into and out of blurs» – HIG accessibility#Cognitive",
+    "beleg": "HIG accessibility#Cognitive, Liste «Other best practices for reducing motion include: … replacing transitions in x-, y-, and z-axes with fades to avoid motion · avoiding animating into and out of blurs»."
+   },
+   {
+    "behauptung": "G16 «Ensure you test your app’s custom elements, colors, and animations with different configurations of these settings.» – adopting-liquid-glass",
+    "beleg": "adopting-liquid-glass, wörtlich so vorhanden, im Kontext der Einstellungen «that reduce transparency or motion in the interface»."
+   },
+   {
+    "behauptung": "G17 «don’t require interaction to reveal critical information» · «expanding the hit target to include the entire plot area» – HIG charts; B17 «scrub across the area»",
+    "beleg": "HIG charts#Best-practices: «Let people interact with the data when it makes sense, but don’t require interaction to reveal critical information.» und «consider expanding the hit target to include the entire plot area, letting people scrub across the area to reveal various values.»"
+   },
+   {
+    "behauptung": "G18 Achsen: fester Bereich 1–6, Balken ab 0 für Anzahlen – HIG charts#Axes",
+    "beleg": "HIG charts#Axes: «Consider using a fixed range when specific minimum and maximum values are meaningful for all possible data values.» und «bar charts can work well when you use zero for the lower bound of the y axis … In contrast, defining a lower bound of zero can sometimes make meaningful differences between values more difficult to discern.» Die Auflösung Notenbalken ab 1 ist damit vertretbar."
+   },
+   {
+    "behauptung": "G19 «Avoid relying solely on color» – charts#Color; «use actual values in your descriptions» – charts (Barrierefreiheit)",
+    "beleg": "HIG charts#Color: «Avoid relying solely on color to differentiate between different pieces of data or communicate essential information in a chart.» HIG charts#Enhancing-the-accessibility-of-a-chart: «To help people form their own interpretations, use actual values in your descriptions.»"
+   },
+   {
+    "behauptung": "G20 «provide icons for all menu items in a group, or none of them» – HIG menus#Icons",
+    "beleg": "HIG menus#Icons: «For visual consistency and balance, provide icons for all menu items in a group, or none of them.»"
+   },
+   {
+    "behauptung": "§4.1 Mehr Kontrast mit Rand – WWDC25/219 «highlights them with a contrasting border»",
+    "beleg": "WWDC25/219: «Increased contrast, makes elements predominantly black or white and highlights them with a contrasting border»."
+   },
+   {
+    "behauptung": "B8 Licht unter dem Zeiger gedämpft – HIG motion «more subdued effect … trackpad»",
+    "beleg": "HIG motion (Einleitung), Subjekt per Link materials#Liquid-Glass: «For example, the movement of Liquid Glass responds to direct touch interaction with greater emphasis to reinforce the feeling of a tactile experience, but produces a more subdued effect when a person interacts using a trackpad.»"
+   },
+   {
+    "behauptung": "B13/B14 «highlight the changes in other ways, too» – HIG charts",
+    "beleg": "HIG charts#Best-practices: «Animating such changes can help people notice them, but you need to highlight the changes in other ways, too, to ensure that VoiceOver users and people who turn off animations know about them.» Stützt aria-live unter ruhig."
+   },
+   {
+    "behauptung": "§9 Clear-Variante und 35-%-Abdunkelung gelten nur für Clear über bildreichem Inhalt",
+    "beleg": "HIG materials#Liquid-Glass: «Only use clear Liquid Glass for components that appear over visually rich backgrounds.» und «determine whether to add a dimming layer behind components with clear Liquid Glass: If the underlying content is bright, consider adding a dark dimming layer of 35% opacity.»"
+   },
+   {
+    "behauptung": "Spannung offengelegt: HIG dark-mode «Avoid offering an app-specific appearance setting»",
+    "beleg": "HIG dark-mode#Best-practices: «Avoid offering an app-specific appearance setting. An app-specific appearance mode option creates more work for people because they have to adjust more than one setting».  Wörtlich vorhanden; der Plan zitiert es korrekt nur als Spannung."
+   },
+   {
+    "behauptung": "Die gestrichenen Wendungen («gel-like», «ambient», «spill», «fingertips», «reserved for the navigation layer», «obscures more») stehen nicht in inventare.json",
+    "beleg": "grep über inventare.json/synthese.json/refutationen.json: keine Treffer für gel-like, spill, fingertips, reserved for the navigation, obscures more; «Ambient» nur als deutsches Lehnwort in Repo-Befunden. Die Aussage des Plans ist als Verfahrensaussage richtig (siehe aber luecken_im_plan: die Wendungen sind echter Apple-Text)."
+   }
+  ],
+  "ungeprueft": [
+   "Alle Repo-Zeilenangaben (app.css, theme.css, charts.js, Views, Controller, routes) – nicht meine Rolle, nicht nachgelesen.",
+   "Messwerte der Basislinie und kontrast.mjs-Minima – nicht nachgemessen.",
+   "Firefox-Bugs 1961378/1995195 und Safari-Verhalten – nicht geprüft.",
+   "GUI-APPLE.md:31 und LAGE.md:250 (Verbot der Apple-Systemfarben) – nicht nachgelesen.",
+   "Spezifikationsstellen filter-effects-2 §3 und css-view-transitions-1 §2.1.1 – nicht gegen die W3C-Texte geprüft.",
+   "Gelesen wurden die JSON-Spiegel unter /tutorials/data/… und das HTML der WWDC-Seiten; ob die gerenderten HIG-Seiten heute abweichen, ist nicht geprüft.",
+   "Technology Overview «liquid-glass» und «app-design-and-ui» sowie HIG typography – vom Plan nicht zitiert, daher nicht abgerufen."
+  ],
+  "luecken_im_plan": [
+   "G7 gegen G8: «Apply one scroll edge effect per view» (HIG scroll-views) – eine harte Kante auf einem angehefteten thead in derselben Seiten-Scrollansicht wie die Symbolleisten-Scrollkante ergibt zwei Kanteneffekte je Ansicht, ausser die Tabelle scrollt in einem eigenen Container. Dazu sagt HIG scroll-views «Prefer the automatic scroll edge effect style … This style provides a more opaque visual separation for … pinned table headers», WWDC25/356 dagegen «Hard». Der Plan muss eine Variante wählen und begründen.",
+   "G6 trägt für die angedockte Seitenleiste nicht: Apples Begründung «to preserve legibility over complex backgrounds» setzt Inhalt unter dem Glas voraus; angedockt liegt nur np-grund darunter und es gibt keinen Weichzeichner. Das Zitat gilt nur für die Schubladen-Variante.",
+   "G9/B1: WWDC25/219 «When glass flexes and morphs to larger sizes – like when presenting a menu from a toolbar button – its material characteristics change to simulate a thicker, more substantial material» mit «deeper shadows». B1 morpht nur die Grösse, das Material bleibt gleich – entweder Schatten beim Öffnen vertiefen oder die Abweichung benennen.",
+   "Vorentscheidung 1 hat eine stärkere Apple-Stütze, die der Plan nicht nennt: WWDC25/219 «In steady states, such as when an app first launches, avoid intersections between content and Liquid Glass. Instead, reposition or scale the content to maintain separation.»",
+   "Die gestrichenen Wendungen sind echter WWDC25/219-Text und könnten mit Quelle wieder rein: «it is best reserved for the navigation layer that floats above the content of your app» (stützt G1), «Reduced Transparency, makes Liquid Glass frostier and obscures more of the content behind it» (Apples Definition), «Light from colorful content nearby can subtly spill onto its surface» (Seitenleiste, passt zur Tönung aus np-grund). Auch Kapitelzeiten stehen auf der Transkriptseite (z. B. «10:31 - Principles»).",
+   "Reduzierte Transparenz: Der Plan macht jedes Glas ganz deckend (Deckung 1); Apple beschreibt nur «frostier and obscures more of the content behind it». Die Repo-Regel ist strenger als Apple – das sollte der Plan offen sagen, statt es als Apple-konform erscheinen zu lassen.",
+   "Filter (§6) haben im Plan keine Apple-Stütze, obwohl es eine gibt: HIG charting-data «you might let people choose to view different levels of detail or subsets of data to match their interest».",
+   "HIG scroll-views «Only use a scroll edge effect when a scroll view is behind floating interface elements» fehlt als Regel für np-scroll-edge (nur dort, wo Inhalt wirklich unter Symbolleiste/Kapseln läuft)."
+  ]
+ },
+ "codebasis": null,
+ "hinweis": "Der Widerleger «codebasis» (opus high) scheiterte am Nutzungslimit der Sitzung (Reset 06:40 UTC); die Hauptsitzung hat die Zeilenverweise stichprobenartig geprüft (GUI-R6.md §12)."
+}

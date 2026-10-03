@@ -82,3 +82,26 @@ Folgerungen für den Entwurf (R6):
 - Mit Scrollkante (Inhalt blendet Richtung Grund ab, bevor er die Schrift erreicht) halten dunkle Themes schon ab 0.00–0.37, helle ab 0.35–0.73. Transparenz wird also über die Kante gekauft, nicht über die Deckung.
 - Die schwebende Seitenleiste liegt auf `position: fixed` neben der Hauptspalte (`np-hauptspalte` rückt per `padding-left` aus); unter ihr liegt nur der Seitengrund. Dort ist jede Deckung lesbar – ein eigener, bewusst gestalteter Hintergrund hinter der Leiste (ruhiger Verlauf aus `--bg`-nahen Tönen) gibt dem Glas erst etwas zu brechen und muss als Unterlage mitgeprüft werden.
 - `ThemeKontrastTest` prüft die Materialien seit 03.10.2026 mit (Deckungen direkt aus `app.css`).
+
+## 5. Berufsbildner (michael.baumann, nachgetragen 03.10.2026, Median aus 3 Läufen)
+
+Gemessen, während zwei Workflow-Agents auf derselben Maschine liefen (CPU-Last); R6-00 misst mit denselben Argumenten nach. Rohdaten lagen im Scratch (`r6/leistung-baseline-trainer-*.json`).
+
+Scrollen unter Glas bei 1920×540 (`--hoehe=540 --laeufe=3`):
+
+| Seite | Scrollweg px | Scroll p50 / p95 / max ms | lange Bilder > 33.4 ms | Layout ms (×) | Stil ms | Skript ms |
+|---|---:|---|---:|---|---:|---:|
+| `/trainer` | 234 | 16.7 / 17.6 / 23.6 | 0/150 | 0.4 (2) | 14.2 | 8.2 |
+| `/trainer/learners` | 0 | 16.7 / 16.9 / 25.3 | 0/150 | 0 (0) | 0 | 0.7 |
+| `/trainer/learners/1` | 1028 | 16.7 / 19.6 / 24 | 0/150 | 0.4 (2) | 30.7 | 8.5 |
+| `/trainer/learners/1/grades` | 1568 | 16.7 / 19.8 / 28.7 | 0/150 | 0.4 (2) | 5 | 8.6 |
+
+Palette bei 1920×1080 (`--laeufe=3 --palette`):
+
+| Seite | LCP ms | Knoten | Ruhe p95 ms | Palette öffnet ms | Tippen p95 / max ms | Schliessen p95 ms |
+|---|---:|---:|---:|---:|---|---:|
+| `/trainer` | 156 | 10565 | 16.9 | 26.3 | 31.5 / 39.2 | 36.4 |
+| `/trainer/learners` | 140 | 20026 | 16.9 | 32.6 | 31.2 / 34.6 | 28.4 |
+| `/trainer/learners/1` | 212 | 30335 | 17 | 31.9 | 33.7 / 44.5 | 38.7 |
+
+Auffällig: `/trainer/learners/1` scrollt bei 1080 px Höhe 488 px und zeigte dabei p95 29 ms mit 4 langen Bildern – bei 540 px Höhe derselbe Weg mit 19.6 ms. Vermutlich die parallele CPU-Last; R6-00 klärt das durch Wiederholung, bevor der Wert als Grenze gilt.
