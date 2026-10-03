@@ -1,0 +1,166 @@
+[
+ {
+  "widerlegt": [
+   {
+    "behauptung": "K1: Unter der Seitenleiste liegt nie Inhalt; np-hauptspalte rückt um die Breite der Seitenleiste ein (app.css:551-558), das Glas zeigt deshalb nur bg-bg (app.blade.php:142).",
+    "beleg": "Stimmt nur für den Massstab (≥ 64rem und data-navigation='seite'): app.css:556-559 rückt nur unter dieser Bedingung ein, app.blade.php:142 setzt body bg-bg. Das «nie» ist falsch. Unter 64rem oder mit data-navigation='oben' wird die Seitenleiste zur Schublade: app.css:507-518 (html[data-schublade] mit z-index 60 und translate 0) schiebt sie über den Inhalt, dazu kommt der Scrim navigation.blade.php:75 (np-schublade-scrim glass-scrim, app.css:531-541). Dann liegt Inhalt mit Scrim unter dem Glas. Die Seitenleiste trägt np-glas (navigation.blade.php:28). Ergänzung zu Widerspruch 5: Apple (adopting-liquid-glass) empfiehlt «Extend content beneath sidebars and inspectors. A background extension effect creates a sense of extending a background under a sidebar or inspector, without actually scrolling or placing content under it.» Das ist ein Spiegeleffekt, kein Inhalt, der unter der Leiste läuft. Quelle: https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass, gelesen über developer.apple.com/tutorials/data/documentation/technologyoverviews/adopting-liquid-glass.json."
+   },
+   {
+    "behauptung": "K6: backdrop-filter mit url(#svg) wirkt nur in Chromium (Firefox Bug 1961378); @supports meldet es in Firefox fälschlich als unterstützt (Bug 1995195).",
+    "beleg": "Der Firefox-Teil stimmt: Bug 1961378 hat Status NEW, Titel «backdrop-filter gets ignored if it would fall back to a blob image (such like with some SVG url filters)», Kommentar 0: «this works in Chrome». Bug 1995195 ist RESOLVED DUPLICATE von 1961378 (dupe_of 1961378). Die Aussage zu @supports stammt nur aus Kommentar 0 des Meldenden («the @supports css tag is convinced the filter works, yet it doesn't») und ist kein eigener, bestätigter Fehler. Die Quelle sollte deshalb 1961378 heissen, mit 1995195 nur als Beobachtung. «Nur in Chromium» ist für Safari/WebKit nicht belegt: BCD css/properties/backdrop-filter.json hat keinen Untereintrag für url(). Quellen: https://bugzilla.mozilla.org/rest/bug/1961378, https://bugzilla.mozilla.org/rest/bug/1995195/comment."
+   },
+   {
+    "behauptung": "K10: view-transition-name, opacity < 1, filter, mask und backdrop-filter machen ein Element zur Backdrop Root (Filter Effects 2). Deshalb liegt das Gruppen-Glas auf ::before (app.css:433-437), und Glas trägt keinen view-transition-name (app.css:241-247).",
+    "beleg": "In der Sache stimmt es, die Quelle aber nicht, und die Liste ist unvollständig. Filter Effects 2 §3 (https://drafts.csswg.org/filter-effects-2/, «A Backdrop Root is formed … by: The root element; filter ≠ none; opacity < 1; mask, mask-image, mask-border, or clip-path ≠ none; backdrop-filter ≠ none; mix-blend-mode ≠ normal; will-change …») erwähnt view-transition-name nicht. Der Auslöser view-transition-name steht in CSS View Transitions 1 §2.1.1 «Rendering Consolidation»: «Elements … whose view-transition-name computed value is not none (at any time): … Form a backdrop root» (https://drafts.csswg.org/css-view-transitions-1/). Folge für den Plan: Widerspruch 4 und S4 bauen den Morph mit «scale und clip-path vom Knopfrechteck aus» am Wirt. clip-path macht den Wirt aber zur Backdrop Root, und das ::before-Glas zeigt dann leer. Das ist dieselbe Falle wie bei opacity, und der Plan nennt sie nur für opacity und filter. scale/transform ist kein Auslöser (Spec-Hinweis: «not formed by … elements with transforms applied»). Im Repo stimmt der Rest: Das ::before-Glas steht in app.css:433-457 mit Kommentar zur Backdrop Root, der Kommentar zum view-transition-name in app.css:241-248."
+   },
+   {
+    "behauptung": "K12: Auswertung::verlauf liefert nur einen Punkt je Semester (Auswertung.php:155-169), obwohl jede Leistung ein Datum trägt (Leistung.php:23).",
+    "beleg": "Der erste Teil stimmt: verlauf() iteriert über semesterIds() und liefert je Semester einen Eintrag (Auswertung.php:150-169). Der zweite Teil ist zu absolut. Leistung.php:23 ist «public ?string $datum», also nullable, und Leistung::position() (Leistung.php:34-36) übergibt datum null für Notenbaum-Positionen (IPA, Schlussprüfung). Erfasste Noten tragen das Prüfungsdatum (NotenQuelle.php:103 «datum: (string) $n->pruefungsdatum»), geplante Prüfungen das Termindatum (NotenQuelle.php:158). Für S3 heisst das: Ein «Verlauf nach Prüfungsdatum» muss Positionen ohne Datum ausschliessen oder gesondert behandeln."
+   },
+   {
+    "behauptung": "K14: Die Tabelle unter «Wo stehe ich» rendert serverseitig $balken[$balkenModus] (lernender.blade.php:158) und folgt dem Alpine-Umschalter für Fächer und Module nicht.",
+    "beleg": "Der Mangel ist echt: Die Tabelle läuft über @foreach($balken[$balkenModus]['labels'] …) in lernender.blade.php:159 (serverseitig), das Diagramm über x-effect mit d[modus] (:137-138). Falsch beschrieben ist der Umschalter. Er wechselt zwischen 'semester' und 'lehrzeit' (lernender.blade.php:131-133, role=radiogroup, aria-label «Zeitraum»), nicht zwischen Fächern und Modulen. Die S5-Akzeptanz «Den Umschalter ‹Wo stehe ich› auf Module stellen» verlangt damit eine Option, die es nicht gibt. Richtig wäre: auf «Lehrzeit» bzw. Semester stellen und dann Zeilen und Balken vergleichen."
+   },
+   {
+    "behauptung": "Widerspruch 2 (Apple-Zitat): «Über hellem Inhalt 35 % Abdunkelung» als allgemeine Lesbarkeitsregel.",
+    "beleg": "Das Zitat ist aus dem Zusammenhang gelöst. HIG Materials: «For optimal contrast and legibility, determine whether to add a dimming layer behind components with clear Liquid Glass: If the underlying content is bright, consider adding a dark dimming layer of 35% opacity.» Die Regel gilt nur für die Variante clear und ist eine bedingte Empfehlung. Für Komponenten mit viel Text (Seitenleisten, Popover) nennt Apple die Variante regular. Quelle: https://developer.apple.com/design/human-interface-guidelines/materials, gelesen über developer.apple.com/tutorials/data/design/human-interface-guidelines/materials.json."
+   },
+   {
+    "behauptung": "Widerspruch 9: browser.mjs braucht CDP Emulation.setEmulatedMedia für Transparenz und Kontrast (nur Chromium).",
+    "beleg": "Für Kontrast stimmt das nicht. Das installierte Playwright 1.56.1 (/opt/node-tools/node_modules/playwright-core/package.json) kennt in emulateMedia nativ «contrast?: null|\"no-preference\"|\"more\"» (playwright-core/types/types.d.ts:2577) und «reducedMotion» (:2595). CDP ist nur für prefers-reduced-transparency nötig. browser.mjs nutzt heute weder emulateMedia noch CDP-Emulation (grep leer)."
+   },
+   {
+    "behauptung": "Widerspruch 2 / K3-Umfeld: gui-konzept G1 «blur 16px saturate 140 %» entspricht dem Code.",
+    "beleg": "Der Plan hat die Abweichung richtig erkannt: docs/gui-konzept.md:111 nennt blur(16px) saturate(140%), der Code hat np-glas mit blur(24px) saturate(1.8) (app.css:281-282) und np-glas-gruppe dunkel mit card/0.74 (app.css:457). Diese Zeile dient nur als Beleg für die Abweichung; die Behauptung selbst stammt nicht aus dem Plan."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "K2: Apple verbietet Liquid Glass in der Inhaltsebene; Ausnahme Schieber/Schalter während der Bedienung; im Inhalt sind Standardmaterialien erlaubt.",
+    "beleg": "HIG Materials, wörtlich: «Don’t use Liquid Glass in the content layer. … Instead, use Standard materials for elements in the content layer, such as app backgrounds. An exception to this is for controls in the content layer with a transient interactive element like sliders and toggles; in these cases, the element takes on a Liquid Glass appearance to emphasize its interactivity when a person activates it.» Dazu: «four standard materials … which you can use in the content layer». Quelle: https://developer.apple.com/design/human-interface-guidelines/materials (JSON-API). Das Tabellen-Zitat steht im Transkript von WWDC25 Session 219: «Consider this tableview: making it Liquid Glass would make it compete with other elements and muddy the hierarchy.» (https://developer.apple.com/videos/play/wwdc2025/219/)"
+   },
+   {
+    "behauptung": "K3: kontrast.mjs --minimum verlangt Deckung 0.72 (mitternacht dunkel) bis 0.91 (gletscher hell), hinter der Scrollkante 0.00–0.73; die Regel ≥ 0.78 (app.css:277) ist aus keiner Messung abgeleitet.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md:51 (gletscher/hell 0.91, mit Scrollkante 0.73) und :66 (mitternacht/dunkel 0.72, mit Scrollkante 0.00). Alle anderen Werte liegen dazwischen. 22 von 24 Theme-Blöcken brauchen mehr als 0.78 (≤ 0.78 nur mitternacht/dunkel und kontrast/dunkel :74). Die Regel steht als «Deckung ≥ 0.78» in app.css:277 und in gui-konzept.md:115. git log -S «Deckung ≥ 0.78» führt auf bffe93b «GUI: Formular- und Einstellungsseiten mittig in einer gemeinsamen Spalte», einen Layout-Commit ohne Messung. Das ist der beste verfügbare Beleg, beweist aber nicht, dass es nie eine Messung gab. Einschränkung: Derselbe Lauf meldet «0 Pflichtverstösse, 11 Hinweise unter Schwelle» (baseline:77). kontrast.mjs wertet Akzent- und Diagrammunterlagen also als Hinweis, nicht als Pflicht. Ob 0.78 «zu niedrig» ist, hängt davon ab, welcher Massstab zählt."
+   },
+   {
+    "behauptung": "K4: ThemeKontrastTest mischt Material nur über bg, card und surface-2; Akzent- und Notenfarben werden als Unterlage nicht geprüft.",
+    "beleg": "tests/Feature/ThemeKontrastTest.php:192: foreach (['bg', 'card', 'surface-2'] as $unterlage). Notenfarben kommen nur als Vordergrund auf card vor (:235), der Akzent nur als accent-contrast auf accent und accent-text auf card/bg (:234, :279-290), nie als Unterlage unter Glas."
+   },
+   {
+    "behauptung": "K5: Glas kostet beim Tippen in der Palette rund 10–12 ms p95: mit Glas 27.6 (/grades) bzw. 29.4 ms (/dashboard), ohne 16.9–17.1 ms.",
+    "beleg": "r6-leistung-baseline.md:35-38, Spalte «Palette: Tippen p95 / max ms»: 27.6 / 29.4 mit Glas, 16.9 / 17.1 ohne Glas. Differenz 10.7 bzw. 12.3 ms. «Ohne Glas» bedeutet data-transparenz='reduziert' für die ganze Seite (:31)."
+   },
+   {
+    "behauptung": "K7: prefers-reduced-transparency melden nur Chrome und Edge (BCD 8.1.4); in Safari und Firefox nur über den persönlichen Schalter (app.css:1467-1486).",
+    "beleg": "BCD (main, package.json version 8.1.4) css/at-rules/media.json: chrome 118, edge mirror, firefox 113 nur hinter dem Flag layout.css.prefers-reduced-transparency.enabled, safari false (webkit.org/b/175497). Der persönliche Schalter steht in app.css:1467-1485 ([data-transparenz='reduziert'] …)."
+   },
+   {
+    "behauptung": "K8: Kein globaler prefers-reduced-motion-Block; das System-Reduce-Motion greift nur an den genannten Stellen; der persönliche Schalter kappt auch Überblendungen auf 0.01 ms (app.css:209-216).",
+    "beleg": "grep über resources/: prefers-reduced-motion nur in app.css:259 (view-transition navigation none), app.css:1555 (details, #np-progress) und charts.js:30. motion-reduce: nur modal.blade.php:76, toast.blade.php:16, drawer.blade.php:58/62 und feedback-widget.blade.php:24. Weitere matchMedia-Abfragen für Bewegung gibt es nicht (np.js:395 betrifft die Breite). Der persönliche Schalter in app.css:209-216 setzt animation-duration und transition-duration für alle Elemente auf 0.01ms !important. Ausnahmen mit 150 ms sind nur details und #np-progress (:217-224)."
+   },
+   {
+    "behauptung": "K9: linear(), @starting-style, View Transitions im selben Dokument, @property und sibling-index() laufen aktuell in Chrome, Firefox und Safari ohne Flag; View Transitions zwischen Dokumenten fehlen in Firefox.",
+    "beleg": "BCD (main, 8.1.4): linear-function Chrome 113 / Firefox 112 / Safari 17.2; @starting-style 117 / 129 / 17.5; @property 85 / 128 / 16.4; Document.startViewTransition 111 / 144 / 18; view-transition-name 111 / 144 / 18; sibling-index 138 / 154 / 26.2; jeweils ohne flags-Eintrag. @view-transition (dokumentübergreifend): Chrome 126, Safari 18.2, Firefox false (bugzil.la/1860854). Aktuelle Versionen laut BCD browsers/*.json: Chrome 154 (2026-09-22), Firefox 157 (2026-09-29), Safari 27 (2026-09-14). Alle genannten Einstiegsversionen sind damit erschienen."
+   },
+   {
+    "behauptung": "K11: Kein Diagramm liefert JSON; npChart baut bei jeder Datenänderung mit destroy() und new Chart() neu auf (charts.js:456-460).",
+    "beleg": "resources/js/charts.js:453-458: zeichne() ruft chart?.destroy() und danach new Chart(...). update() kommt nur als chart?.update('none') nach fonts.ready vor (:451). Die JSON-Antworten in app/Http (Feedback, Systemhinweis, Manifest, Suche) betreffen keine Diagrammdaten; ProfileController:78 betrifft nur die Darstellungseinstellung 'diagramm'."
+   },
+   {
+    "behauptung": "K13: Uebersicht::jahrgangsDiagramm (Uebersicht.php:698) ist privat und wird nirgends aufgerufen.",
+    "beleg": "app/Services/Uebersicht.php:698 «private function jahrgangsDiagramm(Collection $lernende, array $staende): array». grep -rn jahrgangsDiagramm über app, resources und tests findet nur die Definition."
+   },
+   {
+    "behauptung": "Apple-Zitate der Widersprüche 3–8 und 10: illuminate, materialize, morph thicker, elastic/Reduced Motion, Increased Contrast, Reduced Transparency frostier, takes on colors, more opaque in sidebars, Apply color sparingly, regular variant für Popover, cancel motion, keine ms-Angaben, Diagramme mit ganzer Plotfläche, Tastatur und nicht nur Farbe.",
+    "beleg": "WWDC25 Session 219 (https://developer.apple.com/videos/play/wwdc2025/219/, HTML-Transkript): «the material illuminates from within as a form of feedback», «Instead of fading, Liquid Glass objects materialize in and out by gradually modulating the light bending and lensing», «When glass flexes and morphs to larger sizes – like when presenting a menu from a toolbar button – … simulate a thicker, more substantial material. It casts deeper, richer shadows», «Reduced Motion decreases the intensity of some effects and disables any elastic properties», «Reduced Transparency, makes Liquid Glass frostier», «Increased contrast, makes elements predominantly black or white and highlights them with a contrasting border». HIG Color (JSON-API): «takes on colors from the content directly behind it», «Liquid Glass appears more opaque in larger elements like sidebars», «To emphasize primary actions, apply color to the background rather than to symbols or text». HIG Materials: «Use the regular variant … when components have a significant amount of text, such as alerts, sidebars, or popovers», «floats above the content layer». HIG Motion: «Let people cancel motion», «generally avoid adding motion to UI interactions that occur frequently», «Make motion optional»; die Seite enthält keine Millisekunden-Angaben. adopting-liquid-glass: «Ensure you test your app’s custom elements, colors, and animations with different configurations of these settings.» WWDC25 Session 356: «hierarchy should be expressed through layout and grouping». HIG Charts: «consider expanding the hit target to include the entire plot area», «Make an interactive chart easy to navigate when using keyboard commands», Farbe durch Formen oder Muster ergänzen."
+   },
+   {
+    "behauptung": "Widerspruch 3: Knöpfe skalieren nicht (app.css:702); np-alert erscheint mit scale 0.96 (app.css:381).",
+    "beleg": "app.css:702 «Gedrückt wird die Fläche dunkler (Press-State ist Pflicht), kein Skalieren.» app.css:378-384: transition opacity und scale 150ms, @starting-style &[open] { opacity: 0; scale: 0.96 }."
+   }
+  ],
+  "ungeprueft": [
+   "K6, Safari/WebKit: Ob backdrop-filter mit url(#svg-filter) in Safari wirkt oder ignoriert wird. BCD hat keinen Untereintrag dafür, eine WebKit-Quelle wurde nicht abgerufen.",
+   "S1-Risiko: Ob CDP Emulation.setEmulatedMedia mit features [{name:'prefers-reduced-transparency', value:'reduce'}] in Playwright-Chromium matchMedia wirklich umschaltet. Nicht gemessen, weil keine Befehle ausgeführt werden durften, die Browser starten.",
+   "K3: Dass die Regel 0.78 nie auf einer Messung beruhte, lässt sich nur indirekt belegen (Ursprungs-Commit bffe93b ohne Messung). Ein Negativbeweis ist nicht möglich.",
+   "Widerspruch 1: Die Zeilenangaben in .claude/rules/oberflaeche.md:14, notenportal-ui/SKILL.md:102 und GUI-APPLE.md:50-51 wurden nicht einzeln gelesen.",
+   "Widerspruch 8: Die Zeilen notenportal-dunkelmodus/SKILL.md:45-47 und :50-53 wurden nicht gelesen.",
+   "Ob jede erfasste Note in der DB ein pruefungsdatum ungleich NULL hat. NotenQuelle.php:103 castet auf string, ein NULL ergäbe einen Leerstring. Das Schema wurde nicht geprüft."
+  ],
+  "_widerleger": "widerlegen:quellen"
+ },
+ {
+  "widerlegt": [
+   {
+    "behauptung": "(teilweise) Unter der Seitenleiste liegt nie Inhalt: np-hauptspalte rückt um die Breite der Seitenleiste ein (app.css:551-558). Das Seitenleisten-Glas zeigt deshalb nur bg-bg (app.blade.php:142).",
+    "beleg": "Das gilt nur für den Massstab (≥ 64rem und data-navigation='seite'): Die Einrückung um padding-left: calc(--np-leiste-breite + --np-leiste-rand) steht in resources/css/app.css:555-559. Die Leiste ist fixed bei left 0.5rem und 16.25rem breit (app.css:489-501) und endet damit genau an der Einrückung. body bg-bg steht in resources/views/layouts/app.blade.php:142. Das «nie» stimmt aber nicht: Unter 1024 px und bei data-navigation='oben' (app.css:20; app.blade.php:14) ist die Seitenleiste eine Schublade, die per data-schublade über den Inhalt fährt (app.css:507-519). Darunter liegt die Hauptspalte, hinter dem Scrim np-schublade-scrim glass-scrim (resources/views/layouts/navigation.blade.php:75). In diesem Zustand zeigt das Seitenleisten-Glas den Inhalt mit Scrim, nicht nur bg-bg."
+   },
+   {
+    "behauptung": "Kein Diagramm liefert JSON. npChart baut bei jeder Datenänderung das Diagramm mit destroy() und new Chart() neu auf (charts.js:456-460).",
+    "beleg": "Der erste Teil ist falsch. Das Rechner-Diagramm npChart('kurve') (resources/views/rechner/index.blade.php:228, x-effect=\"zeichne(kurve)\") bekommt seine Daten als JSON: resources/js/rechner.js:107 postJson(cfg.berechnenUrl …) ruft app/Http/Controllers/Lernender/RechnerController.php:40-44 bzw. app/Http/Controllers/Verwaltung/RechnerController.php:32-36 (response()->json) auf, und app/Services/Auswertung/Rechner.php:298 liefert 'kurve'. Das ist ein POST-Rechenendpunkt, keine GET-Diagrammroute. Die übrigen fünf npChart-Instanzen (balken, verlauf, saeulen, histogramm, kurve) bekommen ihre Daten inline per Js::from bzw. Alpine. Der zweite Teil stimmt: chart?.destroy(); chart = new Chart(...) in resources/js/charts.js:456-457, Abbau in :460. Das Rechner-Diagramm wird deshalb bei jeder entprellten Neuberechnung neu gebaut (rechner.js:96, 220 ms)."
+   },
+   {
+    "behauptung": "(teilweise) Auswertung::verlauf liefert nur einen Punkt je Semester (Auswertung.php:155-169), obwohl jede Leistung ein Datum trägt (Leistung.php:23).",
+    "beleg": "Der erste Teil stimmt: app/Services/Auswertung/Auswertung.php:155-169 iteriert über semesterIds() und gibt je Semester einen Eintrag {semester_id, semester, note, schnitt} zurück. «Jede Leistung trägt ein Datum» stimmt nicht: Leistung::$datum ist ?string (app/Services/Auswertung/Leistung.php:23). Erfasste Noten haben immer ein Datum (noten.pruefungsdatum NOT NULL, database/migrations/2026_02_05_000018_create_noten_table.php:32; Abbildung in NotenQuelle.php:103), geplante Prüfungen ebenfalls (notenlogik-Migration:98 date('datum'); NotenQuelle.php:158). Ohne Datum können sein: Notenbaum-Positionen (IPA, Schlussprüfung; datum nullable in database/migrations/2026_10_01_000001_notenbaum.php:101; BaumLader.php:165; Leistung::position() setzt null, Leistung.php:33-36) und Rechner-Annahmen ohne Datum (Rechner.php:318). Ein Verlauf nach Datum muss diese Zeilen auslassen oder gesondert behandeln."
+   },
+   {
+    "behauptung": "(teilweise) Die Tabelle unter «Wo stehe ich» rendert serverseitig $balken[$balkenModus] (lernender.blade.php:158) und folgt dem Alpine-Umschalter für Fächer und Module nicht.",
+    "beleg": "Der Kern stimmt: Die Tabelle iteriert serverseitig über @foreach($balken[$balkenModus]['labels'] …) (resources/views/dashboards/lernender.blade.php:159, nicht :158). $balkenModus wird einmal serverseitig gesetzt (:13), das Diagramm folgt dagegen d[modus] (:137-138). Falsch beschrieben ist der Umschalter: Er wechselt den Zeitraum zwischen 'semester' und 'lehrzeit' (aria-label 'Zeitraum', :131-133) und hat keinen Modus für Fächer oder Module. Das Akzeptanzkriterium von S5 «Den Umschalter ‹Wo stehe ich› auf Module stellen» nennt also einen Modus, den es nicht gibt. Richtig wäre: auf «Lehrzeit» bzw. «Semester» stellen."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "Apple verbietet Liquid Glass in der Inhaltsebene («Don't use Liquid Glass in the content layer.»). Ausnahme sind Schieber und Schalter während der Bedienung. Im Inhalt sind Standardmaterialien erlaubt.",
+    "beleg": "https://developer.apple.com/tutorials/data/design/human-interface-guidelines/materials.json (Quelle der HIG-Seite materials): «Don’t use Liquid Glass in the content layer. … Instead, use standard materials for elements in the content layer, such as app backgrounds. An exception to this is for controls in the content layer with a transient interactive element like sliders and toggles; in these cases, the element takes on a Liquid Glass appearance to emphasize its interactivity when a person activates it.» Ebenda: «Liquid Glass allows content to scroll and peek through from beneath these elements»."
+   },
+   {
+    "behauptung": "kontrast.mjs --minimum: Deckung 0.72 (mitternacht dunkel) bis 0.91 (gletscher hell), hinter der Scrollkante 0.00–0.73. Die Regel «≥ 0.78» (app.css:277) ist aus keiner Messung abgeleitet.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md:51 (gletscher/hell 0.91, Scrollkante 0.73), :66 (mitternacht/dunkel 0.72, Scrollkante 0.00), Spannweite :51-74. Zur Herkunft von 0.78: Weder im Repo noch im Git-Verlauf findet sich eine Messquelle. git log -S führt «Deckung ≥ 0.78» (resources/css/app.css:277) und «Deckung mindestens 0.78» (docs/gui-konzept.md:115) auf den Initial-Commit bffe93b (01.10.2026) zurück, dort ohne Quelle; der Motion-Absatz im selben Commit nennt dagegen NN/g und M3. Nebenbefund: Der Kopf von kontrast.mjs (:13-14) beschreibt --minimum als «über bg», die Baseline (§4, :46) beschreibt Spalte 1 als «über jeder Token-Unterlage». Die Ausgabe hat drei Spalten und passt zur Lesart der Baseline. Material np-glas-gruppe dunkel liegt mit 0.74 schon heute unter der eigenen 0.78-Regel (app.css:459)."
+   },
+   {
+    "behauptung": "ThemeKontrastTest mischt Text auf Material nur über bg, card und surface-2. Akzent- und Notenfarben werden als Unterlage nicht geprüft.",
+    "beleg": "tests/Feature/ThemeKontrastTest.php:183 (text_bleibt_auf_jedem_glas_material_ueber_grund_karte_und_surface2_lesbar), :192 foreach (['bg', 'card', 'surface-2'] as $unterlage). Die zweite Schleife (:287) prüft accent-text und ring ebenfalls nur über bg, card und surface-2. Notenfarben kommen nur als Vordergrund auf card vor (Paarliste in alle_paare_eines_themes_erfuellen_die_kontrastziele), nicht als Unterlage für Glas."
+   },
+   {
+    "behauptung": "Glas kostet beim Tippen in der Palette rund 10–12 ms p95: mit Glas 27.6 bzw. 29.4 ms, ohne Glas 16.9–17.1 ms.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md:35-38 (Palette Tippen p95: /grades 27.6 mit, 16.9 ohne Glas; /dashboard 29.4 mit, 17.1 ohne Glas). Die Differenzen betragen 10.7 und 12.3 ms."
+   },
+   {
+    "behauptung": "backdrop-filter mit url(#svg) wirkt nicht in Firefox (Bug 1961378), und @supports meldet es fälschlich als unterstützt (Bug 1995195). Erkennung daher per JS.",
+    "beleg": "https://bugzilla.mozilla.org/rest/bug/1961378: «backdrop-filter gets ignored if it would fall back to a blob image (such like with some SVG url filters)», Status NEW, Core::Graphics: WebRender. https://bugzilla.mozilla.org/rest/bug/1995195: «backdrop-filter doesn't work with svg filters», RESOLVED DUPLICATE von 1961378. Kommentar 0 dort: «the @supports css tag is convinced the filter works, yet it doesn't». Der Teil «wirkt nur in Chromium» ist für Safari ungeprüft (siehe ungeprueft)."
+   },
+   {
+    "behauptung": "prefers-reduced-transparency melden nur Chrome und Edge (BCD 8.1.4). In Safari und Firefox gibt es reduzierte Transparenz nur über den persönlichen Schalter (app.css:1467-1486).",
+    "beleg": "@mdn/browser-compat-data@8.1.4 (https://unpkg.com/@mdn/browser-compat-data@8.1.4/data.json), css.at-rules.media.prefers-reduced-transparency: chrome 118, edge 118, firefox 113 nur mit Flag, safari false. Persönlicher Schalter: [data-transparenz='reduziert'] in resources/css/app.css:1467-1486."
+   },
+   {
+    "behauptung": "Es gibt keinen globalen prefers-reduced-motion-Block. Reduce Motion des Systems greift nur bei Seitenwechsel (app.css:259), details und Fortschritt (:1555), Chart.js (charts.js:30) und motion-reduce in vier Komponenten. Der persönliche Schalter kappt auch Überblendungen auf 0.01 ms (app.css:209-216).",
+    "beleg": "grep über resources/css, resources/js und resources/views findet genau diese Stellen: app.css:259 (@view-transition navigation none), app.css:1555-1562 (details und #np-progress), charts.js:28-30 und :39 (animation false), modal.blade.php:76, toast.blade.php:16, drawer.blade.php:58/62, feedback-widget.blade.php:24. Sonst gibt es keinen matchMedia-Aufruf für Reduce Motion (nur np.js:395 für die Breite). Persönlicher Schalter: app.css:209-216 setzt animation-duration und transition-duration auf 0.01ms !important; Ausnahmen mit 150 ms für details und #np-progress in :217-224."
+   },
+   {
+    "behauptung": "linear(), @starting-style, View Transitions im selben Dokument, @property und sibling-index() laufen in aktuellen Chrome-, Firefox- und Safari-Versionen ohne Flag. Dokumentübergreifende View Transitions fehlen in Firefox.",
+    "beleg": "@mdn/browser-compat-data@8.1.4 (unpkg). Aktuelle Versionen laut BCD: chrome 154, firefox 157, safari 27. Feature-Versionen ohne Flag: linear-function chrome 113 / firefox 112 / safari 17.2; starting-style 117 / 129 / 17.5; property 85 / 128 / 16.4; sibling-index 138 / 154 / 26.2; Document.startViewTransition 111 / 144 / 18. css.at-rules.view-transition (dokumentübergreifend): chrome 126, safari 18.2, firefox false."
+   },
+   {
+    "behauptung": "view-transition-name, opacity < 1, filter, mask und backdrop-filter machen ein Element zur Backdrop Root. Deshalb liegt das Gruppen-Glas auf ::before (app.css:433-437) und Glas trägt keinen view-transition-name (app.css:241-247).",
+    "beleg": "In der Sache bestätigt, die Quelle ist für einen Auslöser falsch. https://drafts.csswg.org/filter-effects-2/ §3 nennt als Auslöser: Wurzelelement, filter, opacity < 1, mask, mask-image, mask-border, clip-path, backdrop-filter, mix-blend-mode und will-change. view-transition-name steht dort nicht. Das kommt aus https://drafts.csswg.org/css-view-transitions-1/ §2.1.1 Rendering Consolidation: Elemente mit view-transition-name ungleich none «Form a backdrop root». Repo: resources/css/app.css:433-436 (Kommentar und Glas auf ::before), :241-247 (Kommentar: kein view-transition-name für Glas)."
+   },
+   {
+    "behauptung": "Uebersicht::jahrgangsDiagramm (Uebersicht.php:698) ist privat und wird nirgends aufgerufen.",
+    "beleg": "app/Services/Uebersicht.php:698 private function jahrgangsDiagramm(...). grep über app, resources, routes und tests findet nur die Definition."
+   },
+   {
+    "behauptung": "Nebenprüfung der Scheiben: alle genannten bestehenden Dateien, Tests, Dienste und toten Bestände existieren.",
+    "beleg": "Alle bestehenden Dateien aus S1–S9 existieren. Alle genannten Testklassen existieren (z. B. tests/Feature/Lernender/ViertelnotenTest.php, tests/Feature/LeerzustandTest.php, tests/Feature/Auth/ZugriffsschutzTest.php, tests/Feature/RoutenParameterTest.php). Lernender::sichtbarFuer steht in app/Models/Lernender.php:98, LernstandRechner::fuer in app/Services/Auswertung/LernstandRechner.php:25, Bericht::noten in app/Services/Bericht.php:32. glass-bar, glass-seitenleiste, glass-btn und np-btn-primary sind in app.css definiert (:303, :320, :858, :872), werden aber in resources/views und resources/js nicht benutzt. Die Chart-Bauer gruppen (charts.js:358) und spark (:414) werden nirgends als npChart-Typ verwendet. app.css hat 1585 Zeilen. browser.mjs setzt nur Breite, Höhe und colorScheme (tools/pruefung/browser.mjs:68-72). kontrast.mjs kennt --minimum und --glas (:3). /dashboard leitet auf /learner weiter (routes/web.php:65-84)."
+   }
+  ],
+  "ungeprueft": [
+   "Ob backdrop-filter: url(#svg) in Safari/WebKit wirkt: BCD 8.1.4 hat keinen Unterpunkt backdrop-filter.url, und eine WebKit-Quelle wurde nicht abgerufen. «Wirkt nur in Chromium» ist für Safari daher nicht belegt.",
+   "Ob CDP Emulation.setEmulatedMedia in Playwright prefers-reduced-transparency und prefers-contrast setzt: wurde nicht ausgeführt, das Repo enthält dazu keinen Beleg (browser.mjs:68-72 setzt nur colorScheme).",
+   "Apple-Zitate aus WWDC25 219/356, aus color#Liquid-Glass-color, motion, accessibility und charts sowie aus «Adopting Liquid Glass» (aus dem Abschnitt Widersprüche) wurden nicht abgerufen. Geprüft wurde nur die HIG-Seite materials.",
+   "Ob 0.78 je aus einer Messung stammte, ist nicht beweisbar. Belegt ist nur, dass weder Repo noch Git-Verlauf eine Messquelle enthalten."
+  ],
+  "_widerleger": "widerlegen:code"
+ }
+]
