@@ -35,7 +35,7 @@
         <x-seitenkopf :titel="__('Feedback')" :zaehler="$gibtEs ? $meldungen->total() : null">
             @if($gibtEs)
                 <x-slot:aktionen>
-                    <a href="{{ route('admin.feedback.export') }}" class="np-knopf np-knopf-sekundaer">
+                    <a href="{{ route('admin.feedback.export') }}" data-hauptaktion class="np-knopf np-knopf-sekundaer">
                         <x-symbol name="arrow-down-tray" />{{ __('CSV exportieren') }}
                     </a>
                 </x-slot:aktionen>

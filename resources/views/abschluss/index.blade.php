@@ -40,7 +40,7 @@
         <x-seitenkopf :zurueck="$lernender ? route($bereich.'.learners.show', $lernender->lernender_id) : null" :titel="__('Abschluss')" :untertitel="$name">
             @if($ergebnisse !== [] && $hatManuell)
                 <x-slot:aktionen>
-                    <button type="submit" form="abschluss" class="np-knopf np-knopf-primaer"
+                    <button type="submit" form="abschluss" data-hauptaktion class="np-knopf np-knopf-primaer"
                             x-data="{ loading: false }" :disabled="loading"
                             @submit.window="if ($event.target.id === 'abschluss' && ! $event.defaultPrevented) loading = true"
                             @pageshow.window="loading = false">

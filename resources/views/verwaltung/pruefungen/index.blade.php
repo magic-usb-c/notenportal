@@ -10,14 +10,15 @@
             </nav>
             <x-slot:aktionen>
                 <a href="{{ route('settings.calendar') }}" class="np-knopf np-knopf-sekundaer">{{ __('Kalender-Abo') }}</a>
+                @php $hauptaktion = 'data-hauptaktion'; @endphp
                 @if($abgabeMoeglich)
                     <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'abgabetermin')" @endunless
-                       class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}</a>
+                       {{ $hauptaktion }} class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}</a>
                 @elseif(\App\Models\Pruefung::hatArtSpalte() && $lernende->isNotEmpty())
                     {{-- Ohne gewählte Person fragt das Menü zuerst, für wen (Fach/Modul hängen von Lehrberuf und Track ab) --}}
                     <x-dropdown align="right" width="56" content-classes="max-h-[min(24rem,70dvh)] overflow-y-auto p-1 text-text">
                         <x-slot name="trigger">
-                            <button type="button" class="np-knopf np-knopf-primaer">
+                            <button type="button" {{ $hauptaktion }} class="np-knopf np-knopf-primaer">
                                 <x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}<x-symbol name="chevron-down" strich="2" class="size-3.5" />
                             </button>
                         </x-slot>

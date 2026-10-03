@@ -33,7 +33,7 @@
                 </x-dropdown>
                 @can('noteAnlegen', $lernender)
                     <a href="{{ route("{$bereich}.learners.grades.create", $lernender->lernender_id) }}"
-                       class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note erfassen') }}</a>
+                       data-hauptaktion class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note erfassen') }}</a>
                 @endcan
             </x-slot:aktionen>
         </x-seitenkopf>

@@ -35,7 +35,7 @@
             <x-slot:aktionen>
                 <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="np-knopf np-knopf-sekundaer">{{ __('Prüfung planen') }}</a>
                 <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
-                   class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note') }}</a>
+                   data-hauptaktion class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>
@@ -144,27 +144,31 @@
                             <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
                             {{ __('Als Tabelle') }}
                         </summary>
+                        {{-- Beide Zeiträume serverseitig, der Umschalter blendet um; ohne JS gilt der Servermodus ($balkenModus) --}}
                         <div class="overflow-x-auto pb-1 pt-1">
-                            <table class="np-tabelle table-fixed text-sm">
-                                <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
-                                <colgroup><col><col class="w-20"><col class="w-28"></colgroup>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">{{ __('Fach / Modul') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Note') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Stufe') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($balken[$balkenModus]['labels'] as $i => $label)
+                            @foreach(['semester', 'lehrzeit'] as $zeitraum)
+                                @continue($balken[$zeitraum]['labels'] === [])
+                                <table class="np-tabelle table-fixed text-sm" data-zeitraum="{{ $zeitraum }}" x-show="modus === '{{ $zeitraum }}'" @if($zeitraum !== $balkenModus) x-cloak @endif>
+                                    <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
+                                    <colgroup><col><col class="w-20"><col class="w-28"></colgroup>
+                                    <thead>
                                         <tr>
-                                            <td class="text-text">{{ $label }}</td>
-                                            <td class="text-right font-semibold {{ $skala::text($balken[$balkenModus]['werte'][$i]) }}">{{ $skala::format($balken[$balkenModus]['werte'][$i], 1) }}</td>
-                                            <td class="text-right text-muted">{{ $skala::stufeName($balken[$balkenModus]['werte'][$i]) }}</td>
+                                            <th scope="col">{{ __('Fach / Modul') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Note') }}</th>
+                                            <th scope="col" class="text-right">{{ __('Stufe') }}</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($balken[$zeitraum]['labels'] as $i => $label)
+                                            <tr>
+                                                <td class="text-text">{{ $label }}</td>
+                                                <td class="text-right font-semibold {{ $skala::text($balken[$zeitraum]['werte'][$i]) }}">{{ $skala::format($balken[$zeitraum]['werte'][$i], 1) }}</td>
+                                                <td class="text-right text-muted">{{ $skala::stufeName($balken[$zeitraum]['werte'][$i]) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endforeach
                         </div>
                     </details>
                     </div>
