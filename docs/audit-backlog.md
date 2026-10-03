@@ -1082,3 +1082,21 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   Regel «≥ 0.78» in `.claude/skills/notenportal-ui`, `notenportal-dunkelmodus`, `.claude/workflows/*`
   und `docs/gui-konzept.md:115` tilgt R6-11.
 
+## R6 Welle 2 (Funktionsebene, Seitenschliff): bewusst gelassen (03.10.2026)
+
+- **`[data-hauptaktion]` ist Opt-in im Seitenkopf** (Slot `hauptaktion`) und wirkt optisch nur
+  innerhalb von `.np-glas-gruppe`; die Aktionen des Seitenkopfs liegen in der Symbolleiste noch in
+  einem schlichten Flex-Container. 7 Views tragen den Marker, 24 weitere mit `np-knopf-primaer` im
+  Slot `aktionen` bekommen ihn in ihren Seiten-Scheiben R6-08…R6-11, wenn die Leistenaktionen in
+  die Kapsel wandern. Geprüft: auf 360 gerenderten Seiten nie mehr als einer.
+- **Modal ohne `np-scroll-edge`** – es hat keinen eigenen Scrollbereich; `np-kante-hart` bleibt
+  ungenutzt, weil keine sticky Tabellenköpfe existieren.
+- **`bestaetigung.js` schluckt ein zweites Submit während der 200-ms-Ausblendung** – gewollt gegen
+  Doppelabsenden, aber ohne sichtbare Rückmeldung.
+- **Toast `fortsetzen()` setzt die Pause ohne getrennte Hover-/Fokus-Flags zurück**: verlässt die
+  Maus den Toast, während er fokussiert ist, läuft die Uhr weiter.
+- **Lehrzeit-Servermodus von «Wo stehe ich»** ist aus den Demodaten nicht testbar (kein Lernender
+  mit Server-seitigem Lehrzeit-Modus); `WoStehIchTabelleTest` deckt Semester und Umschaltung.
+- **`r605-check.mjs` liegt im Scratch**, nicht im Repo; R6-12 übernimmt die Prüfungen in
+  `tools/pruefung/notenportal-r6-pruefung.js`.
+

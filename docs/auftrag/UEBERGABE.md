@@ -316,6 +316,23 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   2560/flach/ruhig geprüft. Palette-Glas 16.8 % bleibt bis R6-05 (data-palette
                   setzt noch kein Code). Nächster Schritt: Welle 2 (R6-05 Funktionsebene + R6-06
                   Seitenschliff).
+[O] 03.10. 13:40  Welle 2 fertig (Workflow wf_c374eff4, R6-05 angenommen, R6-06 nachgebessert:
+                  doppeltes data-hauptaktion in verwaltung/pruefungen/index; Commits 3dad86a R6-05,
+                  7f861ac R6-06). Hauptsitzung schloss die Lücken ausserhalb der Agent-Dateilisten:
+                  Marker np-leiste-auswahl/np-tab-auswahl mit View-Transition-Regeln in app.css,
+                  morphUrsprung auf window.np, toter npToast aus np.js, Kapselhülle mit
+                  --np-gruppe-radius. Gemessen (r605-check.mjs, leistung.mjs, eigener Zähler):
+                  Menü-Ursprung im Auslöser (transform-origin 242.6px -25px → Punkt 1875/27 im
+                  Avatar 1852–1888/10–46), Escape → Fokus «Konto: Laura Frei», data-palette
+                  gesetzt/entfernt, Schublade nach Escape bei 100 ms sauber zu; Glas Menü offen 3.1 %
+                  (Ziel ≤ 12), Palette 11 % (16.8 → Ziel ≤ 18), Ruhe 0.6 %; Tippen p95 min-of-3
+                  /dashboard 18.7 (33.8), /admin/reports/grades 19.2 (40.6), /trainer 17.0 (33.0);
+                  Menü-Hover p95 17.1. data-hauptaktion auf 360 gerenderten Seiten nie > 1 (Opt-in,
+                  7 Views tragen es). Build 878 ms, Suite 1349 grün, Rundgang 4 Konten Exit 0 mit
+                  pipefail, Bilder dunkel 1920/2560, Menü dunkel/hell/deckend, Palette, Schublade
+                  1000 px, ruhig geprüft. ui-checker über die Funktionsebene läuft; Befunde kommen
+                  als Fix-Commit. pruefer bewusst auf R6-07a verschoben (erste Notenlogik-Scheibe).
+                  Nächster Schritt: Welle 3 (R6-07a Statistik-Service, dann R6-07b).
 ```
 
 ---
