@@ -1029,3 +1029,26 @@ Aus der Umsetzung des Dunkelmodus-Blocks offen geblieben:
   Bewegung weg. Überblendung ergänzen wäre eine zweite Transition am Blatt.
 - `np-haken`: Schalterknopf (`white`) und Auswahlpfeil (`%2386868b`) bleiben hartcodiert in SVG-Data-
   URLs; beide liegen auf eigenen Flächen (Accent bzw. Eingabefeld) und waren nicht Teil des Befunds.
+
+## R6 Welle 1 (Fundament, JS-Bausteine): bewusst gelassen (03.10.2026)
+
+Review-Empfehlungen aus dem Workflow `notenportal-r6-welle`, keine Blocker. Alles kommt in den
+geplanten Scheiben, nicht als Nachbesserung in Welle 1.
+
+- **Harte Dauern unter «Bewegung reduzieren»**: Seitenleiste 260 ms, `np-slide-down`, `np-schalter`
+  tragen noch eigene Millisekunden statt `--dauer-*`; die Variante `ruhig` greift dort erst, wenn
+  R6-02 (Materialien) und R6-05 (Bedienelemente) die Komponenten auf die Tokens umstellen.
+- **`np-grund` fehlt auf `layouts/guest.blade.php` und den Fehlerseiten**: Anmeldung und 4xx/5xx
+  liegen noch auf flachem `bg-bg`. Kommt mit R6-05 (Anmeldung) bzw. R6-11 (Fehler-/Leerzustände).
+- **`charts.js` nutzt weiter `bewegungReduziert()`**: wird in R6-04 (npChart v2) durch
+  `bewegungRuhig()` ersetzt; bis dahin existieren beide Funktionen in `np.js`.
+- **`data-leiste` hängt am Beobachter der Navigation**: `registriereLeiste()` wird aus
+  `npLeistenUeberlauf` nachgezogen; ohne Hauptnavigation (Gast-Layout) bleibt das Attribut leer.
+  Gewollt, weil es nur die Schubladenregel der Seitenleiste steuert.
+- **`x-np-licht` wird einmal beim Laden registriert**: Elemente, die später per Alpine erscheinen,
+  bekommen das Licht erst, wenn sie die Direktive selbst tragen. Reicht für Welle 1; R6-05 prüft die
+  Overlays.
+- **LCP-Rauschen**: Wiederholungen auf /dashboard lagen bei 188 und 220 ms (Basislinie Median 172,
+  Toleranz 10 %, T = 44 ms). Kein Beleg für eine Verschlechterung, aber auch keiner für «gleich»;
+  R6-12 misst drei Läufe als Median.
+

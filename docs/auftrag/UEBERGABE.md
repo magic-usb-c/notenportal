@@ -276,6 +276,23 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Palette 42rem, html[data-leiste] gegen Schubladen-Lücke, S7/S9/S10-Datenquellen.
                   Neuer Workflow notenportal-r6-welle (Umsetzung → Review → Nachbesserung).
                   Nächster Schritt: Welle 1 (R6-01 Tokens/Grund + R6-03 JS-Bausteine).
+[O] 03.10. 11:05  Welle 1 fertig (Workflow notenportal-r6-welle, beide Scheiben vom Review
+                  angenommen, Commits 56d5dcf R6-01 und f23137c R6-03). R6-01: 24 Theme-Blöcke
+                  mit --grund-hoch/--grund-akzent/--glas-licht/-kante/-schatten/--scrim/
+                  --schalter-knopf, Gletscher neu abgestimmt ohne Apple-Werte, np-grund als
+                  statische Ebene (Verlauf 168°, Akzentlicht nur mit color-mix, flach bei
+                  kontrast/reduzierter Transparenz), Bewegungstokens --dauer-1..4/--dauer-morph/
+                  --ease-feder (linear, Überschwingen 1.10 %), Variante ruhig. R6-03: np.js
+                  bewegungRuhig(), registriereLicht/Fenster/Leiste (data-fenster, data-leiste
+                  angedockt|schublade), Scrollkante schreibt --np-kante, morphUrsprung, mitRichtung.
+                  Gemessen: Build 1.58 s, ß 0, Kontrast 4670 Paare ohne Verstoss, --stufen 12 ok,
+                  --glanz=0.07 ok, Suite 1346 grün/1 übersprungen, Rundgang nina/livia/michael/
+                  laura Exit 0, Bilder 1920/2560/1000/hell geprüft; Grund gemessen (24,28,37) oben
+                  links gegen (18,21,27) unten, flach (18,21,27). Leistung nina: Ruhe p95 16.9
+                  (zweiter Lauf 17.1 auf /dashboard, innerhalb T), Anim 0, Glas 18.4 % (fällt erst
+                  mit R6-02), LCP 188/220 bzw. 192/180 – innerhalb T 44 ms, Toleranz 10 %.
+                  Review-Empfehlungen ohne Blocker nach audit-backlog («R6 Welle 1»).
+                  Nächster Schritt: Welle 1b (R6-02 Material + R6-04 Diagramme).
 ```
 
 ---
