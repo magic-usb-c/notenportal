@@ -298,6 +298,21 @@ class NotenImportTest extends TestCase
     }
 
     #[Test]
+    public function vorschau_verwerfen_fragt_vorher_nach(): void
+    {
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;M908;LB1;4,5;50%\n";
+        $this->actingAs($this->user)
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
+
+        $this->get(route('learner.grades.import.index'))
+            ->assertOk()
+            ->assertSee('id="import-verwerfen"', false)
+            ->assertSee('data-bestaetigen="Vorschau verwerfen?"', false)
+            ->assertSee('data-bestaetigen-text="Alle Korrekturen gehen verloren."', false)
+            ->assertSee('data-bestaetigen-knopf="Verwerfen"', false);
+    }
+
+    #[Test]
     public function berufsbildner_importieren_keine_noten_admin_schon(): void
     {
         $lernenderId = (int) $this->user->lernender->lernender_id;

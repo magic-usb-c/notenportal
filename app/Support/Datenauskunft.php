@@ -503,7 +503,7 @@ final class Datenauskunft
         return $metadaten;
     }
 
-    /** Abonnierte Kalender (Label/URL, keine internen Tokens) und ihre Termine. */
+    /** Abonnierte Kalender (Label und Host der Feed-Adresse – nie Pfad oder Token) und ihre Termine. */
     private function kalender(Lernender $lernender): ?array
     {
         $feeds = CalendarFeed::where('lernender_id', $lernender->lernender_id)->get();
@@ -527,7 +527,7 @@ final class Datenauskunft
         return [
             'abonnements' => $feeds->map(fn (CalendarFeed $f) => [
                 'label' => $f->label,
-                'url' => $f->url,
+                'host' => $f->host(),
                 'zuletzt_synchronisiert' => optional($f->last_synced_at)->toIso8601String(),
                 'status' => $f->last_status,
             ])->all(),

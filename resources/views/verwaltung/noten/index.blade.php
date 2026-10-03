@@ -24,6 +24,9 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
+                        @can('noteAnlegen', $lernender)
+                            <x-dropdown-link href="{{ route($bereich.'.learners.grades.import.index', $lernender->lernender_id) }}">{{ __('Importieren…') }}</x-dropdown-link>
+                        @endcan
                         <x-dropdown-link href="{{ route($bereich.'.learners.grades.print', $lernender->lernender_id) }}" target="_blank">{{ __('Drucken') }}</x-dropdown-link>
                         <x-dropdown-link href="{{ route($bereich.'.learners.grades.export', ['lernender_id' => $lernender->lernender_id, ...request()->only(['semester_id', 'kategorie_id'])]) }}">CSV</x-dropdown-link>
                     </x-slot>

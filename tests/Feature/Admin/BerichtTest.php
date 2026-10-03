@@ -10,6 +10,7 @@ use App\Models\Note;
 use App\Models\User;
 use App\Services\Bericht;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -28,6 +29,42 @@ class BerichtTest extends TestCase
                 ->assertOk()
                 ->assertSee('Berichtmann');
         }
+    }
+
+    #[Test]
+    public function kachel_kritisch_oeffnet_die_lernendenliste_mit_denselben_filtern(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
+        $bb = User::factory()->berufsbildner()->create()->berufsbildner->berufsbildner_id;
+
+        $mitFilter = route('admin.learners.index', ['warnung' => 'kritisch', 'lehrberuf_id' => $lehrberuf, 'berufsbildner_id' => $bb]);
+        $this->actingAs($admin)
+            ->get(route('admin.reports.grades', ['semester' => 'alle', 'lehrberuf_id' => $lehrberuf, 'berufsbildner_id' => $bb]))
+            ->assertOk()
+            ->assertSee('href="'.e($mitFilter).'"', false);
+
+        $ohneFilter = route('admin.learners.index', ['warnung' => 'kritisch']);
+        $this->get(route('admin.reports.grades', ['semester' => 'alle']))
+            ->assertOk()
+            ->assertSee('href="'.e($ohneFilter).'"', false);
+    }
+
+    #[Test]
+    public function kachel_ungenuegend_sortiert_die_lernendentabelle_und_springt_dorthin(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->get(route('admin.reports.grades', ['semester' => 'alle']))
+            ->assertOk()
+            ->assertSee('sort=ungenuegend&amp;dir=desc#lernende"', false)
+            ->assertSee('id="lernende"', false);
+
+        // Schon so sortiert: nur noch zur Tabelle springen, ohne die Seite neu zu laden
+        $this->get(route('admin.reports.grades', ['semester' => 'alle', 'sort' => 'ungenuegend', 'dir' => 'desc']))
+            ->assertOk()
+            ->assertSee('href="#lernende"', false);
     }
 
     #[Test]

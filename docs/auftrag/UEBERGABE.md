@@ -276,3 +276,16 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
   nichts. Entscheid: Netzrichtlinie der Umgebung um `codeload.github.com` erweitern (dann läuft der
   direkte Weg mit Packagist-Hashes), eigener Spiegel, oder das Restrisiko für Wegwerf-Container
   bewusst tragen.
+- **Rückdatierte Betreuung löscht abgelöste Zeiträume hart** (`BetreuungController::store()`
+  Z. 38-43, gleich in `beenden()`): wer einen Wechsel rückdatiert, entfernt jede Betreuung, die am
+  neuen Datum oder später begann – ohne Papierkorb, die Historie der Lernenden verliert den Eintrag.
+  Der Verifier hält das für gewollt (Kommentar im Controller) und sieht keinen sicheren Minimal-Fix:
+  `after_or_equal:today` bräche die getestete Rückdatierung, ein Eintagsrest hielte den abgelösten
+  Berufsbildner heute noch aktiv, SoftDeletes verlangte sechs Raw-Queries anzupassen. Entscheid: so
+  lassen, oder Betreuungshistorie als Audit-Daten behandeln (dann eigener Block).
+- **Semesterdaten bleiben änderbar, obwohl Noten im Semester liegen**
+  (`StammdatenSemesterController::update()`): laut `funktionsumfang.md` sind nur leere Semester
+  löschbar, Bearbeiten ist frei. Noten behalten ihre gespeicherte `semester_id`; erst beim späteren
+  Bearbeiten einer Note ordnet `NoteService::pruefeZeile` sie neu zu oder weist sie ab. Entscheid:
+  so lassen (Korrektur von Tippfehlern bleibt möglich), oder Datumsfelder bei belegten Semestern
+  sperren (dann auch für weich gelöschte Noten definieren).

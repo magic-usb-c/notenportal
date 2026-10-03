@@ -205,7 +205,8 @@
                         </div>
                     </div>
                 </form>
-                <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden">@csrf</form>
+                <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden"
+                      data-bestaetigen="{{ __('Vorschau verwerfen?') }}" data-bestaetigen-text="{{ __('Alle Korrekturen gehen verloren.') }}" data-bestaetigen-knopf="{{ __('Verwerfen') }}">@csrf</form>
             @endif
         </div>
     </div>

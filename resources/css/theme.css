@@ -78,7 +78,7 @@
   --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
   --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
   --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
-  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+  --note-ungenuegend: 255 158 150; /* oklch(0.8 0.12 25); Marke mit 14 % Tint: Karte 5.29, Zebra 4.88, Hover 4.50 */
 
   /* Diagramme: Systemfarben dunkel (Standard), jede ≥ 3.8:1 auf der Karte */
   --chart-1: 0 145 255;            /* Blue */

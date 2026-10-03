@@ -3,7 +3,7 @@
     $npLogoAlt = \App\Support\Einstellungen::get(\App\Support\Einstellungen::BETRIEB_NAME) ?: config('app.name');
 @endphp
 @if($npLogoUrl)
-    <img src="{{ $npLogoUrl }}" alt="{{ $npLogoAlt }}" {{ $attributes->merge(['class' => 'w-auto']) }}>
+    <img src="{{ $npLogoUrl }}" alt="{{ $npLogoAlt }}" {{ $attributes->merge(['class' => 'w-auto np-logo']) }}>
 @else
     <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" {{ $attributes->merge(['class' => 'text-accent']) }}>
         <rect x="1" y="1" width="30" height="30" rx="9" fill="currentColor" opacity="0.14"/>

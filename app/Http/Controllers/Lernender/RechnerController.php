@@ -33,6 +33,7 @@ class RechnerController extends Controller
             'start' => Rechner::start($request->only(['ziel', 'zielwert']), $daten),
             'lernender' => null,
             'zurueck' => null,
+            'drawerFehler' => $this->noteService->drawerNachFehler($request, $lernender),
         ]);
     }
 

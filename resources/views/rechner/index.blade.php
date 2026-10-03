@@ -318,4 +318,9 @@
             </div>
         </div>
     </div>
+
+    @unless($lernender)
+        {{-- Erfassen im Drawer wie auf /grades: öffnet «Note erfassen» im Ergebnis ohne Noten --}}
+        <x-noten-drawer :fehler="$drawerFehler ?? null" />
+    @endunless
 </x-app-layout>

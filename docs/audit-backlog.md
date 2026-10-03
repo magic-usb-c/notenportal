@@ -965,3 +965,67 @@ Feedback-Eintrag auf /feedback aktiv, Abschluss-Notenfelder bündig, acht Listen
   `<colgroup>`.
 - Einrichtung, Schritt Kategorien: das Flag `einrichtung_kategorien` setzt nur der Einrichtungsschritt (`EinrichtungController`), nicht die reguläre Kategorienseite – wer Kategorien dort pflegt, sieht in der Einrichtung «noch nicht bestätigt», bis der Schritt einmal gespeichert ist. Gewollt: der Schritt ist die Bestätigung (Prüfer-Notiz 02.10.).
 - Aktivitätsprotokoll: ob die Spalten Ziel und Details erscheinen, entscheidet jede Seite für sich (`$hatZiel`/`$hatDetails` über die Zeilen der Seite) – zwischen Seite 1 und 2 kann der Spaltensatz wechseln. Gelassen: eine zweite Abfrage über alle Treffer je Aufruf wäre teurer als der Effekt (Prüfer-Notiz 02.10.).
+
+## R5 Audit-Workflow: bewusst gelassen (02.10.2026)
+
+Workflow `notenportal-audit` (72 Agents, Dunkelmodus/Design/UX Lernende/UX Verwaltung/Korrektheit,
+jeder Befund gegnerisch verifiziert): 33 Befunde, 20 bestätigt und umgesetzt (Commit siehe Übergabe),
+13 verworfen. Die verworfenen mit dem Grund des Verifiers:
+
+- **Vorderste Ebene fehlt (Drawer, Dialog, Alert in `bg-card`)**: `notenportal-ui` §2 führt den Dialog
+  ausdrücklich unter `bg-card`; die Stufe «Overlay heller als Karte» in `notenportal-dunkelmodus` §2 ist
+  dort als Übertragung markiert, die HIG nennt base/elevated nur unter iOS/iPadOS. Bei offenem Blatt
+  dunkelt der Scrim (0.45) alles dahinter ab, das Blatt ist die hellste Fläche und trägt Haarlinie plus
+  `--elev-3`. Der Regelkonflikt der zwei Skills bleibt notiert; aufgelöst wird er mit dem nächsten
+  Token-Entscheid, nicht mit einem vierten Flächen-Token.
+- **Monatsraster der Agenda (Punktfarbe, mehrere Akzentflächen)**: der Navigationszähler entsteht nur
+  für Admin-Feedback, Heute-Kreise stehen in sich ausschliessenden Zweigen, der einzige `bg-accent`-Knopf
+  ist die Primäraktion. Der vorgeschlagene Ring übernähme dieselbe reine Farbtrennung Prüfung/Termin
+  aus `AgendaArt` – kein Gewinn.
+- **Karten mit `max-w-4xl` bis `max-w-7xl`**: Entscheid vom selben Tag (3d63e7e, «Listenkarten auf die
+  Breite ihrer Spalten begrenzen»); Karten sitzen linksbündig in `np-seite`, D6 (springende Achse)
+  entsteht nicht.
+- **Leerzustände ohne nächsten Schritt** (Fächer, Kategorien, Semester, Module, Lehrberufe,
+  Notenbäume): der nächste Schritt ist die einzige Primäraktion im Seitenkopf, gleichzeitig sichtbar;
+  `x-leer` erlaubt null Aktionen. Dass andere Listen die Aktion im Slot wiederholen, ist eine
+  Einheitlichkeitsfrage, kein Verstoss.
+- **Hinweistexte** (Kalender-Abo, Darstellung, Kalender-Anleitungen, externe Kalender, Benutzer
+  anlegen): schon in «R5 Sichtprüfung» entschieden; jeder Satz nennt eine Folge oder verhindert eine
+  falsche Erwartung (Portaländerungen fliessen nicht in den Quellkalender zurück). Einzig das Wort
+  «aktuell» in `kalender-anleitungen.blade.php:25` klingt nach Entwicklungsstand – Textpflege, kein Fix.
+- **Versalien/Typo-Reste in der Einrichtung**: `uppercase` am Kürzelfeld zeigt den gespeicherten Wert
+  (`mb_strtoupper` im Controller); `normal-case` in `people.blade.php:3` ist wirkungslos,
+  `tracking-normal` und `px-2` weichen bei «lesefreundlich» von `np-feld` ab (Aufräumarbeit, kein
+  Regelverstoss); der Rahmen in `people.blade.php:88` wäre als `bg-fill-2`-Fläche konsistenter – alle
+  drei als Kleinigkeiten für die nächste Einrichtungs-Session.
+- **Agenda: Speichern führt zur Notenseite**: gilt in der ganzen App (Dashboard, Notenseite, Agenda);
+  Abbrechen bleibt im Kontext. Ein Sonderweg für die Agenda schüfe die Uneinheitlichkeit, die er beheben
+  soll. Die Redirects im `PruefungenController` verlieren `ansicht`/`monat` – Gestaltungsfrage.
+- **«Offene Meldungen» öffnet die ungefilterte Feedback-Liste**: der Admin-Eintrag «Feedback» ist der
+  Posteingang mit Ungelesen-Markierung (Entscheid R4 Admin); spürbar erst, wenn eine offene Meldung
+  hinter 25 erledigten auf Seite 2 liegt.
+- **Cockpit ohne Drill-down (Prüfungen, Aktivität, Zeugnisnoten)**: das Cockpit lädt nur offene
+  Prüfungen (Zweig «mit Note» wäre tot), die Heatmap kennt keine `kategorie_id` (Link wäre zu grob)
+  und ist eine gemeinsame Komponente. «Noten ansehen» und die Reiter sind der Weg.
+- **Berufsbildner-Tabellen ohne Zeilenlink**: `data-href` ist eine Bauanleitung, keine Pflicht; jede
+  Zahl führt in die gefilterte Lernendenliste (Kommentar Z. 1), `cursor: pointer` nur auf `tr[data-href]`.
+- **Gewichteter Durchschnitt in `Schulnetz::schnitt()`**: Zuordnungsheuristik beim Parsen (bildet die
+  Schulnetz-Formel nach, Ergebnis wird verworfen); `Auswertung` wäre hier fachlich falsch.
+  `ImportFormateTest` deckt den Fall ab.
+- **Rückdatierte Betreuung löscht abgelöste Zeiträume hart** und **Semesterdaten trotz Noten
+  änderbar**: beides Produktentscheide mit Datenwirkung, stehen unter «Offen für David» in der
+  Übergabe mit den Gründen des Verifiers.
+
+Aus der Umsetzung des Dunkelmodus-Blocks offen geblieben:
+
+- **Marke «ungenügend»/«knapp» auf Hover-Zeilen unter 4.5:1 in anderen Themes**: mit dem neuen
+  Gletscher-dunkel-Rot (255 158 150) liegt die Marke auf Karte 5.29, Zebra 4.88, Hover 4.50. Gleiches
+  Verfahren über alle Theme-Blöcke: ungenügend dunkel `papier` 4.20 und `bernstein` 4.31, ungenügend
+  hell 4.19–4.33 und knapp hell 4.09–4.19 in allen Themes (auf Karte und Zebra meist darüber). Hell ist
+  nicht Massstab, die zwei Dunkelthemes brauchen je einen eigenen Ton – Token-Arbeit je Theme, nicht
+  ein Fix.
+- **Drawer bei «Bewegung reduzieren»**: das Blatt erscheint ohne Überblendung (nur der Scrim blendet),
+  weil der `aside` keine Opazitäts-Transition hat; `motion-reduce:translate-x-0` nimmt nur die
+  Bewegung weg. Überblendung ergänzen wäre eine zweite Transition am Blatt.
+- `np-haken`: Schalterknopf (`white`) und Auswahlpfeil (`%2386868b`) bleiben hartcodiert in SVG-Data-
+  URLs; beide liegen auf eigenen Flächen (Accent bzw. Eingabefeld) und waren nicht Teil des Befunds.

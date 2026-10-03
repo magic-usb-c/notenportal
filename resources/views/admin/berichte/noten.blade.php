@@ -20,6 +20,9 @@
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
     $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
+    // «Kritisch» öffnet die Lernendenliste mit demselben Lehrberuf und Berufsbildner, «Ungenügend» sortiert die Tabelle unten
+    $kritischUrl = route('admin.learners.index', array_filter(['warnung' => 'kritisch', 'lehrberuf_id' => $filter['lehrberuf_id'], 'berufsbildner_id' => $filter['berufsbildner_id']]));
+    $ungenuegendUrl = $sort === 'ungenuegend' && $dir === 'desc' ? '#lernende' : request()->fullUrlWithQuery(['sort' => 'ungenuegend', 'dir' => 'desc']).'#lernende';
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Berichte') }}</x-slot>
@@ -69,8 +72,8 @@
             <div @class(['grid gap-4', 'grid-cols-5' => $sid, 'grid-cols-4' => ! $sid])>
                 <x-kachel :label="__('Lernende')" :wert="$k['lernende']" />
                 <x-kachel :label="__('Ø Gesamtnote')" :note="$k['schnitt']" />
-                <x-kachel :label="__('Kritisch')" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="__(':gelb beobachten', ['gelb' => $k['gelb']])" :href="$sortUrl('status')" />
-                <x-kachel :label="__('Ungenügende Zeugnisnoten')" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="__('von :n', ['n' => $k['zeugnisnoten']])" />
+                <x-kachel :label="__('Kritisch')" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="__(':gelb beobachten', ['gelb' => $k['gelb']])" :href="$kritischUrl" />
+                <x-kachel :label="__('Ungenügende Zeugnisnoten')" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="__('von :n', ['n' => $k['zeugnisnoten']])" :href="$ungenuegendUrl" />
                 @if($sid)
                     <x-kachel :label="__('Promotion gefährdet')" :wert="$k['gefaehrdet']" :ton="$k['gefaehrdet'] ? 'rot' : 'neutral'" />
                 @endif
@@ -183,7 +186,7 @@
                 </x-karte>
             @endif
 
-            <x-karte :titel="__('Lernende')" :polster="false">
+            <x-karte id="lernende" :titel="__('Lernende')" :polster="false">
                 <div class="px-2 pb-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>

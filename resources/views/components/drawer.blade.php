@@ -55,11 +55,11 @@
     <aside
         x-show="offen"
         x-transition:enter="transition-transform ease-out duration-200"
-        x-transition:enter-start="translate-x-[calc(100%+1rem)]"
+        x-transition:enter-start="translate-x-[calc(100%+1rem)] motion-reduce:translate-x-0"
         x-transition:enter-end="translate-x-0"
         x-transition:leave="transition-transform ease-in duration-150"
         x-transition:leave-start="translate-x-0"
-        x-transition:leave-end="translate-x-[calc(100%+1rem)]"
+        x-transition:leave-end="translate-x-[calc(100%+1rem)] motion-reduce:translate-x-0"
         role="dialog"
         aria-modal="true"
         @if($titel) aria-label="{{ $titel }}" @endif

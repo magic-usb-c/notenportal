@@ -33,6 +33,8 @@
                     @csrf
                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zu meinen Modulen hinzufügen') }}</button>
                 </form>
+            @elseif($lernender && $belegt)
+                <a href="{{ route('learner.grades.create', ['bezug' => 'modul:'.$modul->modul_id]) }}" class="np-knopf np-knopf-primaer">{{ __('Note erfassen') }}</a>
             @endif
         </div>
     </header>

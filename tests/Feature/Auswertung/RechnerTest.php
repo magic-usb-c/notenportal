@@ -91,6 +91,22 @@ class RechnerTest extends TestCase
     }
 
     #[Test]
+    public function der_knopf_note_erfassen_hat_auf_der_rechnerseite_einen_drawer_der_ihn_oeffnet(): void
+    {
+        $html = (string) $this->actingAs($this->user)->get(route('learner.grades.calculator'))->assertOk()->getContent();
+
+        // Wer «np-note» auslöst, braucht einen Hörer; sonst bleibt der Knopf ohne Wirkung.
+        $this->assertStringContainsString("\$dispatch('np-note'", $html);
+        $this->assertStringContainsString('x-on:np-note.window', $html);
+
+        // Die Verwaltung erfasst keine Noten für Lernende: kein Knopf, kein Drawer.
+        $verwalter = $this->verwalter('admin', $this->lernender);
+        $verwaltung = (string) $this->actingAs($verwalter)->get(route('admin.learners.calculator', $this->lernender->lernender_id))->assertOk()->getContent();
+        $this->assertStringNotContainsString("\$dispatch('np-note'", $verwaltung);
+        $this->assertStringNotContainsString('x-on:np-note.window', $verwaltung);
+    }
+
+    #[Test]
     #[DataProvider('verwalterRollen')]
     public function rechner_spricht_in_der_verwaltung_die_person_an_statt_du(string $bereich): void
     {
