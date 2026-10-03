@@ -9,7 +9,8 @@ export const meta = {
   ],
 }
 
-const A = args || {}
+// args kann als JSON-Text ankommen (Tool-Aufruf mit String) – dann parsen
+const A = typeof args === 'string' ? JSON.parse(args) : (args || {})
 const SCHEIBEN = Array.isArray(A.scheiben) ? A.scheiben : []
 const DBS = Array.isArray(A.dbs) ? A.dbs : ['notenportal_b_test', 'notenportal_c_test']
 const ENV = A.env || '/tmp/claude-0/-home-user-notenportal/7db961ca-89ac-5783-9806-aac8c1a98bdd/scratchpad/env.sh'
