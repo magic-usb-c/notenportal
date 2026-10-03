@@ -14,11 +14,11 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($faecher->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-7xl">
                     <x-leer symbol="book-open" :titel="__('Noch keine Fächer erfasst.')" />
                 </div>
             @else
-                <div class="np-karte p-2">
+                <div class="np-karte max-w-7xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>
                             <tr>

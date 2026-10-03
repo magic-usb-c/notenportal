@@ -8,8 +8,8 @@
 {{--
     Grosser Titel der Seite (HIG «Toolbars»: large title). Titel, Zurück und Aktionen gehen zusätzlich als Stack
     an die Symbolleiste (layouts/navigation): der Titel erscheint dort klein, sobald der grosse beim Scrollen
-    unter ihr verschwindet; die Aktionen (Slot «aktionen», höchstens eine Primäraktion) stehen hinten in der
-    Leiste und bleiben so immer erreichbar. Default-Slot: Bedienelement direkt neben dem Titel.
+    unter ihr verschwindet; die Aktionen (Slot «aktionen», höchstens eine Primäraktion; die Hauptaktion auch als
+    Slot «hauptaktion») stehen hinten in der Leiste und bleiben so immer erreichbar. Default-Slot: Bedienelement direkt neben dem Titel.
     Die Slots werden vor dem Layout gerendert, deshalb kommen die Stacks rechtzeitig an.
 --}}
 @push('np-titel'){{ $titel }}@endpush
@@ -20,6 +20,11 @@
 @endif
 @isset($aktionen)
     @push('np-aktionen'){{ $aktionen }}@endpush
+@endisset
+{{-- Slot «hauptaktion» (G12): die eine Hauptaktion der Seite, ganz rechts in der Symbolleiste hinter den übrigen Aktionen.
+     Die Hülle trägt data-hauptaktion; ein Element darin trägt es nicht noch einmal. --}}
+@isset($hauptaktion)
+    @push('np-aktionen')<span data-hauptaktion class="contents">{{ $hauptaktion }}</span>@endpush
 @endisset
 <div {{ $attributes->class(['flex flex-wrap items-end justify-between gap-x-4 gap-y-3', 'np-spalte' => $schmal]) }}>
     {{-- Bedienelement neben dem Titel auf dessen Zeile, die Metazeile darunter über die ganze Breite --}}

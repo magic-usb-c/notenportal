@@ -40,7 +40,7 @@
         <x-seitenkopf :zurueck="$lernender ? route($bereich.'.learners.show', $lernender->lernender_id) : null" :titel="__('Abschluss')" :untertitel="$name">
             @if($ergebnisse !== [] && $hatManuell)
                 <x-slot:aktionen>
-                    <button type="submit" form="abschluss" class="np-knopf np-knopf-primaer"
+                    <button type="submit" form="abschluss" data-hauptaktion class="np-knopf np-knopf-primaer"
                             x-data="{ loading: false }" :disabled="loading"
                             @submit.window="if ($event.target.id === 'abschluss' && ! $event.defaultPrevented) loading = true"
                             @pageshow.window="loading = false">
@@ -61,7 +61,8 @@
                     @endif
                 </x-leer>
             @else
-                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10">
+                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10"
+                      x-data x-init="$nextTick(() => { const feld = $el.querySelector('[aria-invalid]'); if (feld) { feld.focus({ preventScroll: true }); feld.scrollIntoView({ block: 'center' }); } })">
                     @csrf
                     @method('PUT')
 
@@ -176,7 +177,7 @@
                                             @endphp
                                             <tr>
                                                 <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
-                                                    <div @class(['wrap-break-word text-text', 'font-medium' => $gruppe])>{{ $k->name }}</div>
+                                                    <div @class(['wrap-break-word text-text', 'font-semibold' => $gruppe])>{{ $k->name }}</div>
                                                     @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                 </td>
                                                 <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>
@@ -188,7 +189,7 @@
                                                         <input id="wert-{{ $k->id }}" name="werte[{{ $k->id }}]" inputmode="decimal" autocomplete="off"
                                                                value="{{ old($feld, $position ? NotenSkala::format($position->note_wert) : '') }}"
                                                                @error($feld) aria-invalid="true" aria-describedby="wert-{{ $k->id }}-fehler" @enderror
-                                                               class="np-feld np-feld-klein ml-auto w-18 px-2 text-right tabular-nums" placeholder="–">
+                                                               class="np-feld np-feld-klein -mr-2 ml-auto w-18 px-2 text-right tabular-nums" placeholder="–">
                                                     @elseif($z['e']->note !== null)
                                                         <x-note :wert="$z['e']->note" :stellen="$k->rundung === 1.0 || $k->rundung === 0.5 ? null : 1" />
                                                     @else

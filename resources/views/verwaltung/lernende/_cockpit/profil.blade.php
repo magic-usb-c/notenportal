@@ -94,7 +94,7 @@
         </div>
         @can('betreuungVerwalten', $lernender)
             <form method="POST" action="{{ route("{$bereich}.learners.supervision.store", $lernender->lernender_id) }}"
-                  class="mt-auto grid grid-cols-[minmax(0,1fr)_10rem_auto] items-end gap-3 border-t border-border bg-fill-2 px-5 py-4"
+                  class="mt-auto grid grid-cols-[minmax(0,1fr)_10rem_auto] items-end gap-3 border-t border-border px-5 py-4"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
                   @if($hatOffeneBetreuung) data-bestaetigen="{{ __('Betreuung zuweisen?') }}" data-bestaetigen-text="{{ __('Die bisherige Betreuung endet am Vortag.') }}" data-bestaetigen-knopf="{{ __('Zuweisen') }}" data-bestaetigen-art="normal" @endif>
                 @csrf
@@ -170,7 +170,7 @@
         </div>
         @can('verwalten', $lernender)
             <form method="POST" action="{{ route("{$bereich}.learners.tracks.store", $lernender->lernender_id) }}"
-                  class="mt-auto grid grid-cols-[6rem_10rem_minmax(0,1fr)_auto] items-end gap-3 border-t border-border bg-fill-2 px-5 py-4"
+                  class="mt-auto grid grid-cols-[6rem_10rem_minmax(0,1fr)_auto] items-end gap-3 border-t border-border px-5 py-4"
                   x-data="{
                       loading: false,
                       start: {{ Js::from((string) old('start_datum', now()->toDateString())) }},

@@ -22,11 +22,11 @@
                         <div class="np-karte np-gruppe">
                             @foreach($gruppen[$gruppeKey] as $a)
                                 <x-einstellung :label="$a['label']" :name="'frequenz-'.$a['type']" :fehler="'frequenz.'.$a['type']"
-                                               :hinweis="$a['mandatory'] ? $a['description'].' '.__('Vom Betrieb festgelegt.') : $a['description']">
+                                               :hinweis="$a['description']">
                                     @if($a['mandatory'])
                                         {{-- vom Betrieb festgelegt: keine Wahl, deshalb kein (deaktiviertes) Bedienelement --}}
-                                        <span class="inline-flex items-center gap-1.5 text-sm text-muted">
-                                            <x-symbol name="lock-closed" class="size-3.5" />{{ __($frequenzen[$a['aktuell']] ?? $a['aktuell']) }}
+                                        <span class="inline-flex items-center gap-1.5 text-sm text-muted" title="{{ __('Vom Betrieb festgelegt.') }}">
+                                            <x-symbol name="lock-closed" class="size-3.5" /><span class="sr-only">{{ __('Vom Betrieb festgelegt.') }}</span>{{ __($frequenzen[$a['aktuell']] ?? $a['aktuell']) }}
                                         </span>
                                     @else
                                         <div class="np-segment" role="radiogroup" aria-labelledby="frequenz-{{ $a['type'] }}-bez">

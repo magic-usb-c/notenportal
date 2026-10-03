@@ -63,6 +63,26 @@ class NotenErfassenVerbotTest extends TestCase
     }
 
     #[Test]
+    public function berufsbildner_sieht_importieren_im_menue_nicht(): void
+    {
+        $this->actingAs($this->bb)
+            ->get(route('trainer.learners.grades.index', $this->lernender->lernender_id))
+            ->assertOk()
+            ->assertDontSee(route('trainer.learners.grades.import.index', $this->lernender->lernender_id))
+            ->assertDontSee('Importieren…');
+    }
+
+    #[Test]
+    public function admin_findet_importieren_im_menue_der_notenseite(): void
+    {
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('admin.learners.grades.index', $this->lernender->lernender_id))
+            ->assertOk()
+            ->assertSee(route('admin.learners.grades.import.index', $this->lernender->lernender_id))
+            ->assertSee('Importieren…');
+    }
+
+    #[Test]
     public function admin_darf_erfassen(): void
     {
         $this->bmsTrack($this->lernender, Semester::factory()->create()->semester_id);

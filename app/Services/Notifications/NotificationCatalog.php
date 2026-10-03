@@ -104,7 +104,7 @@ final class NotificationCatalog
                 'frequency' => self::IMMEDIATE, 'frequencies' => $sofortOderNie, 'params' => [],
             ],
             self::COMMENT_ADDED => [
-                'label' => __('Neuer Kommentar'), 'description' => __('Jemand hat eine Note kommentiert – Lernende erfahren es vom Berufsbildner, Berufsbildner von ihren Lernenden.'),
+                'label' => __('Neuer Kommentar'), 'description' => __('Jemand hat eine Note kommentiert.'),
                 'group' => 'noten', 'roles' => ['Lernender', 'Berufsbildner'], 'enabled' => true, 'mandatory' => false,
                 'frequency' => self::IMMEDIATE, 'frequencies' => $alle, 'params' => [],
             ],

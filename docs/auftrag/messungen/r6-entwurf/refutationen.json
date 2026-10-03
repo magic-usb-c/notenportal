@@ -1,0 +1,331 @@
+{
+ "quellen": {
+  "widerlegt": [
+   {
+    "behauptung": "G21: «applying a background extension effect» (HIG sidebars#Best-practices) stützt np-grund statt Inhalt unter der Seitenleiste.",
+    "beleg": "HIG sidebars#Best-practices: «To reinforce the separation, you can extend content beneath the sidebar either by letting it horizontally scroll or by applying a background extension effect. A background extension effect mirrors adjacent content to give the impression of stretching it under the sidebar.» – adopting-liquid-glass: «A background extension effect mirrors the adjacent content to give the impression of stretching it under the sidebar, and applies a blur to maintain legibility of the sidebar or inspector.» Apple meint gespiegelten Inhalt plus Weichzeichner; np-grund ist ein statischer Token-Verlauf hinter allem, und Vorentscheidung 1 tut das Gegenteil des Satzzwecks («extend content beneath»). Teilstütze nur WWDC25/356: «Use it for hero images, tinted backgrounds, or any surface meant to feel expansive.»",
+    "folge_fuer_plan": "G21 als «angelehnt» kennzeichnen, nicht als Apple-Vorgabe; Zitat durch WWDC25/356 «tinted backgrounds» ergänzen und offen sagen, dass Apples Effekt Inhalt spiegelt und weichzeichnet, np-grund nicht. Kernbehauptung «Stütze für np-grund» entsprechend abschwächen."
+   },
+   {
+    "behauptung": "G17: «consider offering the data in other ways, such as in a list or table» (HIG charting-data) begründet «Tabelle immer» neben dem Diagramm.",
+    "beleg": "HIG charting-data, voller Satz: «Not every collection of data needs to be displayed in a chart. If you simply need to provide data – and you don’t need to convey information about it or help people analyze it – consider offering the data in other ways, such as in a list or table that people can scroll, search, and sort.» Gemeint ist eine Tabelle STATT eines Diagramms, nicht zusätzlich. Passende Quelle für die Zusammenfassung: HIG charts#Enhancing-the-accessibility-of-a-chart «If you don’t use Audio Graphs, you need to provide an overview of the chart’s structure and purpose.»",
+    "folge_fuer_plan": "«Tabelle immer» als Repo-Entscheidung (Vorentscheidung 8) ohne Apple-Zuschreibung führen; als Apple-Quelle für die Zusammenfassung den Audio-Graphs-Satz zitieren. Für die Filter die echte HIG-Grundlage ergänzen: charting-data «you might let people choose to view different levels of detail or subsets of data to match their interest»."
+   },
+   {
+    "behauptung": "G3/§9: Rückmeldung «durch Licht, nicht durch Grösse», Knöpfe skalieren nie – mit Apple begründet («illuminates from within»).",
+    "beleg": "WWDC25/219: «Liquid Glass responds to interaction by instantly flexing and energizing with light.» und «Reduced Motion decreases the intensity of some effects and disables any elastic properties for the material.» Apples Rückmeldung ist Licht UND Verformung; der Zitatsatz «illuminates from within» stimmt wörtlich, trägt aber das «nicht durch Grösse» nicht.",
+    "folge_fuer_plan": "«Knöpfe skalieren nie» als Repo-Regel (app.css:702-705) ausweisen, nicht als Apple-Grundsatz; G3 nur für den Licht-Teil auf WWDC25/219 stützen."
+   },
+   {
+    "behauptung": "G4: «Limit the use of Liquid Glass effects onscreen at the same time.» (SwiftUI applying-liquid-glass-to-custom-views) als Gestaltungsgrundsatz «sparsam».",
+    "beleg": "Der Satz steht unter «Optimize performance when using Liquid Glass effects»: «Creating too many Liquid Glass effect containers and applying too many effects to views outside of containers can degrade performance. Limit the use of Liquid Glass effects onscreen at the same time.» Die gestalterische Quelle ist HIG materials#Liquid-Glass: «Use Liquid Glass effects sparingly. … Limit these effects to the most important functional elements in your app.»",
+    "folge_fuer_plan": "G4 auf HIG materials#Liquid-Glass umstellen; das SwiftUI-Zitat nur als Leistungsbegründung für das Glas-Budget (§4.2) verwenden – dort passt es."
+   },
+   {
+    "behauptung": "G10: Abdunkelung «bei Palette, Schublade, Dialog» mit WWDC25/356 «pair Liquid Glass with a dimming layer to help center attention».",
+    "beleg": "WWDC25/356, Satz und Folgesatz: «When a task interrupts the main flow, pair Liquid Glass with a dimming layer to help center attention, making the sheet feel like a clear, purposeful space. On the other hand, when a task happens in parallel, Liquid Glass creates a natural separation to help keep things clear without breaking the flow.» Abdunkelung nur bei unterbrechenden Aufgaben.",
+    "folge_fuer_plan": "Für Palette und Dialog trägt das Zitat. Für die Schublade (Navigation) begründen, warum sie den Ablauf unterbricht, oder die Zitatstütze auf Palette/Dialog beschränken und den Schubladen-Scrim als Repo-Entscheidung führen."
+   },
+   {
+    "behauptung": "§9 Weichzeichner in der Scrollkante: «die Kante ist laut HIG kein Glas («aren’t decorative»)».",
+    "beleg": "HIG scroll-views#Scroll-edge-effects: «Scroll edge effects aren’t decorative. They don’t block or darken like overlays; they exist to ensure controls stay visually distinct.» Der Satz sagt nichts darüber, ob die Kante Glas ist. Was die Trennung belegt: WWDC25/219 «Scroll edge effects work in concert with Liquid Glass to maintain that crucial separation between the UI and content layers».",
+    "folge_fuer_plan": "Begründung umformulieren: Scrollkante ist eigener Effekt neben dem Glas (WWDC25/219 «work in concert with Liquid Glass»); «aren’t decorative» nur als Beleg für «Kante nur, wo Inhalt unter schwebenden Elementen läuft» verwenden. Verwerfungsgrund Kosten/Repo-Regel bleibt."
+   },
+   {
+    "behauptung": "§9 Scroll-getriebene Animationen verworfen wegen «peripheral motion» (HIG accessibility#Cognitive).",
+    "beleg": "HIG accessibility#Cognitive: «People who are prone to these effects can turn on the Reduce Motion accessibility setting. When this setting is active, ensure your app or game responds by reducing automatic and repetitive animations, including zooming, scaling, and peripheral motion.» Gilt nur bei aktivem Reduce Motion, kein allgemeines Verbot.",
+    "folge_fuer_plan": "Verwerfung auf G14 (HIG motion «Don’t add motion for the sake of adding motion», «generally avoid adding motion to UI interactions that occur frequently») stützen; peripheral motion nur als Pflicht für die Variante ruhig zitieren."
+   },
+   {
+    "behauptung": "B5: Auswahlmarke gleitet per View Transition, gestützt auf WWDC25/219 «dynamically morphs between the controls».",
+    "beleg": "WWDC25/219 vollständig: «As you go between states in an app, Liquid Glass dynamically morphs between the controls in each context. This maintains the concept of having a singular floating plane that the controls live on.» Gemeint ist der Wechsel der Bedienelemente zwischen App-Zuständen, nicht eine gleitende Auswahlmarke. Das Zitat selbst ist echt (im Textauszug als «thecontrols» zusammengeschrieben).",
+    "folge_fuer_plan": "B5/B6 als «angelehnt» kennzeichnen; Quelle bleibt zitierbar, aber nicht als direkte Vorgabe für Auswahlmarken."
+   },
+   {
+    "behauptung": "Quellenanker «charts#Enhancing-the-accessibility» (G19, Kernbehauptung).",
+    "beleg": "Die Anker der HIG-Seite charts (charts.json) lauten Anatomy, Axes, Best-practices, Color, Descriptive-content, Enhancing-the-accessibility-of-a-chart, Marks … – «Enhancing-the-accessibility» allein gibt es nicht.",
+    "folge_fuer_plan": "Anker auf https://developer.apple.com/design/human-interface-guidelines/charts#Enhancing-the-accessibility-of-a-chart korrigieren."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "Gesamtbefund: Jeder in §3, §4.1, §5, §9 und in den Kernbehauptungen zitierte Apple-Satz steht wörtlich in der genannten Quelle (nach Vereinheitlichung von Apostrophen und Gedankenstrichen); alle 43 Zitate stehen zudem in inventare.json. Alle HIG-Anker sind echt, ausser charts#Enhancing-the-accessibility (siehe widerlegt).",
+    "beleg": "Abgerufen am 03.10.2026 mit HTTP 200: /tutorials/data/design/human-interface-guidelines/{materials,color,scroll-views,toolbars,buttons,menus,popovers,sheets,sidebars,charts,charting-data,motion,accessibility,dark-mode}.json, /tutorials/data/documentation/technologyoverviews/adopting-liquid-glass.json, /tutorials/data/documentation/swiftui/applying-liquid-glass-to-custom-views.json, https://developer.apple.com/videos/play/wwdc2025/219/ und /356/. Anker-Abgleich über die «anchor»-Felder der JSON-Dateien (u. a. Liquid-Glass, Liquid-Glass-color, Scroll-edge-effects, Item-groupings, Actions, Icons, Axes, Color, Cognitive, Best-practices)."
+   },
+   {
+    "behauptung": "G1 «Don’t use Liquid Glass in the content layer.» – HIG materials#Liquid-Glass",
+    "beleg": "HIG materials#Liquid-Glass: «Don’t use Liquid Glass in the content layer. Liquid Glass works best when it provides a clear distinction between interactive elements and content … Instead, use standard materials for elements in the content layer, such as app backgrounds.» Ergänzend WWDC25/219: «it is best reserved for the navigation layer that floats above the content of your app. Consider this tableview: making it Liquid Glass would make it compete with other elements and muddy the hierarchy.»"
+   },
+   {
+    "behauptung": "G2 Bedienelemente im Inhalt heben sich nur während der Interaktion ins Glas – WWDC25/219",
+    "beleg": "WWDC25/219: «Elements can even lift up into Liquid Glass temporarily, such as when you interact with a component. This lets the resting state stay visually quiet, while it comes to life on touch.» Stärkere, im Plan nicht zitierte Quellen: HIG materials#Liquid-Glass «An exception to this is for controls in the content layer with a transient interactive element like sliders and toggles; in these cases, the element takes on a Liquid Glass appearance to emphasize its interactivity when a person activates it.» und adopting-liquid-glass «For controls like sliders and toggles, the knob transforms into Liquid Glass during interaction»."
+   },
+   {
+    "behauptung": "G3 «the material illuminates from within as a form of feedback» – WWDC25/219; «Always include a press state for a custom button.» – HIG buttons#Best-practices",
+    "beleg": "WWDC25/219: «When you interact with Liquid Glass, the material illuminates from within as a form of feedback.» HIG buttons#Best-practices: «Always include a press state for a custom button. Without a press state, a button can feel unresponsive»."
+   },
+   {
+    "behauptung": "G5 «always avoid glass on glass» – WWDC25/219, Elemente auf Glas nur Füllungen",
+    "beleg": "WWDC25/219: «Similarly, always avoid glass on glass … When placing elements on top of Liquid Glass, avoid applying the material to both layers. Instead, use fills, transparency, and vibrancy for the top elements to make them feel like a thin overlay that is part of the material.»"
+   },
+   {
+    "behauptung": "G6 «Liquid Glass appears more opaque in larger elements like sidebars to preserve legibility» – HIG color#Liquid-Glass-color",
+    "beleg": "HIG color#Liquid-Glass-color: «Liquid Glass appears more opaque in larger elements like sidebars to preserve legibility over complex backgrounds and accommodate richer content on the material’s surface.»"
+   },
+   {
+    "behauptung": "G7 «Apply one scroll edge effect per view.» – HIG scroll-views; «As text scrolls underneath, shadows become more prominent» – WWDC25/219",
+    "beleg": "HIG scroll-views#Scroll-edge-effects: «Apply one scroll edge effect per view. In split view layouts on iPad and Mac, each pane can have its own scroll edge effect». WWDC25/219: «each layer continuously adapts based on what’s behind it. As text scrolls underneath, shadows become more prominent to create additional separation.»"
+   },
+   {
+    "behauptung": "G8 «Hard … pinned table headers» stammt aus WWDC25/356, nicht 219",
+    "beleg": "WWDC25/356: «Hard is mostly used on macOS. It creates a stronger, more opaque boundary—ideal for interactive text, controls without backgrounds, or pinned table headers that need extra clarity.» In 219 nicht vorhanden."
+   },
+   {
+    "behauptung": "G9 «buttons fluidly morph into menus and popovers.» – adopting-liquid-glass; «the bubble simply pops open … right where you just tapped» – WWDC25/219",
+    "beleg": "adopting-liquid-glass: «For controls like sliders and toggles, the knob transforms into Liquid Glass during interaction, and buttons fluidly morph into menus and popovers.» WWDC25/219: «When showing a menu, the bubble simply pops open to reveal the content contained within. This lightweight, in-line transition keeps everything right where you just tapped.»"
+   },
+   {
+    "behauptung": "G10 «Show one popover at a time.» – HIG popovers; «Display only one sheet at a time» – HIG sheets",
+    "beleg": "HIG popovers#Best-practices: «Show one popover at a time. Displaying multiple popovers clutters the interface and causes confusion.» HIG sheets#Best-practices: «Display only one sheet at a time from the main interface.»"
+   },
+   {
+    "behauptung": "G11 «Liquid Glass shifts its appearance and visually recedes to guide attention.» – WWDC25/219",
+    "beleg": "WWDC25/219: «For example, when a window loses focus on the Mac or iPad, Liquid Glass shifts its appearance and visually recedes to guide attention.»"
+   },
+   {
+    "behauptung": "G12 Gruppen, Hauptaktion, Farbe auf die Fläche – HIG toolbars/color",
+    "beleg": "HIG toolbars#Item-groupings: «Minimize the number of groups. … In general, aim for a maximum of three.» HIG toolbars#Actions: «Only specify one primary action, and put it on the trailing side of the toolbar.» HIG color#Liquid-Glass-color: «To emphasize primary actions, apply color to the background rather than to symbols or text.»"
+   },
+   {
+    "behauptung": "G13 «concentric shapes calculate their radius by subtracting padding from the parent’s» – WWDC25/356",
+    "beleg": "WWDC25/356: «And concentric shapes calculate their radius by subtracting padding from the parent’s.»"
+   },
+   {
+    "behauptung": "G14 Bewegung mit Zweck, abbrechbar, nicht bei Häufigem – HIG motion",
+    "beleg": "HIG motion: «Don’t add motion for the sake of adding motion.» · «Let people cancel motion. As much as possible, don’t make people wait for an animation to complete» · «In apps, generally avoid adding motion to UI interactions that occur frequently.»"
+   },
+   {
+    "behauptung": "G15 «Replacing transitions in x-, y-, and z-axes with fades» · «Avoiding animating into and out of blurs» – HIG accessibility#Cognitive",
+    "beleg": "HIG accessibility#Cognitive, Liste «Other best practices for reducing motion include: … replacing transitions in x-, y-, and z-axes with fades to avoid motion · avoiding animating into and out of blurs»."
+   },
+   {
+    "behauptung": "G16 «Ensure you test your app’s custom elements, colors, and animations with different configurations of these settings.» – adopting-liquid-glass",
+    "beleg": "adopting-liquid-glass, wörtlich so vorhanden, im Kontext der Einstellungen «that reduce transparency or motion in the interface»."
+   },
+   {
+    "behauptung": "G17 «don’t require interaction to reveal critical information» · «expanding the hit target to include the entire plot area» – HIG charts; B17 «scrub across the area»",
+    "beleg": "HIG charts#Best-practices: «Let people interact with the data when it makes sense, but don’t require interaction to reveal critical information.» und «consider expanding the hit target to include the entire plot area, letting people scrub across the area to reveal various values.»"
+   },
+   {
+    "behauptung": "G18 Achsen: fester Bereich 1–6, Balken ab 0 für Anzahlen – HIG charts#Axes",
+    "beleg": "HIG charts#Axes: «Consider using a fixed range when specific minimum and maximum values are meaningful for all possible data values.» und «bar charts can work well when you use zero for the lower bound of the y axis … In contrast, defining a lower bound of zero can sometimes make meaningful differences between values more difficult to discern.» Die Auflösung Notenbalken ab 1 ist damit vertretbar."
+   },
+   {
+    "behauptung": "G19 «Avoid relying solely on color» – charts#Color; «use actual values in your descriptions» – charts (Barrierefreiheit)",
+    "beleg": "HIG charts#Color: «Avoid relying solely on color to differentiate between different pieces of data or communicate essential information in a chart.» HIG charts#Enhancing-the-accessibility-of-a-chart: «To help people form their own interpretations, use actual values in your descriptions.»"
+   },
+   {
+    "behauptung": "G20 «provide icons for all menu items in a group, or none of them» – HIG menus#Icons",
+    "beleg": "HIG menus#Icons: «For visual consistency and balance, provide icons for all menu items in a group, or none of them.»"
+   },
+   {
+    "behauptung": "§4.1 Mehr Kontrast mit Rand – WWDC25/219 «highlights them with a contrasting border»",
+    "beleg": "WWDC25/219: «Increased contrast, makes elements predominantly black or white and highlights them with a contrasting border»."
+   },
+   {
+    "behauptung": "B8 Licht unter dem Zeiger gedämpft – HIG motion «more subdued effect … trackpad»",
+    "beleg": "HIG motion (Einleitung), Subjekt per Link materials#Liquid-Glass: «For example, the movement of Liquid Glass responds to direct touch interaction with greater emphasis to reinforce the feeling of a tactile experience, but produces a more subdued effect when a person interacts using a trackpad.»"
+   },
+   {
+    "behauptung": "B13/B14 «highlight the changes in other ways, too» – HIG charts",
+    "beleg": "HIG charts#Best-practices: «Animating such changes can help people notice them, but you need to highlight the changes in other ways, too, to ensure that VoiceOver users and people who turn off animations know about them.» Stützt aria-live unter ruhig."
+   },
+   {
+    "behauptung": "§9 Clear-Variante und 35-%-Abdunkelung gelten nur für Clear über bildreichem Inhalt",
+    "beleg": "HIG materials#Liquid-Glass: «Only use clear Liquid Glass for components that appear over visually rich backgrounds.» und «determine whether to add a dimming layer behind components with clear Liquid Glass: If the underlying content is bright, consider adding a dark dimming layer of 35% opacity.»"
+   },
+   {
+    "behauptung": "Spannung offengelegt: HIG dark-mode «Avoid offering an app-specific appearance setting»",
+    "beleg": "HIG dark-mode#Best-practices: «Avoid offering an app-specific appearance setting. An app-specific appearance mode option creates more work for people because they have to adjust more than one setting».  Wörtlich vorhanden; der Plan zitiert es korrekt nur als Spannung."
+   },
+   {
+    "behauptung": "Die gestrichenen Wendungen («gel-like», «ambient», «spill», «fingertips», «reserved for the navigation layer», «obscures more») stehen nicht in inventare.json",
+    "beleg": "grep über inventare.json/synthese.json/refutationen.json: keine Treffer für gel-like, spill, fingertips, reserved for the navigation, obscures more; «Ambient» nur als deutsches Lehnwort in Repo-Befunden. Die Aussage des Plans ist als Verfahrensaussage richtig (siehe aber luecken_im_plan: die Wendungen sind echter Apple-Text)."
+   }
+  ],
+  "ungeprueft": [
+   "Alle Repo-Zeilenangaben (app.css, theme.css, charts.js, Views, Controller, routes) – nicht meine Rolle, nicht nachgelesen.",
+   "Messwerte der Basislinie und kontrast.mjs-Minima – nicht nachgemessen.",
+   "Firefox-Bugs 1961378/1995195 und Safari-Verhalten – nicht geprüft.",
+   "GUI-APPLE.md:31 und LAGE.md:250 (Verbot der Apple-Systemfarben) – nicht nachgelesen.",
+   "Spezifikationsstellen filter-effects-2 §3 und css-view-transitions-1 §2.1.1 – nicht gegen die W3C-Texte geprüft.",
+   "Gelesen wurden die JSON-Spiegel unter /tutorials/data/… und das HTML der WWDC-Seiten; ob die gerenderten HIG-Seiten heute abweichen, ist nicht geprüft.",
+   "Technology Overview «liquid-glass» und «app-design-and-ui» sowie HIG typography – vom Plan nicht zitiert, daher nicht abgerufen."
+  ],
+  "luecken_im_plan": [
+   "G7 gegen G8: «Apply one scroll edge effect per view» (HIG scroll-views) – eine harte Kante auf einem angehefteten thead in derselben Seiten-Scrollansicht wie die Symbolleisten-Scrollkante ergibt zwei Kanteneffekte je Ansicht, ausser die Tabelle scrollt in einem eigenen Container. Dazu sagt HIG scroll-views «Prefer the automatic scroll edge effect style … This style provides a more opaque visual separation for … pinned table headers», WWDC25/356 dagegen «Hard». Der Plan muss eine Variante wählen und begründen.",
+   "G6 trägt für die angedockte Seitenleiste nicht: Apples Begründung «to preserve legibility over complex backgrounds» setzt Inhalt unter dem Glas voraus; angedockt liegt nur np-grund darunter und es gibt keinen Weichzeichner. Das Zitat gilt nur für die Schubladen-Variante.",
+   "G9/B1: WWDC25/219 «When glass flexes and morphs to larger sizes – like when presenting a menu from a toolbar button – its material characteristics change to simulate a thicker, more substantial material» mit «deeper shadows». B1 morpht nur die Grösse, das Material bleibt gleich – entweder Schatten beim Öffnen vertiefen oder die Abweichung benennen.",
+   "Vorentscheidung 1 hat eine stärkere Apple-Stütze, die der Plan nicht nennt: WWDC25/219 «In steady states, such as when an app first launches, avoid intersections between content and Liquid Glass. Instead, reposition or scale the content to maintain separation.»",
+   "Die gestrichenen Wendungen sind echter WWDC25/219-Text und könnten mit Quelle wieder rein: «it is best reserved for the navigation layer that floats above the content of your app» (stützt G1), «Reduced Transparency, makes Liquid Glass frostier and obscures more of the content behind it» (Apples Definition), «Light from colorful content nearby can subtly spill onto its surface» (Seitenleiste, passt zur Tönung aus np-grund). Auch Kapitelzeiten stehen auf der Transkriptseite (z. B. «10:31 - Principles»).",
+   "Reduzierte Transparenz: Der Plan macht jedes Glas ganz deckend (Deckung 1); Apple beschreibt nur «frostier and obscures more of the content behind it». Die Repo-Regel ist strenger als Apple – das sollte der Plan offen sagen, statt es als Apple-konform erscheinen zu lassen.",
+   "Filter (§6) haben im Plan keine Apple-Stütze, obwohl es eine gibt: HIG charting-data «you might let people choose to view different levels of detail or subsets of data to match their interest».",
+   "HIG scroll-views «Only use a scroll edge effect when a scroll view is behind floating interface elements» fehlt als Regel für np-scroll-edge (nur dort, wo Inhalt wirklich unter Symbolleiste/Kapseln läuft)."
+  ]
+ },
+ "codebasis": {
+  "widerlegt": [
+   {
+    "behauptung": "§4.1 / Kernbehauptung «Abgeleitet»: glass-overlay dunkel surface-2/0.92 hält «über jeder Token-Unterlage: ≤ 0.91» (Overlay-Deckung 0.92 ≥ höchstes Minimum 0.91).",
+    "beleg": "Das Minimum 0.91 aus `kontrast.mjs --minimum` gilt nur für `--card` als Glasquelle (kontrast.mjs:227ff. mischt immer t.card). Das dunkle Overlay nimmt aber `surface-2` (app.css:341). Nachgerechnet mit derselben Formel und surface-2 als Quelle braucht Gletscher dunkel 0.9375. Bei 0.92 fällt muted unter 4.5:1: über chart-3 4.47, chart-2 4.50, note-gut 4.40, note-genuegend 4.36, note-knapp 4.35, note-ungenuegend 4.41 (text bleibt ≥ 8.8). Alle anderen dunklen Themes liegen zwischen 0.75 und 0.90. Hell card/0.92 gegen 0.9073 hält.",
+    "folge_fuer_plan": "Overlay dunkel auf card/0.92 umstellen oder surface-2 ≥ 0.94 setzen, oder die Nachweis-Spalte auf «über bg/card/surface-2» einschränken. Den «Diagramm-Tipp» (liegt direkt über Chart-Farben) nicht auf glass-overlay legen, solange Gletscher dunkel so bleibt. Wenn R6-01 Gletscher neu einfärbt, nachrechnen."
+   },
+   {
+    "behauptung": "§4.2 Glasanteil Ruhe: Ziel «≈ 5 % (nur Kapseln)».",
+    "beleg": "leistung.mjs:136-160 zählt das Rechteck jedes Elements, das selbst oder über ::before einen backdrop-filter hat, auch die Symbolleiste mit der Scrollkante auf opacity 0. Rechnung bei 1920×1080: Seitenleiste 260×1064 = 13.34 %, Symbolleiste (1920−268)×56 = 4.46 %, Rest 18.4 − 17.8 ≈ 0.6 % ≈ 12 000 px² für beide Kapseln. Gegenprobe: 1920×540 ergibt 23.2 − 13.14 − 8.92 ≈ 1.1 % ≈ 11 800 px², 2560×1440 ergibt 13.9 − 10.04 − 3.48 ≈ 0.4 % ≈ 14 000 px². Die Werte sind konsistent.",
+    "folge_fuer_plan": "Ziel auf ≈ 0.6 % (nur Kapseln) korrigieren. Die 8-%-Grenze ist nicht knapp, sondern lose; besser ≤ 2 % setzen, damit die Messung einen Rückfall erkennt."
+   },
+   {
+    "behauptung": "§4.2 Fussnote * und Kernbehauptung: Die BB-Messwerte liegen «nur im Scratch, unveröffentlicht»; R6-00 trägt sie als §5 in die Basislinie ein.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md hat schon einen §5 «Berufsbildner (michael.baumann, nachgetragen 03.10.2026)» mit Tippen p95 31.5/31.2/33.7 und Scroll p95 17.6/16.9/19.6/19.8. Dazu stehen dort abweichende LCP-Werte: /trainer 156 statt 148 (§1), /trainer/learners 140 statt 144. Der Abschnitt hält auch fest, dass unter CPU-Last gemessen wurde.",
+    "folge_fuer_plan": "Fussnote streichen und auf Basislinie §5 verweisen. Je Seite festlegen, welcher LCP-Wert gilt (§1 oder §5). R6-00 misst nur noch nach und ersetzt §5."
+   },
+   {
+    "behauptung": "S10: Datenquelle `Bericht::verteilung` (`:150`).",
+    "beleg": "In app/Services/Bericht.php gibt es keine Methode `verteilung`. 'verteilung' ist ein Array-Schlüssel im Rückgabewert der privaten Methode `aggregate()` (:81, Schlüssel um :161). Die Buckets laufen von 1.0 bis 6.0 in halben Noten (for $b = 10..60 step 5, Bericht::klasse), nicht in Viertelnoten.",
+    "folge_fuer_plan": "S10 neu formulieren: Daten aus `Bericht::aggregate()['verteilung']`. Das Histogramm in Viertelnoten ist neue Logik in `Verteilung::histogramm` (R6-07a), keine Übernahme."
+   },
+   {
+    "behauptung": "S9: `Uebersicht::admin(int $wochen = 12)` → `aktivitaet(int $wochen)` (`:680`) als bestehende Schnittstelle.",
+    "beleg": "Uebersicht.php:199 `public function admin(): array` hat keinen Parameter. :680 `private function aktivitaet(): array` hat 12 Wochen fest eingebaut (subWeeks(11), Schleife bis 12).",
+    "folge_fuer_plan": "Als Änderung in R6-07a ausweisen (neue Signatur, und DashboardController reicht den Filter durch), nicht als Bestand zitieren."
+   },
+   {
+    "behauptung": "§6 Kernbehauptung zu `bewegungRuhig()` aus np.js als bestehende einzige JS-Abfrage.",
+    "beleg": "np.js hat keine Funktion bewegungRuhig. Die einzige Abfrage heute ist `function bewegungReduziert()` in charts.js:28-30 (data-bewegung oder matchMedia prefers-reduced-motion).",
+    "folge_fuer_plan": "In R6-03 als neu ausweisen und in R6-04 bewegungReduziert aus charts.js entfernen. Beide Scheiben sind schon nacheinander geplant; im Text deutlich machen."
+   },
+   {
+    "behauptung": "§8/R6-00: Die Emulations-Flags `--bewegung`, `--transparenz`, `--kontrast` und `leistung.mjs --menue` sind neu (R6-00).",
+    "beleg": "browser.mjs:12-15 und :67-164 kennen schon `ZUSTAND_USAGE = '[--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr]'` samt emulateMedia, CDP Emulation.setEmulatedMedia und Ersatz data-transparenz. leistung.mjs:19/31/285-316 kennt `--menue=<selektor>`. kontrast.mjs kennt jetzt `--glanz` und `--stufen` (Kopf :3, :18-20). Diese Dateien wurden während dieser Prüfung verändert.",
+    "folge_fuer_plan": "Den Umfang von R6-00 auf das Fehlende zurücknehmen (Nachmessung §5, T, Menü-Basiswert). Die Werkzeuge als bestehend führen."
+   },
+   {
+    "behauptung": "Palettenbudget: «Panel 40rem × ca. 28rem ≈ 16 %».",
+    "beleg": "navigation.blade.php:187 setzt das Palettenpanel auf `max-w-2xl` = 42rem (672 px), nicht 40rem. Gemessen trägt die Palette heute 34.6 − 18.4 = 16.2 % bei, also ≈ 500 px Höhe bei 672 px Breite.",
+    "folge_fuer_plan": "Zahl auf 42rem korrigieren, oder die Breite in R6-05 bewusst auf 40rem ändern. Die Grenze ≤ 18 % hält rechnerisch (16.2 + ≈ 0.6 Kapseln)."
+   },
+   {
+    "behauptung": "§4.1 np-symbolleiste: «heute 10px, `:419`»; dazu Code-Zeilen `app.css:457` (np-glas-gruppe dunkel card/0.74) und `charts.js:453-460`.",
+    "beleg": "blur(10px) steht in app.css:417; :419 ist `opacity: var(--np-kante, 0)`. card/0.74 steht in :459. In charts.js liegen zeichne/destroy/new Chart in :453-458 und destroy() in :459-462, das passt ungefähr.",
+    "folge_fuer_plan": "Zeilenangaben korrigieren (Weichzeichner :417, Kapsel dunkel :459)."
+   },
+   {
+    "behauptung": "§4.3: `--grund-hoch` mit Helligkeit «streng zwischen `--bg` und `--card`» in allen 24 Theme-Blöcken.",
+    "beleg": "Kontrast hell: bg und card haben beide die relative Leuchtdichte 1.0000 (eigene Rechnung mit der kontrast.mjs-Formel). Ein Wert streng dazwischen ist unmöglich. In den hellen Themes liegt surface-2 zudem unter bg (zum Beispiel Gletscher hell 0.891 = 0.891 < 1.0).",
+    "folge_fuer_plan": "Die Regel nur für dunkle Themes verlangen (wie `--stufen` es schon tut). Für Kontrast hell grund-hoch = bg zulassen (np-grund entfällt dort ohnehin)."
+   },
+   {
+    "behauptung": "S7: Filter `kategorie` mit Daten aus `LernstandRechner::fuer` (`Lernstand::delta`).",
+    "beleg": "Lernstand::delta() (Lernstand.php:46-51) ist semesterNote − vorsemesterNote, also nur die Gesamtnote ohne Kategoriebezug. Eine Kategorie-Hantel bräuchte Auswertung::semester($sid, $kategorieId) für beide Semester.",
+    "folge_fuer_plan": "Datenquelle für S7 mit Kategorie ergänzen (Auswertung::semester je Kategorie über die Stände von LernstandRechner), sonst `kategorie` aus der Whitelist von S7 streichen."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "Basislinie §1: Glas Ruhe 4 Flächen 18.4 % (1920×1080), 13.9 % (2560×1440), Palette offen 34.6 %; Tippen p95 /dashboard 35.2, /grades 35.9, /grades/calculator 35.5, /exams 32.9, /admin 40.2, /admin/reports/grades 38.3, /admin/learners 36.5; LCP 164/168/176/136/148/188/172/148/144; DOM 11458/18971/14897; Ruhe p95 17 bzw. 16.9.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md §1, Tabelle und Absatz darunter."
+   },
+   {
+    "behauptung": "Basislinie §2: Scroll p95 /dashboard 20.2, /grades 16.9, /grades/calculator 19.2, /admin/reports/grades 20.3, /admin/learners 19.2, lange Bilder 0/150; §3: /dashboard 19.3, mit Glas 23.2 %, Tippen 27.6/29.4, ohne Glas 16.9/17.1.",
+    "beleg": "r6-leistung-baseline.md §2 und §3."
+   },
+   {
+    "behauptung": "Kontrast §4: Minimum über jeder Token-Unterlage 0.72 (Mitternacht dunkel) bis 0.91 (Gletscher hell); mit Scrollkante dunkel 0.00–0.37, hell 0.35–0.73; 3628 Paare, 0 Pflichtverstösse, 11 Hinweise.",
+    "beleg": "Basislinie §4. Eigene Nachrechnung: Gletscher hell 0.9073, Gletscher dunkel 0.8517, Kante Gletscher hell 0.7254, Graphit dunkel 0.3679, Mitternacht dunkel 0."
+   },
+   {
+    "behauptung": "Kapsel dunkel card/0.58 und angedockte Seitenleiste dunkel card/0.68 bestehen kontrast.mjs; Kapsel hell 0.78 ≥ 0.73 hinter der Scrollkante.",
+    "beleg": "`node tools/pruefung/kontrast.mjs --glas=0.58` und `--glas=0.68` ergeben je 0 Pflichtverstösse. Die Pflichtprüfung läuft über bg/(grund-hoch)/card/surface-2. Hinter der Kante: 0.58 ≥ 0.37 und 0.78 ≥ 0.7254. Die Kapselschrift liegt bei 26–47 % der ::before-Höhe, dort deckt der Verlauf ≈ 0.79–0.84 (≥ 0.72)."
+   },
+   {
+    "behauptung": "Tiefenstufen dunkel bg < card < surface-2 in allen 12 dunklen Themes; --stufen und --glanz laufen mit Exit 0.",
+    "beleg": "`kontrast.mjs --stufen`: alle 12 ok, grund-hoch fehlt noch. `--glanz=0.07` gibt Exit 0, aber mit dem Hinweis «--glanz ignoriert – --glas-licht steht in keinem Theme». Der Nachweis wirkt also erst nach R6-01."
+   },
+   {
+    "behauptung": "kontrast.mjs und ThemeKontrastTest lesen das erste Deckungsliteral je Modus aus @utility-Blöcken und überspringen @supports/@media.",
+    "beleg": "kontrast.mjs materialDeckung (um :40-66); ThemeKontrastTest.php:105-160, Liste :112 mit np-glas, glass-bar, glass-seitenleiste, glass-overlay, np-glas-gruppe."
+   },
+   {
+    "behauptung": "npChart baut mit destroy() + new Chart() neu; der Rechner bekommt JSON.",
+    "beleg": "charts.js:453-458; rechner.js:107 postJson; Lernender/RechnerController.php:40-44 response()->json; Rechner.php:298 'kurve' => zielrechner->kurve."
+   },
+   {
+    "behauptung": "Leistung::$datum ist nullable, position() ohne Datum; noten.pruefungsdatum NOT NULL; geplante Prüfungen tragen ein Datum.",
+    "beleg": "Leistung.php:23 `public ?string $datum`, :33-36 position() mit datum null; Migration 2026_02_05_000018:32 `$table->date('pruefungsdatum')` ohne nullable; NotenQuelle.php:158 `datum: (string) $p->datum`."
+   },
+   {
+    "behauptung": "«Wo stehe ich» schaltet Semester/Lehrzeit, die Tabelle rendert nur $balken[$balkenModus].",
+    "beleg": "dashboards/lernender.blade.php:131-133 (radiogroup modus semester/lehrzeit), :137-138 npChart mit x-effect auf d[modus], :159 @foreach($balken[$balkenModus]…)."
+   },
+   {
+    "behauptung": "Routen und Aliase: /learner = learner.dashboard, /trainer/learners und /admin/learners teilen verwaltung.php:23, Aliase in web.php.",
+    "beleg": "web.php:81-84, :241-242 (admin./trainer.-Gruppe mit routes/verwaltung.php), verwaltung.php:23 learners.index; LernenderNotenController = Lernender\\NotenController (:27), AdminBerichtController = Admin\\BerichtController (:5); learner.grades.calculator.calculate :105; learner.exams.index um :188; learner.qualification.index :133-136."
+   },
+   {
+    "behauptung": "Bestehende Service-Methoden: Rechenkern::auswerten, Auswertung::semester, Zielrechner::kurve/loese, LernstandRechner::fuer, Lernstand::delta, Uebersicht::berufsbildner, Uebersicht::balkenDiagramm (:488), Bericht::nachLehrjahr (:176), Lernender::sichtbarFuer (:98, #[Scope]).",
+    "beleg": "grep der Methodensignaturen in app/Services/Auswertung/*.php, Uebersicht.php, Bericht.php, app/Models/Lernender.php."
+   },
+   {
+    "behauptung": "Uebersicht::jahrgangsDiagramm (:698) ist privat, ungenutzt und mittelt selbst.",
+    "beleg": "Uebersicht.php:698; grep findet keinen Aufrufer. Rundung::mittel steht direkt im Service."
+   },
+   {
+    "behauptung": "Neue Klassen und Komponenten gibt es noch nicht (keine Kollision): Verteilung, Statistik, StatistikFilter, x-verlauf/-hantel/-punktstreifen/-zeitleiste; x-sparkline, x-bullet, x-heatmap und x-filterleiste (GET) gibt es schon.",
+    "beleg": "ls app/Services/Auswertung, app/Support; resources/views/components enthält bullet, diagramm, filterleiste (method GET, :3/:17), heatmap, sparkline."
+   },
+   {
+    "behauptung": "Code-Zeilen app.css: ≥0.78-Regel :277, np-glas blur 24px/saturate 1.8 :281-282, ease :133-134, 0.01-ms-Regel :209-216 mit Ausnahmen :217-224, Seitenwechsel :249-257 und :259, Gruppenglas auf ::before :433-474, Schublade :507-518, Hauptspalte :556-559, «kein Skalieren» :702; app.blade.php:142 body bg-bg.",
+    "beleg": "grep -n auf resources/css/app.css und layouts/app.blade.php."
+   },
+   {
+    "behauptung": "theme.css:16-75 enthält übernommene Apple-Werte; GUI-APPLE.md:31, LAGE.md:250 und gui-konzept.md:115 sagen, was der Plan zitiert.",
+    "beleg": "theme.css:16-75 (systemGray6/5/4, systemBlue, apple.com #1d1d1f/#0066cc/#f5f5f7). Nach :75 keine Treffer mehr. Die Doku-Zeilen sind geprüft."
+   },
+   {
+    "behauptung": "Die Altklassen glass-btn, np-btn-primary, np-fade-in und data-autohide werden in keiner View benutzt (Entfernen ist sicher); `:is(…::…)` ist schon leer.",
+    "beleg": "grep -rnE in resources/: Treffer nur in app.css (@utility, :1421, :1472) und im Skript layouts/app.blade.php:200. `grep -n ':is([^)]*::'` liefert nichts."
+   },
+   {
+    "behauptung": "motion-reduce: kommt nur in den Overlay-Komponenten vor (passt zu R6-05).",
+    "beleg": "resources/views/components/{modal,toast,drawer,feedback-widget}.blade.php, 5 Treffer."
+   },
+   {
+    "behauptung": "Quantil Typ 7 auf [1,2,3,4] ergibt q1 1.75, Median 2.5, q3 3.25.",
+    "beleg": "h = (n−1)p: 0.75 → 1.75; 1.5 → 2.5; 2.25 → 3.25."
+   },
+   {
+    "behauptung": "Keine neue Route nötig; Zugriffs-, Englisch- und Abfragentests existieren; das Muster «klein gegen gross, Toleranz» gibt es.",
+    "beleg": "tests/Feature/Auth/ZugriffsschutzTest.php, I18n/EnglischeSeitenTest.php, Performance/AbfragenAnzahlTest.php (:35 TOLERANZ, :57-64 assertWaechstNicht). wantsJson wird schon genutzt (FeedbackController:141, SucheController:29)."
+   }
+  ],
+  "ungeprueft": [
+   "tools/pruefung/kontrast.mjs (Kopf, Unterlagen :120, --glanz/--stufen), browser.mjs und leistung.mjs haben sich WÄHREND dieser Prüfung verändert (R6-00 läuft offenbar parallel; die Zahl der Paare stieg von 3628/3868 auf 4166). Aussagen über die Werkzeuge gelten für den Stand 03.10.2026 zum Prüfzeitpunkt, nicht als stabil.",
+   "Herkunft «≥ 0.78» aus Commit bffe93b ohne Messquelle: git-Befehle waren nicht erlaubt.",
+   "Toleranz T ≤ 1.7 ms und Ziel «Tippen p95 ≤ 25 ms»: keine Messung stützt das Ziel. Das Palettenpanel behält blur(28px) über ≈ 16 % des Fensters, und schon bei 1920×540 lag Tippen mit Glas bei 27.6–29.4 ms.",
+   "Dateigrenzen R6-05 («Overlays», layouts/app, navigation) gegen R6-06 («Symbolleisten-Seiten»): ohne die strukturierte Beilage «scheiben» nicht entscheidbar, welche Views «Symbolleisten-Seiten» sind und ob sie Komponenten aus R6-05 mitändern.",
+   "R6-04 (charts.js, Diagramm-Tipp als glass-overlay?) parallel zu R6-02 (app.css): ob R6-04 CSS-Klassen für Tooltip oder Staffelung braucht, die in app.css liegen, lässt sich ohne Beilage nicht prüfen.",
+   "Apple-Zitate, Firefox-Bugs 1961378/1995195 und Spezifikationsstellen: Aufgabe des anderen Widerlegers.",
+   "Gestaltetes np-grund mit --grund-akzent (≤ 0.04 Akzent): als Unterlage nicht nachgerechnet. kontrast.mjs kennt grund-hoch, aber keine Akzenttönung des Grunds."
+  ],
+  "luecken_im_plan": [
+   "Der Prüfplan §8 «Glas-Minima: Overlay ≥ Wert über jeder Token-Unterlage» findet den Gletscher-dunkel-Fehler nicht. Erstens rechnet `--minimum` nur mit --card als Quelle, das Overlay dunkel nimmt surface-2. Zweitens prüft die Pflichtprüfung (Exit 0) Materialien nur über bg, grund-hoch, card und surface-2 (kontrast.mjs:120); accent ist nur Info, Chart- und Notenfarben fehlen ganz. Der Diagramm-Tipp auf glass-overlay und der Toast (glass-overlay, fixed über Inhalt, toast.blade.php:22) liegen aber genau über solchen Farben. Nötig: --minimum je Materialquelle, und für Overlay, Schublade und Toast Chart- und Notenfarben als Pflicht-Unterlage. Sonst den Tipp matt machen.",
+   "Schubladen-Schliessen: data-schublade fällt sofort weg, translate läuft danach noch 260 ms (app.css:508-518). Mit Basis = angedockt (0.68, ohne Weichzeichner) und Override nur unter html[data-schublade] fährt die Leiste 260 ms lang mit 0.68 und ohne Blur über Inhalt. Laut --minimum braucht es dort bis 0.91. Die Schubladen-Materialregel muss am Zustand der Leiste hängen (zum Beispiel ausserhalb von «≥ 64rem und seite» immer 0.92), nicht am Attribut.",
+   "Die angedockte Leiste ist nur ≥ 64rem und data-navigation='seite'. Liegt die 0.68-Regel als Basis und die 0.92-Regel als Selektor-Override, lesen kontrast.mjs und ThemeKontrastTest nur 0.68. Liegt die angedockte Regel in @media, überspringt der Parser sie (er ignoriert @media/@supports), dann wird 0.68 nie geprüft. Der Plan muss festlegen, welche Struktur gilt und wie der zweite Wert (0.92) maschinell geprüft wird.",
+   "G7 «eine np-scroll-edge je Ansicht»: module/index.blade.php trägt neben der Seitenleiste (navigation.blade.php) eine zweite np-scroll-edge, dazu kommt die Symbolleisten-Kante. Der Plan sagt nicht, ob «Ansicht» die Scrollansicht meint (dann passt der Bestand) oder das Fenster (dann muss module/index angepasst werden, ohne Scheibe).",
+   "Wenn glass-bar und glass-seitenleiste wegfallen, meldet kontrast.mjs «@utility … ohne auswertbare Flächenangabe» auf stderr, und ThemeKontrastTest überspringt sie still. Die Materiallisten (kontrast.mjs, ThemeKontrastTest:112) sollten in R6-02 mitgepflegt werden und neue Materialien (np-glas-moment, Schublade) aufnehmen. Keine Scheibe nennt das ausdrücklich.",
+   "Das Feedback-Symbol in der Kapsel ist heute eingefärbt (feedback-widget.blade.php: x-symbol … text-accent-text) und verletzt G12 («Symbole nie eingefärbt»). Der Plan weist die Korrektur keiner Scheibe zu (die Komponente liegt bei R6-05)."
+  ]
+ },
+ "hinweis": "quellen: Widerleger Quellen (Lauf 03.10. 07:xx); codebasis: Widerleger Codebasis, nachgeholt per Workflow-Resume (resumeFromRunId wf_692f548b-1d2) am 03.10. 09:30, während R6-00 die Prüfwerkzeuge änderte (siehe ungeprueft[0])."
+}

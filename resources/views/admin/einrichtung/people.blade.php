@@ -1,8 +1,11 @@
 <x-einrichtung schritt="people" :stand="$stand" :titel="__('Personen')">
     @php
         $feld = 'np-feld px-2 normal-case tracking-normal';
-        $label = 'flex flex-col gap-1 text-sm font-medium text-text min-w-0';
-        $knopf = 'np-knopf np-knopf-primaer';
+        $entfernen = 'np-knopf np-knopf-symbol np-knopf-symbol-gefahr shrink-0';
+        $rollen = ['Berufsbildner' => __('Berufsbildner'), 'Admin' => __('Admin')];
+        $berufe = $lehrberufe->mapWithKeys(fn ($lb) => [$lb->lehrberuf_id => $lb->kuerzel.' · '.$lb->name])->all();
+        $betreuer = ['' => '–'] + $berufsbildner->mapWithKeys(fn ($bb) => [$bb->berufsbildner_id => $bb->vorname.' '.$bb->nachname])->all();
+        $tracks = ['' => '–', 'BMS' => 'BMS', 'ABU' => 'ABU'];
         $fehlerKeys = array_keys($errors->getMessages());
         $meldungen = fn (string $praefix) => collect($errors->getMessages())->filter(fn ($m, $k) => str_starts_with($k, $praefix))->flatten()->unique();
         $leerePerson = ['vorname' => '', 'nachname' => '', 'email' => '', 'rolle' => 'Berufsbildner'];
@@ -41,36 +44,31 @@
           @submit="if (!$event.defaultPrevented) loading = true">
         @csrf
         <div class="flex items-baseline justify-between gap-3">
-            <h3 class="text-sm font-semibold text-text">{{ __('Berufsbildner und Admins') }}</h3>
+            <h2 class="text-sm font-semibold text-text">{{ __('Berufsbildner und Admins') }}</h2>
             <span class="text-xs text-muted">{{ $berufsbildner->count() }} {{ __('Berufsbildner') }}</span>
         </div>
         <template x-for="(z, i) in zeilen" :key="i">
             <div class="grid grid-cols-[1fr_1fr_1.5fr_9rem_2.5rem] gap-2 items-end">
-                <label class="{{ $label }}">{{ __('Vorname') }}<input :name="`personen[${i}][vorname]`" x-model="z.vorname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'vorname') && 'border-note-ungenuegend!'"></label>
-                <label class="{{ $label }}">{{ __('Nachname') }}<input :name="`personen[${i}][nachname]`" x-model="z.nachname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'nachname') && 'border-note-ungenuegend!'"></label>
-                <label class="{{ $label }}">{{ __('E-Mail') }}<input type="email" :name="`personen[${i}][email]`" x-model="z.email" required maxlength="255" autocomplete="off" class="{{ $feld }}" :class="f(i, 'email') && 'border-note-ungenuegend!'"></label>
-                <label class="{{ $label }}">{{ __('Rolle') }}
-                    <select :name="`personen[${i}][rolle]`" x-model="z.rolle" class="{{ $feld }}">
-                        <option value="Berufsbildner">{{ __('Berufsbildner') }}</option>
-                        <option value="Admin">{{ __('Admin') }}</option>
-                    </select>
-                </label>
+                @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'personen', 'schluessel' => 'vorname', 'text' => __('Vorname'), 'klasse' => $feld, 'attr' => 'required maxlength="100" autocomplete="off"'])
+                @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'personen', 'schluessel' => 'nachname', 'text' => __('Nachname'), 'klasse' => $feld, 'attr' => 'required maxlength="100" autocomplete="off"'])
+                @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'personen', 'schluessel' => 'email', 'art' => 'email', 'text' => __('E-Mail'), 'klasse' => $feld, 'attr' => 'required maxlength="255" autocomplete="off"'])
+                @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'personen', 'schluessel' => 'rolle', 'art' => 'select', 'text' => __('Rolle'), 'klasse' => $feld, 'optionen' => $rollen])
                 <button type="button" @click="weg(i)" :class="zeilen.length > 1 ? '' : 'invisible'" aria-label="{{ __('Zeile entfernen') }}"
-                        class="w-10 h-10 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
+                        class="{{ $entfernen }}"><x-symbol name="x-mark" strich="2" class="size-4" /></button>
             </div>
         </template>
         @if($meldungen('personen')->isNotEmpty())
-            <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('personen') as $m)<li>{{ $m }}</li>@endforeach</ul>
+            <ul id="personen-fehler" class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('personen') as $m)<li>{{ $m }}</li>@endforeach</ul>
         @endif
         <div class="flex items-center justify-between gap-3">
-            <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht">+ {{ __('Weitere Person') }}</button>
-            <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Konten anlegen') }}</button>
+            <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht"><x-symbol name="plus" strich="2" class="size-4" />{{ __('Weitere Person') }}</button>
+            <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Konten anlegen') }}</button>
         </div>
     </form>
 
     @if($lehrberufe->isEmpty() || ! $semesterVorhanden)
         <section class="np-karte p-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
-            <h3 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h3>
+            <h2 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h2>
             <div class="flex gap-2">
                 @unless($semesterVorhanden)
                     <a href="{{ route('admin.setup', 'semesters') }}" class="np-knopf np-knopf-sekundaer">{{ __('Semester anlegen') }}</a>
@@ -85,44 +83,29 @@
               x-data="npZeilen({{ \Illuminate\Support\Js::from(old('lernende', [])) }}, {{ \Illuminate\Support\Js::from($leererLernender) }}, {{ \Illuminate\Support\Js::from($fehlerKeys) }}, 'lernende')"
               @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
-            <h3 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h3>
+            <h2 class="text-sm font-semibold text-text">{{ __('Lernende') }}</h2>
             <template x-for="(z, i) in zeilen" :key="i">
                 <div class="rounded-xl border border-border p-3 grid grid-cols-4 gap-2 items-end">
-                    <label class="{{ $label }}">{{ __('Vorname') }}<input :name="`lernende[${i}][vorname]`" x-model="z.vorname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'vorname') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }}">{{ __('Nachname') }}<input :name="`lernende[${i}][nachname]`" x-model="z.nachname" required maxlength="100" autocomplete="off" class="{{ $feld }}" :class="f(i, 'nachname') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }} col-span-2">{{ __('E-Mail') }}<input type="email" :name="`lernende[${i}][email]`" x-model="z.email" required maxlength="255" autocomplete="off" class="{{ $feld }}" :class="f(i, 'email') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }} col-span-1">{{ __('Lehrberuf') }}
-                        <select :name="`lernende[${i}][lehrberuf_id]`" x-model="z.lehrberuf_id" class="{{ $feld }}">
-                            @foreach($lehrberufe as $lb)<option value="{{ $lb->lehrberuf_id }}">{{ $lb->kuerzel }} · {{ $lb->name }}</option>@endforeach
-                        </select>
-                    </label>
-                    <label class="{{ $label }}">{{ __('Lehrbeginn') }}<input type="date" :name="`lernende[${i}][lehrbeginn]`" x-model="z.lehrbeginn" @change="lehrende(z)" required class="{{ $feld }}" :class="f(i, 'lehrbeginn') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }}">{{ __('Ende der Lehre') }}<input type="date" :name="`lernende[${i}][lehrende]`" x-model="z.lehrende" class="{{ $feld }}" :class="f(i, 'lehrende') && 'border-note-ungenuegend!'"></label>
-                    <label class="{{ $label }}">{{ __('Berufsbildner') }}
-                        <select :name="`lernende[${i}][berufsbildner_id]`" x-model="z.berufsbildner_id" class="{{ $feld }}">
-                            <option value="">–</option>
-                            @foreach($berufsbildner as $bb)<option value="{{ $bb->berufsbildner_id }}">{{ $bb->vorname }} {{ $bb->nachname }}</option>@endforeach
-                        </select>
-                    </label>
-                    <div class="flex items-end gap-2 col-span-1">
-                        <label class="{{ $label }} flex-1">{{ __('Track') }}
-                            <select :name="`lernende[${i}][track]`" x-model="z.track" class="{{ $feld }}">
-                                <option value="">–</option>
-                                <option value="BMS">BMS</option>
-                                <option value="ABU">ABU</option>
-                            </select>
-                        </label>
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'vorname', 'text' => __('Vorname'), 'klasse' => $feld, 'attr' => 'required maxlength="100" autocomplete="off"'])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'nachname', 'text' => __('Nachname'), 'klasse' => $feld, 'attr' => 'required maxlength="100" autocomplete="off"'])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'email', 'art' => 'email', 'text' => __('E-Mail'), 'klasse' => $feld, 'spanne' => 'col-span-2', 'attr' => 'required maxlength="255" autocomplete="off"'])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'lehrberuf_id', 'art' => 'select', 'text' => __('Lehrberuf'), 'klasse' => $feld, 'spanne' => 'col-span-2', 'optionen' => $berufe])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'lehrbeginn', 'art' => 'date', 'text' => __('Lehrbeginn'), 'klasse' => $feld, 'attr' => '@change="lehrende(z)" required'])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'lehrende', 'art' => 'date', 'text' => __('Ende der Lehre'), 'klasse' => $feld])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'berufsbildner_id', 'art' => 'select', 'text' => __('Berufsbildner'), 'klasse' => $feld, 'spanne' => 'col-span-2', 'optionen' => $betreuer])
+                    @include('admin.einrichtung._zeilenfeld', ['gruppe' => 'lernende', 'schluessel' => 'track', 'art' => 'select', 'text' => __('Track'), 'klasse' => $feld, 'optionen' => $tracks])
+                    <div class="flex justify-end">
                         <button type="button" @click="weg(i)" :class="zeilen.length > 1 ? '' : 'invisible'" aria-label="{{ __('Zeile entfernen') }}"
-                                class="w-10 h-10 shrink-0 inline-flex items-center justify-center rounded-lg text-muted hover:text-note-ungenuegend hover:bg-note-ungenuegend/10">×</button>
+                                class="{{ $entfernen }}"><x-symbol name="x-mark" strich="2" class="size-4" /></button>
                     </div>
                 </div>
             </template>
             @if($meldungen('lernende')->isNotEmpty())
-                <ul class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('lernende') as $m)<li>{{ $m }}</li>@endforeach</ul>
+                <ul id="lernende-fehler" class="text-xs text-note-ungenuegend flex flex-col gap-1">@foreach($meldungen('lernende') as $m)<li>{{ $m }}</li>@endforeach</ul>
             @endif
             <div class="flex items-center justify-between gap-3">
-                <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht">+ {{ __('Weitere Lernende') }}</button>
-                <button type="submit" :disabled="loading" class="{{ $knopf }}">{{ __('Lernende anlegen') }}</button>
+                <button type="button" @click="neu()" class="np-knopf np-knopf-schlicht"><x-symbol name="plus" strich="2" class="size-4" />{{ __('Weitere Lernende') }}</button>
+                <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Lernende anlegen') }}</button>
             </div>
         </form>
     @endif

@@ -1,3 +1,5 @@
+import { bewegungRuhig } from './np';
+
 // Bestätigung vor folgenreichen Aktionen (HIG «Alerts») statt window.confirm: Formulare mit data-bestaetigen
 // halten beim Absenden an und öffnen <x-bestaetigung>. Erst «OK» sendet das Formular mit demselben Knopf erneut ab.
 // Der Listener sitzt in der Capture-Phase am Dokument und stoppt das Ereignis, bevor Alpine («loading») oder
@@ -49,12 +51,11 @@ function oeffnen(dialog, form, submitter) {
         ok.removeEventListener('click', jaKlick);
         abbrechen.removeEventListener('click', neinKlick);
         dialog.removeEventListener('close', beimSchliessen);
-        if (dialog.open) dialog.close();
-        if (bestaetigt) {
-            absenden(form, submitter);
-        } else if (ausloeser instanceof HTMLElement && ausloeser.isConnected) {
-            ausloeser.focus();
-        }
+        // «Ja»: die Aktion läuft sofort, der Dialog blendet währenddessen aus. «Nein»: erst ausblenden, dann Fokus zurück.
+        if (bestaetigt) absenden(form, submitter);
+        zuMitBewegung(dialog, () => {
+            if (!bestaetigt && ausloeser instanceof HTMLElement && ausloeser.isConnected) ausloeser.focus();
+        });
     };
     const jaKlick = () => schliessen(true);
     const neinKlick = () => schliessen(false);
@@ -68,6 +69,23 @@ function oeffnen(dialog, form, submitter) {
     dialog.showModal();
     // Zerstörende Aktion: Abbrechen ist der Standard, Return löscht nie versehentlich
     (gefahr ? abbrechen : ok).focus();
+}
+
+// Dialog ausblenden (200 ms ease-in über die Klassen von data-schliesst am Dialog), dann schliessen. Unter ruhiger
+// Bewegung blendet er nur über (ohne Skalierung, 150 ms). Ein zweiter Aufruf, solange er ausblendet, tut nichts;
+// schliesst der Browser den Dialog selbst (Escape), ist er bereits zu.
+function zuMitBewegung(dialog, danach) {
+    if (!dialog.open) {
+        danach();
+        return;
+    }
+    if (dialog.hasAttribute('data-schliesst')) return;
+    dialog.setAttribute('data-schliesst', '');
+    setTimeout(() => {
+        if (dialog.open) dialog.close();
+        dialog.removeAttribute('data-schliesst');
+        danach();
+    }, bewegungRuhig() ? 150 : 200);
 }
 
 function absenden(form, submitter) {

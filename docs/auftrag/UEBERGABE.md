@@ -129,12 +129,263 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   bei der Zahl, Semester-Kapsel mittig, Monatskarte bündig, leerer Rechner mit «Note
                   erfassen», Platzhalter «–» dünn, Throttle-Test prüft doppelte Präfixe, Feedback-Tipp
                   nicht auf «Meine Meldungen». Nächster Schritt: R4 Berufsbildner (Agents laufen).
+[O] 02.10. 02:40  R4 Berufsbildner abgeschlossen (bd769cc, 9c88675, 97afc07, 6457635, 8037bac und der
+                  Abschluss-Commit, siehe Git). Dunkelmodus nach HIG für Dashboard, Lernendenliste, Cockpit
+                  mit Reitern (Übersicht, Noten, Dokumente, Rechner, Profil & Betreuung), Notenliste mit
+                  Inspektor, Abschluss, Prüfungstermine, Fehlerseiten. Abschlussrunde: Rundgang 1920 Exit 0
+                  (21 Seiten), Bildprüfer 1920 Kern/Module/Einstellungen und 2560 (13 Seiten, kein Befund
+                  «hoch»), Reviewer (ein Befund: Hook), UI-Checker (13 Befunde), Suite 1301 bestanden /
+                  1 übersprungen, Prüfer: Behauptung hält, ein Befund – aria-label des Termin-Notenlinks rundete
+                  Viertelnoten (4.25 → «4.3»), jetzt ungerundet wie der Badge, mit Regressionstest. Umgesetzt:
+                  Zeilenaktion «Noten» rechtsbündig, «Modul anlegen» als Primäraktion, Kommentarfeld mit
+                  @error/aria (Fehler landet an der richtigen Note, old('note_id') öffnet sie wieder),
+                  Datumskachel im Dashboard wie in der Terminliste (text-muted, keine Versalien), Kacheln
+                  text-xl, Gewichtung in «Nächste 14 Tage» beschriftet, tabular-nums, Notenflächen
+                  einheitlich /14, Marken auf bg-fill, Sparkline-Band fill-fill, Formularfuss im Profil
+                  ohne bg-fill-2, Fehlerseiten-h1 bold, Leerzeilen mit Weg zurück («Filter zurücksetzen»,
+                  «Alle anzeigen», «Alle Termine»), «Kopiert» per aria-live, Termin-Note mit aria-label.
+                  Roter Test AlleGesehenTest: Knopftext bei einer neuen Note heisst seit 8037bac «Neue Note
+                  als gesehen markieren» – Test angepasst, prüft jetzt beide Texte. Bewusst gelassen (18
+                  Punkte mit Grund): docs/audit-backlog.md «R4 Berufsbildner». Hook: Composer-Schritt mit
+                  echter Archiv-Probe (codeload 403, api 200 mit abbrechenden Downloads) und Kreuz-Rückfall;
+                  Spiegel-Vertrauen unter «Offen für David». Annahmen dieser Sitzung: Arbeit auf Branch
+                  claude/friendly-meitner-ju7e8a mit Entwurfs-PR gegen main (Vorgabe der Cloud-Sitzung,
+                  nicht main direkt); «Leerung» der Bretter heisst: «bewusst gelassen» sind Entscheide,
+                  «Offen für David» bleibt, alles andere wird umgesetzt oder mit Grund als erledigt/obsolet
+                  markiert. Nächster Schritt: R4 Admin.
+[O] 02.10. 01:15  R4 Admin abgeschlossen (Abschluss-Commit, siehe Git). Dunkelmodus nach HIG für Übersicht,
+                  Lernendenliste, Noten-Inspektor, Rechner, Abschluss, Berufsbildner, Benutzerkonten (anlegen,
+                  bearbeiten, Passwort), Stammdaten (Lehrberufe, Module mit Katalog, Fächer, Kategorien,
+                  Notenbäume, Semester), Betrieb (Einstellungen mit Darstellung/E-Mail/Sitzung, Einrichtung
+                  Schritte 1–8, Benachrichtigungen, Versand- und Aktivitätsprotokoll, Berichte, Feedback).
+                  Fünf Umsetzungs-Agents parallel (A Übersicht/Listen, B Betrieb/Benutzer, C Einrichtung,
+                  D Stammdaten, E Verwaltung), Diffs in der Hauptsession gelesen. Umgesetzt u. a.: neutrale
+                  Kacheln und ein Akzent je Ansicht, Leerzustände mit Weg weiter («Lernende erfassen»,
+                  «Berufsbildner erfassen», «E-Mail einrichten», «Modul/Fach anlegen»), aria-invalid/
+                  aria-describedby an jedem Feld (Hinweis- und Fehler-id), Darstellung speichert per
+                  data-sofort beim Wechsel, Passwort-Augen im Feld, Einrichtung mittig (max-w-5xl) mit
+                  Zeilenfeldern je Person (_zeilenfeld), Katalogseite ohne CLI-Befehl (steht jetzt in
+                  docs/betrieb.md), Zahlen aus der DB ohne Nachkommanullen, gesperrtes «Entfernen» mit
+                  Grund statt verstecktem Knopf, Rechner zeigt Promotionswechsel «vorher → nachher»,
+                  Statusspalte der Lernendenliste wächst (alle Zeilen 44 px). Abschlussrunde: Suite 1303
+                  bestanden / 1 übersprungen, Rundgang Admin 56 Seiten und Berufsbildner 21 Seiten Exit 0,
+                  24 Screenshots 1920/2560 angesehen, SchluesselTest grün (9 EN-Schlüssel ergänzt, 4 Waisen
+                  entfernt), Hook ohne Meldung, ß-Grep leer. Bewusst gelassen (28 Punkte mit Grund):
+                  docs/audit-backlog.md «R4 Admin». Abschluss-Commit 68c0e24. Nachtrag nach Review:
+                  Reviewer ohne Befund (XSS-Stellen nur Literale, Sperren serverseitig, Fehlerindizes und
+                  Sprachschlüssel stimmen, 122 gefilterte Tests). UI-Checker 13 Befunde, 10 umgesetzt:
+                  «0» im Dashboard text-muted statt text-faint, Kacheln text-xl, bg-bg in Karten durch
+                  bg-fill ersetzt (Einrichtung Module/Semester), Zeilen-Entfernen und «Weitere …» mit
+                  x-symbol statt Glyphe, Hinweistexte in Einrichtung Module und Katalog gestrichen,
+                  Leerzustand Einrichtung Module über x-leer, Abschluss-Status mit check-circle wie der
+                  Stepper, h3→h2 unter dem Seitentitel, Leerzustandstitel ohne Punkt, Berichte-Leerzeile
+                  mit «Filter zurücksetzen» und th scope, Platzhalter «–» einheitlich text-muted,
+                  Zahlenfelder rechtsbündig, Rechner «Ziel entfernen» mit Loading-State. Drei Punkte mit
+                  Grund im Backlog (colgroup, Lehrberuf-Felder nur aria-label, Abschluss-Fuss).
+                  Prüfer (fable effortLevel low, 22d989a..68c0e24): Behauptung hält, zwei Lücken behoben – Auswahlfelder in
+                  `_zeilenfeld` ohne aria-invalid/aria-describedby, und «Fach löschen» zeigte den Hinweis nur
+                  bei ungelöschten Noten, während destroy() auch bei Prüfungen, Zielen und gelöschten Noten
+                  sperrt (jetzt eine Regel `loeschSperre()` für Hinweis und Sperre, Test
+                  `fach_mit_pruefung_zeigt_loeschsperre…`, Backlog-Punkt gestrichen). Bestätigt: Theme-Radios
+                  senden einmal, in_gebrauch-Sperre serverseitig, Browser-Sonde auf 16 Admin-Seiten ohne
+                  doppelte ids oder tote aria-Verweise. Nicht geprüft: Fehlerzustände von people, professions,
+                  mail, theme, notifications im Browser (nur am Code).
+                  Nächster Schritt: R5 Gesamtprüfung.
+[O] 02.10. 02:30  R5 Gesamtprüfung begonnen (nach Nachtrag f24bc48). Umfang, da nirgends definiert, nach
+                  gui-konzept «Prüfung» und notenportal-ui §10 festgelegt: (1) Workflow
+                  notenportal-dunkel-rundgang über alle drei Rollen, 1920 vollständig beurteilt, 2560
+                  gemessen und als Stichprobe beurteilt, jeder Befund zweifach verifiziert; (2) Workflow
+                  notenportal-audit über alle sechs Dimensionen; (3) Hell-Stichprobe je Rolle von Hand
+                  (darf nicht brechen); (4) bestätigte Befunde beheben, Suite, Prüfer; (5) LAGE §7,
+                  gui-konzept-Stand, Übergabe, PR-Beschreibung. Die zehn ungeprüften Sichtbefunde des
+                  Rauchtests vom 01.10. gelten damit als neu aufgenommen.
+[O] 02.10. 06:30  R5 Teil 1, Sichtprüfung (nach cc4ec01). Workflow notenportal-dunkel-rundgang über alle
+                  drei Rollen: 96 Seiten 1920 dunkel, Bildprüfer sonnet, 136 Befunde; die Verifikation im
+                  Workflow (272 Opus-Aufrufe) brach am Nutzungslimit ab und ihre UND-Logik verwarf bestätigte
+                  Ursachen – Workflow nicht fortgesetzt, stattdessen alle 136 Befunde in der Hauptsession am
+                  Markup nach Ursache gebündelt (Advisor-Entscheid). 31 Befunde umgesetzt (eigene Edits plus
+                  zwei Agents: Tabellenbreiten, Einrichtungsformulare), u. a. Verlauf-Reihen mit Strichmuster
+                  (nie nur Farbe), Import-Knopf bis zur Dateiwahl gesperrt (Reviewer-Befund: Drop löste kein
+                  change aus – behoben in x-ablagezone), «Gewicht» vor Prozentwerten, Aktivitätsprotokoll ohne
+                  leere Spalten, Einrichtung (Kategorien erst nach Bestätigung erledigt, Abschluss-Haken nur
+                  wenn alles erledigt, Lehrberufe/Fächer lesbar, Zahlen rechts, «neu»-Marke), Feedback-Eintrag
+                  aktiv, acht Listen mit Kartenobergrenze, Prüfungstermine-Gitter 64rem. Belege: Suite 1304
+                  bestanden / 1 übersprungen, Rundgang Lernende 19 / Berufsbildner 21 / Admin 56 Seiten Exit 0,
+                  26 Screenshots 1920 angesehen, Reviewer 1 Befund (behoben), ß-Grep leer, Hook ohne Meldung,
+                  Build. Bewusst gelassen mit Grund: docs/audit-backlog.md «R5 Sichtprüfung». Bekannte
+                  Falle: Bash ohne `source $S/env.sh` → Suite scheitert mit «Access denied root@localhost»
+                  (TCP statt Socket), 1105 rote Tests ohne Codefehler. Prüfer (fable low): hält –
+                  Import-Drop per Playwright (Zone, Feld, Knopf), Strichmuster im Build, Aktivitäten
+                  Seite 2 und Leerzustand, Hell ohne Bruch, eigener Rundgang 3 Rollen Exit 0; Lücke
+                  «kein Test für den finish-Haken» geschlossen (EinrichtungTest). Nächster Schritt: R5
+                  Teil 2 (Workflow notenportal-audit, sechs Dimensionen), dann Hell-Stichprobe,
+                  LAGE/gui-konzept/PR.
+[O] 02.10. 06:40  Doku an die Agent-Konfiguration angeglichen (017131c ist massgeblich): CLAUDE.md
+                  Z.59, Tabelle im Skill notenportal-orchestrierung, Modellangaben in
+                  notenportal-blockabschluss/-pruefwerkzeuge/-agentauftrag, SETUP-CLAUDE 2.3 und §12.14
+                  (Subagent-Doku nennt weder effort noch effortLevel – Schlüssel bleibt unbelegt,
+                  Frontmatter unverändert). «Offen für David» dazu geschlossen.
+[O] 02.10. 07:15  Backlog, technische Punkte (54852d4, 6c2b03d, Ränder in diesem Commit): verwaiste
+                  Feedback-Dateien räumt notenportal:feedback-aufraeumen wöchentlich auf (Z.406); Host-
+                  Header auf TRUSTED_HOSTS plus APP_URL begrenzt (Z.328) – erst aktiv, wenn install.sh
+                  oder Hand den Wert füllt, sonst keine Begrenzung und Warnung in notenportal:bereitschaft
+                  (die Pilot-VM bleibt nach git pull erreichbar); Installer behält Hand-Einträge;
+                  Katalogversion in der Modulansicht mit derselben Version wie der Modulbaukasten-Link
+                  (Z.66); Z.356/Z.420/Z.489 als erledigt nachgetragen. Belege: Suite 1310 bestanden /
+                  1 übersprungen, Prüfer (fable low) zweimal – erste Runde drei Lücken (Test nicht
+                  beweiskräftig, Update-Pfad ohne TRUSTED_HOSTS, Hand-Einträge verloren) behoben, zweite
+                  Runde hält mit Produktionsdurchstich 400/200 und acht roten Mutanten; Ränder APP_URL
+                  ohne Schema und IPv6-Einträge danach geschlossen (Test). Bewusst offen mit Grund
+                  (Backlog-Nachträge): Z.201 Tastenkürzel-Einstieg unter 1024 px, Z.367 eigene
+                  Darstellungs-Unterseite, Z.556 LBV-Elemente nur aus dem Katalogimport.
+[O] 03.10. 04:45  R5 Teil 2, Audit (142b02e, Wortlaut-Nachtrag in diesem Commit). Workflow notenportal-audit
+                  über alle drei Rollen: 33 Befunde, 20 nach gegnerischer Verifikation bestätigt und umgesetzt,
+                  13 verworfen. Umgesetzt u. a.: Notenimport prüft das Datum tagesgenau am Lehrbeginn/-ende und
+                  springt ins importierte Semester; Sicherung enthält Modulunterlagen (module/); Befehlspalette
+                  als Combobox mit aria-activedescendant und Fokusrückgabe; Menüs schliessen beim Heraustabben;
+                  Sitzungs- und Feedback-Dialog geben den Fokus zurück; Abschluss springt zum Fehlerfeld.
+                  Belege: Suite 1321 bestanden / 1 übersprungen (umgebungsbedingt, root), Fokusprobe 15/15,
+                  12 Screenshots dunkel und Hell-Stichprobe 6 Seiten/3 Rollen ohne Bruch, Reviewer 0 hoch,
+                  Prüfer (fable low) hält mit eigenen Mutanten und Browserproben (14/14); seine zwei Lücken
+                  geschlossen: SicherungTest auf HEAD grün (3 Tests), «nach 24 h gelöscht» präzisiert (das
+                  Aufräumen läuft beim nächsten Katalog-Upload). R5 damit abgeschlossen. Nächster Schritt:
+                  R6 GUI-Rebuild – Instrumente und Baseline stehen (tools/pruefung/leistung.mjs, kontrast.mjs,
+                  docs/auftrag/messungen/r6-leistung-baseline.md), Verstehen-Workflow läuft.
+[O] 03.10. 09:20  R6 Plan steht: docs/auftrag/GUI-R6.md (450 Zeilen) aus zwei Workflows –
+                  Verstehen (6 Leser, Synthese, 2 Widerleger; messungen/r6-verstehen/) und Entwurf
+                  (3 Gesamtentwürfe opus xhigh, 3 Juroren einstimmig «Material zuerst», Synthese,
+                  Quellen-Widerleger: 43 Zitate bestätigt, 9 Zuschreibungen korrigiert;
+                  messungen/r6-entwurf/). Leitidee «Licht statt Fläche»: Glas in Ruhe 18.4 % → ≤ 8 %,
+                  angedockte Leiste ohne Blur über ruhigem Token-Grund, 21 Grundsätze mit Apple-Satz,
+                  Glas-Budget mit Messgrenzen, Bewegungskatalog B1–B17 mit Variante «ruhig»,
+                  Statistik-Katalog S1–S11 (URL-Filter, JSON aus derselben Route), 15 Scheiben
+                  R6-00…R6-13 mit Dateien und Akzeptanz (§11). Code-Widerleger lief nicht
+                  (Nutzungslimit) – Zeilenverweise von Hand geprüft, Rest in R6-12. Basislinie §5
+                  Berufsbildner nachgetragen. Vorentscheidungen 1–14 im Plan; für David nur noch
+                  zwei Fragen (Ziele für Berufsbildner sichtbar? Erfassungsverhalten/BB-Vergleich
+                  mit Datenschutz klären?). Nächster Schritt: R6-00 Prüfwerkzeuge, dann R6-01/03.
+[O] 03.10. 09:50  R6-00 fertig: Prüfwerkzeuge erweitert (browser/shot/klick/rundgang/leistung:
+                  Flags --bewegung=reduziert --transparenz=reduziert --kontrast=mehr, Zustandszeile
+                  mit matchMedia und data-fenster; leistung --menue=<Auslöser>; kontrast --glanz,
+                  --stufen, grund-hoch, 4166 Paare statt 3628, --minimum unverändert; ThemeKontrast-
+                  Test gleiche Materialliste, 62 Tests grün). Basislinie §5 neu gemessen ohne
+                  CPU-Last (T Ruhe/Scroll 1.1 ms, Tippen streut 5–10 ms → Vergleich als Minimum
+                  aus 3; Menü-Glas 20.9 %). Code-Widerleger per Workflow-Resume nachgeholt
+                  (refutationen.json «codebasis»: 19 bestätigt, 10 widerlegt, 6 Lücken) und in
+                  GUI-R6.md eingearbeitet: Overlay dunkel 0.94, Glasanteil Ruhe ≤ 2 % statt 8 %,
+                  Palette 42rem, html[data-leiste] gegen Schubladen-Lücke, S7/S9/S10-Datenquellen.
+                  Neuer Workflow notenportal-r6-welle (Umsetzung → Review → Nachbesserung).
+                  Nächster Schritt: Welle 1 (R6-01 Tokens/Grund + R6-03 JS-Bausteine).
+[O] 03.10. 11:05  Welle 1 fertig (Workflow notenportal-r6-welle, beide Scheiben vom Review
+                  angenommen, Commits 56d5dcf R6-01 und f23137c R6-03). R6-01: 24 Theme-Blöcke
+                  mit --grund-hoch/--grund-akzent/--glas-licht/-kante/-schatten/--scrim/
+                  --schalter-knopf, Gletscher neu abgestimmt ohne Apple-Werte, np-grund als
+                  statische Ebene (Verlauf 168°, Akzentlicht nur mit color-mix, flach bei
+                  kontrast/reduzierter Transparenz), Bewegungstokens --dauer-1..4/--dauer-morph/
+                  --ease-feder (linear, Überschwingen 1.10 %), Variante ruhig. R6-03: np.js
+                  bewegungRuhig(), registriereLicht/Fenster/Leiste (data-fenster, data-leiste
+                  angedockt|schublade), Scrollkante schreibt --np-kante, morphUrsprung, mitRichtung.
+                  Gemessen: Build 1.58 s, ß 0, Kontrast 4670 Paare ohne Verstoss, --stufen 12 ok,
+                  --glanz=0.07 ok, Suite 1346 grün/1 übersprungen, Rundgang nina/livia/michael/
+                  laura Exit 0, Bilder 1920/2560/1000/hell geprüft; Grund gemessen (24,28,37) oben
+                  links gegen (18,21,27) unten, flach (18,21,27). Leistung nina: Ruhe p95 16.9
+                  (zweiter Lauf 17.1 auf /dashboard, innerhalb T), Anim 0, Glas 18.4 % (fällt erst
+                  mit R6-02), LCP 188/220 bzw. 192/180 – innerhalb T 44 ms, Toleranz 10 %.
+                  Review-Empfehlungen ohne Blocker nach audit-backlog («R6 Welle 1»).
+                  Nächster Schritt: Welle 1b (R6-02 Material + R6-04 Diagramme).
+[O] 03.10. 12:10  Welle 1b fertig (Workflow wf_8409de06, beide Scheiben angenommen; Commits 367ff93
+                  R6-02, ad60266 R6-04). R6-02: angedockte Leiste card/0.68 ohne Weichzeichner,
+                  Schublade 0.92 + 24 px nur über html[data-leiste='schublade'], Kapseln 0.58/0.78,
+                  glass-overlay surface-2/0.94 dunkel mit @starting-style (opacity, scale),
+                  np-glas-moment, np-glanz, np-segment-marke, np-kante-hart, np-einzeichnen,
+                  [data-hauptaktion]; alle rgb(255…/0 0 0…) auf --glas-licht/--glas-schatten/
+                  --scrim; reduzierte Transparenz und Kontrast als Varianten deckend:/kontrastreich:;
+                  fünf tote Utilities weg; kontrast.mjs --quelle=card|surface-2, Materiallisten
+                  ohne glass-bar/glass-seitenleiste (4262 Paare, 0 Verstösse). R6-04: npChart
+                  setze() an Ort (Canvas bleibt, data-np-probe geprüft), externer Tipp auf
+                  glass-overlay, Tastatur ←/→/Home/End mit aria-live (geprüft: «Note in offenen
+                  Prüfungen: 1.00, Ergebnis: 3.50» → End 6.00), Rechnerkurve mit Band beste/
+                  schlechteste Endnote, Staffel beim ersten Zeichnen, bewegungRuhig statt
+                  bewegungReduziert. Gemessen (ohne Last, --laeufe=3): Glasanteil Ruhe 0.6 %
+                  (vorher 18.4 %) auf allen 9 Seiten, Ruhe p95 16.8–17.0, Anim 0; Tippen p95
+                  (Minimum aus 3) /dashboard 18.5 (Basis 33.8), /admin/reports/grades 19.8
+                  (40.6), /trainer 17.5 (33.0); Scroll 540 p95 /grades/calculator 16.9 (19.2),
+                  /dashboard 17.0 (20.2), /admin/reports/grades 17.6 (20.3), /trainer/learners/1
+                  16.9/17.0 (20.3; ein 68-ms-Bild im ersten Lauf, Wiederholung 0 lange);
+                  --ohne-glas glas 0. Suite 1346 grün, Rundgang 4 Konten Exit 0, Bilder 1920/
+                  2560/flach/ruhig geprüft. Palette-Glas 16.8 % bleibt bis R6-05 (data-palette
+                  setzt noch kein Code). Nächster Schritt: Welle 2 (R6-05 Funktionsebene + R6-06
+                  Seitenschliff).
+[O] 03.10. 13:40  Welle 2 fertig (Workflow wf_c374eff4, R6-05 angenommen, R6-06 nachgebessert:
+                  doppeltes data-hauptaktion in verwaltung/pruefungen/index; Commits 3dad86a R6-05,
+                  7f861ac R6-06). Hauptsitzung schloss die Lücken ausserhalb der Agent-Dateilisten:
+                  Marker np-leiste-auswahl/np-tab-auswahl mit View-Transition-Regeln in app.css,
+                  morphUrsprung auf window.np, toter npToast aus np.js, Kapselhülle mit
+                  --np-gruppe-radius. Gemessen (r605-check.mjs, leistung.mjs, eigener Zähler):
+                  Menü-Ursprung im Auslöser (transform-origin 242.6px -25px → Punkt 1875/27 im
+                  Avatar 1852–1888/10–46), Escape → Fokus «Konto: Laura Frei», data-palette
+                  gesetzt/entfernt, Schublade nach Escape bei 100 ms sauber zu; Glas Menü offen 3.1 %
+                  (Ziel ≤ 12), Palette 11 % (16.8 → Ziel ≤ 18), Ruhe 0.6 %; Tippen p95 min-of-3
+                  /dashboard 18.7 (33.8), /admin/reports/grades 19.2 (40.6), /trainer 17.0 (33.0);
+                  Menü-Hover p95 17.1. data-hauptaktion auf 360 gerenderten Seiten nie > 1 (Opt-in,
+                  7 Views tragen es). Build 878 ms, Suite 1349 grün, Rundgang 4 Konten Exit 0 mit
+                  pipefail, Bilder dunkel 1920/2560, Menü dunkel/hell/deckend, Palette, Schublade
+                  1000 px, ruhig geprüft. ui-checker über die Funktionsebene läuft; Befunde kommen
+                  als Fix-Commit. pruefer bewusst auf R6-07a verschoben (erste Notenlogik-Scheibe).
+                  Nächster Schritt: Welle 3 (R6-07a Statistik-Service, dann R6-07b).
+[O] 03.10. 14:05  Welle 3 fertig (Workflow wf_f4b4adf3, R6-07a angenommen; Commits 4350738 Service,
+                  ba2867f Prüfer-Fixes). Neu: Auswertung\Verteilung (Median/Quartile Typ 7 ab n ≥ 3,
+                  Histogramm in Viertelnoten mit Epsilon 1e-9), Auswertung\Statistik (stichtagsreihe
+                  an Monatsenden ≤ 60 sonst Quartale, hanteln, benoetigt über Zielrechner mit Grenze
+                  aus der DB), Support\StatistikFilter (Whitelist, unbekannt → Standard, nie 422).
+                  Uebersicht::berufsbildner liefert delta/semesterschnitte/gesamt/punktstreifen ohne
+                  zusätzliche Abfrage, admin($wochen 12|26|52), jahrgangsDiagramm entfernt;
+                  Bericht::verteilung in Viertelnoten (alte Schlüssel bleiben), Filter lehrjahr/
+                  kategorie_id, nachLehrjahr public mit werte/median – Bezug immer Lehrzeit.
+                  Prüfer (xhigh) mit eigenen Rechenproben: Quartile, Rundung::auf gegen round über
+                  5001 Rasterwerte 0 Abweichungen, Stichtage 01.03.–15.07. = 4 Monatsenden + 15.07.,
+                  benoetigt feldgleich mit Zielrechner::loese, Abfragen 2 vs 8 Lernende ≤ 2. Behoben
+                  nach Prüfer: offene Positionen ohne Datum stehen jetzt in meta.ohneDatum;
+                  nachLehrjahr wechselte mit Kategoriefilter auf Semesterbezug; lehrjahr aus der
+                  Query als Text; totes Bericht::klasse samt Test entfernt. Suite 1382/1383 grün
+                  (1 skip), avg-Grep in app/Services app/Http weiter 0, Berichtsseite mit 20 Klassen
+                  gesichtet (dunkel 1920). Nächster Schritt: Welle 3b (R6-07b Endpunkte, npFilter,
+                  SVG-Bausteine), Hinweise in scratch r6/welle3b-hinweise.md.
+[O] 03.10. 12:55  Welle 3b fertig (Workflow wf_d6b73a72, R6-07b nachgebessert und angenommen). Neu:
+                  Support\StatistikDaten (Vertrag je Route: Paket {filter, diagramm.<name>, tabelle,
+                  zusammenfassung, meta}), Support\StatistikAntwort (json: Vary Accept + no-store; view:
+                  Vary Accept), sechs Controller liefern dieselbe Route als JSON (wantsJson) und HTML
+                  mit identischer Berechtigung (Lernenden-ID nur aus der Session, Berufsbildner nur
+                  sichtbarFuer); resources/js/statistik.js (npFilter: fängt submit/change/input, 150 ms
+                  Entprellung, replaceState, HTML-Tausch der [data-np-baustein] und cfg.ersetze, JSON
+                  nur wenn ein Diagramm hört – json:false auf der Berichtsseite; npVerlauf); Komponenten
+                  x-verlauf, x-hantel, x-punktstreifen, x-zeitleiste, sparkline/bullet mini. Welle-3b-
+                  Nachprüfung in der Hauptsitzung: Browser-Filtercheck auf /admin/reports/grades (kein
+                  Seitenwechsel, Export-Query folgt, eine HTML-Antwort mit Vary/no-store, Chart neu
+                  gezeichnet, Konsole leer), Rundgang nina/michael/laura Exit 0, Bilder dunkel 1920 und
+                  2560 gesichtet (Dashboard, Noten, Bericht, Berufsbildner), Doppelladung im HTML-Pfad
+                  gemessen (5 Abfragen, ≈2 ms, konstant → Backlog). Prüfer (xhigh, eigener Probe-Test
+                  mit 402 Assertions): Isolation bestätigt (fremde IDs in fünf Parameternamen byte-gleich
+                  ignoriert, nicht/ehemals/künftig Betreute 404, Admin-Routen 403, 30 böse Filterwerte
+                  nie 500, unauthentifiziert 401, Lernende ohne Noten 200, keine E-Mail/Hash/Pfad im
+                  JSON). Widerlegt und behoben: LernstandRechner rechnete das Delta ungerundet (4.0 −
+                  4.3 = −0.2999…, Grund «−0.3 zum Vorsemester» fehlte) → Statistik::delta() ist jetzt
+                  die eine Rundungsstelle für Lernstand, Hanteln und Personenvergleich; Regressionstest
+                  mit drei Fächern (rot ohne Fix). StatistikIsolationTest vergleicht neu alle vier
+                  Lernenden-Routen byte-gleich (?lernender, ?lernender_id, ?id, ?benutzer_id, ?user) und
+                  gibt B eine geplante Prüfung. Suite 1426 grün (1 skip). Nächster Schritt: Welle 4
+                  (R6-08 + R6-09, dann R6-10 + R6-11), Hinweise in scratch r6/welle4-hinweise.md.
 ```
 
 ---
 
 ## Offen für David
 
+- **R6 – Ziele für Berufsbildner sichtbar?** Dürfen Berufsbildner die persönlichen Ziele der
+  Lernenden sehen? Erst dann zeigt ihre Seite «nötige Note fürs Ziel»; bis dahin nur «nötige Note
+  für genügend» (`docs/auftrag/GUI-R6.md` §10).
+- **R6 – Erfassungsverhalten je Person und Vergleich der Berufsbildner** bleiben ausgeschlossen
+  (Vorentscheidungen 3 und 4 in `GUI-R6.md`). Mit Datenschutz und HR klären oder dauerhaft draussen?
 - **Standard der Navigation**: Seitenleiste nach HIG ist gebaut und je Person umschaltbar
   (Einstellungen → Darstellung), die Topbar bleibt. Standard für neue Konten ist laut Code die
   Seitenleiste (`app/Support/Darstellung.php`, `NAVIGATION_SEITE`); nur wenn du die Topbar als
@@ -161,3 +412,22 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
   benoteten Modulen wäre das Restgewicht passender; Beispiel und Vorschlag in `audit-backlog.md`.
 - **Lizenz und Meldeweg für Sicherheitslücken** sind weiterhin offen.
 - **Prod-Testpasswort aus Commit `171ed72`** liegt in der Git-Historie und muss rotiert werden.
+- **Packagist-Spiegel ohne Prüfsummen** (`SETUP-CLAUDE.md` §12.12): hinter dem Cloud-Proxy sind
+  GitHub-Archive nicht erreichbar, der Hook lädt dann alle 122 Pakete von `mirrors.cloud.tencent.com`,
+  und `composer.lock` trägt für GitHub-Dists keinen `shasum` – Composer prüft diese Archive gegen
+  nichts. Entscheid: Netzrichtlinie der Umgebung um `codeload.github.com` erweitern (dann läuft der
+  direkte Weg mit Packagist-Hashes), eigener Spiegel, oder das Restrisiko für Wegwerf-Container
+  bewusst tragen.
+- **Rückdatierte Betreuung löscht abgelöste Zeiträume hart** (`BetreuungController::store()`
+  Z. 38-43, gleich in `beenden()`): wer einen Wechsel rückdatiert, entfernt jede Betreuung, die am
+  neuen Datum oder später begann – ohne Papierkorb, die Historie der Lernenden verliert den Eintrag.
+  Der Verifier hält das für gewollt (Kommentar im Controller) und sieht keinen sicheren Minimal-Fix:
+  `after_or_equal:today` bräche die getestete Rückdatierung, ein Eintagsrest hielte den abgelösten
+  Berufsbildner heute noch aktiv, SoftDeletes verlangte sechs Raw-Queries anzupassen. Entscheid: so
+  lassen, oder Betreuungshistorie als Audit-Daten behandeln (dann eigener Block).
+- **Semesterdaten bleiben änderbar, obwohl Noten im Semester liegen**
+  (`StammdatenSemesterController::update()`): laut `funktionsumfang.md` sind nur leere Semester
+  löschbar, Bearbeiten ist frei. Noten behalten ihre gespeicherte `semester_id`; erst beim späteren
+  Bearbeiten einer Note ordnet `NoteService::pruefeZeile` sie neu zu oder weist sie ab. Entscheid:
+  so lassen (Korrektur von Tippfehlern bleibt möglich), oder Datumsfelder bei belegten Semestern
+  sperren (dann auch für weich gelöschte Noten definieren).

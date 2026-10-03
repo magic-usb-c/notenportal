@@ -39,7 +39,8 @@
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Auswertung und Fristen') }}</h2>
     <div class="np-karte np-gruppe">
         <x-einstellung :label="__('Rundung Gesamtschnitt')" fuer="rundung_gesamt" name="rundung_gesamt">
-            <select id="rundung_gesamt" name="rundung_gesamt" class="np-feld w-24 tabular-nums">
+            <select id="rundung_gesamt" name="rundung_gesamt" class="np-feld w-24 tabular-nums"
+                    @error('rundung_gesamt') aria-invalid="true" aria-describedby="rundung_gesamt-fehler" @enderror>
                 @foreach(\App\Support\Betrieb::RUNDUNGEN_GESAMT as $r)
                     <option value="{{ $r }}" @selected(abs((float) $wert('rundung_gesamt') - (float) $r) < 0.0001)>{{ $r }}</option>
                 @endforeach

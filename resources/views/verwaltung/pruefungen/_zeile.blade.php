@@ -25,7 +25,7 @@
                 <span class="np-marke shrink-0 bg-fill text-muted">{{ __('Abgabetermin') }}</span>
             @endif
             @if($zustand === 'abgesagt')
-                <span class="np-marke shrink-0 bg-surface-2 text-muted">{{ __('Abgesagt') }}</span>
+                <span class="np-marke shrink-0 bg-fill text-muted">{{ __('Abgesagt') }}</span>
             @endif
         </div>
         <div class="truncate text-xs text-muted">
@@ -40,7 +40,7 @@
 
     <div class="flex items-center justify-end gap-1">
         @if($zustand === 'benotet')
-            <a href="{{ route($bereich.'.learners.grades.index', [$p->lernender_id, '_open' => $p->note->note_id]) }}" class="mr-1 inline-flex" title="{{ __('Note ansehen') }}">
+            <a href="{{ route($bereich.'.learners.grades.index', [$p->lernender_id, '_open' => $p->note->note_id]) }}" class="mr-1 inline-flex" title="{{ __('Note ansehen') }}" aria-label="{{ __('Note ansehen') }}: {{ filled($p->note->note_stufe) ? \App\Support\NotenSkala::stufeKurz($p->note->note_stufe) : \App\Support\NotenSkala::format($p->note->note_wert) }}">
                 <x-note :wert="$p->note->note_wert" :stufe="$p->note->note_stufe" variante="badge" />
             </a>
         @endif

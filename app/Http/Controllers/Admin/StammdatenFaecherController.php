@@ -65,9 +65,9 @@ class StammdatenFaecherController extends Controller
     {
         $fach = DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
         $kategorien = $this->aktiveKategorien();
-        $notenAnzahl = DB::table('noten')->where('fach_id', $fach_id)->whereNull('geloescht_am')->count();
+        $loeschSperre = $this->loeschSperre($fach_id);
 
-        return view('admin.stammdaten.faecher.edit', compact('fach', 'kategorien', 'notenAnzahl'));
+        return view('admin.stammdaten.faecher.edit', compact('fach', 'kategorien', 'loeschSperre'));
     }
 
     public function update(Request $request, int $fach_id): RedirectResponse
@@ -113,16 +113,8 @@ class StammdatenFaecherController extends Controller
     {
         DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
 
-        $inGebrauch = DB::table('noten')->where('fach_id', $fach_id)->exists()
-            || DB::table('pruefungen')->where('fach_id', $fach_id)->exists()
-            || DB::table('ziele')->where('fach_id', $fach_id)->exists();
-
-        if ($inGebrauch) {
-            return back()->with('error', __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.'));
-        }
-        // Ein Fächerknoten ohne sein Fach rechnete still ohne diesen Teil weiter – erst den Baum anpassen.
-        if (DB::table('notenbaum_knoten_faecher')->where('fach_id', $fach_id)->exists()) {
-            return back()->with('error', __('Ein Notenbaum rechnet mit diesem Fach. Passe zuerst den Notenbaum an oder deaktiviere das Fach.'));
+        if ($sperre = $this->loeschSperre($fach_id)) {
+            return back()->with('error', $sperre);
         }
 
         DB::transaction(function () use ($fach_id) {
@@ -133,6 +125,27 @@ class StammdatenFaecherController extends Controller
 
         return redirect()->route('admin.master-data.subjects.index')
             ->with('success', __('Fach gelöscht.'));
+    }
+
+    /**
+     * Grund, warum das Fach nicht gelöscht werden darf – derselbe für den Hinweis im Formular und die Sperre in destroy().
+     * Gelöschte Noten zählen mit: sie bleiben in der Tabelle und verweisen weiter auf das Fach.
+     */
+    private function loeschSperre(int $fach_id): ?string
+    {
+        $inGebrauch = DB::table('noten')->where('fach_id', $fach_id)->exists()
+            || DB::table('pruefungen')->where('fach_id', $fach_id)->exists()
+            || DB::table('ziele')->where('fach_id', $fach_id)->exists();
+
+        if ($inGebrauch) {
+            return __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.');
+        }
+        // Ein Fächerknoten ohne sein Fach rechnete still ohne diesen Teil weiter – erst den Baum anpassen.
+        if (DB::table('notenbaum_knoten_faecher')->where('fach_id', $fach_id)->exists()) {
+            return __('Ein Notenbaum rechnet mit diesem Fach. Passe zuerst den Notenbaum an oder deaktiviere das Fach.');
+        }
+
+        return null;
     }
 
     /** @return array<string, mixed> */

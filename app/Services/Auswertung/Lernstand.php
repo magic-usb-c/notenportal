@@ -45,9 +45,7 @@ final readonly class Lernstand
 
     public function delta(): ?float
     {
-        return $this->semesterNote !== null && $this->vorsemesterNote !== null
-            ? round($this->semesterNote - $this->vorsemesterNote, 2)
-            : null;
+        return Statistik::delta($this->semesterNote, $this->vorsemesterNote);
     }
 
     public function tageOhneNote(): ?int

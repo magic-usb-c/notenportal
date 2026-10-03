@@ -13,7 +13,7 @@
            :class="ueber && 'border-accent! bg-accent/5!'"
            @dragover.prevent="ueber = true"
            @dragleave.prevent="if (! $el.contains($event.relatedTarget)) ueber = false"
-           @drop.prevent="ueber = false; if ($event.dataTransfer.files.length) { $refs.feld.files = $event.dataTransfer.files; dateiname = $event.dataTransfer.files[0].name }">
+           @drop.prevent="ueber = false; if ($event.dataTransfer.files.length) { $refs.feld.files = $event.dataTransfer.files; $refs.feld.dispatchEvent(new Event('change', { bubbles: true })) }">
         <x-symbol :name="$symbol" class="size-8 text-accent-text" />
         <span class="max-w-full truncate text-sm font-medium text-text" x-text="dateiname || @js($titel)">{{ $titel }}</span>
         @if($hinweis)

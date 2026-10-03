@@ -1,22 +1,27 @@
 {{-- Mailversand als gruppierte Listen – in «Betrieb» und im Einrichtungsschritt «E-Mail». --}}
 @php
     $wert = fn (string $k) => old($k, $werte[$k]);
-    $fehlerAttr = fn (string $k) => $errors->has($k) ? 'aria-invalid=true aria-describedby='.$k.'-fehler' : '';
+    // aria-invalid und aria-describedby (Hinweis- und Fehler-id in einem Attribut) für ein Feld
+    $fehlerAttr = function (string $k, bool $hinweis = false) use ($errors) {
+        $ids = trim(($hinweis ? $k.'-hinweis ' : '').($errors->has($k) ? $k.'-fehler' : ''));
+
+        return new \Illuminate\Support\HtmlString(($errors->has($k) ? 'aria-invalid="true" ' : '').($ids !== '' ? 'aria-describedby="'.$ids.'"' : ''));
+    };
+    $hostHinweis = $werte['source'] === 'env' && $werte['env_host'] ? __('Vorgabe der Installation: :host', ['host' => $werte['env_host']]) : null;
 @endphp
 <section>
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Server') }}</h2>
     <div class="np-karte np-gruppe">
-        <x-einstellung :label="__('Server')" fuer="mail_host" name="mail_host"
-                       :hinweis="$werte['source'] === 'env' && $werte['env_host'] ? __('Vorgabe der Installation: :host', ['host' => $werte['env_host']]) : null">
+        <x-einstellung :label="__('Server')" fuer="mail_host" name="mail_host" :hinweis="$hostHinweis">
             <input id="mail_host" name="mail_host" type="text" maxlength="190" value="{{ $wert('mail_host') }}" placeholder="{{ $werte['env_host'] ?? '' }}"
-                   autocomplete="off" spellcheck="false" class="np-feld w-72" {{ $fehlerAttr('mail_host') }}>
+                   autocomplete="off" spellcheck="false" class="np-feld w-72" {{ $fehlerAttr('mail_host', $hostHinweis !== null) }}>
         </x-einstellung>
         <x-einstellung :label="__('Port')" fuer="mail_port" name="mail_port">
             <input id="mail_port" name="mail_port" type="number" min="1" max="65535" value="{{ $wert('mail_port') }}"
                    class="np-feld w-24 text-right tabular-nums" {{ $fehlerAttr('mail_port') }}>
         </x-einstellung>
         <x-einstellung :label="__('Verschlüsselung')" fuer="mail_encryption" name="mail_encryption">
-            <select id="mail_encryption" name="mail_encryption" required class="np-feld w-72">
+            <select id="mail_encryption" name="mail_encryption" required class="np-feld w-72" {{ $fehlerAttr('mail_encryption') }}>
                 @foreach(\App\Services\Notifications\MailSettings::ENCRYPTIONS as $schluessel => $text)
                     <option value="{{ $schluessel }}" @selected($wert('mail_encryption') === $schluessel)>{{ __($text) }}</option>
                 @endforeach

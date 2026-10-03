@@ -25,3 +25,6 @@ Schedule::command('calendar:sync')->hourlyAt(17)->withoutOverlapping()->runInBac
 
 // Aktivitätsprotokoll: Einträge älter als 365 Tage löschen
 Schedule::command('notenportal:aktivitaeten-aufraeumen')->dailyAt('03:15')->withoutOverlapping();
+
+// Feedback: Screenshots und Anhänge ohne Datenbankzeile löschen (Kaskade, Raw-Delete, abgebrochener Upload)
+Schedule::command('notenportal:feedback-aufraeumen')->weeklyOn(1, '03:45')->withoutOverlapping();

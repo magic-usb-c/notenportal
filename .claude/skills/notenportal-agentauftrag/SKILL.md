@@ -7,14 +7,18 @@ description: Vorlage für Aufträge an Subagents im Notenportal – Modell und E
 
 ## Modell und Effort
 Tabelle im Skill `notenportal-orchestrierung`. Kurz: haiku low suchen · sonnet high umsetzen/reviewen ·
-opus xhigh prüfen/entwerfen · fable max nur als letzte Instanz. Immer beides setzen, sonst erbt der
-Agent Fable xhigh.
+opus xhigh entwerfen · fable max nur als letzte Instanz. Die benannten Agents (`pruefer` fable low,
+`ui-checker` opus high, `bildpruefer` sonnet high …) bringen Modell und Effort im Frontmatter mit; bei
+`general-purpose` immer beides setzen, sonst erbt der Agent Fable xhigh.
 
 ## Test-DB je Agent
 `notenportal_test` gehört der Hauptsession. Agents nehmen `notenportal_b_test`, `_c_test`, `_d_test`,
 `_e_test` – nie zwei Agents auf derselben. Anlegen, falls sie fehlt:
 `mysql --socket=/run/mysqld/mysqld.sock -u root -e "CREATE DATABASE IF NOT EXISTS notenportal_b_test"`.
-Der Guard in `tests/TestCase.php` verlangt ein `*_test`-Suffix.
+Der Guard in `tests/TestCase.php` verlangt ein `*_test`-Suffix. Die Datenbank trennt nur die Tabellen:
+`Storage::fake('local')` nutzt in jedem Prozess dasselbe Verzeichnis `storage/framework/testing/disks/local`,
+darum läuft **nur eine ganze Suite zur Zeit** (sonst fallen `SicherungTest`/`SicherungKopieTest`);
+Agents prüfen einzelne Tests mit `--filter`, die ganze Suite läuft in der Hauptsession.
 
 ## Pflichtblock (wörtlich in jeden Auftrag)
 ```

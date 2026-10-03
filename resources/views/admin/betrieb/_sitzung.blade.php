@@ -32,7 +32,8 @@
             <x-einstellung :label="__('Feedback-Knopf')" fuer="feedback_knopf" name="feedback_knopf"
                            :hinweis="__('Knopf in der Symbolleiste, mit dem Angemeldete während der Testphase Rückmeldungen und Fehler melden.')">
                 <input id="feedback_knopf" name="feedback_knopf" type="checkbox" role="switch" value="1" @checked(old('feedback_knopf', $feedbackKnopfAktiv))
-                       data-sofort class="np-schalter">
+                       data-sofort class="np-schalter" aria-describedby="feedback_knopf-hinweis @error('feedback_knopf') feedback_knopf-fehler @enderror"
+                       @error('feedback_knopf') aria-invalid="true" @enderror>
                 <noscript><button type="submit" class="np-knopf np-knopf-sekundaer">{{ __('Speichern') }}</button></noscript>
             </x-einstellung>
         </form>

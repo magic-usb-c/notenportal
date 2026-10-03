@@ -20,7 +20,7 @@ final class Screenshot
 {
     public const int MAX_KB = 1536;
 
-    private const string DISK = 'local';
+    public const string DISK = 'local';
 
     /** @return array<string, list<mixed>> */
     public static function regeln(): array

@@ -18,6 +18,7 @@ final class JsTexte
         'Danke, deine Meldung ist eingegangen.',
         'Die Anhänge sind zusammen zu gross. Bitte weniger oder kleinere Dateien wählen.',
         'Ergebnis',
+        'Filter entfernen: :name',
         'Gespeichert.',
         'Ergebnis: :wert',
         'Gerade viele Meldungen unterwegs – bitte kurz warten.',
@@ -32,7 +33,9 @@ final class JsTexte
         'Änderung konnte nicht gespeichert werden.',
         'Ziel :wert',
         'Zu viele Anfragen – bitte kurz warten.',
+        'beste Endnote :wert',
         'genügend :wert',
+        'schlechteste Endnote :wert',
     ];
 
     /** @return array<string, string> Schlüssel => Übersetzung in der aktuellen Sprache */

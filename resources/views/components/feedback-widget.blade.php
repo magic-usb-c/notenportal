@@ -12,22 +12,23 @@
          class="contents print:hidden">
         @if($feedbackKnopfAktiv && ! request()->routeIs('feedback.index'))
             <button type="button" data-feedback-knopf @click="open ? schliessen() : $dispatch('open-modal', 'feedback')" :aria-expanded="open" aria-haspopup="dialog"
-                    aria-label="{{ __('Feedback / Fehler melden') }}" title="{{ __('Feedback / Fehler melden') }}"
+                    x-np-licht aria-label="{{ __('Feedback / Fehler melden') }}" title="{{ __('Feedback / Fehler melden') }}"
                     class="np-glas-gruppe gap-2 px-2.5 text-sm text-muted transition-colors duration-100 hover:text-text aria-expanded:text-text xl:pr-3.5">
-                <x-symbol name="chat-bubble-left-ellipsis" class="size-4.5 text-accent-text" />
+                <span class="np-glanz" aria-hidden="true"></span>
+                <x-symbol name="chat-bubble-left-ellipsis" class="size-4.5" />
                 <span class="max-xl:sr-only">{{ __('Feedback') }}</span>
             </button>
         @endif
 
-            <div x-show="open" x-cloak @click.outside="$event.target.closest('[data-feedback-knopf]') || schliessen()" @keydown.escape.window="schliessen()"
+            <div x-show="open" x-cloak @click.outside="$event.target.closest('[data-feedback-knopf]') || schliessen()" @keydown.escape.window="if (open && window.np.escapeGilt($el, $event)) schliessen()"
                  x-transition:enter="transition ease-out duration-150"
-                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-start="opacity-0 -translate-y-1 ruhig:translate-y-0"
                  x-transition:enter-end="opacity-100 translate-y-0"
                  x-transition:leave="transition ease-in duration-100"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
                  role="dialog" aria-modal="false" aria-labelledby="feedback-panel-titel"
-                 class="absolute right-8 top-full z-50 mt-1 max-h-[calc(100dvh-5rem)] w-104 overflow-y-auto rounded-2xl border border-border bg-card p-5 text-text shadow-e3">
+                 class="absolute right-8 top-full z-50 mt-1 max-h-[calc(100dvh-5rem)] w-104 overflow-y-auto rounded-2xl np-schicht p-5 text-text shadow-e3">
                 <div class="mb-1 flex items-center justify-between">
                     <h2 id="feedback-panel-titel" class="text-base font-semibold text-text">{{ __('Feedback melden') }}</h2>
                     <button type="button" @click="schliessen()" aria-label="{{ __('Schliessen') }}" class="np-knopf np-knopf-symbol -mr-1.5">
@@ -109,7 +110,7 @@
                 @endif
 
                 <label for="feedback-text" class="text-sm font-medium text-text">{{ __('Deine Meldung') }}</label>
-                <textarea id="feedback-text" x-model="text" rows="4" maxlength="5000" required
+                <textarea id="feedback-text" x-ref="text" x-model="text" rows="4" maxlength="5000" required
                           placeholder="{{ __('Was ist passiert, was fehlt dir, was gefällt dir?') }}"
                           aria-describedby="feedback-fehler" :aria-invalid="error ? 'true' : null"
                           class="np-feld mt-1.5"></textarea>

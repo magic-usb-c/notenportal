@@ -230,6 +230,7 @@
     "Das bisherige Passwort wird ungültig.": "The current password will become invalid.",
     "Exportieren": "Export",
     "Keine Lernenden für diesen Filter.": "No apprentices match this filter.",
+    "Alle anzeigen": "Show all",
     ":anzahl neue Noten von :name": ":anzahl new grades from :name",
     "Ab": "From",
     "Start": "Start",

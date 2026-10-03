@@ -11,13 +11,17 @@ use App\Models\Pruefung;
 use App\Services\Calendar\CalendarSync;
 use App\Services\Calendar\SchoolNetDescriptionParser;
 use App\Services\Noten\NoteService;
+use App\Support\StatistikAntwort;
+use App\Support\StatistikDaten;
+use App\Support\StatistikFilter;
 use App\Support\Zahl;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
 
 /**
  * Agenda des Lernenden: eigene Prüfungen (planen, bearbeiten, streichen, «Note eintragen» führt ins
@@ -29,9 +33,11 @@ class PruefungenController extends Controller
     public function __construct(
         private readonly NoteService $noteService,
         private readonly SchoolNetDescriptionParser $parser,
+        private readonly StatistikDaten $statistik,
     ) {}
 
-    public function index(Request $request): View|RedirectResponse
+    /** Agenda; JSON liefert die kommenden Prüfungen mit der nötigen Note für genügend (S6, zeitraum 4w|8w|alle). */
+    public function index(Request $request): Response|JsonResponse|RedirectResponse
     {
         // Altes Kalender-Abo-Drawer (?kalender=1): serverseitig auf den neuen Kalender-Tab umleiten.
         if ($request->has('kalender')) {
@@ -39,6 +45,14 @@ class PruefungenController extends Controller
         }
 
         $lernender = $request->user()->lernender ?? abort(403);
+
+        $filter = StatistikFilter::aus($request, ['zeitraum' => ['4w', '8w', 'alle']], ['zeitraum' => '8w']);
+        $geladen = $this->statistik->lernender((int) $lernender->lernender_id, mitGeplanten: true);
+        $paket = StatistikAntwort::paket($filter, $this->statistik->pruefungen($geladen['leistungen'], $geladen['konfiguration'], (string) $filter->wert('zeitraum')));
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
         $ansicht = $request->query('ansicht') === 'monat' ? 'monat' : 'liste';
         $zeigeLektionen = $request->boolean('lektionen');
         $heute = CarbonImmutable::today();
@@ -59,7 +73,8 @@ class PruefungenController extends Controller
         $eintraege = $this->eintraege($pruefungen, $termine, $erkannt, $lektionen, $heute);
         $bearbeiten = $request->filled('bearbeiten') ? $pruefungen->firstWhere('pruefung_id', $request->integer('bearbeiten')) : null;
 
-        return view('lernender.agenda.index', [
+        return StatistikAntwort::view('lernender.agenda.index', [
+            'statistik' => $paket,
             'ansicht' => $ansicht,
             'zeigeLektionen' => $zeigeLektionen,
             'monat' => $monat,

@@ -62,10 +62,10 @@
                             <span class="font-semibold tabular-nums" x-text="'≥ ' + fmt(z.zielwert)"></span>
                         </button>
                         @if($zielUrl)
-                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1">
+                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" x-data="{ loading: false }" @submit="loading = true">
                                 @csrf
                                 @method('DELETE')
-                                <button class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-text/10 hover:text-text"
+                                <button :disabled="loading" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-text/10 hover:text-text disabled:opacity-50"
                                         :aria-label="@js(__('Ziel entfernen')) + ': ' + z.label" title="{{ __('Ziel entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-3.5" /></button>
                             </form>
                         @endif
@@ -273,7 +273,7 @@
                                     <col class="w-24">
                                     <col class="w-28">
                                     <col class="w-28">
-                                    <col class="w-32">
+                                    <col class="w-56">
                                 </colgroup>
                                 <thead>
                                     <tr>
@@ -281,7 +281,7 @@
                                         <th scope="col" class="text-right">{{ __('Schnitt') }}</th>
                                         <th scope="col" class="text-right">{{ __('Ungenügend') }}</th>
                                         <th scope="col" class="text-right">{{ __('Minuspunkte') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Status') }}</th>
+                                        <th scope="col" class="text-right" title="{{ __('Heute → Szenario') }}">{{ __('Promotion') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -292,11 +292,21 @@
                                             <td class="text-right text-text" x-text="p.nachher.ungenuegend"></td>
                                             <td class="text-right text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></td>
                                             <td class="text-right">
-                                                <span class="np-marke gap-1"
-                                                      :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'">
-                                                    <span x-show="! p.nachher.erfuellt" aria-hidden="true">▼</span>
-                                                    <span x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
-                                                </span>
+                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                    {{-- Stand heute nur, wenn das Szenario ihn ändert --}}
+                                                    <template x-if="p.vorher && p.vorher.erfuellt !== p.nachher.erfuellt">
+                                                        <div class="inline-flex items-center gap-1.5">
+                                                            <span class="np-marke bg-fill text-muted" x-text="p.vorher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
+                                                            <span class="text-muted" aria-hidden="true">→</span>
+                                                            <span class="sr-only">{{ __('wird zu') }}</span>
+                                                        </div>
+                                                    </template>
+                                                    <span class="np-marke gap-1"
+                                                          :class="p.nachher.erfuellt ? 'bg-note-gut/14 text-note-gut' : 'bg-note-ungenuegend/14 text-note-ungenuegend'">
+                                                        <span x-show="! p.nachher.erfuellt" aria-hidden="true">▼</span>
+                                                        <span x-text="p.nachher.erfuellt ? @js(__('erfüllt')) : @js(__('gefährdet'))"></span>
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     </template>
@@ -308,4 +318,9 @@
             </div>
         </div>
     </div>
+
+    @unless($lernender)
+        {{-- Erfassen im Drawer wie auf /grades: öffnet «Note erfassen» im Ergebnis ohne Noten --}}
+        <x-noten-drawer :fehler="$drawerFehler ?? null" />
+    @endunless
 </x-app-layout>

@@ -40,31 +40,37 @@
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label for="herbst" class="{{ $label }}">{{ __('Erstes Herbstsemester ab') }}</label>
-                    <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}">
-                    @error('herbst')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <input id="herbst" name="herbst" type="date" required x-model="herbst" class="{{ $feld }}"
+                           @error('herbst') aria-invalid="true" aria-describedby="herbst-fehler" @enderror>
+                    @error('herbst')<p id="herbst-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="fruehling" class="{{ $label }}">{{ __('Erstes Frühlingssemester ab') }}</label>
-                    <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}">
-                    @error('fruehling')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <input id="fruehling" name="fruehling" type="date" required x-model="fruehling" class="{{ $feld }}"
+                           @error('fruehling') aria-invalid="true" aria-describedby="fruehling-fehler" @enderror>
+                    @error('fruehling')<p id="fruehling-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
                 <div>
                     <label for="bis_jahr" class="{{ $label }}">{{ __('Bis Schuljahr') }}</label>
-                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }}">
-                    @error('bis_jahr')<p class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    <input id="bis_jahr" name="bis_jahr" type="number" required min="2000" max="2100" x-model.number="bis" class="{{ $feld }} text-right"
+                           @error('bis_jahr') aria-invalid="true" aria-describedby="bis_jahr-fehler" @enderror>
+                    @error('bis_jahr')<p id="bis_jahr-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
             </div>
 
             <div>
                 <div class="flex items-baseline justify-between gap-3 mb-2">
-                    <h3 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h3>
+                    <h2 class="text-sm font-semibold text-text">{{ __('Vorschau') }}</h2>
                     <span class="text-xs text-muted" x-text="`${neu} ${labels.neu} · ${plan.length - neu} ${labels.vorhanden}`"></span>
                 </div>
-                <ul class="grid grid-cols-6 gap-2">
+                <ul class="grid grid-cols-4 gap-2">
                     <template x-for="s in plan" :key="s.b">
                         <li class="rounded-xl border px-3 py-2" :class="s.da ? 'border-border text-muted' : 'border-accent/40 bg-accent/5 text-text'">
-                            <div class="text-sm font-semibold tabular-nums" x-text="s.b"></div>
-                            <div class="text-3xs text-muted tabular-nums" x-text="`${fmt(s.von)} – ${fmt(s.bis)}`"></div>
+                            <div class="flex h-5 items-center justify-between gap-2">
+                                <span class="text-sm font-semibold tabular-nums" x-text="s.b"></span>
+                                <span class="np-marke shrink-0 bg-accent/10 text-accent-text" x-show="!s.da" x-text="labels.neu"></span>
+                            </div>
+                            <div class="text-2xs text-muted tabular-nums"><span class="whitespace-nowrap" x-text="`${fmt(s.von)} –`"></span> <span class="whitespace-nowrap" x-text="fmt(s.bis)"></span></div>
                         </li>
                     </template>
                 </ul>
@@ -73,10 +79,10 @@
 
         @if($semester->isNotEmpty())
             <section class="np-karte p-5">
-                <h3 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h3>
+                <h2 class="text-sm font-semibold text-text mb-3">{{ __('Vorhanden') }}</h2>
                 <div class="flex flex-wrap gap-1.5">
                     @foreach($semester as $s)
-                        <span class="px-2.5 py-1 rounded-lg bg-bg/60 border border-border text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }} <span class="text-muted">({{ \App\Models\Semester::neutralerName($s->start_datum) }})</span></span>
+                        <span class="px-2.5 py-1 rounded-lg bg-fill text-xs tabular-nums" title="{{ \Illuminate\Support\Carbon::parse($s->start_datum)->format('d.m.Y') }} – {{ \Illuminate\Support\Carbon::parse($s->end_datum)->format('d.m.Y') }}">{{ $s->bezeichnung }} <span class="text-muted">({{ \App\Models\Semester::neutralerName($s->start_datum) }})</span></span>
                     @endforeach
                 </div>
             </section>

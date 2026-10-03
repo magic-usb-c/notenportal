@@ -12,7 +12,7 @@
         <div class="np-karte np-gruppe">
             <x-einstellung :label="__('Bezeichnung')" fuer="bezeichnung" name="bezeichnung">
                 <input type="text" id="bezeichnung" name="bezeichnung" value="{{ $wert('bezeichnung') }}" required maxlength="20"
-                       @unless($semester) placeholder="2025/1" @endunless
+                       @unless($semester) placeholder="26/27-1" @endunless
                        class="np-feld w-40 tabular-nums" @error('bezeichnung') aria-invalid="true" aria-describedby="bezeichnung-fehler" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Von')" fuer="start_datum" name="start_datum">

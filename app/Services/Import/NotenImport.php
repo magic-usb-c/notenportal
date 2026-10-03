@@ -272,7 +272,7 @@ final class NotenImport
         }
     }
 
-    /** @return array{neu: int, fehler: list<string>} */
+    /** @return array{neu: int, fehler: list<string>, semester_ids: list<int>} */
     private function importierenInBatch(array $zeilen, int $lernenderId, int $benutzerId): array
     {
         $bereit = [];
@@ -288,7 +288,7 @@ final class NotenImport
             }
             $nr = (int) ($z['nr'] ?? 0);
             $pruefung = Validator::make($z, [
-                'datum' => ['required', 'date'],
+                'datum' => ['required', 'date_format:Y-m-d'],
                 'bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
                 'titel' => ['nullable', 'string', 'max:150'],
                 'note' => ['required', 'numeric', 'min:1', 'max:6', 'multiple_of:0.05'],
@@ -337,12 +337,13 @@ final class NotenImport
         }
 
         if ($bereit === [] || $fehler !== []) {
-            return ['neu' => 0, 'fehler' => $fehler];
+            return ['neu' => 0, 'fehler' => $fehler, 'semester_ids' => []];
         }
 
         $neu = 0;
+        $semesterIds = [];
         try {
-            DB::transaction(function () use ($bereit, $lernenderId, $benutzerId, &$neu) {
+            DB::transaction(function () use ($bereit, $lernenderId, $benutzerId, &$neu, &$semesterIds) {
                 foreach ($bereit as $eingabe) {
                     $daten = $this->noten->normalizeForSave($eingabe, $lernenderId);
                     Note::create([
@@ -351,15 +352,16 @@ final class NotenImport
                         'erfasst_von_benutzer_id' => $benutzerId,
                     ]);
                     $neu++;
+                    $semesterIds[(int) $daten['semester_id']] = true;
                 }
             });
         } catch (ValidationException $e) {
             // normalizeForSave() prüft (pruefeZeile) innerhalb der Transaktion erneut; eine dort geworfene
             // Ausnahme hat die Transaktion bereits zurückgerollt – als Importfehler statt als Systemfehler melden.
-            return ['neu' => 0, 'fehler' => [collect($e->errors())->flatten()->first()]];
+            return ['neu' => 0, 'fehler' => [collect($e->errors())->flatten()->first()], 'semester_ids' => []];
         }
 
-        return ['neu' => $neu, 'fehler' => []];
+        return ['neu' => $neu, 'fehler' => [], 'semester_ids' => array_keys($semesterIds)];
     }
 
     /** CSV-Vorlage mit Kopfzeile und je einem Beispiel pro Fach/Modul-Art. */

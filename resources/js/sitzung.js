@@ -51,6 +51,7 @@ export function registriereSitzung() {
 
     let abgemeldet = false;
     let gewarnt = false;
+    let letzterFokus = null;
 
     jetztMerken();
 
@@ -88,8 +89,7 @@ export function registriereSitzung() {
 
             if (antwort.status === 204) {
                 jetztMerken();
-                gewarnt = false;
-                dialog.hidden = true;
+                verstecke();
                 return;
             }
 
@@ -104,6 +104,7 @@ export function registriereSitzung() {
     function zeigeWarnung() {
         if (gewarnt) return;
         gewarnt = true;
+        letzterFokus = document.activeElement;
         dialog.hidden = false;
         bleibenBtn?.focus();
     }
@@ -111,6 +112,8 @@ export function registriereSitzung() {
     function verstecke() {
         gewarnt = false;
         dialog.hidden = true;
+        if (letzterFokus?.isConnected) letzterFokus.focus?.();
+        letzterFokus = null;
     }
 
     function pruefen() {
@@ -130,6 +133,13 @@ export function registriereSitzung() {
 
     bleibenBtn?.addEventListener('click', () => keepAlive());
     abmeldenBtn?.addEventListener('click', () => zwangsabmeldung());
+
+    // Tab bleibt im Dialog: nur zwei Knöpfe, Tab und Umschalt+Tab wechseln zwischen ihnen
+    dialog.addEventListener('keydown', (event) => {
+        if (event.key !== 'Tab' || !bleibenBtn || !abmeldenBtn) return;
+        event.preventDefault();
+        (document.activeElement === bleibenBtn ? abmeldenBtn : bleibenBtn).focus();
+    });
 
     // Aktivität in einem anderen Tab (Seitenaufruf oder Keep-Alive dort) verlängert auch hier.
     window.addEventListener('storage', (event) => {

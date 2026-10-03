@@ -8,6 +8,7 @@ use App\Models\Lernender;
 use App\Models\ModulBelegung;
 use App\Models\Note;
 use App\Models\Semester;
+use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Modulstatus;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Noten\NoteService;
@@ -22,6 +23,9 @@ use App\Support\Csv;
 use App\Support\Lehrsemester;
 use App\Support\Modulbaukasten;
 use App\Support\NotenSkala;
+use App\Support\StatistikAntwort;
+use App\Support\StatistikDaten;
+use App\Support\StatistikFilter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,10 +40,12 @@ class NotenController extends Controller
         private readonly NoteService $noteService,
         private readonly NotenQuelle $quelle,
         private readonly Uebersicht $uebersicht,
+        private readonly StatistikDaten $statistik,
         private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
         private readonly Modulstatus $modulstatus = new Modulstatus,
     ) {}
 
+    /** Notenliste; JSON liefert die Hantel je Fach (S3): Vorsemester gegen gewähltes Semester. */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -50,6 +56,22 @@ class NotenController extends Controller
         }
 
         $lernenderId = (int) $lernender->lernender_id;
+
+        // Bestehende Schlüssel der Seite (semester_id, kategorie_id) bleiben; neu ist nur die Sortierung
+        $konfiguration = Konfiguration::ausDb();
+        $statistikFilter = StatistikFilter::aus($request, [
+            'semester_id' => ['id' => array_map('intval', array_keys($konfiguration->semester))],
+            'kategorie_id' => ['id' => array_map('intval', array_keys($konfiguration->kategorien))],
+            'sort' => ['delta', 'fach'],
+        ], ['sort' => 'delta']);
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json(StatistikAntwort::paket($statistikFilter, $this->statistik->hantel(
+                $this->statistik->lernender($lernenderId)['auswertung'],
+                $statistikFilter->wert('semester_id'),
+                $statistikFilter->wert('kategorie_id'),
+                (string) $statistikFilter->wert('sort'),
+            )));
+        }
 
         // Semester-Liste (nur Lehrbeginn -> Lehrende/heute)
         $semester = $this->noteService->semestersForLernender($lernenderId);
@@ -154,7 +176,8 @@ class NotenController extends Controller
         // eine gebündelte Ladung für die ganze Seite, per Element-Schlüssel nachgeschlagen (kein N+1).
         $modulstatus = collect($this->modulstatus->fuerLernenden($lernenderId))->keyBy('schluessel');
 
-        return view('lernender.noten.index', [
+        return StatistikAntwort::view('lernender.noten.index', [
+            'statistik' => StatistikAntwort::paket($statistikFilter, $this->statistik->hantel($a, $sem, $kategorieId, (string) $statistikFilter->wert('sort'))),
             'gruppen' => $gruppen,
             'auswertung' => $a,
             'modulstatus' => $modulstatus,

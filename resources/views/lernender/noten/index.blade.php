@@ -187,7 +187,7 @@
                                                 <td class="text-muted">
                                                     <span class="flex items-center gap-3" @if($fortschritt !== null) title="{{ $fortschritt >= 100 ? __('abgeschlossen') : __(':prozent offen', ['prozent' => \App\Support\Zahl::prozent($offenGewicht)]) }}" @endif>
                                                         <span class="sr-only">{{ $anzahl === 1 ? __('1 Prüfung') : __(':anzahl Prüfungen', ['anzahl' => $anzahl]) }}</span>
-                                                        <span class="w-5 shrink-0 text-right tabular-nums" aria-hidden="true">{{ $anzahl }}</span>
+                                                        <span class="w-5 shrink-0 tabular-nums" aria-hidden="true">{{ $anzahl }}</span>
                                                         @if($fortschritt !== null)
                                                             <span class="h-1 w-16 shrink-0 overflow-hidden rounded-full bg-fill" aria-hidden="true">
                                                                 <span class="block h-full bg-chart-6" style="width: {{ $fortschritt }}%"></span>

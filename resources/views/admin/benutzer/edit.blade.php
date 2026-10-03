@@ -25,11 +25,12 @@
                         @foreach(['Berufsbildner' => __('Betreut Lernende'), 'Admin' => __('Volle Verwaltung')] as $rolle => $beschreibung)
                             <x-einstellung :label="__($rolle)" :fuer="'rolle-'.$rolle" :hinweis="$beschreibung">
                                 <input type="checkbox" role="switch" name="rollen[]" value="{{ $rolle }}" id="rolle-{{ $rolle }}" class="np-schalter"
+                                       aria-describedby="rolle-{{ $rolle }}-hinweis @error('rollen') rollen-fehler @enderror" @error('rollen') aria-invalid="true" @enderror
                                        @checked(in_array($rolle, old('rollen', $rollen->all()), true))>
                             </x-einstellung>
                         @endforeach
                     </div>
-                    @error('rollen')<p class="mt-2 px-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                    @error('rollen')<p id="rollen-fehler" class="mt-2 px-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </section>
 
                 @include('admin.benutzer._passwort', ['pflicht' => false])

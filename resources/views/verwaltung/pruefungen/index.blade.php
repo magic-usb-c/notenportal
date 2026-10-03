@@ -10,14 +10,15 @@
             </nav>
             <x-slot:aktionen>
                 <a href="{{ route('settings.calendar') }}" class="np-knopf np-knopf-sekundaer">{{ __('Kalender-Abo') }}</a>
+                @php $hauptaktion = 'data-hauptaktion'; @endphp
                 @if($abgabeMoeglich)
                     <a href="{{ route($bereich.'.exams.index', array_merge($filter, ['planen' => 1])) }}" @unless($bearbeiten) x-data @click.prevent="$dispatch('open-drawer', 'abgabetermin')" @endunless
-                       class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}</a>
+                       {{ $hauptaktion }} class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}</a>
                 @elseif(\App\Models\Pruefung::hatArtSpalte() && $lernende->isNotEmpty())
                     {{-- Ohne gewählte Person fragt das Menü zuerst, für wen (Fach/Modul hängen von Lehrberuf und Track ab) --}}
                     <x-dropdown align="right" width="56" content-classes="max-h-[min(24rem,70dvh)] overflow-y-auto p-1 text-text">
                         <x-slot name="trigger">
-                            <button type="button" aria-haspopup="menu" class="np-knopf np-knopf-primaer">
+                            <button type="button" {{ $hauptaktion }} class="np-knopf np-knopf-primaer">
                                 <x-symbol name="plus" strich="2" />{{ __('Abgabetermin') }}<x-symbol name="chevron-down" strich="2" class="size-3.5" />
                             </button>
                         </x-slot>
@@ -42,7 +43,7 @@
 
     <div class="py-6">
         {{-- Termine als gruppierte Liste, daneben die Lernenden wie die Kalenderliste in Apple Kalender: Auswahl und Zähler --}}
-        <div class="np-seite mx-auto grid grid-cols-[minmax(0,78rem)_20rem] items-start gap-8 px-8">
+        <div class="np-seite mx-auto grid grid-cols-[minmax(0,64rem)_20rem] items-start gap-8 px-8">
             <div class="flex min-w-0 flex-col gap-8">
                 @forelse($gruppen as $g)
                     <section class="flex flex-col gap-2">
@@ -64,7 +65,9 @@
                     {{-- Platzhalter in Höhe der Überschrift hält die Oberkante der Karte auf Höhe der Lernenden-Karte --}}
                     <section class="flex flex-col gap-2">
                         <div class="h-5" aria-hidden="true"></div>
-                        <x-leer class="np-karte" symbol="calendar" :titel="__('Keine Prüfungstermine für die aktuelle Auswahl.')" />
+                        <x-leer class="np-karte" symbol="calendar" :titel="__('Keine Prüfungstermine für die aktuelle Auswahl')">
+                            <a href="{{ route("{$bereich}.exams.index") }}" class="np-knopf np-knopf-sekundaer">{{ __('Alle Termine') }}</a>
+                        </x-leer>
                     </section>
                 @endforelse
             </div>

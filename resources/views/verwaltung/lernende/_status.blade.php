@@ -14,7 +14,7 @@
     <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-text"><span class="size-2 shrink-0 rounded-full bg-accent" aria-hidden="true"></span>{{ __(':anzahl neu', ['anzahl' => $z->ungelesen]) }}</span>
 @endif
 @if($laufend && $z->avg !== null && $z->avg < $grenze)
-    <span class="np-marke bg-note-ungenuegend/10 text-note-ungenuegend">{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</span>
+    <span class="np-marke bg-note-ungenuegend/14 text-note-ungenuegend">{{ __('Ø unter :grenze', ['grenze' => \App\Support\NotenSkala::format($grenze)]) }}</span>
 @endif
 @if($laufend && $tagSeit === null)
     <span class="np-marke bg-fill text-muted">{{ __('Keine Noten') }}</span>

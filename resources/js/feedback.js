@@ -245,13 +245,14 @@ export function registriereFeedback(Alpine) {
         loading: false,
         ladeText: t('Senden'),
         error: '',
+        letzterFokus: null,
 
         init() {
             window.addEventListener('open-modal', (e) => {
-                if (e.detail === 'feedback') this.open = true;
+                if (e.detail === 'feedback') this.oeffnen();
             });
             window.addEventListener('close-modal', (e) => {
-                if (e.detail === 'feedback') this.open = false;
+                if (e.detail === 'feedback') this.schliessen();
             });
         },
 
@@ -266,9 +267,19 @@ export function registriereFeedback(Alpine) {
             this.error = '';
         },
 
+        // Fokus ins Textfeld; beim Schliessen zurück zum Element, das den Dialog geöffnet hat
+        oeffnen() {
+            if (!this.open) this.letzterFokus = document.activeElement;
+            this.open = true;
+            this.$nextTick(() => this.$refs.text?.focus());
+        },
+
         schliessen() {
             this.open = false;
             this.reset();
+            const ziel = this.letzterFokus;
+            this.letzterFokus = null;
+            if (ziel?.isConnected) ziel.focus?.();
         },
 
         dateienWaehlen(e) {

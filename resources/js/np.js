@@ -117,15 +117,183 @@ export function notenFarbe(wert, grenzen, alpha = 1) {
     return s ? tokenFarbe(`--note-${s}`, alpha) : tokenFarbe('--muted', alpha);
 }
 
+// Bewegung reduziert: persönliche Einstellung (data-bewegung) oder Systemeinstellung (prefers-reduced-motion).
+export function bewegungRuhig() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        || document.documentElement.dataset.bewegung === 'reduziert';
+}
+
+// Licht unter dem Zeiger (x-np-licht): Kapseln und Knöpfe tragen eine Lichtschicht .np-glanz; der Zeiger
+// führt ihren Lichtfleck. Die @property-Werte erben nicht, deshalb schreibt die Direktive direkt auf die Schicht.
+// Nur mit Maus oder Trackpad. Rechteck beim Eintritt gemerkt, Bewegung höchstens einmal je Bild.
+export function registriereLicht(Alpine) {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    Alpine.directive('np-licht', (el, _direktive, { cleanup }) => {
+        let schicht = null;
+        let rechteck = null;
+        let bild = 0;
+        let zeiger = null;
+
+        const setze = (name, wert) => schicht?.style.setProperty(name, wert);
+        const position = (x, y) => {
+            setze('--np-licht-x', `${x.toFixed(1)}%`);
+            setze('--np-licht-y', `${y.toFixed(1)}%`);
+        };
+        const begrenzt = (wert) => Math.min(100, Math.max(0, wert));
+        const nachfuehren = () => {
+            bild = 0;
+            if (!rechteck || !zeiger || !rechteck.width || !rechteck.height) return;
+            position(
+                begrenzt(((zeiger.x - rechteck.left) / rechteck.width) * 100),
+                begrenzt(((zeiger.y - rechteck.top) / rechteck.height) * 100),
+            );
+        };
+
+        const rein = (ev) => {
+            if (ev.pointerType === 'touch') return;
+            schicht = el.matches('.np-glanz') ? el : el.querySelector('.np-glanz');
+            if (!schicht) return;
+            rechteck = el.getBoundingClientRect();
+            zeiger = { x: ev.clientX, y: ev.clientY };
+            if (bewegungRuhig()) position(50, 0);
+            else nachfuehren();
+            setze('--np-licht', '1');
+        };
+        const bewegt = (ev) => {
+            if (!schicht || bewegungRuhig()) return;
+            zeiger = { x: ev.clientX, y: ev.clientY };
+            if (!bild) bild = requestAnimationFrame(nachfuehren);
+        };
+        const gedrueckt = () => setze('--np-licht', '1');
+        const raus = () => {
+            if (bild) cancelAnimationFrame(bild);
+            bild = 0;
+            setze('--np-licht', '0');
+            schicht = null;
+            rechteck = null;
+            zeiger = null;
+        };
+
+        el.addEventListener('pointerenter', rein);
+        el.addEventListener('pointermove', bewegt, { passive: true });
+        el.addEventListener('pointerdown', gedrueckt);
+        el.addEventListener('pointerleave', raus);
+        el.addEventListener('pointercancel', raus);
+        cleanup(() => {
+            raus();
+            el.removeEventListener('pointerenter', rein);
+            el.removeEventListener('pointermove', bewegt);
+            el.removeEventListener('pointerdown', gedrueckt);
+            el.removeEventListener('pointerleave', raus);
+            el.removeEventListener('pointercancel', raus);
+        });
+    });
+}
+
+// Fenster aktiv oder inaktiv (macOS dimmt inaktive Fenster): html[data-fenster] für CSS.
+export function registriereFenster() {
+    const wurzel = document.documentElement;
+    const setze = () => {
+        const wert = !document.hidden && document.hasFocus() ? 'aktiv' : 'inaktiv';
+        if (wurzel.dataset.fenster !== wert) wurzel.dataset.fenster = wert;
+    };
+    setze();
+    window.addEventListener('focus', setze);
+    window.addEventListener('blur', setze);
+    document.addEventListener('visibilitychange', setze);
+}
+
+// Seitenleiste angedockt oder als Schublade: html[data-leiste]. Angedockt nur ab 64rem Breite und bei
+// Navigation «seite»; die Materialregel der Schublade hängt an diesem Attribut. Den Wechsel von
+// data-navigation meldet der MutationObserver von npLeistenUeberlauf (leisteAktualisieren).
+let leisteAktualisieren = () => {};
+
+export function registriereLeiste() {
+    const wurzel = document.documentElement;
+    const breit = window.matchMedia('(min-width: 64rem)');
+    leisteAktualisieren = () => {
+        const wert = breit.matches && wurzel.dataset.navigation !== 'oben' ? 'angedockt' : 'schublade';
+        if (wurzel.dataset.leiste !== wert) wurzel.dataset.leiste = wert;
+    };
+    leisteAktualisieren();
+    breit.addEventListener('change', leisteAktualisieren);
+}
+
+// Morph: ein Panel wächst aus seinem Auslöser. Setzt am Panel die Startskala (--np-von-sx/-sy: Auslösergrösse
+// durch Panelgrösse) und den Ursprung (--np-ursprung: Auslösermitte im Koordinatensystem des Panels).
+// Aufrufen, bevor die Öffnungsbewegung läuft; ein schon skaliertes Panel wird herausgerechnet.
+export function morphUrsprung(ausloeser, panel) {
+    if (!ausloeser || !panel) return false;
+    const a = ausloeser.getBoundingClientRect();
+    const p = panel.getBoundingClientRect();
+    const breite = panel.offsetWidth;
+    const hoehe = panel.offsetHeight;
+    if (!breite || !hoehe || !a.width || !a.height) return false;
+    const skala = p.width / breite || 1;
+    const von = (wert) => Math.min(1, Math.max(0.01, wert));
+    panel.style.setProperty('--np-von-sx', von(a.width / breite).toFixed(3));
+    panel.style.setProperty('--np-von-sy', von(a.height / hoehe).toFixed(3));
+    panel.style.setProperty('--np-ursprung', `${((a.left + a.width / 2 - p.left) / skala).toFixed(1)}px ${((a.top + a.height / 2 - p.top) / skala).toFixed(1)}px`);
+    return true;
+}
+
+// Menü aus dem Auslöser wachsen lassen: Startmass und Ursprung setzen (morphUrsprung) und die Öffnungsbewegung
+// (@starting-style von glass-overlay) neu starten, damit sie mit diesen Werten läuft. Aufrufen, wenn das Panel schon
+// angezeigt wird (nach $nextTick); ohne Mass passiert nichts. Unter ruhiger Bewegung läuft keine Bewegung – kein Neustart.
+export function morphStarten(ausloeser, panel) {
+    try {
+        if (!morphUrsprung(ausloeser, panel)) return false;
+        if (!bewegungRuhig()) {
+            const anzeige = panel.style.display;
+            panel.style.display = 'none';
+            void panel.offsetWidth;
+            panel.style.display = anzeige;
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Gilt ein Escape (am window abgefangen) dieser Ebene? Ja, wenn die Taste in ihr gedrückt wurde – oder ohne Fokus
+// (Ziel ist body/html, z. B. nach einem Zeigerklick ins Leere) und keine Ebene darüber offen ist (nativer Dialog,
+// Befehlspalette, nicht-modales Popover). So schliesst ein Escape genau eine Ebene (G10).
+export function escapeGilt(el, e) {
+    const ziel = e?.target;
+    if (ziel instanceof Node && el.contains(ziel)) return true;
+    if (ziel && ziel !== document.body && ziel !== document.documentElement && ziel !== document) return false;
+    return !document.querySelector('dialog[open], html[data-palette], [aria-haspopup="dialog"][aria-expanded="true"]');
+}
+
+// Seitenwechsel mit Richtung (View Transition, Typ «vor»/«zurueck» o. ä.): ohne Unterstützung oder bei ruhiger
+// Bewegung wird nur aktualisiert. Gibt die Transition zurück, sonst das Ergebnis von aktualisieren().
+export function mitRichtung(richtung, aktualisieren) {
+    const kann = typeof document.startViewTransition === 'function'
+        && typeof ViewTransition !== 'undefined' && 'types' in ViewTransition.prototype;
+    if (!kann || bewegungRuhig()) return aktualisieren();
+    return document.startViewTransition({ update: aktualisieren, types: [richtung] });
+}
+
 // Scrollbare Tabellen (overflow-x-auto) in den Tab-Weg holen und benennen (axe scrollable-region-focusable).
 // Name: <caption>, sonst nächstliegende Überschrift (h1–h3) in Karte oder Seitenkopf, sonst Fallback.
 // Scroll-Kanten (np-scroll-edge): nur die Seite ausblenden, hinter der noch Inhalt liegt – wie die
 // Scroll-Edge-Effekte von macOS. Ohne Überlauf keine Kante.
+const KANTE_WEG = 24; // Scrollweg in px, ab dem die Kante voll steht (--np-kante = 1)
+
 function scrollKante(el) {
     const oben = el.scrollTop > 1;
     const unten = el.scrollHeight - el.clientHeight - el.scrollTop > 1;
     const wert = [oben && 'oben', unten && 'unten'].filter(Boolean).join(' ');
     if (el.dataset.npKante !== wert) el.dataset.npKante = wert;
+    // Stärke der oberen Kante stufenlos: 0 am Anfang, 1 nach KANTE_WEG px Scrollweg
+    // (nur bei Änderung schreiben: der MutationObserver unten hört auf style und würde sich sonst selbst auslösen)
+    const staerke = kanteStaerke(el.scrollTop);
+    if (el.style.getPropertyValue('--np-kante') !== staerke) el.style.setProperty('--np-kante', staerke);
+}
+
+function kanteStaerke(scrollweg) {
+    return Math.min(1, Math.max(0, scrollweg / KANTE_WEG)).toFixed(3);
 }
 
 export function registriereScrollKanten(root = document) {
@@ -133,7 +301,15 @@ export function registriereScrollKanten(root = document) {
         if (el.dataset.npKanteAktiv) return;
         el.dataset.npKanteAktiv = '1';
         scrollKante(el);
-        el.addEventListener('scroll', () => scrollKante(el), { passive: true });
+        let geplant = false;
+        el.addEventListener('scroll', () => {
+            if (geplant) return;
+            geplant = true;
+            requestAnimationFrame(() => {
+                geplant = false;
+                scrollKante(el);
+            });
+        }, { passive: true });
         const beobachter = new ResizeObserver(() => scrollKante(el));
         beobachter.observe(el);
         // Auch den Inhalt messen: wächst er ohne DOM-Mutation (Schriftwechsel, Bild), ändert sich nur scrollHeight.
@@ -192,30 +368,6 @@ export function registriereRadiogroup(Alpine) {
             naechster.click();
         });
     });
-}
-
-// Toast (<x-toast>): Flash-Meldung vom Server oder per Event np-toast { message, art: 'fehler' } aus JS.
-// Fehler bleiben länger stehen; unter dem Zeiger läuft die Zeit nicht ab.
-export function registriereToast(Alpine) {
-    Alpine.data('npToast', (cfg) => ({
-        show: cfg.show,
-        message: cfg.message,
-        fehler: cfg.fehler,
-        timer: null,
-        init() {
-            if (this.show) this.start();
-        },
-        start() {
-            clearTimeout(this.timer);
-            this.timer = setTimeout(() => { this.show = false; }, this.fehler ? Math.max(6000, cfg.dauer) : cfg.dauer);
-        },
-        zeigen(detail) {
-            this.message = detail.message;
-            this.fehler = detail.art === 'fehler';
-            this.show = true;
-            this.start();
-        },
-    }));
 }
 
 export function registriereFormhilfen(Alpine) {
@@ -309,7 +461,8 @@ export function registriereSeitenleiste(Alpine) {
         escape() {
             if (!this.auf) return;
             this.zu();
-            this.$refs.knopf.focus();
+            // Fokus nur zurückgeben, wenn er im Menü war (per Zeiger geöffnet: Fokus bleibt, wo er ist)
+            if (this.$root.contains(document.activeElement)) this.$refs.knopf.focus();
         },
         fokusRaus(e) {
             // Nur wenn der Fokus sichtbar woandershin geht (Tab); einen Tipp ins Leere fängt click.outside
@@ -339,7 +492,10 @@ export function registriereSeitenleiste(Alpine) {
             beobachter.observe(this.zeile);
             this.zeile.querySelectorAll('[data-symbolleiste-anfang], [data-symbolleiste-ende]').forEach((el) => beobachter.observe(el));
             // Schrift aus dem Profil (auch die Vorschau) ändert die Breite der Einträge, nicht die der Zeile
-            new MutationObserver(neu).observe(document.documentElement, {
+            new MutationObserver(() => {
+                neu();
+                leisteAktualisieren();
+            }).observe(document.documentElement, {
                 attributes: true,
                 attributeFilter: ['data-schrift', 'data-schriftart', 'data-navigation', 'lang'],
             });
@@ -454,7 +610,7 @@ export function registriereSeitenleiste(Alpine) {
             let geplant = false;
             const kante = () => {
                 geplant = false;
-                this.$root.style.setProperty('--np-kante', Math.min(1, Math.max(0, window.scrollY / 16)).toFixed(3));
+                this.$root.style.setProperty('--np-kante', kanteStaerke(window.scrollY));
             };
             window.addEventListener('scroll', () => {
                 if (geplant) return;

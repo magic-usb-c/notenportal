@@ -8,7 +8,7 @@
         <div class="flex items-center gap-4">
             <div class="flex h-14 w-32 shrink-0 items-center justify-center rounded-lg bg-fill p-2">
                 @if($logoVorhanden)
-                    <img src="{{ route('branding.logo') }}" alt="{{ __('Aktuelles Logo') }}" class="max-h-full max-w-full object-contain">
+                    <img src="{{ route('branding.logo') }}" alt="{{ __('Aktuelles Logo') }}" class="np-logo max-h-full max-w-full object-contain">
                 @else
                     <x-symbol name="photo" class="size-6 text-faint" />
                 @endif

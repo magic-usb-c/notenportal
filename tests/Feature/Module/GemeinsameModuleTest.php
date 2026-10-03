@@ -11,6 +11,7 @@ use Database\Seeders\BasisSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -133,6 +134,28 @@ class GemeinsameModuleTest extends TestCase
     }
 
     #[Test]
+    public function ein_belegtes_modul_fuehrt_mit_dem_primaeren_knopf_zur_notenerfassung(): void
+    {
+        $modulId = DB::table('module')->insertGetId(['modul_nummer' => 'M781', 'titel' => 'Belegtes Modul']);
+        $user = $this->lernender();
+        $erfassen = route('learner.grades.create', ['bezug' => 'modul:'.$modulId]);
+
+        // Noch nicht belegt: nur «Zu meinen Modulen hinzufügen» ist die Primäraktion, Noten gibt es noch nicht.
+        $this->actingAs($user)->get(route('modules.show', $modulId))->assertOk()
+            ->assertSee('Zu meinen Modulen hinzufügen')->assertDontSee($erfassen, false);
+
+        $this->post(route('modules.enroll', $modulId))->assertRedirect();
+
+        $html = (string) $this->get(route('modules.show', $modulId))->assertOk()
+            ->assertSee('href="'.$erfassen.'"', false)->assertDontSee('Zu meinen Modulen hinzufügen')->getContent();
+        // Genau eine Primäraktion im Modul selbst (Dialoge des Layouts zählen nicht)
+        $this->assertSame(1, substr_count(Str::between($html, '<article', '</article>'), 'np-knopf-primaer'));
+
+        // Der Link wählt das Modul im Notenformular vor
+        $this->get($erfassen)->assertOk()->assertSee('modul:'.$modulId);
+    }
+
+    #[Test]
     public function ein_veralteter_formularstand_ueberschreibt_fremde_ziele_nicht(): void
     {
         $modulId = DB::table('module')->insertGetId(['modul_nummer' => 'M782', 'titel' => 'Gemeinsam']);
@@ -170,7 +193,9 @@ class GemeinsameModuleTest extends TestCase
             ->get(route('modules.show', $modulId))
             ->assertOk()
             ->assertSee('modulbaukasten.ch/module/905/4/de-DE', false)
-            ->assertDontSee('modulbaukasten.ch/module/905/5/de-DE', false);
+            ->assertDontSee('modulbaukasten.ch/module/905/5/de-DE', false)
+            ->assertSee('Katalogversion 4')
+            ->assertDontSee('Katalogversion 5');
     }
 
     #[Test]

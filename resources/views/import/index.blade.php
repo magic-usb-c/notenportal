@@ -13,7 +13,8 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-5">
             @if(! $vorschau)
                 <form method="POST" action="{{ $r('read') }}" enctype="multipart/form-data" class="np-karte np-spalte flex flex-col gap-5 p-6" :aria-busy="loading"
-                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                      x-data="{ loading: false, datei: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                      @change="if ($event.target.type === 'file') datei = $event.target.files.length > 0">
                     @csrf
                     <x-ablagezone symbol="table-cells" polster="py-14" required accept=".xlsx,.xls,.ods,.csv,.pdf"
                                   :titel="__('Notenliste wählen oder hierher ziehen')"
@@ -25,7 +26,7 @@
                                 <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Datei wird gelesen …') }}
                             </span>
-                            <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Datei lesen') }}</button>
+                            <button type="submit" :disabled="loading || ! datei" class="np-knopf np-knopf-primaer">{{ __('Datei lesen') }}</button>
                         </div>
                     </div>
                 </form>
@@ -204,7 +205,8 @@
                         </div>
                     </div>
                 </form>
-                <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden">@csrf</form>
+                <form id="import-verwerfen" method="POST" action="{{ $r('discard') }}" class="hidden"
+                      data-bestaetigen="{{ __('Vorschau verwerfen?') }}" data-bestaetigen-text="{{ __('Alle Korrekturen gehen verloren.') }}" data-bestaetigen-knopf="{{ __('Verwerfen') }}">@csrf</form>
             @endif
         </div>
     </div>

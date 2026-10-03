@@ -22,10 +22,11 @@
             @endunless
             <x-slot:aktionen>
                 <form method="POST" action="{{ route('admin.master-data.grade-trees.activate', $baum->baum_id) }}"
-                      @if($baum->aktiv) data-bestaetigen="{{ __('Notenbaum «:name» deaktivieren?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Deaktivieren') }}" @endif>
+                      @if($baum->aktiv) data-bestaetigen="{{ __('Notenbaum «:name» deaktivieren?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Deaktivieren') }}" @endif
+                      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="aktiv" value="{{ $baum->aktiv ? 0 : 1 }}">
-                    <button type="submit" class="np-knopf np-knopf-sekundaer">
+                    <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">
                         {{ $baum->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                     </button>
                 </form>
@@ -78,9 +79,9 @@
                                     <th scope="col" class="text-right">{{ __('Gewicht') }}</th>
                                     <th scope="col" class="text-right">{{ __('Anteil') }}</th>
                                     <th scope="col">{{ __('Rundung') }}</th>
-                                    <th scope="col">{{ __('Mindestnote') }}</th>
-                                    <th scope="col">{{ __('Max. ungenügend') }}</th>
-                                    <th scope="col">{{ __('Max. Minuspunkte') }}</th>
+                                    <th scope="col" class="text-right">{{ __('Mindestnote') }}</th>
+                                    <th scope="col" class="text-right">{{ __('Max. ungenügend') }}</th>
+                                    <th scope="col" class="text-right">{{ __('Max. Minuspunkte') }}</th>
                                     <th scope="col" class="text-center">{{ __('Zählt') }}</th>
                                     <th scope="col">{{ __('Entfällt mit') }}</th>
                                 </tr>
@@ -111,7 +112,7 @@
                                             @if($z['tiefe'] > 0)
                                                 <label for="k{{ $id }}-gewicht" class="sr-only">{{ __('Gewicht') }}</label>
                                                 <input id="k{{ $id }}-gewicht" name="knoten[{{ $id }}][gewicht]" inputmode="decimal" value="{{ $alt('gewicht', $zahl($k->gewicht)) }}"
-                                                       class="{{ $zelle }} w-18 text-right" {!! $fehlerAttr($id, 'gewicht') !!}>
+                                                       class="{{ $zelle }} ml-auto w-18 text-right" {!! $fehlerAttr($id, 'gewicht') !!}>
                                             @else
                                                 <input type="hidden" name="knoten[{{ $id }}][gewicht]" value="{{ $zahl($k->gewicht) }}">
                                             @endif
@@ -129,20 +130,20 @@
                                         <td>
                                             <label for="k{{ $id }}-fallnote" class="sr-only">{{ __('Mindestnote') }}</label>
                                             <input id="k{{ $id }}-fallnote" name="knoten[{{ $id }}][fallnote]" inputmode="decimal" value="{{ $alt('fallnote', $zahl($k->fallnote)) }}"
-                                                   class="{{ $zelle }} w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'fallnote') !!}>
+                                                   class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'fallnote') !!}>
                                         </td>
                                         <td>
                                             @if($gruppe)
                                                 <label for="k{{ $id }}-max_ungenuegend" class="sr-only">{{ __('Max. ungenügend') }}</label>
                                                 <input id="k{{ $id }}-max_ungenuegend" name="knoten[{{ $id }}][max_ungenuegend]" inputmode="numeric" value="{{ $alt('max_ungenuegend', $k->max_ungenuegend) }}"
-                                                       class="{{ $zelle }} w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_ungenuegend') !!}>
+                                                       class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_ungenuegend') !!}>
                                             @endif
                                         </td>
                                         <td>
                                             @if($gruppe)
                                                 <label for="k{{ $id }}-max_minuspunkte" class="sr-only">{{ __('Max. Minuspunkte') }}</label>
                                                 <input id="k{{ $id }}-max_minuspunkte" name="knoten[{{ $id }}][max_minuspunkte]" inputmode="decimal" value="{{ $alt('max_minuspunkte', $zahl($k->max_minuspunkte)) }}"
-                                                       class="{{ $zelle }} w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_minuspunkte') !!}>
+                                                       class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_minuspunkte') !!}>
                                             @endif
                                         </td>
                                         <td class="text-center">
@@ -177,10 +178,11 @@
                     <p class="text-sm text-muted">{{ __('Zu diesem Notenbaum sind :anzahl Noten erfasst. Löschen geht erst ohne erfasste Noten.', ['anzahl' => $positionen]) }}</p>
                 @else
                     <form method="POST" action="{{ route('admin.master-data.grade-trees.destroy', $baum->baum_id) }}"
-                          data-bestaetigen="{{ __('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+                          data-bestaetigen="{{ __('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
+                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="np-knopf np-knopf-gefahr">{{ __('Notenbaum löschen') }}</button>
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Notenbaum löschen') }}</button>
                     </form>
                 @endif
             </section>

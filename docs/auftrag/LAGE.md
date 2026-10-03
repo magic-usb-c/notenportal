@@ -274,6 +274,25 @@ Nicht raten — als offen markieren und David fragen:
 > **Stand 01.10.:** Desktop-Rebuild nach HIG im Dunkelmodus – R1 Fundament, R2 Fensterstruktur
 > (Seitenleiste ist Standard), R3 Dashboards fertig; R4 übrige Bereiche läuft, R5 Gesamtprüfung
 > offen (Übergabebrett). Setup und Orchestrierung modernisiert: `docs/auftrag/SETUP-CLAUDE.md`.
+>
+> **Stand 02.10.:** R4 Lernende, R4 Berufsbildner und R4 Admin abgeschlossen (Bildprüfer, UI-Checker,
+> Reviewer, Prüfer je durch; Admin: fünf Umsetzungs-Agents, Rundgang 56 Seiten, 24 Bilder 1920/2560),
+> R5 Gesamtprüfung läuft: Teil 1 Sichtprüfung (136 Befunde, 31 umgesetzt, Rest mit Grund im Backlog)
+> abgeschlossen, Teil 2 Audit-Workflow offen. Die Arbeit läuft auf dem Branch
+> `claude/friendly-meitner-ju7e8a` mit Entwurfs-PR gegen `main` (Vorgabe der Cloud-Sitzung), `main`
+> hinkt bis zum Merge hinterher.
+>
+> **Stand 03.10.:** R5 abgeschlossen – Teil 2 Audit-Workflow über alle drei Rollen (33 Befunde, 20
+> gegnerisch bestätigt und umgesetzt, 13 verworfen; Prüfer hält, Übergabebrett 03.10. 04:45). R6
+> GUI-Rebuild begonnen (Auftrag David: Liquid Glass, Bewegung, filterbare Statistiken auf Apple-Niveau):
+> zuerst Instrumente und Baseline – `tools/pruefung/leistung.mjs` (Bildrate, LCP, Glasflächen, Palette,
+> `--ohne-glas`), `tools/pruefung/kontrast.mjs` (alle Theme-, Akzent- und Materialblöcke, `--minimum`),
+> `ThemeKontrastTest` prüft die Materialien, Messwerte in `docs/auftrag/messungen/r6-leistung-baseline.md`.
+> Kernzahl: Text auf Glas über beliebigem Inhalt braucht Deckung 0.72–0.91, mit Scrollkante reichen im
+> Dunkeln 0.00–0.37 – Transparenz wird über die Kante gekauft, nicht über die Deckung. Der Plan steht
+> seit 03.10. 09:20 in `docs/auftrag/GUI-R6.md` (zwei Workflows: Verstehen und Entwurf mit Jury,
+> Rohdaten unter `docs/auftrag/messungen/r6-*`); Umsetzung in Scheiben R6-00 bis R6-12, Lichtbrechung
+> R6-13 optional.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 

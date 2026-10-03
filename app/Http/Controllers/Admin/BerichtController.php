@@ -9,10 +9,15 @@ use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Lernstand;
 use App\Services\Bericht;
 use App\Support\Csv;
+use App\Support\StatistikAntwort;
+use App\Support\StatistikDaten;
+use App\Support\StatistikFilter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /** Notenbericht über den Betrieb; ohne Semesterwahl gilt das laufende Semester, «alle» die ganze Lehrzeit. */
@@ -30,35 +35,41 @@ class BerichtController extends Controller
         };
     }
 
-    public function __construct(private readonly Bericht $bericht) {}
+    public function __construct(
+        private readonly Bericht $bericht,
+        private readonly StatistikDaten $statistik,
+    ) {}
 
-    public function noten(Request $request): View
+    /** Notenbericht; JSON liefert Verteilung (S10) und Lehrjahresvergleich (S11) mit denselben Filtern wie die Seite. */
+    public function noten(Request $request): Response|JsonResponse
     {
-        $filter = $this->filter($request);
-        $sort = in_array($request->input('sort'), Bericht::SORTIERUNGEN, true) ? (string) $request->input('sort') : 'status';
-        $dir = $request->input('dir') === 'desc' ? 'desc' : 'asc';
+        $berufsbildner = $this->berufsbildnerListe();
+        $statistikFilter = $this->statistikFilter($request, $berufsbildner);
+        $filter = $this->filter($statistikFilter);
+        $sort = (string) $statistikFilter->wert('sort');
+        $dir = (string) $statistikFilter->wert('dir');
 
-        return view('admin.berichte.noten', [
-            ...$this->bericht->noten($filter, $sort, $dir),
+        $daten = $this->bericht->noten($filter, $sort, $dir);
+        $paket = StatistikAntwort::paket($statistikFilter, $this->statistik->verteilung($daten['verteilung']), $this->statistik->lehrjahre($daten['nachLehrjahr']));
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
+        return StatistikAntwort::view('admin.berichte.noten', [
+            ...$daten,
+            'statistik' => $paket,
             'filter' => $filter,
             'sort' => $sort,
             'dir' => $dir,
             'semester' => DB::table('semester')->where('start_datum', '<=', now()->toDateString())->orderByDesc('sortierung')->get(['semester_id', 'bezeichnung', 'start_datum']),
             'lehrberufe' => DB::table('lehrberufe')->where('aktiv', 1)->orderBy('name')->get(['lehrberuf_id', 'name']),
-            'berufsbildner' => DB::table('berufsbildner as bb')
-                ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
-                ->whereNull('bb.geloescht_am')
-                ->whereNull('b.geloescht_am')
-                ->where('b.aktiv', 1)
-                ->orderBy('b.nachname')
-                ->orderBy('b.vorname')
-                ->get(['bb.berufsbildner_id', 'b.vorname', 'b.nachname']),
+            'berufsbildner' => $berufsbildner,
         ]);
     }
 
     public function notenExport(Request $request): StreamedResponse
     {
-        $filter = $this->filter($request);
+        $filter = $this->filter($this->statistikFilter($request));
         $zeilen = $this->bericht->noten($filter, 'name')['zeilen'];
         $mitSemester = $filter['semester_id'] !== null;
         $zahl = fn (?float $n) => $n !== null ? number_format($n, 1, '.', '') : '';
@@ -82,19 +93,50 @@ class BerichtController extends Controller
         }, 'notenbericht_'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
-    /** @return array{semester_id: ?int, lehrberuf_id: ?int, berufsbildner_id: ?int} */
-    private function filter(Request $request): array
+    /**
+     * Filter der Seite als Whitelist: `semester` (alle oder eine ID, sonst das laufende), `lehrberuf_id`,
+     * `berufsbildner_id`, `kategorie`, `lehrjahr`, `sort`, `dir`. Unbekannte Werte fallen auf den Standard.
+     *
+     * @param  Collection<int, object>  $berufsbildner
+     */
+    private function statistikFilter(Request $request, ?Collection $berufsbildner = null): StatistikFilter
     {
-        $wahl = (string) $request->input('semester', '');
+        $aktuell = Konfiguration::ausDb()->semesterFuerDatum(now()->toDateString());
+        $berufsbildner ??= $this->berufsbildnerListe();
 
+        return StatistikFilter::aus($request, [
+            'semester' => ['alle', ...DB::table('semester')->pluck('semester_id')->map(fn ($id) => (int) $id)->all()],
+            'lehrberuf_id' => ['id' => DB::table('lehrberufe')->pluck('lehrberuf_id')->map(fn ($id) => (int) $id)->all()],
+            'berufsbildner_id' => ['id' => $berufsbildner->pluck('berufsbildner_id')->map(fn ($id) => (int) $id)->all()],
+            'kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))],
+            'lehrjahr' => [1, 2, 3, 4, 5],
+            'sort' => Bericht::SORTIERUNGEN,
+            'dir' => ['asc', 'desc'],
+        ], ['semester' => $aktuell, 'sort' => 'status', 'dir' => 'asc']);
+    }
+
+    /** @return array{semester_id: ?int, lehrberuf_id: ?int, berufsbildner_id: ?int, lehrjahr: ?int, kategorie_id: ?int} */
+    private function filter(StatistikFilter $f): array
+    {
         return [
-            'semester_id' => match (true) {
-                $wahl === 'alle' => null,
-                ctype_digit($wahl) => (int) $wahl,
-                default => Konfiguration::ausDb()->semesterFuerDatum(now()->toDateString()),
-            },
-            'lehrberuf_id' => $request->integer('lehrberuf_id') ?: null,
-            'berufsbildner_id' => $request->integer('berufsbildner_id') ?: null,
+            'semester_id' => is_int($f->wert('semester')) ? $f->wert('semester') : null,
+            'lehrberuf_id' => $f->wert('lehrberuf_id'),
+            'berufsbildner_id' => $f->wert('berufsbildner_id'),
+            'lehrjahr' => $f->wert('lehrjahr'),
+            'kategorie_id' => $f->wert('kategorie'),
         ];
+    }
+
+    /** @return Collection<int, object> */
+    private function berufsbildnerListe(): Collection
+    {
+        return DB::table('berufsbildner as bb')
+            ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
+            ->whereNull('bb.geloescht_am')
+            ->whereNull('b.geloescht_am')
+            ->where('b.aktiv', 1)
+            ->orderBy('b.nachname')
+            ->orderBy('b.vorname')
+            ->get(['bb.berufsbildner_id', 'b.vorname', 'b.nachname']);
     }
 }

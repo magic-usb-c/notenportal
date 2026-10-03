@@ -79,6 +79,23 @@ class ZeugnisAbgleichTest extends TestCase
     }
 
     #[Test]
+    public function ohne_semester_steht_nur_die_semesterwahl_da_mit_semester_kommen_die_kacheln(): void
+    {
+        $this->actingAs($this->user)->post(route('learner.documents.store'), [
+            'datei' => UploadedFile::fake()->create('zeugnis.pdf', 30, 'application/pdf'), 'art' => 'zeugnis',
+        ])->assertSessionHasNoErrors();
+        $dokument = Dokument::firstOrFail();
+        $this->assertNull($dokument->semester_id);
+
+        $this->get(route('learner.documents.reconcile', $dokument->dokument_id))->assertOk()
+            ->assertSee('Semester wählen')->assertSee('name="semester_id"', false)
+            ->assertDontSee('Übereinstimmend')->assertDontSee('Fehlt im Portal')->assertDontSee('Kein Text im PDF erkannt');
+
+        $this->get(route('learner.documents.reconcile', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $this->semester]))->assertOk()
+            ->assertSee('Übereinstimmend')->assertSee('Fehlt im Portal')->assertDontSee('Semester wählen');
+    }
+
+    #[Test]
     public function abgleich_uebernehmen_erstellt_noten_aus_ausgewaehlten_zeilen(): void
     {
         $this->actingAs($this->user)->post(route('learner.documents.store'), [

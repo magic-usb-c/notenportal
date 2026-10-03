@@ -65,16 +65,23 @@ final class Einrichtung
         $lernende = $anzahl('lernende', fn ($q) => $q->whereNull('geloescht_am'));
         $name = (string) Einstellungen::get(Einstellungen::BETRIEB_NAME, '');
 
-        return [
+        $kategorienGeprueft = Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1';
+        $kategorienInfo = __(':anzahl aktiv', ['anzahl' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1))]);
+
+        $stand = [
             'operations' => ['erledigt' => $name !== '', 'info' => $name],
-            'categories' => ['erledigt' => Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1', 'info' => __(':anzahl aktiv', ['anzahl' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1))])],
+            // Kategorien gelten erst nach dem Speichern des Schritts als geprüft – auch wenn Vorlagen schon aktiv sind
+            'categories' => ['erledigt' => $kategorienGeprueft, 'info' => $kategorienGeprueft ? $kategorienInfo : $kategorienInfo.' · '.__('noch nicht bestätigt')],
             'semesters' => ['erledigt' => $semester->isNotEmpty(), 'info' => $semester->isEmpty() ? '' : $semester->first().' – '.$semester->last()],
             'professions' => ['erledigt' => $lehrberufe > 0, 'info' => __(':lehrberufe Lehrberufe · :faecher Fächer', ['lehrberufe' => $lehrberufe, 'faecher' => $faecher])],
             'modules' => ['erledigt' => $module > 0, 'info' => __(':anzahl Zuordnungen', ['anzahl' => $module])],
             'people' => ['erledigt' => $bb + $lernende > 0, 'info' => __(':bb Berufsbildner · :lernende Lernende', ['bb' => $bb, 'lernende' => $lernende])],
             'mail' => ['erledigt' => MailSettings::values()['source'] !== 'none', 'info' => ''],
-            'finish' => ['erledigt' => ! self::offen(), 'info' => ''],
         ];
+        // Der Haken am Abschluss verspricht «alles erledigt» – nicht nur «Einrichtung geschlossen» (HIG: Status nicht täuschen)
+        $stand['finish'] = ['erledigt' => ! self::offen() && ! in_array(false, array_column($stand, 'erledigt'), true), 'info' => ''];
+
+        return $stand;
     }
 
     /**

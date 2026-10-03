@@ -95,6 +95,118 @@ class ThemeKontrastTest extends TestCase
         return ($hell + 0.05) / ($dunkel + 0.05);
     }
 
+    /**
+     * Deckungen der Glas-Materialien aus resources/css/app.css: je @utility und Modus [Quelltoken, Alpha]
+     * der ersten Flächenangabe rgb(var(--x-rgb) / a) ausserhalb der @supports/@media-Fallbacks.
+     * Gleiche Auswertung wie tools/pruefung/kontrast.mjs.
+     *
+     * @return array<string, array<string, array{0: string, 1: float}>>
+     */
+    private static function materialien(): array
+    {
+        $css = file_get_contents(dirname(__DIR__, 2).'/resources/css/app.css');
+        self::assertNotFalse($css, 'app.css nicht lesbar.');
+        $css = preg_replace('#/\*.*?\*/#s', '', $css);
+
+        $materialien = [];
+        // Wie in tools/pruefung/kontrast.mjs (MATERIAL_NAMEN); fehlende Utilities werden übersprungen.
+        foreach (['np-glas', 'glass-overlay', 'np-glas-gruppe', 'np-glas-moment'] as $name) {
+            $start = strpos($css, "@utility {$name} {");
+            if ($start === false) {
+                continue;
+            }
+            $anfang = strpos($css, '{', $start);
+            $tiefe = 0;
+            $inner = null;
+            for ($i = $anfang, $n = strlen($css); $i < $n; $i++) {
+                if ($css[$i] === '{') {
+                    $tiefe++;
+                } elseif ($css[$i] === '}' && --$tiefe === 0) {
+                    $inner = substr($css, $anfang + 1, $i - $anfang - 1);
+                    break;
+                }
+            }
+            if ($inner === null) {
+                continue;
+            }
+
+            $stapel = [];
+            $puffer = '';
+            $deckung = [];
+            foreach (str_split($inner) as $zeichen) {
+                if ($zeichen === '{') {
+                    $stapel[] = trim($puffer);
+                    $puffer = '';
+                } elseif ($zeichen === '}') {
+                    array_pop($stapel);
+                    $puffer = '';
+                } elseif ($zeichen === ';') {
+                    $fallback = array_filter($stapel, static fn (string $s): bool => (bool) preg_match('/@supports|@media/', $s));
+                    if ($fallback === [] && preg_match('/background(?:-color)?\s*:\s*rgb\(var\(--([a-z0-9-]+?)(?:-rgb)?\)\s*\/\s*(0?\.\d+|1)\)/', $puffer, $m)) {
+                        $dunkel = array_filter($stapel, static fn (string $s): bool => str_contains($s, 'dark')) !== [];
+                        $deckung[$dunkel ? 'dunkel' : 'hell'] ??= [$m[1], (float) $m[2]];
+                    }
+                    $puffer = '';
+                } else {
+                    $puffer .= $zeichen;
+                }
+            }
+            if ($deckung !== []) {
+                $deckung['hell'] ??= $deckung['dunkel'];
+                $deckung['dunkel'] ??= $deckung['hell'];
+                $materialien[$name] = $deckung;
+            }
+        }
+
+        self::assertNotEmpty($materialien, 'Keine Glas-Materialien in app.css gefunden.');
+
+        return $materialien;
+    }
+
+    /**
+     * Alpha-Komposition in sRGB, wie der Browser ein halbdurchsichtiges Material über der Unterlage mischt.
+     *
+     * @param  array{0:int,1:int,2:int}  $vorne
+     * @param  array{0:int,1:int,2:int}  $hinten
+     * @return array{0:int,1:int,2:int}
+     */
+    private static function misch(array $vorne, float $alpha, array $hinten): array
+    {
+        return [
+            (int) round($vorne[0] * $alpha + $hinten[0] * (1 - $alpha)),
+            (int) round($vorne[1] * $alpha + $hinten[1] * (1 - $alpha)),
+            (int) round($vorne[2] * $alpha + $hinten[2] * (1 - $alpha)),
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('themeUndModus')]
+    public function text_bleibt_auf_jedem_glas_material_ueber_grund_karte_und_surface2_lesbar(string $theme, string $modus): void
+    {
+        [$themes] = self::geparst();
+        $t = $themes[$theme][$modus];
+        $ziel = $theme === Theme::KONTRAST ? 7.0 : 4.5;
+
+        foreach (self::materialien() as $material => $deckung) {
+            [$quelle, $alpha] = $deckung[$modus];
+            self::assertArrayHasKey($quelle, $t, "Material {$material}: Token --{$quelle} fehlt im Theme «{$theme}».");
+            foreach (['bg', 'card', 'surface-2'] as $unterlage) {
+                $flaeche = self::misch($t[$quelle], $alpha, $t[$unterlage]);
+                foreach (['text', 'muted'] as $fg) {
+                    $ratio = self::kontrast($t[$fg], $flaeche);
+                    self::assertGreaterThanOrEqual($ziel, $ratio, sprintf(
+                        'Theme «%s» (%s): --%s auf %s (%s/%.2f) über --%s = %.2f:1, Ziel %.1f:1',
+                        $theme, $modus, $fg, $material, $quelle, $alpha, $unterlage, $ratio, $ziel
+                    ));
+                }
+                $ratioLink = self::kontrast($t['accent-text'], $flaeche);
+                self::assertGreaterThanOrEqual(4.5, $ratioLink, sprintf(
+                    'Theme «%s» (%s): --accent-text auf %s über --%s = %.2f:1', $theme, $modus, $material, $unterlage, $ratioLink
+                ));
+            }
+        }
+    }
+
     /** @return array<string, array{0: string, 1: string}> */
     public static function themeUndModus(): array
     {

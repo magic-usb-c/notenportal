@@ -1,0 +1,1363 @@
+{
+ "diagramme": {
+  "zusammenfassung": "Im Bestand gibt es 5 Chart.js-Diagramme (Verlauf, Wo stehe ich, Rechnerkurve, Admin-Wochensäulen, Notenverteilung) und 4 serverseitige Grafiken ohne Chart.js (Sparkline-SVG, Bullet, Heatmap-Tabelle). Chart.js 4.5.1 wird per Tree-Shaking mit nur Bar, Line, Filler, Legend und Tooltip geladen, es gibt keine weiteren Chart-Plugins. Eigene Canvas-Plugins decken Direktlabels, Schwellenlabel, Balkenwert und die senkrechte Schwelle ab. Alle Diagramme sind rein Canvas ohne Tastaturbedienung. Es gibt keinen einzigen JSON-Endpunkt für Auswertungsdaten und kein chart.update() mit neuen Daten. Die Daten stehen beim Seitenaufruf per @js/Js::from im HTML. Clientseitige Filter gibt es nur als Alpine-Umschalter über bereits eingebettete Daten (Wo stehe ich: Semester/Lehrzeit, Verlauf: Kategorien/Fach). Jeder Wechsel zerstört und baut das Chart neu (destroy plus new Chart), die Einblendung läuft also jedes Mal komplett ab. Echte Filter (Semester, Lehrberuf, Berufsbildner im Notenbericht) wirken per Formular-Reload mit URL-Zustand, aber nur bei der Tabelle und dem Histogramm. Animation ist einheitlich 350 ms Standardeasing ohne Staffelung, bei reduzierter Bewegung aus. Der Tooltip ist ein Canvas-Tooltip ohne Blur oder Glas. Mehrere Soll-Punkte aus gui-konzept §f (Median-Linie, 12/26 Wochen, Dumbbell, Small Multiples, Achsenausschnitt) sind nicht umgesetzt. Die Funktion jahrgangsDiagramm und die Typen spark und gruppen sind toter Code.",
+  "fakten": [
+   {
+    "thema": "Versionen und Plugins",
+    "befund": "chart.js ^4.5.1 (installiert 4.5.1), alpinejs ^3.4.2 (installiert 3.17.2), tailwindcss ^4.3.3, vite ^8.2.2. Keine Chart-Plugins (kein chartjs-plugin-annotation, -datalabels, -zoom, kein d3), nur eigene Plugins. vite.config.js ohne manualChunks, charts.js ist statisch in app.js importiert und lädt damit auf jeder Seite.",
+    "quelle": "package.json:9-20; node_modules/*/package.json; vite.config.js:5-12; resources/js/app.js:5"
+   },
+   {
+    "thema": "Chart.js-Registrierung",
+    "befund": "Nur BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip (Tree-Shaking). Kein Doughnut, Radar, Scatter, Time-Scale.",
+    "quelle": "resources/js/charts.js:2-8"
+   },
+   {
+    "thema": "Eigene Plugins",
+    "befund": "npDirektlabel (Linienend-Labels mit Kollisionsauflösung), npBalkenwert (Wert am Balkenende), npSenkrecht (senkrechte Genügend-Haarlinie), npSchwellenLabel (Label an der Schwelle mit Kollisionsprüfung gegen Linienpunkte). Alle zeichnen im afterDatasetsDraw direkt aufs Canvas, daher ohne Animation und ohne Tastatur- oder Screenreader-Zugang.",
+    "quelle": "resources/js/charts.js:80-241"
+   },
+   {
+    "thema": "Chart-Typen (BAUER)",
+    "befund": "verlauf, kurve, balken, gruppen, saeulen, histogramm, spark. Im Einsatz sind verlauf, kurve, balken, saeulen, histogramm. 'gruppen' und 'spark' werden in keiner View verwendet (npChart( kommt nur 5-mal vor). Die Sparkline läuft stattdessen als SVG-Blade-Komponente.",
+    "quelle": "resources/js/charts.js:261-435; grep npChart( in resources/views (5 Treffer)"
+   },
+   {
+    "thema": "Alpine-Komponente npChart",
+    "befund": "Alpine.data('npChart', (typ, daten, optionen)). init zeichnet mit Startdaten. zeichne(neu) macht JSON-Klon, chart?.destroy() und new Chart(...), nie chart.update(daten). Ein MutationObserver auf <html> (class, data-theme, data-diagramm) zeichnet bei Theme-Wechsel komplett neu. document.fonts.ready löst nur chart.update('none') zum Neumessen aus. Das einzige chart.update im Code.",
+    "quelle": "resources/js/charts.js:437-465"
+   },
+   {
+    "thema": "np.js Helfer",
+    "befund": "tokenFarbe(name, alpha) liest die CSS-Variable per getComputedStyle und baut rgb(v / alpha). stufe(wert, grenzen) liefert gut/genuegend/knapp/ungenuegend, Default 5.0/4.0/3.5 (Fallback-Konstante im JS, im Normalfall kommen die Grenzen aus der DB per $grenzen). notenFarbe(wert, grenzen, alpha) nutzt --note-<stufe>. format() liefert 1 bis 2 Stellen oder '–'. t() übersetzt über window.npI18n. postJson() ist der einzige JSON-Helfer mit CSRF und Fehlertexten für 419/401/429. Registrierungen: Toast, Formhilfen, Seitenleiste, Auswahlliste, Radiogroup (Pfeiltasten, roving tabindex), Scrollkanten, Zeilenlinks, Sofort-Senden.",
+    "quelle": "resources/js/np.js:5-118, 165-195; resources/js/app.js:20-37"
+   },
+   {
+    "thema": "Treppenlinie im Rechner",
+    "befund": "Serverseitig: Zielrechner::kurve() rechnet für x von 1.0 bis 6.0 in 0.25-Schritten wertBei() (alle offenen Prüfungen erhalten Note x) und liefert [{x, wert}]. Rechner::berechnen packt das als 'kurve' in die Antwort (leer, wenn keine Unbekannten). rechner.js: kurve-Getter formt {punkte, zielwert, note}. charts.js BAUER.kurve: eine Linie mit stepped:true, Accent, fill:'origin' (flach 10 %), Punktradius 6 nur nahe der benötigten Note (|x-note|<0.13), Zielwert als gestrichelte Linie '_ziel' mit Label 'Ziel :wert' (npSchwelleLabel), Legende aus, Tooltip-Titel 'Note in offenen Prüfungen: x'.",
+    "quelle": "app/Services/Auswertung/Zielrechner.php:85-94; app/Services/Auswertung/Rechner.php:298; resources/js/rechner.js:120-123; resources/js/charts.js:308-329"
+   },
+   {
+    "thema": "Diagramm 1: Lernenden-Dashboard 'Verlauf' (/dashboard)",
+    "befund": "Typ verlauf (Linie je Semester, Fläche mit Verlauf unter der hervorgehobenen Linie, monotone Interpolation, tension 0.35, Genügend-Haarlinie mit Label, Direktlabels ab 2 Serien, gedämpfte Reihen mit Strichmuster). Daten: Uebersicht::lernender() -> verlaufDiagramm() (Semesterschnitt dick plus je Kategorie, Fachliste), per Js::from als Alpine-Zustand d. Clientseitiger Filter: Segment 'Kategorien'/'Fach' plus Select Fach, wirkt über x-effect=zeichne(...) ohne Reload, aber mit destroy/new Chart. 'Als Tabelle' als Details mit allen Serien (statisch). Höhe fix h-72.",
+    "quelle": "resources/views/dashboards/lernender.blade.php:164-228; app/Services/Uebersicht.php:468-486; resources/js/charts.js:263-305"
+   },
+   {
+    "thema": "Diagramm 2: Lernenden-Dashboard 'Wo stehe ich' (/dashboard)",
+    "befund": "Typ balken (horizontale Balken ab Note 1, schwächste zuerst, Balken neutral text/50, nur knapp/ungenügend in Notenfarbe, senkrechte Genügend-Linie, Wert am Balkenende, Namensachse max. 36 % Breite mit Kürzung nach Messung, Tooltip mit vollem Namen). Daten: Uebersicht::balkenDiagramm() ('semester' und 'lehrzeit'), per Js::from. Clientseitiger Filter: Segment Semester/Lehrzeit (modus), Höhe dynamisch pro Zeile (30 px+56), x-effect zeichnet neu. x-noten-legende und 'Als Tabelle'. Befund: Die Tabelle iteriert $balken[$balkenModus] in PHP und folgt dem Umschalter nicht, sie zeigt nach dem Wechsel auf 'Lehrzeit' weiter die Semesterdaten.",
+    "quelle": "resources/views/dashboards/lernender.blade.php:121-165 (Tabelle Zeilen 149-158); app/Services/Uebersicht.php:488-507; resources/js/charts.js:333-355"
+   },
+   {
+    "thema": "Diagramm 3: Rechner-Kurve (/grades/calculator und /trainer/learners/{id}/calculator)",
+    "befund": "Typ kurve (Treppenlinie, s. o.). Daten per fetch: postJson(cfg.berechnenUrl) auf learner.calculator.calculate (POST /calculator, throttle 120/min), 220 ms Debounce über $watch auf Ziel, Zielwert und Zeilen. Das ist die einzige clientseitige Datenaktualisierung eines Diagramms ohne Seitenwechsel. Der Chart wird mit x-effect=zeichne(kurve) jedes Mal zerstört und neu erzeugt, die 350 ms Animation spielt bei jedem Tastendruck neu. Ladezustand: Ergebniskarte opacity-70 und aria-busy, Fehlerzustand mit 'Erneut berechnen'. Kein Leerzustand für die Kurve (Karte per x-show=kurve ausgeblendet). Keine 'Als Tabelle'-Alternative, das Ergebnis steht als Satz und in der Auswirkungstabelle.",
+    "quelle": "resources/views/rechner/index.blade.php:195-232; resources/js/rechner.js:94-123; routes/web.php:105; routes/verwaltung.php:52"
+   },
+   {
+    "thema": "Diagramm 4: Admin-Dashboard 'Erfasste Noten pro Woche' (/admin/dashboard)",
+    "befund": "Typ saeulen (12 Wochen, Säulen in chart-1 mit 70 % Alpha, nur jede 4. KW beschriftet von rechts). Daten: Uebersicht::aktivitaet() mit Raw-SQL YEARWEEK(erstellt_am,3) COUNT(*) auf noten (whereNull geloescht_am), Js::from als Startdaten. Summe als Kennzahl darüber. Kein Filter, keine Median-Linie, keine 12/26-Wochen-Wahl, keine Tabellenalternative (Konzept §f verlangt alle drei).",
+    "quelle": "resources/views/dashboards/admin.blade.php:144-153; app/Services/Uebersicht.php:679-696; resources/js/charts.js:375-392; docs/gui-konzept.md:367-380"
+   },
+   {
+    "thema": "Diagramm 5: Admin-Notenbericht 'Verteilung der Zeugnisnoten' (/admin/reports/grades)",
+    "befund": "Typ histogramm (0.5er-Klassen 1.0 bis 6.0, knapp/ungenügend in Notenfarbe, Rest chart-1). Einziger Einsatz von <x-diagramm> (Titel, role=group mit aria-label-Fazit, Details 'Als Tabelle' mit Klasse, Anzahl, Stufe). Daten: Bericht->… 'verteilung' mit labels, werte, farben, grenzen, Js::from. Filter: Semester, Lehrberuf, Berufsbildner in x-filterleiste (GET-Formular, Select löst $el.form.requestSubmit() aus), Zustand in der URL (semester, lehrberuf_id, berufsbildner_id, sort, dir), aber voller Seiten-Reload. Die Kategorien- und Lehrjahr-Auswertung daneben sind Tabellen, keine Diagramme.",
+    "quelle": "resources/views/admin/berichte/noten.blade.php:16-17, 40-70, 85-105, 140-160; app/Services/Bericht.php:150-173"
+   },
+   {
+    "thema": "Grafik ohne Chart.js: Sparkline",
+    "befund": "Blade-SVG (polyline, graues Band genügend bis 6, Endpunkt in Notenfarbe, aria-label mit Werten, Leerzustand '–'). Statisch, ohne Animation, ohne Tooltip. Einsatz: Lernenden-Dashboard Stand (112x36) und Kategorien (64x24), Berufsbildner-Dashboard Tabelle (96x24). Daten: Lernstand->verlauf bzw. Uebersicht kategorie verlauf.",
+    "quelle": "resources/views/components/sparkline.blade.php:1-46; resources/views/dashboards/lernender.blade.php:75,103; resources/views/dashboards/berufsbildner.blade.php:134; app/Services/Uebersicht.php:62"
+   },
+   {
+    "thema": "Grafik ohne Chart.js: Bullet Graph",
+    "befund": "Reine Div-Komponente: Kapselspur mit vier Grau-Bändern aus den Grenzen, Messbalken (knapp/ungenügend in Notenfarbe, sonst chart-1), Zielmarke als 2-px-Strich, aria-label als Satz. Ohne Transition. Einsatz: Stand (Gesamtschnitt mit Ziel) und Ziele-Liste (:skala=false).",
+    "quelle": "resources/views/components/bullet.blade.php:1-103; resources/views/dashboards/lernender.blade.php:113,287"
+   },
+   {
+    "thema": "Grafik ohne Chart.js: Heatmap",
+    "befund": "Tabelle Fach/Modul x Semester mit Badge-Zellen (NotenSkala::badge), ▼ bei ungenügend, sticky Namensspalte, Semesterschnitt-Fuss. Kein Filter, statisch. Einsatz: /grades Ansicht 'Zeugnisübersicht' (per ansicht-Alpine-Umschalter, Kategorie-Filter per Link-Reload) und Trainer-Cockpit Übersicht. Daten: Uebersicht::heatmap().",
+    "quelle": "resources/views/components/heatmap.blade.php:1-171; resources/views/lernender/noten/index.blade.php:85-101; resources/views/verwaltung/lernende/_cockpit/uebersicht.blade.php:54-57; app/Services/Uebersicht.php:383-415"
+   },
+   {
+    "thema": "Gemeinsame Basisoptionen und Animation",
+    "befund": "basis(): responsive, maintainAspectRatio false, animation: bewegungReduziert() ? false : {duration:350} (Standardeasing, keine Staffelung/Delay, keine Unterscheidung Erst- oder Updateanimation), interaction mode 'index' intersect false. bewegungReduziert() liest html[data-bewegung=reduziert] oder prefers-reduced-motion und wird nur beim Zeichnen ausgewertet (kein Listener). spark: animation duration 0. Gitter text/7 %, Notenachse fix 1-6, Schrift aus body, Farben aus --muted/--text/--card/--border.",
+    "quelle": "resources/js/charts.js:27-68, 428"
+   },
+   {
+    "thema": "Tooltip",
+    "befund": "Chart.js-Canvas-Tooltip: Hintergrund --card mit 96 % Alpha, Rahmen --border, cornerRadius 12, padding 12/10, caretSize 0, usePointStyle, Titel Semibold. Format ' Name: Wert' mit format(…,2). Kein HTML-Tooltip, kein Blur oder Material, keine Schatten-Tiefe, keine Positionsanimation-Konfiguration. Unsichtbare Reihen (Präfix '_') werden gefiltert.",
+    "quelle": "resources/js/charts.js:43-57"
+   },
+   {
+    "thema": "JSON-Endpunkte für Auswertungsdaten",
+    "befund": "Es gibt keinen. grep nach json|api|daten|chart|berechnen|simul|vorschau in routes/*.php ergibt nur die Rechner-POSTs: learner.calculator.calculate (POST /calculator), learner.calculator.simulate (POST /calculator/simulate, throttle 30/min), learners.calculator.calculate (verwaltung.php:52, Trainer) sowie Datenexporte (data-export, kein Chart-JSON). Dazu suche.js (GET mit ?q=). Keine Route liefert Verlauf, Verteilung, Aktivität oder Balken als JSON.",
+    "quelle": "routes/web.php:104-106, 262-263, 448-449; routes/verwaltung.php:51-52; resources/js/suche.js:58"
+   },
+   {
+    "thema": "Filter: Reload versus clientseitig",
+    "befund": "Reload mit URL-Zustand: Admin-Notenbericht (Semester, Lehrberuf, Berufsbildner, Sort) über x-filterleiste (GET), /grades (kategorie_id, semester_id per Links, $mit() fasst request() zusammen). Clientseitig ohne URL-Zustand: Dashboard 'Wo stehe ich' (modus) und 'Verlauf' (modus, fach) als reiner Alpine-Zustand, nach Reload zurückgesetzt, nicht teilbar.",
+    "quelle": "resources/views/components/filterleiste.blade.php:1-40; resources/views/admin/berichte/noten.blade.php:41-70; resources/views/dashboards/lernender.blade.php:124-129,172-186; resources/views/lernender/noten/index.blade.php:14,85-93"
+   },
+   {
+    "thema": "Barrierefreiheit der Diagramme",
+    "befund": "Canvas-Elemente tragen role=img und aria-label (nur Titel, keine Werte). x-diagramm liefert zusätzlich ein Fazit-aria-label und die Tabelle. Dashboard-Karten bauen die Tabelle selbst nach. Keine Tastaturbedienung der Datenpunkte, keine Fokussteuerung, kein aria-live. Segment-Control hat Pfeiltasten (np.js registriereRadiogroup). Legende über x-noten-legende (Muster statt nur Farbe).",
+    "quelle": "resources/views/components/diagramm.blade.php:1-28; resources/views/dashboards/lernender.blade.php:137-139,188-193; resources/js/np.js:165-195"
+   },
+   {
+    "thema": "Totcode",
+    "befund": "Uebersicht::jahrgangsDiagramm() (Gesamtschnitt je Lehrberuf und Lehrjahr) ist private und wird nirgends aufgerufen, es gibt keine View dazu. BAUER.gruppen und BAUER.spark ohne Aufrufer.",
+    "quelle": "app/Services/Uebersicht.php:698-715 (grep 'jahrgang' in app und resources/views); resources/js/charts.js:357-372, 413-434"
+   },
+   {
+    "thema": "Konzept versus Ist",
+    "befund": "gui-konzept §f nennt: Admin-Erfassung mit Median-Linie, 12/26 Wochen und Import-Ausreisser annotiert; BB-Dumbbell Semester vs. Gesamt; Jahrgänge als Small Multiples; Verlauf mit Achsenausschnitt '1-6 | Ausschnitt'; Rechner mit Zielwert +/- und annotiertem Punkt. Im Code fehlen Median, Wochenwahl, Dumbbell, Small Multiples, Achsenausschnitt. Die Notenachse ist fix min 1 max 6.",
+    "quelle": "docs/gui-konzept.md:367-380; resources/js/charts.js:62-68"
+   },
+   {
+    "thema": "Reduzierte Bewegung global",
+    "befund": "CSS: [data-bewegung='reduziert'] setzt animation- und transition-duration auf 0.01ms, @media (prefers-reduced-motion) gesondert, View Transitions mit 180 ms und ease-out. Details-Öffnen nutzt np-fade. Chart.js hängt davon nicht ab und prüft separat.",
+    "quelle": "resources/css/app.css:205-225, 249-268, 259"
+   }
+  ],
+  "luecken": [
+   "Zustand in der URL fehlt für alle clientseitigen Umschalter (Wo stehe ich: Semester/Lehrzeit, Verlauf: Kategorie/Fach, Notenseiten-Ansicht 'ansicht'); nur der Admin-Notenbericht und /grades-Links haben URL-Parameter.",
+   "Keine Aktualisierung ohne Reload für Auswertungsdaten: kein JSON-Endpunkt, kein fetch mit anschliessendem chart.update(); der Rechner ist die einzige fetch-Strecke und zeichnet das Chart jedes Mal komplett neu (destroy plus new Chart) statt Daten zu aktualisieren, dadurch kein Morphing zwischen Zuständen.",
+   "Keine gestaffelte Einblendung: eine Animation (350 ms, Standardeasing) für alle Datasets, kein delay je Balken oder Punkt, keine Linienzeichnung (Draw-in), kein Federverhalten (Spring), keine Unterscheidung Erst- und Folge-Animation. Beim Theme-Wechsel (MutationObserver) und bei jedem Filterwechsel läuft sie erneut ab.",
+   "Tooltip nur als Canvas-Tooltip: kein HTML/Glas-Material mit Blur, keine Mehrzeiligkeit mit Stufenname, Delta zum Vorsemester oder Schwelle, kein Crosshair oder Scrubbing wie in Swift Charts (chartXSelection), keine Fokus- oder Tastaturauslösung.",
+   "Tastaturbedienung der Diagramme fehlt vollständig (Canvas ohne tabindex, Pfeiltasten durch Datenpunkte, aria-live Ansage des fokussierten Punkts); aria-label nennt nur den Titel, nicht die Werte (anders als Sparkline und Bullet).",
+   "Leer- und Ladezustand: Karten blenden sich bei leeren Daten aus (zeigen['verlauf'], zeigen['wo_stehe_ich'] über count > 0) oder zeigen nichts (Rechner-Kurve x-show); es gibt keinen Skeleton, kein Platzhalter-Chart und keinen Leerzustand mit Handlungsweg innerhalb der Diagrammkarte. Ladezustand existiert nur im Rechner (opacity-70, aria-busy).",
+   "Wo-stehe-ich-Tabelle folgt dem Moduswechsel nicht (PHP statt Alpine, lernender.blade.php:149-158).",
+   "Nicht ausgewertet: Chart-Verhalten im Browser (kein Lauf erlaubt), tatsächliche Rendergrösse und Performance bei grossen Datenmengen, Print-Stile für Canvas (Berichtseite hat window.print()), die Tests tests/Feature/Admin/BerichtTest.php nur angelesen.",
+   "Nicht gelesen im Detail: np.js Zeilen 197-659 (Toast, Seitenleiste, Auswahlliste usw.); dort nur per grep auf fetch/Chart geprüft, kein Treffer.",
+   "Keine Datenquelle für Zeitreihen unterhalb der Semesterebene für Lernende (Verlauf nur je Semester, kein Verlauf je Prüfungsdatum, kein Vergleich mit Klasse oder Jahrgang); Admin hat nur Wochen-Notenanzahl, keine Verteilung über die Zeit, keine Vergleiche Lehrberuf oder Berufsbildner als Diagramm."
+  ],
+  "chancen": [
+   "Neuer JSON-Endpunkt je Rolle (z. B. GET /statistics/data?semester=&category=&range= für Lernende, /trainer/... und /admin/reports/grades/data), der dieselben Services nutzt (Uebersicht::verlaufDiagramm/balkenDiagramm, Bericht::verteilung) und Rollenregeln serverseitig erzwingt; Dateien: routes/web.php, routes/verwaltung.php, neuer Controller, app/Services/Uebersicht.php, app/Services/Bericht.php. Dann chart.update() mit neuen Daten statt destroy/new.",
+   "npChart in resources/js/charts.js um aktualisiere(daten) erweitern: bestehendes Chart behalten, labels und datasets ersetzen und chart.update() aufrufen, damit Werte morphen (Balken wachsen, Linien gleiten); zeichne() nur bei Typ- oder Theme-Wechsel (Farben einmalig neu setzen statt destroy). Nutzt resources/views/dashboards/lernender.blade.php, resources/views/rechner/index.blade.php (statt x-effect-Neubau).",
+   "Filterzustand in die URL spiegeln (history.replaceState/URLSearchParams in einer Alpine-Komponente npFilter in resources/js/np.js oder neuer Datei resources/js/statistik.js) und beim Laden lesen; passt zu x-filterleiste (resources/views/components/filterleiste.blade.php), die bereits URL-Parameter nutzt und per JS statt Reload filtern könnte (Progressive Enhancement mit Fetch).",
+   "Gestaffelte Einblendung in basis() (resources/js/charts.js:39): animation mit delay je Datenpunkt/Balken (z. B. context.dataIndex * 24 ms), Linienzeichnung per Clip-Plugin, Easing als cubic-bezier passend zu --ease-out aus app.css, Erstanimation einmal (IntersectionObserver beim Sichtbarwerden), Updates kürzer (200 ms); bewegungReduziert() weiterhin respektieren und per matchMedia change-Listener reaktiv machen.",
+   "HTML-Tooltip als externe Chart.js-Funktion (tooltip.enabled false, external) in charts.js: Glasmaterial mit backdrop-filter, Radius und Schatten aus den Tokens (resources/css/theme.css, app.css Glasstufen), Mehrzeilig mit Stufenname (NotenSkala-Texte), Delta zum Vorwert, Genügend-Abstand; Crosshair-Linie als Plugin analog zu npSenkrecht; Positionsübergang mit CSS-Transition.",
+   "Tastaturbedienung und Screenreader: Canvas fokussierbar (tabindex 0, role=application oder img mit Beschreibung), Pfeil links/rechts bewegt den aktiven Punkt (chart.setActiveElements plus tooltip.setActiveElements), Home/End, Escape; aria-live-Region sagt Wert und Stufe an; aria-label mit Kerndaten (wie bei Bullet und Sparkline). Alles in npChart (resources/js/charts.js:437-465).",
+   "x-diagramm (resources/views/components/diagramm.blade.php) zur Standardhülle ausbauen: Slot für Filter-Symbolleiste (Segment, Select, Zeitraum), Leer- und Ladezustand (Skeleton/Glas-Shimmer, x-leer), 'Als Tabelle' reaktiv aus denselben JSON-Daten (Alpine x-for) statt PHP, damit der Wo-stehe-ich-Tabellenfehler verschwindet; Dashboard-Karten auf diese Hülle umstellen (lernender.blade.php:121-228, admin.blade.php:144-153).",
+   "Fehlende, im Konzept bereits vorgesehene Statistiken ergänzen: Admin-Aktivität mit Median-Linie und 12/26-Wochen-Segment (BAUER.saeulen + Uebersicht::aktivitaet() mit Parameter wochen); Lehrjahr-/Jahrgangs-Small-Multiples aus dem vorhandenen, ungenutzten Uebersicht::jahrgangsDiagramm() (app/Services/Uebersicht.php:698) mit Genügend-Linie; Dumbbell Semester vs. Gesamt im Berufsbildner-Dashboard (resources/views/dashboards/berufsbildner.blade.php); Achsenausschnitt-Schalter (notenAchse in charts.js:62 parametrisieren).",
+   "Zusätzliche sinnvolle Statistiken auf vorhandener Datenbasis: Notenverteilung und Prüfungsverlauf je Prüfungsdatum (Linie mit Gewichtungsgrösse), Vergleich Semesterschnitt vs. Lehrjahr (nur Berufsbildner/Admin, aggregiert), Fortschritt zum Ziel (Bullet animiert mit CSS width-Transition und @starting-style), Heatmap-Zellen mit Hover-Detail und Sortierung; alle Durchschnitte weiterhin aus App\\Services\\Auswertung.",
+   "Liquid-Glass-tauglich machen: Canvas-Hintergrund transparent lassen und die Karte (np-karte) das Material tragen lassen; Gitter und Achsen als dünne Haarlinien; Bullet und Sparkline mit CSS-Transitions (width, stroke-dashoffset für Linien-Draw-in) und @starting-style animieren (app.css:381 verwendet @starting-style bereits); Hover-Tiefe über Schatten-Tokens statt Hardcodes.",
+   "Toten Code entfernen (BAUER.gruppen, BAUER.spark, jahrgangsDiagramm entweder nutzen oder löschen) und charts.js per dynamischem import() nur auf Seiten mit Diagrammen laden (vite.config.js, app.js:5), um die Bündelgrösse zu senken.",
+   "Test-Absicherung: Feature-Tests für neue JSON-Endpunkte im Stil von ZugriffsschutzTest (jede role:-Route automatisch gegen fremde Rollen) und BerichtTest; Browser-Prüfung mit tools/pruefung/klick.mjs für Filterwechsel und Tastaturbedienung."
+  ],
+  "risiken": [
+   "Chart.js zeichnet auf Canvas: echtes Liquid Glass (Backdrop-Blur hinter dem Tooltip, Reflexion) ist dort nicht möglich; nur mit HTML-Tooltip und CSS-Materialien oder SVG-Diagrammen erreichbar. Wechsel der Bibliothek (z. B. SVG, d3 oder Observable Plot) wäre ein grosser Eingriff mit Verlust der bestehenden Plugins (Direktlabels, Schwellenlabel-Kollisionslogik).",
+   "Neue JSON-Endpunkte verletzen leicht die Rollenregeln (Lernende nur eigene Daten aus der Session, Berufsbildner nur aktiv betreute Lernende) und die Regeln 'Noten-Queries mit whereNull(geloescht_am)' und 'Durchschnitte nur aus App\\Services\\Auswertung'; ein eigener Aggregations-SQL (wie YEARWEEK in aktivitaet()) umgeht die Notenlogik.",
+   "Mehr Animation und Transparenz steht in Spannung zu Kontrastvorgaben (ThemeKontrastTest, FarbeKontrastTest: chart-Farben >= 3:1 auf der Karte, Tooltip-Text 4.5:1) und zu reduzierter Bewegung: bewegungReduziert() wird nur beim Zeichnen gelesen, ein Umschalten zur Laufzeit wirkt erst nach Neuaufbau; Glas hinter Text darf die Lesbarkeit im Dunkelmodus nicht senken (G0-Regel: kein Glas für Diagramme laut gui-konzept.md:110).",
+   "destroy/new Chart bei jedem x-effect-Lauf (Rechner bei jedem Tippen nach 220 ms Debounce) erzeugt Flackern und Performance-Last; die Umstellung auf chart.update() verändert das Verhalten von Plugins, die ihre Labels beim Zeichnen messen (kuerzeNachBreite, Direktlabel-Padding in layout.padding, das in BAUER.verlauf einmalig berechnet wird und bei Datenwechsel veraltet).",
+   "Zustand in der URL und Fetch-Filter erhöhen die Angriffsfläche und die Drosselung: bestehende Rate-Limits (calculator 120/min, simulate 30/min) wären für schnelle Filterwechsel zu prüfen; 429 wird in np.js nur mit Meldung behandelt.",
+   "Die Wo-stehe-ich-Tabelle zeigt nach dem Umschalten falsche (veraltete) Daten; wird sie nicht mit der Umstellung behoben, bleibt ein Barrierefreiheits- und Korrektheitsfehler in einem 'sinnvollen' Statistikbild bestehen.",
+   "Nicht verifiziert (kein Lauf erlaubt): visuelles Ergebnis, Animationsruckeln und Verhalten bei 2560x1440; alle Befunde stammen aus dem Lesen des Quelltextes."
+  ]
+ },
+ "material": {
+  "zusammenfassung": "Das Material ist heute \"Frosted Glass\" ohne Liquid-Glass-Eigenschaften: Alle Glasrezepte sind Weichzeichner 24 bis 28 px, saturate(1.8), Karten-Tönung (Deckung 0.74 bis 0.92), 0.5-px-Lichtkante oben und Haarstrich (app.css:279-355, 440-474). Das Glas ist ausserdem kaum sichtbar: Der Seitenleisten-Glas (np-glas) liegt über dem flachen --bg, das Layout hat keinen Hintergrund ausser bg-bg (app.blade.php:142, np-hauptspalte-Padding app.css:555-562), also gibt es nichts zu brechen oder zu tönen. Nur Symbolleisten-Kapseln und Menüs liegen zeitweise über scrollendem Inhalt. Die Token-Basis ist stark: 12 Themes in hell und dunkel (24 Blöcke), 7 Akzente und Farbenblind-Charts, alles als RGB-Tripel plus -rgb-Aliase, sodass rgb(var(--x-rgb) / a) überall geht. Reaktion auf Hover/Druck gibt es nur als Flächenabdunkelung per color-mix beziehungsweise Alpha (np-knopf, 262 Einsätze); kein Skalieren (bewusst, app.css:~700 Kommentar), keine Federung, kein linear(), keine @property. Es gibt genau zwei Keyframes (np-slide-down, np-fade), Alpine-x-transition mit nur Opacity oder 8-px-Translate (150 bis 300 ms), keinen transform-origin an Popovern, keine Morph-Übergänge (View Transitions nur als Root-Überblendung 180 ms, bewusst ohne view-transition-name). Der Scroll-Kanten-Effekt existiert (np-symbolleiste ::before mit scrollY/16, np-scroll-edge per Maske 1.5 rem), aber ohne Lichtbrechung. Drawer, Modal, Feedback-Popover, Alert und Sitzungsdialog sind deckende Karten (bg-card), nicht Glas, und der Drawer fährt nur per Translate ein. Reduzierte Bewegung/Transparenz ist sauber geschaltet (Medienabfrage und data-Schalter), aber prefers-reduced-motion setzt data-bewegung nicht und hebt Seitenleisten-/Menü-Transitions nicht global auf.",
+  "fakten": [
+   {
+    "thema": "Token-Struktur theme.css: RGB-Tripel",
+    "befund": "Alle Farbtokens sind RGB-Tripel (z. B. --bg: 28 28 30), je Theme/Modus: --bg, --card, --surface-2, --input, --text, --muted, --border, --border-strong, --accent, --accent-contrast, --accent-text, --ring, --note-gut/genuegend/knapp/ungenuegend, --chart-1..6, --elev-1..3, --elev-hover-bg. Aliase am Dateiende: --bg-rgb, --card-rgb, --surface-2-rgb, --text-rgb, --muted-rgb, --border-rgb, --border-strong-rgb, --accent-rgb (auch an jedem [data-theme] neu berechnet). --ring-rgb, --input-rgb und --chart-*-rgb existieren NICHT; --accent/--ring/--chart-* sind direkt als Tripel nutzbar.",
+    "quelle": "resources/css/theme.css:25-56 (Gletscher hell), :60-95 (dunkel), :1049-1060 (Aliase)"
+   },
+   {
+    "thema": "Themes, Modi, Blockreihenfolge",
+    "befund": "12 Themes x 2 Modi = 24 Farbblöcke: gletscher (Standard, :root + .dark, Z. 21/60), sandstein 98/134, pflaume 170/206, graphit 242/278, wald 314/352, abendrot 390/428, papier 466/504, mitternacht 542/580 (OLED, Dunkel-bg 1 1 3), fjord 618/654, bernstein 690/726, schiefer 762/798, kontrast 834/870. Je Theme erst hell, dann .dark, alle NACH Gletscher. Danach: Graphit-Linkunterstreichung (906), 7 Akzente blau/petrol/gruen/violett/magenta/orange/rot je hell+dunkel (918-1010, überschreiben --accent,--accent-contrast,--accent-text,--ring,--chart-1), data-diagramm=farbenblind (Okabe-Ito, ~1013-1036), Aliasblock (1049). Modus per Klasse .dark am html. Gletscher dunkel: --bg 28 28 30, --card 44 44 46, --surface-2 58 58 60.",
+    "quelle": "resources/css/theme.css:21-1060 (Grep der Selektoren)"
+   },
+   {
+    "thema": "Elevation ist rein Schatten-Token, ohne Lichtkante",
+    "befund": "--elev-1/2/3 sind box-shadow-Listen. Gletscher dunkel: elev-1 = 0 0 0 0.5px rgb(255 255 255 / 0.06), elev-2 = 0 16px 40px -4px rgb(0 0 0 / 0.55), 0 0 0 0.5px rgb(255 255 255 / 0.1). Die anderen Dunkelthemes haben elev-1: none. Es gibt keine Glas-Tokens (kein --glas-*, keine Material-Stufen) – Glas-Werte sind in app.css fest codiert (rgb(255 255 255 / 0.6) etc.).",
+    "quelle": "resources/css/theme.css:52-55, :91-94, :163-166; resources/css/app.css:279-355"
+   },
+   {
+    "thema": "Tailwind-Tokens und Motion-Tokens",
+    "befund": "@theme inline mappt alle Tokens auf --color-*, plus --color-faint/ghost (text 0.45/0.25) und --color-fill/fill-2 (text 0.08/0.05). Motion: nur --ease-in cubic-bezier(0.4,0,1,1), --ease-out cubic-bezier(0.22,1,0.36,1), --default-transition-duration 160ms, --default-transition-timing-function = ease-out. Keine Dauer-Tokens (120/150/160/180/200/260/300 ms sind überall hartcodiert), keine Federkurve, kein --ease-spring. Radien: md 6, lg 8, xl 14, 2xl 18, 3xl 22 px. Layout: --np-leiste-breite 16.25rem, --np-leiste-rand 0.5rem, --np-symbolleiste-hoehe 3.5rem.",
+    "quelle": "resources/css/app.css:24-89, :91-143, :~140-142 (Ease), :521-527"
+   },
+   {
+    "thema": "Rezeptur np-glas (Seitenleiste)",
+    "befund": "Hell: background rgb(var(--card-rgb)/0.8); backdrop-filter blur(24px) saturate(1.8); box-shadow inset 0 0.5px 0 rgb(255 255 255/0.6), 0 0 0 0.5px rgb(0 0 0/0.08), 0 8px 28px -8px rgb(0 0 0/0.14). Dunkel: Deckung 0.78, inset 0 0.5px 0 rgb(255 255 255/0.12), 0 0 0 0.5px rgb(0 0 0/0.6), 0 12px 32px -8px rgb(0 0 0/0.5). @supports not backdrop-filter -> rgb(var(--card)) deckend. prefers-reduced-transparency -> deckend, backdrop-filter none.",
+    "quelle": "resources/css/app.css:279-303"
+   },
+   {
+    "thema": "Rezeptur np-glas-gruppe (Kapsel Suche/Tableiste/Feedback)",
+    "befund": "Glas auf ::before (nicht auf dem Element, wegen Backdrop Root, Kommentar Z. 434-437). Hell: card/0.78, blur(24px) saturate(1.8), inset 0 0.5px 0 rgb(255 255 255/0.6), 0 0 0 0.5px rgb(0 0 0/0.08), 0 2px 12px -2px rgb(0 0 0/0.1). Dunkel (:where(.dark) &::before): card/0.74, inset 0.5px weiss 0.12, 0 0 0 0.5px schwarz 0.5, 0 2px 12px -2px schwarz 0.4. Höhe 2.25rem, Radius 9999px, Innenabstand 0.1875rem. @supports- und reduced-transparency-Fallback deckend.",
+    "quelle": "resources/css/app.css:433-474"
+   },
+   {
+    "thema": "Rezeptur glass-overlay (Menüs, Palette, Toast, Popover-Glas)",
+    "befund": "Hell: card/0.86, blur(28px) saturate(1.8), box-shadow var(--elev-2), inset 0 0.5px 0 rgb(255 255 255/0.5). Dunkel: surface-2/0.92, var(--elev-2), 0 0 0 1px rgb(var(--border)), inset 0 0.5px 0 rgb(255 255 255/0.1). @supports not -> card bzw. surface-2 deckend; reduced-transparency -> deckend. Das ist die opakste Glasstufe (0.86/0.92).",
+    "quelle": "resources/css/app.css:333-356"
+   },
+   {
+    "thema": "Rezeptur glass-scrim, np-alert",
+    "befund": "glass-scrim: nur Abdunkelung rgb(0 0 0/0.18) hell, 0.45 dunkel, KEIN Blur. np-alert (natives <dialog>): deckendes rgb(var(--card)), Rand 1px border-strong/0.3, Radius 2xl, var(--elev-3); Einblenden per transition opacity/scale 150 ms ease-out mit @starting-style (opacity 0, scale 0.96) – das einzige Scale-Einblenden im Bestand; ::backdrop 0.18/0.45 schwarz.",
+    "quelle": "resources/css/app.css:360-400"
+   },
+   {
+    "thema": "Ungenutzte Bestandsklassen",
+    "befund": "glass-bar (app.css:306-318, Rezept card/0.8 + blur(24px) + border-bottom), glass-seitenleiste (app.css:320-331), glass-btn (:~815-828), np-btn-primary (:~830-845) und np-fade-in (:1514-1516) haben 0 Treffer in resources/views und resources/js. Erwähnungen nur in docs/gui-konzept.md und docs/audit-backlog.md. Sie stehen nur noch als Bestandsklassen in app.css. Der Transparenz-Schalter referenziert sie weiterhin (app.css:1468).",
+    "quelle": "resources/css/app.css:306-331, :~815-845, :1514, :1468; Grep resources/views+js = 0"
+   },
+   {
+    "thema": "Nutzungszahlen Materialklassen in resources/views+js",
+    "befund": "np-glas: 1 (nur Seitenleiste navigation.blade.php:28). np-glas-gruppe: 3 (navigation.blade.php:96 Tableiste, :176 Suchknopf; feedback-widget.blade.php:16). glass-overlay: 7 in 5 Dateien (dropdown:34, toast:22, tastenkuerzel:49, navigation:109,140,187, app.blade:143 Skip-Link). glass-scrim: 6 in 5 Dateien (modal:61, tastenkuerzel:43, drawer:51, navigation:75,186, _sitzung:8). np-symbolleiste: 1 (navigation:80). np-seitenleiste: 1 Datei. np-scroll-edge: 4 (navigation:40, module/index:28, np.js). np-schublade-scrim: 1. np-alert: 1 (bestaetigung). np-tab: 3. np-segment: 20 in 16 Dateien, np-segment-klein: 3. np-karte: 141 in 77 Dateien, np-karte-klickbar: 2 (dashboards/admin:44, berufsbildner:57).",
+    "quelle": "Grep -E über resources/views und resources/js (Wortgrenzen, ohne Suffixmatches)"
+   },
+   {
+    "thema": "Nutzungszahlen Knopfklassen",
+    "befund": "np-knopf (Basis) 262; Rollen: np-knopf-sekundaer 119, np-knopf-primaer 60, np-knopf-schlicht 26, np-knopf-gefahr 14, np-knopf-gefahr-voll 1, np-knopf-symbol 49, np-knopf-symbol-gefahr 13, np-knopf-rund 6; Grössen: np-knopf-klein 55, np-knopf-gross 11.",
+    "quelle": "Grep resources/views+js"
+   },
+   {
+    "thema": "Hover/Press der Knöpfe",
+    "befund": "Basis np-knopf: transition-property background-color,color,box-shadow,opacity 120 ms var(--ease-out); disabled opacity 0.4. primaer: Fläche --accent, innen Lichtkante inset 0 0.5px 0 rgb(255 255 255/0.25) + 0 1px 2px rgb(0 0 0/0.12); hover color-mix(in srgb, accent 90%, black), active 80% black; disabled neutral text/0.07. sekundaer: text/0.07 -> hover 0.11 -> active 0.16. schlicht: transparent -> accent/0.09 -> 0.15. gefahr: ungenuegend/0.1 -> 0.15 -> 0.22; gefahr-voll: Ton 90%/80% black. symbol: muted -> hover text + text/0.07 -> active 0.12. Kein transform/scale (Kommentar 'kein Skalieren', app.css:~700), keine Federung, kein Glanz-Hover. Press = reiner Abdunkelungssprung.",
+    "quelle": "resources/css/app.css:696-872 (Knopf-Block), Kommentar :688-694"
+   },
+   {
+    "thema": "Zeilen/Segment/Tab Rückmeldung",
+    "befund": "np-leistenzeile: hover text/0.05, active 0.1, Auswahl 0.085, Übergang 100 ms; np-tab: hover text/0.06, aktiv text/0.08 + accent-text, 120 ms; np-zeile: hover 0.05, active 0.09; np-listenzeile: hover 0.04, ausgewählt 0.085 bzw. accent/0.14 bei Fokus in der Liste; np-karte-klickbar: hover color-mix(card 96% , text), active 92%, 120 ms / box-shadow 160 ms; np-tabelle Zeilen: Hover text/0.06, Zebra 0.03; np-menue-eintrag: Hover = volle Akzentfläche + Kontrastschrift (kein Übergang). Alles sofort-lineare Flächenwechsel, nichts folgt dem Zeiger.",
+    "quelle": "resources/css/app.css:564-690 (Leistenzeile/Tab), :1096-1110 (karte-klickbar), :1196-1250 (Tabelle), :1253-1285 (Zeilen), :1330-1345 (Menüeintrag)"
+   },
+   {
+    "thema": "np-segment (Segmentsteuerung)",
+    "befund": "Spur text/0.07, Segmente 9999 px. Gewähltes Segment bekommt per Selektor (aria-current/aria-pressed/aria-checked/aria-selected/.np-gewaehlt/:has(>input:checked)) hell card + 0 1px 3px rgb(0 0 0/0.1), dunkel text/0.2 + 0 1px 3px rgb(0 0 0/0.3). Übergang je Segment background-color/color/box-shadow 150 ms. Die Auswahl springt von Segment zu Segment (jedes Segment färbt sich selbst), es gibt keinen gleitenden gemeinsamen Marker.",
+    "quelle": "resources/css/app.css:1007-1073"
+   },
+   {
+    "thema": "Schalter, Haken, Feld",
+    "befund": "np-schalter: Kopf weiss 1.125 rem mit Schatten, translate 200 ms ease-out (kein Federn, keine Dehnung beim Drücken); Spur 180 ms. np-haken: 120 ms Farbübergang, Haken per Maske, kein Zeichnen. np-feld: Fokus = border accent + 0 0 0 3.5px accent/0.28 Ring, 120 ms.",
+    "quelle": "resources/css/app.css:889-1005"
+   },
+   {
+    "thema": "Lichtkante, Tönung, Morph, Scroll-Kante, Federung – Bestandsaufnahme",
+    "befund": "Lichtkante: ja, nur als statischer inset 0 0.5px 0 rgb(255 255 255/α) oben (np-glas :283, np-glas-gruppe :456, glass-overlay :339/343, np-knopf-primaer :~712), nicht seitenabhängig, kein Gradient-Rand, kein Verlauf. Tönung aus dem Inhalt: nein – Tönung ist immer --card-rgb mit fixer Deckung; color-mix kommt nur bei Knopf-Hover (primaer/gefahr-voll) und np-karte-klickbar vor, nie am Glas. Morph: nein – kein view-transition-name im gesamten Repo (Grep leer; Kommentar app.css:244-246 verbietet ihn bewusst wegen Backdrop Root), kein startViewTransition, kein Flip. Scroll-Kante: ja (siehe eigener Befund). Federung: nein – Grep nach linear(, spring, @property, animation-timeline, view-timeline, anchor-name, interpolate-size in css/js/views = 0 Treffer. Kein SVG-Filter (feDisplacementMap/feTurbulence), kein mix-blend-mode, kein radial-gradient im Glas (nur conic-gradient im Farbwähler np-farbrad app.css:1354).",
+    "quelle": "Grep resources/css, resources/js, resources/views; resources/css/app.css:244-246"
+   },
+   {
+    "thema": "Scroll-Kanten-Effekt",
+    "befund": "(1) Symbolleiste: np-symbolleiste (sticky top 0, z 40, isolation) hat ::before mit Verlauf von --bg-rgb 0.92 -> 0.72 -> 0, backdrop-filter blur(10px), mask-image linear-gradient(black 55%, transparent), reicht 1.25 rem unter die Leiste (inset: 0 0 -1.25rem 0); Deckung opacity: var(--np-kante, 0), transition 200 ms. np.js setzt --np-kante = clamp(scrollY/16, 0, 1) per rAF. (2) np-scroll-edge: Maske 1.5 rem oben/unten per data-np-kante (np.js scrollKante setzt 'oben'|'unten'|'oben unten'; ResizeObserver+MutationObserver), nur Seitenleisten-Nav und Modul-Liste. Reduced-transparency: Symbolleiste wird deckend mit 1-px-Rand, np-scroll-edge Maske aus.",
+    "quelle": "resources/css/app.css:402-431, :679-692; resources/js/np.js:122-138, :451-463"
+   },
+   {
+    "thema": "Seitenleiste und Topbar",
+    "befund": "Seitenleiste <aside class='np-seitenleiste np-glas'> ist fixed mit 0.5 rem Abstand, Radius 2xl, Breite 16.25 rem, ab 64rem fest bei data-navigation='seite'; darunter Schublade mit translate 260 ms var(--ease-out) + visibility-Verzögerung; Scrim np-schublade-scrim 200 ms Opacity. Hauptspalte hat padding-left = Leistenbreite+Rand, d. h. unter der Seitenleiste liegt nie Inhalt (nur body bg). Symbolleiste (np-symbolleiste) ist durchsichtig; Kapseln darauf (np-glas-gruppe) für Tableiste (Navigation 'oben'), Suchknopf, Feedback. Seitenleistenzeilen np-leistenzeile mit Symbol in --accent-text, Abschnitte als Disclosure mit Chevron rotate 160 ms. Navigation 'oben'/'seite' wird über data-navigation am html gesetzt.",
+    "quelle": "resources/views/layouts/navigation.blade.php:28-75, :80-262; resources/css/app.css:489-562"
+   },
+   {
+    "thema": "Palette, Kontomenü, Tableisten-Menüs",
+    "befund": "Befehlspalette: Teleport body, Scrim glass-scrim (x-transition.opacity 200 ms), Panel 'rounded-2xl glass-overlay shadow-e3' (x-transition.opacity 150 ms; kein Scale, kein Origin), Treffer markiert mit 'bg-accent text-accent-contrast' ohne Übergang. Kontomenü via <x-dropdown> (glass-overlay, rounded-xl, Opacity 150/100 ms, nur transform-origin über Klasse origin-top-right/left, aber ohne Scale-Transition unwirksam). Tableisten-Menüs: Opacity 150/100 ms, glass-overlay. Konto-Knopf: hover:opacity-85, 100 ms.",
+    "quelle": "resources/views/layouts/navigation.blade.php:99-160, :183-215, :219-257; resources/views/components/dropdown.blade.php:21-41"
+   },
+   {
+    "thema": "Komponenten-Transitions im Detail",
+    "befund": "dropdown: x-transition opacity enter 150 ms ease-out / leave 100 ms ease-in, Glas (glass-overlay), origin-Klassen gesetzt, aber ohne Scale. drawer: Scrim opacity 200/150; Panel transition-transform ease-out 200 ms (enter) / ease-in 150 ms (leave), von translate-x-[calc(100%+1rem)], motion-reduce:translate-x-0; Panel ist DECKEND 'rounded-2xl border border-border bg-card shadow-e3' (kein Glas), rechts inset-y-2 right-2. modal: Scrim opacity 300/200; Panel 'bg-card border-border-strong/30 shadow-e3', enter 300 ms opacity + translate-y-2, leave 200 ms nur opacity; kein Scale, kein Origin. toast: oben rechts, glass-overlay, enter 200 ms opacity + -translate-y-2, leave 150 ms opacity; kein Origin. feedback-widget: Popover 'bg-card ... shadow-e3' (deckend, kein Glas), enter 150 ms opacity + -translate-y-1, leave 100 ms; Auslöser np-glas-gruppe. Alle verwenden Tailwind-Default-Easing (var(--default-transition-timing-function) = ease-out Kurve), keine eigene Kurve.",
+    "quelle": "resources/views/components/dropdown.blade.php:27-37; drawer.blade.php:42-66; modal.blade.php:54-82; toast.blade.php:14-22; feedback-widget.blade.php:16-30"
+   },
+   {
+    "thema": "Keyframes und Animationen",
+    "befund": "Genau zwei @keyframes: np-slide-down (opacity 0->1, translateY -4px->0) für details[open] > summary ~ * 220 ms ease-out, und np-fade (opacity 0->1) für np-fade-in (150 ms, ungenutzt) und die Reduced-Motion-Alternative. Daneben: #np-progress (2 px Akzentleiste oben, width-Transition 4 s cubic-bezier(0.1,0.6,0.3,1) bis 80 %), Disclosure-Chevron rotate 200 ms, Seitenleisten-Chevron rotate 160 ms. Chart.js: animation { duration: 350 } (charts.js:39), eine Zeile in charts.js:428 duration 0. Skript-Animationen (Web Animations API, requestAnimationFrame für Animationen): keine; rAF nur zum Drosseln.",
+    "quelle": "resources/css/app.css:1488-1517 (np-loading/done/fade-in), :1519-1572; resources/js/charts.js:39,428; resources/js/np.js:333,425,457"
+   },
+   {
+    "thema": "View Transitions",
+    "befund": "Dokumentübergreifend per @view-transition { navigation: auto } (app.css:~249); ::view-transition-old(root)/new(root) animation-duration 180 ms, ease-out. Bei prefers-reduced-motion: reduce -> navigation: none. Bei data-bewegung='reduziert' -> animation: none auf group/old/new(*). Es gibt weder benannte Übergänge noch ::view-transition-group-Styling; keine Morphs zwischen Seiten (Karte->Detail, Knopf->Dialog).",
+    "quelle": "resources/css/app.css:240-269"
+   },
+   {
+    "thema": "Reduzierte Bewegung/Transparenz – Behandlung",
+    "befund": "Transparenz: @media (prefers-reduced-transparency: reduce) in np-glas, glass-bar, glass-seitenleiste, glass-overlay, np-symbolleiste::before, np-glas-gruppe::before und np-scroll-edge -> deckend; zusätzlich Schalter html[data-transparenz='reduziert'] (app.css:1467-1486) deckt .glass-bar,.glass-seitenleiste,.glass-overlay,.np-glas,.np-glas-gruppe::before und .np-symbolleiste::before ab (np-alert/Scrim sind nicht betroffen). Bewegung: html[data-bewegung='reduziert'] setzt für alle Elemente und ::before/::after animation-duration/transition-duration 0.01ms !important, iteration-count 1, scroll-behavior auto (app.css:205-224), aber details[open]-Inhalt wird per np-fade 150 ms ersetzt, #np-progress bekommt Opacity-Übergang. Systemeinstellung prefers-reduced-motion: reduce wird nur an vier Stellen behandelt – View Transition (app.css:259), details/#np-progress (app.css:1552-1559), charts.js:30 (Chart-Animation) und die Tailwind-Variante motion-reduce: an 5 Stellen (modal:76, toast:16, drawer:58,62, feedback-widget:24). KEIN globaler @media (prefers-reduced-motion)-Block; das html-Attribut data-bewegung wird nicht von der Systemeinstellung gesetzt (nur app.blade.php:9 aus Nutzerpräferenz, praeferenzen.js:67). Folge: Seitenleisten-Schublade (260 ms), Chevron-Drehungen, Knopf-Übergänge laufen bei System-Reduce weiter.",
+    "quelle": "resources/css/app.css:205-224, :259-262, :1467-1486, :1552-1559; resources/js/charts.js:28-31; resources/views/layouts/app.blade.php:9; Grep motion-reduce in resources/views"
+   },
+   {
+    "thema": "Persönliche Schalter (praeferenzen.js)",
+    "befund": "Alpine-Komponente npPraeferenzen setzt data-*-Attribute am <html> sofort (anwenden()) und speichert debounced (400 ms) per PATCH, seriell mit Rollback und Toast bei Fehler: theme (data-theme, auch Betriebs-Theme als Vorgabe), akzent (data-akzent; 'eigen' setzt --accent direkt als Inline-Tripel; bei effektivem Theme 'kontrast' entfällt der Akzent), schrift ('normal' | 'gross' | 'sehr-gross' -> data-schrift), schriftart (standard/serif/lesefreundlich), dichte (normal/kompakt -> data-dichte), diagramm (standard/farbenblind -> data-diagramm), ecken (rund/eckig -> data-ecken), transparenz (normal/reduziert -> data-transparenz), bewegung (Boolean bewegungReduziert -> data-bewegung='reduziert'), navigation (seite/oben -> data-navigation + Event np-navigation). Hell/Dunkel (darstellung system/hell/dunkel) läuft getrennt über window.npDarstellung / .dark und localStorage 'theme'. Standardwerte entfernen das Attribut. layouts/app.blade.php:5-14 rendert dieselben Attribute serverseitig. Es gibt keine abgestufte Bewegungs- oder Glasstärke (nur zwei Zustände je Schalter) und keinen Schalter 'Kontrast erhöhen' separat vom Theme 'kontrast'.",
+    "quelle": "resources/js/praeferenzen.js:43-70, :80-92; resources/views/layouts/app.blade.php:5-14; resources/css/theme.css:906-1036"
+   },
+   {
+    "thema": "Schnellwechsel npBefehl",
+    "befund": "window.npBefehl (inline in app.blade.php:60-123) schaltet per Palette '#art:wert' optimistisch darstellung, theme, schrift, dichte, diagramm, navigation. Nicht enthalten: ecken, transparenz, bewegung, akzent.",
+    "quelle": "resources/views/layouts/app.blade.php:60-123"
+   },
+   {
+    "thema": "Seitenwechsel-Ladebalken",
+    "befund": "#np-progress (fixed, 2 px, rgb(var(--accent))) fährt bei Klick/Submit auf 80 % (4 s, cubic-bezier(0.1,0.6,0.3,1)), np-done blendet aus; Back/Forward-Cache-Reset per pageshow. Er hat keinen Glanz oder Schweif.",
+    "quelle": "resources/views/layouts/app.blade.php:145-146, :209-240; resources/css/app.css:1488-1503, :1536-1548"
+   },
+   {
+    "thema": "Scrollbars",
+    "befund": "html: scrollbar-width: thin; scrollbar-color: rgb(var(--text) / 0.22) transparent. Keine ::-webkit-scrollbar-Regeln, kein Auto-Ausblenden.",
+    "quelle": "resources/css/app.css:150-153"
+   },
+   {
+    "thema": "Hintergrund und Tiefe der Seite",
+    "befund": "body hat nur background-color rgb(var(--bg)) (app.css:~170) und die Klasse bg-bg; keine Farbverläufe, keine Wallpaper-/Ambient-Ebene (Grep bg-gradient/radial/blur- in resources/views findet nur heatmap.blade.php). Hell/dunkel: Gletscher --bg 242 242 247 / 28 28 30. Das Material hat dadurch nur beim Scrollen unter Symbolleiste/Menüs etwas zu zeigen; die Seitenleiste blurt eine einfarbige Fläche.",
+    "quelle": "resources/css/app.css:162-172; resources/views/layouts/app.blade.php:142; Grep resources/views"
+   },
+   {
+    "thema": "Regelrahmen für Glas",
+    "befund": "Glas nur für die funktionale Ebene (Navigation, Toolbar, Menüs, Toasts); Karten, Tabellen, Formulare sind feste Flächen; Deckung ≥ 0.78 wegen Textkontrasten (app.css:268-276; docs/auftrag/GUI-APPLE.md:50; .claude/rules/oberflaeche.md: 'kein Glas auf Karten/Tabellen/Formularen', keine Farb-Hardcodes). Neue Glaseffekte müssen diese Tokenkontraste (4.5:1) und die Fallbacks (@supports, reduced-transparency, data-transparenz) mitliefern.",
+    "quelle": "resources/css/app.css:268-276; docs/auftrag/GUI-APPLE.md:50; .claude/rules/oberflaeche.md"
+   }
+  ],
+  "luecken": [
+   "Nicht gelesen (Auftrag A beschränkte sich auf die genannten Dateien): resources/js/np.js ausserhalb Z. 100-138 und 440-490 (npSeitenleiste/npLeistenMenue/Toast-Logik), tastenkuerzel.blade.php, _systemhinweis/_feedback-tipp, Seitenköpfe (seitenkopf.blade.php), Kachel/Karte-Komponenten, charts.js ausser Z. 20-45 und 428. Die Chart-Optik (Gradienten, Tooltips, Animation je Typ) ist nicht Teil dieses Auftrags und nicht abschliessend erfasst.",
+   "Nicht verifiziert: tatsächliches Rendering/Screenshots (nur Quelltext gelesen, keine Browserprüfung, kein shot.mjs); Browserunterstützung für @view-transition, @starting-style, linear(), @property, backdrop-filter mit url()-SVG-Filter (Chromium-only) wurde nicht gegen caniuse/MDN geprüft.",
+   "Keine Apple-Primärquelle (developer.apple.com Liquid-Glass-Seiten, WWDC25 'Meet Liquid Glass') in diesem Lauf abgerufen; die Lücken gegenüber 'echtem' Liquid Glass sind aus dem Bestand und allgemeinem Wissen abgeleitet, nicht aus gelesenen Apple-Texten. Vor der Umsetzung gegen die Quelle prüfen.",
+   "Unklar, ob docs/gui-konzept.md (Abschnitte 'Stand Rebuild', c, f) und .claude/skills/notenportal-ui/-dunkelmodus weitere Material-Regeln nennen (z. B. feste Glasstufen); nur docs/gui-konzept.md:115 (Grep-Treffer) und GUI-APPLE.md:50 wurden berührt.",
+   "Es fehlt jede Dauer-/Federtoken-Struktur: Dauern stehen als Literale (100/120/150/160/180/200/260/300 ms) in app.css und Blade-Klassen; eine Zählung aller Literale wurde nicht gemacht.",
+   "Die Wirkung der Mask/Backdrop-Kombination auf np-symbolleiste::before bei sehr langen Seiten und der Zusammenspiel von view-transition(root) mit backdrop-filter (Blitzen beim Seitenwechsel) wurde nicht gemessen."
+  ],
+  "chancen": [
+   "Material-Token-Stufen in resources/css/theme.css anlegen: --glas-deckung, --glas-blur, --glas-sat, --glas-licht (Lichtkante), --glas-tint, je Modus (und im Block [data-theme='kontrast'] hohe Deckung), dazu Dauer-/Federtokens (--dauer-kurz/-mittel/-lang) und eine echte Federkurve --ease-spring als linear(...) in resources/css/app.css (@theme, neben --ease-out). Ersetzt die hartcodierten Literale in np-glas, np-glas-gruppe, glass-overlay (app.css:279-355, 440-474) und macht Stärke per Schalter (data-transparenz abgestuft) steuerbar.",
+   "Echtes Glas-Material (Lichtbrechung am Rand, Glanzlicht) als neue @utility np-glas-fluessig in resources/css/app.css: mehrlagiger Rand per ::before/::after mit mask-composite und conic-/linear-gradient (Lichtkante, die um die Kapsel läuft, heller oben links, dunkler unten rechts), zusätzlich innerer Glanz (radial-gradient weiss 0.18->0), Randverstärkung (inset 0 0 0 0.5px accent-Mix), und optional backdrop-filter: url(#np-lens) mit SVG feDisplacementMap für Lensing (Chromium; Fallback auf blur+saturate per @supports). Einsetzen auf np-glas (Seitenleiste, navigation.blade.php:28), np-glas-gruppe (navigation.blade.php:96,176; feedback-widget.blade.php:16) und glass-overlay (dropdown, toast, Palette); Fallbacks (@supports, prefers-reduced-transparency, data-transparenz) unverändert mitziehen.",
+   "Dem Glas Inhalt zum Brechen geben: eine Ambient-Ebene hinter der Seite (weiche, themenfarbige Verläufe aus --accent-rgb/--chart-1/-3 mit niedriger Deckung als Hintergrund von body bzw. np-hauptspalte, resources/css/app.css base-Layer, evtl. leicht langsam driftend, bei reduzierter Bewegung statisch). Ohne sie sieht die Seitenleiste (navigation.blade.php:28) nur --bg und der Blur ist unsichtbar. Darf Textkontraste nicht gefährden (Karten bleiben deckend).",
+   "Adaptive Tönung: Glas aus dem Inhalt tönen statt fix --card: per color-mix(in oklab, rgb(var(--card-rgb)) X%, rgb(var(--accent-rgb))) und, wo Inhalt dahinter ist (Symbolleiste, Menüs), Scroll-gesteuerte Tönung über animation-timeline: scroll() oder eine CSS-Variable aus np.js (npSymbolleiste, np.js:451-463, schreibt schon --np-kante); in Seitenleiste Akzenttönung der aktiven Zeile (np-leistenzeile aria-current, app.css:597-599) mit sanftem Glanz statt Flachfüllung.",
+   "Hover-/Druck-Reaktion am Glas und an den Knöpfen: neue Zustände in np-knopf/np-knopf-primaer/sekundaer (app.css:696-872) – Glanzlicht, das dem Zeiger folgt (--np-x/--np-y per pointermove in np.js, radial-gradient auf ::after), Lichtkante verstärkt sich beim Hover, beim Drücken kurze Federung (scale 0.97 -> 1 mit --ease-spring) – bewusst gegen den bisherigen Kommentar 'kein Skalieren' (app.css:688-694); die Regel in docs/auftrag/GUI-APPLE.md und notenportal-ui entsprechend anpassen. Gilt auch für np-glas-gruppe/np-tab.",
+   "Morph-Übergänge: gleitender Auswahlmarker in np-segment (app.css:1007-1073) und np-tab (app.css:626-653) mit CSS Anchor Positioning (anchor-name/position-anchor) oder view-transition-name nur auf dem Marker; Karte -> Detail und Knopf -> Dialog/Drawer als View Transition mit benannten Elementen (resources/css/app.css Bereich 'Seitenwechsel', :240-269 – die Regel gegen view-transition-name auf Glas-Elementen gilt weiter, also nur auf Inhalt und Marker, nie auf np-glas/np-symbolleiste); Zahlen (Gesamtschnitt) per @property-animierte Zähler.",
+   "Popover/Sheet-Bewegung nach Apple: in resources/views/components/dropdown.blade.php, toast.blade.php, modal.blade.php, drawer.blade.php und navigation.blade.php (Palette, Tableistenmenüs) scale 0.96->1 + opacity mit transform-origin am Auslöser und Federkurve statt nur Opacity/Translate; Drawer und Feedback-Popover (feedback-widget.blade.php:30) als Glas (glass-overlay bzw. neues Material) statt deckendem bg-card, sofern Textkontrast 4.5:1 hält (Formulare bleiben auf np-karte); Modal/Alert (np-alert, app.css:360-400) mit Backdrop-Blur im Scrim (glass-scrim hat heute keinen Blur).",
+   "Scroll-Kanten ausbauen: np-symbolleiste::before (app.css:402-431) und np-scroll-edge (app.css:679-692) auf scroll-driven Animations (animation-timeline: scroll()) umstellen, damit keine rAF-Logik nötig ist, und die Kante mit echtem Weichzeichner-Gradienten (progressiver blur per mehrere gestapelte ::before-Lagen mit gestaffeltem blur und mask) statt eines einzelnen blur(10px); np-scroll-edge auch auf lange Tabellen, Modul-Listen und Drawer-Inhalt (drawer.blade.php:78) anwenden; Seitenleiste im Fenster-Fokus-Zustand (inaktive Fenster heller) optional.",
+   "System-Reduce konsequent behandeln: in resources/css/app.css (base-Layer) einen @media (prefers-reduced-motion: reduce)-Block ergänzen, der dieselben Regeln wie [data-bewegung='reduziert'] (app.css:205-224) anwendet, oder per kleinem Inline-Skript in resources/views/layouts/_darstellung.blade.php data-bewegung aus matchMedia setzen; dazu eine abgestufte Bewegungsstufe (voll / gedämpft / aus) in resources/js/praeferenzen.js und layouts/app.blade.php statt eines Booleans, und prefers-contrast/Increased contrast für die Glasdeckung berücksichtigen.",
+   "Diagramm- und Statistik-Ebene bleibt feste Fläche (np-karte), bekommt aber Bewegung aus den neuen Tokens: Einblend-Reihenfolge (staggered), Übergänge beim Filterwechsel statt animation duration 350 ms/0 (resources/js/charts.js:39,428), Tooltip als Glas (charts.js tooltip backgroundColor card/0.96 -> Material-Token) und Filter als np-segment/Glaskapsel in der Symbolleiste (resources/views/components/filterleiste.blade.php).",
+   "Ungenutzte Bestandsklassen aufräumen: glass-bar, glass-seitenleiste, glass-btn, np-btn-primary, np-fade-in in resources/css/app.css (306-331, ~815-845, 1514) und den Verweis in der Transparenz-Schalter-Liste (app.css:1468) bereinigen, damit der Neuaufbau eine einzige Materialfamilie hat; np-fade-in kann für die neuen Einblendungen wiederverwendet werden."
+  ],
+  "risiken": [
+   "Backdrop-Filter-Falle: Jedes Element mit backdrop-filter (oder filter, will-change, view-transition-name) wird Backdrop Root; verschachteltes Glas (Menü in Kapsel) verliert dann den Hintergrund. Der Bestand umgeht das bewusst per ::before (app.css:433-437) und verbietet view-transition-name an Glas (app.css:244-246) – neue Lichtbrechung/Morphs müssen das beachten.",
+   "SVG-Filter als backdrop-filter (url(#...)) für echtes Lensing läuft praktisch nur in Chromium, ist teuer (Repaint beim Scrollen) und nicht animierbar ohne Ruckeln; bei 24 Themes und grossen Flächen (Seitenleiste, 1920-2560 px) Performance und Lesbarkeit messen; zwingend Fallback auf blur+saturate.",
+   "Lesbarkeit: Die Token-Kontraste (Text 4.5:1, UI 3:1, Kommentar theme.css:7) sind gegen deckende Flächen gerechnet; stärker transparentes oder getöntes Glas (Deckung < 0.78, Regel app.css:268-276) über wechselndem Inhalt kann sie verletzen. Besonders Mitternacht (OLED, bg 1 1 3), Kontrast-Theme und die farbigen Themes (pflaume, abendrot, bernstein) prüfen; Ambient-Verläufe nie hinter Karten-Text ohne deckende Karte.",
+   "Regelkonflikt: Die geltende Regel 'Glas nur für die funktionale Ebene, kein Glas auf Karten/Tabellen/Formularen' (.claude/rules/oberflaeche.md, GUI-APPLE.md:50) und der Kommentar 'kein Skalieren' bei Knöpfen (app.css:688-694) stehen einigen Zielen des Auftrags entgegen; vor der Umsetzung entscheiden und die Regeldokumente (notenportal-ui, notenportal-dunkelmodus, GUI-APPLE.md, gui-konzept.md) mitändern, sonst meldet der ui-checker Verstösse.",
+   "Zugänglichkeit: Mehr Bewegung braucht eine saubere Systemreduktion; heute greift prefers-reduced-motion nicht global (siehe Fakt). Federungen mit Überschwingen und Parallax können Vestibularbeschwerden auslösen; Schalter data-bewegung und data-transparenz müssen alle neuen Effekte abdecken (sonst bleibt das Rückfall-Verhalten unvollständig – derzeit decken sie z. B. np-alert/Scrim nicht ab).",
+   "Hook-Prüfung: .claude/hooks/view-pruefung.sh meldet Farb-Hardcodes und harte Schriftgrössen in Views; Lichtkanten wie rgb(255 255 255 / 0.6) stehen heute in CSS (nicht in Views) und sind damit erlaubt, in Blade-Klassen dagegen nicht – neue Materialwerte gehören in Tokens/@utility, nicht in Views.",
+   "Barrierefreiheit der Zeigerfolgenden Glanzlichter und Dauer-Animationen (Ambient-Drift): Dauerbewegung muss pausierbar sein; View Transitions (app.css:240-269) und rAF-gesteuerte Glanzlichter können beim Seitenwechsel doppelte Bewegung erzeugen.",
+   "Testbarkeit: Es gibt keine automatisierte visuelle Regression (nur tools/pruefung/shot.mjs und Rundgang); Material-Änderungen an 24 Theme-Modus-Kombinationen x 3 Rollen sind von Hand kaum abdeckbar – Stichproben-Matrix (gletscher, mitternacht, kontrast, papier jeweils hell/dunkel) vorab festlegen."
+  ]
+ },
+ "daten": {
+  "zusammenfassung": "Der Rechenkern (App\\Services\\Auswertung) liefert fertig: Prüfung -> Element (Fach x Semester oder Modul) -> Kategorie -> Gesamt (oder Notenbaum-Wurzel), dazu Semesterschnitt, Fach über Lehrzeit, Promotion je Kategorie und Semester, Verlauf je Semester (gesamt, Kategorie, Fach), Lernstand-Ampel mit Delta zum Vorsemester und Einbrüchen, Zielrechner (benötigte Note, Kurve) und Modulstatus. Alle Durchschnitte laufen durch Rechenkern/Auswertung/Rundung, es gibt keinen SQL-Durchschnitt. Die Auswertung rechnet pro Person im Speicher; Abfragen sind gebündelt (NotenQuelle::fuerLernende, LernstandRechner::fuer, Bericht::noten), nichts davon wird gecacht (nur Einstellungen per Cache::rememberForever, Konfiguration::ausDb pro Request statisch). Heatmap Semester x Fach existiert bereits für genau einen Lernenden (Uebersicht::heatmap), Verteilung als Halbnoten-Histogramm nur betriebsweit im Admin-Bericht, Kohortenvergleich nur als Gesamtschnitt je Lehrjahr (Bericht::nachLehrjahr, Uebersicht::jahrgangsDiagramm), Erfassungsrhythmus nur betriebsweit als 12 Wochen-Säulen (Uebersicht::aktivitaet). Nicht beantwortbar sind: Verlauf über Zeit mit Fenster (nur Semesterpunkte, kein Notenverlauf nach Datum oder gleitender Schnitt), anonymisierte Kohortenvergleiche für Lernende und Berufsbildner, Heatmap über mehrere Lernende, Prognosekorridor (nur Punktwert-Prognose im Notenbaum und Zielrechner-Spanne min/max für offene Prüfungen) und Erfassungsrhythmus je Person. Filter laufen heute als GET-Query-Parameter, serverseitig whitelist-validiert, ohne gemeinsame Filter-Klasse: jeder Controller parst selbst. Autorisierung ist einheitlich: Lernende nur über $request->user()->lernender, Verwaltung nur über Lernender::sichtbarFuer (Admin alle, Berufsbildner nur aktiv betreute, sonst 1=0 bzw. 404) und LernenderPolicy-Gates. Tests, die neue Routen und Abfragen begrenzen: AbfragenAnzahlTest (Wachstum max. +2, feste Obergrenzen 40/60/25), ZugriffsschutzTest (role: erzwingt automatisch 403 für fremde Rollen), SichtbarkeitTest (jede trainer.*-Route mit lernender_id muss in routen() stehen), EnglischeSeitenTest (hartcodierte Seitenlisten je Rolle, neue Seiten manuell eintragen) und SchluesselTest (jeder __()-Schlüssel und np.t-Schlüssel braucht EN-Übersetzung). Empfehlung: neue Statistik als eigener Dienst unter App\\Services\\Auswertung (Bbezug auf NotenQuelle/Auswertung), mit einem gemeinsamen Filterobjekt, und Chart-Datenformen in charts.js ergänzen, statt Aggregate in Controller oder Views zu legen.",
+  "fakten": [
+   {
+    "thema": "Rechenkern: Hierarchie und Aggregate",
+    "befund": "Rechenkern::auswerten baut Elemente (Schlüssel f{fach}s{semester} oder m{modul}), Elementnote = gewichteter Schnitt der Prüfungen, gerundet nach kategorien.rundung_element; Kategorie = ungewichtetes Mittel der Elementnoten (rundung_schnitt); Gesamt = Mittel der Kategorie-Schnitte gewichtet mit gewicht_gesamt (rundungGesamt), bei aktivem Lehrberuf-Notenbaum die Wurzel des Baums. Nicht zählende Fächer (IDAF, Sport, faecher.zaehlt=0) bleiben sichtbar, gehen in keinen Schnitt.",
+    "quelle": "app/Services/Auswertung/Rechenkern.php:287-405; docs/notenlogik.md:7-24"
+   },
+   {
+    "thema": "Auswertung: öffentliche API",
+    "befund": "wert(Zielgroesse): gerundeter Wert; ergebnis(): {schnitt,note}; semester(semesterId, ?kategorieId): {schnitt,note,elemente}; fach(fachId): Mittel der Semesterzeugnisnoten; promotion(kategorieId,semesterId): {erfuellt,schnitt,ungenuegend,minuspunkte,verletzt[]}|null; semesterIds(): chronologisch; verlauf(?kategorieId,?fachId): list{semester_id,semester,note,schnitt}; elementeDerKategorie(); toArray(); öffentliche Felder elemente, kategorien, gesamtSchnitt, gesamtNote, baeume, positionen, lernenderId.",
+    "quelle": "app/Services/Auswertung/Auswertung.php:37-217"
+   },
+   {
+    "thema": "Element, Leistung, Zielgroesse",
+    "befund": "Element: typ fach|modul, kategorieId, fachId, modulId, semesterId, label, schnitt (ungerundet), note, gewichtSumme, zielGewicht, zaehlt; offenGewicht(), abgeschlossen(), anzahlBewertet(), unbekannte(). Leistung (eine Prüfung): kategorieId, fachId, modulId, semesterId, datum, wert|null, gewicht (Standard 100), quelle note|geplant|annahme, id, titel, knotenId. Zielgroesse-Ebenen: gesamt, kategorie:ID[@semester:ID], semester:ID, fach:ID[@semester:ID], modul:ID.",
+    "quelle": "app/Services/Auswertung/Element.php:10-90; Leistung.php:12-65; Zielgroesse.php:11-67"
+   },
+   {
+    "thema": "NotenQuelle: Datenladen",
+    "befund": "fuerLernende(ids, mitGeplanten) lädt Noten mit Join auf modul_belegungen, whereNull('n.geloescht_am') und whereNotNull('n.note_wert'), sortiert nach pruefungsdatum, note_id; pro Lernender und Modul zählt nur die jüngste Belegung (ältere Wiederholungen entfallen); dazu Notenbaum-Positionen und optional geplante Prüfungen (pruefungen ohne note_id und abgesagt_am, Kategorie via COALESCE(fach.kategorie_id, lehrberuf_module.kategorie_id)). auswertung(id), auswertungen(ids), konfiguration(id) bündeln Rechenkern pro Person.",
+    "quelle": "app/Services/Auswertung/NotenQuelle.php:186-332"
+   },
+   {
+    "thema": "Konfiguration (Stammdaten für den Kern)",
+    "befund": "Konfiguration::ausDb() lädt kategorien (code, name, sortierung, rundung_element, rundung_schnitt, gewicht_gesamt, promotion_min_schnitt/max_ungenuegend/max_minuspunkte), semester (bezeichnung, sortierung, start, ende), faecher, module (ziel_gewicht_summe_default), genuegend und rundungGesamt aus Einstellungen. Statisch pro Request gemerkt, Konfiguration::vergessen() setzt zurück. semesterName($id,$lernenderId) liefert relative Namen '5. Semester' (Lehrsemester) oder neutral 'HS 2026/27'; semesterFuerDatum(), semesterSortierung().",
+    "quelle": "app/Services/Auswertung/Konfiguration.php:110-270; app/Support/Lehrsemester.php"
+   },
+   {
+    "thema": "Lernstand / Trend / Ampel",
+    "befund": "LernstandRechner::fuer(ids) liefert je Lernender ein Lernstand-Objekt: semesterId (Bezugssemester), semesterNote, vorsemesterNote, delta() (Trend), verlauf (Semesterschnitte), ungenuegend, promotion (gefährdete), einbrueche (Fach-Rückgang >= 0.5 zum Vorsemester), letztePruefung, ueberfaellig, status rot|gelb|gruen|abgeschlossen, gruende, tageOhneNote(), rang(). Schwellen: 2+ Ungenügende rot, delta <= -0.3 gelb, Inaktivitätsfrist aus Betrieb::fristInaktivTage().",
+    "quelle": "app/Services/Auswertung/Lernstand.php:12-67; LernstandRechner.php:57-163"
+   },
+   {
+    "thema": "Prognose und Rückwärtsrechnung",
+    "befund": "Zielrechner::loese(leistungen, ziel, zielwert, k) liefert status benoetigt|erreicht|unerreichbar|ohne_einfluss|keine_unbekannten, note (0.05er-Raster per Binärsuche), resultat, minimum (alle offenen=1.0), maximum (alle offenen=6.0), aktuell, unbekannte; kurve() Wert bei gleicher Note x für alle Unbekannten (Schritt 0.25); mitGesuchterNote(); wertBei(). Notenbaum: fehlende Teile werden hochgerechnet und als 'Prognose' mit Status 'offen' ausgewiesen; BaumErgebnis::erfasst() = Anteil 0..1 der erfassten Gewichtung.",
+    "quelle": "app/Services/Auswertung/Zielrechner.php:35-94; Notenbaum/BaumErgebnis.php:15-70; docs/notenlogik.md:34"
+   },
+   {
+    "thema": "Rechner-Dienst",
+    "befund": "Rechner::seite(lernender, mitZielen) -> katalog, vorschlaege, auswertung (toArray), ziele, grenzen, standard; berechne(lernender, eingabe) -> ziel, loesung, kurve, vergleich (vorher/nachher je Zielgrösse), promotion; katalog(), vorschlaege(), offeneLeistungen(), ziele(). Validierung über Rechner::regeln(); RechnerController::simulieren (max. 10 Zeilen) rechnet reine Wertobjekte ohne DB-Schreiben.",
+    "quelle": "app/Services/Auswertung/Rechner.php:29-402; app/Http/Controllers/Lernender/RechnerController.php:24-117"
+   },
+   {
+    "thema": "Modulstatus",
+    "befund": "Modulstatus::fuerLernenden(id) je Element: typ, label, schluessel, modul_id, fach_id, semester_id, beginn, dauer_seit_beginn, naechster_termin (mit restdauer), letzter_termin, fortschritt_prozent (Zeit zwischen Beginn und letztem Termin), bewerteter_anteil_prozent (Gewichtsabdeckung), note, schnitt. Nutzt NotenQuelle mit geplanten Prüfungen und Tabelle pruefungen.",
+    "quelle": "app/Services/Auswertung/Modulstatus.php:235-337"
+   },
+   {
+    "thema": "Uebersicht: Dashboards und Diagrammdaten",
+    "befund": "lernender(): kategorien (note, verlauf je Kategorie, Semesternote, promotion), ziele mit Bedarf, alsNaechstes, verlauf (labels, serien Semesterschnitt + je Kategorie, faecher, grenze), balken (Semester- und Lehrzeit-Zeugnisnoten sortiert), letzteNoten (4), lehrzeit. berufsbildner(user,sort,dir): Zeilen mit Lernstand, neu, lehrjahr, naechstePruefung; Sortierung name|status|semester|gesamt|trend (BB_SORTIERUNGEN); aufmerksamkeit, agenda 14 Tage. admin(): Kennzahlen (rot, gelb, noten_semester), proBb, aktivitaet, jahrgangsDiagramm (Gesamtschnitt je Lehrberuf und Lehrjahr 1-4). lernendenDetail(): heatmap, ziele, modulstatus, letzteNoten(6), neu.",
+    "quelle": "app/Services/Uebersicht.php:48-112,168-261,359-416,468-507,680-716"
+   },
+   {
+    "thema": "Heatmap und Erfassungsaktivität (vorhanden, aber eng)",
+    "befund": "Uebersicht::heatmap(Auswertung) = Matrix Fach/Modul je Kategorie x Semester mit Zeugnisnoten, Lehrzeitnote, Semesterschnitt-Zeile, Gesamt – für genau einen Lernenden (Lernenden-Notenseite und Cockpit-Übersicht). Uebersicht::aktivitaet() zählt Noten nach erstellt_am per YEARWEEK für 12 Wochen, betriebsweit (Admin-Dashboard), ohne Person oder Filter.",
+    "quelle": "app/Services/Uebersicht.php:383-415,680-695"
+   },
+   {
+    "thema": "Bericht (Betrieb)",
+    "befund": "Bericht::noten(filter{semester_id,lehrberuf_id,berufsbildner_id}, sort, dir) -> zeilen (je Lernender: stand, gesamt, lehrjahr, semester, ungenuegend, pruefungen, letzte), kennzahlen (lernende, schnitt, rot, gelb, ungenuegend, gefaehrdet, zeugnisnoten), verteilung (Histogramm Halbnoten 1.0-6.0 über Zeugnisnoten), kategorien (schnitt, anzahl, min, max, ungenuegend, gefaehrdet), schwachstellen (8 schlechteste Fächer/Module), nachLehrjahr (Schnitt und Anzahl). Sortierungen status|name|gesamt|semester|ungenuegend|pruefungen|letzte. Nur Admin-Route reports.grades (+ CSV-Export), kein Berufsbildner-Bericht.",
+    "quelle": "app/Services/Bericht.php:24-236; routes/web.php:362-366; routes/verwaltung.php (kein Bericht)"
+   },
+   {
+    "thema": "Dimensionen je Note",
+    "befund": "Tabelle noten: note_id, lernender_id, kategorie_id, semester_id, fach_id XOR modul_belegung_id (CHECK), titel (150), pruefungsdatum, note_wert (decimal 4,2, nullable; Stufe stattdessen in note_stufe), gewichtung_prozent (null = 100, CHECK 0-100), erfasst_von_benutzer_id, aktualisiert_von_benutzer_id, erstellt_am, aktualisiert_am, geloescht_am (Soft Delete). Indizes u.a. (lernender_id, pruefungsdatum), (lernender_id, kategorie_id, semester_id, pruefungsdatum), semester_id, kategorie_id, fach_id. Modul über modul_belegungen (lernender_id, modul_id, start_datum, end_datum). Gesehen: noten_gesehen (note_id, viewer_benutzer_id, gesehen_am, unique je Paar); Kommentare: noten_kommentare. Keine Prüfungsart-Spalte an noten (nur pruefungen.art pruefung|abgabe und freitext pruefungsart).",
+    "quelle": "database/migrations/2026_02_05_000018_create_noten_table.php:22-90; 2026_09_10_000005; 2026_10_01_000001_notenbaum.php:27-32; 2026_02_05_000019_create_noten_gesehen_table.php; 2026_09_10_000006_notenlogik.php:92-107; 2026_09_11_000003_agenda.php:17-33; 2026_09_12_000013_modulstatus.php:17-20; app/Models/Note.php:18-33"
+   },
+   {
+    "thema": "Schema der Nachbartabellen (Spalten, FKs)",
+    "befund": "semester: bezeichnung, start_datum, end_datum, sortierung (CHECK end>=start). kategorien: code, name, sortierung, aktiv + rundung_element, rundung_schnitt, gewicht_gesamt, promotion_min_schnitt, promotion_max_ungenuegend, promotion_max_minuspunkte. faecher: kategorie_id (FK, Pflicht), track_typ (BMS/ABU, nullable), name, kurzname, skala note|stufe, zaehlt. module: modul_nummer, titel, ziel_gewicht_summe_default; lehrberuf_module.kategorie_id = Lernort. lernende: benutzer_id, lehrberuf_id, lehrbeginn, lehrende, klasse_schule, klasse_bms, geloescht_am. betreuungen: berufsbildner_id, lernender_id, gueltig_von, gueltig_bis. lernender_tracks: track_typ, start_datum, end_datum. pruefungen: lernender_id, fach_id XOR modul_id, titel, art, datum, uhrzeit, gewichtung_prozent, note_id, abgesagt_am, quelle. ziele: lernender_id, ebene, kategorie_id/fach_id/modul_id, zielwert. FKs: noten->lernende/kategorien/semester/faecher/benutzer, Composite-FK (modul_belegung_id, lernender_id).",
+    "quelle": "database/migrations/2026_02_05_000003/4/5/6/9/11/12/15; 2026_09_10_000006_notenlogik.php:19-126; 2026_10_01_000001_notenbaum.php:19-23"
+   },
+   {
+    "thema": "Filter heute (Query-Parameter)",
+    "befund": "Admin-Bericht: semester (Zahl, 'alle' oder Standard = laufendes Semester), lehrberuf_id, berufsbildner_id, sort (7 Werte), dir; Filterleiste mit Selects, Änderung sendet das Formular sofort (Alpine). Lernende-Liste (Admin und Berufsbildner): suche, lehrberuf_id, lehrjahr, bms ja|nein, warnung (kritisch|beobachten|tief_avg|keine_noten|ohne_betreuung|ohne_track), inaktive, berufsbildner_id (nur Admin), sort, dir. Notenseiten: semester_id, kategorie_id (Lernender: Standard laufendes Semester; Verwaltung: paginiert, _open-Deep-Link). BB-Dashboard: sort, dir. Prüfungstermine (Verwaltung): lernender_id, zeitraum 7|30|alle. Rechner: ziel, zielwert. Kein gemeinsamer Filtertyp, jeder Controller parst und whitelisted selbst; kein Filter auf Dashboards ausser Sortierung.",
+    "quelle": "app/Http/Controllers/Admin/BerichtController.php:117-181; Verwaltung/LernendeController.php:39-117; Lernender/NotenController.php:72-88; Verwaltung/LernendeNotenController.php:44-45; Verwaltung/PruefungenController.php:48-56; DashboardController.php:35-49"
+   },
+   {
+    "thema": "Autorisierung",
+    "befund": "Lernende: $request->user()->lernender ?? abort(403), ID nie aus dem Request; Noten über learnerNotesQuery(lernenderId) (hat zwar kein whereNull, Note nutzt aber SoftDeletes-Global-Scope). Verwaltung: VerwaltungController::sichtbarerLernender() = Lernender::sichtbarFuer($user)->findOrFail (404 bei Fremden); sichtbarFuer: Admin alle, Berufsbildner nur Betreuungen mit aktiv() und eigener berufsbildner_id, sonst whereRaw('1 = 0'). Gates in LernenderPolicy: view/update/verwalten/betreuungVerwalten = sichtbarFuer; noteAnlegen nur Admin (Berufsbildner erhält Deny-Text 'Noten erfassen die Lernenden selbst'); noteKorrigieren = view; noteLoeschen = Admin und view. Rollenroutes über Middleware role: (routes/web.php, trainer-Präfix lädt routes/verwaltung.php, admin eigener Block). Uebersicht::berufsbildner nutzt Lernender::sichtbarFuer, Bericht::lernende (Admin-Bereich) filtert nur aktive, nicht gelöschte Benutzer. Bericht-Query nutzt whereNull('geloescht_am') explizit.",
+    "quelle": "app/Models/Lernender.php:93-115; app/Policies/LernenderPolicy.php:14-55; app/Http/Controllers/Verwaltung/VerwaltungController.php:20-45; routes/web.php:82-92,242-246; app/Services/Bericht.php:40-47"
+   },
+   {
+    "thema": "Tests, die Abfragen begrenzen",
+    "befund": "AbfragenAnzahlTest misst DB-Abfragen mit kleinem und ca. 5x grösserem Datensatz: Wachstum höchstens TOLERANZ=2 und feste Obergrenze. Obergrenzen: 40 für Lernender-Dashboard/Notenliste/Rechner/Prüfungen/Druck, Berufsbildner-Dashboard, Prüfungstermine, Admin-Dashboard, Admin-Lernende, Admin-Berichte, Mail-Log, Aktivität, Verwaltung-Notenliste, BB-Lernendenliste; 60 für Lernenden-Detail; 25 für Admin-Feedback, Admin-Berufsbildner und Admin-Benutzer. Konfiguration::vergessen() vor jeder Messung. Jede neue Statistikseite braucht hier einen eigenen Test.",
+    "quelle": "tests/Feature/Performance/AbfragenAnzahlTest.php:36-64,176-625"
+   },
+   {
+    "thema": "Tests, die neue Routen aufnehmen müssen",
+    "befund": "ZugriffsschutzTest: jede Route braucht auth + role: oder steht in OHNE_ROLLE/OEFFENTLICH; jede role:-Route wird automatisch mit fremden Rollen auf 403 geprüft (über 100 Aufrufe) – neue Routen werden ohne Eintrag erfasst, ausser sie sind rollenlos. SichtbarkeitTest: jede trainer.*-Route mit {lernender_id}/{pruefung_id} muss in routen() stehen (404 für nicht aktiv betreute). EnglischeSeitenTest: hartcodierte Seitenlisten je Rolle (learner, trainer, admin), neue GET-Seiten müssen dort eingetragen werden; DemoSeeder-Daten, locale=en, sucht deutsche Reste. SchluesselTest: jeder __()-Schlüssel und np.t-Schlüssel (App\\Support\\JsTexte::SCHLUESSEL) braucht EN-Übersetzung, geschlossene Dateien dürfen keine verwaisten Schlüssel haben. Dazu je Bereich DatenisolationTest (Lernende), RoutenParameterTest (IDs numerisch), AlteUrlsTest/LegacyPaths bei Umbenennungen.",
+    "quelle": "tests/Feature/Auth/ZugriffsschutzTest.php:18-134; tests/Feature/Verwaltung/SichtbarkeitTest.php:116-131; tests/Feature/I18n/EnglischeSeitenTest.php:61-253; tests/Feature/I18n/SchluesselTest.php:20-70; app/Support/JsTexte.php:16-38"
+   },
+   {
+    "thema": "Caching",
+    "befund": "Kein Caching von Auswertungen. Einziger Cache-Aufruf: Einstellungen::get via Cache::rememberForever (Cache-Store database, Tabelle cache vorhanden) und Cache::lock in Sicherung. Pro Request statisch gemerkt: Konfiguration::ausDb, BaumLader, Lehrsemester::vorladen. Jeder Seitenaufruf rechnet den Rechenkern neu für alle betroffenen Lernenden.",
+    "quelle": "grep Cache::/remember in app/ und routes/; app/Support/Einstellungen.php:76-82; config/cache.php; .env.example:53"
+   },
+   {
+    "thema": "Kohorte und Lehrjahr (vorhanden)",
+    "befund": "Bericht::nachLehrjahr gruppiert Gesamtnoten je Lernender nach Lernender::lehrjahr() und gibt {jahr, schnitt, anzahl} zurück (Admin); Uebersicht::jahrgangsDiagramm liefert Gesamtschnitt je Lehrberuf-Kürzel und Lehrjahr 1-4 für das Admin-Dashboard. Lernende und Berufsbildner sehen keinen Kohortenwert.",
+    "quelle": "app/Services/Bericht.php:176-189; app/Services/Uebersicht.php:698-716"
+   },
+   {
+    "thema": "Chart-Frontend-Datenformen",
+    "befund": "charts.js: Alpine.data('npChart', typ, daten) mit BAUER-Typen verlauf ({labels, serien[{name,werte,dick?,farbe?}], grenze}), kurve, balken, gruppen, saeulen, histogramm, spark; Redraw bei Theme-Wechsel (MutationObserver), Bewegung reduziert über data-bewegung. Komponente x-diagramm (titel, frage, fazit, optionaler Slot 'tabelle' = 'Als Tabelle'), x-filterleiste (GET-Form, Selects mit sofortigem Submit), x-heatmap, x-sparkline. npChart wird in 4 Views benutzt (lernender-Dashboard, Admin-Dashboard, Admin-Bericht, Rechner).",
+    "quelle": "resources/js/charts.js:261-465; resources/views/components/diagramm.blade.php; filterleiste.blade.php:1-30; grep npChart resources/views"
+   }
+  ],
+  "luecken": [
+   "Verlauf über Zeit mit Fenster: Auswertung::verlauf() liefert nur Semesterpunkte; ein Verlauf nach Prüfungsdatum (kumulierter oder gleitender Schnitt, Fenster 3/6/12 Monate, Einzelnoten als Punkte) existiert nirgends. Leistung::datum ist da, wird aber nur zur Semesterzuordnung genutzt.",
+   "Anonymisierter Kohortenvergleich: es gibt nur Gesamtschnitt je Lehrjahr (Admin, Bericht::nachLehrjahr) und je Lehrberuf (Jahrgangsdiagramm). Fehlen: Vergleich der eigenen Note mit Kohortenmedian/Quartil je Fach, Kategorie oder Semester für Lernende und Berufsbildner, Mindestgrösse der Kohorte (k-Anonymität) ist nicht definiert und nicht erzwungen.",
+   "Heatmap über mehrere Lernende (Lernende x Fach/Kategorie oder Fach x Semester über den Betrieb): Uebersicht::heatmap arbeitet nur mit einer Auswertung; im Bericht gibt es nur Schwachstellen (8 Einträge) und Kategorien-Kennzahlen.",
+   "Prognosekorridor: es gibt Punktprognose (Notenbaum, hochgerechnet), Zielrechner-Spanne min/max (alle offenen Prüfungen = 1.0 bzw. 6.0) und Kurve, aber keinen realistischen Korridor auf Basis des bisherigen Erfassungsverhaltens oder Trends und kein Datum-Fächer (Endnote zum Lehrende, Konfidenzband).",
+   "Erfassungsrhythmus je Person: nur betriebsweite 12-Wochen-Säulen nach erstellt_am (Uebersicht::aktivitaet), keine Auswertung nach Lernendem, Wochentag, Abstand zwischen Prüfungsdatum und Erfassungsdatum (pruefungsdatum vs. erstellt_am) oder Quote geplant -> eingetragen -> Note fehlt.",
+   "Verteilung nur betriebsweit als Histogramm (Bericht); keine Verteilung je Fach, Kategorie, Semester oder Lernender, keine Quartile/Median/Streuung (Bericht kennt nur Mittel, min, max).",
+   "Trend je Lernender ist nur delta() zum Vorsemester (Spaltensortierung 'trend'); kein Verlauf über mehrere Semester, keine Steigung/Regression, keine Gewichtungsanalyse (z. B. Anteil Prüfungen mit hohem Gewicht).",
+   "Filter-Infrastruktur: kein gemeinsames Filterobjekt/Request-Klasse, kein Zeitraumfilter (von/bis) für Statistik, kein Kategorie- oder Fachfilter im Bericht, keine Speicherung gewählter Filter, keine Berufsbildner-Berichtsseite, keine JSON-Endpunkte für Diagrammdaten (alle Daten werden serverseitig in die Seite eingebettet, Reload bei Filteränderung).",
+   "Caching: keine Zwischenspeicherung der Auswertung; mit mehr Statistiken steigt Rechenlast pro Request (Rechenkern pro Person im PHP-Speicher). Kein Performance-Test ist auf Rechenzeit ausgelegt, nur auf Abfragenzahl.",
+   "Nicht gelesen (ausserhalb des Auftrags oder nicht nötig): Verwaltung/RechnerController.php, Lernender/AbschlussController, Details von Notenbaum/BaumRechner.php, Blade-Views ausser den für Filter und Diagramme belegten Stellen, docs/auftrag/GUI-APPLE.md und docs/gui-konzept.md (Auftrag A/B)."
+  ],
+  "chancen": [
+   "Neuer Dienst App\\Services\\Auswertung\\Statistik (oder Verlauf/Kohorte/Rhythmus als kleine Klassen) auf Basis von NotenQuelle::fuerLernende und Auswertung: liefert Datenformen, die charts.js direkt frisst; keine neue SQL-Durchschnittslogik, Durchschnitte weiter über Rechenkern/Rundung::mittel. Alle Noten-Queries mit whereNull('geloescht_am') (wie NotenQuelle:237 und Bericht:42).",
+   "Verlauf nach Datum: aus Leistung->datum/wert/gewicht pro Element einen kumulativen und gleitenden Schnitt berechnen (Rechenkern auf Teilmengen bis Stichtag aufrufen, damit die Rundungsregeln konsistent bleiben) – neue Methode Auswertung::verlaufNachDatum(Fenster) oder separater VerlaufRechner; Fenster 3/6/12 Monate und 'alle' als Filter.",
+   "Gemeinsames Filterobjekt (readonly Klasse, z. B. StatistikFilter::ausRequest) mit semester_id|alle, kategorie_id, fach/modul, von/bis (zeitraum), lehrberuf_id, berufsbildner_id (nur Admin), Whitelist-Validierung wie BerichtController::filter; wird von Bericht::noten, Uebersicht und neuen JSON-Endpunkten genutzt; Filterleiste (x-filterleiste) existiert und kann Selects/Segmente aufnehmen.",
+   "Heatmap Lernende x Fach/Kategorie: Uebersicht::heatmap auf eine Liste von Auswertungen verallgemeinern (Bericht liefert die Auswertungen bereits per LernstandRechner::fuer, kein zusätzlicher Query) und als x-heatmap darstellen; Zeilenreihenfolge und Zellfarbe aus NotenSkala.",
+   "Kohortenvergleich anonymisiert: aus Bericht-Aggregaten (nachLehrjahr, kategorien) Median/Quartile je Fach/Kategorie/Lehrjahr ableiten, Ausgabe nur ab Mindestgrösse der Kohorte (z. B. >= 5, als Einstellung in der DB, nicht im Code) und ohne Personenbezug; Lernende erhalten nur ihre Position im Band, nie fremde Werte (Autorisierung: ID aus Session).",
+   "Prognosekorridor: Zielrechner::wertBei mit Szenarien (alle offenen = bisheriger Schnitt, bisheriger Schnitt +/- Streuung, 1.0/6.0) und Verteilung der Zukunftstermine aus pruefungen (datum, gewichtung_prozent) zu einem Band je Zielgrösse bis Lehrende kombinieren; Daten für den Typ 'kurve' oder neuen Typ 'band' in charts.js.",
+   "Erfassungsrhythmus je Person und betrieb: Erweiterung neben Uebersicht::aktivitaet() um Gruppierung nach lernender_id, Wochentag und Verzug (pruefungsdatum -> erstellt_am); nur Zähl- und Datumswerte, Darstellung als Kalender-Heatmap (GitHub-Stil) oder Wochenraster; Berufsbildner sieht nur Lernende aus Lernender::sichtbarFuer.",
+   "Performance und Cache: für betriebsweite Statistiken die vorhandene Konfiguration::ausDb()-Statik nutzen und Ergebnisse optional mit Cache::remember (Store database vorhanden) schlüsseln nach Filter + Max(noten.aktualisiert_am); Invalidierung über NoteService::endBatch/resetCache prüfen. Neuer Test im Stil AbfragenAnzahlTest (Obergrenze 40, Toleranz +2) für jede neue Statistikseite.",
+   "Neue JSON-Endpunkte für filterbare Diagramme (Fetch statt Voll-Reload) sind möglich: Muster bestehen in RechnerController::berechnen (POST, throttle:120,1) und markGesehen; GET-Endpunkte unter learner., trainer. (routes/verwaltung.php, mit lernender_id -> SichtbarkeitTest::routen() ergänzen) und admin. mit role:-Middleware, damit ZugriffsschutzTest automatisch greift.",
+   "Alle neuen UI-Texte (Filterlabels, Legenden, Tooltips, np.t-Texte) in lang/en und JsTexte::SCHLUESSEL eintragen, neue Seiten in EnglischeSeitenTest-Listen ergänzen; neue Pfade englisch, bei Umbenennung LegacyPaths::SEGMENTS erweitern."
+  ],
+  "risiken": [
+   "N+1 und Rechenlast: Rechenkern läuft pro Lernender im PHP-Speicher; ein Verlauf nach Datum mit Teilmengen-Neuberechnung je Stichtag vervielfacht die Rechenarbeit (Zahl der Stichtage x Lernende). Ohne Cache und ohne Obergrenze würde der Admin-Bericht (heute 40-Abfragen-Grenze) und die Antwortzeit leiden.",
+   "Anonymisierung: Kohorten mit wenigen Lernenden (Pilot ICT-LAB, wenige Lernende laut Testbenutzern) machen einzelne Personen erkennbar; ein Kohortenvergleich braucht Mindestgrösse und Betriebsregeln aus der DB (CLAUDE.md: Betriebsspezifisches nie im Code) und darf keine Einzelwerte fremder Lernender liefern.",
+   "Autorisierungslücken bei neuen Endpunkten: Lernende-IDs nie aus dem Request, Berufsbildner nur über Lernender::sichtbarFuer; der Bericht (Bericht::lernende) arbeitet heute ohne sichtbarFuer (nur Admin-Route) – eine Wiederverwendung für Berufsbildner ohne Umbau würde alle Lernenden zeigen.",
+   "Rundung und Konsistenz: Zwischenstände (Elementnote 0.5-Rundung, Kategorie 0.1) unterscheiden sich von ungerundeten Schnitten; Diagramme mit gleitendem Schnitt dürfen nicht von der Zeugnisnote in der Tabelle abweichen, sonst widersprechen sich Oberflächen. Modul zählt im Semester seiner letzten Prüfung und nur die jüngste Belegung – Datumsverläufe müssen das nachbilden, sonst falsche Werte bei Wiederholungen.",
+   "Stufen-Fächer (note_stufe, note_wert NULL) und nicht zählende Fächer (zaehlt=0) dürfen in keiner neuen Statistik als Zahl auftauchen; NotenQuelle filtert note_wert nicht null, Statistiken auf Roh-SQL würden das umgehen.",
+   "Testnetz bricht bei neuen Seiten: EnglischeSeitenTest (hartcodierte Listen), SichtbarkeitTest::routen() und SchluesselTest schlagen bei fehlenden Einträgen oder Übersetzungen an; JsTexte muss mit np.t gleich bleiben.",
+   "Caching-Risiko: veraltete Zahlen nach Notenänderung, wenn Invalidierung fehlt (Konfiguration::vergessen() ist nur prozesslokal); Cache-Store database ist langsamer als Memory und belastet MariaDB.",
+   "Filter per GET mit Voll-Reload zerstört Chart-Animationen und Scroll-Zustand; jede Filteränderung rechnet den ganzen Rechenkern neu – bei Liquid-Glass-Bewegungsanspruch braucht es JSON-Endpunkte oder Teil-Aktualisierung, die zusätzliche Routen und Tests erfordern."
+  ]
+ },
+ "seiten": {
+  "zusammenfassung": "Alle acht Zielseiten sind gelesen. Die Seiten sind serverseitig gerendert (Blade) und haben ausser dem Rechner keinen Lade- oder Skelettzustand. Filter sind entweder Seitenneuladungen (Links oder GET-Formulare auf /grades, Admin-Liste, Bericht) oder reines Alpine im Browser (BB-Übersicht, Segmente auf dem Dashboard). Echte Diagramme (Chart.js) gibt es nur an vier Stellen: Balken und Verlauf auf dem Lernenden-Dashboard, Säulen auf dem Admin-Dashboard, Histogramm im Bericht und Kurve im Rechner. Dazu kommen Sparkline, Bullet Graph und die Heatmap-Tabelle als Blade-Komponenten. Das Cockpit /trainer/learners/{id} hat kein einziges Diagramm. Bewegung besteht aus einer 180-ms-Überblendung beim Seitenwechsel (View Transitions), der Chart.js-Standardanimation (350 ms, bei jedem Neuzeichnen komplett neu) und Overlay-Übergängen. Zahlen zählen nirgends hoch, Listen erscheinen nirgends gestaffelt, Karten reagieren nur mit einem Hintergrundwechsel. Glas liegt bewusst nur auf Seitenleiste, Symbolleiste, Menüs, Toasts und Palette; Karten sind matt auf flachem bg-bg, und die Konzeptdoku verbietet Glas auf Inhalt, was dem neuen Auftrag zu widersprechen scheint und vor R6 entschieden werden muss. Der Lernenden-Pfad heisst /learner (nicht /dashboard, das leitet nur um). Statistisch gibt es nur Semesterauflösung; für Zeitfenster, Prüfungsverlauf, Vergleiche und Verteilungen für Lernende und BB fehlen Datenmethoden in Auswertung und Uebersicht.",
+  "fakten": [
+   {
+    "thema": "Route /dashboard vs /learner",
+    "befund": "Die Lernenden-Übersicht liegt unter /learner (learner.dashboard). /dashboard ist nur ein Redirect je nach Rolle. BB=/trainer, Admin=/admin. Alle drei gehen durch DashboardController und App/Services/Uebersicht (lernender, berufsbildner, admin).",
+    "quelle": "routes/web.php:60-92; app/Http/Controllers/DashboardController.php:24-62"
+   },
+   {
+    "thema": "Lernende /learner: Aufbau",
+    "befund": "x-seitenkopf 'Hallo Vorname' mit Metazeile (Beruf, Lehrjahr, noch N Tage) und Aktionen 'Prüfung planen' (sekundär) und '+ Note' (primär, öffnet x-noten-drawer). 12-Spalten-Raster: links 8 Spalten Karte 'Stand' (Heldenzahl x-note hero + x-sparkline, Semesternote mit Delta, Kategorien als Zeile mit Sparklines, x-bullet mit Ziel und Grenzen), darunter zwei Karten nebeneinander 'Wo stehe ich' (Chart balken, schwächste zuerst) und 'Verlauf' (Chart verlauf); rechts 4 Spalten 'Als Nächstes', 'Ziele' (je Bullet plus Satz 'Nötig in der offenen Prüfung'), 'Letzte Noten' (4).",
+    "quelle": "resources/views/dashboards/lernender.blade.php:33-338"
+   },
+   {
+    "thema": "Lernende /learner: Filter",
+    "befund": "Nur zwei lokale Alpine-Umschalter in den Kartenköpfen: 'Wo stehe ich' Semester/Lehrzeit (x-effect zeichnet Chart neu, Höhe 30 px je Zeile), 'Verlauf' Kategorien/Fach plus Fach-Select. Kein Zeitfenster, kein Kategoriefilter für die Balken, kein Vergleich. Kartensichtbarkeit nur per Profil-Präferenz (DashboardKarten).",
+    "quelle": "dashboards/lernender.blade.php:128-135,176-191; DashboardController.php:70-81"
+   },
+   {
+    "thema": "Lernende /learner: Leer-, Lade-, Fehlerzustände",
+    "befund": "Ganz ohne Noten, Prüfungen und Ziele: ein x-leer 'Noch keine Noten' mit Aktion. Einzelkarten: 'Nichts offen' mit Link, 'Noch keine Noten' in Stand; Ziele und Letzte Noten entfallen, wenn leer; Verlauf und Wo stehe ich nur mit Daten. Jede Datenkarte hat 'Als Tabelle' (details). Kein Lade-/Fehlerzustand (alles SSR).",
+    "quelle": "dashboards/lernender.blade.php:44-52,113-120,137-170,264-268"
+   },
+   {
+    "thema": "Lernende /learner: Daten",
+    "befund": "Uebersicht::lernender liefert stand (Lernstand: status, semesterNote, vorsemesterNote, verlauf je Semester, einbrueche, gruende), auswertung, kategorien (note, verlauf, promotion), ziele, zielGesamt, alsNaechstes, verlauf (Serien Semesterschnitt+Kategorien, Fächer), balken, letzteNoten (4), lehrzeit (Prozent, Semesterrest), grenzen. Verlauf ist nur semester-granular; lehrzeit['prozent'] wird berechnet, im Dashboard aber nur als Text genutzt.",
+    "quelle": "app/Services/Uebersicht.php:48-111,468-533"
+   },
+   {
+    "thema": "Lernende /grades: Aufbau und Filter",
+    "befund": "Kopf: Titel 'Noten', Semester-Wechsler (Pfeil-Links, volle Seitenladung mit ?semester_id), Restdauer, Aktionen Notenrechner (Drawer), Menü (Import, Drucken, CSV), '+ Note'. Statuszeile ohne Karte: Semester, Gesamt und je Kategorie Note (x-note). Werkzeugzeile: Segment 'Semester | Zeugnisübersicht' (Alpine, ?ansicht=alle) und Kategorie-Segment als Links (?kategorie_id, Seitenladung). Zeugnisübersicht = x-heatmap (Fach x Semester, Tabelle, Legende x-noten-legende). Semesteransicht: je Kategorie Karte mit Outline-Tabelle (Fach/Modul, Prüfungen mit Fortschrittsbalken offene Gewichtung, Schnitt vor Rundung, Zeugnis-Badge), aufklappbar mit Einzelnoten (partials/note) und Modulstatus; ab 92rem zwei Spalten; Promotion-Status je Kategorie; Rechner-Drawer mit bis zu 10 Hypothesen (Auswirkung alt->neu, Promotion).",
+    "quelle": "resources/views/lernender/noten/index.blade.php:30-100,101-285,289-400; app/Http/Controllers/Lernender/NotenController.php:43-135"
+   },
+   {
+    "thema": "Lernende /grades: Leer-/Lade-/Fehlerzustände",
+    "befund": "Ganz ohne Noten: x-leer 'Noch keine Noten'. Semester/Kategorie ohne Noten: eine Zeile 'Keine Noten in …' mit Link. Heatmap leer: Zeile mit Symbol. Drawer-Rechner hat laedt (Opacity 0.7, aria-busy) und fehler-Text. Kein Chart auf der Seite.",
+    "quelle": "index.blade.php:266-280; components/heatmap.blade.php (else-Zweig); index.blade.php:289-345"
+   },
+   {
+    "thema": "Lernende /grades/calculator",
+    "befund": "Zwei Spalten (6/6). Links: gespeicherte Ziele als Chips, Karte Ziel (Segment Ebene Gesamt/Kategorie/Semester/Fach/Modul, Select, Zeitraum-Select, Zielwert-Stepper plus Chips 4.0-5.5, 'Aktuell', Ziel speichern), Karte 'Offene Prüfungen' (Zeilen Fach/Modul, Semester, Gewicht, Note; leer = gesucht). Rechts: Ergebnis-Heldenkarte (text-display 'Benötigt', Satz), x-karte 'Ergebnis je Note' (Chart kurve, h-64), 'Auswirkung' (Tabelle Heute/Danach/Differenz) und 'Promotion' (Tabelle). Berechnung per POST (throttle 120/min), laedt = Opacity 70 %, fehler mit 'Erneut berechnen'.",
+    "quelle": "resources/views/rechner/index.blade.php:46-320; resources/js/rechner.js:19-112; routes/web.php:104-106"
+   },
+   {
+    "thema": "BB /trainer: Aufbau und Filter",
+    "befund": "Seitenkopf 'Hallo Name' mit Datum und 'Alle N Lernenden im Plan'; Aktionen Exportieren, Lernende erfassen. Oben vier Filterkacheln (Alle, Kritisch, Beobachten, Mit neuen Noten) als radiogroup mit Zählern, reines Alpine (passt()), plus Suchfeld in der Karte. Karte 'Meine Lernenden' (8/12): Tabelle Status, Name, Lehrjahr, Verlauf-Sparkline, Semester (+Delta), Gesamt, Neue Noten, Nächste Prüfung; Sortierung per Spaltenlink (Seitenneuladung ?sort&dir: name, status, semester, gesamt, trend). Rechts (4/12): 'Braucht Aufmerksamkeit', 'Nächste 14 Tage', 'Lehre endet bald'.",
+    "quelle": "resources/views/dashboards/berufsbildner.blade.php:27-264; app/Services/Uebersicht.php:165-197,585-650"
+   },
+   {
+    "thema": "BB /trainer: Zustände",
+    "befund": "Keine Betreuten: x-leer 'Keine aktiv betreuten Lernenden' mit Aktion. Filter ohne Treffer: Zeile 'Keine Lernenden für diesen Filter.' mit Zurücksetzen. Aufmerksamkeit/Lehrende-Karten entfallen leer, Agenda zeigt 'Keine geplant'. Kein Ladezustand.",
+    "quelle": "dashboards/berufsbildner.blade.php:80-83,160-162,211-213"
+   },
+   {
+    "thema": "BB Cockpit /trainer/learners/{id}",
+    "befund": "Seitenkopf mit Name, x-status mit Gründen im Tooltip, Aktionen 'Noten ansehen (N neu)' (primär), Drucken, Menü (CSV, Bearbeiten, Rechner, Abschluss). Nav-Segment: Übersicht und Profil sind Alpine-Tabs (?tab= per replaceState, ohne Übergang), Noten/Dokumente/Rechner sind Seitenladungen. Übersicht 8/4: Kennzahlenleiste (4 Zellen: Gesamtschnitt hero, Semesternote mit Delta, Nächste/Letzte Prüfung), Karte Zeugnisnoten (x-heatmap), rechts Hinweise, Ziele, Prüfungen (Note fehlt/Geplant), Modulstatus, Letzte Aktivität. Es gibt kein Diagramm und keine Sparkline; Verlauf, Kategorien-Bullet und Balken, die die Lernenden sehen, fehlen hier.",
+    "quelle": "resources/views/verwaltung/lernende/show.blade.php:1-75; _cockpit/uebersicht.blade.php:1-161; _tabs.blade.php; app/Services/Uebersicht.php:359-381"
+   },
+   {
+    "thema": "Admin /admin",
+    "befund": "Seitenkopf 'Betrieb' mit Datum; Aktionen Benutzer erfassen, Lernende erfassen. Sechs Kennzahlkacheln als Links (Lernende, Berufsbildner, Noten Semester, Kritisch, Beobachten, Offene Meldungen; Kacheln inline gebaut, nicht x-kachel). Links 8: 'Handlungsbedarf' (Liste), 'Berufsbildner' (Tabelle Lernende/Kritisch/Beobachten/Ungesehen). Rechts 4: 'Erfasste Noten pro Woche' (Chart saeulen, 12 KW, feste Länge, Summe darüber), 'Lehre endet bald'. Keine Filter. Leer: 'Kein Handlungsbedarf', 'Noch keine Berufsbildner'. Ohne Einrichtung Redirect auf admin.setup.",
+    "quelle": "resources/views/dashboards/admin.blade.php:1-179; DashboardController.php:51-62; Uebersicht.php:199-262,680-695"
+   },
+   {
+    "thema": "Admin /admin/reports/grades",
+    "befund": "Filterleiste (x-filterleiste, sofort wirksam per requestSubmit = Seitenneuladung): Zeitraum (Semester/Ganze Lehrzeit, Standard aktuelles Semester), Lehrberuf, Berufsbildner, Zurücksetzen. Aktionen Drucken, Exportieren (CSV). 4-5 x-kachel (Lernende, Ø Gesamtnote, Kritisch mit Link, Ungenügende Zeugnisnoten mit Link, Promotion gefährdet nur mit Semester). x-diagramm 'Verteilung der Zeugnisnoten' (Histogramm 0.5-Klassen, Legende, Als Tabelle), Karte Kategorien (Tabelle Ø, Min-Max, Ungenügend, Gefährdet), Gesamtschnitt nach Lehrjahr (nur Tabelle, ohne Diagramm), 'Tiefste Fächer und Module' (Balkenzeilen aus Blade), Lernende-Tabelle mit 7 Sortierungen per Link. Leer: 'Keine Lernenden für diese Filter.' mit Zurücksetzen.",
+    "quelle": "resources/views/admin/berichte/noten.blade.php:1-244; app/Http/Controllers/Admin/BerichtController.php:34-117; app/Services/Bericht.php:32-190"
+   },
+   {
+    "thema": "Admin /admin/learners (und /trainer/learners)",
+    "befund": "Gleiche View für beide Bereiche: Seitenkopf mit Zähler und Aktionen 'Alle Noten (CSV)', 'Lernende erfassen'. x-filterleiste: Suche (400 ms debounce), Lehrberuf, Lehrjahr, (Admin) Berufsbildner, nach Trenner Warnung (kritisch/beobachten/tief Ø/keine Noten/ohne BB/ohne Track), BMS, Inaktive; jede Änderung = GET-Neuladung; Zurücksetzen erscheint mit aktiven Filtern. Tabelle: Name mit Monogramm, Lehrberuf/Lj, (Admin) BB, Noten, Letzte Note ('vor N Tagen'), Ø gesamt, Status-Etiketten, Zeilenlink 'Noten'; Sortierung per Spaltenlink; Zeilenklick via data-href. Keine Pagination. Leer: x-leer 'Noch keine Lernenden'; Filter ohne Treffer: Zeile 'Keine Treffer'. Keine Sparkline, kein Diagramm.",
+    "quelle": "resources/views/verwaltung/lernende/index.blade.php:1-199; app/Http/Controllers/Verwaltung/LernendeController.php:39-117"
+   },
+   {
+    "thema": "Seitenwechsel-Animation",
+    "befund": "@view-transition { navigation: auto } mit ::view-transition-old/new(root) 180 ms ease-out (Überblendung); bei prefers-reduced-motion navigation: none, bei data-bewegung='reduziert' animation: none. Seitenleiste/Symbolleiste bekommen bewusst keinen view-transition-name (Backdrop-Root-Problem für Glas). Zusätzlich 2-px-Fortschrittsbalken #np-progress bei Link-Klick/Submit. In app.js/np.js keine View-Transition-JS-API (kein startViewTransition, pageswap/pagereveal).",
+    "quelle": "resources/css/app.css:240-270; resources/views/layouts/app.blade.php:209-240; grep resources/js"
+   },
+   {
+    "thema": "Weitere Bewegung",
+    "befund": "Chart.js animation {duration:350}, abschaltbar per Reduced-Motion; npChart zeichnet bei jedem x-effect mit chart.destroy() + new Chart() neu (kein Morphing/update). Drawer: 200 ms Opacity bzw. translate-x; Akkordeon np-slide-down 220 ms; Segment-Hintergrund 150 ms ohne gleitende Markierung; np-karte-klickbar nur Hintergrundwechsel (120/160 ms), kommt nur an zwei Stellen vor (BB-Filterkacheln, Admin-Kennzahlen). Es gibt keinen @starting-style, kein animation-delay/transition-delay, kein count-up, keinen IntersectionObserver für Einblendungen (nur Symbolleisten-Titel), keine Skeletons. Einzige Zahl-Animation: Chart-Balken beim Zeichnen.",
+    "quelle": "resources/js/charts.js:27-40,440-465; resources/css/app.css:1088-1175,1495-1570; resources/views/components/drawer.blade.php:44-62; grep animation-delay/count: leer"
+   },
+   {
+    "thema": "Komponenten und Props",
+    "befund": "x-kachel(label, wert, note, sub, href, ton: neutral|accent|rot|gelb|gruen) – nur genutzt in Bericht, Mail-Log, verwaltung/noten, Dokumenten-Abgleich, NICHT auf den Dashboards (dort inline np-karte). x-karte(titel, symbol, link, linkText, polster; Slot aktionen). x-diagramm(titel, frage, fazit, polster; Slot tabelle) – nur im Bericht genutzt, Dashboards nutzen x-karte + Handbau. x-status(status, text: rot|gelb|neutral|abgeschlossen|gruen). x-note(wert, variante text|badge|hero, stellen, stufe). x-leer(symbol, titel, text). x-seitenkopf(titel, untertitel, zaehler, schmal, zurueck; Slot aktionen, pusht np-titel/np-aktionen in die Symbolleiste). Weitere: x-sparkline(werte, breite, hoehe, zahl, label), x-bullet(wert, ziel, grenzen, label, skala), x-heatmap(daten), x-noten-legende(art, neutral), x-filterleiste(action, method, sucheName, sucheWert, suchePlatzhalter, zaehler, zaehlerLabel, zurueck, aktiveFilter; Slots hidden, weitere, export), x-segment-auswahl, x-semester(id, lernender, mitCode), x-drawer(name, titel, breite sm|md|lg, offen), x-noten-drawer(fehler), x-modal, x-dropdown, x-suchfeld, x-symbol(name, strich), x-toast, x-zeilen-link.",
+    "quelle": "resources/views/components/*.blade.php (@props); grep '<x-kachel|<x-diagramm' in resources/views"
+   },
+   {
+    "thema": "Chart-Bauer und tote Teile",
+    "befund": "BAUER in charts.js kennt verlauf, kurve, balken, gruppen, saeulen, histogramm, spark. Tatsächlich eingebunden: verlauf+balken (Lernenden-Dashboard), saeulen (Admin), histogramm (Bericht), kurve (Rechner). gruppen und spark sind ungenutzt; Uebersicht::jahrgangsDiagramm (private) ist ungenutzt. Keine onClick-/Drilldown-Handler in charts.js. Tooltip hat Karten-Farbe 0.96 Deckung (kein Glas).",
+    "quelle": "resources/js/charts.js:262-436,440-465; grep npChart in resources/views; Uebersicht.php:698-716"
+   },
+   {
+    "thema": "Glas und Fläche heute",
+    "befund": "np-glas, glass-bar, glass-seitenleiste, glass-overlay, glass-scrim (blur 24-28px, saturate 1.8, Lichtkante inset) nur an Seitenleiste, Symbolleistengruppen, Menüs, Palette, Toast, Feedback-Widget; Fallbacks für fehlendes backdrop-filter und prefers-reduced-transparency vorhanden. np-karte = deckender --card, Schatten --elev-1. Body flach bg-bg. Konzept: 'Glas nur für die funktionale Ebene', Entfallen: Glow, Radial-Gradient auf body, glass-lift.",
+    "quelle": "resources/css/app.css:272-352,1150-1155; resources/views/layouts/app.blade.php:142; docs/gui-konzept.md:107-117; docs/auftrag/GUI-APPLE.md (Harte Grenzen, Was zu tun ist)"
+   },
+   {
+    "thema": "Fragen je Rolle laut Blueprint und was fehlt",
+    "befund": "Lernende: Wie stehe ich insgesamt, Werde ich besser, Wo bin ich am schwächsten, Was muss ich tun, Erreiche ich mein Ziel (gui-konzept e/f). Fehlt: Prüfungs-Zeitreihe (nur Semesterpunkte), Vergleich Semester-zu-Semester je Fach in einem Bild, Verteilung eigener Noten, Zielpfad-Kurve, Lehrzeit-Fortschritt als Grafik. BB: Wen muss ich heute anschauen, Wer weicht ab, Wer ist gefährdet. Fehlt: Verteilung der eigenen Betreuten, Verlauf-Vergleich mehrerer Lernender, Cockpit-Verlauf, jeglicher Filter nach Semester/Lehrjahr/Lehrberuf auf /trainer, Trainer-Variante des Berichts. Admin: Wo ist Handlungsbedarf, Wie steht der Betrieb, Wird erfasst, Gibt es schwache Jahrgänge. Fehlt: Zeitfenster 12/26 Wochen, Median-Linie, Jahrgangs-Small-Multiples (konzipiert, nicht umgesetzt), Trend des Betriebsschnitts, Vergleich Lehrberufe.",
+    "quelle": "docs/gui-konzept.md:303-382; docs/funktionsumfang.md:6,14,25-26; Abgleich mit den Views oben"
+   }
+  ],
+  "luecken": [
+   "Controller und Services wurden nur so weit gelesen wie nötig; Bericht::aggregate (Zeilen 81-150), Uebersicht::adminHandlungsbedarf und LernstandRechner wurden nicht im Detail geprüft; ob Daten für Zeitfenster-Filter in den Auswertungs-Klassen performant (N Lernende x Rechenkern) skalieren, ist nicht gemessen.",
+   "Der Auftrag nennt /dashboard; die Seite liegt real unter /learner. Nicht geprüft, ob Navigation/Tastenkürzel noch Links auf /dashboard setzen.",
+   "Nicht gelesen: lernender/noten/partials/note.blade.php (Einzelnote mit Kommentaren) im Detail, verwaltung/noten/index (Cockpit-Notenliste) und lernender/agenda (Agenda), obwohl die Cockpit-Nav sie verlinkt.",
+   "Keine Screenshots angesehen und keine Seite im Browser ausgeführt (Auftrag: nur Leser); Layoutaussagen beruhen auf Quelltext, nicht auf gerenderten 1920/2560-Bildern.",
+   "Nicht verifiziert, ob der Browser-Support für dokumentübergreifende View Transitions (Chromium/Safari 18.2+, Firefox ohne) die Zielumgebung abdeckt; keine Primärquelle (Apple/MDN) für Liquid-Glass-Web-Umsetzungen gelesen, da das zu Auftrag A/B gehört.",
+   "Es gibt keine Datenquelle für Betriebs- oder Klassenvergleiche für Lernende (Datenschutz/Anonymisierung nicht geklärt); keine Mindestgrössen-Regel (k-Anonymität) im Code gefunden.",
+   "Nicht gefunden: ein Test oder Hook, der Animationen/Reduced-Motion automatisch prüft (tools/pruefung wurde nicht gelesen)."
+  ],
+  "chancen": [
+   "P1 Lernende /learner (resources/views/dashboards/lernender.blade.php, resources/js/charts.js, Uebersicht::verlaufDiagramm): Verlauf-Karte zu 'Meine Noten über die Zeit' ausbauen. Zeitachse mit Einzelprüfungen (Punkte, Grösse = Gewicht) plus laufendem Durchschnitt, Filter-Segment Zeitfenster (3 Monate / Semester / Lehrzeit), Kategorie- und Fach-Chips (statt nur Select), Hover-Linie mit synchronem Tooltip, Klick auf Punkt öffnet die Note (?_open). Datenbedarf: neue Auswertung-Methode für den laufenden Durchschnitt je Prüfungsdatum (Regel: Durchschnitte nur aus App/Services/Auswertung), Felder noten.pruefungsdatum, note_wert, gewichtung_prozent, kategorie_id, fach_id, semester_id sind vorhanden.",
+   "P1 Lernende: Zielpfad im Rechner und Dashboard (rechner/index.blade.php, kurve): Zielkurve und 'Spielraum' als Band (min-max erreichbarer Schnitt) hinter der Treppenlinie, animiert beim Ändern des Zielwerts (Chart.update statt destroy). Datenbedarf: Zielrechner liefert bereits minimum/maximum/note; nur Serien für das Band ergänzen.",
+   "P1 Lernende /grades: Kopf-Statuszeile (index.blade.php:63-72) um Mini-Diagramm je Kategorie erweitern und Zeugnisübersicht als wirkliche Heatmap mit Farbtiefe (x-heatmap, bisher Tabelle); Filter für Kategorie und Semester ohne Neuladung (Alpine/fetch mit View Transition) und Zeitfenster. Datenbedarf: gleiche Daten wie heute ($heatmap), Filter clientseitig oder als JSON-Endpunkt; heatmap-Auflösung bleibt Semester.",
+   "P1 Berufsbildner /trainer: Neue Karte 'Klassenlage' (Verteilung der Betreuten nach Gesamtschnitt als Histogramm oder Streifen aus Sparklines, Small Multiples je Lernender auf gemeinsamer 1-6-Skala mit Genügend-Band; charts.js hat 'spark' und 'gruppen' bereits ungenutzt). Filter: Lehrjahr, Lehrberuf, Semester, Zeitfenster; Vergleichsmodus 'Semester vs. Vorsemester' (Dumbbell, im Konzept f vorgesehen). Datenbedarf: Lernstand->verlauf, semesterNote, vorsemesterNote, einbrueche liegen schon je Lernender vor (Uebersicht::berufsbildner), nur Aggregation und Filterparameter fehlen. Filterzustand in der URL halten.",
+   "P1 Berufsbildner Cockpit (verwaltung/lernende/_cockpit/uebersicht.blade.php): Verlauf-Karte, Kategorien mit Bullet/Sparkline und Balken 'Wo steht die Person' ergänzen, gleiche Komponenten wie Lernende (dashboards/lernender.blade.php auslagern in Partials/Komponenten x-verlauf-karte, x-wo-stehe-ich). Zusätzlich Zeitleiste 'Aktivität' (letzte Noten, Kommentare, Prüfungen). Datenbedarf: lernendenDetail() um verlauf und balken aus Uebersicht::verlaufDiagramm/balkenDiagramm erweitern (private Methoden öffnen).",
+   "P2 Admin /admin/reports/grades: Filter auf Serverseite behalten, aber Charts mit Übergang (View Transition auf Karten oder fetch+update) und neue Auswertungen: Jahrgangs-Small-Multiples (Uebersicht::jahrgangsDiagramm existiert ungenutzt, im Konzept f vorgesehen), Trend des Betriebsschnitts je Semester, Vergleich Lehrberufe/BB als Dumbbell, Heatmap Fach x Lehrjahr, Median-Linie. Zusätzliche Filter: Kategorie, Lehrjahr, Zeitfenster (Datum von/bis). Datenbedarf: Bericht::noten() aggregiert heute pro Semester; Kategorie-/Fach-Dimension und Trendreihen über alle Semester neu; Mindestgruppengrösse beachten.",
+   "P2 Admin /admin: Säulendiagramm 'Erfasste Noten pro Woche' (Uebersicht::aktivitaet, fest 12 Wochen) mit Fensterwahl 12/26/52 Wochen und Medianlinie, Kennzahlenkacheln mit Sparkline und Delta zum Vorwert (Lernende, Kritisch, Beobachten über Zeit). Datenbedarf: Kennzahlen-Historie (heute nur Momentaufnahme; entweder täglicher Snapshot oder Berechnung aus Noten/Betreuungen) – Entscheid nötig.",
+   "P2 Admin /admin/learners und /trainer/learners: Spalte 'Verlauf' mit x-sparkline (Komponente vorhanden, in dieser Liste nicht genutzt) und Mini-Verteilung im Kopf (Status-Anteile als segmentierter Balken, klickbar als Filter), Filter ohne Seitenneuladung (Alpine wie /trainer, gestaffelt eingeblendete Zeilen). Datenbedarf: LernendeController::index hat Lernstand je Zeile bereits (Sparkline-Werte = stand->verlauf).",
+   "P1 Bewegung global (resources/css/app.css, resources/js/np.js, charts.js): (a) zählende Zahlen als Alpine-Direktive x-zaehlen für Heldenzahl, Kacheln, Zähler (fixe Dezimalstellen, tabular-nums, reduzierte Bewegung = Endwert sofort); (b) gestaffeltes Einblenden von Karten und Listenzeilen über CSS animation-delay mit --np-i je Element (nur beim ersten Laden, via @starting-style oder animation-timeline); (c) Chart.js update() statt destroy()/new Chart bei Filterwechsel, damit Linien und Balken morphen; (d) gleitende Auswahlmarke in x-segment (np-segment) per ::before/anchor positioning; (e) View Transitions mit Namen für wiederkehrende Elemente (Titel, Heldenzahl) und Richtung Vorwärts/Rückwärts über pagereveal/pageswap; (f) Federkurve per linear() easing in :root; alle (a)-(f) hinter data-bewegung und prefers-reduced-motion.",
+   "P1 Glas auf Inhalt (resources/css/app.css, theme.css): Das Konzept verbietet bisher Glas auf Karten. Für den neuen Auftrag gezielt erweitern: (a) Heldenkarte 'Stand' und Rechner-Ergebnis als gläserne Schicht über einem farbigen, langsam bewegten Verlaufsgrund (nur auf grossen Flächen, Deckung >= 0.78 behalten, Kontrastprüfung); (b) sticky Tabellenköpfe und Filterleisten (x-filterleiste) als Glas, sobald Inhalt darunter scrollt; (c) Chart-Tooltip als glass-overlay statt deckender Karte; (d) Lichtkante und Spekularhighlight, das auf Hover/Zeigerposition reagiert. Vorher klären: Entscheid über Abweichung von GUI-APPLE.md 'Glas nur für die funktionale Ebene' (Apple selbst: Liquid Glass für Navigations-/Steuerebene), sonst erzeugt R6 einen Dokumentationskonflikt.",
+   "P2 Komponenten vereinheitlichen als Voraussetzung: Dashboards bauen Kacheln und Diagrammkarten inline (admin.blade.php:41-55, berufsbildner.blade.php:53-67, lernender.blade.php:128-226); x-kachel und x-diagramm werden nur an wenigen Stellen verwendet. Neue Komponenten x-kennzahl (mit Delta, Sparkline, Link, Zählanimation), x-diagramm mit Filter-Slot (Segment, Chips, Zeitfenster) und einheitlichem Lade-/Leerzustand, x-zeitfenster (Segment 3M/6M/Semester/Lehrzeit). So wirkt jede Animationsregel überall.",
+   "P2 Interaktion der Diagramme: Drilldown (Klick auf Balken öffnet Fach in /grades via ?_open oder Filter), synchronisiertes Fadenkreuz in Verlauf und Balken, Legendenchips zum Ein-/Ausblenden, 'Als Tabelle' bleibt (Barrierefreiheit). charts.js hat keine onClick-Handler; Pflicht: Tastaturbedienbarkeit und aria-Beschreibung bleiben (docs/gui-konzept.md f)."
+  ],
+  "risiken": [
+   "Konzeptkonflikt: docs/gui-konzept.md und docs/auftrag/GUI-APPLE.md schreiben 'Glas nur für die funktionale Ebene, Karten matt' vor; ein inhaltsweites Liquid Glass widerspricht dem und der Prüfliste (Dunkelmodus-Skill, ui-checker). Ohne vorherige Entscheidung entstehen Befunde in jeder Prüfung.",
+   "Lesbarkeit und Kontrast: Transparenz über Diagrammen und Tabellen kann Token-Kontraste (Notenfarbe ungenügend 4.5:1, Text >= 4.5:1) unterschreiten; prefers-reduced-transparency und fehlendes backdrop-filter brauchen weiterhin deckende Fallbacks.",
+   "Performance: Weichzeichner auf vielen grossen Flächen (Karten pro Seite, 2560x1440) und Dauer-Animationen belasten GPU; backdrop-filter macht Elemente zur Backdrop Root (im CSS dokumentiert) und verhindert Glas innerhalb von Elementen mit view-transition-name.",
+   "Barrierefreiheit und Bewegung: Zähl- und Staffelanimationen müssen bei data-bewegung='reduziert' und prefers-reduced-motion sofort Endzustand zeigen; Zählende Zahlen dürfen Screenreader nicht mit Zwischenwerten fluten (aria-live aus, Endwert im Text).",
+   "Regel 'Alle Durchschnitte kommen aus App/Services/Auswertung': Neue Statistiken (laufender Schnitt, Trend, Vergleich) dürfen nicht in SQL, Controller oder JS gerechnet werden; sonst weichen sie vom Rechenkern ab (Fallnoten, Rundung, Notenbaum).",
+   "Datenschutz: Vergleiche über Lernende hinweg (Klassen-/Betriebsvergleich auf Lernenden-Seiten) können Einzelpersonen identifizierbar machen; BB sehen nur aktiv betreute Lernende, Lernende nur eigene Daten (serverseitig, ID aus Session).",
+   "Skalierung: Lernstand und Auswertung werden für alle Lernenden pro Seitenaufruf berechnet (Uebersicht::admin, Bericht::noten, LernendeController::index ohne Pagination); zusätzliche Zeitreihen und Filter ohne Cache multiplizieren die Last.",
+   "View Transitions dokumentübergreifend funktionieren nicht in allen Browsern (Fallback: normaler Seitenwechsel); schwerere Seitenübergänge verlängern wahrgenommene Wartezeit (Konzept: Dauer 100-300 ms, >500 ms wirkt träge).",
+   "Chart-Neuzeichnen per destroy()/new Chart bei jedem x-effect: bei zusätzlichen Filtern flackern Diagramme und Animationen spielen jedes Mal neu ab, solange nicht auf update() umgestellt wird.",
+   "Umfang: Rebuild über alle drei Rollen kollidiert mit laufender Gesamtprüfung R5 und dem Pilotstart (CLAUDE.md: Pilot 30.09.2026); Regeln für Commit-Rhythmus, ß-Prüfung, Farb-Hardcodes (Hook) und ZugriffsschutzTest gelten weiter."
+  ]
+ },
+ "apple": {
+  "zusammenfassung": "Alle 17 verlangten HIG-Seiten, dazu charting-data und typography, die drei Technology Overviews (adopting-liquid-glass, liquid-glass, app-design-and-ui), das SwiftUI-Dokument «Applying Liquid Glass to custom views» und die Transkripte der WWDC25-Sitzungen 219 und 356 kamen mit HTTP 200 an. Gelesen habe ich sie über die JSON-Spiegel unter /tutorials/data/…; zitiert werden die kanonischen Seiten-URLs mit Anker. Kernaussage: Liquid Glass ist ausschliesslich die schwebende Funktionsebene für Navigation und Bedienung (Lensing, adaptiver Schatten und Tönung, Aufleuchten bei Interaktion). Im Inhalt hat es nichts zu suchen, Glas auf Glas ist zu vermeiden, und es soll sparsam eingesetzt werden. Regular ist der Normalfall, Clear nur über Medien mit Abdunkelung, und beide werden nie gemischt. Bewegung beschreibt Apple nur qualitativ: mit Zweck, kurz, abbrechbar, nicht bei häufigen Interaktionen. Empfohlene Übergänge sind der Morph vom Knopf zum Menü oder Popover («bubble pops open … right where you just tapped»), das Aktionsblatt aus dem auslösenden Element, das Sheet mit Abdunkelung und der Scroll-Edge-Effekt statt fester Leistenflächen. Diagramme: einfach halten, Details und Teilmengen wählbar machen (das ist die HIG-Grundlage für Filter), die Hauptaussage als Titel, feste Achse bei bedeutsamen Grenzen, nie nur Farbe, Interaktion nie als Pflicht und Änderungen auch ohne Animation kenntlich machen. Das Notenportal setzt schon viel davon um: reduzierte Bewegung und Transparenz, Scroll-Edge-Leiste, Notenachse 1–6, Strichmuster, Diagramm-Fazit. Verbesserungsmöglichkeiten bestehen beim Morph der Menüs (bisher nur Opazität), bei fehlendem prefers-contrast und bei der Ansage von Diagrammänderungen. Der Wunsch nach mehr Glas und mehr Bewegung stösst an mehrere ausdrückliche Grenzen von Apple; diese stehen unter Risiken.",
+  "fakten": [
+   {
+    "thema": "Liquid Glass: Wesen",
+    "befund": "Liquid Glass ist eine eigene Funktionsebene für Bedienung und Navigation, die über dem Inhalt schwebt. Zitat: «Liquid Glass forms a distinct functional layer for controls and navigation elements — like tab bars and sidebars — that floats above the content layer»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Liquid-Glass"
+   },
+   {
+    "thema": "Liquid Glass: Wesen",
+    "befund": "Lensing statt Streuung: Das Glas biegt und bündelt Licht in Echtzeit und grenzt sich so vom Hintergrund ab. Zitat: «Where as previous materials scattered light, this new set of materials dynamically bends, shapes, and concentrates light in real time.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Wesen",
+    "befund": "Glas wird nicht einfach ein- oder ausgeblendet, sondern materialisiert sich über das Lensing. Zitat: «Instead of fading, Liquid Glass objects materialize in and out by gradually modulating the light bending and lensing»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Wesen",
+    "befund": "Technische Definition: Glas zeichnet weich, spiegelt Farbe und Licht der Umgebung und reagiert auf den Zeiger. Zitat: «blurs content behind it, reflects color and light of surrounding content, and reacts to touch and pointer interactions in real time»",
+    "quelle": "https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views"
+   },
+   {
+    "thema": "Liquid Glass: Adaptivität",
+    "befund": "Jede Schicht passt sich dem Hintergrund an; liegt Text darunter, wird der Schatten kräftiger. Zitat: «each layer continuously adapts based on what’s behind it. As text scrolls underneath, shadows become more prominent to create additional separation.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Adaptivität",
+    "befund": "Grössere Glasflächen, etwa ein Menü aus einem Toolbar-Knopf, wirken dicker: tiefere Schatten, stärkeres Lensing. Zitat: «its material characteristics change to simulate a thicker, more substantial material. It casts deeper, richer shadows, has more pronounced lensing»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Adaptivität",
+    "befund": "Kleine Leisten wechseln je nach Hintergrund zwischen hell und dunkel, grosse Flächen wie Menüs und Seitenleisten nicht. Zitat: «Bigger elements, like menus or sidebars also adapt based on context, but they don’t flip from light to dark.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Adaptivität",
+    "befund": "Grosse Elemente wie Seitenleisten sind deckender, damit sie lesbar bleiben. Zitat: «Liquid Glass appears more opaque in larger elements like sidebars to preserve legibility over complex backgrounds»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/color#Liquid-Glass-color"
+   },
+   {
+    "thema": "Liquid Glass: Dynamik",
+    "befund": "Bei Interaktion leuchtet das Glas von innen auf; der Schein greift auf benachbartes Glas über. Zitat: «When you interact with Liquid Glass, the material illuminates from within as a form of feedback.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Dynamik",
+    "befund": "Elemente werden nur während der Interaktion zu Glas; im Ruhezustand bleiben sie ruhig. Zitat: «Elements can even lift up into Liquid Glass temporarily, such as when you interact with a component. This lets the resting state stay visually quiet»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Dynamik",
+    "befund": "Verliert das Fenster den Fokus, tritt das Glas zurück. Zitat: «when a window loses focus on the Mac or iPad, Liquid Glass shifts its appearance and visually recedes to guide attention.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Varianten",
+    "befund": "Regular ist der Normalfall: Es zeichnet weich und passt die Helligkeit an; gedacht für textreiche Elemente wie Seitenleisten und Popover. Zitat: «Use the regular variant … when components have a significant amount of text, such as alerts, sidebars, or popovers.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Liquid-Glass"
+   },
+   {
+    "thema": "Liquid Glass: Varianten",
+    "befund": "Clear nur über bildreichem Hintergrund; bei hellem Inhalt eine Abdunkelung von 35 %. Zitat: «If the underlying content is bright, consider adding a dark dimming layer of 35% opacity.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Liquid-Glass"
+   },
+   {
+    "thema": "Liquid Glass: Varianten",
+    "befund": "Clear nur, wenn drei Bedingungen erfüllt sind: Medieninhalt darunter, die Abdunkelung stört nicht, der Inhalt darauf ist kräftig und hell. Zitat: «whereas the Regular variant can work anywhere, Clear should only be used when these 3 conditions are met.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Kein Glas in der Inhaltsebene; dort gehören Standardmaterialien hin. Zitat: «Don’t use Liquid Glass in the content layer.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Liquid-Glass"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Ausnahme: Schieberegler und Schalter im Inhalt werden nur während der Bedienung zu Glas. Zitat: «the element takes on a Liquid Glass appearance to emphasize its interactivity when a person activates it.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Liquid-Glass"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Tabellen gehören nicht in Glas, sonst konkurrieren sie mit der Navigation. Zitat: «Consider this tableview: making it Liquid Glass would make it compete with other elements and muddy the hierarchy.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Kein Glas auf Glas; Elemente obendrauf erhalten Füllung, Transparenz und Vibrancy. Zitat: «always avoid glass on glass … use fills, transparency, and vibrancy for the top elements to make them feel like a thin overlay»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Das Glas gehört auf das Bedienelement selbst, nicht auf dessen innere Teile. Zitat: «make sure to apply the material directly to the control, not its inner views.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Die Navigation liegt in der obersten Ebene, klar getrennt vom Inhalt. Zitat: «Liquid Glass applies to the topmost layer of the interface, where you define your navigation.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Eigene Hintergründe in Leisten entfernen; sie stören das Glas und den Scroll-Edge-Effekt. Zitat: «Reduce your use of custom backgrounds in controls and navigation elements.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Hierarchie entsteht durch Layout und Gruppierung, nicht durch Dekoration wie Rahmen oder zusätzliche Flächen. Zitat: «Instead of relying on decoration, hierarchy should be expressed through layout and grouping.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Liquid Glass: Platzierung",
+    "befund": "Im Ruhezustand sollen sich Inhalt und Glas nicht überschneiden. Zitat: «In steady states, such as when an app first launches, avoid intersections between content and Liquid Glass.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Lesbarkeit",
+    "befund": "Bedienelemente liegen auf einem Systemmaterial, nicht direkt auf dem Inhalt. Zitat: «controls sit on top of a system material, not directly on content. Without that separation, contrast can suffer.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Lesbarkeit",
+    "befund": "Statt einer Fläche unter den Bedienelementen den Scroll-Edge-Effekt verwenden. Zitat: «Instead of applying a solid or semi-opaque background color beneath controls, use a scroll edge effect to visually elevate controls above content.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/layout#Visual-hierarchy"
+   },
+   {
+    "thema": "Lesbarkeit: Scroll Edge",
+    "befund": "Der Scroll-Edge-Effekt gehört nur hinter schwebende Elemente und ist keine Dekoration. Zitat: «Scroll edge effects aren’t decorative. They don’t block or darken like overlays; they exist to ensure controls stay visually distinct.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/scroll-views#Scroll-edge-effects"
+   },
+   {
+    "thema": "Lesbarkeit: Scroll Edge",
+    "befund": "Ein Effekt pro Ansicht; bei geteilten Spalten gleich hoch halten. Zitat: «Apply one scroll edge effect per view.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/scroll-views#Scroll-edge-effects"
+   },
+   {
+    "thema": "Lesbarkeit: Scroll Edge",
+    "befund": "Weich ist der Standard; hart (deckend) vor allem auf macOS für Text und angeheftete Tabellenköpfe. Zitat: «Hard is mostly used on macOS. It creates a stronger, more opaque boundary—ideal for interactive text, controls without backgrounds, or pinned table headers»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Lesbarkeit: Scroll Edge",
+    "befund": "Unter dunklem Inhalt dimmt der Effekt, statt den Inhalt aufzulösen. Zitat: «the effect intelligently switches to apply a subtle dimming instead, again ensuring contrast and legibility.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Lesbarkeit: Vibrancy",
+    "befund": "Auf Materialien lebendige (vibrant) Systemfarben verwenden. Zitat: «Regardless of the material you choose, use vibrant colors on top of it.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Standard-materials"
+   },
+   {
+    "thema": "Lesbarkeit: Materialdicke",
+    "befund": "Dicke Materialien für feinen Text, dünne, damit der Kontext sichtbar bleibt. Zitat: «Thicker materials, which are more opaque, can provide better contrast for text and other elements with fine features.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/materials#Standard-materials"
+   },
+   {
+    "thema": "Lesbarkeit: Reduced Transparency / Increase Contrast",
+    "befund": "Reduzierte Transparenz macht das Glas frostiger; erhöhter Kontrast macht Elemente schwarz oder weiss mit Kontrastrand. Zitat: «Reduced Transparency, makes Liquid Glass frostier … Increased contrast, makes elements predominantly black or white and highlights them with a contrasting border»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Lesbarkeit: Reduced Motion",
+    "befund": "Reduzierte Bewegung dämpft die Effekte und schaltet die Elastizität ab. Zitat: «Reduced Motion decreases the intensity of some effects and disables any elastic properties for the material.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Lesbarkeit: Einstellungen testen",
+    "befund": "Eigene Elemente mit reduzierter Transparenz und reduzierter Bewegung testen. Zitat: «Ensure you test your app’s custom elements, colors, and animations with different configurations of these settings.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Lesbarkeit: Kontrast",
+    "befund": "Mindestkontrast nach WCAG AA: bis 17 pt 4.5:1, ab 18 pt oder fett 3:1. Zitat: «Accessibility Inspector uses the following values from WCAG Level AA as guidance in determining whether your app’s colors have an acceptable contrast.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/accessibility#Vision"
+   },
+   {
+    "thema": "Bewegung: Zweck",
+    "befund": "Bewegung nur mit Zweck, nie als Selbstzweck. Zitat: «Add motion purposefully, supporting the experience without overshadowing it. Don’t add motion for the sake of adding motion.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Best-practices"
+   },
+   {
+    "thema": "Bewegung: optional",
+    "befund": "Bewegung darf nie der einzige Träger einer Information sein. Zitat: «Make motion optional. … avoid using it as the only way to communicate important information.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Best-practices"
+   },
+   {
+    "thema": "Bewegung: Dauer",
+    "befund": "Rückmeldeanimationen kurz und präzise; Zahlenwerte nennt die HIG nicht. Zitat: «Aim for brevity and precision in feedback animations.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Providing-feedback"
+   },
+   {
+    "thema": "Bewegung: Häufigkeit",
+    "befund": "Häufige Interaktionen nicht animieren. Zitat: «In apps, generally avoid adding motion to UI interactions that occur frequently.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Providing-feedback"
+   },
+   {
+    "thema": "Bewegung: Unterbrechbarkeit",
+    "befund": "Animationen müssen abbrechbar sein; niemand soll auf ihr Ende warten müssen. Zitat: «Let people cancel motion. As much as possible, don’t make people wait for an animation to complete before they can do anything»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Providing-feedback"
+   },
+   {
+    "thema": "Bewegung: Realismus",
+    "befund": "Bewegung folgt Geste und Erwartung, etwa gleiche Richtung beim Öffnen und Schliessen. Zitat: «Strive for realistic feedback motion that follows people’s gestures and expectations.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion#Providing-feedback"
+   },
+   {
+    "thema": "Bewegung: Eingabeart",
+    "befund": "Mit dem Trackpad reagiert Glas gedämpfter als bei Berührung; das betrifft auch den Desktop-Browser. Zitat: «produces a more subdued effect when a person interacts using a trackpad.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/motion"
+   },
+   {
+    "thema": "Bewegung: Reduce Motion",
+    "befund": "Bei reduzierter Bewegung automatische und wiederholte Animationen zurücknehmen, auch Zoom, Skalierung und Bewegung am Rand. Zitat: «ensure your app or game responds by reducing automatic and repetitive animations, including zooming, scaling, and peripheral motion.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/accessibility#Cognitive"
+   },
+   {
+    "thema": "Bewegung: Reduce Motion",
+    "befund": "Konkrete Massnahmen: Federn straffen, Bewegung entlang der Achsen durch Überblendung ersetzen, keine Animationen in eine Unschärfe hinein oder aus ihr heraus. Zitat: «Replacing transitions in x-, y-, and z-axes with fades to avoid motion» · «Avoiding animating into and out of blurs»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/accessibility#Cognitive"
+   },
+   {
+    "thema": "Bewegung: Morph Knopf→Menü",
+    "befund": "Knöpfe verwandeln sich fliessend in Menüs und Popover. Zitat: «buttons fluidly morph into menus and popovers.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Bewegung: Morph Knopf→Menü",
+    "befund": "Das Menü öffnet sich als Blase an der Stelle des Klicks; der Zusammenhang zwischen Knopf und Inhalt bleibt sichtbar. Zitat: «the bubble simply pops open to reveal the content contained within. This lightweight, in-line transition keeps everything right where you just tapped.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Bewegung: Zustandswechsel",
+    "befund": "Bedienelemente morphen beim Wechsel zwischen Ansichten auf einer einzigen schwebenden Ebene. Zitat: «As you go between states in an app, Liquid Glass dynamically morphs between the controls in each context.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Bewegung: Morph-Technik",
+    "befund": "Ein Morph entsteht, wenn Glasformen innerhalb eines Abstands verschmelzen; sonst gilt der materialize-Übergang. Zitat: «A container also allows views with Liquid Glass effects to blend their shapes together and to morph in and out of each other during transitions.»",
+    "quelle": "https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views"
+   },
+   {
+    "thema": "Bewegung: Sheet",
+    "befund": "Unterbricht ein Blatt den Ablauf, kommen Glas und Abdunkelung zusammen. Zitat: «When a task interrupts the main flow, pair Liquid Glass with a dimming layer to help center attention»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Bewegung: Sheet",
+    "befund": "Ein halbes Blatt ist eingerückt und wird beim Ausfahren deckender. Zitat: «When a half sheet expands to full height, it transitions to a more opaque appearance to help maintain focus on the task.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Bewegung: Aktionsblatt",
+    "befund": "Aktionsblätter entspringen dem Element, das sie auslöst. Zitat: «An action sheet originates from the element that initiates the action, instead of from the bottom edge of the display.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Bewegung: Leiste beim Scrollen",
+    "befund": "Belegt ist nur, dass die Tab-Leiste unter iOS beim Scrollen zurücktritt; eine Regel für schrumpfende Toolbars habe ich nicht gefunden. Zitat: «Tab bars can help elevate the underlying content by receding when a person scrolls up or down.»",
+    "quelle": "https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass"
+   },
+   {
+    "thema": "Bewegung: Popover",
+    "befund": "Ändert sich die Grösse eines Popovers, wird der Wechsel animiert, damit es nicht wie ein neues Popover wirkt. Zitat: «Provide a smooth transition when changing the size of a popover.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/popovers#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Zweck",
+    "befund": "Ein Diagramm nur dann, wenn es eine Aussage hervorhebt; sonst eine Liste oder Tabelle. Zitat: «If you simply need to provide data … consider offering the data in other ways, such as in a list or table»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charting-data"
+   },
+   {
+    "thema": "Diagramme: Einfachheit",
+    "befund": "Einfach halten; Details nur auf Wunsch zeigen. Zitat: «Keep a chart simple, letting people choose when they want additional details.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charting-data#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Filter",
+    "befund": "Detailstufen oder Teilmengen wählen lassen; das ist die HIG-Grundlage für Filter. Zitat: «you might let people choose to view different levels of detail or subsets of data to match their interest.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charting-data#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Perspektiven",
+    "befund": "Die Daten auf drei Ebenen anbieten: Überblick (Summen, Mittelwerte), Teilmengen, Einzelwerte. Zitat: «viewing the data from a macro level can help you determine high-level summaries that people might be interested in, like totals or averages.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charting-data#Designing-effective-charts"
+   },
+   {
+    "thema": "Diagramme: Typwahl",
+    "befund": "Balken für den Vergleich von Kategorien, Linien für Verläufe, Punkte für Ausreisser und Häufungen. Zitat: «Bar marks work well in charts that help people compare values in different categories»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Marks"
+   },
+   {
+    "thema": "Diagramme: Typwahl",
+    "befund": "Die Linie zeigt den Trend; Punkte auf der Linie heben Einzelwerte hervor. Zitat: «if you use a line chart to show a change over time, you might want to add point marks on top of the line»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Marks"
+   },
+   {
+    "thema": "Diagramme: Achse",
+    "befund": "Feste Achse, wenn Minimum und Maximum eine Bedeutung haben (Noten 1–6). Zitat: «Consider using a fixed range when specific minimum and maximum values are meaningful for all possible data values.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Axes"
+   },
+   {
+    "thema": "Diagramme: Achse",
+    "befund": "Balken beginnen bei null; liegen die Werte weit von null entfernt, kann die Nullbasis Unterschiede verdecken. Zitat: «bar charts can work well when you use zero for the lower bound of the Y axis»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Axes"
+   },
+   {
+    "thema": "Diagramme: Raster",
+    "befund": "Interaktive Diagramme brauchen weniger Rasterlinien und helle Beschriftungen. Zitat: «you might use fewer grid lines and light label colors to ensure the data remains visually prominent.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Axes"
+   },
+   {
+    "thema": "Diagramme: Beschreibung",
+    "befund": "Die Hauptaussage steht als Titel oder Zusammenfassung über dem Diagramm. Zitat: «Summarize the main message of your chart to help make it approachable and useful for everyone.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Descriptive-content"
+   },
+   {
+    "thema": "Diagramme: Interaktion",
+    "befund": "Interaktion ist erlaubt, darf aber nie Voraussetzung für die Kerninformation sein. Zitat: «Let people interact with the data when it makes sense, but don’t require interaction to reveal critical information.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Interaktion",
+    "befund": "Bei kleinen Markierungen die ganze Plotfläche zur Trefferfläche machen, über die man streichen kann. Zitat: «consider expanding the hit target to include the entire plot area, letting people scrub across the area to reveal various values.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Tastatur",
+    "befund": "Interaktive Diagramme per Tastatur entlang der X-Achse oder in Teilmengen bedienbar machen. Zitat: «Make an interactive chart easy to navigate when using keyboard commands (including full keyboard access) or Switch Control.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Änderungen",
+    "befund": "Änderungen animieren, aber zusätzlich auf anderem Weg kenntlich machen, für Screenreader und ohne Animation. Zitat: «you need to highlight the changes in other ways, too, to ensure that VoiceOver users and people who turn off animations know about them.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Hierarchie",
+    "befund": "Die Daten sind am auffälligsten; Achsen und Beschreibungen halten sich zurück. Zitat: «Typically, you want the data itself to be most prominent, while letting the descriptions and axes provide additional context without competing with the data.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Best-practices"
+   },
+   {
+    "thema": "Diagramme: Farbe",
+    "befund": "Nie nur Farbe; Formen oder Muster ergänzen sie. Zitat: «Avoid relying solely on color to differentiate between different pieces of data or communicate essential information in a chart.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Color"
+   },
+   {
+    "thema": "Diagramme: Farbe",
+    "befund": "Trennlinien zwischen angrenzenden Farbflächen, etwa bei gestapelten Balken. Zitat: «Aid comprehension by adding visual separation between contiguous areas of color.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Color"
+   },
+   {
+    "thema": "Diagramme: Konsistenz",
+    "befund": "Zeigen mehrere Diagramme denselben Datensatz, bleiben Typ, Farben und Anmerkungen gleich. Zitat: «it’s important to use one chart type and consistent colors, annotations, layouts, and descriptive text to signal that the dataset remains the same.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charting-data#Designing-effective-charts"
+   },
+   {
+    "thema": "Diagramme: Barrierefreiheit",
+    "befund": "Ohne Audio Graphs müssen Diagrammtyp, Bedeutung der Achsen und Achsengrenzen beschrieben werden. Zitat: «identify the chart’s type … explain what each axis represents, and describe details like the upper and lower axis bounds.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Enhancing-the-accessibility-of-a-chart"
+   },
+   {
+    "thema": "Diagramme: Barrierefreiheit",
+    "befund": "Beschriftungen nennen echte Werte, keine wertenden Wörter und keine mehrdeutigen Abkürzungen. Zitat: «Avoid using subjective terms. … To help people form their own interpretations, use actual values in your descriptions.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Enhancing-the-accessibility-of-a-chart"
+   },
+   {
+    "thema": "Diagramme: Barrierefreiheit",
+    "befund": "Sichtbare Achsen- und Tick-Beschriftungen vor Hilfstechnologien verbergen. Zitat: «Hide visible text labels for axes and ticks from assistive technologies.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/charts#Enhancing-the-accessibility-of-a-chart"
+   },
+   {
+    "thema": "Farbe: Glas",
+    "befund": "Glas hat keine Eigenfarbe; eine Primäraktion wird über die Farbe ihres Hintergrunds hervorgehoben. Zitat: «To emphasize primary actions, apply color to the background rather than to symbols or text.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/color#Liquid-Glass-color"
+   },
+   {
+    "thema": "Farbe: Glas",
+    "befund": "Farbe auf Glas sparsam; nicht mehrere Bedienelemente farbig hinterlegen. Zitat: «Refrain from adding color to the background of multiple controls.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/color#Liquid-Glass-color"
+   },
+   {
+    "thema": "Farbe: Glas",
+    "befund": "Getöntes Glas statt deckender Füllung; die Tönung passt sich der Helligkeit dahinter an. Zitat: «a button that is using a solid fill instead of the built-in tinting … is completely opaque and breaks the visual character»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Farbe: Glas",
+    "befund": "Farbe gehört in die Inhaltsebene, nicht auf alle Bedienelemente. Zitat: «Avoid tinting all your elements. … If you want to imbue color into your app, do it in the content layer instead.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/219/"
+   },
+   {
+    "thema": "Farbe: Akzent",
+    "befund": "Ist der Inhalt weitgehend einfarbig, darf die Markenfarbe als Akzent dienen. Zitat: «in apps with primarily monochromatic content or backgrounds, choosing your brand color as the app accent color can be an effective way»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/color#Liquid-Glass-color"
+   },
+   {
+    "thema": "Farbe: Dunkelmodus",
+    "befund": "Semantische, anpassungsfähige Farben statt fest codierter Werte. Zitat: «Avoid using hard-coded color values or colors that don’t adapt.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/dark-mode#Dark-Mode-colors"
+   },
+   {
+    "thema": "Farbe: Dunkelmodus",
+    "befund": "Kontrast mindestens 4.5:1, bei eigenen Farben 7:1 anstreben. Zitat: «make sure the contrast ratio between colors is no lower than 4.5:1. For custom … colors, strive for a contrast ratio of 7:1»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/dark-mode#Dark-Mode-colors"
+   },
+   {
+    "thema": "Farbe: Dunkelmodus",
+    "befund": "Base und elevated: Vordere Ebenen sind heller, hintere dunkler. Zitat: «The base colors are dimmer, making background interfaces appear to recede, and the elevated colors are brighter, making foreground interfaces appear to advance.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/dark-mode#iOS-iPadOS"
+   },
+   {
+    "thema": "Farbe: Dunkelmodus",
+    "befund": "Den Dunkelmodus mit erhöhtem Kontrast und reduzierter Transparenz testen, einzeln und zusammen. Zitat: «in Dark Mode with Increase Contrast and Reduce Transparency turned on (both separately and together), you may find places where dark text is less legible»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/dark-mode#Best-practices"
+   },
+   {
+    "thema": "Farbe: Varianten",
+    "befund": "Jede eigene Farbe braucht eine helle und eine dunkle Variante, je mit Fassung für erhöhten Kontrast. Zitat: «supply light and dark variants, and an increased contrast option for each variant that provides a significantly higher amount of visual differentiation.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/color#Best-practices"
+   },
+   {
+    "thema": "Toolbar",
+    "befund": "Höchstens drei Gruppen; Symbol- und Textknöpfe nicht in derselben Gruppe. Zitat: «Minimize the number of groups. … In general, aim for a maximum of three.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/toolbars#Item-groupings"
+   },
+   {
+    "thema": "Toolbar",
+    "befund": "Nur eine Primäraktion, getönt und am rechten Rand (trailing). Zitat: «Only specify one primary action, and put it on the trailing side of the toolbar.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/toolbars#Actions"
+   },
+   {
+    "thema": "Toolbar",
+    "befund": "Keine eigenen Hintergründe und Tönungen in der Toolbar; der Inhalt bestimmt ihr Aussehen. Zitat: «Reduce the use of toolbar backgrounds and tinted controls.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/toolbars#Best-practices"
+   },
+   {
+    "thema": "Toolbar",
+    "befund": "Eigene Bauteile haben Eckenradien, die konzentrisch zu den Ecken der Leiste sind. Zitat: «If you need to create a custom component, ensure that its corner radius is also concentric with the bar’s corners.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/toolbars#Best-practices"
+   },
+   {
+    "thema": "Form / Konzentrizität",
+    "befund": "Drei Formtypen: fest, Kapsel und konzentrisch (Radius des Elternelements minus Abstand); Kapseln am Desktop nur für herausragende Aktionen. Zitat: «concentric shapes calculate their radius by subtracting padding from the parent’s.» · «in dense desktop environments, they’re best used for standout actions.»",
+    "quelle": "https://developer.apple.com/videos/play/wwdc2025/356/"
+   },
+   {
+    "thema": "Sidebar",
+    "befund": "Die Seitenleiste schwebt als Glas; der Inhalt läuft unter ihr weiter (Background Extension). Zitat: «To reinforce the separation, you can extend content beneath the sidebar either by letting it horizontally scroll or by applying a background extension effect.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/sidebars#Best-practices"
+   },
+   {
+    "thema": "Sidebar",
+    "befund": "Höchstens zwei Hierarchiestufen; nichts Wichtiges an den unteren Rand (macOS). Zitat: «In general, show no more than two levels of hierarchy in a sidebar.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/sidebars#Best-practices"
+   },
+   {
+    "thema": "Menü",
+    "befund": "Symbole in Menüs sparsam und innerhalb einer Gruppe einheitlich: alle oder keine. Zitat: «Apply a uniform visual treatment across menu items in the same group. … provide icons for all menu items in a group, or none of them.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/menus#Icons"
+   },
+   {
+    "thema": "Popover",
+    "befund": "Nur ein Popover zur gleichen Zeit, keines aus einem anderen heraus, keines für Warnungen. Zitat: «Show one popover at a time. … Never show a cascade or hierarchy of popovers»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/popovers#Best-practices"
+   },
+   {
+    "thema": "Sheet",
+    "befund": "Nur ein Blatt zur gleichen Zeit; neben «Fertig» immer auch «Abbrechen» anbieten. Zitat: «Display only one sheet at a time from the main interface.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/sheets#Best-practices"
+   },
+   {
+    "thema": "Segmented Control",
+    "befund": "Höchstens etwa fünf bis sieben Segmente; Text oder Bild, nicht gemischt. Zitat: «Aim for no more than about five to seven segments in a wide interface»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/segmented-controls#Best-practices"
+   },
+   {
+    "thema": "Suchfeld",
+    "befund": "Die Suche startet schon beim Tippen, zeigt Vorschläge und filtert über Scope Bar und Tokens. Zitat: «If possible, start search immediately when a person types.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/search-fields#Best-practices"
+   },
+   {
+    "thema": "Suchfeld",
+    "befund": "Unter macOS gehört das Suchfeld an den rechten Rand der Toolbar (trailing); zum Filtern auch oben in die Seitenleiste. Zitat: «Put a search field at the trailing side of the toolbar for many common uses.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/search-fields#iPadOS-macOS"
+   },
+   {
+    "thema": "Suchfeld",
+    "befund": "Tokens dienen als Filter; zuerst breit suchen, dann eingrenzen. Zitat: «Default to a broader scope and let people refine it as they need.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/search-fields#Scope-bars-and-tokens"
+   },
+   {
+    "thema": "Buttons",
+    "befund": "Höchstens ein bis zwei hervorgehobene Knöpfe je Ansicht. Zitat: «Keep the number of prominent buttons to one or two per view.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/buttons#Style"
+   },
+   {
+    "thema": "Buttons",
+    "befund": "Eigene Knöpfe brauchen einen sichtbaren gedrückten Zustand. Zitat: «Always include a press state for a custom button.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/buttons#Best-practices"
+   },
+   {
+    "thema": "Tab-Leiste",
+    "befund": "Die Tab-Leiste dient nur der Navigation und enthält keine Aktionen. Zitat: «Use a tab bar to support navigation, not to provide actions.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/tab-bars#Best-practices"
+   },
+   {
+    "thema": "Dark Mode: eigene App-Einstellung",
+    "befund": "Keine eigene Hell/Dunkel-Einstellung in der App. Zitat: «Avoid offering an app-specific appearance setting.»",
+    "quelle": "https://developer.apple.com/design/human-interface-guidelines/dark-mode#Best-practices"
+   },
+   {
+    "thema": "Performance",
+    "befund": "Die Zahl der gleichzeitig sichtbaren Glaseffekte begrenzen. Zitat: «Limit the use of Liquid Glass effects onscreen at the same time.»",
+    "quelle": "https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views"
+   }
+  ],
+  "luecken": [
+   "Keine Seite fehlte: Alle 17 HIG-JSON-Seiten, die drei Technology Overviews (adopting-liquid-glass, liquid-glass, app-design-and-ui) und beide WWDC25-Seiten (219, 356, Transkript im HTML) lieferten HTTP 200. Zusätzlich gelesen: charting-data, typography (nicht ausgewertet) und documentation/swiftui/applying-liquid-glass-to-custom-views.",
+   "Die HIG-Seite accessibility hat keinen eigenen Abschnitt zu Motion oder Transparency. Reduce Motion steht nur als ein Absatz mit fünf Punkten unter «Cognitive». Wie sich Glas bei Reduce Transparency und Increase Contrast verhält, steht nur in dark-mode (Testhinweis) und im Transkript von WWDC25/219.",
+   "Keine Apple-Quelle nennt Zahlen für Animationsdauer, Federparameter (Masse, Dämpfung) oder Easing-Kurven. Die HIG Motion ist rein qualitativ («brevity and precision», «let people cancel motion»). Werte für das Notenportal müssen begründet gesetzt werden, Apple belegt sie nicht.",
+   "«Toolbar schrumpft beim Scrollen» ist nicht belegt. adopting-liquid-glass beschreibt nur das Minimieren der Tab-Leiste unter iOS. Für Toolbars gibt es nur den Scroll-Edge-Effekt und das kontextuelle Ausblenden (toolbars: «Consider temporarily hiding toolbars»).",
+   "Keine Apple-Quelle behandelt die Umsetzung von Liquid Glass im Web oder mit CSS (Lensing, Refraktion, Highlights). WebKit- und Safari-Quellen habe ich nicht durchsucht. Ob und wie sich Lensing mit backdrop-filter oder SVG-Filtern annähern lässt, bleibt offen.",
+   "Das Transkript von WWDC25/219 enthält den Tippfehler «thecontrols»; im Zitat steht «the controls». Die Bilder und Videos der Sitzungen (z. B. Morph-Ablauf, Schattenverhalten) habe ich nicht gesehen, nur den Text.",
+   "Die HIG-Tabellen in materials, accessibility und color konnte mein Flattener nicht sauber auslesen. Der Kontrastwert (bis 17 pt 4.5:1, ab 18 pt 3:1, fett 3:1) ist aus den zerlegten Zeilen rekonstruiert (accessibility.txt Z. 26–28).",
+   "Im Repo habe ich nur gezielt gegrept, nicht vollständig gelesen. Nicht geprüft: ob unter #np-seitenleiste Inhalt durchläuft (Background Extension), ob eine Filteränderung an Diagrammen per aria-live angesagt wird (in dashboards/lernender.blade.php und components/diagramm.blade.php kein aria-live gefunden; andere Dateien und JS nicht geprüft) und docs/auftrag/GUI-APPLE.md."
+  ],
+  "chancen": [
+   "Menüs morphen aus dem Knopf: resources/views/layouts/navigation.blade.php:106-107 und 137-138 öffnen Menüs nur mit transition-opacity. Apple empfiehlt «buttons fluidly morph into menus and popovers» (adopting-liquid-glass) und «the bubble simply pops open … right where you just tapped» (WWDC25/219). Umsetzbar mit transform-origin am Auslöser plus scale/opacity über @starting-style; bei reduzierter Bewegung nur Überblendung, wie es accessibility#Cognitive verlangt.",
+   "Erhöhten Kontrast unterstützen: In resources/css/app.css und theme.css gibt es kein prefers-contrast (grep leer). Apple: Increased Contrast «makes elements predominantly black or white and highlights them with a contrasting border» (WWDC25/219), und jede Farbe braucht «an increased contrast option for each variant» (color#Best-practices). Gesucht ist ein Block @media (prefers-contrast: more) für np-glas, glass-overlay und np-glas-gruppe: deckend, Rand in --border-strong, Notenfarben mit höherem Kontrast.",
+   "Diagrammänderungen ohne Animation ankündigen: resources/js/charts.js:39 animiert Datenwechsel mit 350 ms. HIG Charts verlangt, Änderungen «in other ways, too» kenntlich zu machen. Bei Filterwechseln (Segment «Zeitraum»/«Ebene» in resources/views/dashboards/lernender.blade.php:131 und 182) das Fazit bzw. aria-label in components/diagramm.blade.php neu setzen und per aria-live ansagen (ist zu prüfen, nicht verifiziert).",
+   "Filterbare Statistiken nach HIG aufbauen: charting-data empfiehlt Detailstufen und Teilmengen («subsets of data») sowie die drei Perspektiven Überblick (Mittel), Teilmengen und Einzelwerte. Die Segmente auf dashboards/lernender.blade.php:131/182 sind der Anfang. Ausbaubar über Scope-Bar oder Tokens (search-fields#Scope-bars-and-tokens) und Konsistenz zwischen kleinem und grossem Diagramm («Maintain continuity among multiple charts»). Durchschnitte weiterhin nur aus App\\Services\\Auswertung.",
+   "Scrubben über die ganze Plotfläche und Tastaturbedienung: charts.js:40 setzt bereits interaction {mode:'index', intersect:false}, was dem HIG-Hinweis zur Trefferfläche entspricht. Es fehlt (nicht gefunden) eine Tastaturnavigation entlang der X-Achse (charts#Best-practices: «navigate along the X axis»), z. B. mit Pfeiltasten auf dem Canvas, die den Tooltip setzen.",
+   "Punkte auf Linien als Einzelwert-Marker und Trennlinien bei gestapelten Flächen (charts#Marks, charts#Color). In charts.js prüfen, ob Linien Punkte nur beim Hover zeigen; die HIG schlägt «point marks on top of the line» für hervorgehobene Werte vor.",
+   "Glas reagiert auf Interaktion: Apple nennt «illuminates from within as a form of feedback» und gedämpfter auf dem Trackpad (motion). Für np-glas-gruppe (app.css ab ca. 436) wäre ein dezenter Lichtschein am Zeiger bei :hover und :active denkbar, auf Glas der Bedienebene beschränkt; HIG buttons verlangt zudem «Always include a press state».",
+   "Konzentrische Radien: WWDC25/356 und toolbars#Best-practices verlangen Radien wie Elternradius minus Abstand. np-glas-gruppe hat height 2.25rem und eine Kapsel (app.css ca. 442-445). Für Menüs (navigation.blade.php:109/140, rounded-xl p-1.5) prüfen, ob die inneren Zeilenradien dem Containerradius minus 0.375rem entsprechen.",
+   "Background Extension unter der Seitenleiste: sidebars#Best-practices und WWDC25/356 lassen Inhalt unter der schwebenden Seitenleiste (navigation.blade.php:28, np-glas) weiterlaufen. Ob das Notenportal das tut, ist zu prüfen; eine Kopffläche mit Verlauf (hero) könnte unter die Seitenleiste reichen.",
+   "Bewahren, was schon passt: Reduzierte Bewegung und Transparenz (app.css:205-223, 259-268, 297 ff., 1467 ff.), Scroll-Edge-Symbolleiste np-symbolleiste (app.css ca. 410-430, entspricht layout#Visual-hierarchy), View Transitions mit 180 ms (app.css:250-257), Diagramm-Komponente mit titel/frage/fazit und Tabellenalternative (components/diagramm.blade.php:1-24, entspricht charts#Descriptive-content), feste Notenachse 1–6 (charts.js:63-65, entspricht charts#Axes) und Strichmuster für gedämpfte Reihen (charts.js:279, entspricht charts#Color)."
+  ],
+  "risiken": [
+   "Kein Glas im Inhalt: «Don’t use Liquid Glass in the content layer» (materials). Karten, Tabellen, KPI-Kacheln und Diagrammflächen bleiben feste Flächen; der Wunsch nach «mehr Transparenz» darf nicht dorthin wandern.",
+   "Sparsam: «Use Liquid Glass effects sparingly … Limit these effects to the most important functional elements» (materials) und «Limit the use of Liquid Glass effects onscreen at the same time» (applying-liquid-glass-to-custom-views).",
+   "Kein Glas auf Glas: «always avoid glass on glass» (WWDC25/219). Menüs aus einer Glaskapsel dürfen kein zweites Glas im ersten tragen; app.css:433-436 löst das bereits über ::before und muss so bleiben.",
+   "Clear nur über Medien mit Abdunkelung, «Regular and Clear … should never be mixed» (WWDC25/219). Das Notenportal hat keine Medienhintergründe, also kommt nur Regular in Frage.",
+   "Farbe auf Glas begrenzen: «Avoid tinting all your elements» (WWDC25/219) und «Refrain from adding color to the background of multiple controls» (color#Liquid-Glass-color). Höchstens eine getönte Primäraktion je Leiste (toolbars#Actions), höchstens ein bis zwei hervorgehobene Knöpfe je Ansicht (buttons#Style).",
+   "Bewegung nur mit Zweck: «Don’t add motion for the sake of adding motion» und «generally avoid adding motion to UI interactions that occur frequently» (motion). Dauerhafte Animationen, Parallax oder schwebende Effekte im Inhalt widersprechen dem; Bewegung darf nie einziger Informationsträger sein.",
+   "Unterbrechbarkeit: «don’t make people wait for an animation to complete» (motion). Einblendanimationen auf Dashboards (z. B. Zahlen hochzählen, Balken wachsen) dürfen weder Klicks noch die Navigation blockieren.",
+   "Bei reduzierter Bewegung keine Skalierung, kein Zoom, keine Animationen in eine Unschärfe hinein oder aus ihr heraus (accessibility#Cognitive). Morph-Menüs und materialisierendes Glas brauchen deshalb zwingend eine reine Überblendung als Ersatz.",
+   "Scroll-Edge ist nicht dekorativ und nur einmal pro Ansicht erlaubt (scroll-views#Scroll-edge-effects; WWDC25/356: «shouldn’t be used where there aren’t any floating UI elements»). Keine zusätzlichen Verläufe an Karten oder Listen.",
+   "Diagramme einfach halten: «Resist the temptation to pack as much data as possible into a chart» (charting-data). Mehr Statistik heisst Teilmengen und Detailstufen wählbar machen, nicht dichtere Diagramme. Ohne Aussage lieber eine Tabelle (charting-data).",
+   "Gleiche Daten, gleiches Aussehen: «use one chart type and consistent colors» (charting-data). Ein gestalterischer Neubau darf die Notenfarben-Logik und die Diagrammtypen pro Datensatz nicht ändern.",
+   "Eigene Hell/Dunkel-Einstellung: «Avoid offering an app-specific appearance setting» (dark-mode). resources/js/praeferenzen.js:79-80 bietet system/hell/dunkel an (Standard offenbar «system»). Kein neuer Ausbau in diese Richtung; prüfen, ob «system» der Standard bleibt.",
+   "Keine eigenen Hintergründe und Rahmen in Leisten: «Reduce the use of toolbar backgrounds and tinted controls» (toolbars) und «Instead of relying on decoration, hierarchy should be expressed through layout and grouping» (WWDC25/356). Mehr Glanz an der Navigation widerspricht der HIG.",
+   "Kontrast hat Vorrang vor Durchsicht: Dunkelmodus mindestens 4.5:1, bei eigenen Farben 7:1 anstreben (dark-mode). Eine geringere Deckung als heute (≥ 0.74–0.92 laut app.css:282-345) für mehr Transparenz muss gegen diese Werte gemessen werden."
+  ]
+ },
+ "browser": {
+  "zusammenfassung": "Der Stand stammt aus @mdn/browser-compat-data 8.1.4 (Zeitstempel 2026-10-01). Aktuelle Versionen: Chrome und Edge 154, Firefox 157, Safari 27. Edge baut auf Chromium auf und hat überall dieselben Versionen wie Chrome. Diese Grundlagen laufen in allen drei Browsern ohne Flag: backdrop-filter (blur, saturate, brightness), linear()-Easing, @starting-style mit transition-behavior, View Transitions im selben Dokument (Firefox ab 144), color-mix(), relative Farben, light-dark(), @property, Masken, sibling-index() und prefers-reduced-motion. Lichtbrechung über backdrop-filter: url(#svg) mit feDisplacementMap gibt es nur in Chromium. In Firefox ist das ein offener Fehler (Bug 1961378, NEW), Safari rendert laut mehreren Quellen nichts, und @supports erkennt beides nicht. prefers-reduced-transparency melden nur Chrome und Edge (ab 118). In Firefox steht es hinter einem Flag, das auf keinem Kanal aktiv ist, Safari kennt es nicht. Der vorhandene Schalter data-transparenz (app.css:1470) ist deshalb unter Safari der einzige verlässliche Weg. Scroll-gesteuerte Animationen laufen in Chrome 115+ und Safari 26+, in Firefox nur in Nightly. scroll-state(), overlay, interpolate-size/calc-size und corner-shape gibt es nur in Chromium. View Transitions zwischen Dokumenten fehlen in Firefox, das Repo hat dafür bereits eine Rückfallstufe (app.css:249). Laut Spezifikation macht jedes view-transition-name sein Element zur Backdrop Root. Das trifft Glas in Elementen, die gemorpht werden. Chart.js 4.5.1 (package.json:17) staffelt Einblendungen bereits mit einer animation.delay-Funktion. Für die Schwellenlinien braucht es kein Annotation-Plugin, das eigene Plugin npSchwellenLabel genügt. Decimation lohnt sich bei den Datenmengen des Notenportals nicht. Kleine Diagramme wie Sparklines und Notenbalken gehören als inline SVG ins DOM: Texte, Rollen und Token-Farben stehen dann direkt im Markup, und sibling-index() staffelt die Einblendung per CSS.",
+  "fakten": [
+   {
+    "thema": "Datengrundlage Stand Oktober 2026",
+    "befund": "BCD 8.1.4, Zeitstempel 2026-10-01T10:12Z. Aktuelle Releases: Chrome 154 (2026-09-22), Edge 154 (2026-09-24), Firefox 157 (2026-09-29), Safari 27 (2026-09-14). Edge-Versionen gleich Chrome (Chromium).",
+    "quelle": "https://unpkg.com/@mdn/browser-compat-data/data.json (__meta, browsers.*.releases)"
+   },
+   {
+    "thema": "backdrop-filter (blur, saturate, brightness)",
+    "befund": "Chrome/Edge 76/79, Firefox 103 (vor 123 nicht bei unbekanntem GPU-Hersteller), Safari unpräfixiert ab 18 (präfixiert -webkit- ab 9). Kein Flag. Baseline seit September 2024.",
+    "quelle": "BCD css.properties.backdrop-filter; https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/backdrop-filter"
+   },
+   {
+    "thema": "Backdrop Root",
+    "befund": "Eine Backdrop Root bilden: html, filter≠none, opacity<1, mask/mask-image/mask-border/clip-path≠none, backdrop-filter≠none, mix-blend-mode≠normal, will-change auf eine dieser Eigenschaften. Nicht dagegen: z-index, fixed/sticky, transform. Ein Glas-Kind sieht dann nur noch bis zum Vorfahren.",
+    "quelle": "https://drafts.csswg.org/filter-effects-2/#backdrop-root"
+   },
+   {
+    "thema": "view-transition-name bildet eine Backdrop Root",
+    "befund": "«Elements captured in a view transition … or whose view-transition-name computed value is not none (at any time): Form a stacking context … Form a backdrop root.» Das bestätigt den Repo-Kommentar in app.css:241-247 und 433-436.",
+    "quelle": "https://drafts.csswg.org/css-view-transitions-1/ §2.1.1 Rendering Consolidation"
+   },
+   {
+    "thema": "backdrop-filter: url(#svg) mit feDisplacementMap/feTurbulence (Lichtbrechung)",
+    "befund": "Nur Chromium. Firefox: Bug 1961378 «backdrop-filter gets ignored if it would fall back to a blob image (such like with some SVG url filters)», Status NEW, ohne Ziel, Teil des Meta-Bugs 1888025. Der Duplikat-Bug 1995195 (Firefox 143) meldet: «the @supports css tag is convinced the filter works, yet it doesn't». Safari: kein Primärbeleg. Laut kube.io und dev.to parst Safari die Deklaration und malt nichts.",
+    "quelle": "https://bugzilla.mozilla.org/show_bug.cgi?id=1961378 ; https://bugzilla.mozilla.org/rest/bug/1995195/comment ; https://kube.io/blog/liquid-glass-css-svg/ ; https://dev.to/devyatov/liquid-glass-on-the-web-6-ways-to-build-it-with-css-and-svg-3m07"
+   },
+   {
+    "thema": "Leistung der SVG-Lichtbrechung",
+    "befund": "Laut kube.io erzwingt fast jede Form- oder Grössenänderung einen kompletten Neuaufbau der Displacement-Map, nur Filterattribute wie scale lassen sich günstig animieren. Die Map hat 8 Bit je Kanal, die Verschiebung liegt also bei −128…127 px. Laut Aave hat Safari eine Obergrenze für die Grösse der Quellgrafik eines Filters (Sekundärquellen).",
+    "quelle": "https://kube.io/blog/liquid-glass-css-svg/ ; https://aave.com/design/building-glass-for-the-web"
+   },
+   {
+    "thema": "filter: url(#svg) auf HTML-Elementen",
+    "befund": "Das filter-Property ist überall Baseline (Chrome 53, Firefox 35, Safari 9.1), url() verweist laut MDN auf ein SVG-<filter>. Laut BCD-Unterfeature svg_elements wirkt filter in Safari nicht auf SVG-Elemente (Chrome 89, Firefox 35, Safari false). Firefox wendet SVG-Filter über filter: an (Bug 1961378, Kommentar 0: «Applying the exact same value to a regular filter property works»).",
+    "quelle": "BCD css.properties.filter(.svg_elements); https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/filter ; https://bugzilla.mozilla.org/show_bug.cgi?id=1961378"
+   },
+   {
+    "thema": "linear()-Easing (Federkurven)",
+    "befund": "Chrome/Edge 113, Firefox 112, Safari 17.2, kein Flag. Federn und Abpraller lassen sich damit annähern. Generator: linear-easing-generator.netlify.app (Archibald/Argyle). Ein Abpraller braucht rund 30 und mehr Stützpunkte.",
+    "quelle": "BCD css.types.easing-function.linear-function; https://developer.chrome.com/docs/css-ui/css-linear-easing-function"
+   },
+   {
+    "thema": "@starting-style und transition-behavior: allow-discrete",
+    "befund": "@starting-style: Chrome/Edge 117, Firefox 129, Safari 17.5. transition-behavior: Chrome/Edge 117, Firefox 129, Safari 17.4. Ein Ausblenden mit display:none ist damit überall animierbar. overlay (nötig, damit dialog oder popover beim Ausblenden in der Top-Layer bleibt) gibt es nur in Chrome/Edge 117, Firefox und Safari: false.",
+    "quelle": "BCD css.at-rules.starting-style, css.properties.transition-behavior, css.properties.overlay"
+   },
+   {
+    "thema": "View Transitions im selben Dokument",
+    "befund": "document.startViewTransition und view-transition-name: Chrome/Edge 111, Firefox 144, Safari 18. view-transition-class: Chrome 125, Firefox 144, Safari 18.2. view-transition-name: match-element: Chrome 137, Firefox 144, Safari 18.4. startViewTransition({types}) und :active-view-transition-type: Chrome 125, Firefox 147, Safari 18.2.",
+    "quelle": "BCD api.Document.startViewTransition(.options_parameter), css.properties.view-transition-name(.match-element), css.properties.view-transition-class, css.selectors.active-view-transition-type; https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/144"
+   },
+   {
+    "thema": "View Transitions zwischen Dokumenten (@view-transition)",
+    "befund": "Chrome/Edge 126, Safari 18.2, Firefox false. Die Release-Notes zu Firefox 144 sagen ausdrücklich: nur SPA. Im Repo aktiv in app.css:249-262, ohne Unterstützung wird normal geladen.",
+    "quelle": "BCD css.at-rules.view-transition; https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/144 ; resources/css/app.css:249"
+   },
+   {
+    "thema": "Scroll-gesteuerte Animationen (animation-timeline: scroll()/view(), animation-range, timeline-scope)",
+    "befund": "Chrome/Edge 115 (timeline-scope 116), Safari 26. Firefox laut BCD «preview»: nur Nightly ab 136 standardmässig an, Pref layout.css.scroll-driven-animations.enabled, in Beta und Release aus.",
+    "quelle": "BCD css.properties.animation-timeline(.scroll/.view), animation-range, timeline-scope; https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features ; https://webkit.org/blog/17333/webkit-features-in-safari-26-0/"
+   },
+   {
+    "thema": "scroll-state() Container Queries (stuck, scrollable, snapped)",
+    "befund": "Nur Chrome/Edge 133, als experimentell markiert. Firefox false (Bug 1931980), Safari false.",
+    "quelle": "BCD css.at-rules.container.scroll-state_queries"
+   },
+   {
+    "thema": "color-mix(), oklch, relative Farbsyntax, light-dark()",
+    "befund": "color-mix: Chrome 111, Firefox 113, Safari 16.2. oklch: Chrome 111, Firefox 113, Safari 15.4. Relative Syntax (oklch/rgb from …) vollständig erst ab Chrome 122, Firefox 128, Safari 18; davor fehlerhafte Teilumsetzungen (Chrome 119–121, Safari 16.4–17.x). light-dark(): Chrome 123, Firefox 120, Safari 17.5.",
+    "quelle": "BCD css.types.color.color-mix, .oklch(.relative_syntax), .rgb.relative_syntax, .light-dark"
+   },
+   {
+    "thema": "prefers-reduced-motion",
+    "befund": "Chrome 74, Edge 79, Firefox 63, Safari 10.1, ohne Flag. Im Repo: app.css:259 und charts.js:27-31 (bewegungReduziert()).",
+    "quelle": "BCD css.at-rules.media.prefers-reduced-motion; resources/js/charts.js:27"
+   },
+   {
+    "thema": "prefers-reduced-transparency",
+    "befund": "Chrome/Edge 118. Firefox 113 nur hinter dem Pref layout.css.prefers-reduced-transparency.enabled, auf keinem Kanal standardmässig an. Safari: false. Experimentell, nicht Baseline. Betriebssystem-Schalter: Windows unter Personalisierung › Farben › Transparenzeffekte, macOS unter Bedienungshilfen › Anzeige › Transparenz reduzieren.",
+    "quelle": "BCD css.at-rules.media.prefers-reduced-transparency; https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@media/prefers-reduced-transparency ; https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Experimental_features"
+   },
+   {
+    "thema": "@property / CSS.registerProperty (animierbare Custom Properties: Zähler, Verläufe, Winkel)",
+    "befund": "@property: Chrome/Edge 85, Firefox 128, Safari 16.4. registerProperty: Chrome 78, Firefox 128, Safari 16.4.",
+    "quelle": "BCD css.at-rules.property, api.CSS.registerProperty_static"
+   },
+   {
+    "thema": "mask / mask-image / mask-composite (Lichtkanten, weiche Ränder)",
+    "befund": "Unpräfixiert: Chrome/Edge 120, Firefox 53, Safari 15.4. -webkit-mask als Präfix seit langem. box-shadow inset überall. Wichtig: mask und clip-path machen ihr Element zur Backdrop Root.",
+    "quelle": "BCD css.properties.mask, mask-image, mask-composite; https://drafts.csswg.org/filter-effects-2/#backdrop-root"
+   },
+   {
+    "thema": "will-change / contain / content-visibility",
+    "befund": "will-change: Chrome 36, Firefox 36, Safari 9.1. contain: Chrome 52, Firefox 69, Safari 15.4. content-visibility: Chrome 85, Firefox 125, Safari 18. will-change auf filter, opacity, mask, backdrop-filter oder mix-blend-mode erzeugt eine Backdrop Root.",
+    "quelle": "BCD css.properties.will-change, contain, content-visibility; https://drafts.csswg.org/filter-effects-2/#backdrop-root"
+   },
+   {
+    "thema": "sibling-index() / sibling-count() (Staffelung per CSS)",
+    "befund": "Chrome/Edge 138, Firefox 154, Safari 26.2, alle ohne Flag in den aktuellen Releases. Damit gelingt transition-delay: calc(sibling-index() * 30ms) ohne Inline-Styles.",
+    "quelle": "BCD css.types.sibling-index, css.types.sibling-count"
+   },
+   {
+    "thema": "Nur in Chromium: corner-shape, interpolate-size/calc-size, if()",
+    "befund": "corner-shape (Squircle-Ecken): Chrome 139, Firefox und Safari nur «preview». interpolate-size und calc-size (Höhe auf auto animieren): Chrome 129, sonst false. if(): Chrome 137, sonst false.",
+    "quelle": "BCD css.properties.corner-shape, css.properties.interpolate-size, css.types.calc-size, css.types.if"
+   },
+   {
+    "thema": "CSS-Eigenschaft d (Pfad-Morph per CSS)",
+    "befund": "Chrome 52, Firefox 97. Safari: false, «The property parses, but has no effect». stroke-dashoffset (Linie zeichnet sich) funktioniert überall.",
+    "quelle": "BCD css.properties.d, css.properties.stroke-dashoffset"
+   },
+   {
+    "thema": "Chart.js 4: Animationen, Modi, Staffelung",
+    "befund": "Im Repo installiert: 4.5.1. Optionen duration (Standard 1000), easing (easeOutQuart), delay, loop. Modi active (400 ms), show, hide, resize (0), reset. animations je Eigenschaft (numbers: x, y, borderWidth, radius, tension; colors). Abschalten mit animation=false. Gestaffelte Einblendung laut offiziellem Beispiel: delay(ctx) mit ctx.type==='data' && ctx.mode==='default' && !delayed → ctx.dataIndex*300 + ctx.datasetIndex*100, und onComplete setzt delayed=true.",
+    "quelle": "node_modules/chart.js/package.json; https://www.chartjs.org/docs/latest/configuration/animations.html ; https://www.chartjs.org/docs/latest/samples/animations/delay.html"
+   },
+   {
+    "thema": "Chart.js Tooltip",
+    "befund": "Mit external lässt sich ein eigenes HTML-Tooltip rendern, z. B. als Glas mit Token-Farben. Weiter gibt es die Callbacks title, label, footer, labelColor, before/afterLabel, die Positioner average/nearest und eigene über Chart.Tooltip.positioners sowie usePointStyle. Im Repo gestaltet in charts.js:42-56 (Canvas-Tooltip, cornerRadius 12).",
+    "quelle": "https://www.chartjs.org/docs/latest/configuration/tooltip.html ; resources/js/charts.js:42"
+   },
+   {
+    "thema": "Chart.js Annotation-Plugin",
+    "befund": "chartjs-plugin-annotation (aktuelle Version: Chart.js >= 4.0.0) bietet box, ellipse, label, line, point und polygon. Im Repo nicht nötig: eigene Plugins npSchwellenLabel, npSenkrecht, npBalkenwert und npDirektlabel decken Schwellenlinien und Beschriftungen ab.",
+    "quelle": "https://www.chartjs.org/chartjs-plugin-annotation/latest/guide/ ; resources/js/charts.js:162,204,241"
+   },
+   {
+    "thema": "Chart.js Dekimation",
+    "befund": "Gilt nur für line mit parsing:false, indexAxis 'x' und linearer oder Zeit-x-Achse. Algorithmen LTTB oder min-max. Schwelle standardmässig 4× Canvas-Breite an Punkten. Bei Notenreihen (Dutzende Punkte) wirkungslos.",
+    "quelle": "https://www.chartjs.org/docs/latest/configuration/decimation.html"
+   },
+   {
+    "thema": "Chart.js Barrierefreiheit",
+    "befund": "Canvas ist für Screenreader nicht zugänglich. Nötig: role=\"img\" plus aria-label, oder sinnvoller Fallback-Inhalt zwischen <canvas>…</canvas>. Generische Texte wie «Your browser does not support the canvas element» sind ausdrücklich zu vermeiden.",
+    "quelle": "https://www.chartjs.org/docs/latest/general/accessibility.html"
+   },
+   {
+    "thema": "Ist-Stand im Repo",
+    "befund": "Easing-Tokens nur als cubic-bezier (app.css:133-134). Glas-Stufen in app.css:280-352 mit @supports-Rückfall und prefers-reduced-transparency. @starting-style in app.css:381. np-glas-gruppe legt das Glas auf ::before, um die Backdrop Root zu umgehen (app.css:433-436). Persönliche Schalter data-bewegung (app.css:205-222) und data-transparenz (app.css:1470). Chart.js-Animation pauschal 350 ms (charts.js:39). Sparkline als Canvas ohne Animation (charts.js:428). @property, animation-timeline, startViewTransition und linear() kommen in resources/ nicht vor.",
+    "quelle": "resources/css/app.css:133,205,249,280,381,433,1470; resources/js/charts.js:27-39,428; grep über resources/ ohne Treffer"
+   }
+  ],
+  "luecken": [
+   "Ungeklärt: Fällt in Firefox bei einer kombinierten Deklaration backdrop-filter: url(#x) blur(20px) das ganze Property weg, also auch der Blur? Der Titel von Bug 1961378 spricht von «gets ignored», getestet wurde es nicht. Bis zum Test als Totalausfall behandeln.",
+   "Für Safari fehlt ein Primärbeleg (WebKit-Bug oder WPT), dass backdrop-filter: url() nichts rendert. Belegt nur durch Sekundärquellen (kube.io, dev.to, logrocket).",
+   "Die Leistungszahlen zu backdrop-filter (Fläche wichtiger als Anzahl, Sticky-Header über Scrollinhalt als schlimmster Fall, Blur-Radius dank Downsample-Pyramide nahezu konstant, Chromium backdrop_filter_quality) kommen nur aus Suchtreffern von Sekundärquellen (buildmvpfast.com, grida.co). Die Seiten wurden nicht im Wortlaut gelesen, eine Messung im Repo gibt es nicht.",
+   "Offen ist, ob ein in einer View Transition eingefangenes Glas-Element während des Morphs seinen Hintergrund live behält oder als eingefrorener Snapshot mitläuft. Es gibt nur CSSWG-Diskussionen (csswg-drafts #8958, #9139), keine Primärregel gelesen.",
+   "Kein BCD-Eintrag für das SVG-Attribut pathLength (svg.elements.path hat nur d, fill, systemLanguage). Die Unterstützung ist deshalb nicht belegt.",
+   "Apples Liquid-Glass-Dokumentation (developer.apple.com/documentation/technologyoverviews/liquid-glass) wird per JS gerendert. Das JSON lieferte nur den Abstract, Aussagen zu Brechung, Glanzlicht und Barrierefreiheit wurden nicht gelesen (liegt ausserhalb von Auftrag F).",
+   "Ob Chrome oder Edge unter Windows prefers-reduced-transparency tatsächlich aus dem Schalter «Transparenzeffekte» ableiten, sagt nur MDN pauschal. Gemessen wurde es nicht.",
+   "Ob -apple-visual-effect bzw. ein natives Material im Web nur für eingebettete WebViews oder auch für Safari-Seiten gilt: nur Sekundärquelle (dev.to), kein WebKit-Beleg."
+  ],
+  "chancen": [
+   "resources/css/app.css:133-134: Neben --ease-out (cubic-bezier) Federkurven als linear()-Tokens ergänzen (--ease-spring, --ease-spring-snappy, erzeugt mit linear-easing-generator.netlify.app). Unterstützt in Chrome 113, Firefox 112 und Safari 17.2. Zur Sicherheit vorher den cubic-bezier-Wert setzen, die linear()-Deklaration folgt danach.",
+   "resources/css/app.css:280-352 (np-glas-Stufen): Grundstufe bleibt blur() saturate() brightness() mit deckender Rückfallfarbe. Lichtkante als Aufbaustufe per inset box-shadow plus Verlauf auf ::after, ohne mask auf dem Glas-Element selbst, denn mask bildet eine Backdrop Root. Lichtbrechung höchstens als eigene Schicht (Pseudo-Element mit backdrop-filter: url(#refraktion)), die nur in Chromium per JS-Klasse gesetzt wird. Nie in dieselbe Deklaration wie den Blur, und Erkennung nicht per @supports, weil Firefox und Safari es fälschlich bejahen.",
+   "resources/css/app.css:1470 (data-transparenz): Den persönlichen Schalter als massgeblichen Weg für reduzierte Transparenz behalten und anbieten. prefers-reduced-transparency nur als Zusatz, weil Safari und Firefox (Release) es nie melden.",
+   "resources/css/app.css:381 (@starting-style): Für Menüs, Toasts, Blätter und Popover-Einblendungen Muster mit transition-behavior: allow-discrete (überall ab Chrome 117, Firefox 129, Safari 17.4/17.5) und Federkurve einführen. Für dialog und popover zusätzlich overlay … allow-discrete; ohne das (Firefox, Safari) verschwindet das Element sofort, was vertretbar ist.",
+   "resources/css/app.css:249-262 (@view-transition): Zwischen Dokumenten bleibt es bei der Überblendung (Chrome 126, Safari 18.2, Firefox lädt normal). Zusätzlich document.startViewTransition() im selben Dokument für Filterwechsel in Statistiken (Chrome 111, Firefox 144, Safari 18) mit view-transition-name nur auf dem Diagramm- oder Kartenbereich, nicht auf Glas-Containern. Erkennung: if (document.startViewTransition). Bei data-bewegung oder prefers-reduced-motion direkt ohne Transition aktualisieren oder per CSS nur überblenden.",
+   "resources/css/app.css:205-222 und 259: Die Regel «Bewegung wird Überblendung» auf alle neuen Animationen ausdehnen. Unter reduce gilt: Morphs und Federn werden zu opacity mit 150 ms, Zahlen springen sofort auf den Endwert, scroll-gesteuerte Effekte bleiben aus.",
+   "@property in resources/css/app.css (neu): --np-zahl als <integer> oder <number> für hochzählende Kennzahlen (counter-reset und content oder JS-Fallback mit Endwert im DOM), --np-winkel als <angle> für animierte conic-gradient-Ringe (Fortschritt bis zur Qualifikation). Unterstützt in Chrome 85, Firefox 128 und Safari 16.4. Der Endwert steht immer als Text im DOM, damit Screenreader und reduzierte Bewegung korrekt bleiben.",
+   "Scroll-gesteuerte Einblendung von Karten nur als Aufbaustufe: @supports (animation-timeline: view()) { … } für Chrome 115 und Safari 26. Firefox (Release) bekommt den Endzustand ohne Animation, dieser Zustand muss deshalb auch der Grundzustand sein.",
+   "resources/js/charts.js:39: Pauschale 350 ms durch die gestaffelte Einblendung des offiziellen Delay-Beispiels ersetzen (ctx.type==='data' && ctx.mode==='default' && !delayed; Abstand je Punkt eher 20–40 ms statt 300, damit lange Reihen nicht schleppen). Dazu animations.y mit from aus der Basislinie und transitions.active für ein kurzes Hover-Feedback. Unter bewegungReduziert() (charts.js:27) bleibt animation=false.",
+   "resources/js/charts.js:42-56: Tooltip über external als HTML-Glas-Element (Token-Farben, tabellarische Ziffern) statt Canvas-Tooltip. Die Callbacks bleiben die Textquelle.",
+   "resources/js/charts.js:428 (Sparkline auf Canvas, duration 0): Kleine Diagramme (Sparklines, Notenbalken, Fortschrittsringe) als inline SVG in Blade. Die Farben kommen per CSS aus den Tokens, Text und Rolle (role=img, title) stehen im DOM, stroke-dashoffset zeichnet die Linie überall, und sibling-index() staffelt Balken ohne JS (Chrome 138, Firefox 154, Safari 26.2). Kein Pfad-Morph über die CSS-Eigenschaft d, weil Safari ihn nicht unterstützt.",
+   "Alle Chart.js-Canvas-Elemente: role=\"img\" plus aussagekräftiges aria-label oder Fallback-Inhalt (z. B. Mini-Tabelle der Werte) nach der Chart.js-Doku. Das annotation-Plugin nicht einführen, die eigenen Plugins (charts.js:162-241) genügen. Dekimation nicht einsetzen."
+  ],
+  "risiken": [
+   "Lichtbrechung per backdrop-filter: url(#svg) gibt es nur in Chromium. In Firefox ist es ein offener Fehler (1961378, NEW, ohne Ziel), und laut Titel wird dann das ganze backdrop-filter ignoriert, womöglich samt Blur. Safari rendert laut Sekundärquellen nichts. @supports bejaht die Syntax trotzdem (Bug 1995195). In derselben Deklaration wie der Blur droht in Firefox und Safari Glas ohne Hintergrund.",
+   "Backdrop-Root-Fallen: opacity<1, filter, mask, clip-path, mix-blend-mode, will-change auf eines davon und jedes view-transition-name auf einem Vorfahren nehmen dem Glas darin den Seitenhintergrund. Das betrifft gerade Ein- und Ausblend-Animationen per opacity auf Containern, Masken für Lichtkanten und Morphs (Filter Effects 2 §3; View Transitions 1 §2.1.1).",
+   "Leistung von backdrop-filter: Grosse Glasflächen und Glas über scrollendem Inhalt (Symbolleiste, Seitenleiste) sind am teuersten, ein animierter Blur-Radius kostet je Frame eine volle Neuberechnung. Belegt nur durch Sekundärquellen und nicht im Repo gemessen; vor dem Ausbau auf 2560×1440 messen.",
+   "Eine SVG-Displacement-Map muss bei Grössen- oder Formänderung neu aufgebaut werden (kube.io). Safari begrenzt die Grösse der Filterquelle und friert laut Aave ohne neue Filter-ID mitten in der Bewegung ein.",
+   "prefers-reduced-transparency fehlt in Safari ganz und in Firefox (Release) faktisch. Ohne den eigenen Schalter erreicht reduzierte Transparenz unter macOS mit Safari niemanden.",
+   "Scroll-gesteuerte Animationen fehlen in Firefox (Release, nur Nightly). Gestaltung, die davon abhängt, bricht dort; der Endzustand muss also der Grundzustand sein.",
+   "Nur in Chromium: scroll-state() (Chrome 133), overlay (Chrome 117), interpolate-size/calc-size (Chrome 129), if() (Chrome 137), corner-shape (Chrome 139). Wer sie als Grundlage nutzt, erzeugt Unterschiede zwischen den Browsern.",
+   "Cross-Document-View-Transitions fehlen in Firefox. Ein Seitenwechsel bleibt dort ein harter Wechsel; das Repo fängt das ab, ein Gestaltungsversprechen darf darauf nicht aufbauen.",
+   "Relative Farbsyntax war in Chrome 119–121 und Safari 16.4–17.x fehlerhaft umgesetzt. Ab Chrome 122, Firefox 128 und Safari 18 ist sie korrekt; bei den aktuellen Zielversionen ist das kein Problem mehr.",
+   "Die CSS-Eigenschaft d für Pfad-Morphs wird in Safari geparst, wirkt aber nicht (BCD), daher keine CSS-Pfad-Animation für Diagramme.",
+   "Chart.js mit Staffelung von 300 ms je Punkt (Beispielwert) macht lange Notenreihen träge. Ohne Flag delayed läuft die Staffelung zudem bei jedem update() erneut, also bei jedem Filterwechsel.",
+   "Ein Canvas ohne role und aria-label oder ohne Fallback ist für Screenreader leer (Chart.js-Doku). Das betrifft alle neuen Statistiken."
+  ]
+ }
+}

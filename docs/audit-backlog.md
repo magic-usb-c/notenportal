@@ -63,7 +63,7 @@ Findings aus dem Multi-Agent-Audit vom 11.06. — Status nach der Umsetzungs-Ses
 
 ## Modulkatalog – erste echte Ernte (13.09.2026)
 
-- **Version je Zuordnung statt je Modul** (offen, Schemaänderung): `module.modul_nummer` ist eindeutig, eine Modulzeile führt also eine Version. 17 der 334 geernteten Nummern sind in zwei gleichzeitig gültigen Versionen im Umlauf (117 V4 für die Bildungsverordnung 2021, V5 für 2026), weil jeder Jahrgang seine eigene führt. Der Verweis «Im Modulbaukasten öffnen» zeigt darum für den älteren Jahrgang auf die neuere Version, und `lehrberuf_module` kann es nicht besser wissen. Richtig wäre eine Spalte `lehrberuf_module.version`, vom Import aus der Abschlussliste gefüllt, und ein Verweis, der sie der Modulversion vorzieht.
+- **Version je Zuordnung statt je Modul** (erledigt 24.09.2026 mit Migration `2026_09_24_000001_lehrberuf_modul_version`: Spalte `lehrberuf_module.version`, Feld «Katalogversion» im Modulformular, `_detail.blade.php` zieht sie der Modulversion vor, seit 02.10. auch in der Beschriftung «Katalogversion» – Nachtrag 02.10.; Ausgangslage:) `module.modul_nummer` ist eindeutig, eine Modulzeile führt also eine Version. 17 der 334 geernteten Nummern sind in zwei gleichzeitig gültigen Versionen im Umlauf (117 V4 für die Bildungsverordnung 2021, V5 für 2026), weil jeder Jahrgang seine eigene führt. Der Verweis «Im Modulbaukasten öffnen» zeigt darum für den älteren Jahrgang auf die neuere Version, und `lehrberuf_module` kann es nicht besser wissen. Richtig wäre eine Spalte `lehrberuf_module.version`, vom Import aus der Abschlussliste gefüllt, und ein Verweis, der sie der Modulversion vorzieht.
 - **Was der Modulbaukasten nicht liefert**: von 48 EDB-Modulen haben 6 LBV-Elemente, `kompetenzfeld` füllt er für EDB gar nicht (dafür Kompetenz und Objekt bei allen 48). Die Felder bleiben im Portal leer, ohne dass ein Fehler vorliegt – nicht suchen gehen.
 - **Warum eigene Module auf Prod UEK01/ABU01 heissen**: der erste echte Import hat eigene Module verschluckt, deren erfundene Nummern der Katalog anders belegt (801 ist «Grundgesetze der Farbenlehre», 301 «Office Werkzeuge anwenden»). Weil die Nummer im Portal eindeutig ist, diente eine Zeile zwei Bedeutungen, und Mediamatik erbte «ABU (EDB): Digitale Kommunikation». Der Import meldet solche Nummern jetzt als Konflikt und lässt sie aus (`--eigene-uebernehmen` übergeht das); die eigenen Module heissen jetzt `UEK01`/`UEK02` und `ABU01`/`ABU02`. Warum das genügt, war zuerst falsch begründet: `UEK` streift das Portal ab, `UEK01` wurde also zu `01` und blieb damit eine Katalognummer. Es genügt erst, weil Katalognummern drei- oder vierstellig sind – gemessen an 334 geernteten Nummern, keine zweistellige darunter. Die Nummernprüfung in `App\Support\Modulbaukasten` verlangt das jetzt ausdrücklich, statt es anzunehmen. Siehe `docs/modulkatalog.md`.
 
@@ -198,7 +198,7 @@ Block U: eigenes Theme/Akzent/Schriftgrösse/Bewegung je Benutzer (`benutzer.pra
 
 - ~~Offen: Tastenkürzel zusätzlich als Einträge in der Befehlspalette (Ctrl+K) anzeigen.~~ erledigt (11.09., Persönliche Darstellung II): Eintrag «Tastenkürzel anzeigen» in `Navigation::befehle()`, öffnet den Dialog über das Event `open-tastenkuerzel` (analog `#feedback-modal` in `suche.js`).
 - ~~Offen: Präferenz «Tastenkürzel aus» im Profil (für Screenreader-Nutzer mit eigenen Einzeltasten-Kürzeln).~~ erledigt (11.09., Persönliche Darstellung II): Präferenz `tastenkuerzel` (an/aus, `Darstellung::TASTENKUERZEL_*`); bei «aus» rendert `<x-tastenkuerzel>` weder den Dialog noch registriert das Alpine-Listener (kein toter Listener im DOM).
-- Offen: Unter 1024 px (Tablet mit Tastatur) kein sichtbarer Einstieg in die Tastenkürzel-Übersicht – nur «?». Eintrag im mobilen Menü erst, wenn Nachfrage besteht (Touch-Geräte brauchen ihn nicht).
+- Offen: Unter 1024 px (Tablet mit Tastatur) kein sichtbarer Einstieg in die Tastenkürzel-Übersicht – nur «?». Eintrag im mobilen Menü erst, wenn Nachfrage besteht (Touch-Geräte brauchen ihn nicht). Nachtrag 02.10.2026: bleibt bewusst offen – Massstab ist der Desktop ab 1920 px (`CLAUDE.md`), schmale Fenster bekommen keine eigene Gestaltungsarbeit.
 
 ## Mehr persönliche Konfiguration (11.09.2026)
 
@@ -209,7 +209,7 @@ Block X: Dichte (normal/kompakt, `data-dichte`), Dashboard-Karten je Rolle ein-/
 
 ## Datenauskunft (11.09.2026)
 
-Block AA: eigene Daten als ZIP herunterladen (Art. 25 DSG) über `App\Support\Datenauskunft` – `GET /profile/data-export` (eigenes Konto, Benutzermenü + Ctrl+K «Meine Daten herunterladen», hinter `password.confirm`) und `GET /admin/users/{user}/data-export` (Admin, beliebiges Konto, Knopf auf der Bearbeiten-Seite, ohne `password.confirm` – konsistent mit den übrigen Admin-Aktionen, die keine erneute Passwortbestätigung verlangen). README, `konto.json` (ohne Passwort-Hash/Tokens), je nach Rolle Noten/Prüfungen (inkl. Prüfungsart/Raum/Lehrperson/Hilfsmittel/Stoff/Notizen)/Ziele/Belegungen/Dokumente (inkl. `dokumente.json`-Metadaten) und eigene Kalender-Abonnements/-Termine (`kalender.json`, ohne Token) oder Betreuungen/eigene Kommentare, dazu für alle eigenes Feedback (inkl. Seite/URL/User-Agent/Ansicht), das eigene Versandprotokoll, `gesehen.csv` (eigene Ansichten von Noten) und eigene Tageszusammenfassungen.
+Block AA: eigene Daten als ZIP herunterladen (Art. 25 DSG) über `App\Support\Datenauskunft` – `GET /profile/data-export` (eigenes Konto, Benutzermenü + Ctrl+K «Meine Daten herunterladen», hinter `password.confirm`) und `GET /admin/users/{user}/data-export` (Admin, beliebiges Konto, Knopf auf der Bearbeiten-Seite, ohne `password.confirm` – konsistent mit den übrigen Admin-Aktionen, die keine erneute Passwortbestätigung verlangen). README, `konto.json` (ohne Passwort-Hash/Tokens), je nach Rolle Noten/Prüfungen (inkl. Prüfungsart/Raum/Lehrperson/Hilfsmittel/Stoff/Notizen)/Ziele/Belegungen/Dokumente (inkl. `dokumente.json`-Metadaten) und eigene Kalender-Abonnements/-Termine (`kalender.json`; vom Abonnement nur Label und Host der Feed-Adresse, Pfad und Token nie – seit 03.10.2026, vorher stand die ganze URL samt Token darin) oder Betreuungen/eigene Kommentare, dazu für alle eigenes Feedback (inkl. Seite/URL/User-Agent/Ansicht), das eigene Versandprotokoll, `gesehen.csv` (eigene Ansichten von Noten) und eigene Tageszusammenfassungen.
 
 - Der gesamte Export läuft in `withLocale($user->preferredLocale())` (Trait `Localizable`): CSV-Kopfzeilen, README und Dokumentnamen folgen der Sprache des exportierten Kontos, unabhängig von der Sprache der auslösenden Person (Admin-Export).
 - Bewusst weggelassen: `kalender_token` (Auth-Token des persönlichen iCal-Feeds) fehlt weiterhin in `konto.json` und in `kalender.json` – ein Geheimnis wie ein Passwort, dessen Offenlegung den Kalender-Feed für Dritte abonnierbar machen würde.
@@ -326,6 +326,7 @@ Block E (PO-Rückmeldung #10): Standard-Tab des Notenrechners ist nie mehr «Ges
 - Sichtprüfung bei 390 px (`breite.mjs`, `shot.mjs --mobil` gegen die Demo-Instanz): kein horizontales Überlaufen, keine JS-Fehler, Standard-Tab korrekt auf «Fach» statt «Gesamt».
 - Neue Tests in `tests/Feature/Auswertung/RechnerTest.php` (5 neue, u. a. Prüfungs-Priorität vor letzter Note, Fallback-Kette, nie «gesamt», `?ziel=`-Übersteuerung) – gesamter Rechner-Testfilter 74 grün, `vendor/bin/pint` sauber, `ß`-Grep leer, `view-pruefung.sh` sauber.
 - Noch offen (nicht Teil dieses Auftrags, für einen eigenen Block): Mail-Kopf-Logo braucht eine öffentlich erreichbare, echte HTTPS-`APP_URL` (sonst zeigen externe Mail-Clients kein Bild bzw. laden es unverschlüsselt) – `route('branding.logo', ...)` erzeugt aktuell eine URL nach `APP_URL`, ohne Prüfung, ob diese von aussen erreichbar/HTTPS ist. `trustHosts` in `bootstrap/app.php` ist nicht gesetzt (Host-Header-Validierung). `App\Support\Einstellungen::get()` liest pro Aufruf aus dem Cache statt pro Request zu memoisieren (`Cache::memo()`) – bei den vielen `Betriebslogo`-Aufrufen pro Seite (Navigation, evtl. Mail-Rendering mehrerer Anlässe) unnötig viele Cache-Zugriffe.
+  Nachtrag 02.10.2026: `Einstellungen::get()` memoisiert statisch pro Request (`Einstellungen::$cache`, war schon so). `trustHosts` ist seit heute in `bootstrap/app.php` gesetzt (`App\Support\TrustedHostPatterns`: Einträge aus `TRUSTED_HOSTS`, das `install.sh` mit allen Namen und Adressen des Zertifikats füllt und bei dem es Hand-Einträge behält, plus Host aus `APP_URL` samt Subdomains; leeres `TRUSTED_HOSTS` heisst bewusst keine Einschränkung, damit ein `git pull` ohne Installer keinen Alias auf 400 setzt – `notenportal:bereitschaft` warnt dann (`Bereitschaft::trustedHosts()`); lokal und in Tests aus; `TrustedHostsTest` prüft Registrierung, Muster und den Durchstich 400/200; Betriebsfolge in `docs/betrieb.md` «HTTPS»). HTTPS-`APP_URL` prüft `notenportal:bereitschaft` (`Bereitschaft::appUrl()`, Warnung ohne `https://`); ob die Adresse von aussen erreichbar ist, bleibt eine Betriebsprüfung vor der Freigabe.
 
 ## Relative Semesternamen & Restdauer (11.09.2026)
 
@@ -353,7 +354,7 @@ Block H, Schritte H1–H3 (PO-Rückmeldung #16 «Datenimporte intelligenter – 
 - Neue Datei `app/Services/Import/WertParser.php` mit eigenem Unit-Test `tests/Unit/Import/WertParserTest.php` (6 Tests, reines PHPUnit ohne Laravel-Bootstrap, da zustandslos).
 - Geänderte Kerndateien: `app/Services/Import/NotenImport.php` (neue `bewerten()`- und `pruefeZeilen()`-Methoden, `importieren()` alles-oder-nichts), `app/Services/Noten/NoteService.php` (`pruefeZeile()` extrahiert), `app/Http/Controllers/NotenImportController.php` (neue `pruefen()`-Aktion), `routes/web.php`/`routes/verwaltung.php` (neue `import.validate`-Route je Bereich, erbt bestehende `role:`-Middleware der Gruppe – von `ZugriffsschutzTest` automatisch erfasst, keine manuelle Listenpflege nötig), `resources/views/import/index.blade.php` (Fehlerzeilen-Checkbox deaktiviert, «Erneut prüfen»-Knopf, Warnung-Status in Statistik/Farben).
 - Neue/angepasste Tests: 5 neue Fälle in `tests/Feature/NotenImportTest.php` (Dubletten in derselben Datei, mehrdeutiges Datum/Gewicht als Warnung, «Erneut prüfen» über die neue Route, eine ausgewählte Fehlzeile verhindert den gesamten Import – explizit die geforderte 0-Noten-Prüfung auf Controller-Ebene), je 1 Anpassung in `tests/Feature/NotenImportTest.php` (Vorauswahl «prüfen» entfernt) und `tests/Feature/Lernender/TrackNachDatumTest.php` (alles-oder-nichts statt Teilübernahme). Alle bestehenden Noten-/Import-Tests (`ImportFormateTest`, `Verwaltung/NotenImportVerwaltungTest`, `ZeugnisAbgleichTest`, gesamte Noten-Suite) unverändert grün.
-- Bewusst offen gelassen (ausserhalb des Rahmens H1–H3, hier dokumentiert statt stillschweigend übergangen): `bewerten()` ruft `NoteService::pruefeZeile()` pro Vorschauzeile auf, was pro Zeile mehrere DB-Abfragen auslöst (Lernender, Semester am Datum, Track-Zugehörigkeit, Kategorie) – bei sehr grossen Importdateien (bis `TabellenLeser::MAX_ZEILEN`) ergibt das ein spürbares N+1-Muster. Für H1–H3 nicht optimiert, da Korrektheit vor Performance stand; ein späterer Block könnte die Lernender-/Semester-/Track-Daten einmal pro Vorschau vorladen statt pro Zeile neu zu laden.
+- Erledigt am 30.09.2026 (Nachtrag unten: Batch lädt Semester/Tracks einmal, 163 → 17 Abfragen). Ursprünglich bewusst offen gelassen (ausserhalb des Rahmens H1–H3, hier dokumentiert statt stillschweigend übergangen): `bewerten()` ruft `NoteService::pruefeZeile()` pro Vorschauzeile auf, was pro Zeile mehrere DB-Abfragen auslöst (Lernender, Semester am Datum, Track-Zugehörigkeit, Kategorie) – bei sehr grossen Importdateien (bis `TabellenLeser::MAX_ZEILEN`) ergibt das ein spürbares N+1-Muster. Für H1–H3 nicht optimiert, da Korrektheit vor Performance stand; ein späterer Block könnte die Lernender-/Semester-/Track-Daten einmal pro Vorschau vorladen statt pro Zeile neu zu laden.
 - Kein `npm run build`: nur bereits im aktuellen Build vorhandene Klassen verwendet (`disabled:opacity-60` statt einer neuen `disabled:opacity-40`-Variante, um während der parallelen Arbeit anderer Agenten an `resources/js` keinen Build auszulösen); Alpine-Erweiterungen (`erneutPruefen()`, `pruefeLaedt`) sind reines Inline-Alpine in der bestehenden View, keine Änderung an `resources/js`.
 - Nachtrag 24.09.2026: Die Verwaltungsvariante der Route `.../grades/import/validate` war gebaut, blieb aber unversioniert im Arbeitsbaum liegen und von keinem Test berührt. Jetzt eingecheckt und belegt (`NotenImportVerwaltungTest`: Admin lässt korrigierte Zeilen erneut prüfen; ein Berufsbildner wird schon in `kontext()` mit 403 abgewiesen, denn die Berechtigung hängt am Anlegen von Noten – sonst verriete die Antwort Fach- und Modulzuordnungen einer fremden Person). Dabei kam eine Lücke der Sicherheitsregel zum Vorschein: `pruefeZeilen()` wertete nur das *Ändern* eines geratenen Bezugs als bewusste Wahl (`$vorherBezug !== null && $vorherBezug !== $bezug`), nicht das erstmalige Zuordnen einer Zeile, die gar keinen Bezug hatte. Ausgerechnet der häufigste Korrekturfall blieb damit auf «prüfen» stehen und unausgewählt. Bedingung jetzt `$bezug !== null && $vorherBezug !== $bezug`; «Erneut prüfen» ohne Korrektur stuft weiterhin nichts auf.
 
@@ -364,7 +365,7 @@ Block H, Schritte H1–H3 (PO-Rückmeldung #16 «Datenimporte intelligenter – 
 
 Block C (PO-Rückmeldungen #8 «eine zentrale Einstellungsseite» und #4 «Benutzermenü aufräumen»): neue Seite «Einstellungen» unter `/settings/…`, je Tab eine eigene Route (`settings.profile`, `settings.calendar`, `settings.data`, dazu `notifications.settings` für Benachrichtigungen), serverseitige Tab-Navigation über `settings/_tabs.blade.php` (kein Alpine-Tab-Zustand, `request()->routeIs()` für den aktiven Tab). Profil-Tab zeigt weiterhin Darstellung/Sprache sowie neu einen «Tastenkürzel anzeigen»-Knopf (`$dispatch('open-tastenkuerzel')`, öffnet dieselbe `<x-tastenkuerzel>`-Komponente wie `Ctrl+/`). Kalender-Tab (`settings.calendar`, alle drei Rollen) bündelt den Abo-Link (`<x-kalender-abo>`, generische `App\Services\Calendar\CalendarExport::token()/resetToken()` statt dreier rollenspezifischer Routen) und – nur bei Lernenden – den Schulnetz-Kalender-Import; ersetzt die alten Abo-Drawer in Agenda (`kalender`) und Prüfungstermine (`abo`), `?kalender=1` auf der Agenda-Seite leitet jetzt serverseitig auf `settings.calendar` um. Daten-Tab (`settings.data`) verlinkt die bestehende Datenauskunft. Benutzermenü dadurch auf genau 3 Einträge gekürzt (Desktop-Dropdown und Mobilmenü, alle Rollen): «Einstellungen», «Feedback», «Abmelden» – der separate Hell/Dunkel-Umschalter und der Feedback-Knopf in der Werkzeugleiste bleiben unverändert eigene Werkzeuge, zählen nicht zum Benutzermenü.
 
-- Bewusst nicht umgesetzt (laut Auftrag, Schritt 3 des Konzepts explizit ausgenommen): keine eigene «Darstellung»-Unterseite/-Route (`settings.appearance` existiert nicht) – Darstellung bleibt, wie bisher, zusammen mit Sprache auf dem Profil-Tab. Sollte eine spätere Session Darstellung/Sprache/Tastenkürzel doch stärker auftrennen wollen, ist das hier als offener Punkt vermerkt.
+- Bewusst nicht umgesetzt (laut Auftrag, Schritt 3 des Konzepts explizit ausgenommen): keine eigene «Darstellung»-Unterseite/-Route (`settings.appearance` existiert nicht) – Darstellung bleibt, wie bisher, zusammen mit Sprache auf dem Profil-Tab. Sollte eine spätere Session Darstellung/Sprache/Tastenkürzel doch stärker auftrennen wollen, ist das hier als offener Punkt vermerkt. Nachtrag 02.10.2026: bleibt bewusst so – Darstellung und Sprache zusammen auf dem Profil-Tab sind laut Auftrag gewollt; eine eigene Unterseite erst, wenn der Tab zu lang wird.
 - Drei bisher getrennte `calendar.token.reset`-Routen (Lernende, Berufsbildner, Admin – zuvor über `routes/verwaltung.php` doppelt gemountet) zu einer einzigen `settings.calendar.token.reset` zusammengeführt, da `CalendarExport::resetToken()` bereits rollenunabhängig war; keine funktionale Änderung für bestehende Abos, nur ein Routenname weniger zu pflegen.
 - Neue/umbenannte Routen in `tests/Feature/Auth/ZugriffsschutzTest::OHNE_ROLLE` (Berechtigung prüft der `SettingsController` selbst, analog zu `profile.*`) und in `tests/Feature/I18n/EnglischeSeitenTest` aufgenommen; neuer `tests/Feature/BenutzermenueTest.php` (3 Tests, datengetrieben über alle drei Rollen) prüft je Rolle exakt 3 Einträge in `#np-benutzermenue` (Desktop) und `#np-benutzermenue-mobil`, über eine selbstgebaute Tiefenzählung der `<div>`-Verschachtelung statt eines DOM-Parsers.
 - `resources/views/lernender/agenda/_kalender.blade.php` und `resources/views/layouts/_sprache.blade.php` gelöscht (beide vollständig durch die neue Kalender-/Profil-Tab-Struktur ersetzt, vorher per `grep` auf verbliebene Referenzen geprüft).
@@ -404,6 +405,7 @@ Aus der Sicherheitsprüfung (Opus) von Block G: HOCH/MITTEL umgesetzt (GD-Dekomp
 
 - ~~**GD-Fallback behält Originalbytes**~~ erledigt (842e284, 28.09.): `Anhang::speichern()` weist ein Bild ab, das sich nicht neu kodieren lässt (Test `FeedbackTechnikAnhangTest::bild_ohne_erfolgreiche_neukodierung_wird_abgelehnt_statt_ungeprueft_uebernommen`). Nachgeprüft 30.09.: Der Feedback-Screenshot (`Screenshot::speichern()`) und das Betriebslogo behalten ihre Bytes weiterhin – der Screenshot nimmt nur JPG/PNG/WebP an und geht mit Sandbox-CSP und `nosniff` nur an Admins, das Logo lädt nur ein Admin hoch und wird mit GD neu kodiert, das `install.sh` mitinstalliert. Beides bewusst so gelassen.
 - **`Feedback::booted()`-`deleting`-Hook räumt nur bei Eloquent-Löschung auf**: Screenshot/Anhänge werden nur entfernt, wenn eine `Feedback`-Zeile über das Model gelöscht wird (`$feedback->delete()`). Ein direkter `DB::table('feedback')->delete()` (kommt in der Anwendung aktuell nirgends vor) würde die Datenbankzeile per Fremdschlüssel-Kaskade entfernen, die zugehörigen Dateien auf der Disk aber verwaisen lassen. Kein akutes Risiko (kein Code-Pfad nutzt Raw-Deletes auf `feedback`), aber ohne Model-Event nicht automatisch behebbar; bei Bedarf ein periodisches Aufräum-Kommando (verwaiste Pfade unter `feedback/anhaenge`/`feedback/screenshots` ohne passende DB-Zeile) ergänzen.
+  Nachtrag 02.10.2026: erledigt – `notenportal:feedback-aufraeumen` (Schedule wöchentlich Montag 03:45, `--vorschau` listet nur) löscht Dateien unter `feedback/` ohne Datenbankzeile, sofern sie älter als ein Tag sind (laufender Upload bleibt); `tests/Feature/Console/FeedbackAufraeumenTest`.
 
 ## Verwaiste Schlüssel in `lang/areas/*/en.json` (12.09.2026)
 
@@ -418,6 +420,7 @@ Sechs weitere Waisen bleiben bewusst liegen, weil sie aus fremden Blöcken stamm
 - `lang/areas/learner/en.json`: `:anzahl nicht übernommen: :fehler` (Notenimport), `auch mit 1.0 bleibt es bei `, `die offenen Prüfungen zählen hier nicht`, `höchstens, mit lauter 6.0` (Zielrechner-Texte), `Agenda abonnieren` (Kalender).
 
 Vorschlag: `Schluessel.php` um eine Waisen-Prüfung je Bereichsdatei erweitern und die sechs Einträge im selben Zug entfernen – zusammen ein kleiner, eigener Commit. Die Prüfung per literaler Suche ist eine Heuristik; dynamisch zusammengesetzte Schlüssel würden fälschlich als verwaist gelten, deshalb muss jeder Treffer wie hier einzeln gegengeprüft werden.
+Nachtrag 02.10.2026: erledigt – `SchluesselTest::geschlossene_uebersetzungsdateien_haben_keine_verwaisten_schluessel` prüft jede Bereichsdatei, seit `tests/Feature/I18n/offen.php` leer ist (learner/trainer/admin fertig); die sechs Einträge sind weg.
 
 ## Ungenutzte öffentliche API in `Note` und `Leistung` (12.09.2026)
 
@@ -490,6 +493,7 @@ keine Abschlussänderung wäre. Aufzulösen später auf einem von zwei Wegen: en
 im Formular ergänzen – dann greift die Sperre ohne weiteren Eingriff –, oder `raum` aus der
 Konstante streichen. Der erste Weg ist der wahrscheinlichere, weil der Raum aus dem Kalender kommt
 und genau die Art Wert ist, die eine Schule kurzfristig ändert.
+Nachtrag 02.10.2026: erledigt auf dem zweiten Weg – `raum` steht nicht mehr in `Pruefung::SPERRBARE_FELDER` (Kommentar dort: kommt nur aus dem Kalenderabgleich, eine Sperre griffe nie).
 
 ## Die Modulkatalog-Seiten sind nur statisch geprüft
 
@@ -557,6 +561,7 @@ Ebenfalls offen: die Leistungsbeurteilungs-Elemente (`modul_lbv_elemente`) zeigt
 nur an, erfassen lassen sie sich über die Oberfläche noch nicht – sie kommen bisher allein aus
 dem Katalogimport. Für den Fall «Modul fehlt ganz» genügen Nummer, Titel, Ziele und Unterlagen;
 wer die Beurteilungsvorgabe selbst erfassen will, braucht ein eigenes Formular.
+Nachtrag 02.10.2026: bleibt bewusst offen – ein Erfassungsformular ist eine Produktentscheidung; der Katalogimport füllt die Elemente vollständig, Handmodule kommen laut Entscheid ohne aus.
 
 ## Audit v3 vor dem Code-Freeze (24.09.2026)
 
@@ -682,10 +687,6 @@ ausgeblendeten Werte in der Namenszelle nach.
   erreichen. Ein Wert wie 255 145 140 gäbe 4.94:1 auf `/14`, verschiebt aber die ganze Notenampel.
   Das ist ein Token-Entscheid (Skill `notenportal-dunkelmodus` §1 müsste Notentext aufnehmen), kein
   View-Fix. Bis dahin bleibt die Unterstreichung die zweite Kodierung (nie nur Farbe).
-- **Zehn Sichtbefunde des Rauchtests `notenportal-dunkel-rundgang`** (01.10., Lernende 1920/2560)
-  blieben ohne Prüferurteil, weil die Sitzung ihr Nutzungslimit erreichte. Sie gelten als ungeprüft
-  und werden im vollen Lauf über alle drei Rollen (R4) neu aufgenommen, nicht aus dem alten Journal
-  übernommen.
 
 ## R4 Lernende: bewusst gelassen (01.10.2026)
 
@@ -731,9 +732,9 @@ ausgeblendeten Werte in der Namenszelle nach.
 
 - **Lernendenliste ohne Paginierung** (`LernendeController`, `->get()`): ein Lehrbetrieb führt Dutzende
   Lernende, keine Tausende; Suche und Filter tragen die Liste. Paginierung erst, wenn ein Betrieb sie braucht.
-- **Lernendenliste: Namensspalte dehnt sich, Status fest `w-80`**: Finder-Muster (erste Spalte wächst, Daten
-  rechts bündig). Bei 2560 liegt der freie Raum zwischen Name und Lehrberuf – die Alternative (Status wächst)
-  liess bei 2560 640 px zwischen letzter Marke und «Noten».
+- **Lernendenliste: Statusspalte wächst, «Noten» fest `w-24`** (R4 Admin, 02.10.): Die feste Statusspalte
+  `w-80` brach bei drei Lernenden die Marken zweizeilig (Zeile 60 statt 44 px). Jetzt trägt die Statusspalte
+  den freien Raum; alle Zeilen 44 px bei 1920 und 2560, gemessen mit Playwright.
 - **KPI «Neu» in Akzent** (`verwaltung/noten/index.blade.php`, `x-kachel ton=accent`): Akzent bedeutet
   dort «ungelesen», wie der Punkt vor «n neu» in der Liste und in Mail; neutral nur bei 0.
 - **Zähler «Note fehlt» in Bernstein** (`verwaltung/pruefungen/_zaehler.blade.php`): nach dem Entfärben von
@@ -757,3 +758,394 @@ ausgeblendeten Werte in der Namenszelle nach.
   «Profil & Betreuung» gestartet oder beendet; im Bearbeiten-Formular wäre eine Änderung mehrdeutig.
 - **Bildprüfer-Befund «Letzte Note» linksbündig**: nicht bestätigt – Zelle und Kopf sind `text-right`,
   «vor 24 Tagen» endet an derselben Kante wie «–» (1920/_trainer_learners.png, x≈1340).
+- **Cockpit-Reiter Noten und Abschluss enden bei 2560 rund 385 px vor der Symbolleiste, Übersicht und Rechner
+  nicht** (`verwaltung/noten/index.blade.php`, `max-w-[100rem]`; Commit 8037bac «bis zur Inhaltskante»): Notenliste
+  mit Inspektor und Abschlusstabelle gewinnen durch 385 px mehr Breite nichts, das Kartenraster der Übersicht und die
+  zwei Spalten des Rechners schon. Der Sprung der rechten Kante beim Reiterwechsel ist der Preis dafür.
+- **Inspektor der Notenliste «lässt rechts leer»** (Bildprüfer 1920 und 2560): Artefakt der Ganzseitenaufnahme – der
+  Inspektor ist `sticky` (`verwaltung/noten/index.blade.php:177`) und bleibt beim Scrollen neben der Liste.
+- **Datumsfelder zeigen «dd.mm.yyyy»**: Platzhalter des nativen `<input type="date">` in der Sprache des Browsers;
+  Chromium im Container läuft en-US, ein de-CH-Browser zeigt «TT.MM.JJJJ».
+- **Notenchips in der Notenliste zentriert statt am Dezimalpunkt ausgerichtet** (`<x-note>`): Marken sind Pillen
+  gleicher Breite (macOS-Badge) und werden als Marke gelesen; Spalten, in denen Noten verglichen werden
+  (Lernendenliste «Ø gesamt»), stehen rechtsbündig mit `tabular-nums`.
+- **«–» der vier Kennzahlen im Cockpit liegen 5 px auseinander** (`_cockpit/uebersicht.blade.php`): Gesamt- und
+  Semesternote sind `<x-note variante="hero">` in `text-3xl`, Nächste und Letzte Prüfung Text in `text-xl`; die
+  Grundlinie der grösseren Ziffer liegt tiefer. Angleichen hiesse, die Heldenzahl zu verkleinern.
+- **Platzhalter «–» in Heldengrösse wirkt wie ein grauer Balken** (Abschluss, «Prognose» ohne Note): derselbe
+  Platzhalter wie auf der Abschlussseite der Lernenden (`NotenSkala::format(null)`); ein Text «keine Note» neben
+  «0 % erfasst» wäre doppelt.
+- **Lernende ohne Noten (Cockpit): «Noch keine Noten» ohne Weiterweg, Primäraktion führt auf eine leere Liste**:
+  die leere Notenliste trägt «Note erfassen» als Primäraktion; ein zweiter Akzent im Cockpit wäre einer zu viel.
+- **Hinweistexte in Modul- und Einstellungsformularen** («Der Link ist geheim – nicht weitergeben», «Gilt für die
+  Anzeige, nicht für Notenblatt und Exporte», «Vom Betrieb festgelegt.», «Eine Zeile je Ziel …», «Erzeugt den Verweis
+  auf den Modulbaukasten», «Was du hier ergänzt, steht sofort allen …»): bleiben nach `notenportal-ui` §1 – jeder
+  verhindert einen Fehleintrag oder sagt, warum ein Feld gesperrt ist. Der Admin-Block prüft sie mit den übrigen
+  Formularen noch einmal.
+- **Feldrand heller als die Karten-Haarlinie** (`np-feld`, `border-border-strong/70`): im Token-Katalog so
+  festgelegt (`notenportal-ui` §2), damit das Feld auf `bg-card` als Eingabe erkennbar bleibt.
+- **Titel-Feld im Modulformular ohne Platzhalter**: Pflichtfelder tragen keinen Platzhalter, freiwillige «Optional»
+  (`notenportal-ui` §4); «M100» und «https://» sind Formatbeispiele.
+- **Karten einer Reihe ungleich hoch** (Dashboard, Rechner): `items-start` ist das Raster der Übersichten
+  (`notenportal-ui` §5); Karten mit Listen strecken sich nicht auf die Nachbarin.
+- **«Hochladen…» und «Modul anlegen» doppelt (Symbolleiste und Leerzustand)**: `<x-leer>` bietet die Aktion am Ort
+  des Lesens an, die Symbolleiste am gewohnten Ort; nur die Symbolleiste trägt den Akzent.
+- **Prüfungstermine: Lernende ohne Termin ohne Zähler**: Zähler erscheinen nur mit Inhalt (wie `zaehler` am
+  Seitenkopf); «0» wäre eine Marke ohne Aussage.
+- **Abschluss: Zeilen mit Eingabefeld 8 px höher als Zeilen ohne**: `np-feld` (36 px) in der 36-px-Zeile plus
+  Zellenabstand; `np-feld-klein` (28 px) ist für Filterleisten bestimmt, eine Noteneingabe braucht die volle
+  Trefferfläche.
+- **Akzentblau ohne Linkfunktion** (Seitenleistensymbole, Kartenkopf-Symbole): Seitenleiste ist Navigation
+  (erlaubt), die Kartenkopf-Symbole sind seit R4 Lernende so entschieden. Die Datumskachel «OKT» im Dashboard
+  war ein Befund und steht jetzt wie in der Terminliste in `text-muted` ohne Versalien.
+- **Zeugnismatrix (`components/heatmap.blade.php`) ist eine Hand-Tabelle, keine `np-tabelle`**: die Namensspalte
+  klebt (`sticky`) und braucht einen deckenden Grund; die halbtransparenten Streifen von `np-tabelle` schienen
+  durch. Begründete Ausnahme zu `notenportal-ui` §5.
+- **Dashboards mit `gap-5` statt `gap-4`**: beide Dashboards (Lernende seit R4 Lernende, Berufsbildner) halten
+  20 px zwischen den grossen Karten; `gap-4` gilt für Karten innerhalb eines Abschnitts.
+- **Leere Filterergebnisse als Tabellenzeile statt `<x-leer>`** (Lernendenliste «Keine Treffer», Dashboard
+  «Keine Lernenden für diesen Filter»): `<x-leer>` ist laut eigener Doku für leere Ansichten, in Tabellen reicht
+  die Zeile – sie trägt jetzt einen Weg zurück («Filter zurücksetzen» bzw. «Alle anzeigen»).
+- **Zeugnismatrix «Noch keine Noten» ohne Weiterweg**: die Matrix steht bei Lernenden (die keine Noten erfassen
+  können) und Berufsbildnern; der Weg zum Erfassen ist die Primäraktion der Notenliste.
+
+## R4 Admin: bewusst gelassen (02.10.2026)
+
+Befunde aus vier Bildprüfer-Läufen (56 Seiten, 1920 dunkel), zwei UI-Checker-Läufen (61 Views) und der
+eigenen 2560-Sicht, die nach Prüfung am Markup oder an den Regeln nicht umgesetzt werden:
+
+- **Listenbreite der Stammdaten** (Fächer, Kategorien, Semester, Notenbäume, Lehrberufe, Benutzerkonten,
+  Berufsbildner): jede Liste füllt `np-seite` (Deckel 2048 px), die erste Spalte wächst, Zahlen stehen
+  rechts (Finder-Muster, gleiche Entscheidung wie bei der Lernendenliste). Eine Sonderbreite je Liste wäre
+  ein zweites Raster; bei 2560 bleibt der freie Raum zwischen Name und Zahlenspalten.
+- **Modulliste ohne Seitenaufteilung oder Sticky-Kopf** (`admin/stammdaten/module/index`): 68 Zeilen; die
+  Leiste bietet Suche, Lehrberuf-, Lernort-Filter und Gruppierung – das ist die Progressive Disclosure.
+- **Notenskala-Balken gesättigt** (`admin/betrieb/_felder`, Einrichtung Schritt 1): die vier Notenfarben
+  sind Tokens aus `theme.css` und gelten überall; Dämpfung wäre Theme-Arbeit mit Kontrastrechnung, nicht
+  ein View-Eingriff.
+- **Gerahmte Eingabefelder im Notenbaum-Aufbau und in den Lehrberuf-Modulen**: es sind Bearbeitungstabellen,
+  Felder ohne Rahmen wären nicht als editierbar erkennbar (HIG: Bedienelemente erkennbar). Häkchen für
+  Pflicht/Aktiv sind die Standard-Checkbox mit `text-accent`-Füllung.
+- **Namensreihenfolge** «Nachname Vorname» in Listen (Sortierschlüssel), «Vorname Nachname» in Fliesstext,
+  Dashboard und Formular. Bewusst, wie in Mac-Kontakten.
+- **Spalte «Benutzername»** in den Benutzerkonten: eigenes Feld für die Anmeldung, nicht nur der Teil vor
+  dem @; bleibt, weil es abweichen kann.
+- **Aktionsspalte «Profil» / «Bearbeiten»**: das Ziel unterscheidet sich (Lernende → Cockpit, Konten →
+  Formular); eine gemeinsame Beschriftung würde das verbergen.
+- **Rollen-Chips klein**: `np-marke` (text-2xs 600) auf `bg-fill` mit `text-muted` – dasselbe Tokenpaar
+  wie jede neutrale Marke im Portal; nicht einzeln vergrössern.
+- **Seitenleiste: alle Symbole in Akzent, aktiver Eintrag nur über die Fläche**: Navigationsentscheid aus
+  R4 Lernende (Apple-Seitenleiste), nicht je Rolle anders.
+- **Prüfungstermine (Admin): «Kürzlich vergangen, ohne Note» ohne Kürzung, Marke «n ohne Note» amber**:
+  Arbeitsliste – die Länge ist die Arbeit; amber heisst Handlungsbedarf, nicht Dekoration.
+- **Einstellungen: Seitentitel wiederholt den aktiven Tab**: Muster der Einstellungsseiten (R4 Lernende),
+  Browser-Titel und Überschrift müssen die Seite nennen.
+- **/feedback («Meine Meldungen») ohne Markierung in der Seitenleiste**: erreichbar über den
+  Symbolleisten-Knopf, bewusst kein Seitenleisteneintrag; der Admin-Eintrag «Feedback» ist der Posteingang.
+- **Cockpit-Hinweise mit gleichfarbigem Punkt**: der Punkt zeigt den Lernstand (rot/gelb) der Person, nicht
+  die Schwere jedes Hinweises; eine Schwere je Hinweis gibt es im Modell nicht.
+- **Deaktivierter roter «Löschen»-Knopf im Semester unter 3:1**: inaktive Bedienelemente sind von
+  WCAG 1.4.3 ausgenommen; die Sperre wird daneben im Text erklärt.
+- **Filter «Nur aktive» zeigt Abgeschlossene**: «aktiv» ist das Konto (`benutzer.aktiv`), nicht die
+  laufende Lehre; Abgeschlossene mit aktivem Konto bleiben sichtbar, der Filter «Warnung» blendet sie aus.
+- **Einrichtung: «Abschluss» mit Haken, obwohl Kategorien und E-Mail offen sind**: `Einrichtung::offen()`
+  ist das Flag «Assistent läuft»; der Haken heisst «Assistent abgeschlossen». Kategorien gilt erst als
+  erledigt, wenn jemand sie bestätigt hat (`KATEGORIEN_GEPRUEFT`), E-Mail erst mit konfiguriertem Versand –
+  beides optional, darum offen und trotzdem abschliessbar.
+- **Einrichtung, Schritt Kategorien als vier Karten à sechs Felder**: Formularmuster «gruppierte Liste» je
+  Kategorie; eine Tabelle mit 24 Eingabefeldern wäre dichter, aber kein Muster des Portals.
+- **Feldbezeichnung «Track»**: Fachbegriff des Portals (Fächer-Tabelle, Lehrberuf, Lernende) für BMS/ABU.
+- **Benachrichtigungen: Umbau auf `np-gruppe`/`x-einstellung`**: Formular mit vielen Array-Feldern ohne
+  Feature-Test der Feldnamen; korrigiert wurden Breite (`np-spalte`), Abstände, Ausrichtung und die
+  Fehlerverdrahtung. Umbau erst mit einem Test, der das Speichern aller Felder belegt.
+- **«Testmail senden» aktiv bei leerem Server**: die Serverseite meldet den fehlenden Server als Fehler;
+  ein clientseitiges Sperren müsste die Regel doppeln.
+- **Abschluss-Seite: «Speichern» in der Symbolleiste**: Seitenkopf-Muster (eine Primäraktion oben rechts),
+  gleich wie in Betrieb (Einstellungen). Benachrichtigungen speichert unter dem langen Formular – nach HIG
+  gehört der Formularabschluss unter das Formular, beide Muster sind im Skill erlaubt.
+- **Admin-Feedback-Leerzustand ohne Weiterweg**: der Admin erzeugt keine Meldungen, es gibt keinen Weg.
+- **Benutzer anlegen: Rolle als Segment, bearbeiten: Schalter**: beim Anlegen genau eine Rolle, beim
+  Bearbeiten Mehrfachrollen (`rollen[]`); verschiedene Semantik, verschiedene Bedienelemente.
+- **Lernende erfassen: Primärknopf bei 1080 px nahe dem unteren Rand**: Formularabschluss gehört unter das
+  Formular (HIG: nichts Wichtiges fixiert), die Seite scrollt.
+- **Betrieb: «älter als zwei Tage» fest im Code** (`admin/betrieb/edit.blade.php`, `subDays(2)`): Grenze der
+  Systemgesundheit (Sicherung, Kopie), keine Betriebsfrist – bleibt im Code.
+- **Benutzer bearbeiten: nach einem Validierungsfehler bei «Rollen» fallen die Schalter auf den gespeicherten
+  Stand zurück** (`old('rollen', $rollen->all())`): Wer alle Rollen abwählt, sieht nach der Fehlermeldung
+  Berufsbildner wieder eingeschaltet. Produktlogik, Fehlermeldung trägt die Information.
+- **Notenbäume-Liste ohne Lehrberufs-Kürzel**: die Index-Query wählt `l.kuerzel` nicht; «Gilt für» unterscheidet
+  die Zeilen schon über den vollen Namen.
+- **`table-fixed` ohne `<colgroup>`** (Versandprotokoll, Aktivitätsprotokoll, Berichte, Lehrberuf-Detail): die
+  Spaltenbreiten stehen am `th` und wirken bei `table-fixed` gleich; Umbau nur mit erneuter Bildprüfung, ohne
+  sichtbaren Nutzen (UI-Checker, mittel).
+- **Einrichtung Lehrberufe: Felder «Kürzel»/«Weiterer Lehrberuf» nur mit `aria-label` und Platzhalter**: der
+  zugängliche Name ist da; sichtbare Spaltenköpfe wie bei den Personen lohnen sich erst ab drei Feldern je Zeile.
+- **Einrichtung Abschluss: Fusszeile nicht über `_fuss`**: der Fuss trägt ein POST-Formular («Einrichtung
+  abschliessen»), das der Teil-View nicht kennt; eigener Fuss bleibt.
+
+## R5 Sichtprüfung: bewusst gelassen (02.10.2026)
+
+Rundgang über alle drei Rollen (96 Seiten, 1920 dunkel, Workflow `notenportal-dunkel-rundgang`,
+Bildprüfer sonnet): 136 Befunde. Die gegnerische Verifikation im Workflow (272 Opus-Aufrufe) brach am
+Nutzungslimit ab und verwarf bestätigte Ursachen durch ihre UND-Logik; darum wurden alle 136 Befunde in
+der Hauptsession am Markup nach Ursache gebündelt. Umgesetzt (31 Befunde, Commit siehe Übergabe):
+Verlauf-Reihen mit Strichmuster, Spalte «Prüfungen» bündig, Import-Knopf bis zur Dateiwahl gesperrt
+(auch nach Drag-and-drop), «Gewicht» vor Prozentwerten (Lernende und Berufsbildner), ein Akzent in
+/modules, Modul-Fussnote auf einen Satz, Benachrichtigungs-Beschreibung je Rolle, «Vom Betrieb
+festgelegt.» als Schloss mit sr-only, Aktivitätsprotokoll ohne leere Spalten (Karte dann `max-w-4xl`),
+Einrichtung (Lehrberufe/Fächer lesbar mit «vorhanden», Kategorien erst nach Bestätigung erledigt,
+Abschluss-Haken nur wenn alles erledigt, Zahlenfelder rechtsbündig, neue Semester mit Marke «neu»),
+Feedback-Eintrag auf /feedback aktiv, Abschluss-Notenfelder bündig, acht Listen mit Kartenobergrenze
+(`max-w-5xl` bis `max-w-7xl`), Prüfungstermine-Gitter `minmax(0,64rem)`. Der Rest nach Regel:
+
+- **Leerflächen und ungleiche Kartenhöhen in Spaltenlayouts** (Dashboards aller Rollen, Cockpit,
+  Rechner, Abschluss, Berichte; 14 Befunde): Spalten sind unabhängig hoch, Karten folgen ihrem Inhalt;
+  Angleichen hiesse leere Fläche *in* Karten (HIG Layout: gruppieren über Negativraum). Entscheid R3/R4.
+- **Leerzustand plus Symbolleisten-Aktion** (Meldungen, Dokumente, «als gesehen markieren»): Muster
+  «eine Primäraktion in der Symbolleiste, Weg weiter im Leerzustand» (`x-leer`), kein Doppel.
+- **Seitenleisten-Symbole alle in Akzent** (alle Rollen): Entscheid R4 Lernende (Apple-Seitenleiste
+  tönt alle Glyphen, aktiv ist die Fläche), nicht je Rolle anders.
+- **Feldränder «hart/hell», Feldbreiten uneinheitlich, Platzhalter uneinheitlich** (Modulformular,
+  Lernende erfassen, Notenbaum, Semester, Betrieb; 13 Befunde): `border-border-strong/70` ist der
+  vorgeschriebene Feldrand (`notenportal-ui` §2), Breiten folgen dem Feldtyp (§7: w-72/w-32/w-24/w-44/
+  w-56) und zeigen die erwartete Länge, «Optional» steht nur an freiwilligen Feldern (§4).
+- **Hinweistexte** (Katalogversion, Handlungsziele, Kalender-Abo, Bemerkung intern, Promotion-Block,
+  Darstellung, Ablagezone): geprüft, jeder nennt eine Folge oder Grenze (wer sieht es, welches Format,
+  was passiert beim Leerlassen) – bleibt nach `notenportal-ui` §1. Entfernt wurde nur der zweite Satz
+  der Modul-Fussnote.
+- **Notenfeld ohne Platzhalter oder Formathinweis** (Note erfassen, Cockpit): Formatfehler meldet
+  `validation.custom` verständlich; ein Hinweis vor dem Fehler ist Selbstverständliches (§1).
+- **Zebra-Streifen in gruppierten Abschlusstabellen**: `np-tabelle` streift immer (macOS-Tabellen),
+  Gruppenköpfe tragen Gewicht und Einzug; Entscheid R4.
+- **Datumsfelder mit «dd.mm.yyyy» und nativem Look** (Aktivitätsprotokoll, Lernende erfassen,
+  Semester): Werkzeugartefakt – headless Chromium hat keine deutschen UI-Strings, `--lang=de-CH` und
+  `locale: 'de-CH'` ändern den Platzhalter nicht (geprüft 02.10.); im Browser steht «TT.MM.JJJJ».
+  `text-right` wirkt auf `type="date"` nicht; eine Regel auf `::-webkit-datetime-edit` wäre Browser-CSS.
+- **Knapp nur durch Farbe** (Zeugnisnoten, Berichte): `NotenSkala` färbt knapp als Vorwarnstufe und
+  unterstreicht ungenügend; die zweite Kodierung trägt die Stufe, die eine Folge hat (Token-Entscheid,
+  siehe «Dunkelmodus nach HIG»).
+- **Akzent für «Neu»-Kennzahl und «QV-Prognose»**: «QV-Prognose» ist ein Link (`text-accent-text`);
+  der Akzentpunkt bei «Neu» ist die Marke «ungesehen», gleich wie die «n neu»-Chips der Listen.
+- **Status «Beobachten»/Amber in fast allen Zeilen, zwei Notenbäume gleichen Namens, Prognose ohne
+  Wert, rote Punkte bei allen Hinweisen**: Demo-Daten bzw. Modell (Punkt = Lernstand der Person,
+  R4 Admin); keine View-Ursache.
+- **Deaktivierte Entfernen-/Löschen-Knöpfe unter 3:1**: WCAG 1.4.3 nimmt inaktive Bedienelemente aus,
+  die Sperre steht daneben im Text (R4 Admin). «Zwei Zeilen hervorgehoben» war Hover plus Zebra im
+  Moment der Aufnahme.
+- **Namensreihenfolge, «Track», Seitentitel der Einstellungen, Rollenwahl Segment/Schalter,
+  Formularabschluss nahe Unterkante, Modulliste ohne Gruppierung, Abschnittsüberschriften der
+  Prüfungstermine, Karte in Karte bei Personen, Benachrichtigungs-Umbau**: Entscheide aus R4 Admin
+  (oben), unverändert.
+- **Diagrammbalken gesättigt, Achsen 2xs ohne Achsentitel, Direktbeschriftung 3xs**: Token-Entscheid
+  (`--chart-1`), Achsen- und Beschriftungsgrössen nach `notenportal-dunkelmodus` §3 erlaubt,
+  Achsentitel steht im Kartentitel.
+- **Zurück-Pfeil vorne in der Symbolleiste, «Noten»-Aktion rechts in der Zeile, Speichern als
+  Sekundärknopf in Profil-Formularen, «Auf Standard zurücksetzen» rechts**: Seitenkopf-, Tabellen- und
+  Formularmuster (`notenportal-ui` §5/§7); Profil hat mehrere Formulare und darum keinen Primärknopf.
+- **«Lehrzeit» neben der Heldenzahl**: Überschrift der drei Kategorie-Kacheln (Lehrzeit-Schnitte
+  gegenüber dem Semesterwert), bewusst dort.
+- **Kontrast-Kachel wirkt wie zweite Auswahl**: die Kachel zeigt ihr Thema in eigener Farbe (Vorschau);
+  Auswahl ist der Ring (R4 Lernende).
+- **Doppelte Semesterübersicht in der Einrichtung**: «Vorschau» ist der Plan ab Startjahr, «Vorhanden»
+  der ganze Bestand (auch 22/23 vor dem Startjahr).
+- **Offene Schritte schwächer als erledigte** (Schrittliste): Hierarchie aktiv (fett) › erledigt
+  (`text-text` mit Haken) › offen (`text-muted`, ≥ 4.5:1).
+- **Zurückgestellt (Gestaltung, kein Regelverstoss)**: «Vorlage (CSV)» fluchtet nicht mit der
+  Dropzone; Detailkopf der Module springt bei unterschiedlich langen Titeln; Profil/Darstellung als
+  lange Seite (Themenraster aufgeklappt); «Neuen Link erzeugen» nicht bündig; Gruppen- und
+  Semesterschnitt-Zahlen kleiner als Zeilenwerte; Statustext der Berichte bricht mit Einzelwort um;
+  Titelspalte der Einstellungsseiten springt. Lösung je Punkt braucht einen Entwurf, nicht einen Fix.
+- **Lernende (Admin): Status-Spalte bekommt bei `max-w-7xl` nur 15rem**: 64rem feste Spalten plus
+  Kartenpolster füllen die höchste Stufe fast aus; drei Etiketten in einer Zeile brechen um (`flex-wrap`,
+  Zeile wird zweizeilig). Breiter ginge nur mit einer Stufe über `max-w-7xl` oder schmaleren festen
+  Spalten (Name `w-72` ist für lange Doppelnamen schon knapp).
+- **Fächer, Semester, Lehrberufe, Module: Breiten bleiben am `th`**: `table-fixed` ist gesetzt, die
+  Breiten am Kopf wirken wie ein `<colgroup>`; nur die Kartenobergrenze (`max-w-5xl` bis `max-w-7xl`)
+  ist neu. Berufsbildner und Benutzer hatten weder `table-fixed` noch Breiten und tragen jetzt ein
+  `<colgroup>`.
+- Einrichtung, Schritt Kategorien: das Flag `einrichtung_kategorien` setzt nur der Einrichtungsschritt (`EinrichtungController`), nicht die reguläre Kategorienseite – wer Kategorien dort pflegt, sieht in der Einrichtung «noch nicht bestätigt», bis der Schritt einmal gespeichert ist. Gewollt: der Schritt ist die Bestätigung (Prüfer-Notiz 02.10.).
+- Aktivitätsprotokoll: ob die Spalten Ziel und Details erscheinen, entscheidet jede Seite für sich (`$hatZiel`/`$hatDetails` über die Zeilen der Seite) – zwischen Seite 1 und 2 kann der Spaltensatz wechseln. Gelassen: eine zweite Abfrage über alle Treffer je Aufruf wäre teurer als der Effekt (Prüfer-Notiz 02.10.).
+
+## R5 Audit-Workflow: bewusst gelassen (02.10.2026)
+
+Workflow `notenportal-audit` (72 Agents, Dunkelmodus/Design/UX Lernende/UX Verwaltung/Korrektheit,
+jeder Befund gegnerisch verifiziert): 33 Befunde, 20 bestätigt und umgesetzt (Commit siehe Übergabe),
+13 verworfen. Die verworfenen mit dem Grund des Verifiers:
+
+- **Vorderste Ebene fehlt (Drawer, Dialog, Alert in `bg-card`)**: `notenportal-ui` §2 führt den Dialog
+  ausdrücklich unter `bg-card`; die Stufe «Overlay heller als Karte» in `notenportal-dunkelmodus` §2 ist
+  dort als Übertragung markiert, die HIG nennt base/elevated nur unter iOS/iPadOS. Bei offenem Blatt
+  dunkelt der Scrim (0.45) alles dahinter ab, das Blatt ist die hellste Fläche und trägt Haarlinie plus
+  `--elev-3`. Der Regelkonflikt der zwei Skills bleibt notiert; aufgelöst wird er mit dem nächsten
+  Token-Entscheid, nicht mit einem vierten Flächen-Token.
+- **Monatsraster der Agenda (Punktfarbe, mehrere Akzentflächen)**: der Navigationszähler entsteht nur
+  für Admin-Feedback, Heute-Kreise stehen in sich ausschliessenden Zweigen, der einzige `bg-accent`-Knopf
+  ist die Primäraktion. Der vorgeschlagene Ring übernähme dieselbe reine Farbtrennung Prüfung/Termin
+  aus `AgendaArt` – kein Gewinn.
+- **Karten mit `max-w-4xl` bis `max-w-7xl`**: Entscheid vom selben Tag (3d63e7e, «Listenkarten auf die
+  Breite ihrer Spalten begrenzen»); Karten sitzen linksbündig in `np-seite`, D6 (springende Achse)
+  entsteht nicht.
+- **Leerzustände ohne nächsten Schritt** (Fächer, Kategorien, Semester, Module, Lehrberufe,
+  Notenbäume): der nächste Schritt ist die einzige Primäraktion im Seitenkopf, gleichzeitig sichtbar;
+  `x-leer` erlaubt null Aktionen. Dass andere Listen die Aktion im Slot wiederholen, ist eine
+  Einheitlichkeitsfrage, kein Verstoss.
+- **Hinweistexte** (Kalender-Abo, Darstellung, Kalender-Anleitungen, externe Kalender, Benutzer
+  anlegen): schon in «R5 Sichtprüfung» entschieden; jeder Satz nennt eine Folge oder verhindert eine
+  falsche Erwartung (Portaländerungen fliessen nicht in den Quellkalender zurück). Einzig das Wort
+  «aktuell» in `kalender-anleitungen.blade.php:25` klingt nach Entwicklungsstand – Textpflege, kein Fix.
+- **Versalien/Typo-Reste in der Einrichtung**: `uppercase` am Kürzelfeld zeigt den gespeicherten Wert
+  (`mb_strtoupper` im Controller); `normal-case` in `people.blade.php:3` ist wirkungslos,
+  `tracking-normal` und `px-2` weichen bei «lesefreundlich» von `np-feld` ab (Aufräumarbeit, kein
+  Regelverstoss); der Rahmen in `people.blade.php:88` wäre als `bg-fill-2`-Fläche konsistenter – alle
+  drei als Kleinigkeiten für die nächste Einrichtungs-Session.
+- **Agenda: Speichern führt zur Notenseite**: gilt in der ganzen App (Dashboard, Notenseite, Agenda);
+  Abbrechen bleibt im Kontext. Ein Sonderweg für die Agenda schüfe die Uneinheitlichkeit, die er beheben
+  soll. Die Redirects im `PruefungenController` verlieren `ansicht`/`monat` – Gestaltungsfrage.
+- **«Offene Meldungen» öffnet die ungefilterte Feedback-Liste**: der Admin-Eintrag «Feedback» ist der
+  Posteingang mit Ungelesen-Markierung (Entscheid R4 Admin); spürbar erst, wenn eine offene Meldung
+  hinter 25 erledigten auf Seite 2 liegt.
+- **Cockpit ohne Drill-down (Prüfungen, Aktivität, Zeugnisnoten)**: das Cockpit lädt nur offene
+  Prüfungen (Zweig «mit Note» wäre tot), die Heatmap kennt keine `kategorie_id` (Link wäre zu grob)
+  und ist eine gemeinsame Komponente. «Noten ansehen» und die Reiter sind der Weg.
+- **Berufsbildner-Tabellen ohne Zeilenlink**: `data-href` ist eine Bauanleitung, keine Pflicht; jede
+  Zahl führt in die gefilterte Lernendenliste (Kommentar Z. 1), `cursor: pointer` nur auf `tr[data-href]`.
+- **Gewichteter Durchschnitt in `Schulnetz::schnitt()`**: Zuordnungsheuristik beim Parsen (bildet die
+  Schulnetz-Formel nach, Ergebnis wird verworfen); `Auswertung` wäre hier fachlich falsch.
+  `ImportFormateTest` deckt den Fall ab.
+- **Rückdatierte Betreuung löscht abgelöste Zeiträume hart** und **Semesterdaten trotz Noten
+  änderbar**: beides Produktentscheide mit Datenwirkung, stehen unter «Offen für David» in der
+  Übergabe mit den Gründen des Verifiers.
+
+Aus der Umsetzung des Dunkelmodus-Blocks offen geblieben:
+
+- **Marke «ungenügend»/«knapp» auf Hover-Zeilen unter 4.5:1 in anderen Themes**: mit dem neuen
+  Gletscher-dunkel-Rot (255 158 150) liegt die Marke auf Karte 5.29, Zebra 4.88, Hover 4.50. Gleiches
+  Verfahren über alle Theme-Blöcke: ungenügend dunkel `papier` 4.20 und `bernstein` 4.31, ungenügend
+  hell 4.19–4.33 und knapp hell 4.09–4.19 in allen Themes (auf Karte und Zebra meist darüber). Hell ist
+  nicht Massstab, die zwei Dunkelthemes brauchen je einen eigenen Ton – Token-Arbeit je Theme, nicht
+  ein Fix.
+- **Drawer bei «Bewegung reduzieren»**: das Blatt erscheint ohne Überblendung (nur der Scrim blendet),
+  weil der `aside` keine Opazitäts-Transition hat; `motion-reduce:translate-x-0` nimmt nur die
+  Bewegung weg. Überblendung ergänzen wäre eine zweite Transition am Blatt.
+- `np-haken`: Schalterknopf (`white`) und Auswahlpfeil (`%2386868b`) bleiben hartcodiert in SVG-Data-
+  URLs; beide liegen auf eigenen Flächen (Accent bzw. Eingabefeld) und waren nicht Teil des Befunds.
+
+## R6 Welle 1 (Fundament, JS-Bausteine): bewusst gelassen (03.10.2026)
+
+Review-Empfehlungen aus dem Workflow `notenportal-r6-welle`, keine Blocker. Alles kommt in den
+geplanten Scheiben, nicht als Nachbesserung in Welle 1.
+
+- **Harte Dauern unter «Bewegung reduzieren»**: Seitenleiste 260 ms, `np-slide-down`, `np-schalter`
+  tragen noch eigene Millisekunden statt `--dauer-*`; die Variante `ruhig` greift dort erst, wenn
+  R6-02 (Materialien) und R6-05 (Bedienelemente) die Komponenten auf die Tokens umstellen.
+- **`np-grund` fehlt auf `layouts/guest.blade.php` und den Fehlerseiten**: Anmeldung und 4xx/5xx
+  liegen noch auf flachem `bg-bg`. Kommt mit R6-05 (Anmeldung) bzw. R6-11 (Fehler-/Leerzustände).
+- **`charts.js` nutzt weiter `bewegungReduziert()`**: wird in R6-04 (npChart v2) durch
+  `bewegungRuhig()` ersetzt; bis dahin existieren beide Funktionen in `np.js`.
+- **`data-leiste` hängt am Beobachter der Navigation**: `registriereLeiste()` wird aus
+  `npLeistenUeberlauf` nachgezogen; ohne Hauptnavigation (Gast-Layout) bleibt das Attribut leer.
+  Gewollt, weil es nur die Schubladenregel der Seitenleiste steuert.
+- **`x-np-licht` wird einmal beim Laden registriert**: Elemente, die später per Alpine erscheinen,
+  bekommen das Licht erst, wenn sie die Direktive selbst tragen. Reicht für Welle 1; R6-05 prüft die
+  Overlays.
+- **LCP-Rauschen**: Wiederholungen auf /dashboard lagen bei 188 und 220 ms (Basislinie Median 172,
+  Toleranz 10 %, T = 44 ms). Kein Beleg für eine Verschlechterung, aber auch keiner für «gleich»;
+  R6-12 misst drei Läufe als Median.
+
+## R6 Welle 1b (Materialien, npChart v2): bewusst gelassen (03.10.2026)
+
+Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine Blocker.
+
+- **`np-glas` unter `kontrastreich:`** ersetzt die ganze Schattenliste durch die 1-px-Kante,
+  `glass-overlay` behält dagegen `--elev-3` und ergänzt sie. Der Plan sagt «zusätzlich». Angleichen,
+  sobald R6-05 die Leiste in den Views anfasst; sichtbar nur im Theme kontrast / prefers-contrast.
+- **`[data-hauptaktion]` Hover/Active mit `color-mix(… black)`**: gleiches Muster wie
+  `np-knopf-primaer` und `np-knopf-gefahr` (Bestand). Ein Hover-Token je Akzent wäre sauberer –
+  Token-Arbeit über alle 24 Theme-Blöcke, nicht in R6.
+- **`np-schalter::after` dupliziert die Werte von `np-glas-moment`** (0.78/0.74, blur 8 px). Ein
+  Schieberknopf (`input[type=range]`) existiert im Repo nicht, darum nur der Schalter. Wer die
+  Glasmoment-Werte ändert, muss beide Stellen finden (Kommentar steht an beiden).
+- **Neue Utilities noch ohne Verwendung**: `np-glas-moment`, `np-glanz`, `np-segment-marke`,
+  `np-kante-hart`, `np-einzeichnen`, `[data-hauptaktion]` und die Regeln für `html[data-palette]`
+  greifen erst, wenn R6-05/R6-06 die Views und np.js (`data-palette` nach `transitionend` des
+  Scrims) nachziehen. Bis dahin bleibt der Palette-Glasanteil bei 16.8 % (zwei Kapseln behalten den
+  Weichzeichner unter der offenen Palette).
+- **Alpine-`x-transition` in dropdown/navigation/toast** übersteuert die neue scale-Transition von
+  `glass-overlay`; die Skalierung mit `--dauer-morph` wirkt erst nach R6-05.
+- **Rechnerkurve ohne `stepped`, Achse linear 1–6** (R6-04): nötig, damit der interpolierte
+  Scrub-Punkt auf der Linie liegt; die Reihen `_schlechteste`/`_beste` sind Hilfsreihen fürs Band.
+  Wechselt die Kurve zwischen flach (2 Reihen) und mit Spielraum (4 Reihen), baut `setze()` neu,
+  der Canvas bleibt. Themewechsel baut neu und wiederholt die Staffel – gewollt.
+- **Fremde Aufrufer von `x-diagramm` ohne `typ`** bekommen Glas-Tipp und Tastatur automatisch, aber
+  keine sichtbare Zusammenfassung; die Umstellung auf `<x-diagramm typ=…>` gehört zu R6-07b/08–10.
+- **Veraltete Nennungen** von `glass-bar`, `glass-seitenleiste`, `glass-btn`, `np-fade-in` und der
+  Regel «≥ 0.78» in `.claude/skills/notenportal-ui`, `notenportal-dunkelmodus`, `.claude/workflows/*`
+  und `docs/gui-konzept.md:115` tilgt R6-11.
+
+## R6 Welle 2 (Funktionsebene, Seitenschliff): bewusst gelassen (03.10.2026)
+
+- **`[data-hauptaktion]` ist Opt-in im Seitenkopf** (Slot `hauptaktion`) und wirkt optisch nur
+  innerhalb von `.np-glas-gruppe`; die Aktionen des Seitenkopfs liegen in der Symbolleiste noch in
+  einem schlichten Flex-Container. 7 Views tragen den Marker, 24 weitere mit `np-knopf-primaer` im
+  Slot `aktionen` bekommen ihn in ihren Seiten-Scheiben R6-08…R6-11, wenn die Leistenaktionen in
+  die Kapsel wandern. Geprüft: auf 360 gerenderten Seiten nie mehr als einer.
+- **Modal ohne `np-scroll-edge`** – es hat keinen eigenen Scrollbereich; `np-kante-hart` bleibt
+  ungenutzt, weil keine sticky Tabellenköpfe existieren.
+- **`bestaetigung.js` schluckt ein zweites Submit während der 200-ms-Ausblendung** – gewollt gegen
+  Doppelabsenden, aber ohne sichtbare Rückmeldung.
+- **Toast `fortsetzen()` setzt die Pause ohne getrennte Hover-/Fokus-Flags zurück**: verlässt die
+  Maus den Toast, während er fokussiert ist, läuft die Uhr weiter.
+- **Lehrzeit-Servermodus von «Wo stehe ich»** ist aus den Demodaten nicht testbar (kein Lernender
+  mit Server-seitigem Lehrzeit-Modus); `WoStehIchTabelleTest` deckt Semester und Umschaltung.
+- **`r605-check.mjs` liegt im Scratch**, nicht im Repo; R6-12 übernimmt die Prüfungen in
+  `tools/pruefung/notenportal-r6-pruefung.js`.
+- **ui-checker Welle 2, bewusst gelassen:** Toast wechselt `role` (`alert`/`status`) zur Laufzeit statt zwei
+  fester Live-Regionen; `<x-dropdown>` hat `aria-haspopup`, aber keine Menürolle und keine Pfeiltasten;
+  `feedback-widget.blade.php` nutzt `xl:`/`max-xl:` wie die Hauptnavigation (Skill-Ausnahme muss die Komponente
+  nennen – R6-11); `[data-hauptaktion]` und `np-knopf-primaer` dunkeln beim Hover mit `color-mix(…, black)`
+  (gleiches Muster, siehe Welle 1). Behoben im Fix-Commit: Escape schliesst genau eine Ebene
+  (`np.escapeGilt`), Leistenmenü-Escape am window, np-alert mit Bewegungstokens, Menüsymbole ohne Akzent,
+  Skalen-Overrides für Toast/Palette/Tastenkürzel, Feedback-Popover als `np-schicht`, `npMorph` in np.js,
+  Palette ohne 8er-Kappung mit Ladezustand, CSV-Export im Feedback-Postfach keine Hauptaktion mehr.
+
+## R6 Welle 3 (R6-07a Statistik-Service): bewusst gelassen (03.10.2026)
+
+- **Kennzahlen bleiben bei `kategorie_id` die der ganzen Auswahl** (`Bericht::noten`): Verteilung,
+  Schwachstellen und Lehrjahresvergleich folgen dem Kategoriefilter, die Kacheln oben nicht – Annahme
+  der Hauptsitzung, damit das Fazit (`admin/berichte/noten.blade.php`) nicht neben einem
+  Kategorie-Histogramm kippt. GUI-R6 S10/S11 schweigt dazu; R6-10 entscheidet die Darstellung.
+- **Letzter Reihenwert ≠ Gesamtnote**, sobald undatierte Leistungen (IPA, Positionen) zählen: die
+  Stichtagsreihe rechnet nur Datiertes (GUI-R6 §11 R6-07a verlangt das), die Liste `meta.ohneDatum`
+  erklärt die Differenz. R6-08 zeigt sie unter dem Verlauf; ein Hinweistext ist laut CLAUDE.md tabu.
+- **Geplante Prüfung ausserhalb aller Semester** (Datum vor dem ersten oder nach dem letzten
+  Semester, `PruefungenController` validiert nur `required|date`): `Statistik::benoetigt` meldet
+  `ohne_einfluss`, weil der Rechenkern sie verwirft – Bestand, nicht neu. Saubere Lösung ist eine
+  Validierung gegen die Semesterliste beim Planen (eigener Punkt, nicht R6).
+- **Keine Cache-Schicht für Stichtagsreihen**: bis zu 60 Rechenkern-Läufe je Aufruf, reine Rechnung
+  ohne DB; erst messen (R6-12 `leistung.mjs`), dann entscheiden.
+- **Ausreisser ausserhalb 1–6** werden im Histogramm verworfen, nicht in Randklassen gelegt – die
+  Skala lässt sie nicht zu, ein Treffer wäre ein Datenfehler.
+- **Persönliche Ziele in `benoetigt`** warten auf «Offen für David» (Ziele für Berufsbildner
+  sichtbar?); der Parameter `zielwert` ist vorbereitet.
+
+
+## R6 Welle 3b (R6-07b Endpunkte, npFilter, SVG-Bausteine): bewusst gelassen (03.10.2026)
+
+- **Doppelte Auswertung im HTML-Pfad des Lernenden-Dashboards** (`DashboardController::lernender`
+  lädt `StatistikDaten::lernender` für das Paket und danach `Uebersicht::lernender` für die Seite;
+  gleiches Muster in `PruefungenController` und `AbschlussController`): gemessen auf der Demo-DB
+  (nina.huber, warm) kostet der zweite Lauf 5 Abfragen und ≈2 ms, konstant in der Datenmenge
+  (`AbfragenAnzahlTest` wacht). `Auswertung` trägt die Leistungsliste nicht, darum liesse sich das
+  nur über eine neue Signatur von `Uebersicht::lernender` zusammenlegen – nicht wert, solange R6-08
+  die Dashboard-Karten ohnehin umbaut; dort entscheiden.
+- **Berichtsseite tauscht nur HTML** (`npFilter` mit `json: false`): das JSON-Paket wird dort nicht
+  gehört, weil die Diagramme als Server-SVG/Blade kommen; der JSON-Endpunkt bleibt für R6-10 und
+  die Tests bestehen. Der Untertitel (Semestername) wechselt beim Filtern noch nicht mit → R6-10.
+- **Marken (×-Pillen) sind auf der Berichtsseite nicht aktiv** (`cfg.marken` fehlt): kommt mit der
+  Neugestaltung der Filterleiste in R6-10.
+- **`x-verlauf` doppelt Teile des Markups von `x-diagramm`** (Rahmen, Tabelle «Als Tabelle»):
+  zusammenlegen, sobald R6-08 die letzte Stelle von `npChart('verlauf')` abgelöst hat.
+- **`shot.mjs` fotografiert Diagramme mitten in der Einblendung**: die Grenzlinie «genügend 4.0»
+  erscheint im Bild schräg, nach 4 s ist sie waagrecht (eigene Aufnahme `verlauf-4s.png`). Kein
+  Produktfehler; R6-12 soll `shot.mjs`/`rundgang.mjs` auf das Ende der Chart-Animation warten
+  lassen (Ereignis oder `--bewegung=reduziert` als Standard für Vergleichsbilder).
