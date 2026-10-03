@@ -140,6 +140,9 @@
     </head>
 
     <body class="font-sans antialiased bg-bg text-text">
+        {{-- Ruhiger Grund hinter Seitenleiste und Inhalt: statischer Verlauf aus Tokens --}}
+        <div class="np-grund" aria-hidden="true"></div>
+
         <a href="#inhalt" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[90] focus:inline-flex focus:h-9 focus:items-center focus:rounded-lg focus:px-3.5 focus:text-sm focus:font-medium focus:text-text glass-overlay">{{ __('Zum Inhalt springen') }}</a>
 
         {{-- Page-Progress-Bar (accent, 2px, oben) --}}
@@ -195,17 +198,6 @@
         @endauth
 
         <script>
-            // Erfolgsmeldungen nach 3 Sekunden ausblenden
-            document.addEventListener('DOMContentLoaded', function () {
-                document.querySelectorAll('[data-autohide]').forEach(function (el) {
-                    setTimeout(function () {
-                        el.style.transition = 'opacity 0.5s';
-                        el.style.opacity = '0';
-                        setTimeout(function () { el.style.display = 'none'; }, 500);
-                    }, 3000);
-                });
-            });
-
             // Page-Progress-Bar: startet bei Navigation/Submit, endet beim (Re-)Load
             (function () {
                 const bar = document.getElementById('np-progress');

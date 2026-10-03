@@ -10,6 +10,8 @@
 @source inline('rotate-90 rotate-180');
 @source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-{1,6} fill-muted/30');
 @source inline('bg-accent text-accent-contrast text-accent-contrast/80 text-text text-muted');
+/* Feder-Kurve: Tailwind gibt ungenutzte @theme-Variablen nicht aus; die Klasse hält --ease-feder im Build, bis Komponenten sie nutzen */
+@source inline('ease-feder');
 
 /* Dark Mode über die Klasse .dark auf <html> (Toggle + localStorage) */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -18,6 +20,18 @@
    `seite:` gilt, solange die Seitenleiste gewählt ist, `oben:` für die Tableiste. */
 @custom-variant seite (&:where([data-navigation='seite'], [data-navigation='seite'] *));
 @custom-variant oben (&:where([data-navigation='oben'], [data-navigation='oben'] *));
+
+/* Reduzierte Bewegung: `ruhig:` gilt unter prefers-reduced-motion und unter dem persönlichen Schalter
+   html[data-bewegung='reduziert']. Bewegung hängt an Tokens (--np-weg, --dauer-*); `ruhig:` nur für
+   Ausnahmen, die keine Token-Reduktion abdeckt. */
+@custom-variant ruhig {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+  &:where([data-bewegung='reduziert'], [data-bewegung='reduziert'] *) {
+    @slot;
+  }
+}
 
 /* Design-Tokens aus theme.css als Tailwind-Farben; inline, damit der
    Wechsel der Variablen (Modus, Theme) auch bei /alpha-Modifiern greift */
@@ -132,6 +146,8 @@
   /* Bewegung: Apples Standardkurve (schneller Anlauf, weiches Auslaufen) */
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Feder: gedämpfte Schwingung (Dämpfungsgrad 0.82, Überschwingen höchstens 1.1 %), 24 Stützpunkte */
+  --ease-feder: linear(0, 0.0463, 0.1539, 0.288, 0.426, 0.5546, 0.6668, 0.76, 0.8343, 0.8914, 0.9336, 0.9637, 0.9842, 0.9974, 1.0053, 1.0094, 1.011, 1.0109, 1.01, 1.0086, 1.0071, 1.0056, 1.0043, 1.0031, 1);
   --default-transition-duration: 160ms;
   --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -202,19 +218,42 @@
     letter-spacing: 0.01em;
   }
 
-  /* Persönlich reduzierte Bewegung: wie prefers-reduced-motion, aber per Schalter */
-  [data-bewegung='reduziert'] {
+  /* Bewegungstokens (Katalog GUI-R6 §5). Dauern und Wege hängen an Tokens, damit eine Stelle sie
+     reduziert: Feder wird zur gewöhnlichen Auslaufkurve, lange Dauern auf 150 ms, Wege und Staffelung auf 0,
+     Skalierung auf 1 (nur Überblendung). Gilt für prefers-reduced-motion und den persönlichen Schalter. */
+  :root {
+    --dauer-1: 100ms;
+    --dauer-2: 150ms;
+    --dauer-3: 200ms;
+    --dauer-4: 300ms;
+    --dauer-morph: 360ms;
+    --np-weg: 1;
+    --np-skala-von: 0.96;
+    --np-staffel: 30ms;
+    --np-aktiv: 1;
+  }
+  html[data-bewegung='reduziert'] {
     scroll-behavior: auto;
+    --ease-feder: var(--ease-out);
+    --dauer-3: 150ms;
+    --dauer-4: 150ms;
+    --dauer-morph: 150ms;
+    --np-weg: 0;
+    --np-skala-von: 1;
+    --np-staffel: 0ms;
   }
-  [data-bewegung='reduziert'] *,
-  [data-bewegung='reduziert'] ::before,
-  [data-bewegung='reduziert'] ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --ease-feder: var(--ease-out);
+      --dauer-3: 150ms;
+      --dauer-4: 150ms;
+      --dauer-morph: 150ms;
+      --np-weg: 0;
+      --np-skala-von: 1;
+      --np-staffel: 0ms;
+    }
   }
-  /* wie bei prefers-reduced-motion: Überblendung statt Bewegung */
+  /* Ausnahmen: Überblendung statt Bewegung (Akkordeon, Fortschrittsbalken) */
   [data-bewegung='reduziert'] details[open] > summary ~ * {
     animation-name: np-fade;
     animation-duration: 150ms !important;
@@ -489,6 +528,31 @@ html[data-bewegung='reduziert']::view-transition-new(*) {
     --np-leiste-breite: 16.25rem;
     --np-leiste-rand: 0.5rem;
     --np-symbolleiste-hoehe: 3.5rem;
+  }
+}
+
+/* Ruhiger Grund hinter Seitenleiste und Inhalt (GUI-R6 §2): statischer Verlauf aus Tokens, keine Bilder,
+   keine Animation, kein Weichzeichner. Zweite Ebene: zarter Akzentschimmer oben links. Flach unter
+   Kontrast-Theme, reduzierter Transparenz (Systemeinstellung und persönlicher Schalter). */
+@utility np-grund {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(168deg, rgb(var(--grund-hoch)) 0%, rgb(var(--bg)) 62%);
+  @supports (color: color-mix(in oklab, red, blue)) {
+    background:
+      radial-gradient(70rem 40rem at 12% -8%, rgb(var(--accent) / var(--grund-akzent)), transparent 70%),
+      linear-gradient(168deg, rgb(var(--grund-hoch)) 0%, rgb(var(--bg)) 62%);
+  }
+  :where([data-theme='kontrast']) & {
+    background: rgb(var(--bg));
+  }
+  :where(html[data-transparenz='reduziert']) & {
+    background: rgb(var(--bg));
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background: rgb(var(--bg));
   }
 }
 
