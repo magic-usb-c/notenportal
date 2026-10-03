@@ -19,7 +19,7 @@ use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Modulstatus;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechner;
-use App\Services\Auswertung\Rundung;
+use App\Services\Auswertung\Verteilung;
 use App\Services\Auswertung\Zielrechner;
 use App\Services\Betrieb\Sicherung;
 use App\Support\Betrieb;
@@ -36,6 +36,9 @@ use Illuminate\Support\Facades\DB;
  */
 final class Uebersicht
 {
+    /** Zeiträume der Erfassungs-Säulen in Wochen; der erste ist der Standard. */
+    public const array AKTIVITAET_WOCHEN = [12, 26, 52];
+
     public function __construct(
         private readonly NotenQuelle $quelle,
         private readonly LernstandRechner $lernstaende,
@@ -184,19 +187,28 @@ final class Uebersicht
             'neu' => (int) ($neu[$l->lernender_id] ?? 0),
             'lehrjahr' => $l->lehrjahr(),
             'naechstePruefung' => $naechstePruefung->get($l->lernender_id),
+            // Statistik (Hantel, Sparkline, Punktstreifen): alles aus dem schon berechneten Lernstand, keine eigene Abfrage
+            'delta' => $staende[$l->lernender_id]->delta(),
+            'semesterschnitte' => array_values(array_filter($staende[$l->lernender_id]->verlauf, fn ($note) => $note !== null)),
+            'gesamt' => $staende[$l->lernender_id]->auswertung->gesamtNote,
         ]);
         $zeilen = $this->bbSortiert($zeilen, $sort, $dir);
 
         return [
             'zeilen' => $zeilen,
+            'punktstreifen' => $this->bbPunktstreifen($zeilen),
             'aufmerksamkeit' => $this->bbAufmerksamkeit($zeilen),
             'agenda' => $this->bbAgenda($pruefungen->filter(fn (Pruefung $p) => $p->datum->lte(now()->addDays(14)))->values()),
             'lehrende' => $this->lehrendeBald($lernende),
         ];
     }
 
-    /** Admin: Betrieb überblicken, Lücken in der Einrichtung sehen. */
-    public function admin(): array
+    /**
+     * Admin: Betrieb überblicken, Lücken in der Einrichtung sehen.
+     *
+     * @param  int  $wochen  Zeitraum der Erfassungs-Säulen: 12, 26 oder 52 (sonst 12)
+     */
+    public function admin(int $wochen = 12): array
     {
         $lernende = Lernender::query()->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))->with(['benutzer', 'lehrberuf'])->get();
         $ids = $lernende->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
@@ -246,7 +258,7 @@ final class Uebersicht
             ],
             'handlungsbedarf' => $this->adminHandlungsbedarf($einrichtung, $kritisch, $feedbackOffen),
             'proBb' => $proBb,
-            'aktivitaet' => $this->aktivitaet(),
+            'aktivitaet' => $this->aktivitaet($wochen),
             'lehrende' => $this->lehrendeBald($lernende),
             'grenzen' => NotenSkala::grenzen(),
         ];
@@ -579,6 +591,25 @@ final class Uebersicht
     }
 
     /**
+     * Gesamtnote je Person für den Punktstreifen; Median erst ab drei Personen mit Note.
+     *
+     * @return array{punkte: list<array{id: int, name: string, gesamt: float, status: string}>, median: ?float, n: int}
+     */
+    private function bbPunktstreifen(Collection $zeilen): array
+    {
+        $punkte = $zeilen->filter(fn (object $z) => $z->gesamt !== null)
+            ->map(fn (object $z) => [
+                'id' => (int) $z->lernender->lernender_id,
+                'name' => $z->lernender->benutzer->vorname.' '.$z->lernender->benutzer->nachname,
+                'gesamt' => (float) $z->gesamt,
+                'status' => $z->stand->status,
+            ])
+            ->sortBy('gesamt')->values()->all();
+
+        return ['punkte' => $punkte, 'median' => Verteilung::median(array_column($punkte, 'gesamt')), 'n' => count($punkte)];
+    }
+
+    /**
      * Sortierung der Klassentabelle: ohne (gültigen) Sortierschlüssel Status dann Nachname,
      * sonst nach gewählter Spalte und Richtung; Zeilen ohne Wert immer am Schluss.
      */
@@ -676,41 +707,26 @@ final class Uebersicht
         return array_values(array_filter($luecken, fn ($l) => $l['anzahl'] > 0));
     }
 
-    /** Neu erfasste Noten pro Woche (12 Wochen). */
-    private function aktivitaet(): array
+    /**
+     * Neu erfasste Noten pro Woche, nur Betriebssummen. Median über die Wochenwerte (ab drei Wochen).
+     *
+     * @return array{labels: list<string>, werte: list<int>, median: ?float, wochen: int}
+     */
+    private function aktivitaet(int $wochen = 12): array
     {
-        $start = now()->startOfWeek()->subWeeks(11);
+        $wochen = in_array($wochen, self::AKTIVITAET_WOCHEN, true) ? $wochen : self::AKTIVITAET_WOCHEN[0];
+        $start = now()->startOfWeek()->subWeeks($wochen - 1);
         $roh = DB::table('noten')->whereNull('geloescht_am')->where('erstellt_am', '>=', $start)
             ->selectRaw('YEARWEEK(erstellt_am, 3) as kw, COUNT(*) as anzahl')->groupBy('kw')->pluck('anzahl', 'kw');
 
         $labels = [];
         $werte = [];
-        for ($i = 0; $i < 12; $i++) {
+        for ($i = 0; $i < $wochen; $i++) {
             $w = $start->copy()->addWeeks($i);
             $labels[] = __('KW :nr', ['nr' => $w->isoWeek()]);
             $werte[] = (int) ($roh[(int) $w->format('oW')] ?? 0);
         }
 
-        return ['labels' => $labels, 'werte' => $werte];
-    }
-
-    /** Gesamtschnitt je Lehrberuf und Lehrjahr. */
-    private function jahrgangsDiagramm(Collection $lernende, array $staende): array
-    {
-        $gruppen = [];
-        foreach ($lernende as $l) {
-            $note = $staende[$l->lernender_id]->auswertung->gesamtNote;
-            $jahr = $l->lehrjahr();
-            if ($note !== null && $jahr !== null && $jahr <= 4) {
-                $gruppen[$l->lehrberuf?->kuerzel ?? '–'][$jahr][] = $note;
-            }
-        }
-        ksort($gruppen);
-
-        return [
-            'labels' => array_map(fn (int $j) => __(':jahr. Lehrjahr', ['jahr' => $j]), [1, 2, 3, 4]),
-            'serien' => array_map(fn ($beruf, $jahre) => ['name' => $beruf, 'werte' => array_map(
-                fn ($j) => isset($jahre[$j]) ? round(Rundung::mittel($jahre[$j]), 2) : null, [1, 2, 3, 4])], array_keys($gruppen), $gruppen),
-        ];
+        return ['labels' => $labels, 'werte' => $werte, 'median' => Verteilung::median($werte), 'wochen' => $wochen];
     }
 }

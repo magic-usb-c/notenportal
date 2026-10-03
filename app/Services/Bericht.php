@@ -11,6 +11,7 @@ use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Auswertung\Rundung;
+use App\Services\Auswertung\Verteilung;
 use App\Support\NotenSkala;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,10 @@ final class Bericht
     public function __construct(private readonly LernstandRechner $lernstaende) {}
 
     /**
-     * @param  array{semester_id: ?int, lehrberuf_id: ?int, berufsbildner_id: ?int}  $filter
+     * Filter: `lehrjahr` nimmt nur Lernende dieses Lehrjahrs, `kategorie_id` beschränkt Verteilung, Schwachstellen
+     * und Lehrjahresvergleich auf eine Kategorie (die Kennzahlen bleiben die der ganzen Auswahl).
+     *
+     * @param  array{semester_id: ?int, lehrberuf_id: ?int, berufsbildner_id: ?int, lehrjahr?: ?int, kategorie_id?: ?int}  $filter
      * @return array{zeilen: Collection, kennzahlen: array<string, mixed>, verteilung: array<string, mixed>, kategorien: list<array<string, mixed>>, schwachstellen: list<array<string, mixed>>, nachLehrjahr: list<array<string, mixed>>}
      */
     public function noten(array $filter, string $sort = 'status', string $dir = 'asc'): array
@@ -65,9 +69,14 @@ final class Bericht
             ];
         });
 
+        $lehrjahr = $filter['lehrjahr'] ?? null;
+        if ($lehrjahr !== null) {
+            $zeilen = $zeilen->filter(fn ($z) => $z->lehrjahr === $lehrjahr)->values();
+        }
+
         return [
             'zeilen' => $this->sortiere($zeilen, $sort, $dir),
-            ...$this->aggregate($zeilen, $sid, $grenze),
+            ...$this->aggregate($zeilen, $sid, $grenze, $filter['kategorie_id'] ?? null),
         ];
     }
 
@@ -78,12 +87,13 @@ final class Bericht
     }
 
     /** @return array{kennzahlen: array<string, mixed>, verteilung: array<string, mixed>, kategorien: list<array<string, mixed>>, schwachstellen: list<array<string, mixed>>} */
-    private function aggregate(Collection $zeilen, ?int $sid, float $grenze): array
+    private function aggregate(Collection $zeilen, ?int $sid, float $grenze, ?int $kategorieId = null): array
     {
         $k = Konfiguration::ausDb();
         $kat = [];
         $schwach = [];
         $alle = [];
+        $verteilteNoten = [];
         $gefaehrdet = 0;
 
         foreach ($zeilen as $z) {
@@ -105,8 +115,14 @@ final class Bericht
 
             foreach ($this->zeugnisnoten($a, $sid) as $e) {
                 $alle[] = $e->note;
+                if ($kategorieId === null || $e->kategorieId === $kategorieId) {
+                    $verteilteNoten[] = $e->note;
+                }
                 $ungenuegend = (int) ($e->note < $grenze - 1e-9);
                 $kat[$e->kategorieId]['ungenuegend'] = ($kat[$e->kategorieId]['ungenuegend'] ?? 0) + $ungenuegend;
+                if ($kategorieId !== null && $e->kategorieId !== $kategorieId) {
+                    continue;
+                }
                 $schluessel = $e->typ === Element::FACH ? 'f'.$e->fachId : 'm'.$e->modulId;
                 $schwach[$schluessel] ??= ['label' => $e->typ === Element::FACH ? $k->fachName((int) $e->fachId) : $k->modulName((int) $e->modulId),
                     'kategorie' => $k->kategorieName($e->kategorieId), 'noten' => [], 'ungenuegend' => 0];
@@ -139,13 +155,7 @@ final class Bericht
             ->values()
             ->all();
 
-        $buckets = [];
-        for ($b = 10; $b <= 60; $b += 5) {
-            $buckets[number_format($b / 10, 1)] = 0;
-        }
-        foreach ($alle as $note) {
-            $buckets[self::klasse($note)]++;
-        }
+        $histogramm = Verteilung::histogramm($verteilteNoten);
 
         $gesamt = $zeilen->pluck('gesamt')->filter(fn ($v) => $v !== null)->values()->all();
 
@@ -159,31 +169,56 @@ final class Bericht
                 'gefaehrdet' => $gefaehrdet,
                 'zeugnisnoten' => count($alle),
             ],
+            // Viertelnoten; labels/werte/farben/grenzen/name bleiben die Schlüssel des Histogramms (charts.js)
             'verteilung' => [
-                'labels' => array_keys($buckets),
-                'werte' => array_values($buckets),
-                'farben' => array_map('floatval', array_keys($buckets)),
+                'labels' => $histogramm['labels'],
+                'werte' => $histogramm['werte'],
+                'farben' => $histogramm['untergrenzen'],
                 'grenzen' => NotenSkala::grenzen(),
                 'name' => 'Zeugnisnoten',
+                'breite' => $histogramm['breite'],
+                'n' => $histogramm['n'],
+                'median' => $histogramm['median'],
+                'quartile' => $histogramm['quartile'],
             ],
             'kategorien' => $kategorien,
             'schwachstellen' => $schwachstellen,
-            'nachLehrjahr' => $this->nachLehrjahr($zeilen),
+            'nachLehrjahr' => $this->nachLehrjahr($zeilen, $sid, null, $kategorieId),
         ];
     }
 
-    /** Gesamtschnitt je Lehrjahr, mit der Zahl der Lernenden, die in den Schnitt einfliessen. */
-    private function nachLehrjahr(Collection $zeilen): array
+    /**
+     * Gesamtnote (mit $kategorieId: Kategorienote) je Lehrjahr: Durchschnitt über die Personen, dazu die
+     * Personenwerte selbst und ihr Median (ab drei Personen) für die Streifen.
+     *
+     * @return list<array{jahr: int, schnitt: ?float, anzahl: int, werte: list<float>, median: ?float}>
+     */
+    public function nachLehrjahr(Collection $zeilen, ?int $sid = null, ?int $lehrjahr = null, ?int $kategorieId = null): array
     {
+        $wert = function ($z) use ($sid, $kategorieId): ?float {
+            $a = $z->stand->auswertung;
+            if ($kategorieId === null) {
+                return $z->gesamt;
+            }
+
+            return $sid ? $a->semester($sid, $kategorieId)['note'] : ($a->kategorien[$kategorieId]['note'] ?? null);
+        };
+
         return $zeilen
-            ->filter(fn ($z) => $z->lehrjahr !== null && $z->gesamt !== null)
+            ->filter(fn ($z) => $z->lehrjahr !== null && ($lehrjahr === null || $z->lehrjahr === $lehrjahr) && $wert($z) !== null)
             ->groupBy('lehrjahr')
             ->sortKeys()
-            ->map(fn (Collection $gruppe, int $jahr) => [
-                'jahr' => $jahr,
-                'schnitt' => Rundung::mittel($gruppe->pluck('gesamt')->all()),
-                'anzahl' => $gruppe->count(),
-            ])
+            ->map(function (Collection $gruppe, int $jahr) use ($wert) {
+                $werte = $gruppe->map($wert)->values()->all();
+
+                return [
+                    'jahr' => $jahr,
+                    'schnitt' => Rundung::mittel($werte),
+                    'anzahl' => count($werte),
+                    'werte' => $werte,
+                    'median' => Verteilung::median($werte),
+                ];
+            })
             ->values()
             ->all();
     }

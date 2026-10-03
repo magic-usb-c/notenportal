@@ -122,9 +122,9 @@ class BerichtTest extends TestCase
         $verteilung = app(Bericht::class)->noten(['semester_id' => null, 'lehrberuf_id' => null, 'berufsbildner_id' => null])['verteilung'];
         $klassen = array_combine($verteilung['labels'], $verteilung['werte']);
 
-        $this->assertSame(1, $klassen['3.5']);
-        $this->assertSame(0, $klassen['4.0']);
-        $this->assertSame(10, count($klassen) - 1, 'Klassen 1.0 bis 6.0 in Halbnotenschritten');
+        $this->assertSame(1, $klassen['3.75']);
+        $this->assertSame(0, $klassen['4.00']);
+        $this->assertSame(20, count($klassen), 'Klassen 1.00 bis 5.75 in Viertelnotenschritten, die letzte schliesst 6.0 ein');
     }
 
     /** @return array<string, array{0: float, 1: string}> */
