@@ -542,6 +542,16 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
 
 /* Bestätigungsdialog (HIG «Alerts», macOS): schmal, zentriert, Knöpfe gleich breit nebeneinander.
    Natives <dialog> mit showModal() – Fokusfalle, Escape und oberste Ebene liefert der Browser. */
+/* Deckende, erhöhte Schicht ohne Glas für Popover mit Formular (Feedback): hell Karte, dunkel eine Stufe heller
+   als die Karte (Base/Elevated), dazu Haarlinie. */
+@utility np-schicht {
+  background-color: rgb(var(--card));
+  border: 1px solid rgb(var(--border));
+  @variant dark {
+    background-color: rgb(var(--surface-2));
+  }
+}
+
 @utility np-alert {
   margin: auto;
   width: min(100% - 2rem, 20rem);
@@ -551,13 +561,14 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
   background-color: rgb(var(--card));
   color: rgb(var(--text));
   box-shadow: var(--elev-3);
+  /* Dialog (B3): 300 ms ease-out, Startmass aus dem Bewegungstoken (unter ruhiger Bewegung 1 = nur Überblendung) */
   transition:
-    opacity 150ms ease-out,
-    scale 150ms ease-out;
+    opacity var(--dauer-4) var(--ease-out),
+    scale var(--dauer-4) var(--ease-out);
   @starting-style {
     &[open] {
       opacity: 0;
-      scale: 0.96;
+      scale: var(--np-skala-von);
     }
   }
   &::backdrop {
@@ -629,7 +640,7 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
   & [data-hauptaktion] {
     background-color: rgb(var(--accent));
     color: rgb(var(--accent-contrast));
-    transition: background-color 120ms var(--ease-out);
+    transition: background-color var(--dauer-1) var(--ease-out);
     & > svg {
       color: inherit;
     }

@@ -51,7 +51,7 @@
                      x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                      x-on:keydown.tab="haltFokusImDialog($event)"
                      role="dialog" aria-modal="true" aria-labelledby="tastenkuerzel-titel"
-                     class="relative w-full max-w-md overflow-hidden rounded-2xl glass-overlay shadow-e3">
+                     class="relative w-full max-w-md overflow-hidden rounded-2xl glass-overlay [--dauer-morph:var(--dauer-4)] shadow-e3">
                     <div class="flex items-center justify-between border-b border-border px-5 py-3.5">
                         <h2 id="tastenkuerzel-titel" class="text-sm font-semibold text-text">{{ __('Tastenkürzel') }}</h2>
                         <button type="button" x-ref="schliessenKnopf" @click="schliessen()" aria-label="{{ __('Schliessen') }}"

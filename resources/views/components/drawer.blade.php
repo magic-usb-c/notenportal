@@ -34,7 +34,7 @@
     x-init="offen && $nextTick(() => startFokus()?.focus()); $watch('offen', v => { if (! v && ausloeser?.isConnected) { ausloeser.focus(); ausloeser = null } })"
     x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { ausloeser = document.activeElement; offen = true; $nextTick(() => startFokus()?.focus()) }"
     x-on:close-drawer.window="$event.detail === '{{ $name }}' ? offen = false : null"
-    x-on:keydown.escape.window="offen = false"
+    x-on:keydown.escape.window="if (offen && window.np.escapeGilt($el, $event)) offen = false"
     x-on:keydown.tab.prevent="$event.shiftKey || naechsterFokus().focus()"
     x-on:keydown.shift.tab.prevent="vorherigerFokus().focus()"
     x-cloak

@@ -1099,4 +1099,12 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   mit Server-seitigem Lehrzeit-Modus); `WoStehIchTabelleTest` deckt Semester und Umschaltung.
 - **`r605-check.mjs` liegt im Scratch**, nicht im Repo; R6-12 übernimmt die Prüfungen in
   `tools/pruefung/notenportal-r6-pruefung.js`.
+- **ui-checker Welle 2, bewusst gelassen:** Toast wechselt `role` (`alert`/`status`) zur Laufzeit statt zwei
+  fester Live-Regionen; `<x-dropdown>` hat `aria-haspopup`, aber keine Menürolle und keine Pfeiltasten;
+  `feedback-widget.blade.php` nutzt `xl:`/`max-xl:` wie die Hauptnavigation (Skill-Ausnahme muss die Komponente
+  nennen – R6-11); `[data-hauptaktion]` und `np-knopf-primaer` dunkeln beim Hover mit `color-mix(…, black)`
+  (gleiches Muster, siehe Welle 1). Behoben im Fix-Commit: Escape schliesst genau eine Ebene
+  (`np.escapeGilt`), Leistenmenü-Escape am window, np-alert mit Bewegungstokens, Menüsymbole ohne Akzent,
+  Skalen-Overrides für Toast/Palette/Tastenkürzel, Feedback-Popover als `np-schicht`, `npMorph` in np.js,
+  Palette ohne 8er-Kappung mit Ladezustand, CSV-Export im Feedback-Postfach keine Hauptaktion mehr.
 

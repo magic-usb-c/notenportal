@@ -112,7 +112,7 @@
                     @if(isset($e['kinder']))
                         <div data-ueberlauf="{{ $i }}" @if($e['aktiv']) data-aktiv @endif class="relative"
                              x-data="npLeistenMenue" x-init="$watch('auf', (v) => v && $nextTick(() => window.npMorph?.($refs.knopf, $refs.panel)))"
-                             @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                             @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape.window="escape()" @focusout="fokusRaus($event)">
                             <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab relative isolate" @if($e['aktiv']) data-aktiv @endif>
                                 @if($e['aktiv'] && ! $tabMarke)
                                     @php($tabMarke = true)
@@ -128,7 +128,7 @@
                                     @foreach($e['kinder'] as $k)
                                         <li>
                                             <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif class="np-menue-eintrag aria-[current=page]:font-semibold">
-                                                <x-symbol :name="$k['symbol']" class="size-4 text-accent-text" />{{ $k['label'] }}
+                                                <x-symbol :name="$k['symbol']" class="size-4" />{{ $k['label'] }}
                                             </a>
                                         </li>
                                     @endforeach
@@ -150,7 +150,7 @@
                 @endforeach
                 <div data-mehr-menue class="relative" hidden
                      x-data="npLeistenMenue" x-init="$watch('auf', (v) => v && $nextTick(() => window.npMorph?.($refs.knopf, $refs.panel)))"
-                     @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
+                     @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape.window="escape()" @focusout="fokusRaus($event)">
                     <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab">
                         {{ __('Mehr') }}
                         <span data-mehr-badge class="np-marke h-4.5 bg-accent px-1.5 text-accent-contrast tabular-nums" hidden>0</span>
@@ -166,13 +166,13 @@
                                         <p class="px-2.5 pb-1 pt-2 text-2xs font-semibold text-muted" aria-hidden="true">{{ $e['label'] }}</p>
                                         @foreach($e['kinder'] as $k)
                                             <a href="{{ $k['url'] }}" @if($k['aktiv']) aria-current="page" @endif class="np-menue-eintrag aria-[current=page]:font-semibold">
-                                                <x-symbol :name="$k['symbol']" class="size-4 text-accent-text" />{{ $k['label'] }}
+                                                <x-symbol :name="$k['symbol']" class="size-4" />{{ $k['label'] }}
                                             </a>
                                         @endforeach
                                     </div>
                                 @else
                                     <a href="{{ $e['url'] }}" data-mehr="{{ $i }}" @if($e['aktiv']) aria-current="page" @endif hidden class="np-menue-eintrag aria-[current=page]:font-semibold">
-                                        <x-symbol :name="$e['symbol']" class="size-4 text-accent-text" />
+                                        <x-symbol :name="$e['symbol']" class="size-4" />
                                         <span class="flex-1">{{ $e['label'] }}</span>
                                         @if(($e['badge'] ?? 0) > 0)<span class="text-xs tabular-nums">{{ $e['badge'] }}</span>@endif
                                     </a>
@@ -214,7 +214,7 @@
                              x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                              aria-hidden="true"></div>
                         {{-- Panel: Öffnen über @starting-style von glass-overlay, nur das Ausblenden läuft über Alpine --}}
-                        <div class="relative w-full max-w-[40rem] overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
+                        <div class="relative w-full max-w-[40rem] overflow-hidden rounded-2xl glass-overlay [--dauer-morph:var(--dauer-3)] shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
                              x-show="offen"
                              x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
                             <div class="flex items-center gap-3 px-4">
@@ -239,7 +239,7 @@
                                         <span class="shrink-0 text-xs" :class="i === index ? 'text-accent-contrast/80' : 'text-muted'" x-text="t.gruppe"></span>
                                     </a>
                                 </template>
-                                <div x-show="!liste.length" class="px-3 py-10 text-center text-sm text-muted">{{ __('Keine Treffer') }}</div>
+                                <div x-show="!liste.length && !laden" class="px-3 py-10 text-center text-sm text-muted">{{ __('Keine Treffer') }}</div>
                             </div>
                         </div>
                     </div>

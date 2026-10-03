@@ -19,12 +19,12 @@ $width = match ($width) {
 @endphp
 
 {{-- Menü (G9, B1): wächst aus seinem Auslöser. Das Öffnen läuft über @starting-style von glass-overlay, Startmass und
-     Ursprung setzt window.npMorph (layouts/app); nur das Ausblenden läuft über Alpine (Deckkraft, 150 ms).
+     Ursprung setzt window.npMorph (morphStarten in np.js, an window gehängt in app.js); nur das Ausblenden läuft über Alpine (Deckkraft, 150 ms).
      Escape schliesst und gibt den Fokus an den Auslöser zurück. --}}
 <div class="relative" x-data="{ open: false }"
      x-init="$watch('open', (v) => v && $nextTick(() => window.npMorph?.($refs.ausloeser.querySelector('button, a') ?? $refs.ausloeser, $refs.panel)))"
      @click.outside="open = false" @focusout="if ($event.relatedTarget && ! $el.contains($event.relatedTarget)) open = false" @keydown.escape.window="if (open) { open = false; $refs.ausloeser.querySelector('button, a')?.focus() }" @close.stop="open = false">
-    <div x-ref="ausloeser" @click="open = ! open" x-effect="$el.querySelector('button')?.setAttribute('aria-expanded', open)">
+    <div x-ref="ausloeser" @click="open = ! open" x-init="$el.querySelector('button')?.setAttribute('aria-haspopup', 'true')" x-effect="$el.querySelector('button')?.setAttribute('aria-expanded', open)">
         {{ $trigger }}
     </div>
 

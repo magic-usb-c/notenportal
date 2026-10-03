@@ -238,6 +238,34 @@ export function morphUrsprung(ausloeser, panel) {
     return true;
 }
 
+// Menü aus dem Auslöser wachsen lassen: Startmass und Ursprung setzen (morphUrsprung) und die Öffnungsbewegung
+// (@starting-style von glass-overlay) neu starten, damit sie mit diesen Werten läuft. Aufrufen, wenn das Panel schon
+// angezeigt wird (nach $nextTick); ohne Mass passiert nichts. Unter ruhiger Bewegung läuft keine Bewegung – kein Neustart.
+export function morphStarten(ausloeser, panel) {
+    try {
+        if (!morphUrsprung(ausloeser, panel)) return false;
+        if (!bewegungRuhig()) {
+            const anzeige = panel.style.display;
+            panel.style.display = 'none';
+            void panel.offsetWidth;
+            panel.style.display = anzeige;
+        }
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Gilt ein Escape (am window abgefangen) dieser Ebene? Ja, wenn die Taste in ihr gedrückt wurde – oder ohne Fokus
+// (Ziel ist body/html, z. B. nach einem Zeigerklick ins Leere) und keine Ebene darüber offen ist (nativer Dialog,
+// Befehlspalette, nicht-modales Popover). So schliesst ein Escape genau eine Ebene (G10).
+export function escapeGilt(el, e) {
+    const ziel = e?.target;
+    if (ziel instanceof Node && el.contains(ziel)) return true;
+    if (ziel && ziel !== document.body && ziel !== document.documentElement && ziel !== document) return false;
+    return !document.querySelector('dialog[open], html[data-palette], [aria-haspopup="dialog"][aria-expanded="true"]');
+}
+
 // Seitenwechsel mit Richtung (View Transition, Typ «vor»/«zurueck» o. ä.): ohne Unterstützung oder bei ruhiger
 // Bewegung wird nur aktualisiert. Gibt die Transition zurück, sonst das Ergebnis von aktualisieren().
 export function mitRichtung(richtung, aktualisieren) {
@@ -433,7 +461,8 @@ export function registriereSeitenleiste(Alpine) {
         escape() {
             if (!this.auf) return;
             this.zu();
-            this.$refs.knopf.focus();
+            // Fokus nur zurückgeben, wenn er im Menü war (per Zeiger geöffnet: Fokus bleibt, wo er ist)
+            if (this.$root.contains(document.activeElement)) this.$refs.knopf.focus();
         },
         fokusRaus(e) {
             // Nur wenn der Fokus sichtbar woandershin geht (Tab); einen Tipp ins Leere fängt click.outside

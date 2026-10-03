@@ -1,15 +1,13 @@
 // Befehlspalette (Ctrl/Cmd+K): Seiten, Aktionen und – für Admin/BB – Lernende finden.
 import { bewegungRuhig } from './np';
 
-// html[data-palette] nimmt Seitenleiste und Kapseln das Glas (Glas auf Glas vermeiden, G5). Erst setzen, wenn der Scrim
-// eingeblendet ist, sonst springen die Flächen sichtbar; beim Schliessen sofort entfernen.
-const MAXIMUM_TREFFER = 8;
 
 export function registriereSuche(Alpine) {
     Alpine.data('npSuche', (cfg) => ({
         offen: false,
         q: '',
         index: 0,
+        laden: false,
         treffer: [],
         timer: null,
         letzterFokus: null,
@@ -44,6 +42,8 @@ export function registriereSuche(Alpine) {
             document.documentElement.removeAttribute('data-palette');
         },
 
+        // html[data-palette] nimmt Seitenleiste und Kapseln das Glas (Glas auf Glas vermeiden, G5). Erst setzen, wenn der
+        // Scrim eingeblendet ist, sonst springen die Flächen sichtbar; beim Schliessen sofort entfernen.
         paletteSetzen() {
             clearTimeout(this.paletteTimer);
             this.paletteAbbruch?.();
@@ -99,7 +99,8 @@ export function registriereSuche(Alpine) {
         },
 
         get liste() {
-            return [...this.treffer, ...this.lokal].slice(0, MAXIMUM_TREFFER);
+            // Keine Kappung: die sichtbare Höhe begrenzt die Liste (max-h am Listenelement, scrollbar)
+            return [...this.treffer, ...this.lokal];
         },
 
         suchen() {
@@ -107,14 +108,19 @@ export function registriereSuche(Alpine) {
             clearTimeout(this.timer);
             if (!cfg.url || this.q.trim().length < 2) {
                 this.treffer = [];
+                this.laden = false;
                 return;
             }
+            // Während der Abfrage gilt die Liste als unvollständig («Keine Treffer» erst, wenn die Antwort da ist)
+            this.laden = true;
             this.timer = setTimeout(async () => {
                 try {
                     const res = await fetch(`${cfg.url}?q=${encodeURIComponent(this.q.trim())}`, { headers: { Accept: 'application/json' } });
                     this.treffer = res.ok ? await res.json() : [];
                 } catch {
                     this.treffer = [];
+                } finally {
+                    this.laden = false;
                 }
             }, 180);
         },
