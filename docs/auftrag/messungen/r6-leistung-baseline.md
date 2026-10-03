@@ -83,25 +83,40 @@ Folgerungen für den Entwurf (R6):
 - Die schwebende Seitenleiste liegt auf `position: fixed` neben der Hauptspalte (`np-hauptspalte` rückt per `padding-left` aus); unter ihr liegt nur der Seitengrund. Dort ist jede Deckung lesbar – ein eigener, bewusst gestalteter Hintergrund hinter der Leiste (ruhiger Verlauf aus `--bg`-nahen Tönen) gibt dem Glas erst etwas zu brechen und muss als Unterlage mitgeprüft werden.
 - `ThemeKontrastTest` prüft die Materialien seit 03.10.2026 mit (Deckungen direkt aus `app.css`).
 
-## 5. Berufsbildner (michael.baumann, nachgetragen 03.10.2026, Median aus 3 Läufen)
+## 5. Berufsbildner, Toleranz T und Menü-Basiswert (nachgemessen 03.10.2026, 09:40, ruhige Maschine)
 
-Gemessen, während zwei Workflow-Agents auf derselben Maschine liefen (CPU-Last); R6-00 misst mit denselben Argumenten nach. Rohdaten lagen im Scratch (`r6/leistung-baseline-trainer-*.json`).
+Erste Messung am 03.10. früh lief, während zwei Workflow-Agents auf derselben Maschine arbeiteten; die Werte unten stammen aus der Wiederholung mit denselben Argumenten **ohne** parallele Agents (Rohdaten `scratch r6/r600/mess/*.json`). Die frühere Tabelle gilt nicht mehr.
 
-Scrollen unter Glas bei 1920×540 (`--hoehe=540 --laeufe=3`):
+Scrollen unter Glas bei 1920×540 (`--hoehe=540 --laeufe=3`, michael.baumann):
 
 | Seite | Scrollweg px | Scroll p50 / p95 / max ms | lange Bilder > 33.4 ms | Layout ms (×) | Stil ms | Skript ms |
 |---|---:|---|---:|---|---:|---:|
-| `/trainer` | 234 | 16.7 / 17.6 / 23.6 | 0/150 | 0.4 (2) | 14.2 | 8.2 |
-| `/trainer/learners` | 0 | 16.7 / 16.9 / 25.3 | 0/150 | 0 (0) | 0 | 0.7 |
-| `/trainer/learners/1` | 1028 | 16.7 / 19.6 / 24 | 0/150 | 0.4 (2) | 30.7 | 8.5 |
-| `/trainer/learners/1/grades` | 1568 | 16.7 / 19.8 / 28.7 | 0/150 | 0.4 (2) | 5 | 8.6 |
+| `/trainer` | 234 | 16.7 / 18.3 / 23.5 | 0/150 | 0.3 (2) | 15.8 | 6.9 |
+| `/trainer/learners` | 0 | 16.7 / 16.9 / 18.2 | 0/150 | 0 (0) | 0 | 0.6 |
+| `/trainer/learners/1` | 1028 | 16.7 / 20.3 / 32.4 | 0/150 | 0.3 (2) | 37.7 | 7.1 |
+| `/trainer/learners/1/grades` | 1568 | 16.7 / 18.5 / 34.5 | 1/150 | 0.4 (2) | 4.6 | 9.0 |
 
-Palette bei 1920×1080 (`--laeufe=3 --palette`):
+Palette bei 1920×1080 (`--laeufe=3 --palette`, michael.baumann):
 
-| Seite | LCP ms | Knoten | Ruhe p95 ms | Palette öffnet ms | Tippen p95 / max ms | Schliessen p95 ms |
-|---|---:|---:|---:|---:|---|---:|
-| `/trainer` | 156 | 10565 | 16.9 | 26.3 | 31.5 / 39.2 | 36.4 |
-| `/trainer/learners` | 140 | 20026 | 16.9 | 32.6 | 31.2 / 34.6 | 28.4 |
-| `/trainer/learners/1` | 212 | 30335 | 17 | 31.9 | 33.7 / 44.5 | 38.7 |
+| Seite | LCP ms | Knoten | Ruhe p95 ms | Palette öffnet ms | Tippen p95 / max ms | Schliessen p95 ms | Scroll 1080 p95 ms (Weg) |
+|---|---:|---:|---:|---:|---|---:|---|
+| `/trainer` | 128 | 10565 | 16.9 | 27.7 | 33.0 / 45.9 | 34.0 | 16.9 (0 px) |
+| `/trainer/learners` | 116 | 20026 | 16.9 | 25.7 | 31.2 / 37.4 | 33.0 | 16.9 (0 px) |
+| `/trainer/learners/1` | 200 | 30335 | 16.9 | 29.6 | 35.4 / 43.4 | 35.2 | 29.6 (488 px), 3 lange Bilder |
 
-Auffällig: `/trainer/learners/1` scrollt bei 1080 px Höhe 488 px und zeigte dabei p95 29 ms mit 4 langen Bildern – bei 540 px Höhe derselbe Weg mit 19.6 ms. Vermutlich die parallele CPU-Last; R6-00 klärt das durch Wiederholung, bevor der Wert als Grenze gilt.
+Der Ausreisser auf `/trainer/learners/1` ist reproduziert (ohne CPU-Last 29.6 ms, vorher 29): bei 1080 px Höhe scrollt die Seite 488 px durch das Cockpit mit Diagrammen, bei 540 px denselben Weg mit 20.3 ms. Grenze für R6 ist der 540-Wert (20.3 ms + T); der 1080-Wert ist ein Befund für R6-04/R6-09 (Diagramme unter der Scrollkante).
+
+**Toleranz T** = max − min desselben Werts aus 3 Wiederholungen eines ganzen Laufs (`--laeufe=3 --palette`):
+
+| Wert | nina.huber `/dashboard` | laura.frei `/admin/reports/grades` | T |
+|---|---|---|---:|
+| Ruhe p95 ms | 17.0 · 16.9 · 16.9 | 17.1 · 16.9 · 16.8 | 0.3 |
+| Scroll p95 ms | 16.9 · 16.9 · 16.9 (0 px) | 33.0 · 33.2 · 34.1 (1118 px, 5–9 lange Bilder) | **1.1** |
+| Tippen p95 ms | 33.8 · 38.9 · 37.5 | 50.8 · 40.6 · 40.7 | 10.2 |
+| LCP ms | 212 · 172 · 168 | 192 · 176 · 180 | 44 |
+
+Für Ruhe und Scrollen gilt **T = 1.1 ms** (unter dem Deckel 1.7). Tippen und LCP streuen deutlich mehr: Tippen wird darum als **Minimum aus 3 Wiederholungen** verglichen (Basislinie: `/dashboard` 33.8, `/admin/reports/grades` 40.6; die §1-Werte 35.2/38.3 stammen aus einem Lauf), LCP als Median aus 3 (Basislinie `/dashboard` 172, `/admin/reports/grades` 180) mit Toleranz 10 %.
+
+**Menü-Basiswert** (`laura.frei "/admin" --menue='button[aria-label^="Konto"]'`, Benutzermenü `navigation.blade.php:221`): Glas offen 5 Flächen, **20.9 %** des Fensters (Ziel R6-05: ≤ 12 %); Hover im Menü p50 16.7 / p95 23.9 / max 36 ms über 3 Zeilen.
+
+**Prüfwerkzeuge nach R6-00** (Commit siehe Übergabebrett): `kontrast.mjs` 4166 Paare (vorher 3628, neu: ring auf jedem Material, text auf accent/0.16 über card, grund-hoch als Unterlage sobald vorhanden), `--minimum` unverändert 24 Zeilen, `--stufen` alle 12 Dunkel-Themes ok (bg < card < surface-2; grund-hoch fehlt noch), `--glanz` ohne Wirkung bis `--glas-licht` existiert. Flags `--bewegung=reduziert --transparenz=reduziert --kontrast=mehr` wirken nativ (Zustandszeile: alle drei `true`, kein Ersatz nötig), Screenshot bleibt dunkel.

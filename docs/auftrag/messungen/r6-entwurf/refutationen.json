@@ -173,6 +173,159 @@
    "HIG scroll-views «Only use a scroll edge effect when a scroll view is behind floating interface elements» fehlt als Regel für np-scroll-edge (nur dort, wo Inhalt wirklich unter Symbolleiste/Kapseln läuft)."
   ]
  },
- "codebasis": null,
- "hinweis": "Der Widerleger «codebasis» (opus high) scheiterte am Nutzungslimit der Sitzung (Reset 06:40 UTC); die Hauptsitzung hat die Zeilenverweise stichprobenartig geprüft (GUI-R6.md §12)."
+ "codebasis": {
+  "widerlegt": [
+   {
+    "behauptung": "§4.1 / Kernbehauptung «Abgeleitet»: glass-overlay dunkel surface-2/0.92 hält «über jeder Token-Unterlage: ≤ 0.91» (Overlay-Deckung 0.92 ≥ höchstes Minimum 0.91).",
+    "beleg": "Das Minimum 0.91 aus `kontrast.mjs --minimum` gilt nur für `--card` als Glasquelle (kontrast.mjs:227ff. mischt immer t.card). Das dunkle Overlay nimmt aber `surface-2` (app.css:341). Nachgerechnet mit derselben Formel und surface-2 als Quelle braucht Gletscher dunkel 0.9375. Bei 0.92 fällt muted unter 4.5:1: über chart-3 4.47, chart-2 4.50, note-gut 4.40, note-genuegend 4.36, note-knapp 4.35, note-ungenuegend 4.41 (text bleibt ≥ 8.8). Alle anderen dunklen Themes liegen zwischen 0.75 und 0.90. Hell card/0.92 gegen 0.9073 hält.",
+    "folge_fuer_plan": "Overlay dunkel auf card/0.92 umstellen oder surface-2 ≥ 0.94 setzen, oder die Nachweis-Spalte auf «über bg/card/surface-2» einschränken. Den «Diagramm-Tipp» (liegt direkt über Chart-Farben) nicht auf glass-overlay legen, solange Gletscher dunkel so bleibt. Wenn R6-01 Gletscher neu einfärbt, nachrechnen."
+   },
+   {
+    "behauptung": "§4.2 Glasanteil Ruhe: Ziel «≈ 5 % (nur Kapseln)».",
+    "beleg": "leistung.mjs:136-160 zählt das Rechteck jedes Elements, das selbst oder über ::before einen backdrop-filter hat, auch die Symbolleiste mit der Scrollkante auf opacity 0. Rechnung bei 1920×1080: Seitenleiste 260×1064 = 13.34 %, Symbolleiste (1920−268)×56 = 4.46 %, Rest 18.4 − 17.8 ≈ 0.6 % ≈ 12 000 px² für beide Kapseln. Gegenprobe: 1920×540 ergibt 23.2 − 13.14 − 8.92 ≈ 1.1 % ≈ 11 800 px², 2560×1440 ergibt 13.9 − 10.04 − 3.48 ≈ 0.4 % ≈ 14 000 px². Die Werte sind konsistent.",
+    "folge_fuer_plan": "Ziel auf ≈ 0.6 % (nur Kapseln) korrigieren. Die 8-%-Grenze ist nicht knapp, sondern lose; besser ≤ 2 % setzen, damit die Messung einen Rückfall erkennt."
+   },
+   {
+    "behauptung": "§4.2 Fussnote * und Kernbehauptung: Die BB-Messwerte liegen «nur im Scratch, unveröffentlicht»; R6-00 trägt sie als §5 in die Basislinie ein.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md hat schon einen §5 «Berufsbildner (michael.baumann, nachgetragen 03.10.2026)» mit Tippen p95 31.5/31.2/33.7 und Scroll p95 17.6/16.9/19.6/19.8. Dazu stehen dort abweichende LCP-Werte: /trainer 156 statt 148 (§1), /trainer/learners 140 statt 144. Der Abschnitt hält auch fest, dass unter CPU-Last gemessen wurde.",
+    "folge_fuer_plan": "Fussnote streichen und auf Basislinie §5 verweisen. Je Seite festlegen, welcher LCP-Wert gilt (§1 oder §5). R6-00 misst nur noch nach und ersetzt §5."
+   },
+   {
+    "behauptung": "S10: Datenquelle `Bericht::verteilung` (`:150`).",
+    "beleg": "In app/Services/Bericht.php gibt es keine Methode `verteilung`. 'verteilung' ist ein Array-Schlüssel im Rückgabewert der privaten Methode `aggregate()` (:81, Schlüssel um :161). Die Buckets laufen von 1.0 bis 6.0 in halben Noten (for $b = 10..60 step 5, Bericht::klasse), nicht in Viertelnoten.",
+    "folge_fuer_plan": "S10 neu formulieren: Daten aus `Bericht::aggregate()['verteilung']`. Das Histogramm in Viertelnoten ist neue Logik in `Verteilung::histogramm` (R6-07a), keine Übernahme."
+   },
+   {
+    "behauptung": "S9: `Uebersicht::admin(int $wochen = 12)` → `aktivitaet(int $wochen)` (`:680`) als bestehende Schnittstelle.",
+    "beleg": "Uebersicht.php:199 `public function admin(): array` hat keinen Parameter. :680 `private function aktivitaet(): array` hat 12 Wochen fest eingebaut (subWeeks(11), Schleife bis 12).",
+    "folge_fuer_plan": "Als Änderung in R6-07a ausweisen (neue Signatur, und DashboardController reicht den Filter durch), nicht als Bestand zitieren."
+   },
+   {
+    "behauptung": "§6 Kernbehauptung zu `bewegungRuhig()` aus np.js als bestehende einzige JS-Abfrage.",
+    "beleg": "np.js hat keine Funktion bewegungRuhig. Die einzige Abfrage heute ist `function bewegungReduziert()` in charts.js:28-30 (data-bewegung oder matchMedia prefers-reduced-motion).",
+    "folge_fuer_plan": "In R6-03 als neu ausweisen und in R6-04 bewegungReduziert aus charts.js entfernen. Beide Scheiben sind schon nacheinander geplant; im Text deutlich machen."
+   },
+   {
+    "behauptung": "§8/R6-00: Die Emulations-Flags `--bewegung`, `--transparenz`, `--kontrast` und `leistung.mjs --menue` sind neu (R6-00).",
+    "beleg": "browser.mjs:12-15 und :67-164 kennen schon `ZUSTAND_USAGE = '[--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr]'` samt emulateMedia, CDP Emulation.setEmulatedMedia und Ersatz data-transparenz. leistung.mjs:19/31/285-316 kennt `--menue=<selektor>`. kontrast.mjs kennt jetzt `--glanz` und `--stufen` (Kopf :3, :18-20). Diese Dateien wurden während dieser Prüfung verändert.",
+    "folge_fuer_plan": "Den Umfang von R6-00 auf das Fehlende zurücknehmen (Nachmessung §5, T, Menü-Basiswert). Die Werkzeuge als bestehend führen."
+   },
+   {
+    "behauptung": "Palettenbudget: «Panel 40rem × ca. 28rem ≈ 16 %».",
+    "beleg": "navigation.blade.php:187 setzt das Palettenpanel auf `max-w-2xl` = 42rem (672 px), nicht 40rem. Gemessen trägt die Palette heute 34.6 − 18.4 = 16.2 % bei, also ≈ 500 px Höhe bei 672 px Breite.",
+    "folge_fuer_plan": "Zahl auf 42rem korrigieren, oder die Breite in R6-05 bewusst auf 40rem ändern. Die Grenze ≤ 18 % hält rechnerisch (16.2 + ≈ 0.6 Kapseln)."
+   },
+   {
+    "behauptung": "§4.1 np-symbolleiste: «heute 10px, `:419`»; dazu Code-Zeilen `app.css:457` (np-glas-gruppe dunkel card/0.74) und `charts.js:453-460`.",
+    "beleg": "blur(10px) steht in app.css:417; :419 ist `opacity: var(--np-kante, 0)`. card/0.74 steht in :459. In charts.js liegen zeichne/destroy/new Chart in :453-458 und destroy() in :459-462, das passt ungefähr.",
+    "folge_fuer_plan": "Zeilenangaben korrigieren (Weichzeichner :417, Kapsel dunkel :459)."
+   },
+   {
+    "behauptung": "§4.3: `--grund-hoch` mit Helligkeit «streng zwischen `--bg` und `--card`» in allen 24 Theme-Blöcken.",
+    "beleg": "Kontrast hell: bg und card haben beide die relative Leuchtdichte 1.0000 (eigene Rechnung mit der kontrast.mjs-Formel). Ein Wert streng dazwischen ist unmöglich. In den hellen Themes liegt surface-2 zudem unter bg (zum Beispiel Gletscher hell 0.891 = 0.891 < 1.0).",
+    "folge_fuer_plan": "Die Regel nur für dunkle Themes verlangen (wie `--stufen` es schon tut). Für Kontrast hell grund-hoch = bg zulassen (np-grund entfällt dort ohnehin)."
+   },
+   {
+    "behauptung": "S7: Filter `kategorie` mit Daten aus `LernstandRechner::fuer` (`Lernstand::delta`).",
+    "beleg": "Lernstand::delta() (Lernstand.php:46-51) ist semesterNote − vorsemesterNote, also nur die Gesamtnote ohne Kategoriebezug. Eine Kategorie-Hantel bräuchte Auswertung::semester($sid, $kategorieId) für beide Semester.",
+    "folge_fuer_plan": "Datenquelle für S7 mit Kategorie ergänzen (Auswertung::semester je Kategorie über die Stände von LernstandRechner), sonst `kategorie` aus der Whitelist von S7 streichen."
+   }
+  ],
+  "bestaetigt": [
+   {
+    "behauptung": "Basislinie §1: Glas Ruhe 4 Flächen 18.4 % (1920×1080), 13.9 % (2560×1440), Palette offen 34.6 %; Tippen p95 /dashboard 35.2, /grades 35.9, /grades/calculator 35.5, /exams 32.9, /admin 40.2, /admin/reports/grades 38.3, /admin/learners 36.5; LCP 164/168/176/136/148/188/172/148/144; DOM 11458/18971/14897; Ruhe p95 17 bzw. 16.9.",
+    "beleg": "docs/auftrag/messungen/r6-leistung-baseline.md §1, Tabelle und Absatz darunter."
+   },
+   {
+    "behauptung": "Basislinie §2: Scroll p95 /dashboard 20.2, /grades 16.9, /grades/calculator 19.2, /admin/reports/grades 20.3, /admin/learners 19.2, lange Bilder 0/150; §3: /dashboard 19.3, mit Glas 23.2 %, Tippen 27.6/29.4, ohne Glas 16.9/17.1.",
+    "beleg": "r6-leistung-baseline.md §2 und §3."
+   },
+   {
+    "behauptung": "Kontrast §4: Minimum über jeder Token-Unterlage 0.72 (Mitternacht dunkel) bis 0.91 (Gletscher hell); mit Scrollkante dunkel 0.00–0.37, hell 0.35–0.73; 3628 Paare, 0 Pflichtverstösse, 11 Hinweise.",
+    "beleg": "Basislinie §4. Eigene Nachrechnung: Gletscher hell 0.9073, Gletscher dunkel 0.8517, Kante Gletscher hell 0.7254, Graphit dunkel 0.3679, Mitternacht dunkel 0."
+   },
+   {
+    "behauptung": "Kapsel dunkel card/0.58 und angedockte Seitenleiste dunkel card/0.68 bestehen kontrast.mjs; Kapsel hell 0.78 ≥ 0.73 hinter der Scrollkante.",
+    "beleg": "`node tools/pruefung/kontrast.mjs --glas=0.58` und `--glas=0.68` ergeben je 0 Pflichtverstösse. Die Pflichtprüfung läuft über bg/(grund-hoch)/card/surface-2. Hinter der Kante: 0.58 ≥ 0.37 und 0.78 ≥ 0.7254. Die Kapselschrift liegt bei 26–47 % der ::before-Höhe, dort deckt der Verlauf ≈ 0.79–0.84 (≥ 0.72)."
+   },
+   {
+    "behauptung": "Tiefenstufen dunkel bg < card < surface-2 in allen 12 dunklen Themes; --stufen und --glanz laufen mit Exit 0.",
+    "beleg": "`kontrast.mjs --stufen`: alle 12 ok, grund-hoch fehlt noch. `--glanz=0.07` gibt Exit 0, aber mit dem Hinweis «--glanz ignoriert – --glas-licht steht in keinem Theme». Der Nachweis wirkt also erst nach R6-01."
+   },
+   {
+    "behauptung": "kontrast.mjs und ThemeKontrastTest lesen das erste Deckungsliteral je Modus aus @utility-Blöcken und überspringen @supports/@media.",
+    "beleg": "kontrast.mjs materialDeckung (um :40-66); ThemeKontrastTest.php:105-160, Liste :112 mit np-glas, glass-bar, glass-seitenleiste, glass-overlay, np-glas-gruppe."
+   },
+   {
+    "behauptung": "npChart baut mit destroy() + new Chart() neu; der Rechner bekommt JSON.",
+    "beleg": "charts.js:453-458; rechner.js:107 postJson; Lernender/RechnerController.php:40-44 response()->json; Rechner.php:298 'kurve' => zielrechner->kurve."
+   },
+   {
+    "behauptung": "Leistung::$datum ist nullable, position() ohne Datum; noten.pruefungsdatum NOT NULL; geplante Prüfungen tragen ein Datum.",
+    "beleg": "Leistung.php:23 `public ?string $datum`, :33-36 position() mit datum null; Migration 2026_02_05_000018:32 `$table->date('pruefungsdatum')` ohne nullable; NotenQuelle.php:158 `datum: (string) $p->datum`."
+   },
+   {
+    "behauptung": "«Wo stehe ich» schaltet Semester/Lehrzeit, die Tabelle rendert nur $balken[$balkenModus].",
+    "beleg": "dashboards/lernender.blade.php:131-133 (radiogroup modus semester/lehrzeit), :137-138 npChart mit x-effect auf d[modus], :159 @foreach($balken[$balkenModus]…)."
+   },
+   {
+    "behauptung": "Routen und Aliase: /learner = learner.dashboard, /trainer/learners und /admin/learners teilen verwaltung.php:23, Aliase in web.php.",
+    "beleg": "web.php:81-84, :241-242 (admin./trainer.-Gruppe mit routes/verwaltung.php), verwaltung.php:23 learners.index; LernenderNotenController = Lernender\\NotenController (:27), AdminBerichtController = Admin\\BerichtController (:5); learner.grades.calculator.calculate :105; learner.exams.index um :188; learner.qualification.index :133-136."
+   },
+   {
+    "behauptung": "Bestehende Service-Methoden: Rechenkern::auswerten, Auswertung::semester, Zielrechner::kurve/loese, LernstandRechner::fuer, Lernstand::delta, Uebersicht::berufsbildner, Uebersicht::balkenDiagramm (:488), Bericht::nachLehrjahr (:176), Lernender::sichtbarFuer (:98, #[Scope]).",
+    "beleg": "grep der Methodensignaturen in app/Services/Auswertung/*.php, Uebersicht.php, Bericht.php, app/Models/Lernender.php."
+   },
+   {
+    "behauptung": "Uebersicht::jahrgangsDiagramm (:698) ist privat, ungenutzt und mittelt selbst.",
+    "beleg": "Uebersicht.php:698; grep findet keinen Aufrufer. Rundung::mittel steht direkt im Service."
+   },
+   {
+    "behauptung": "Neue Klassen und Komponenten gibt es noch nicht (keine Kollision): Verteilung, Statistik, StatistikFilter, x-verlauf/-hantel/-punktstreifen/-zeitleiste; x-sparkline, x-bullet, x-heatmap und x-filterleiste (GET) gibt es schon.",
+    "beleg": "ls app/Services/Auswertung, app/Support; resources/views/components enthält bullet, diagramm, filterleiste (method GET, :3/:17), heatmap, sparkline."
+   },
+   {
+    "behauptung": "Code-Zeilen app.css: ≥0.78-Regel :277, np-glas blur 24px/saturate 1.8 :281-282, ease :133-134, 0.01-ms-Regel :209-216 mit Ausnahmen :217-224, Seitenwechsel :249-257 und :259, Gruppenglas auf ::before :433-474, Schublade :507-518, Hauptspalte :556-559, «kein Skalieren» :702; app.blade.php:142 body bg-bg.",
+    "beleg": "grep -n auf resources/css/app.css und layouts/app.blade.php."
+   },
+   {
+    "behauptung": "theme.css:16-75 enthält übernommene Apple-Werte; GUI-APPLE.md:31, LAGE.md:250 und gui-konzept.md:115 sagen, was der Plan zitiert.",
+    "beleg": "theme.css:16-75 (systemGray6/5/4, systemBlue, apple.com #1d1d1f/#0066cc/#f5f5f7). Nach :75 keine Treffer mehr. Die Doku-Zeilen sind geprüft."
+   },
+   {
+    "behauptung": "Die Altklassen glass-btn, np-btn-primary, np-fade-in und data-autohide werden in keiner View benutzt (Entfernen ist sicher); `:is(…::…)` ist schon leer.",
+    "beleg": "grep -rnE in resources/: Treffer nur in app.css (@utility, :1421, :1472) und im Skript layouts/app.blade.php:200. `grep -n ':is([^)]*::'` liefert nichts."
+   },
+   {
+    "behauptung": "motion-reduce: kommt nur in den Overlay-Komponenten vor (passt zu R6-05).",
+    "beleg": "resources/views/components/{modal,toast,drawer,feedback-widget}.blade.php, 5 Treffer."
+   },
+   {
+    "behauptung": "Quantil Typ 7 auf [1,2,3,4] ergibt q1 1.75, Median 2.5, q3 3.25.",
+    "beleg": "h = (n−1)p: 0.75 → 1.75; 1.5 → 2.5; 2.25 → 3.25."
+   },
+   {
+    "behauptung": "Keine neue Route nötig; Zugriffs-, Englisch- und Abfragentests existieren; das Muster «klein gegen gross, Toleranz» gibt es.",
+    "beleg": "tests/Feature/Auth/ZugriffsschutzTest.php, I18n/EnglischeSeitenTest.php, Performance/AbfragenAnzahlTest.php (:35 TOLERANZ, :57-64 assertWaechstNicht). wantsJson wird schon genutzt (FeedbackController:141, SucheController:29)."
+   }
+  ],
+  "ungeprueft": [
+   "tools/pruefung/kontrast.mjs (Kopf, Unterlagen :120, --glanz/--stufen), browser.mjs und leistung.mjs haben sich WÄHREND dieser Prüfung verändert (R6-00 läuft offenbar parallel; die Zahl der Paare stieg von 3628/3868 auf 4166). Aussagen über die Werkzeuge gelten für den Stand 03.10.2026 zum Prüfzeitpunkt, nicht als stabil.",
+   "Herkunft «≥ 0.78» aus Commit bffe93b ohne Messquelle: git-Befehle waren nicht erlaubt.",
+   "Toleranz T ≤ 1.7 ms und Ziel «Tippen p95 ≤ 25 ms»: keine Messung stützt das Ziel. Das Palettenpanel behält blur(28px) über ≈ 16 % des Fensters, und schon bei 1920×540 lag Tippen mit Glas bei 27.6–29.4 ms.",
+   "Dateigrenzen R6-05 («Overlays», layouts/app, navigation) gegen R6-06 («Symbolleisten-Seiten»): ohne die strukturierte Beilage «scheiben» nicht entscheidbar, welche Views «Symbolleisten-Seiten» sind und ob sie Komponenten aus R6-05 mitändern.",
+   "R6-04 (charts.js, Diagramm-Tipp als glass-overlay?) parallel zu R6-02 (app.css): ob R6-04 CSS-Klassen für Tooltip oder Staffelung braucht, die in app.css liegen, lässt sich ohne Beilage nicht prüfen.",
+   "Apple-Zitate, Firefox-Bugs 1961378/1995195 und Spezifikationsstellen: Aufgabe des anderen Widerlegers.",
+   "Gestaltetes np-grund mit --grund-akzent (≤ 0.04 Akzent): als Unterlage nicht nachgerechnet. kontrast.mjs kennt grund-hoch, aber keine Akzenttönung des Grunds."
+  ],
+  "luecken_im_plan": [
+   "Der Prüfplan §8 «Glas-Minima: Overlay ≥ Wert über jeder Token-Unterlage» findet den Gletscher-dunkel-Fehler nicht. Erstens rechnet `--minimum` nur mit --card als Quelle, das Overlay dunkel nimmt surface-2. Zweitens prüft die Pflichtprüfung (Exit 0) Materialien nur über bg, grund-hoch, card und surface-2 (kontrast.mjs:120); accent ist nur Info, Chart- und Notenfarben fehlen ganz. Der Diagramm-Tipp auf glass-overlay und der Toast (glass-overlay, fixed über Inhalt, toast.blade.php:22) liegen aber genau über solchen Farben. Nötig: --minimum je Materialquelle, und für Overlay, Schublade und Toast Chart- und Notenfarben als Pflicht-Unterlage. Sonst den Tipp matt machen.",
+   "Schubladen-Schliessen: data-schublade fällt sofort weg, translate läuft danach noch 260 ms (app.css:508-518). Mit Basis = angedockt (0.68, ohne Weichzeichner) und Override nur unter html[data-schublade] fährt die Leiste 260 ms lang mit 0.68 und ohne Blur über Inhalt. Laut --minimum braucht es dort bis 0.91. Die Schubladen-Materialregel muss am Zustand der Leiste hängen (zum Beispiel ausserhalb von «≥ 64rem und seite» immer 0.92), nicht am Attribut.",
+   "Die angedockte Leiste ist nur ≥ 64rem und data-navigation='seite'. Liegt die 0.68-Regel als Basis und die 0.92-Regel als Selektor-Override, lesen kontrast.mjs und ThemeKontrastTest nur 0.68. Liegt die angedockte Regel in @media, überspringt der Parser sie (er ignoriert @media/@supports), dann wird 0.68 nie geprüft. Der Plan muss festlegen, welche Struktur gilt und wie der zweite Wert (0.92) maschinell geprüft wird.",
+   "G7 «eine np-scroll-edge je Ansicht»: module/index.blade.php trägt neben der Seitenleiste (navigation.blade.php) eine zweite np-scroll-edge, dazu kommt die Symbolleisten-Kante. Der Plan sagt nicht, ob «Ansicht» die Scrollansicht meint (dann passt der Bestand) oder das Fenster (dann muss module/index angepasst werden, ohne Scheibe).",
+   "Wenn glass-bar und glass-seitenleiste wegfallen, meldet kontrast.mjs «@utility … ohne auswertbare Flächenangabe» auf stderr, und ThemeKontrastTest überspringt sie still. Die Materiallisten (kontrast.mjs, ThemeKontrastTest:112) sollten in R6-02 mitgepflegt werden und neue Materialien (np-glas-moment, Schublade) aufnehmen. Keine Scheibe nennt das ausdrücklich.",
+   "Das Feedback-Symbol in der Kapsel ist heute eingefärbt (feedback-widget.blade.php: x-symbol … text-accent-text) und verletzt G12 («Symbole nie eingefärbt»). Der Plan weist die Korrektur keiner Scheibe zu (die Komponente liegt bei R6-05)."
+  ]
+ },
+ "hinweis": "quellen: Widerleger Quellen (Lauf 03.10. 07:xx); codebasis: Widerleger Codebasis, nachgeholt per Workflow-Resume (resumeFromRunId wf_692f548b-1d2) am 03.10. 09:30, während R6-00 die Prüfwerkzeuge änderte (siehe ungeprueft[0])."
 }

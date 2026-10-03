@@ -264,6 +264,18 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Berufsbildner nachgetragen. Vorentscheidungen 1–14 im Plan; für David nur noch
                   zwei Fragen (Ziele für Berufsbildner sichtbar? Erfassungsverhalten/BB-Vergleich
                   mit Datenschutz klären?). Nächster Schritt: R6-00 Prüfwerkzeuge, dann R6-01/03.
+[O] 03.10. 09:50  R6-00 fertig: Prüfwerkzeuge erweitert (browser/shot/klick/rundgang/leistung:
+                  Flags --bewegung=reduziert --transparenz=reduziert --kontrast=mehr, Zustandszeile
+                  mit matchMedia und data-fenster; leistung --menue=<Auslöser>; kontrast --glanz,
+                  --stufen, grund-hoch, 4166 Paare statt 3628, --minimum unverändert; ThemeKontrast-
+                  Test gleiche Materialliste, 62 Tests grün). Basislinie §5 neu gemessen ohne
+                  CPU-Last (T Ruhe/Scroll 1.1 ms, Tippen streut 5–10 ms → Vergleich als Minimum
+                  aus 3; Menü-Glas 20.9 %). Code-Widerleger per Workflow-Resume nachgeholt
+                  (refutationen.json «codebasis»: 19 bestätigt, 10 widerlegt, 6 Lücken) und in
+                  GUI-R6.md eingearbeitet: Overlay dunkel 0.94, Glasanteil Ruhe ≤ 2 % statt 8 %,
+                  Palette 42rem, html[data-leiste] gegen Schubladen-Lücke, S7/S9/S10-Datenquellen.
+                  Neuer Workflow notenportal-r6-welle (Umsetzung → Review → Nachbesserung).
+                  Nächster Schritt: Welle 1 (R6-01 Tokens/Grund + R6-03 JS-Bausteine).
 ```
 
 ---
