@@ -62,18 +62,16 @@ Route::get('/', fn () => Auth::check()
 
 // Register-Route ist in routes/auth.php als 'register' benannt definiert
 
+// Rollenweiche; Filterparameter (?achse=…) bleiben beim Weiterleiten erhalten
 Route::get('/dashboard', function (Request $request) {
     $u = $request->user();
+    $ziel = match (true) {
+        $u && $u->hasRole('Admin') => 'admin.dashboard',
+        $u && $u->hasRole('Berufsbildner') => 'trainer.dashboard',
+        default => 'learner.dashboard',
+    };
 
-    if ($u && $u->hasRole('Admin')) {
-        return redirect()->route('admin.dashboard');
-    }
-
-    if ($u && $u->hasRole('Berufsbildner')) {
-        return redirect()->route('trainer.dashboard');
-    }
-
-    return redirect()->route('learner.dashboard');
+    return redirect()->route($ziel, $request->query());
 })->middleware(['auth'])->name('dashboard');
 
 /**

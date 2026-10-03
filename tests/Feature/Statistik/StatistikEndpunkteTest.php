@@ -197,6 +197,32 @@ class StatistikEndpunkteTest extends TestCase
     }
 
     #[Test]
+    public function semesterachse_ohne_filter_zeigt_gesamtschnitt_und_je_kategorie_eine_reihe(): void
+    {
+        $verlauf = $this->actingAs($this->lernender)->getJson(route('learner.dashboard', ['achse' => 'semester']))->assertOk()->json('diagramm.verlauf');
+
+        // Gesamtschnitt hervorgehoben, dazu die Kategorie mit Noten; Kategorien ohne Note erscheinen nicht
+        $this->assertSame(['Gesamtschnitt', 'Fachunterricht'], array_column($verlauf['serien'], 'name'));
+        $this->assertTrue($verlauf['serien'][0]['dick']);
+        $this->assertArrayNotHasKey('dick', $verlauf['serien'][1]);
+        $this->assertEquals([4.0, 5.0], $verlauf['serien'][1]['werte']);
+        $this->assertCount(count($verlauf['labels']), $verlauf['serien'][1]['werte']);
+
+        $tabelle = $this->actingAs($this->lernender)->getJson(route('learner.dashboard', ['achse' => 'semester']))->json('tabelle.verlauf');
+        $this->assertSame(['Semester', 'Gesamtschnitt', 'Fachunterricht'], $tabelle['spalten']);
+        $this->assertSame('4.0', $tabelle['zeilen'][0][2]);
+
+        // mit Kategorie bleibt es eine Reihe, die Tabelle hat zwei Spalten
+        $mitKategorie = $this->actingAs($this->lernender)->getJson(route('learner.dashboard', ['achse' => 'semester', 'kategorie' => $this->kategorieId]))->json();
+        $this->assertCount(1, $mitKategorie['diagramm']['verlauf']['serien']);
+        $this->assertSame(['Semester', 'Note'], $mitKategorie['tabelle']['verlauf']['spalten']);
+
+        // die Rollenweiche /dashboard nimmt die Filter mit
+        $this->actingAs($this->lernender)->get(route('dashboard', ['achse' => 'semester']))
+            ->assertRedirect(route('learner.dashboard', ['achse' => 'semester']));
+    }
+
+    #[Test]
     public function verlauf_der_datumsachse_hat_stichtage_punkte_und_die_genuegend_grenze(): void
     {
         $verlauf = $this->actingAs($this->lernender)->getJson(route('learner.dashboard'))->assertOk()->json('diagramm.verlauf');

@@ -124,6 +124,7 @@ final class StatistikDaten
             ? array_map(fn (array $p) => ['titel' => $p['titel'] ?? ($namen[$p['knotenId']] ?? '–'), 'wert' => $p['wert']], $r['meta']['ohneDatum'])
             : [];
 
+        $nebenreihen = [];
         if ($f->wert('achse') === 'semester') {
             $ids = $a->semesterIds();
             $labels = array_map(fn (int $s) => $k->semesterName($s, $a->lernenderId), $ids);
@@ -132,7 +133,21 @@ final class StatistikDaten
                 $kat !== null => $a->semester($s, (int) $kat)['note'],
                 default => $a->semester($s)['note'],
             }, $ids);
-            $tabelle = ['spalten' => [__('Semester'), __('Note')], 'zeilen' => array_map(fn ($l, $w) => [$l, NotenSkala::format($w, 1)], $labels, $werte)];
+            // ohne Kategorie und Fach: Gesamtschnitt hervorgehoben, dazu je Kategorie eine gedämpfte Reihe (Vergleich wie im alten Dashboard)
+            if ($fach === null && $kat === null) {
+                foreach (array_keys($a->kategorien) as $kid) {
+                    $reihe = array_map(fn (int $s) => $a->semester($s, $kid)['note'], $ids);
+                    if (array_filter($reihe, fn ($w) => $w !== null) !== []) {
+                        $nebenreihen[] = ['name' => $k->kategorieName($kid), 'werte' => $reihe];
+                    }
+                }
+            }
+            $spalten = [__('Semester'), $nebenreihen === [] ? __('Note') : $name, ...array_column($nebenreihen, 'name')];
+            $zeilen = [];
+            foreach ($labels as $i => $label) {
+                $zeilen[] = [$label, NotenSkala::format($werte[$i], 1), ...array_map(fn (array $n) => NotenSkala::format($n['werte'][$i], 1), $nebenreihen)];
+            }
+            $tabelle = ['spalten' => $spalten, 'zeilen' => $zeilen];
             $kennwerte = array_values(array_filter($werte, fn ($w) => $w !== null));
             $satz = $kennwerte === []
                 ? __('Noch keine Noten im Zeitraum.')
@@ -159,7 +174,7 @@ final class StatistikDaten
             'diagramm' => [
                 'achse' => (string) $f->wert('achse'),
                 'labels' => $labels,
-                'serien' => [['name' => $name, 'werte' => array_values($werte), 'dick' => true]],
+                'serien' => [['name' => $name, 'werte' => array_values($werte), 'dick' => true], ...$nebenreihen],
                 'grenze' => $k->genuegend,
                 'punkte' => $r['punkte'],
             ],
