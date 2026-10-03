@@ -46,7 +46,7 @@ Füllebenen (Tertiary/Quaternary), aus `--text` per Deckung abgeleitet, damit si
 jedem Theme passen. Sie liegen bewusst unter 4.5:1 – WCAG 1.4.3 nimmt inaktive
 Bedienelemente aus. Platzhalter und Sekundärtext bleiben bei `text-muted`.
 
-Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `~/tools/kontrast/kontrast.mjs` rechnen: Text ≥ 4.5:1, UI-Grenzen/Grafik ≥ 3:1. `~/tools/kontrast/alpha.mjs` prüft zusätzlich alle 24 Theme-Blöcke auf einmal und meldet mit Exit-Code 1, wenn `text`/`muted` ihre Schwelle reissen.
+Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `node tools/pruefung/kontrast.mjs` rechnen (alle 24 Theme-Blöcke, 14 Akzentblöcke, Materialien als Alpha-Komposition; Exit 1, sobald ein Pflichtpaar reisst): Text ≥ 4.5:1, Kontrast-Theme 7:1, UI-Grenzen/Grafik ≥ 3:1. `--minimum` nennt je Theme die kleinste Glas-Deckung, bei der Text über jeder Token-Unterlage lesbar bleibt; `--glas=0.7` rechnet ein neues Material durch.
 
 ## 3. Themes und Modus
 - `<html data-theme="gletscher">` (Standard) + Klasse `.dark` für Dunkel. Weitere Themes (Paket 8) als `[data-theme='…']` / `[data-theme='…'].dark` **nach** dem Gletscher-Block in `theme.css`.
