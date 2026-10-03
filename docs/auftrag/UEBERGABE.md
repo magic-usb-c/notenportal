@@ -333,6 +333,24 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   1000 px, ruhig geprüft. ui-checker über die Funktionsebene läuft; Befunde kommen
                   als Fix-Commit. pruefer bewusst auf R6-07a verschoben (erste Notenlogik-Scheibe).
                   Nächster Schritt: Welle 3 (R6-07a Statistik-Service, dann R6-07b).
+[O] 03.10. 14:05  Welle 3 fertig (Workflow wf_f4b4adf3, R6-07a angenommen; Commits 4350738 Service,
+                  ba2867f Prüfer-Fixes). Neu: Auswertung\Verteilung (Median/Quartile Typ 7 ab n ≥ 3,
+                  Histogramm in Viertelnoten mit Epsilon 1e-9), Auswertung\Statistik (stichtagsreihe
+                  an Monatsenden ≤ 60 sonst Quartale, hanteln, benoetigt über Zielrechner mit Grenze
+                  aus der DB), Support\StatistikFilter (Whitelist, unbekannt → Standard, nie 422).
+                  Uebersicht::berufsbildner liefert delta/semesterschnitte/gesamt/punktstreifen ohne
+                  zusätzliche Abfrage, admin($wochen 12|26|52), jahrgangsDiagramm entfernt;
+                  Bericht::verteilung in Viertelnoten (alte Schlüssel bleiben), Filter lehrjahr/
+                  kategorie_id, nachLehrjahr public mit werte/median – Bezug immer Lehrzeit.
+                  Prüfer (xhigh) mit eigenen Rechenproben: Quartile, Rundung::auf gegen round über
+                  5001 Rasterwerte 0 Abweichungen, Stichtage 01.03.–15.07. = 4 Monatsenden + 15.07.,
+                  benoetigt feldgleich mit Zielrechner::loese, Abfragen 2 vs 8 Lernende ≤ 2. Behoben
+                  nach Prüfer: offene Positionen ohne Datum stehen jetzt in meta.ohneDatum;
+                  nachLehrjahr wechselte mit Kategoriefilter auf Semesterbezug; lehrjahr aus der
+                  Query als Text; totes Bericht::klasse samt Test entfernt. Suite 1382/1383 grün
+                  (1 skip), avg-Grep in app/Services app/Http weiter 0, Berichtsseite mit 20 Klassen
+                  gesichtet (dunkel 1920). Nächster Schritt: Welle 3b (R6-07b Endpunkte, npFilter,
+                  SVG-Bausteine), Hinweise in scratch r6/welle3b-hinweise.md.
 ```
 
 ---

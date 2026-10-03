@@ -1108,3 +1108,23 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   Skalen-Overrides für Toast/Palette/Tastenkürzel, Feedback-Popover als `np-schicht`, `npMorph` in np.js,
   Palette ohne 8er-Kappung mit Ladezustand, CSV-Export im Feedback-Postfach keine Hauptaktion mehr.
 
+## R6 Welle 3 (R6-07a Statistik-Service): bewusst gelassen (03.10.2026)
+
+- **Kennzahlen bleiben bei `kategorie_id` die der ganzen Auswahl** (`Bericht::noten`): Verteilung,
+  Schwachstellen und Lehrjahresvergleich folgen dem Kategoriefilter, die Kacheln oben nicht – Annahme
+  der Hauptsitzung, damit das Fazit (`admin/berichte/noten.blade.php`) nicht neben einem
+  Kategorie-Histogramm kippt. GUI-R6 S10/S11 schweigt dazu; R6-10 entscheidet die Darstellung.
+- **Letzter Reihenwert ≠ Gesamtnote**, sobald undatierte Leistungen (IPA, Positionen) zählen: die
+  Stichtagsreihe rechnet nur Datiertes (GUI-R6 §11 R6-07a verlangt das), die Liste `meta.ohneDatum`
+  erklärt die Differenz. R6-08 zeigt sie unter dem Verlauf; ein Hinweistext ist laut CLAUDE.md tabu.
+- **Geplante Prüfung ausserhalb aller Semester** (Datum vor dem ersten oder nach dem letzten
+  Semester, `PruefungenController` validiert nur `required|date`): `Statistik::benoetigt` meldet
+  `ohne_einfluss`, weil der Rechenkern sie verwirft – Bestand, nicht neu. Saubere Lösung ist eine
+  Validierung gegen die Semesterliste beim Planen (eigener Punkt, nicht R6).
+- **Keine Cache-Schicht für Stichtagsreihen**: bis zu 60 Rechenkern-Läufe je Aufruf, reine Rechnung
+  ohne DB; erst messen (R6-12 `leistung.mjs`), dann entscheiden.
+- **Ausreisser ausserhalb 1–6** werden im Histogramm verworfen, nicht in Randklassen gelegt – die
+  Skala lässt sie nicht zu, ein Treffer wäre ein Datenfehler.
+- **Persönliche Ziele in `benoetigt`** warten auf «Offen für David» (Ziele für Berufsbildner
+  sichtbar?); der Parameter `zielwert` ist vorbereitet.
+
