@@ -289,8 +289,10 @@ Nicht raten — als offen markieren und David fragen:
 > `--ohne-glas`), `tools/pruefung/kontrast.mjs` (alle Theme-, Akzent- und Materialblöcke, `--minimum`),
 > `ThemeKontrastTest` prüft die Materialien, Messwerte in `docs/auftrag/messungen/r6-leistung-baseline.md`.
 > Kernzahl: Text auf Glas über beliebigem Inhalt braucht Deckung 0.72–0.91, mit Scrollkante reichen im
-> Dunkeln 0.00–0.37 – Transparenz wird über die Kante gekauft, nicht über die Deckung. Plan folgt in
-> `docs/auftrag/GUI-R6.md`.
+> Dunkeln 0.00–0.37 – Transparenz wird über die Kante gekauft, nicht über die Deckung. Der Plan steht
+> seit 03.10. 09:20 in `docs/auftrag/GUI-R6.md` (zwei Workflows: Verstehen und Entwurf mit Jury,
+> Rohdaten unter `docs/auftrag/messungen/r6-*`); Umsetzung in Scheiben R6-00 bis R6-12, Lichtbrechung
+> R6-13 optional.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 

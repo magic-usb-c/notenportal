@@ -251,12 +251,30 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Aufräumen läuft beim nächsten Katalog-Upload). R5 damit abgeschlossen. Nächster Schritt:
                   R6 GUI-Rebuild – Instrumente und Baseline stehen (tools/pruefung/leistung.mjs, kontrast.mjs,
                   docs/auftrag/messungen/r6-leistung-baseline.md), Verstehen-Workflow läuft.
+[O] 03.10. 09:20  R6 Plan steht: docs/auftrag/GUI-R6.md (450 Zeilen) aus zwei Workflows –
+                  Verstehen (6 Leser, Synthese, 2 Widerleger; messungen/r6-verstehen/) und Entwurf
+                  (3 Gesamtentwürfe opus xhigh, 3 Juroren einstimmig «Material zuerst», Synthese,
+                  Quellen-Widerleger: 43 Zitate bestätigt, 9 Zuschreibungen korrigiert;
+                  messungen/r6-entwurf/). Leitidee «Licht statt Fläche»: Glas in Ruhe 18.4 % → ≤ 8 %,
+                  angedockte Leiste ohne Blur über ruhigem Token-Grund, 21 Grundsätze mit Apple-Satz,
+                  Glas-Budget mit Messgrenzen, Bewegungskatalog B1–B17 mit Variante «ruhig»,
+                  Statistik-Katalog S1–S11 (URL-Filter, JSON aus derselben Route), 15 Scheiben
+                  R6-00…R6-13 mit Dateien und Akzeptanz (§11). Code-Widerleger lief nicht
+                  (Nutzungslimit) – Zeilenverweise von Hand geprüft, Rest in R6-12. Basislinie §5
+                  Berufsbildner nachgetragen. Vorentscheidungen 1–14 im Plan; für David nur noch
+                  zwei Fragen (Ziele für Berufsbildner sichtbar? Erfassungsverhalten/BB-Vergleich
+                  mit Datenschutz klären?). Nächster Schritt: R6-00 Prüfwerkzeuge, dann R6-01/03.
 ```
 
 ---
 
 ## Offen für David
 
+- **R6 – Ziele für Berufsbildner sichtbar?** Dürfen Berufsbildner die persönlichen Ziele der
+  Lernenden sehen? Erst dann zeigt ihre Seite «nötige Note fürs Ziel»; bis dahin nur «nötige Note
+  für genügend» (`docs/auftrag/GUI-R6.md` §10).
+- **R6 – Erfassungsverhalten je Person und Vergleich der Berufsbildner** bleiben ausgeschlossen
+  (Vorentscheidungen 3 und 4 in `GUI-R6.md`). Mit Datenschutz und HR klären oder dauerhaft draussen?
 - **Standard der Navigation**: Seitenleiste nach HIG ist gebaut und je Person umschaltbar
   (Einstellungen → Darstellung), die Topbar bleibt. Standard für neue Konten ist laut Code die
   Seitenleiste (`app/Support/Darstellung.php`, `NAVIGATION_SEITE`); nur wenn du die Topbar als
