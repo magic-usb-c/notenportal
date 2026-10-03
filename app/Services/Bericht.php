@@ -69,7 +69,7 @@ final class Bericht
             ];
         });
 
-        $lehrjahr = $filter['lehrjahr'] ?? null;
+        $lehrjahr = isset($filter['lehrjahr']) ? (int) $filter['lehrjahr'] : null;
         if ($lehrjahr !== null) {
             $zeilen = $zeilen->filter(fn ($z) => $z->lehrjahr === $lehrjahr)->values();
         }
@@ -183,26 +183,22 @@ final class Bericht
             ],
             'kategorien' => $kategorien,
             'schwachstellen' => $schwachstellen,
-            'nachLehrjahr' => $this->nachLehrjahr($zeilen, $sid, null, $kategorieId),
+            'nachLehrjahr' => $this->nachLehrjahr($zeilen, null, $kategorieId),
         ];
     }
 
     /**
-     * Gesamtnote (mit $kategorieId: Kategorienote) je Lehrjahr: Durchschnitt über die Personen, dazu die
-     * Personenwerte selbst und ihr Median (ab drei Personen) für die Streifen.
+     * Gesamtnote der Lehrzeit (mit $kategorieId: Kategorienote der Lehrzeit) je Lehrjahr: Durchschnitt über
+     * die Personen, dazu die Personenwerte selbst und ihr Median (ab drei Personen) für die Streifen. Der Bezug
+     * bleibt mit und ohne Kategoriefilter die ganze Lehrzeit, unabhängig vom gewählten Semester.
      *
      * @return list<array{jahr: int, schnitt: ?float, anzahl: int, werte: list<float>, median: ?float}>
      */
-    public function nachLehrjahr(Collection $zeilen, ?int $sid = null, ?int $lehrjahr = null, ?int $kategorieId = null): array
+    public function nachLehrjahr(Collection $zeilen, ?int $lehrjahr = null, ?int $kategorieId = null): array
     {
-        $wert = function ($z) use ($sid, $kategorieId): ?float {
-            $a = $z->stand->auswertung;
-            if ($kategorieId === null) {
-                return $z->gesamt;
-            }
-
-            return $sid ? $a->semester($sid, $kategorieId)['note'] : ($a->kategorien[$kategorieId]['note'] ?? null);
-        };
+        $wert = fn ($z): ?float => $kategorieId === null
+            ? $z->gesamt
+            : ($z->stand->auswertung->kategorien[$kategorieId]['note'] ?? null);
 
         return $zeilen
             ->filter(fn ($z) => $z->lehrjahr !== null && ($lehrjahr === null || $z->lehrjahr === $lehrjahr) && $wert($z) !== null)
@@ -257,15 +253,5 @@ final class Bericht
             ->orderBy('b.nachname')
             ->orderBy('b.vorname')
             ->get(['l.lernender_id', 'l.lehrbeginn', 'l.lehrende', 'b.vorname', 'b.nachname', 'lb.name as lehrberuf', 'lb.kuerzel']);
-    }
-
-    /**
-     * Histogrammklasse einer Note = Untergrenze [x, x+0.5): so färbt das Diagramm (charts.js histogramm). Mit
-     * round() fiel 3.8 (Rundung 0.1) in die Klasse 4.0 und stand im genügenden Bereich. 1e-9 auf der
-     * Notenskala wie bei «ungenügend» und NotenSkala::stufe: was dort als 4.0 gilt, liegt hier in der Klasse 4.0.
-     */
-    public static function klasse(float $note): string
-    {
-        return number_format(floor(($note + 1e-9) * 2) / 2, 1);
     }
 }

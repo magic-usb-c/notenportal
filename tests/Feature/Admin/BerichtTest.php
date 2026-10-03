@@ -6,12 +6,13 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Fach;
 use App\Models\Kategorie;
+use App\Models\Lehrberuf;
 use App\Models\Note;
+use App\Models\Semester;
 use App\Models\User;
 use App\Services\Bericht;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -127,26 +128,41 @@ class BerichtTest extends TestCase
         $this->assertSame(20, count($klassen), 'Klassen 1.00 bis 5.75 in Viertelnotenschritten, die letzte schliesst 6.0 ein');
     }
 
-    /** @return array<string, array{0: float, 1: string}> */
-    public static function klassen(): array
-    {
-        return [
-            'Untergrenze 1.0' => [1.0, '1.0'],
-            '3.8 als 38 × 0.1' => [38 * 0.1, '3.5'],
-            'genau 4.0' => [4.0, '4.0'],
-            '4.0 knapp darunter wie NotenSkala::stufe' => [3.9999999993, '4.0'],
-            '4.49999 aus einem Schnitt' => [4.49999, '4.0'],
-            '4.5 knapp darunter' => [4.4999999996, '4.5'],
-            'genau 6.0' => [6.0, '6.0'],
-            '6.0 als 60 × 0.1' => [60 * 0.1, '6.0'],
-        ];
-    }
-
     #[Test]
-    #[DataProvider('klassen')]
-    public function histogrammklasse_ist_die_untergrenze_mit_derselben_toleranz_wie_die_notenstufe(float $note, string $klasse): void
+    public function lehrjahresvergleich_behaelt_mit_kategoriefilter_den_lehrzeitbezug(): void
     {
-        $this->assertSame($klasse, Bericht::klasse($note));
+        $kategorieId = (int) Kategorie::where('code', 'FACH')->value('kategorie_id');
+        $lehrberuf = Lehrberuf::factory()->create();
+        $fach = Fach::factory()->create(['track_typ' => null, 'kategorie_id' => $kategorieId]);
+        DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $lehrberuf->lehrberuf_id, 'fach_id' => $fach->fach_id, 'aktiv' => 1]);
+        $start = Carbon::parse('2020-08-01');
+        $semester = [];
+        foreach ([1, 2] as $i) {
+            $ende = $start->copy()->addMonths(6)->subDay();
+            $semester[] = Semester::factory()->create(['bezeichnung' => 'S'.$i.'-lj', 'start_datum' => $start->toDateString(), 'end_datum' => $ende->toDateString(), 'sortierung' => $i]);
+            $start = $ende->copy()->addDay();
+        }
+        foreach ([[4.0, 5.0], [5.0, 4.0], [3.0, 3.5]] as [$erstes, $zweites]) {
+            $l = User::factory()->lernender(['lehrberuf_id' => $lehrberuf->lehrberuf_id, 'lehrbeginn' => now()->subMonths(18)->toDateString(), 'lehrende' => now()->addMonths(30)->toDateString()])->create()->lernender;
+            foreach ([[$semester[0], $erstes], [$semester[1], $zweites]] as [$s, $wert]) {
+                Note::factory()->create(['lernender_id' => $l->lernender_id, 'kategorie_id' => $kategorieId, 'semester_id' => $s->semester_id, 'fach_id' => $fach->fach_id,
+                    'pruefungsdatum' => Carbon::parse($s->start_datum)->addDays(10)->toDateString(), 'note_wert' => $wert, 'gewichtung_prozent' => 100]);
+            }
+        }
+        $bericht = app(Bericht::class);
+        $sid = (int) $semester[1]->semester_id;
+        $ohne = $bericht->noten(['semester_id' => $sid, 'lehrberuf_id' => null, 'berufsbildner_id' => null]);
+        $mit = $bericht->noten(['semester_id' => $sid, 'lehrberuf_id' => null, 'berufsbildner_id' => null, 'kategorie_id' => $kategorieId]);
+
+        // Eine einzige Kategorie: Kategorienote der Lehrzeit = Gesamtnote der Lehrzeit, nicht die Semesternote
+        $this->assertSame($ohne['nachLehrjahr'], $mit['nachLehrjahr']);
+        $this->assertSame([2], array_column($mit['nachLehrjahr'], 'jahr'));
+        $this->assertCount(3, $mit['nachLehrjahr'][0]['werte']);
+        $this->assertNotNull($mit['nachLehrjahr'][0]['median']);
+        $this->assertNotSame([5.0, 4.0, 3.5], $mit['nachLehrjahr'][0]['werte'], 'nicht die Semesternoten');
+
+        $alsText = $bericht->noten(['semester_id' => null, 'lehrberuf_id' => null, 'berufsbildner_id' => null, 'lehrjahr' => '2']);
+        $this->assertCount(3, $alsText['zeilen'], 'lehrjahr aus der Query kommt als Text und zählt trotzdem');
     }
 
     #[Test]

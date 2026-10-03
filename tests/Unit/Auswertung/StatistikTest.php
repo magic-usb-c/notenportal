@@ -107,8 +107,9 @@ class StatistikTest extends TestCase
         $this->assertSame([4.0, 4.0], array_column($r['reihe'], 'wert'), 'ohne Datum zählt in keinem Stichtag');
         $this->assertCount(1, $r['punkte']);
         $this->assertSame(
-            [['id' => 9, 'titel' => 'Schlussprüfung', 'knotenId' => null, 'wert' => 6.0], ['id' => null, 'titel' => null, 'knotenId' => 5, 'wert' => 5.5]],
+            [['id' => 9, 'titel' => 'Schlussprüfung', 'knotenId' => null, 'wert' => 6.0], ['id' => null, 'titel' => null, 'knotenId' => 5, 'wert' => 5.5], ['id' => null, 'titel' => null, 'knotenId' => 6, 'wert' => null]],
             $r['meta']['ohneDatum'],
+            'auch die offene Position steht in der Liste',
         );
     }
 

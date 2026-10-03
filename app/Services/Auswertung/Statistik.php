@@ -23,8 +23,8 @@ final class Statistik
     /**
      * Wert einer Zielgrösse an Monatsenden (oder Quartalsenden): Stand der Auswertung mit allen Leistungen,
      * die bis dahin datiert sind. Der erste Stichtag ist das erste Periodenende ab $von; ist $bis kein
-     * Periodenende, ist $bis der letzte. Leistungen ohne Datum (IPA, Schlussprüfung, Notenbaum-Positionen)
-     * stehen nicht in der Reihe, sondern in meta.ohneDatum.
+     * Periodenende, ist $bis der letzte. Leistungen ohne Datum (IPA, Schlussprüfung, Notenbaum-Positionen,
+     * auch noch offene) stehen nicht in der Reihe, sondern in meta.ohneDatum.
      *
      * @param  list<Leistung>  $leistungen
      * @return array{
@@ -42,9 +42,8 @@ final class Statistik
         $ohneDatum = [];
         foreach ($leistungen as $l) {
             if ($l->datum === null) {
-                if (! $l->istUnbekannt()) {
-                    $ohneDatum[] = ['id' => $l->id, 'titel' => $l->titel, 'knotenId' => $l->knotenId, 'wert' => $l->wert];
-                }
+                // auch offene Positionen (wert null): die Liste unter dem Verlauf zeigt, was noch aussteht
+                $ohneDatum[] = ['id' => $l->id, 'titel' => $l->titel, 'knotenId' => $l->knotenId, 'wert' => $l->wert];
 
                 continue;
             }
