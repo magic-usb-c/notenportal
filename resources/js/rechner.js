@@ -117,9 +117,11 @@ export function registriereRechner(Alpine) {
             return this.zeilen.filter((z) => z.wert === '' && this.elementText(z)).length;
         },
 
+        // Daten für das Kurvendiagramm. Die View ruft damit zeichne() des Charts auf, das die vorhandene Instanz an Ort
+        // aktualisiert (setze): die Kurve wandert, der Canvas bleibt, ein gerade gescrubbter Punkt bleibt stehen.
         get kurve() {
             if (!this.ergebnis?.kurve?.length) return null;
-            return { punkte: this.ergebnis.kurve, zielwert: this.ergebnis.ziel.zielwert, note: this.ergebnis.loesung.note };
+            return { punkte: this.ergebnis.kurve, zielwert: this.ergebnis.ziel.zielwert, note: this.ergebnis.loesung.note ?? null };
         },
 
         name(z) {

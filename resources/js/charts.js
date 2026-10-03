@@ -3,7 +3,7 @@ import {
     BarController, BarElement, CategoryScale, Chart, Filler, Legend, LinearScale,
     LineController, LineElement, PointElement, Tooltip,
 } from 'chart.js';
-import { format, notenFarbe, stufe, t, tokenFarbe } from './np';
+import { bewegungRuhig, format, notenFarbe, stufe, t, tokenFarbe } from './np';
 
 Chart.register(BarController, BarElement, CategoryScale, Filler, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip);
 
@@ -24,10 +24,105 @@ const verlaufFlaeche = (token) => ({ chart }) => {
     return g;
 };
 
-// Bewegung reduziert: persönliche Einstellung (data-bewegung) oder Systemeinstellung
-function bewegungReduziert() {
-    return document.documentElement.dataset.bewegung === 'reduziert'
-        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+// Tipp: <div class="np-diagramm-tipp glass-overlay"> neben dem Canvas. x-diagramm legt ihn an; fehlt er (Aufrufer ohne
+// x-diagramm), entsteht er hier. Position nur über left/top/opacity, der Rest sind Klassen.
+const TIPP_KLASSEN = 'np-diagramm-tipp glass-overlay absolute pointer-events-none z-20 px-3 py-2 text-xs rounded-xl text-text whitespace-nowrap transition-opacity duration-100';
+
+function tippElement(chart) {
+    const eltern = chart.canvas.parentNode;
+    let el = eltern.querySelector(':scope > .np-diagramm-tipp');
+    if (!el) {
+        el = document.createElement('div');
+        el.className = TIPP_KLASSEN;
+        el.setAttribute('aria-hidden', 'true');
+        el.style.opacity = '0';
+        eltern.append(el);
+    }
+    if (getComputedStyle(eltern).position === 'static') eltern.classList.add('relative');
+    return el;
+}
+
+// modell: { x, y (Pixel im Canvas), titel, zeilen: [{ text, farbe? }] } oder null zum Ausblenden
+function tippZeigen(chart, modell) {
+    const el = tippElement(chart);
+    chart.$npTipp = modell ? [modell.titel, ...modell.zeilen.map((z) => z.text)].filter(Boolean).join(', ') : '';
+    if (!modell) {
+        el.style.opacity = '0';
+        return;
+    }
+    el.replaceChildren();
+    if (modell.titel) {
+        const kopf = document.createElement('div');
+        kopf.className = 'font-semibold';
+        kopf.textContent = modell.titel;
+        el.append(kopf);
+    }
+    modell.zeilen.forEach((z) => {
+        const zeile = document.createElement('div');
+        zeile.className = 'flex items-center gap-2';
+        if (z.farbe) {
+            const punkt = document.createElement('span');
+            punkt.className = 'size-2 shrink-0 rounded-full';
+            punkt.style.backgroundColor = z.farbe;
+            zeile.append(punkt);
+        }
+        const text = document.createElement('span');
+        text.textContent = z.text;
+        zeile.append(text);
+        el.append(zeile);
+    });
+    const eltern = chart.canvas.parentNode;
+    const x0 = chart.canvas.offsetLeft + modell.x;
+    const y0 = chart.canvas.offsetTop + modell.y;
+    const rechts = x0 + 14;
+    const x = rechts + el.offsetWidth > eltern.clientWidth ? x0 - 14 - el.offsetWidth : rechts;
+    const y = Math.min(Math.max(0, y0 - el.offsetHeight / 2), Math.max(0, eltern.clientHeight - el.offsetHeight));
+    el.style.left = `${Math.round(Math.max(0, x))}px`;
+    el.style.top = `${Math.round(y)}px`;
+    el.style.opacity = '1';
+}
+
+// Chart.js ruft das bei jeder Änderung der aktiven Punkte auf (tooltip.enabled ist aus, damit kein Canvas-Tooltip entsteht)
+function externerTipp({ chart, tooltip }) {
+    const punkte = tooltip.getActiveElements().length ? (tooltip.dataPoints ?? []) : [];
+    if (!punkte.length) {
+        tippZeigen(chart, null);
+        return;
+    }
+    const pos = punkte.map((p) => p.element.getProps(['x', 'y'], true));
+    const zeilen = tooltip.body.flatMap((b, i) => b.lines.map((text) => {
+        const farbe = tooltip.labelColors[i]?.backgroundColor;
+        return { text: String(text).trim(), farbe: typeof farbe === 'string' ? farbe : null };
+    }));
+    tippZeigen(chart, {
+        x: pos.reduce((summe, p) => summe + p.x, 0) / pos.length,
+        y: pos.reduce((summe, p) => summe + p.y, 0) / pos.length,
+        titel: tooltip.title.join(' '),
+        zeilen,
+    });
+}
+
+// Erstes Zeichnen gestaffelt (B13): je Punkt 30 ms, der letzte beginnt so, dass alles nach 500 ms steht. Spätere
+// Aktualisierungen (Filterwechsel, Rechner) rücken alle Punkte gleichzeitig (B14).
+const ANIMATION_DAUER = 300;
+const ANIMATION_GESAMT = 500;
+
+function staffel() {
+    const wert = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--np-staffel'));
+    return Number.isFinite(wert) ? wert : 30;
+}
+
+function animation() {
+    if (bewegungRuhig()) return false;
+    const je = staffel();
+    return {
+        duration: ANIMATION_DAUER,
+        easing: 'easeOutCubic',
+        delay: (c) => (c.type === 'data' && c.mode === 'default' && !c.chart.$npFertig
+            ? Math.min((c.dataIndex ?? 0) * je, ANIMATION_GESAMT - ANIMATION_DAUER)
+            : 0),
+        onComplete: ({ chart }) => { chart.$npFertig = true; },
+    };
 }
 
 function basis() {
@@ -36,22 +131,13 @@ function basis() {
     return {
         responsive: true,
         maintainAspectRatio: false,
-        animation: bewegungReduziert() ? false : { duration: 350 },
+        animation: animation(),
         interaction: { mode: 'index', intersect: false },
         plugins: {
             legend: { labels: { usePointStyle: true, boxWidth: 8, filter: (item) => !item.text.startsWith('_') } },
             tooltip: {
-                backgroundColor: tokenFarbe('--card', 0.96),
-                titleColor: tokenFarbe('--text'),
-                bodyColor: tokenFarbe('--text'),
-                borderColor: tokenFarbe('--border'),
-                borderWidth: 1,
-                padding: { x: 12, y: 10 },
-                cornerRadius: 12,
-                caretSize: 0,
-                usePointStyle: true,
-                boxPadding: 4,
-                titleFont: { weight: '600' },
+                enabled: false,
+                external: externerTipp,
                 filter: (item) => !item.dataset.label?.startsWith('_'),
                 callbacks: { label: (c) => ` ${c.dataset.label}: ${format(c.parsed.y ?? c.parsed.x, 2)}` },
             },
@@ -183,6 +269,85 @@ const senkrechtPlugin = {
     },
 };
 
+// Wert einer Kurve an der Stelle x, linear zwischen den beiden benachbarten Punkten (kein Serveraufruf)
+function interpoliere(punkte, x) {
+    const v = punkte.filter((p) => p && Number.isFinite(p.y)).sort((a, b) => a.x - b.x);
+    if (!v.length || x < v[0].x - 1e-9 || x > v[v.length - 1].x + 1e-9) return null;
+    for (let i = 1; i < v.length; i++) {
+        if (x <= v[i].x + 1e-9) {
+            const [a, b] = [v[i - 1], v[i]];
+            return b.x === a.x ? b.y : a.y + ((b.y - a.y) * (x - a.x)) / (b.x - a.x);
+        }
+    }
+    return v[0].y;
+}
+
+// Scrub (B17): senkrechte Linie samt Punkt folgt Zeiger und Pfeiltasten über die ganze Zeichenfläche; Wert und Tipp
+// kommen aus den vorhandenen Kurvenpunkten. note = null blendet alles aus.
+function scrubSetze(chart, note) {
+    const o = (chart.$npScrub ??= {});
+    if (note === null || note === undefined) {
+        o.note = null;
+        o.wert = null;
+        o.text = '';
+        tippZeigen(chart, null);
+        return;
+    }
+    o.note = Math.min(6, Math.max(1, note));
+    o.wert = interpoliere(chart.data.datasets[0]?.data ?? [], o.note);
+    if (o.wert === null) {
+        o.text = '';
+        tippZeigen(chart, null);
+        return;
+    }
+    const titel = t('Note in offenen Prüfungen: :wert', { wert: format(o.note, 2) });
+    const zeile = t('Ergebnis: :wert', { wert: format(o.wert, 2) });
+    o.text = `${titel}, ${zeile}`;
+    tippZeigen(chart, {
+        x: chart.scales.x.getPixelForValue(o.note),
+        y: chart.scales.y.getPixelForValue(o.wert),
+        titel,
+        zeilen: [{ text: zeile, farbe: tokenFarbe('--accent') }],
+    });
+}
+
+const scrubPlugin = {
+    id: 'npScrub',
+    afterEvent(chart, args) {
+        if (!chart.options.plugins?.npScrub?.aktiv) return;
+        const e = args.event;
+        if (e.type === 'mouseout') {
+            scrubSetze(chart, null);
+            args.changed = true;
+        } else if (['mousemove', 'touchstart', 'touchmove', 'click'].includes(e.type)) {
+            scrubSetze(chart, args.inChartArea ? chart.scales.x.getValueForPixel(e.x) : null);
+            args.changed = true;
+        }
+    },
+    afterDatasetsDraw(chart) {
+        const o = chart.$npScrub;
+        if (!chart.options.plugins?.npScrub?.aktiv || o?.note === null || o?.note === undefined || o.wert === null) return;
+        const { ctx, chartArea, scales } = chart;
+        const x = Math.round(scales.x.getPixelForValue(o.note)) + 0.5;
+        const y = scales.y.getPixelForValue(o.wert);
+        ctx.save();
+        ctx.strokeStyle = tokenFarbe('--text', 0.35);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, chartArea.top);
+        ctx.lineTo(x, chartArea.bottom);
+        ctx.stroke();
+        ctx.fillStyle = tokenFarbe('--accent');
+        ctx.strokeStyle = tokenFarbe('--card');
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+    },
+};
+
 // Punkte entlang der sichtbaren Datenlinien (Stützpunkte plus Zwischenpunkte), für die Kollisionsprüfung von Labels
 const linienPunkte = (chart) => {
     const punkte = [];
@@ -238,7 +403,7 @@ const schwellenLabelPlugin = {
     },
 };
 
-Chart.register(direktlabelPlugin, schwellenLabelPlugin, balkenwertPlugin, senkrechtPlugin);
+Chart.register(direktlabelPlugin, schwellenLabelPlugin, balkenwertPlugin, senkrechtPlugin, scrubPlugin);
 
 // Anteil der Diagrammbreite, den die Namensachse horizontaler Balken höchstens belegt
 const ACHSENANTEIL = 0.36;
@@ -304,26 +469,37 @@ const BAUER = {
         };
     },
 
-    // { punkte: [{ x, wert }], zielwert, note }
+    // { punkte: [{ x, wert }], zielwert, note } – Endnote, wenn alle offenen Prüfungen dieselbe Note x bekommen; das Band
+    // zeigt den Spielraum zwischen schlechtester (Note 1) und bester Endnote (Note 6). Scrub über die ganze Fläche.
     kurve(d) {
-        const labels = d.punkte.map((p) => format(p.x, 2));
+        const werte = d.punkte.map((p) => p.wert).filter((w) => w !== null && w !== undefined && Number.isFinite(w));
+        const schlecht = werte.length ? Math.min(...werte) : null;
+        const beste = werte.length ? Math.max(...werte) : null;
+        const waagrecht = (wert) => [{ x: 1, y: wert }, { x: 6, y: wert }];
+        const hilfslinie = { type: 'line', borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false, order: 3 };
         const datasets = [{
-            label: t('Ergebnis'), data: d.punkte.map((p) => p.wert), stepped: true,
-            borderColor: tokenFarbe('--accent'), backgroundColor: tokenFarbe('--accent', 0.1), fill: 'origin',
-            borderWidth: 2.5, pointRadius: d.punkte.map((p) => (d.note !== null && Math.abs(p.x - d.note) < 0.13 ? 6 : 0)),
+            label: t('Ergebnis'), data: d.punkte.map((p) => ({ x: p.x, y: p.wert })),
+            borderColor: tokenFarbe('--accent'), backgroundColor: 'transparent', fill: false, clip: false, order: 1,
+            borderWidth: 2.5, pointRadius: d.punkte.map((p) => (d.note !== null && d.note !== undefined && Math.abs(p.x - d.note) < 0.13 ? 6 : 0)),
             pointBackgroundColor: tokenFarbe('--accent'),
         }, {
-            type: 'line', label: '_ziel', data: Array(labels.length).fill(d.zielwert),
-            borderColor: tokenFarbe('--text', 0.5), borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false,
+            type: 'line', label: '_ziel', data: waagrecht(d.zielwert),
+            borderColor: tokenFarbe('--text', 0.5), borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, order: 2,
             npSchwelleLabel: t('Ziel :wert', { wert: format(d.zielwert, 1) }),
         }];
+        if (werte.length && beste - schlecht > 0.005) {
+            datasets.push(
+                { ...hilfslinie, label: '_schlechteste', data: waagrecht(schlecht), npSchwelleLabel: t('schlechteste Endnote :wert', { wert: format(schlecht, 1) }) },
+                { ...hilfslinie, label: '_beste', data: waagrecht(beste), fill: '-1', backgroundColor: tokenFarbe('--accent', 0.12), npSchwelleLabel: t('beste Endnote :wert', { wert: format(beste, 1) }) },
+            );
+        }
         return {
-            type: 'line', data: { labels, datasets },
+            type: 'line', data: { datasets },
             options: {
-                ...basis(),
-                plugins: { ...basis().plugins, legend: { display: false },
-                    tooltip: { ...basis().plugins.tooltip, callbacks: { title: (i) => t('Note in offenen Prüfungen: :wert', { wert: i[0].label }), label: (c) => ` ${t('Ergebnis: :wert', { wert: format(c.parsed.y, 2) })}` } } },
-                scales: { y: notenAchse(), x: { grid: { display: false }, border: { display: false }, ticks: { autoSkip: true, maxTicksLimit: 11 } } },
+                ...basis(), layout: { padding: { left: 2, right: 10, top: 6 } },
+                plugins: { ...basis().plugins, legend: { display: false }, npScrub: { aktiv: true },
+                    tooltip: { ...basis().plugins.tooltip, external: null } },
+                scales: { y: notenAchse(), x: { type: 'linear', min: 1, max: 6, grid: { display: false }, border: { display: false }, ticks: { stepSize: 1, padding: 6 } } },
             },
         };
     },
@@ -350,23 +526,6 @@ const BAUER = {
                     // ganz Platz hat, wird nach gemessener Textbreite gekürzt (voller Name im Tooltip)
                     afterFit(achse) { achse.width = Math.min(achse.width, achse.chart.width * ACHSENANTEIL + 8); },
                     ticks: { callback(v) { return kuerzeNachBreite(this.chart, String(this.getLabelForValue(v)), this.chart.width * ACHSENANTEIL); } } } },
-            },
-        };
-    },
-
-    // { labels, serien: [{ name, werte }] } – gruppierte Notensäulen ab Note 1
-    gruppen(d) {
-        return {
-            type: 'bar',
-            data: { labels: d.labels, datasets: d.serien.map((s, i) => ({
-                label: s.name, data: s.werte.map((v) => (v === null ? null : [1, v])),
-                backgroundColor: serie(i, 0.75), borderRadius: 6, borderSkipped: false, maxBarThickness: 28,
-            })) },
-            options: {
-                ...basis(),
-                plugins: { ...basis().plugins,
-                    tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${c.dataset.label}: ${format(c.raw?.[1], 2)}` } } },
-                scales: { y: notenAchse(), x: { grid: { display: false }, border: { display: false } } },
             },
         };
     },
@@ -409,54 +568,166 @@ const BAUER = {
             },
         };
     },
-
-    // { werte, grenzen } – Miniaturverlauf ohne Achsen, Skala fix 1–6 (für Small Multiples mit gleicher Skala)
-    spark(d) {
-        const werte = d.werte ?? [];
-        const vorhanden = werte.map((v, i) => [i, v]).filter(([, v]) => v !== null && v !== undefined);
-        const letzterIndex = vorhanden.length ? vorhanden[vorhanden.length - 1][0] : -1;
-        const letzterWert = vorhanden.length ? vorhanden[vorhanden.length - 1][1] : null;
-        const farbe = notenFarbe(letzterWert, d.grenzen);
-        return {
-            type: 'line',
-            data: { labels: werte.map((_, i) => i), datasets: [{
-                data: werte, spanGaps: true, tension: 0.3, borderWidth: 2,
-                borderColor: farbe, backgroundColor: notenFarbe(letzterWert, d.grenzen, 0.12), fill: 'origin',
-                pointRadius: (c) => (c.dataIndex === letzterIndex ? 3 : 0), pointBackgroundColor: farbe,
-            }] },
-            options: {
-                responsive: true, maintainAspectRatio: false, animation: { duration: 0 },
-                interaction: { intersect: false },
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                scales: { y: { min: 1, max: 6, display: false }, x: { display: false } },
-            },
-        };
-    },
 };
 
+const TASTEN = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+const kopie = (x) => JSON.parse(JSON.stringify(x));
+
 export function registriereCharts(Alpine) {
-    // <div x-data="npChart('verlauf', daten)"><canvas x-ref="canvas"></canvas></div>
-    // Reaktiv: x-effect="zeichne(neueDaten)"
+    // <div x-data="npChart('verlauf', daten)"><canvas x-ref="canvas"></canvas></div> (x-diagramm mit typ legt das an)
+    // Reaktiv: x-effect="zeichne(neueDaten)" oder setze(neueDaten) – gleicher Typ und gleiche Zahl Datensätze werden
+    // an Ort aktualisiert (Punkte wandern), nur sonst und beim Themewechsel wird neu gebaut.
+    // Tastatur: Pfeile, Home und End auf dem fokussierten Element führen durch die Punkte, aria-live sagt den Wert an.
     Alpine.data('npChart', (typ, daten = null, optionen = {}) => {
         let chart = null;
         let beobachter = null;
         let aktuell = daten;
+        let index = null;
+        let host = null;
+        let ansage = null;
+        let tasteHoerer = null;
+        let blurHoerer = null;
         return {
             init() {
+                host = this.$el;
+                this.huelleEinrichten();
                 if (aktuell) this.zeichne(aktuell);
-                beobachter = new MutationObserver(() => aktuell && this.zeichne(aktuell));
+                // Themewechsel: Farben sind im Chart festgeschrieben, deshalb neu bauen
+                beobachter = new MutationObserver(() => aktuell && this.baue(aktuell));
                 beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-diagramm'] });
                 // Beschriftungen werden in der Schrift gemessen, die beim ersten Zeichnen gilt: erst nach dem Laden der Schrift
                 // neu messen (ohne Animation), sonst kürzt eine breitere Ersatzschrift Namen, die in Inter ganz hinpassen
                 document.fonts?.ready.then(() => chart?.update('none'));
             },
+
+            // Fokussierbare Hülle mit Namen und Ansage; fehlt etwas (Aufrufer ohne x-diagramm), wird es ergänzt
+            huelleEinrichten() {
+                if (!host.hasAttribute('tabindex')) host.setAttribute('tabindex', '0');
+                if (!host.hasAttribute('role')) host.setAttribute('role', 'group');
+                const name = this.$refs.canvas?.getAttribute('aria-label');
+                if (name && !host.hasAttribute('aria-label')) host.setAttribute('aria-label', name);
+                ansage = host.querySelector('.np-diagramm-ansage');
+                if (!ansage) {
+                    ansage = document.createElement('p');
+                    ansage.className = 'np-diagramm-ansage sr-only';
+                    ansage.setAttribute('aria-live', 'polite');
+                    host.append(ansage);
+                }
+                tasteHoerer = (e) => this.taste(e);
+                blurHoerer = () => this.loeschen();
+                host.addEventListener('keydown', tasteHoerer);
+                host.addEventListener('blur', blurHoerer);
+            },
+
             zeichne(neu) {
-                if (!neu) return;
-                aktuell = JSON.parse(JSON.stringify(neu));
+                this.setze(neu);
+            },
+
+            baue(neu) {
+                aktuell = kopie(neu);
                 chart?.destroy();
+                index = null;
                 chart = new Chart(this.$refs.canvas, BAUER[typ](aktuell, optionen));
             },
+
+            setze(neu) {
+                if (!neu) return;
+                const kopierte = kopie(neu);
+                const frisch = BAUER[typ](kopierte, optionen);
+                if (!chart || chart.config.type !== frisch.type || chart.data.datasets.length !== frisch.data.datasets.length) {
+                    this.baue(neu);
+                    return;
+                }
+                aktuell = kopierte;
+                const note = chart.$npScrub?.note ?? null;
+                if (!chart.options.plugins?.npScrub?.aktiv) this.loeschen(false);
+                chart.options = frisch.options;
+                chart.data.labels = frisch.data.labels;
+                frisch.data.datasets.forEach((ds, i) => Object.assign(chart.data.datasets[i], ds));
+                chart.update(bewegungRuhig() ? 'none' : undefined);
+                if (note !== null) {
+                    scrubSetze(chart, note);
+                    chart.draw();
+                }
+            },
+
+            // Punkte der Tastaturposition i: je sichtbarer Reihe mit Wert ein aktives Element
+            aktive(i) {
+                return chart.data.datasets
+                    .map((ds, datasetIndex) => ({ ds, datasetIndex }))
+                    .filter(({ ds, datasetIndex }) => !ds.label?.startsWith('_') && chart.isDatasetVisible(datasetIndex)
+                        && ds.data[i] !== null && ds.data[i] !== undefined && chart.getDatasetMeta(datasetIndex).data[i])
+                    .map(({ datasetIndex }) => ({ datasetIndex, index: i }));
+            },
+
+            suche(start, richtung) {
+                const n = chart.data.labels?.length ?? 0;
+                for (let i = start; i >= 0 && i < n; i += richtung) if (this.aktive(i).length) return i;
+                return null;
+            },
+
+            taste(e) {
+                if (!chart || e.target !== host || e.altKey || e.ctrlKey || e.metaKey) return;
+                const schritt = TASTEN[e.key];
+                if (schritt === undefined && e.key !== 'Home' && e.key !== 'End') return;
+                e.preventDefault();
+                if (chart.options.plugins?.npScrub?.aktiv) {
+                    this.tasteKurve(e.key, schritt);
+                    return;
+                }
+                let ziel;
+                if (e.key === 'Home') ziel = this.suche(0, 1);
+                else if (e.key === 'End') ziel = this.suche((chart.data.labels?.length ?? 0) - 1, -1);
+                else if (index === null) ziel = schritt > 0 ? this.suche(0, 1) : this.suche((chart.data.labels?.length ?? 0) - 1, -1);
+                else ziel = this.suche(index + schritt, schritt) ?? index;
+                if (ziel !== null) this.markiere(ziel);
+            },
+
+            markiere(i) {
+                index = i;
+                const aktiv = this.aktive(i);
+                const pos = aktiv.map(({ datasetIndex }) => chart.getDatasetMeta(datasetIndex).data[i].getProps(['x', 'y'], true));
+                const mitte = { x: pos.reduce((a, p) => a + p.x, 0) / pos.length, y: pos.reduce((a, p) => a + p.y, 0) / pos.length };
+                chart.setActiveElements(aktiv);
+                chart.tooltip.setActiveElements(aktiv, mitte);
+                chart.update('none');
+                ansage.textContent = chart.$npTipp ?? '';
+            },
+
+            // Kurve (Rechner): ←/→ in Viertelnoten, Home/End an die Enden der Achse
+            tasteKurve(key, schritt) {
+                const o = (chart.$npScrub ??= {});
+                let note = o.note;
+                if (key === 'Home') note = 1;
+                else if (key === 'End') note = 6;
+                else if (note === null || note === undefined) note = schritt > 0 ? 1 : 6;
+                else if (schritt > 0) note = Math.min(6, (Math.floor(note / 0.25 + 1e-9) + 1) * 0.25);
+                else note = Math.max(1, (Math.ceil(note / 0.25 - 1e-9) - 1) * 0.25);
+                scrubSetze(chart, note);
+                chart.draw();
+                ansage.textContent = o.text ?? '';
+            },
+
+            loeschen(neuzeichnen = true) {
+                if (!chart) return;
+                index = null;
+                if (chart.options.plugins?.npScrub?.aktiv) {
+                    if (chart.$npScrub?.note != null) {
+                        scrubSetze(chart, null);
+                        if (neuzeichnen) chart.draw();
+                    }
+                    return;
+                }
+                if (chart.getActiveElements().length || chart.tooltip?.getActiveElements().length) {
+                    chart.setActiveElements([]);
+                    chart.tooltip.setActiveElements([], { x: 0, y: 0 });
+                    if (neuzeichnen) chart.update('none');
+                }
+            },
+
             destroy() {
+                host?.removeEventListener('keydown', tasteHoerer);
+                host?.removeEventListener('blur', blurHoerer);
                 chart?.destroy();
                 beobachter?.disconnect();
             },

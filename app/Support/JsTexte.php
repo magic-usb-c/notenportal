@@ -32,7 +32,9 @@ final class JsTexte
         'Änderung konnte nicht gespeichert werden.',
         'Ziel :wert',
         'Zu viele Anfragen – bitte kurz warten.',
+        'beste Endnote :wert',
         'genügend :wert',
+        'schlechteste Endnote :wert',
     ];
 
     /** @return array<string, string> Schlüssel => Übersetzung in der aktuellen Sprache */
