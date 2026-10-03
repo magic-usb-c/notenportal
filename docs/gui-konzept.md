@@ -15,9 +15,9 @@ Seit dem Rebuild ist das Portal **nur für den Desktop-Browser** gebaut (Zielbre
 | Formulare | Gruppierte Listen wie die macOS-Systemeinstellungen: Abschnitt = `<section>` mit `h2` über `np-karte np-gruppe`, Zeilen aus `<x-einstellung label fuer name hinweis gestapelt>` (Bezeichnung links, Feld rechts; `gestapelt` für mehrzeiligen Text), Fussnote `mt-2 px-1 text-xs text-muted`, Abschluss `<x-formular-aktionen>`, Löschen als eigene Gruppe darunter. Keine Sternchen: Pflicht ist der Normalfall, freiwillige Felder tragen den Platzhalter «Optional». Wenige Optionen als `<x-segment-auswahl>`, ja/nein als `np-schalter`. Hinweis und Fehler sind per `aria-describedby` an das Feld gebunden (ids `{feld}-hinweis`, `{feld}-fehler`, nie zwei Attribute). |
 | Rückmeldung | Bestätigungen über `data-bestaetigen` (Dialog statt `window.confirm`), Flash nur als Toast, keine Spinner. Formatfehler mit verständlicher Meldung aus `validation.custom`. |
 | Status | `<x-status>`: Kritisch · Beobachten · Offen · Im Plan · **Abgeschlossen** (Lehrende vorbei, löst keine Warnung mehr aus). |
-| Prüfung | Massstab dunkel 1920/2560: `tools/pruefung/shot.mjs` (jedes Bild mit Read ansehen), `rundgang.mjs` je Rolle mit Exit 0 (JS-Fehler, Überlauf, Abschnitte, Überlappung), hell nur als Stichprobe (`--hell`); Sichtbefunde durch `bildpruefer`, Entscheide mit Regelzitat in `docs/audit-backlog.md`. R5 Teil 1 (02.10.): 96 Seiten, 136 Befunde, 31 umgesetzt. |
+| Prüfung | Massstab dunkel 1920/2560: `tools/pruefung/shot.mjs` (jedes Bild mit Read ansehen), `rundgang.mjs` je Rolle mit Exit 0 (JS-Fehler, Überlauf, Abschnitte, Überlappung), hell nur als Stichprobe (`--hell`); Sichtbefunde durch `bildpruefer`, Entscheide mit Regelzitat in `docs/audit-backlog.md`. R5 Teil 1 (02.10.): 96 Seiten, 136 Befunde, 31 umgesetzt. R5 Teil 2 (03.10., Workflow `notenportal-audit`): 33 Befunde, 20 nach gegnerischer Verifikation umgesetzt, 13 verworfen. |
 
-Screenshots des Ist-Stands vor dem Rebuild: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Paletten und Kontraste: `~/tools/kontrast/` (`paletten.json` = Quelle, `kontrast.mjs` = WCAG/APCA-Prüfung mit Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugt Abschnitt d).
+Screenshots des Ist-Stands vor dem Rebuild: `~/tools/out/konzept/{admin,bb,lernende}/*.png` (1366 px, hell/dunkel/390 px). Kontraste prüft heute `node tools/pruefung/kontrast.mjs` im Repo (alle 24 Theme-Blöcke, 14 Akzentblöcke und die Glasmaterialien aus `app.css`, Exit 1 bei Verstoss; `--minimum` nennt die nötige Glasdeckung je Theme). Die ältere Sammlung `~/tools/kontrast/` (`paletten.json` = Quelle, APCA-Autokorrektur, `search.mjs` = Reihenfolge der Chartfarben gegen den dataviz-Validator, `gen-md.mjs` erzeugte Abschnitt d) liegt nur auf der VM und ist nicht im Repo.
 
 ## a) Diagnose
 
@@ -143,7 +143,7 @@ Wahl: Betrieb wählt das Theme (Einstellung in der DB, Seite «Betrieb» – bet
 
 **Chartfarben:** Reihenfolge ist Teil der Palette und wurde mit dem Validator des dataviz-Skills geprüft (Helligkeitsband, Chroma-Untergrenze, Farbfehlsichtigkeit benachbarter Paare, Normalsicht, Kontrast ≥ 3:1): alle zehn Varianten bestehen, einzig «Kontrast hell» hat bei Violett↔Magenta eine Protan-Warnung (ΔE 7.9) → dort Direktbeschriftung Pflicht. `chart-6` ist das Kontextgrau. Graphit: `chart-1` = Tinte als Heldenreihe.
 
-Alle 240 WCAG-Paare ≥ Ziel (Text 4.5:1, Kontrast-Theme 7:1, UI/Grafik 3:1). Die Tabellen unten sind maschinell aus `~/tools/kontrast/ergebnis.json` erzeugt (Format: `L C H · R G B`).
+Alle 240 WCAG-Paare ≥ Ziel (Text 4.5:1, Kontrast-Theme 7:1, UI/Grafik 3:1). Die Tabellen unten wurden beim Rebuild maschinell erzeugt (damals aus `~/tools/kontrast/ergebnis.json`, nicht im Repo; Format: `L C H · R G B`); der laufende Nachweis ist `node tools/pruefung/kontrast.mjs` (3628 Paare, Exit 1 bei Verstoss) und `tests/Feature/ThemeKontrastTest.php`.
 
 #### Gletscher (Standard) – `data-theme="gletscher"`
 
