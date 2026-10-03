@@ -1,7 +1,7 @@
 export const meta = {
   name: 'notenportal-r6-welle',
   description: 'Eine Welle des GUI-Rebuilds R6: je Scheibe Umsetzung (sonnet high) → Review gegen den Scheibenplan (sonnet high) → Nachbesserung nur bei blockierenden Befunden',
-  whenToUse: 'Nach docs/auftrag/GUI-R6.md §7/§11. args: { scheiben: ["R6-01","R6-03"], dbs: ["notenportal_b_test","notenportal_c_test"], env: "<pfad zu env.sh>", scratch: "<ordner>", hinweise?: { "R6-01": "…" } }. Höchstens zwei Scheiben je Welle (4 CPUs); Scheiben einer Welle teilen keine Dateien. Bauen, Messen, Screenshots, Tests der ganzen Suite und Commit macht die Hauptsitzung danach.',
+  whenToUse: 'Nach docs/auftrag/GUI-R6.md §7/§11. args: { scheiben: ["R6-01","R6-03"], dbs: ["notenportal_b_test","notenportal_c_test"], env: "<pfad zu env.sh>", scratch: "<ordner>", hinweiseDatei?: "<markdown mit ## R6-01 …>" } (lange Hinweise als Datei, nicht inline: Sonderzeichen in args brechen das JSON). Höchstens zwei Scheiben je Welle (4 CPUs); Scheiben einer Welle teilen keine Dateien. Bauen, Messen, Screenshots, Tests der ganzen Suite und Commit macht die Hauptsitzung danach.',
   phases: [
     { title: 'Umsetzung', detail: 'eine Scheibe je Agent, nur die im Plan genannten Dateien', model: 'sonnet' },
     { title: 'Review', detail: 'Diff gegen Ziel und Akzeptanz der Scheibe, Befunde mit Datei und Zeile', model: 'sonnet' },
@@ -16,6 +16,9 @@ const DBS = Array.isArray(A.dbs) ? A.dbs : ['notenportal_b_test', 'notenportal_c
 const ENV = A.env || '/tmp/claude-0/-home-user-notenportal/7db961ca-89ac-5783-9806-aac8c1a98bdd/scratchpad/env.sh'
 const SCRATCH = A.scratch || '/tmp/claude-0/-home-user-notenportal/7db961ca-89ac-5783-9806-aac8c1a98bdd/scratchpad/r6'
 const HINWEISE = A.hinweise || {}
+// Längere Hinweise mit Sonderzeichen besser als Datei übergeben (args.hinweiseDatei, ein Abschnitt «## <Scheibe>» je Scheibe)
+const HINWEIS_DATEI = A.hinweiseDatei || null
+const hinweisText = (id) => (HINWEISE[id] ? `HINWEISE DER HAUPTSITZUNG ZU ${id}:\n${HINWEISE[id]}\n` : '') + (HINWEIS_DATEI ? `Lies ausserdem die Hinweise der Hauptsitzung in ${HINWEIS_DATEI}, Abschnitt «## ${id}» (nur diesen).\n` : '')
 if (!SCHEIBEN.length) throw new Error('args.scheiben fehlt')
 if (SCHEIBEN.length > 2) log(`Achtung: ${SCHEIBEN.length} Scheiben – nur zwei laufen gleichzeitig, der Rest wartet`)
 
@@ -102,7 +105,7 @@ const ergebnisse = await pipeline(
 ${PFLICHT}
 ${UMGEBUNG}
 Deine Test-DB: ${DBS[i % DBS.length]} (existiert; CREATE DATABASE IF NOT EXISTS, falls nicht).
-${HINWEISE[id] ? `HINWEISE DER HAUPTSITZUNG ZU ${id}:\n${HINWEISE[id]}\n` : ''}
+${hinweisText(id)}
 Vorgehen: (1) Abschnitt «### ${id}» in docs/auftrag/GUI-R6.md §11 lesen, dazu §4 und §10. (2) Die genannten Dateien an den genannten Zeilen lesen (Zeilennummern im Plan sind Stand 03.10. und können um einige Zeilen abweichen – nach dem Inhalt suchen). (3) Umsetzen. (4) Jeden Akzeptanzpunkt, der ohne Build und ohne Browser prüfbar ist, selbst ausführen und das Ergebnis in «geprueft» festhalten; die übrigen unter «luecken» mit dem genauen Befehl für die Hauptsitzung. (5) Kein git add/commit, kein npm run build.
 Wenn ein Zielsatz des Plans in der Codebasis nachweislich nicht so umsetzbar ist, wie er dasteht (Zeile existiert nicht, Selektor anders, Regel würde einen Test brechen): die nächstliegende Umsetzung wählen, die den Zweck erfüllt, und das als Annahme nennen. Nie den Zweck streichen.`,
     { label: `umsetzen:${id}`, phase: 'Umsetzung', model: 'sonnet', effort: 'high', schema: UMSETZUNG_SCHEMA }),
@@ -135,7 +138,7 @@ Der Review hat diese blockierenden Befunde (jeden prüfen, beheben oder mit Grun
 ${blocker.map((b, n) => `${n + 1}. ${b.datei}:${b.zeile} – ${b.text} (verletzt: ${b.akzeptanzpunkt})`).join('\n')}
 Empfehlungen (mitnehmen, wenn billig):
 ${review.befunde.filter((b) => b.schwere === 'empfehlung').map((b) => `- ${b.datei}:${b.zeile} – ${b.text}`).join('\n') || '-'}
-Nur Dateien aus dem Dateikreis der Scheibe ändern. Danach dieselben statischen Prüfungen wie in der Akzeptanz erneut laufen lassen.`,
+${hinweisText(id)}Nur Dateien aus dem Dateikreis der Scheibe ändern. Danach dieselben statischen Prüfungen wie in der Akzeptanz erneut laufen lassen.`,
       { label: `nachbessern:${id}`, phase: 'Nachbesserung', model: 'sonnet', effort: 'high', schema: NACHBESSERUNG_SCHEMA })
     return { scheibe: id, status: nach ? 'nachgebessert' : 'nachbesserung fehlgeschlagen', umsetzung, review, nachbesserung: nach }
   },
