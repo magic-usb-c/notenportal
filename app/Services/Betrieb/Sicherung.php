@@ -62,8 +62,12 @@ final class Sicherung
                 throw new RuntimeException('ZIP-Datei lässt sich nicht anlegen.');
             }
             $zip->addFile($dump, 'datenbank.sql');
-            foreach ([...Storage::disk(self::DISK)->allFiles('lernende'), ...Storage::disk(self::DISK)->allFiles('betrieb'), ...Storage::disk(self::DISK)->allFiles('feedback')] as $datei) {
-                $zip->addFile(Storage::disk(self::DISK)->path($datei), 'dateien/'.$datei);
+            // Alle Ablagen unter storage/app/private mit Benutzerdaten – Liste deckt sich mit anleitung() und docs/betrieb.md.
+            // modulkatalog/ fehlt bewusst: nur Zwischenablage des Katalogimports, ModulkatalogController::aufraeumen() löscht sie nach 24 h.
+            foreach (['lernende', 'betrieb', 'feedback', 'module'] as $ordner) {
+                foreach (Storage::disk(self::DISK)->allFiles($ordner) as $datei) {
+                    $zip->addFile(Storage::disk(self::DISK)->path($datei), 'dateien/'.$datei);
+                }
             }
             $zip->addFromString('LIESMICH.txt', $this->anleitung());
             if (! $zip->close() || ! rename($teil, $ziel)) {
@@ -157,8 +161,8 @@ final class Sicherung
             Notenportal – Sicherung
             =======================
             datenbank.sql   vollständiger Export der Datenbank
-            dateien/        hochgeladene Dokumente (storage/app/private/lernende), Betriebslogo (storage/app/private/betrieb)
-                            und Feedback-Screenshots/-Anhänge (storage/app/private/feedback)
+            dateien/        hochgeladene Dokumente (storage/app/private/lernende), Betriebslogo (storage/app/private/betrieb),
+                            Feedback-Screenshots/-Anhänge (storage/app/private/feedback) und Modulunterlagen (storage/app/private/module)
 
             Wiederherstellen (auf dem Server, im Verzeichnis des Notenportals):
             1. sudo mysql <Datenbankname> < datenbank.sql

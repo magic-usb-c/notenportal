@@ -33,7 +33,8 @@ $maxWidth = [
         nextFocusableIndex() { return (this.focusables().indexOf(document.activeElement) + 1) % (this.focusables().length + 1) },
         prevFocusableIndex() { return Math.max(0, this.focusables().indexOf(document.activeElement)) -1 },
     }"
-    x-init="$watch('show', value => {
+    x-init="if (show) { document.body.classList.add('overflow-y-hidden'); {{ $attributes->has('focusable') ? 'setTimeout(() => firstFocusable().focus(), 100)' : '' }} }
+            $watch('show', value => {
         if (value) {
             ausloeser = document.activeElement;
             document.body.classList.add('overflow-y-hidden');
@@ -72,7 +73,7 @@ $maxWidth = [
         x-show="show"
         class="relative mb-6 overflow-hidden rounded-2xl border border-border-strong/30 bg-card text-text shadow-e3 mx-auto w-full {{ $maxWidth }}"
         x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-2"
+        x-transition:enter-start="opacity-0 translate-y-2 motion-reduce:translate-y-0"
         x-transition:enter-end="opacity-100 translate-y-0"
         x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100"

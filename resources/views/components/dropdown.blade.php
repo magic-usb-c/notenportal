@@ -19,7 +19,7 @@ $width = match ($width) {
 @endphp
 
 {{-- Menü (G2 Overlay): Glas nur für die schwebende Ebene, 150 ms --}}
-<div class="relative" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="if (open) { open = false; $refs.ausloeser.querySelector('button, a')?.focus() }" @close.stop="open = false">
+<div class="relative" x-data="{ open: false }" @click.outside="open = false" @focusout="if ($event.relatedTarget && ! $el.contains($event.relatedTarget)) open = false" @keydown.escape.window="if (open) { open = false; $refs.ausloeser.querySelector('button, a')?.focus() }" @close.stop="open = false">
     <div x-ref="ausloeser" @click="open = ! open" x-effect="$el.querySelector('button')?.setAttribute('aria-expanded', open)">
         {{ $trigger }}
     </div>

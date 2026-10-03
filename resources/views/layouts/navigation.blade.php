@@ -98,7 +98,7 @@
                     @if(isset($e['kinder']))
                         <div data-ueberlauf="{{ $i }}" @if($e['aktiv']) data-aktiv @endif class="relative"
                              x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
-                            <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true" class="np-tab" @if($e['aktiv']) data-aktiv @endif>
+                            <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab" @if($e['aktiv']) data-aktiv @endif>
                                 {{ $e['label'] }}
                                 <x-symbol name="chevron-down" strich="2" />
                             </button>
@@ -128,7 +128,7 @@
                 @endforeach
                 <div data-mehr-menue class="relative" hidden
                      x-data="npLeistenMenue" @pointerenter="rein($event)" @pointerleave="raus($event)" @click.outside="zu()" @keydown.escape="escape()" @focusout="fokusRaus($event)">
-                    <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" aria-haspopup="true" class="np-tab">
+                    <button type="button" x-ref="knopf" @click="klick()" :aria-expanded="auf" class="np-tab">
                         {{ __('Mehr') }}
                         <span data-mehr-badge class="np-marke h-4.5 bg-accent px-1.5 text-accent-contrast tabular-nums" hidden>0</span>
                         <x-symbol name="chevron-down" strich="2" />
@@ -181,20 +181,23 @@
                 </button>
 
                 <template x-teleport="body">
-                    <div x-show="offen" x-cloak class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" @keydown.escape.window="offen = false">
-                        <div class="absolute inset-0 glass-scrim" @click="offen = false" x-show="offen" x-transition.opacity.duration.200ms aria-hidden="true"></div>
+                    <div x-show="offen" x-cloak class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[14vh]" @keydown.escape.window="schliessen()"
+                         @keydown.tab.window="if (offen) { $event.preventDefault(); $refs.eingabe?.focus(); }">
+                        <div class="absolute inset-0 glass-scrim" @click="schliessen()" x-show="offen" x-transition.opacity.duration.200ms aria-hidden="true"></div>
                         <div class="relative w-full max-w-2xl overflow-hidden rounded-2xl glass-overlay shadow-e3" role="dialog" aria-modal="true" aria-label="{{ __('Suchen') }}"
                              x-show="offen" x-transition.opacity.duration.150ms>
                             <div class="flex items-center gap-3 px-4">
                                 <x-symbol name="magnifying-glass" class="size-5 text-muted" strich="2" />
-                                <input x-ref="eingabe" x-model="q" @keydown="taste($event)" type="text"
+                                <input x-ref="eingabe" x-model="q" @keydown="taste($event)" type="text" autocomplete="off"
+                                       role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="np-palette-treffer"
+                                       :aria-activedescendant="liste[index] ? 'np-palette-treffer-' + index : null"
                                        placeholder="{{ $u?->hasRole('Lernender') ? __('Seite, Fach oder Note') : __('Seite, Aktion oder Name') }}"
                                        class="h-14 flex-1 border-0 bg-transparent px-0 text-lg text-text placeholder:text-muted focus:ring-0" aria-label="{{ __('Suchbegriff') }}">
                                 <kbd class="np-taste">Esc</kbd>
                             </div>
-                            <div class="max-h-[52vh] overflow-y-auto border-t border-border p-1.5">
+                            <div id="np-palette-treffer" role="listbox" aria-label="{{ __('Suchen') }}" class="max-h-[52vh] overflow-y-auto border-t border-border p-1.5">
                                 <template x-for="(t, i) in liste" :key="t.url + t.label">
-                                    <a :href="t.url" @mouseenter="index = i"
+                                    <a :href="t.url" tabindex="-1" role="option" :id="'np-palette-treffer-' + i" :aria-selected="i === index ? 'true' : 'false'" @mouseenter="index = i"
                                        @click="t.url.startsWith('#') ? ($event.preventDefault(), gehe(t)) : null"
                                        class="flex min-h-9 items-center justify-between gap-3 rounded-lg px-3 py-1.5"
                                        :class="i === index ? 'bg-accent text-accent-contrast' : 'text-text'">
@@ -216,7 +219,7 @@
             <x-dropdown align="right" width="w-64" content-classes="p-1.5 text-text">
                 <x-slot name="trigger">
                     <button type="button" class="inline-flex size-9 items-center justify-center rounded-full transition-opacity duration-100 hover:opacity-85"
-                            aria-haspopup="true" aria-label="{{ __('Konto') }}: {{ $name }}">
+                            aria-label="{{ __('Konto') }}: {{ $name }}">
                         <span class="np-monogramm size-8 text-xs" aria-hidden="true">{{ $initialen }}</span>
                     </button>
                 </x-slot>

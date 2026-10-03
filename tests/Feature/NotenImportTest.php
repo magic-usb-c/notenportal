@@ -58,14 +58,69 @@ class NotenImportTest extends TestCase
         $this->get(route('learner.grades.import.index'))->assertOk()->assertSee('noten.csv');
 
         $vorschau['zeilen'][1]['uebernehmen'] = true;
+        // Weiter zur Notenliste des Semesters, in dem die neuen Noten liegen – nicht zur Standardansicht
+        $semesterId = (int) DB::table('semester')->where('bezeichnung', '25/26-2')->value('semester_id');
         $this->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
-            ->assertRedirect(route('learner.grades.index'))->assertSessionHas('success');
+            ->assertRedirect(route('learner.grades.index', ['semester_id' => $semesterId]))->assertSessionHas('success');
 
         $this->assertEqualsCanonicalizing([4.5, 5.0], Note::query()->pluck('note_wert')->map(fn ($n) => (float) $n)->all());
         $this->assertSame(50.0, (float) Note::query()->where('note_wert', 4.5)->value('gewichtung_prozent'));
 
         $this->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)]);
         $this->assertSame('doppelt', session('notenimport.'.$this->user->lernender->lernender_id)['zeilen'][0]['status']);
+    }
+
+    #[Test]
+    public function import_prueft_das_datum_tagesgenau_gegen_lehrbeginn_und_lehrende_und_nur_im_format_jahr_monat_tag(): void
+    {
+        DB::table('semester')->insert(['bezeichnung' => '24/25-1', 'start_datum' => '2024-08-01', 'end_datum' => '2025-01-31', 'sortierung' => 1]);
+        Konfiguration::vergessen();
+        $this->user->lernender->update(['lehrende' => '2025-01-31']);
+        $import = app(NotenImport::class);
+        $lernenderId = (int) $this->user->lernender->lernender_id;
+        $benutzerId = (int) $this->user->benutzer_id;
+        $zeile = fn (string $datum, float $note) => [['nr' => 1, 'datum' => $datum, 'bezug' => 'modul:'.$this->modul, 'titel' => null, 'note' => $note, 'gewicht' => 100, 'uebernehmen' => true]];
+
+        // Genau am Lehrbeginn und genau am Lehrende: erlaubt (der frühere Zeichenkettenvergleich gegen
+        // «2024-08-01 00:00:00» lehnte den Lehrbeginn ab); einen Tag davor bzw. danach: abgelehnt
+        $this->assertSame(1, $import->importieren($zeile('2024-08-01', 5.0), $lernenderId, $benutzerId)['neu']);
+        $this->assertSame(1, $import->importieren($zeile('2025-01-31', 4.5), $lernenderId, $benutzerId)['neu']);
+        $this->assertStringContainsString('Lehrbeginn', $import->importieren($zeile('2024-07-31', 5.5), $lernenderId, $benutzerId)['fehler'][0]);
+        $this->assertStringContainsString('Ende der Lehre', $import->importieren($zeile('2025-02-01', 5.5), $lernenderId, $benutzerId)['fehler'][0]);
+
+        // Nur JJJJ-MM-TT – ein anderes Format wird als Fehler gemeldet statt still gedeutet
+        $ergebnis = $import->importieren($zeile('2024-8-5', 4.0), $lernenderId, $benutzerId);
+        $this->assertSame(0, $ergebnis['neu']);
+        $this->assertStringContainsString('Datum', $ergebnis['fehler'][0]);
+        $this->assertSame(2, Note::query()->count());
+    }
+
+    #[Test]
+    public function import_ueber_mehrere_semester_oeffnet_die_standardansicht_und_fehler_liefern_kein_semester(): void
+    {
+        DB::table('semester')->insert(['bezeichnung' => '25/26-1', 'start_datum' => '2025-08-01', 'end_datum' => '2026-01-31', 'sortierung' => 9]);
+        Konfiguration::vergessen();
+        $lernenderId = (int) $this->user->lernender->lernender_id;
+
+        // Zwei Semester → kein eindeutiges Ziel, die Notenliste öffnet in der Standardansicht
+        $csv = "Datum;Fach/Modul;Titel;Note;Gewicht\n01.09.2025;M908;LB1;5,0;50%\n02.03.2026;M908;LB2;4,5;50%\n";
+        $this->actingAs($this->user)
+            ->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('noten.csv', $csv)])
+            ->assertRedirect(route('learner.grades.import.index'));
+        $vorschau = session('notenimport.'.$lernenderId);
+        $this->assertSame(['ok', 'ok'], array_column($vorschau['zeilen'], 'status'));
+        $this->post(route('learner.grades.import.apply'), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
+            ->assertRedirect(route('learner.grades.index'))->assertSessionHas('success');
+        $this->assertSame(2, Note::query()->count());
+
+        // Fehlerfall: keine Note angelegt, also auch kein Semester gemeldet
+        $ergebnis = app(NotenImport::class)->importieren(
+            [['nr' => 1, 'datum' => '2024-07-31', 'bezug' => 'modul:'.$this->modul, 'titel' => null, 'note' => 5.0, 'gewicht' => 100, 'uebernehmen' => true]],
+            $lernenderId,
+            (int) $this->user->benutzer_id,
+        );
+        $this->assertSame(0, $ergebnis['neu']);
+        $this->assertSame([], $ergebnis['semester_ids']);
     }
 
     #[Test]

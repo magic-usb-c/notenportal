@@ -61,7 +61,8 @@
                     @endif
                 </x-leer>
             @else
-                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10">
+                <form id="abschluss" method="POST" action="{{ $speichernUrl }}" class="flex flex-col gap-10"
+                      x-data x-init="$nextTick(() => { const feld = $el.querySelector('[aria-invalid]'); if (feld) { feld.focus({ preventScroll: true }); feld.scrollIntoView({ block: 'center' }); } })">
                     @csrf
                     @method('PUT')
 

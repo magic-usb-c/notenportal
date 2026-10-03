@@ -122,7 +122,10 @@ class AbschlussTest extends TestCase
         $this->get(route('learner.qualification.index'))->assertOk()
             ->assertSee('aria-describedby="wert-'.$ipa.'-fehler"', false)
             ->assertSee('id="wert-'.$ipa.'-fehler"', false)
-            ->assertSee('value="6.5"', false);
+            ->assertSee('value="6.5"', false)
+            // Das Formular setzt den Fokus auf das erste fehlerhafte Feld und holt es in die Mitte des Fensters
+            ->assertSee("querySelector('[aria-invalid]')", false)
+            ->assertSee('scrollIntoView', false);
     }
 
     #[Test]
