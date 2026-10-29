@@ -410,7 +410,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Build, Suite 1455 grün (1 skip), kontrast.mjs Exit 0, Rundgang laura 57 Seiten,
                   Klick 26 Wochen tauscht ohne Volllader, Bilder dunkel 1920/2560, reduziert, hell.
                   Dritte pruefer-Runde zu S5: Fallnote bestätigt, Track-Randfall behoben (a30f577).
-                  Bewusst gelassen: Backlog «R6 Welle 5». Nächster Schritt: R6-12 Schlussabnahme.
+                  Bewusst gelassen: Backlog «R6 Welle 5». Nachbesserung nach bildpruefer/ui-checker
+                  (2b4f78c): Leerzustand und Median nur > 0 im Wochendiagramm, letztes KW-Label im Plot,
+                  Lehrjahr-Median über den Punkten, Singular-Sätze, eine Live-Region je Baustein,
+                  «Genügend :wert» app-weit; AdminStatistikTest (10), Suite 1458 grün, Live-Wechsel im
+                  Browser belegt. Nächster Schritt: R6-12 Schlussabnahme.
 ```
 
 ---
