@@ -804,6 +804,11 @@ HTTPS_SUFFIX=""
 HTTP_SUFFIX=""
 [[ "$PORT" == "80" ]] || HTTP_SUFFIX=":$PORT"
 
+# Bekannte Namen und Adressen als Regex: HTTP leitet auf denselben Namen um, unter dem das Portal
+# aufgerufen wurde. Wer http://<IP> eintippt, landet auf https://<IP> und nicht auf einem Namen,
+# den sein Gerät (noch) nicht auflösen kann. Unbekannte Host-Header gehen auf $HOST.
+NAMEN_REGEX="$(printf '%s\n' "$HOST" "${ALIASE[@]}" | sed 's/\./\\./g' | paste -sd'|')"
+
 if (( HTTPS )); then
     # HTTP leitet auf HTTPS um – mit einer Ausnahme: das CA-Zertifikat. Wer es noch nicht importiert
     # hat, würde es sonst nur über eine Zertifikatswarnung laden können, also genau über den Weg,
@@ -816,6 +821,9 @@ $ALIAS_ZEILE
     DocumentRoot "$VERZ/public"
 $VERZEICHNIS_BLOCK
     RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/lab-ca\.crt\$
+    RewriteCond %{HTTP_HOST} ^($NAMEN_REGEX)(:[0-9]+)?\$ [NC]
+    RewriteRule ^ https://%1$HTTPS_SUFFIX%{REQUEST_URI} [R=301,L]
     RewriteCond %{REQUEST_URI} !^/lab-ca\.crt\$
     RewriteRule ^ https://$HOST$HTTPS_SUFFIX%{REQUEST_URI} [R=301,L]
     ErrorLog \${APACHE_LOG_DIR}/$NAME-error.log
@@ -840,6 +848,14 @@ $VERZEICHNIS_BLOCK
 </VirtualHost>
 CONF
     a2ensite -q "$NAME-ssl" >/dev/null
+    # Mit HTTPS setzt die .env SESSION_SECURE_COOKIE=true: über reines HTTP verwirft der Browser das
+    # Sitzungscookie, die Anmeldung springt ohne Meldung auf /login zurück. Ein von Hand gepflegter
+    # HTTP-vhost ohne Umleitung macht genau das (dva-001, 29.10.2026).
+    if ! grep -qF "$MARKE" "/etc/apache2/sites-available/$NAME.conf" && \
+       ! grep -qiE '^\s*(Rewrite|Redirect)' "/etc/apache2/sites-available/$NAME.conf"; then
+        echo "  ⚠ $NAME.conf ist von Hand angepasst und leitet nicht auf HTTPS um – über http:// klappt"
+        echo "    keine Anmeldung. Datei sichern und entfernen, dann install.sh erneut: der Installer schreibt sie neu."
+    fi
     [[ ! -e /etc/apache2/sites-enabled/default-ssl.conf ]] || a2dissite -q default-ssl >/dev/null
 else
     schreibe_vhost "/etc/apache2/sites-available/$NAME.conf" <<CONF

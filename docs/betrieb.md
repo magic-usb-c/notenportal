@@ -77,6 +77,8 @@ sudo ./install.sh --host notenportal.hamiltonlab.local      # weitere VPN-Adress
 sudo -u www-data php artisan notenportal:bereitschaft
 ```
 
+Meldet der Installer «ist von Hand angepasst», die Datei unter `/etc/apache2/sites-available/` sichern und entfernen, dann erneut starten – sonst springt die Anmeldung über `http://` ohne Meldung auf `/login` zurück.
+
 Zurück: `git checkout vor-main-update`, Dump einspielen, `sudo ./install.sh`.
 
 ## Neuinstallation mit install.sh
@@ -191,6 +193,7 @@ Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's En
 | 29.10.2026 | `notenportal_demo` (Dump `…-vor-main-2910.sql`) und i2 (`notenportal_i2`, Dump, `install.sh --port 8082 --db notenportal_i2 --ohne-firewall`) auf denselben Stand. Achtung: Die «Demo» auf 127.0.0.1:8090 (`php -S` aus `public/` mit `DB_DATABASE=notenportal_demo`) liest wegen des Config-Caches (`APP_ENV=production`) die Hauptdatenbank `notenportal`; Umgebungsvariablen wirken bei gecachter Konfiguration nicht. Für Migrationen auf Neben-DBs darum aus einer Arbeitskopie ohne `bootstrap/cache/config.php` starten. |
 | 29.10.2026 | Für Installations- und Upgrade-Tests LXD auf dva-001 (Snap, Brücke `lxdbr0` 10.231.77.0/24 mit NAT, Speicher `dir`) und ufw-Regeln «LXD Installtest temp» für `lxdbr0`. Neue Test-DB `notenportal_main_demo` (ALL für np_web). Nach den Tests wieder entfernt, siehe Folgezeile. |
 | 29.10.2026 | Testumgebung abgebaut: Container gelöscht, ufw-Regeln «LXD Installtest temp» gelöscht, `snap remove --purge lxd` (Brücke weg), `notenportal_main_demo` samt Recht entfernt. Belegter Platz wie vorher (7,1 GB frei). |
+| 29.10.2026 | Nach dem Update ging auf dva-001 über `http://172.26.14.101` keine Anmeldung mehr (POST /login → 302 → /login, ohne Meldung): `install.sh` setzt bei HTTPS `SESSION_SECURE_COOKIE=true`, die von Hand geschriebenen vhosts (Feb./Sept., ohne Umleitung) liess es stehen. Alte vhosts nach `/var/backups/notenportal-vhost-20261029-0913/`, `install.sh` schrieb eigene. HTTP leitet jetzt auf denselben Namen bzw. dieselbe IP um (vorher immer auf `--host`, den Clients im Lab nicht auflösen können); `install.sh` warnt bei handgeschriebenem HTTP-vhost ohne Umleitung. |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.
