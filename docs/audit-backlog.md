@@ -1149,3 +1149,55 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   erscheint im Bild schräg, nach 4 s ist sie waagrecht (eigene Aufnahme `verlauf-4s.png`). Kein
   Produktfehler; R6-12 soll `shot.mjs`/`rundgang.mjs` auf das Ende der Chart-Animation warten
   lassen (Ereignis oder `--bewegung=reduziert` als Standard für Vergleichsbilder).
+
+## R6 Welle 4 (R6-08 Lernende, R6-09 Berufsbildner/Lernendenliste): bewusst gelassen (29.10.2026)
+
+- **Datum-Achse zeigt bei vielen Punkten jeden Punkt** (`/learner`, 118 Prüfungen → Punktkette statt
+  Linie): `npChart('verlauf')` soll `pointRadius` ab ≈40 Punkten auf 0 senken und nur beim Hover
+  zeigen → R6-12.
+- **«Was fehlt zum Bestehen» (S5) ist in der Demo unsichtbar**, weil `notenbaum_positionen` dort
+  keine offene Position hat (`Statistik::benoetigt` liefert leer). `DemoSeeder` könnte eine offene
+  IPA-Position anlegen; der Block selbst ist nur mit Fixture getestet (`LernendeStatistikTest` s5
+  prüft die Seite ohne Positionen – Fixture mit Modul-Prüfung und Ziel nachrüsten).
+- **`max-w-[100rem]` in `abschluss/index.blade.php`** ist ein Arbitrary Value ohne Token; mit
+  `np-seite` (Deckel 2048 px) vergleichen und entweder Token oder weglassen → R6-12.
+- **Beschriftung «genügend 4.0» überlappt links die Linie**, wenn die erste Note knapp über 4 liegt
+  (Dashboard nina): Label rechts an der Grenzlinie statt links → R6-12.
+- **Hantel-Zeilen nur per Maus** (`dashboards/berufsbildner.blade.php`, `x-hantel`): der Name in der
+  Hantel ist kein Link, per Tastatur erreichbar sind nur die Links unter genügend. Fix gehört in die
+  Komponente (Name als `<a>` mit `data-ziele`-Ziel) → R6-12.
+- **Parameter `sort` geteilt** zwischen BB-Tabelle (`Uebersicht::BB_SORTIERUNGEN`) und Hantel-Select:
+  bei `?sort=status` zeigt das Select «Veränderung», ohne Wirkung auf die Hantel. Eigener Parameter
+  `hantel_sort` oder Sortierung im Paket → R6-12.
+- **Punktstreifen und Zeilen uneinheitlich bei Kategorie-Filter** (`verwaltung/lernende/index`): der
+  Streifen zeigt die Kategorienote, Bullet und «Ø gesamt» weiter den Gesamtschnitt. Entscheid in
+  R6-10: Spalten folgen dem Filter oder der Streifen bekommt den Zusatz «(Kategorie)».
+- **Englische Schlüssel «Sortierung», «Fach», «Zeitraum» (sr-only-Labels) fehlen in `lang/en.json`**
+  (vorhanden nur in `lang/areas/admin/en.json`); `SchluesselTest` meldet nichts, weil sie in offenen
+  Dateien liegen → mit R6-11 ergänzen.
+- **Wo-stehe-ich-Tabelle ohne Notenfarbe** (`dashboards/lernender.blade.php`): die Zellen stehen in
+  `text-text`, weil die Zeilen aus dem JSON-Paket kommen und keine Stufenklasse tragen. Paket um
+  `stufe`-Schlüssel je Zeile erweitern und `NotenSkala::text()` in der View wie im Template anwenden
+  → R6-12.
+- **Semester-Segment erscheint leer**, wenn die Kategorie im laufenden Semester keine Noten hat
+  (Server erzwingt `modus=lehrzeit`, das Radio «Semester» bleibt sichtbar). Radio nur zeigen, wenn
+  das Paket für die Kategorie Semesterzeilen hat → R6-12.
+- **Agenda-Links «Liste», «Monat» verlieren `zeitraum`** (`agenda/index.blade.php`): nur der
+  Stundenplan-Schalter trägt ihn weiter. Da die Zeitleiste nur in der Liste steht, kein Fehler;
+  `data-behalte-filter` auf die Ansichtslinks → R6-12.
+- **ui-checker-Empfehlungen R6-08** (keine Blocker): «Als Tabelle» im Wo-stehe-ich mit Chevron statt
+  ▸ wie `x-diagramm` (18 px Versatz im Paar); Textlinks «Erste Note erfassen», «Prüfung planen»,
+  «Monat» unter 24 px (`inline-flex min-h-6`); Leertext auf dem Dashboard erklärt Selbstverständliches;
+  Noten-Seite zeigt Statuszeile und Segmente auch ganz ohne Noten; Abschluss-Leerzustand ohne
+  Weiterweg für Lernende/Berufsbildner; Fortschrittsspur `bg-accent` neben Primärknopf (Noten-Seite
+  nimmt `bg-chart-6`); Rechner-Tabelle von Hand statt `np-tabelle`; Agenda-Punkt in `bg-muted`
+  (Textfarbe als Fläche); «Nichts geplant» einmal mit, einmal ohne Punkt → R6-12 Seitenschliff.
+- **ui-checker-Empfehlungen R6-09** (keine Blocker): «Filter zurücksetzen» führt bei lauter inaktiven
+  Lernenden wieder in die leere Ansicht («Inkl. inaktive» anbieten); Sortier-Links der BB-Tabelle
+  verlieren Kachelfilter und Suche (leben nur in Alpine); erstes Hantel-Select zeigt nur «Alle» ohne
+  Bezug («Alle Status»); «in :tage Tagen» bei 0/1 (`trans_choice` mit heute/morgen); `gap-5` statt
+  `gap-4` zwischen BB-Karten; Heatmap ohne Weiterweg bei Lernenden ohne Noten;
+  `NotenSkala::format(null)` für fehlendes Datum im Cockpit statt «–» → R6-10/R6-12.
+- **Umgesetzt statt gelassen**: Admin-/Trainer-Lernendenliste ohne `max-w-7xl` (Status-Spalte brach
+  auf 3–4 Zeilen, Zeilen 80–100 px hoch; jetzt einzeilig), Pfeile ▲/▼ in der BB-Tabelle
+  `aria-hidden` mit `tabular-nums`, `hidden`/`flex` nicht mehr gleichzeitig auf der Liste unter genügend.

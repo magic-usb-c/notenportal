@@ -375,6 +375,25 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Lernenden-Routen byte-gleich (?lernender, ?lernender_id, ?id, ?benutzer_id, ?user) und
                   gibt B eine geplante Prüfung. Suite 1426 grün (1 skip). Nächster Schritt: Welle 4
                   (R6-08 + R6-09, dann R6-10 + R6-11), Hinweise in scratch r6/welle4-hinweise.md.
+[O] 29.10. 17:30  Welle 4 fertig (R6-08 Lernende, R6-09 Berufsbildner/Lernendenliste; Workflow
+                  wf_d769e215 brach am Nutzungslimit ab, Reviews danach als direkte reviewer-Agents).
+                  Lernende: Dashboard mit einem npFilter-Formular (Zeitraum, Kategorie, Fach, Achse
+                  Datum/Semester) um «Wo stehe ich» (Modus-Segment als Radio) und x-verlauf; Noten mit
+                  x-hantel je Fach; Rechner-Kurve als x-diagramm mit Satz und Tabelle; Abschluss mit
+                  Mini-Bullet je offener Position; Agenda mit x-zeitleiste (4/8/Alle Wochen).
+                  Berufsbildner: «Wer hat sich bewegt» (x-hantel je Person, Filter Status/Kategorie/
+                  Sortierung, Klick ins Cockpit, Liste unter genügend mit ▼ und Text); Lernendenliste
+                  (Trainer und Admin) mit x-punktstreifen, Kategorie-Filter, Mini-Bullet und Mini-
+                  Sparkline je Zeile, Sortierkopf «Verlauf»; Cockpit-Übersicht mit x-verlauf und
+                  Filterleiste. Neue Tests LernendeStatistikTest (9), BerufsbildnerStatistikTest (9);
+                  WoStehIchTabelleTest auf den neuen Vertrag (eine Servertabelle je Modus, Radio im
+                  Filterformular) umgeschrieben, UebersichtTabelleTest auf [data-np-lernende]
+                  eingegrenzt. Review-Blocker behoben (Spalte «Fach / Modul» mit scope=row, verwaister
+                  Schlüssel, Sortierkopf delta). Browser-Nachweis: /learner?zeitraum, /trainer?status,
+                  /admin/learners?kategorie tauschen ohne Volllader, Hantel-Klick li[1] öffnet das
+                  richtige Cockpit. ui-checker ×2 ohne Blocker, Empfehlungen im Backlog. Bilder dunkel
+                  1920/2560 gesichtet, Rundgang ×3 Exit 0. Nächster Schritt: Welle R6-10 (Admin) +
+                  R6-11 (Doku/Skills), dann R6-12.
 ```
 
 ---
