@@ -164,9 +164,35 @@ class AdminStatistikTest extends TestCase
         $this->assertMatchesRegularExpression('/<option value="'.$this->fach.'" selected/', $html);
         $this->assertMatchesRegularExpression('/<option value="1" selected/', $html);
         $this->assertMatchesRegularExpression('/href="[^"]*grades\/export[^"]*kategorie='.$this->fach.'[^"]*lehrjahr=1[^"]*" data-behalte-filter/', $html);
-        foreach (['data-np-kennzahlen', 'data-np-kategorien', 'data-np-schwach', 'id="lernende"'] as $anker) {
+        // die Ersatzbereiche als Elemente, nicht nur als Namen in der Filter-Konfiguration
+        foreach (['data-np-kennzahlen>', 'data-np-kategorien>', 'data-np-schwach>', 'id="lernende"'] as $anker) {
             $this->assertStringContainsString($anker, $html, 'Ersatzbereich '.$anker);
         }
+
+        // ein Lehrjahr ausserhalb der Auswahl 1–4 fällt auf «Alle», damit Leiste und Daten dasselbe sagen
+        $paket = $this->actingAs($this->admin)->getJson(route('admin.reports.grades', ['semester' => 'alle', 'lehrjahr' => 5]))->assertOk()->json();
+        $this->assertNull($paket['filter']['lehrjahr']);
+    }
+
+    #[Test]
+    public function der_satz_nennt_den_median_nur_wenn_er_ueber_null_liegt_und_wie_die_legende(): void
+    {
+        $this->lernende([4.0, 5.0]);
+
+        $karte = fn (string $html) => substr($html, (int) strpos($html, 'id="np-erfassung"'), (int) strpos($html, '<details', (int) strpos($html, 'id="np-erfassung"')) - (int) strpos($html, 'id="np-erfassung"'));
+        $html = $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()->getContent();
+        $karte1 = $karte($html);
+
+        $this->assertStringContainsString(__(':n Noten in :wochen Wochen.', ['n' => 2, 'wochen' => 12]), $karte1, 'Median 0 kommt nicht in den Satz');
+        $this->assertStringNotContainsString(__('Median'), $karte1);
+
+        // sechs Wochen mit je einer Note, sechs leere: Median 0.5 – Satz und Legende schreiben ihn gleich
+        $user = $this->lernende([]);
+        foreach (range(0, 5) as $w) {
+            // gezählt wird das Erfassungsdatum, nicht das Prüfungsdatum
+            Note::factory()->create(['lernender_id' => $user->lernender->lernender_id, 'kategorie_id' => $this->fach, 'note_wert' => 4.5, 'erstellt_am' => now()->subWeeks($w)]);
+        }
+        $this->assertSame(2, substr_count($karte($this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()->getContent()), __('Median :wert je Woche', ['wert' => '0.5'])), 'Legende und Satz');
     }
 
     #[Test]

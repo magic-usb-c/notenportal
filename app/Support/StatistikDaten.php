@@ -625,8 +625,9 @@ final class StatistikDaten
             'zusammenfassung' => match (true) {
                 $summe === 0 => __('Keine Noten in :wochen Wochen.', ['wochen' => $aktivitaet['wochen']]),
                 $summe === 1 => __('1 Note in :wochen Wochen.', ['wochen' => $aktivitaet['wochen']]),
-                $aktivitaet['median'] === null => __(':n Noten in :wochen Wochen.', ['n' => $summe, 'wochen' => $aktivitaet['wochen']]),
-                default => __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => NotenSkala::format($aktivitaet['median'])]),
+                // Median 0 (mehr als die Hälfte der Wochen leer) sagt nichts aus: kein Satzteil, keine Legende, keine Linie
+                $aktivitaet['median'] === null || $aktivitaet['median'] <= 0 => __(':n Noten in :wochen Wochen.', ['n' => $summe, 'wochen' => $aktivitaet['wochen']]),
+                default => __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => rtrim(rtrim(number_format($aktivitaet['median'], 1, '.', ''), '0'), '.')]),
             },
             'meta' => ['titel' => __('Erfassung je Woche'), 'optionen' => ['zeitraum' => $this->optionen()['erfassung']]],
         ];

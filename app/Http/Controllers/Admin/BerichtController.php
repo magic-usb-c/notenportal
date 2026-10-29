@@ -109,7 +109,7 @@ class BerichtController extends Controller
             'lehrberuf_id' => ['id' => DB::table('lehrberufe')->pluck('lehrberuf_id')->map(fn ($id) => (int) $id)->all()],
             'berufsbildner_id' => ['id' => $berufsbildner->pluck('berufsbildner_id')->map(fn ($id) => (int) $id)->all()],
             'kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))],
-            'lehrjahr' => [1, 2, 3, 4, 5],
+            'lehrjahr' => [1, 2, 3, 4], // wie die Auswahl in der Leiste; ein fünftes Lehrjahr fällt auf «Alle»
             'sort' => Bericht::SORTIERUNGEN,
             'dir' => ['asc', 'desc'],
         ], ['semester' => $aktuell, 'sort' => 'status', 'dir' => 'asc']);
