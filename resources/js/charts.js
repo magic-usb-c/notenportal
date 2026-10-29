@@ -448,7 +448,7 @@ const BAUER = {
                 npLabelFarbe: tokenFarbe(gedaempft ? '--muted' : '--text'),
             };
         });
-        if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, t('genügend :wert', { wert: format(d.grenze, 1) })));
+        if (d.grenze) datasets.push(grenzLinie(d.labels.length, d.grenze, t('Genügend :wert', { wert: format(d.grenze, 1) })));
         const direkt = o.direktlabels !== false && d.serien.length > 1;
         const namen = d.serien.filter((s) => !s.name?.startsWith('_')).map((s) => s.name ?? '');
         const padRechts = direkt ? Math.min(140, Math.max(40, Math.max(0, ...namen.map((n) => n.length)) * 6 + 23)) : 8;
@@ -520,7 +520,7 @@ const BAUER = {
                 plugins: { ...basis().plugins, legend: { display: false },
                     tooltip: { ...basis().plugins.tooltip, callbacks: { label: (c) => ` ${format(c.raw?.[1], 2)}` } },
                     npBalkenwert: { aktiv: true },
-                    npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? t('genügend :wert', { wert: format(g.genuegend, 1) }) : null } },
+                    npSenkrecht: { wert: g.genuegend ?? null, text: g.genuegend ? t('Genügend :wert', { wert: format(g.genuegend, 1) }) : null } },
                 scales: { x: notenAchse({ position: 'top' }), y: { grid: { display: false }, border: { display: false },
                     // Namensspalte höchstens 36 % der Diagrammbreite (die Balken behalten über die Hälfte); was darin nicht
                     // ganz Platz hat, wird nach gemessener Textbreite gekürzt (voller Name im Tooltip)

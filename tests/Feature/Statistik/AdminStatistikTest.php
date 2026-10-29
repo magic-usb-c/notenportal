@@ -170,6 +170,35 @@ class AdminStatistikTest extends TestCase
     }
 
     #[Test]
+    public function ohne_noten_im_zeitraum_zeigt_die_erfassung_einen_leerzustand_statt_saeulen(): void
+    {
+        $html = $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertOk()->getContent();
+        $karte = substr($html, (int) strpos($html, 'id="np-erfassung"'), 6000);
+
+        $this->assertStringContainsString(__('Keine Noten in :wochen Wochen.', ['wochen' => 12]), $karte);
+        $this->assertStringNotContainsString('<svg', substr($karte, 0, (int) strpos($karte, '<details')), 'kein leeres Raster');
+        $this->assertStringNotContainsString(__('Median'), $karte);
+        $this->assertSame(1, substr_count($karte, 'data-np-ansage'), 'genau eine Ansage je Baustein');
+    }
+
+    #[Test]
+    public function saetze_stehen_im_singular_und_jeder_baustein_hat_genau_eine_ansage(): void
+    {
+        $this->lernende([4.5]);
+
+        $html = $this->actingAs($this->admin)->get(route('admin.reports.grades', ['semester' => 'alle']))->assertOk()->getContent();
+        $paket = $this->actingAs($this->admin)->getJson(route('admin.reports.grades', ['semester' => 'alle']))->assertOk()->json();
+
+        $this->assertSame(__('1 Zeugnisnote.'), $paket['zusammenfassung']['histogramm']);
+        $this->assertSame(__('1 Person im :jahr. Lehrjahr.', ['jahr' => 1]), $paket['zusammenfassung']['lehrjahre']);
+        $this->assertSame(1, substr_count(substr($html, (int) strpos($html, 'id="np-histogramm"'), (int) strpos($html, 'id="np-lehrjahre"') - (int) strpos($html, 'id="np-histogramm"')), 'data-np-ansage'));
+        $this->assertStringNotContainsString($paket['zusammenfassung']['histogramm'].'"', $html, 'der Satz steht nicht mehr im aria-label des Diagramms');
+
+        $satz = $this->actingAs($this->admin)->getJson(route('admin.dashboard'))->assertOk()->json('zusammenfassung.erfassung');
+        $this->assertSame(__('1 Note in :wochen Wochen.', ['wochen' => 12]), $satz);
+    }
+
+    #[Test]
     public function berufsbildner_bekommen_weder_html_noch_paket_des_admin_bereichs(): void
     {
         $berufsbildner = User::factory()->berufsbildner()->create();

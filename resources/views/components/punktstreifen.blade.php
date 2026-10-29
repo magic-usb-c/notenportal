@@ -46,7 +46,7 @@
         <p class="py-6 text-center text-sm text-muted">{{ $satz }}</p>
     @else
         <div class="mb-2 flex flex-wrap items-center gap-4 text-xs tabular-nums text-muted" aria-hidden="true">
-            <span>{{ __('genügend :wert', ['wert' => $skala::format($d['grenze'], 1)]) }}</span>
+            <span>{{ __('Genügend :wert', ['wert' => $skala::format($d['grenze'], 1)]) }}</span>
             @if($median !== null)
                 <span>{{ __('Median') }} {{ $skala::format($median, 1) }}</span>
             @endif

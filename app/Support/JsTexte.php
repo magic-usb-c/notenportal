@@ -34,7 +34,7 @@ final class JsTexte
         'Ziel :wert',
         'Zu viele Anfragen – bitte kurz warten.',
         'beste Endnote :wert',
-        'genügend :wert',
+        'Genügend :wert',
         'schlechteste Endnote :wert',
     ];
 

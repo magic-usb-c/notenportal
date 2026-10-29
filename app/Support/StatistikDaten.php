@@ -622,9 +622,12 @@ final class StatistikDaten
                 $aktivitaet['labels'],
                 $aktivitaet['werte'],
             )],
-            'zusammenfassung' => $aktivitaet['median'] === null
-                ? __(':n Noten in :wochen Wochen.', ['n' => $summe, 'wochen' => $aktivitaet['wochen']])
-                : __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => NotenSkala::format($aktivitaet['median'])]),
+            'zusammenfassung' => match (true) {
+                $summe === 0 => __('Keine Noten in :wochen Wochen.', ['wochen' => $aktivitaet['wochen']]),
+                $summe === 1 => __('1 Note in :wochen Wochen.', ['wochen' => $aktivitaet['wochen']]),
+                $aktivitaet['median'] === null => __(':n Noten in :wochen Wochen.', ['n' => $summe, 'wochen' => $aktivitaet['wochen']]),
+                default => __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => NotenSkala::format($aktivitaet['median'])]),
+            },
             'meta' => ['titel' => __('Erfassung je Woche'), 'optionen' => ['zeitraum' => $this->optionen()['erfassung']]],
         ];
     }
@@ -650,6 +653,7 @@ final class StatistikDaten
             )],
             'zusammenfassung' => match (true) {
                 $n === 0 => __('Keine Zeugnisnoten im Zeitraum.'),
+                $n === 1 => __('1 Zeugnisnote.'),
                 $verteilung['median'] === null => __(':n Zeugnisnoten.', ['n' => $n]),
                 default => __(':n Zeugnisnoten, Median :median.', ['n' => $n, 'median' => NotenSkala::format($verteilung['median'], 2)]),
             },
@@ -673,9 +677,12 @@ final class StatistikDaten
                 fn (array $j) => [(string) $j['jahr'], NotenSkala::format($j['schnitt'], 1), (string) $j['anzahl'], NotenSkala::format($j['median'], 1)],
                 $lehrjahre,
             )],
-            'zusammenfassung' => $mitNote === []
-                ? __('Keine Personen mit Note.')
-                : __(':n Personen in :jahre Lehrjahren.', ['n' => array_sum(array_column($mitNote, 'anzahl')), 'jahre' => count($mitNote)]),
+            'zusammenfassung' => match (true) {
+                $mitNote === [] => __('Keine Personen mit Note.'),
+                count($mitNote) === 1 && $mitNote[0]['anzahl'] === 1 => __('1 Person im :jahr. Lehrjahr.', ['jahr' => $mitNote[0]['jahr']]),
+                count($mitNote) === 1 => __(':n Personen im :jahr. Lehrjahr.', ['n' => $mitNote[0]['anzahl'], 'jahr' => $mitNote[0]['jahr']]),
+                default => __(':n Personen in :jahre Lehrjahren.', ['n' => array_sum(array_column($mitNote, 'anzahl')), 'jahre' => count($mitNote)]),
+            },
             'meta' => ['titel' => __('Lehrjahre im Vergleich')],
         ];
     }

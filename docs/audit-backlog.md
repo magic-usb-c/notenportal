@@ -1211,6 +1211,14 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 
 ## R6 Welle 5 (R6-10 Admin-Statistik, R6-11 Doku/Skills): bewusst gelassen (29.10.2026)
 
+Nach bildpruefer und ui-checker (29.10., zweite Runde) umgesetzt: Median-Legende und -Linie im Wochendiagramm nur bei Median > 0, Leerzustand «Keine Noten in :wochen Wochen.», letztes KW-Label endet am Plot-Ende, Lehrjahr-Median über den Punkten (Punkte mit `stroke-card`), Singular-Sätze (1 Note, 1 Zeugnisnote, 1 Person im 2. Lehrjahr), eine Live-Region je Baustein (sichtbarer Satz, SVG mit `aria-describedby`), «Genügend :wert» app-weit, «Personen» statt «Lernende» im Streifen, sr-only «Ø» vor dem Schnitt, `ruhig:transition-none` am Tabellenpfeil. Bewusst gelassen:
+- Histogramm färbt 3.5–3.99 als «knapp» (orange), die KPI «Ungenügende Zeugnisnoten» zählt sie als ungenügend: `NotenSkala::stufe` gilt app-weit so; eine Umdeutung wäre eine Wortfrage für David, kein View-Fix.
+- Karten «Verteilung» und «Kategorien/Lehrjahre» sind ungleich hoch (Leerraum unter dem Histogramm): Rasterzeilen mit `items-start`; ein Strecken würde das Diagramm verzerren.
+- Median-Linie im Histogramm über die volle Höhe in `stroke-text`: gleiche Konvention wie die Lehrjahr-Streifen; eine Tick-Form wäre ein eigener Entwurf.
+- KPI-Kacheln und Kategorientabelle reagieren nicht auf den Kategorie-Filter: Controller-Logik (`Bericht::noten`), nicht View; → R6-13.
+- Natives `<select>`-Popup im Dunkelmodus kontrastarm: Browser-Chrome, nicht gestaltbar ohne eigene Listbox.
+- Tabellenpfeil `duration-200` statt `duration-(--dauer-3)`: Repo-Konvention nutzt Zahlen (`modal`, `drawer`, `bestaetigung`); Token-Umstellung aller Komponenten als eigener Punkt.
+
 - **Druck ohne `data-behalte-filter`**: Der Knopf «Drucken» druckt per `window.print()` die aktuelle
   Seite, die Filter stehen schon im DOM – gleichwertig zum Plan-Wortlaut «Export und Druck mit
   data-behalte-filter». Im Druck ist die Filterleiste ausgeblendet (`print:hidden`), die gesetzten

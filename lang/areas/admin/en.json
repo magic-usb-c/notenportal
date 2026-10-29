@@ -204,6 +204,7 @@
     "Für diese Vorlage einen Lehrberuf wählen.": "Choose an occupation for this template.",
     "Ganze Lehrzeit": "Whole apprenticeship",
     "Genügend ab": "Pass from",
+    "Genügend :wert": "Pass mark :wert",
     "Gesamtnote": "Overall grade",
     "Gesamtschnitt nach Lehrjahr": "Overall average by year of apprenticeship",
     "gesetzt": "set",
@@ -697,7 +698,8 @@
     ":anzahl Module aus dem Katalog": ":anzahl modules from the catalogue",
     "Dieselbe Datei lässt sich in einer zweiten Installation wieder einlesen. Selbst erfasste Module sind nicht dabei.": "The same file can be read into a second installation. Modules you created yourself are not included.",
     "noch nicht bestätigt": "not yet confirmed",
-    ":anzahl Lernende": ":anzahl apprentices",
+    ":anzahl Personen": ":anzahl people",
+    "1 Person": "1 person",
     "Alle Kategorien": "All categories",
     "Alle Lehrjahre": "All years",
     "Median :wert je Woche": "Median :wert per week"

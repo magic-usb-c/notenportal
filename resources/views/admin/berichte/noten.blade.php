@@ -114,7 +114,7 @@
             <div class="grid grid-cols-2 items-start gap-4">
                 <x-diagramm :titel="__('Verteilung der Zeugnisnoten')" id="np-histogramm" data-np-baustein="histogramm">
                     @if($hist['n'] === 0)
-                        <p class="py-6 text-center text-sm text-muted">{{ $histSatz }}</p>
+                        <p class="py-6 text-center text-sm text-muted" id="np-histogramm-satz" aria-live="polite" data-np-ansage>{{ $histSatz }}</p>
                     @else
                         @php
                             // Klassen in Viertelnoten auf der Notenachse 1–6; die Achse beginnt bei 0 Zeugnisnoten
@@ -144,7 +144,7 @@
                         <div class="mb-2 flex flex-wrap items-center gap-4 text-xs tabular-nums text-muted" aria-hidden="true">
                             <span class="inline-flex items-center gap-2">
                                 <svg class="w-4" viewBox="0 0 16 2"><line x1="0" x2="16" y1="1" y2="1" class="stroke-muted" stroke-width="1.5" stroke-dasharray="3 3"/></svg>
-                                {{ __('genügend :wert', ['wert' => $zahl($grenze)]) }}
+                                {{ __('Genügend :wert', ['wert' => $zahl($grenze)]) }}
                             </span>
                             @if($hist['median'] !== null)
                                 <span class="inline-flex items-center gap-2">
@@ -154,7 +154,7 @@
                             @endif
                         </div>
                         <div class="relative">
-                            <svg class="block w-full" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img" aria-label="{{ __('Verteilung der Zeugnisnoten') }}: {{ $histSatz }}">
+                            <svg class="block w-full" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img" aria-label="{{ __('Verteilung der Zeugnisnoten') }}" aria-describedby="np-histogramm-satz">
                                 @foreach($teilstriche as $strich)
                                     <line x1="{{ $achsenrand }}" x2="{{ $breite }}" y1="{{ $y($strich) }}" y2="{{ $y($strich) }}" @class(['stroke-border-strong' => $strich === 0, 'stroke-border' => $strich !== 0]) stroke-width="1"/>
                                 @endforeach
@@ -189,9 +189,8 @@
                             @endforeach
                         </div>
                         <x-noten-legende class="mt-3" />
-                        <p class="mt-2 text-xs text-muted">{{ $histSatz }}</p>
+                        <p class="mt-2 text-xs text-muted" id="np-histogramm-satz" aria-live="polite" data-np-ansage>{{ $histSatz }}</p>
                     @endif
-                    <p class="sr-only" aria-live="polite" data-np-ansage>{{ $histSatz }}</p>
                     <x-slot:tabelle>
                         <table class="np-tabelle text-sm">
                             <thead>
@@ -265,7 +264,7 @@
                                 <div class="mb-2 flex flex-wrap items-center gap-4 text-xs tabular-nums text-muted" aria-hidden="true">
                                     <span class="inline-flex items-center gap-2">
                                         <svg class="w-4" viewBox="0 0 16 2"><line x1="0" x2="16" y1="1" y2="1" class="stroke-muted" stroke-width="1.5" stroke-dasharray="3 3"/></svg>
-                                        {{ __('genügend :wert', ['wert' => $zahl($grenze)]) }}
+                                        {{ __('Genügend :wert', ['wert' => $zahl($grenze)]) }}
                                     </span>
                                     <span class="inline-flex items-center gap-2">
                                         <svg class="w-4" viewBox="0 0 16 2"><line x1="0" x2="16" y1="1" y2="1" class="stroke-text" stroke-width="1.5"/></svg>
@@ -297,21 +296,22 @@
                                         <li class="flex items-center gap-3 py-1.5">
                                             <span class="w-28 shrink-0 text-sm text-text">
                                                 {{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}
-                                                <span class="block text-xs text-muted">{{ __(':anzahl Lernende', ['anzahl' => $j['anzahl']]) }}</span>
+                                                <span class="block text-xs text-muted">{{ $j['anzahl'] === 1 ? __('1 Person') : __(':anzahl Personen', ['anzahl' => $j['anzahl']]) }}</span>
                                             </span>
                                             <svg class="min-w-0 flex-1" viewBox="0 0 {{ $breite }} {{ $hoeheJahr }}" aria-hidden="true">
                                                 <line x1="{{ $rand }}" x2="{{ $breite - $rand }}" y1="{{ $hoeheJahr - 1 }}" y2="{{ $hoeheJahr - 1 }}" class="stroke-border" stroke-width="1"/>
                                                 <line x1="{{ $px($grenze) }}" x2="{{ $px($grenze) }}" y1="0" y2="{{ $hoeheJahr }}" class="stroke-muted" stroke-width="1.5" stroke-dasharray="3 3"/>
-                                                @if($j['median'] !== null)
-                                                    <line x1="{{ $px((float) $j['median']) }}" x2="{{ $px((float) $j['median']) }}" y1="0" y2="{{ $hoeheJahr }}" class="stroke-text" stroke-width="1.5"/>
-                                                @endif
                                                 @foreach($gesetzt as $g)
-                                                    <circle cx="{{ $g['x'] }}" cy="{{ $hoeheJahr - $radius - 3 - $g['reihe'] * $schritt }}" r="{{ $radius }}" class="{{ str_replace('bg-', 'fill-', NotenSkala::balken($g['wert'])) }}">
+                                                    <circle cx="{{ $g['x'] }}" cy="{{ $hoeheJahr - $radius - 3 - $g['reihe'] * $schritt }}" r="{{ $radius }}" class="{{ str_replace('bg-', 'fill-', NotenSkala::balken($g['wert'])) }} stroke-card" stroke-width="1">
                                                         <title>{{ $zahl($g['wert']) }}</title>
                                                     </circle>
                                                 @endforeach
+                                                {{-- Median über den Punkten, damit er nicht hinter einem Punkt verschwindet --}}
+                                                @if($j['median'] !== null)
+                                                    <line x1="{{ $px((float) $j['median']) }}" x2="{{ $px((float) $j['median']) }}" y1="0" y2="{{ $hoeheJahr }}" class="stroke-text" stroke-width="1.5"/>
+                                                @endif
                                             </svg>
-                                            <span class="w-12 shrink-0 text-right text-sm font-semibold tabular-nums {{ NotenSkala::text($j['schnitt']) }}">{{ $zahl($j['schnitt']) }}</span>
+                                            <span class="w-12 shrink-0 text-right text-sm font-semibold tabular-nums {{ NotenSkala::text($j['schnitt']) }}"><span class="sr-only">Ø </span>{{ $zahl($j['schnitt']) }}</span>
                                         </li>
                                     @endforeach
                                     <li class="flex items-center gap-3" aria-hidden="true">
@@ -324,7 +324,7 @@
                                         <span class="w-12 shrink-0"></span>
                                     </li>
                                 </ul>
-                                <p class="mt-3 text-xs text-muted">{{ $jahreSatz }}</p>
+                                <p class="mt-3 text-xs text-muted" aria-live="polite" data-np-ansage>{{ $jahreSatz }}</p>
                                 <x-slot:tabelle>
                                     <table class="np-tabelle text-sm">
                                         <thead>
@@ -346,9 +346,10 @@
                                     </table>
                                 </x-slot:tabelle>
                             </x-diagramm>
+                        @else
+                            {{-- Ansage auch ohne Streifen, damit ein Filterwechsel auf ein einziges Lehrjahr gesprochen wird --}}
+                            <p class="sr-only" aria-live="polite" data-np-ansage>{{ $jahreSatz }}</p>
                         @endif
-                        {{-- Ansage auch ohne Streifen, damit ein Filterwechsel auf ein einziges Lehrjahr gesprochen wird --}}
-                        <p class="sr-only" aria-live="polite" data-np-ansage>{{ $jahreSatz }}</p>
                     </div>
                 </div>
             </div>

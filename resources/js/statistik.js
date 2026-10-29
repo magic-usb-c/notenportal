@@ -145,6 +145,9 @@ export function registriereStatistik(Alpine) {
             alt.querySelectorAll('details').forEach((d, i) => { if (offen[i]) d.open = true; });
             const ansageNeu = alt.querySelector(ANSAGE);
             if (ansageAlt && ansageNeu) {
+                // Der Satz kann sichtbar (unter dem Diagramm) oder nur für den Screenreader stehen
+                ansageAlt.className = ansageNeu.className;
+                ansageAlt.id = ansageNeu.id;
                 ansageNeu.replaceWith(ansageAlt);
                 ansageAlt.textContent = ansageText;
             }

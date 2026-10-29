@@ -187,18 +187,21 @@
                         </x-slot:aktionen>
                         <div id="np-erfassung" data-np-baustein="erfassung" class="flex flex-col">
                             <div class="px-5 pb-4 pt-2">
+                                @if($summe === 0)
+                                    <p class="py-6 text-center text-sm text-muted" id="np-erfassung-satz" aria-live="polite" data-np-ansage>{{ $satz }}</p>
+                                @else
                                 <p class="flex flex-wrap items-baseline gap-x-2">
                                     <span class="text-xl font-semibold tabular-nums text-text">{{ $summe }}</span>
                                     <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => $anzahlWochen]) }}</span>
                                 </p>
-                                @if($median !== null)
+                                @if($median > 0)
                                     <p class="mt-1 inline-flex items-center gap-2 text-xs tabular-nums text-muted" aria-hidden="true">
                                         <svg class="w-4" viewBox="0 0 16 2"><line x1="0" x2="16" y1="1" y2="1" class="stroke-text" stroke-width="1.5"/></svg>
                                         {{ __('Median :wert je Woche', ['wert' => rtrim(rtrim(number_format($median, 1, '.', ''), '0'), '.')]) }}
                                     </p>
                                 @endif
                                 <div class="relative mt-3">
-                                    <svg class="block w-full" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}: {{ $satz }}">
+                                    <svg class="block w-full" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}" aria-describedby="np-erfassung-satz">
                                         @foreach($teilstriche as $strich)
                                             <line x1="{{ $achsenrand }}" x2="{{ $breite }}" y1="{{ $y($strich) }}" y2="{{ $y($strich) }}" @class(['stroke-border-strong' => $strich === 0, 'stroke-border' => $strich !== 0]) stroke-width="1"/>
                                         @endforeach
@@ -212,7 +215,7 @@
                                                 @endif
                                             </g>
                                         @endforeach
-                                        @if($median !== null)
+                                        @if($median > 0)
                                             <line x1="{{ $achsenrand }}" x2="{{ $breite }}" y1="{{ $y($median) }}" y2="{{ $y($median) }}" class="stroke-text" stroke-width="1.5"/>
                                         @endif
                                     </svg>
@@ -225,15 +228,18 @@
                                 <div class="relative mt-1 h-4 text-2xs tabular-nums text-muted" aria-hidden="true">
                                     @foreach($erfassung['labels'] as $i => $label)
                                         @if(($anzahlWochen - 1 - $i) % $takt === 0)
-                                            <span class="absolute -translate-x-1/2 whitespace-nowrap" style="left: {{ round(($achsenrand + ($i + 0.5) * $platz) / $breite * 100, 2) }}%">{{ $label }}</span>
+                                            @php $letzteWoche = $i === $anzahlWochen - 1; @endphp
+                                            {{-- das letzte Label endet am Plot-Ende statt darüber hinauszuragen --}}
+                                            <span @class(['absolute whitespace-nowrap', '-translate-x-1/2' => ! $letzteWoche, '-translate-x-full' => $letzteWoche]) style="left: {{ round(($achsenrand + ($i + ($letzteWoche ? 1 : 0.5)) * $platz) / $breite * 100, 2) }}%">{{ $label }}</span>
                                         @endif
                                     @endforeach
                                 </div>
-                                <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
+                                <p class="sr-only" id="np-erfassung-satz" aria-live="polite" data-np-ansage>{{ $satz }}</p>
+                                @endif
                             </div>
                             <details class="group/tabelle np-details border-t border-border">
                                 <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 px-5 py-2.5 text-xs font-medium text-muted hover:bg-surface-2/60 hover:text-text">
-                                    <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
+                                    <span class="inline-block transition-transform duration-200 ruhig:transition-none group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
                                     {{ __('Als Tabelle') }}
                                 </summary>
                                 <div class="max-h-72 overflow-auto px-5 pb-4">
