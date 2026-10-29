@@ -6,6 +6,7 @@
 #   sudo ./install.sh --port 8082 --db notenportal_i2   zweite Instanz neben einer bestehenden (nur HTTP)
 # Optionen: --host <Name|IP>  --admin-mail <adresse>  --ohne-https  --https-port <n>
 #           --ohne-firewall  --neues-admin-passwort
+#   sudo ./install.sh --weitere-namen notenportal.hamiltonlab.local,10.8.0.100   weitere Namen/IPs (VPN, NAT) ins Zertifikat
 #   sudo ./install.sh --pruefen                          nur nachsehen, warum das Portal mit 500 antwortet
 #   sudo ./install.sh --entfernen                       alles wieder abräumen (mit Sicherung und Rückfrage)
 # Erneut ausführen = Update (Pakete, Abhängigkeiten, Build, Migrationen); .env, Webserver-Konfiguration und Konten bleiben.
@@ -21,6 +22,7 @@ HTTPS=-1                  # -1 = noch nicht entschieden: an, sobald die Instanz 
 FIREWALL=1
 ADMIN_OPTION=""
 ADMIN_MAIL=""
+WEITERE_NAMEN=""          # Komma-Liste: Namen und IPs, unter denen das Portal zusätzlich erreichbar ist
 ENTFERNEN=0
 PRUEFEN=0
 RUECKFRAGE=1
@@ -40,7 +42,8 @@ while [[ $# -gt 0 ]]; do
         --ohne-https) HTTPS=0; shift ;;
         --ohne-firewall) FIREWALL=0; shift ;;
         --neues-admin-passwort) ADMIN_OPTION="--zuruecksetzen"; shift ;;
-        -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+        --weitere-namen) WEITERE_NAMEN="$2"; shift 2 ;;
+        -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
         *) echo "Unbekannte Option: $1 (siehe --help)"; exit 1 ;;
     esac
 done
@@ -50,6 +53,10 @@ done
 [[ "$PORT" =~ ^[0-9]{2,5}$ ]] || { echo "Ungültiger Port: $PORT"; exit 1; }
 [[ "$HTTPS_PORT" =~ ^[0-9]{2,5}$ ]] || { echo "Ungültiger HTTPS-Port: $HTTPS_PORT"; exit 1; }
 [[ -z "$HOST" || "$HOST" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || { echo "Ungültiger Host: $HOST"; exit 1; }
+IFS=',' read -ra WEITERE <<< "${WEITERE_NAMEN// /}"
+for A in "${WEITERE[@]}"; do
+    [[ "$A" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || { echo "Ungültiger Name in --weitere-namen: $A"; exit 1; }
+done
 [[ -z "$ADMIN_MAIL" || "$ADMIN_MAIL" =~ ^[^[:space:]@]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]] || { echo "Ungültige Admin-Adresse: $ADMIN_MAIL"; exit 1; }
 
 # Alle IPv4-Adressen der Maschine: sie gehören als Ersatzname ins Zertifikat, damit der Aufruf über
@@ -62,6 +69,13 @@ mapfile -t ADRESSEN < <(ip -4 -o addr show scope global 2>/dev/null \
 (( ${#ADRESSEN[@]} )) || mapfile -t ADRESSEN < <(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9.]+$' || true)
 # Ohne --host ist der Name «notenportal»: kurz, im Lab über DNS oder hosts-Eintrag erreichbar und
 # damit als Adresse für die Lernenden brauchbar. Früher stand hier die IP – die wechselt mit der VM.
+# Beim Update ohne --host bleibt der Name aus APP_URL – sonst stünde nach einem schlichten
+# «sudo ./install.sh» still https://notenportal in der .env und alle Links in Mails wären falsch.
+if [[ -z "$HOST" && -f "$VERZ/.env" ]]; then
+    HOST="$({ grep -E '^APP_URL=' "$VERZ/.env" || true; } | head -1 | cut -d= -f2- | tr -d '"' \
+        | sed -E 's#^[a-z]+://##; s#[:/].*$##')"
+    [[ "$HOST" =~ ^[A-Za-z0-9.-]{1,253}$ ]] || HOST=""
+fi
 [[ -n "$HOST" ]] || HOST="notenportal"
 (( HTTPS >= 0 )) || { [[ "$PORT" == "80" ]] && HTTPS=1 || HTTPS=0; }
 
@@ -613,6 +627,16 @@ merke_alias() { local n="$1"; [[ -n "$n" && "$n" != "$HOST" ]] || return 0
 merke_alias "$(hostname -s 2>/dev/null || true)"
 merke_alias "$(hostname -f 2>/dev/null || true)"
 for A in "${ADRESSEN[@]}"; do merke_alias "$A"; done
+# Namen aus --weitere-namen und aus früheren Läufen (TRUSTED_HOSTS) gehören auch ins Zertifikat:
+# über einen VPN-Tunnel mit NAT oder einen DNS-Namen erreicht man das Portal unter einer Adresse,
+# die die Maschine selbst nicht kennt. Fehlt sie im Zertifikat, warnt der Browser; fehlt sie in
+# TRUSTED_HOSTS, antwortet die Anwendung mit 400. Entfernen nur von Hand in .env (TRUSTED_HOSTS).
+IFS=',' read -ra BISHERIGE_HOSTS <<< "$(lies_env TRUSTED_HOSTS)"
+for A in "${WEITERE[@]}" "${BISHERIGE_HOSTS[@]}"; do
+    A="${A// /}"
+    [[ "$A" =~ ^[A-Za-z0-9.-]{1,253}$ && "$A" != "localhost" && "$A" != "127.0.0.1" ]] || continue
+    merke_alias "$A"
+done
 
 # Dieselben Namen und Adressen nimmt die Anwendung als Host-Header an (TrustHosts in bootstrap/app.php);
 # jeder andere Host bekommt 400. Von Hand in TRUSTED_HOSTS ergänzte Namen bleiben erhalten.
@@ -620,7 +644,6 @@ for A in "${ADRESSEN[@]}"; do merke_alias "$A"; done
 VERTRAUTE_HOSTS="$HOST"
 merke_host() { local n="${1// /}"; [[ -n "$n" && ",$VERTRAUTE_HOSTS," != *",$n,"* ]] || return 0; VERTRAUTE_HOSTS="$VERTRAUTE_HOSTS,$n"; }
 for A in "${ALIASE[@]}" localhost 127.0.0.1; do merke_host "$A"; done
-IFS=',' read -ra BISHERIGE_HOSTS <<< "$(lies_env TRUSTED_HOSTS)"
 for A in "${BISHERIGE_HOSTS[@]}"; do merke_host "$A"; done
 setze_env TRUSTED_HOSTS "$VERTRAUTE_HOSTS"
 (( HTTPS )) || als "php artisan config:clear --quiet && php artisan optimize --quiet"
@@ -1007,7 +1030,9 @@ if (( HTTPS )); then
   1. DNS-Eintrag im Lab (einmal, durch den Netzbetrieb):
      A-Record   $HOST  →  ${ADRESSEN[0]:-<IP dieses Servers>}
      Der Eintrag muss auf dem DNS-Server stehen, den der VPN-Zugang an die Clients verteilt.
-     Zur Probe von einem verbundenen Client: nslookup ${HOST%%.*}
+     Zur Probe von einem verbundenen Client: nslookup $HOST
+     Erreicht ein VPN-Zugang den Server über NAT unter einer anderen Adresse oder einem anderen
+     Namen: sudo ./install.sh --weitere-namen <adresse,name> – sonst antwortet das Portal mit 400.
 
   2. Lab-CA auf jedem Gerät einmal importieren, sonst warnt der Browser:
      Herunterladen: http://$HOST$HTTP_SUFFIX/lab-ca.crt
@@ -1018,6 +1043,6 @@ if (( HTTPS )); then
      Die Verbindung ist auch ohne Import verschlüsselt – nur eben mit Warnung.
 
   Ohne DNS-Eintrag hilft ersatzweise ein Eintrag in der hosts-Datei des Clients:
-     ${ADRESSEN[0]:-<IP dieses Servers>}  ${HOST%%.*}
+     ${ADRESSEN[0]:-<IP dieses Servers>}  $HOST
 ENDE
 fi
