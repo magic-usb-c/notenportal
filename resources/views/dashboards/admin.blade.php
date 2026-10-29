@@ -140,15 +140,123 @@
 
             @if($rechts)
             <div @class(['flex min-w-0 flex-col gap-5', 'col-span-4' => $links, 'col-span-12' => ! $links])>
-                {{-- Erfasste Noten pro Woche: Summe als Kennzahl über dem Diagramm wie in Health --}}
+                {{-- Erfassung je Woche (S9): Säulen ab 0 mit Median-Linie, nur Betriebssummen. Das Segment gilt sofort (npFilter),
+                     Säulen, Satz und Tabelle kommen als Baustein neu vom Server. --}}
                 @if($zeigen['aktivitaet'])
-                    <x-karte :titel="__('Erfasste Noten pro Woche')" symbol="chart-bar">
-                        <p class="flex items-baseline gap-2">
-                            <span class="text-xl font-semibold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
-                            <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => count($aktivitaet['werte'])]) }}</span>
-                        </p>
-                        <div class="mt-3 h-48" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">
-                            <canvas x-ref="canvas" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}"></canvas>
+                    @php
+                        $erfassung = $statistik['diagramm']['erfassung'];
+                        $wochen = $erfassung['werte'];
+                        $anzahlWochen = count($wochen);
+                        $summe = array_sum($wochen);
+                        $satz = $statistik['zusammenfassung']['erfassung'];
+                        $tabelle = $statistik['tabelle']['erfassung'];
+                        $median = $erfassung['median'];
+                        $zeitraeume = $statistik['meta']['erfassung']['optionen']['zeitraum'];
+                        // Achse ab 0 bis zum nächsten runden Wert über dem Höchstwert (höchstens vier Teilstriche)
+                        $spitze = max([1, ...$wochen]);
+                        $schritt = 1;
+                        foreach ([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000] as $kandidat) {
+                            $schritt = $kandidat;
+                            if ($spitze / $kandidat <= 4) {
+                                break;
+                            }
+                        }
+                        $oben = (int) (ceil($spitze / $schritt) * $schritt);
+                        $teilstriche = range(0, $oben, $schritt);
+                        // Zeichenfläche in Einheiten: links Platz für die Achsenzahlen, oben ein Rand
+                        $breite = 600;
+                        $hoehe = 180;
+                        $achsenrand = 30;
+                        $kopfrand = 8;
+                        $platz = ($breite - $achsenrand - 4) / $anzahlWochen;
+                        $saeule = max(2, $platz * 0.72);
+                        $y = fn (float|int $v) => round($hoehe - ($v / $oben) * ($hoehe - $kopfrand), 2);
+                        // Beschriftung von rechts (aktuelle Woche) her, nie dichter als etwa alle 40 px
+                        $takt = $anzahlWochen <= 12 ? 2 : ($anzahlWochen <= 26 ? 4 : 8);
+                    @endphp
+                    <x-karte :titel="__('Erfasste Noten pro Woche')" symbol="chart-bar" :polster="false">
+                        <x-slot:aktionen>
+                            <form method="GET" action="{{ route('admin.dashboard') }}" x-data="npFilter(@js(['json' => false, 'standard' => ['zeitraum' => '12w']]))">
+                                <div class="np-segment np-segment-klein" role="radiogroup" aria-label="{{ __('Zeitraum') }}">
+                                    @foreach($zeitraeume as $wert => $text)
+                                        <label><input type="radio" name="zeitraum" value="{{ $wert }}" class="sr-only" @checked($statistik['filter']['zeitraum'] === $wert)>{{ $text }}</label>
+                                    @endforeach
+                                </div>
+                                <noscript><button type="submit" class="np-knopf np-knopf-sekundaer np-knopf-klein">{{ __('Filtern') }}</button></noscript>
+                            </form>
+                        </x-slot:aktionen>
+                        <div id="np-erfassung" data-np-baustein="erfassung" class="flex flex-col">
+                            <div class="px-5 pb-4 pt-2">
+                                <p class="flex flex-wrap items-baseline gap-x-2">
+                                    <span class="text-xl font-semibold tabular-nums text-text">{{ $summe }}</span>
+                                    <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => $anzahlWochen]) }}</span>
+                                </p>
+                                @if($median !== null)
+                                    <p class="mt-1 inline-flex items-center gap-2 text-xs tabular-nums text-muted" aria-hidden="true">
+                                        <svg class="w-4" viewBox="0 0 16 2"><line x1="0" x2="16" y1="1" y2="1" class="stroke-text" stroke-width="1.5"/></svg>
+                                        {{ __('Median :wert je Woche', ['wert' => rtrim(rtrim(number_format($median, 1, '.', ''), '0'), '.')]) }}
+                                    </p>
+                                @endif
+                                <div class="relative mt-3">
+                                    <svg class="block w-full" viewBox="0 0 {{ $breite }} {{ $hoehe }}" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}: {{ $satz }}">
+                                        @foreach($teilstriche as $strich)
+                                            <line x1="{{ $achsenrand }}" x2="{{ $breite }}" y1="{{ $y($strich) }}" y2="{{ $y($strich) }}" @class(['stroke-border-strong' => $strich === 0, 'stroke-border' => $strich !== 0]) stroke-width="1"/>
+                                        @endforeach
+                                        @foreach($wochen as $i => $wert)
+                                            @php $x = round($achsenrand + $i * $platz, 2); @endphp
+                                            <g>
+                                                <title>{{ $erfassung['labels'][$i] }}: {{ $wert }}</title>
+                                                <rect x="{{ $x }}" y="0" width="{{ round($platz, 2) }}" height="{{ $hoehe }}" class="fill-transparent"/>
+                                                @if($wert > 0)
+                                                    <rect x="{{ round($x + ($platz - $saeule) / 2, 2) }}" y="{{ $y($wert) }}" width="{{ round($saeule, 2) }}" height="{{ round($hoehe - $y($wert), 2) }}" rx="{{ round(min(2, $saeule / 2), 2) }}" class="fill-chart-1/80"/>
+                                                @endif
+                                            </g>
+                                        @endforeach
+                                        @if($median !== null)
+                                            <line x1="{{ $achsenrand }}" x2="{{ $breite }}" y1="{{ $y($median) }}" y2="{{ $y($median) }}" class="stroke-text" stroke-width="1.5"/>
+                                        @endif
+                                    </svg>
+                                    <div class="pointer-events-none absolute inset-0" aria-hidden="true">
+                                        @foreach($teilstriche as $strich)
+                                            <span class="absolute left-0 -translate-y-1/2 text-2xs tabular-nums text-muted" style="top: {{ round($y($strich) / $hoehe * 100, 2) }}%">{{ $strich }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                <div class="relative mt-1 h-4 text-2xs tabular-nums text-muted" aria-hidden="true">
+                                    @foreach($erfassung['labels'] as $i => $label)
+                                        @if(($anzahlWochen - 1 - $i) % $takt === 0)
+                                            <span class="absolute -translate-x-1/2 whitespace-nowrap" style="left: {{ round(($achsenrand + ($i + 0.5) * $platz) / $breite * 100, 2) }}%">{{ $label }}</span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                                <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
+                            </div>
+                            <details class="group/tabelle np-details border-t border-border">
+                                <summary class="flex min-h-9 cursor-pointer list-none items-center gap-1.5 px-5 py-2.5 text-xs font-medium text-muted hover:bg-surface-2/60 hover:text-text">
+                                    <span class="inline-block transition-transform duration-200 group-open/tabelle:rotate-90" aria-hidden="true">▸</span>
+                                    {{ __('Als Tabelle') }}
+                                </summary>
+                                <div class="max-h-72 overflow-auto px-5 pb-4">
+                                    <table class="np-tabelle text-sm">
+                                        <thead>
+                                            <tr>
+                                                @foreach($tabelle['spalten'] as $i => $spalte)
+                                                    <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($tabelle['zeilen'] as $zeile)
+                                                <tr>
+                                                    @foreach($zeile as $i => $zelle)
+                                                        <td @class(['text-right tabular-nums' => $i > 0])>{{ $zelle }}</td>
+                                                    @endforeach
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </details>
                         </div>
                     </x-karte>
                 @endif
