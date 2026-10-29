@@ -22,7 +22,8 @@ Pflichtlektüre vor dem Urteil: .claude/skills/notenportal-ui/SKILL.md (Tokens, 
 Kurzfassung: nur Token-Klassen (bg-bg, bg-card, bg-surface-2, bg-input, bg-fill, text-text, text-muted, text-faint, text-ghost,
 border-border, border-border-strong, bg-accent + text-accent-contrast, text-accent-text, outline-ring, text-note-*).
 Verboten: bg-white, bg-gray-*, bg-slate-*, text-black, text-white, #hex, Palettenfarben für Bedeutung, text-accent für Text,
-uppercase tracking-widest, font-extrabold/black, harte Schriftgrössen, max-w-7xl, rounded-3xl, entfernte Klassen
+uppercase tracking-widest, font-extrabold/black, harte Schriftgrössen, max-w-* mit mx-auto als Seitencontainer statt np-seite
+(Kartenobergrenzen ohne mx-auto sind erlaubt: Tabellen nicht breiter als ihre Spalten), rounded-3xl, entfernte Klassen
 (accent-glow, np-glow-*, np-card-lift, np-btn-tactile, glass-lift, glass-subtle, scale-Effekte, blur-3xl-Orbs).
 Materialien: glass-bar nur Hauptnavigation und Sticky-Toolbar, glass-overlay nur Menüs, Paletten, Toasts, Popover;
 Karten, Tabellen, Formulare, Diagramme ohne Glas. Notenfarben nur über NotenSkala::text()/badge() und text-note-*-Tokens.
@@ -82,7 +83,7 @@ Höchstens ${'${MAX}'} Befunde, sortiert nach Sichtbarkeit bei 1920 px.`,
     key: 'design',
     prompt: `${KONTEXT}
 Dimension: DESIGN-KONSISTENZ mit dem UI-Skill. Durchsuche resources/views systematisch mit Grep und lies Treffer.
-1. Verbotene Klassen und Hardcodes (Liste im Kontext), entfernte Klassen, max-w-7xl, rounded-3xl, text-[..px], style="color/font-size".
+1. Verbotene Klassen und Hardcodes (Liste im Kontext), entfernte Klassen, zentrierte max-w-*-Seitencontainer, rounded-3xl, text-[..px], style="color/font-size".
 2. Abweichungen von den Mustern in UI-Skill §7: Primärknopf (genau einer je Ansicht), Sekundär-/Tertiärknopf, Formularfeld mit label/for und feldgenauem @error, Karte (rounded-xl border border-border bg-card), Tabelle (bg-surface-2-Kopf, text-2xs, tabular-nums, Zahlen rechtsbündig), Note-Badge, Leerzustand mit nächstem Schritt.
 3. Seitenkopf nicht über <x-seitenkopf>, Container nicht np-seite, Flash nicht über <x-toast>, Menü nicht über <x-dropdown>.
 4. Typografie: Versalien-Labels, font-extrabold/black, Grössen ausserhalb der Skala, mehr als eine Heldenzahl je Seite.

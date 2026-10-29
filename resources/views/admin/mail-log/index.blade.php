@@ -19,7 +19,9 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
             @if($leer)
                 <div class="np-karte">
-                    <x-leer symbol="envelope" :titel="__('Noch keine E-Mails verschickt')" />
+                    <x-leer symbol="envelope" :titel="__('Noch keine E-Mails verschickt')">
+                        <a href="{{ route('admin.operations.edit') }}#email" class="np-knopf np-knopf-sekundaer">{{ __('E-Mail einrichten') }}</a>
+                    </x-leer>
                 </div>
             @else
                 <div class="grid grid-cols-4 gap-4">

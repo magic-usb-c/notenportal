@@ -108,7 +108,8 @@ class UebersichtTabelleTest extends TestCase
         $leer = $xpath->query('//tbody/tr[not(@data-href)]/td')->item(0);
 
         $this->assertNotNull($leer);
-        $this->assertSame(__('Keine Lernenden für diesen Filter.'), trim($leer->textContent));
+        $this->assertStringStartsWith(__('Keine Lernenden für diesen Filter.'), trim($leer->textContent));
+        $this->assertNotNull($xpath->query('//tbody/tr[not(@data-href)]/td/button')->item(0), 'Leerzeile bietet einen Weg zurück');
         $this->assertSame((string) $xpath->query('//table/thead/tr/th')->length, $leer->getAttribute('colspan'));
         $this->assertTrue($leer->parentNode->hasAttribute('x-cloak'), 'Erst sichtbar, wenn Alpine kein Treffer findet');
     }

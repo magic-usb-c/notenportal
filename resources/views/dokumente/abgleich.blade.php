@@ -4,6 +4,7 @@
         $zeilen = $ergebnis['zeilen'];
         $anzahl = collect($zeilen)->countBy('status');
         $fehlend = collect($zeilen)->where('status', 'fehlt');
+        $semesterName = fn ($s) => \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id);
     @endphp
 
     <x-slot name="header">
@@ -17,33 +18,48 @@
 
     <div class="py-6">
         <div class="np-seite mx-auto px-8 flex flex-col gap-5">
-            <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="np-karte p-4 flex flex-wrap items-end gap-3">
-                <div>
-                    <label for="semester_id" class="block text-sm font-medium text-text">{{ __('Semester') }}</label>
-                    <select id="semester_id" name="semester_id" data-sofort
-                            class="np-feld mt-1 w-48">
-                        <option value="">–</option>
-                        @foreach($semester as $s)
-                            <option value="{{ $s->semester_id }}" @selected($semesterId === (int) $s->semester_id)>{{ \App\Services\Auswertung\Konfiguration::ausDb()->semesterName((int) $s->semester_id, (int) $lernender->lernender_id) }}</option>
+            @if($semesterId)
+                <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="np-karte p-4 flex flex-wrap items-end gap-3">
+                    <div>
+                        <label for="semester_id" class="block text-sm font-medium text-text">{{ __('Semester') }}</label>
+                        <select id="semester_id" name="semester_id" data-sofort
+                                class="np-feld mt-1 w-48">
+                            <option value="">–</option>
+                            @foreach($semester as $s)
+                                <option value="{{ $s->semester_id }}" @selected($semesterId === (int) $s->semester_id)>{{ $semesterName($s) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="ml-auto grid w-auto grid-cols-3 gap-3">
+                        @foreach(['gleich' => [__('Übereinstimmend'), 'gruen'], 'abweichung' => [__('Abweichend'), 'gelb'], 'fehlt' => [__('Fehlt im Portal'), 'neutral']] as $status => [$text, $ton])
+                            <x-kachel :label="$text" :wert="$anzahl[$status] ?? 0" :ton="($anzahl[$status] ?? 0) ? $ton : 'neutral'" class="min-w-32" />
                         @endforeach
-                    </select>
-                </div>
-                <div class="ml-auto grid w-auto grid-cols-3 gap-3">
-                    @foreach(['gleich' => [__('Übereinstimmend'), 'gruen'], 'abweichung' => [__('Abweichend'), 'gelb'], 'fehlt' => [__('Fehlt im Portal'), 'neutral']] as $status => [$text, $ton])
-                        <x-kachel :label="$text" :wert="$anzahl[$status] ?? 0" :ton="($anzahl[$status] ?? 0) ? $ton : 'neutral'" class="min-w-32" />
-                    @endforeach
-                </div>
-            </form>
+                    </div>
+                </form>
+            @else
+                {{-- Ohne Semester gibt es nichts zu vergleichen: erst wählen, dann erscheinen Kacheln und Tabelle --}}
+                <form method="GET" action="{{ $r('reconcile', ['dokument_id' => $dokument->dokument_id]) }}" class="np-karte">
+                    <x-leer symbol="calendar" :titel="__('Semester wählen')">
+                        <label for="semester_id" class="sr-only">{{ __('Semester') }}</label>
+                        <select id="semester_id" name="semester_id" data-sofort class="np-feld w-48">
+                            <option value="">{{ __('Semester') }}</option>
+                            @foreach($semester as $s)
+                                <option value="{{ $s->semester_id }}">{{ $semesterName($s) }}</option>
+                            @endforeach
+                        </select>
+                    </x-leer>
+                </form>
+            @endif
 
-            @if(! $ergebnis['text'])
+            @if($semesterId && ! $ergebnis['text'])
                 <x-leer symbol="document-text" :titel="__('Kein Text im PDF erkannt')">
                     <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="np-knopf np-knopf-sekundaer">{{ __('Zeugnis öffnen') }}</a>
                 </x-leer>
-            @elseif($zeilen === [])
+            @elseif($semesterId && $zeilen === [])
                 <x-leer symbol="magnifying-glass" :titel="__('Keine Fächer oder Module erkannt')">
                     <a href="{{ $r('show', ['dokument_id' => $dokument->dokument_id, 'anzeigen' => 1]) }}" target="_blank" rel="noopener" class="np-knopf np-knopf-sekundaer">{{ __('Zeugnis öffnen') }}</a>
                 </x-leer>
-            @else
+            @elseif($semesterId)
                 <form method="POST" action="{{ $r('reconcile.apply', ['dokument_id' => $dokument->dokument_id]) }}" class="flex flex-col gap-4"
                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf

@@ -26,19 +26,19 @@ Die Hauptsitzung koordiniert mit dem konfigurierten Hauptmodell. Verwende für T
 
 | Aufgabe | Bevorzugte Zuweisung | Effort / Form |
 |---|---|---|
-| Suche, Inventar, Vorkommen, einfache Log-Analyse | `Explore` mit Haiku, falls verfügbar; sonst Agent `explorer` | low; eng begrenzter Leseauftrag |
-| Schema und Datenbestand | Agent `db-inspector` | medium |
+| Suche, Inventar, Vorkommen, einfache Log-Analyse | `Explore` mit Haiku, falls verfügbar; sonst Agent `explorer` (sonnet) | low (`Explore`) · medium (`explorer`); eng begrenzter Leseauftrag |
+| Schema und Datenbestand | Agent `db-inspector` (opus) | medium |
 | Standard-Implementierung und Tests | Agent `explorer` nur zur Orientierung; Umsetzung durch geeigneten Sonnet-Agent oder Workflow-Stage | high |
-| Code-Review | Agent `reviewer` | high |
-| Menschliche Texte | Agent `texter` | high |
-| Schweizer Berufsbildungsfakten | Agent `recherche-schweiz` | high |
-| UI-Regelprüfung | Agent `ui-checker` | xhigh |
-| Screenshot-Sichtprüfung | Agent `bildpruefer` | xhigh |
-| Gegenprüfung einer Fertig-/Fehlerbehauptung | Agent `pruefer` | xhigh |
+| Code-Review | Agent `reviewer` (sonnet) | high |
+| Menschliche Texte | Agent `texter` (haiku) | high |
+| Schweizer Berufsbildungsfakten | Agent `recherche-schweiz` (opus) | medium |
+| UI-Regelprüfung | Agent `ui-checker` (opus) | high |
+| Screenshot-Sichtprüfung | Agent `bildpruefer` (sonnet) | high |
+| Gegenprüfung einer Fertig-/Fehlerbehauptung | Agent `pruefer` (fable) | low |
 | Architektur oder riskante Migration | zuerst passende Fachprüfung, bei Bedarf Opus; Fable nur für echte Architektur- oder Konfliktentscheidung | xhigh; Fable max nur als letzte Verifikation |
 | Hartnäckiger Fehler | messen und lokalisieren, dann gezielte Reparatur; bei weiterem Konflikt eskalieren | nicht durch blindes Modell-Hochstufen ersetzen |
 
-Die Frontmatter-Werte der tatsächlich vorhandenen Agents und `docs/auftrag/SETUP-CLAUDE.md` sind massgeblich. Erfinde keine Agenten, Modelle, Effort-Stufen oder Fähigkeiten. Falls die bevorzugte Zuweisung nicht verfügbar ist, verwende die nächste verfügbare passende Option und benenne die Abweichung nur, wenn sie für die Verifikation relevant ist.
+Die Frontmatter-Werte der tatsächlich vorhandenen Agents und `docs/auftrag/SETUP-CLAUDE.md` (Abschnitt 2.3) sind massgeblich; die Tabelle entspricht ihnen seit dem 02.10. (Commit 017131c). Erfinde keine Agenten, Modelle, Effort-Stufen oder Fähigkeiten. Falls die bevorzugte Zuweisung nicht verfügbar ist, verwende die nächste verfügbare passende Option und benenne die Abweichung nur, wenn sie für die Verifikation relevant ist.
 
 ## Arbeitsrouting
 

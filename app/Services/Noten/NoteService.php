@@ -396,15 +396,17 @@ class NoteService
             ]);
         }
 
-        $date = (string) $data['pruefungsdatum'];
+        // Tag gegen Tag vergleichen: Carbon stringifiziert Lehrbeginn/-ende mit Uhrzeit («2024-08-01 00:00:00»),
+        // ein Zeichenkettenvergleich lehnte darum eine Note genau am Lehrbeginn ab. Die Aufrufer validieren «date» vorher.
+        $date = Carbon::parse((string) $data['pruefungsdatum'])->toDateString();
 
-        if ($date < (string) $lernender->lehrbeginn) {
+        if ($lernender->lehrbeginn && $date < $lernender->lehrbeginn->toDateString()) {
             throw ValidationException::withMessages([
                 'pruefungsdatum' => __('Das Prüfungsdatum liegt vor dem Lehrbeginn.'),
             ]);
         }
 
-        if ($lernender->lehrende && $date > (string) $lernender->lehrende) {
+        if ($lernender->lehrende && $date > $lernender->lehrende->toDateString()) {
             throw ValidationException::withMessages([
                 'pruefungsdatum' => __('Das Prüfungsdatum liegt nach dem Ende der Lehre.'),
             ]);

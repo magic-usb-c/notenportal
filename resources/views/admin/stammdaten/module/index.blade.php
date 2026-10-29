@@ -26,7 +26,7 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
 
             @if($leer)
-                <div class="np-karte">
+                <div class="np-karte max-w-7xl">
                     <x-leer symbol="rectangle-stack" :titel="__('Noch keine Module erfasst.')" />
                 </div>
             @else
@@ -61,7 +61,7 @@
 
             @if($gruppieren !== '')
                 @forelse($gruppen as $name => $zeilen)
-                    <section class="np-karte">
+                    <section class="np-karte max-w-7xl">
                         <h3 class="px-5 pt-4 pb-1 text-sm font-semibold text-text">{{ $name }}</h3>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
@@ -77,10 +77,10 @@
                         </div>
                     </section>
                 @empty
-                    <div class="np-karte px-3 py-6 text-center text-sm text-muted">{{ __('Keine Module für diese Filtereinstellungen gefunden.') }}</div>
+                    <div class="np-karte max-w-7xl px-3 py-6 text-center text-sm text-muted">{{ __('Keine Module für diese Filtereinstellungen gefunden.') }}</div>
                 @endforelse
             @else
-                <div class="np-karte">
+                <div class="np-karte max-w-7xl">
                     <div class="p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>

@@ -55,7 +55,7 @@
                 @foreach($zahlen as $f => [$text, $grenzen])
                     <div>
                         <label for="k{{ $id }}-{{ $f }}" class="{{ $label }}">{{ $text }}</label>
-                        <input type="number" id="k{{ $id }}-{{ $f }}" name="{{ $name($f) }}" value="{{ $alt($f) }}" {!! $grenzen !!} class="np-feld mt-1.5 tabular-nums" {!! $fehlerAttr($f) !!}>
+                        <input type="number" id="k{{ $id }}-{{ $f }}" name="{{ $name($f) }}" value="{{ $alt($f) }}" {!! $grenzen !!} class="np-feld mt-1.5 text-right tabular-nums" {!! $fehlerAttr($f) !!}>
                         @error($schluessel($f))<p id="k{{ $id }}-{{ $f }}-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
                     </div>
                 @endforeach

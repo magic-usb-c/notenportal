@@ -17,11 +17,11 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($semester->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-5xl">
                     <x-leer symbol="calendar" :titel="__('Noch keine Semester erfasst.')" />
                 </div>
             @else
-                <div class="np-karte p-2">
+                <div class="np-karte max-w-5xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>
                             <tr>

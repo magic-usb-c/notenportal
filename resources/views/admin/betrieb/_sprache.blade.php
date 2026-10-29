@@ -9,7 +9,8 @@
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Sprache') }}</h2>
     <div class="np-karte np-gruppe">
         <x-einstellung :label="__('Standardsprache')" fuer="sprache_standard" name="sprache_standard">
-            <select id="sprache_standard" name="sprache_standard" data-sofort class="np-feld w-56">
+            <select id="sprache_standard" name="sprache_standard" data-sofort class="np-feld w-56"
+                    @error('sprache_standard') aria-invalid="true" aria-describedby="sprache_standard-fehler" @enderror>
                 @foreach(['de' => 'Deutsch', 'en' => 'English'] as $wert => $name)
                     <option value="{{ $wert }}" lang="{{ $wert }}" @selected(old('sprache_standard', $standard) === $wert)>{{ $name }}</option>
                 @endforeach
@@ -18,7 +19,8 @@
         <x-einstellung :label="__('Benutzer wählen die Sprache selbst')" fuer="sprachwahl_aktiv" name="sprachwahl_aktiv"
                        :hinweis="__('Im Benutzermenü und im Profil')">
             <input id="sprachwahl_aktiv" name="sprachwahl_aktiv" type="checkbox" role="switch" value="1" @checked(old('sprachwahl_aktiv', $wahlAktiv))
-                   data-sofort class="np-schalter">
+                   data-sofort class="np-schalter" aria-describedby="sprachwahl_aktiv-hinweis @error('sprachwahl_aktiv') sprachwahl_aktiv-fehler @enderror"
+                   @error('sprachwahl_aktiv') aria-invalid="true" @enderror>
         </x-einstellung>
     </div>
     <noscript><button type="submit" class="np-knopf np-knopf-sekundaer mt-3">{{ __('Speichern') }}</button></noscript>

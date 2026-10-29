@@ -13,41 +13,52 @@
      240, klar von gut unterscheidbar, auch bei Deuteranopie).
    ========================================================================== */
 
-/* Theme Gletscher – hell. Standard. Werte aus den Systemfarben der Human Interface Guidelines
-   (developer.apple.com/design/human-interface-guidelines/color, Stand Juni 2025): Flächen aus
-   systemGray6/5 (gruppierter Grund, weisse Karten), Sekundärtext und Akzent aus der Variante
-   «Increased contrast», weil die Standardvarianten auf Weiss unter 4.5:1 bleiben. Wo die HIG
-   keinen Wert nennt (Text, Link), gilt apple.com. Nachgerechnet: Text ≥ 4.5:1, UI/Grafik ≥ 3:1. */
+/* Theme Gletscher – hell. Standard. Eigene Werte: kühles Blaugrau als Grund, weisse Karten, Tinte
+   mit leichtem Blaustich. Nachgerechnet mit kontrast.mjs: Text ≥ 4.5:1, UI/Grafik ≥ 3:1,
+   Weiss auf Akzent ≥ 4.5:1. */
 :root,
 [data-theme='gletscher'] {
   color-scheme: light;
 
-  --bg: 242 242 247;               /* systemGray6 – gruppierter Grund */
-  --card: 255 255 255;             /* secondarySystemGroupedBackground */
-  --surface-2: 242 242 247;        /* tertiärer Grund in Karten: Zeilen-Hover, Spur */
+  --bg: 240 243 248;               /* Grund */
+  --card: 255 255 255;
+  --surface-2: 236 240 246;        /* tertiärer Grund in Karten: Zeilen-Hover, Spur */
   --input: 255 255 255;
-  --text: 29 29 31;                /* apple.com #1d1d1f – 16.8:1 auf Karte */
-  --muted: 108 108 112;            /* systemGray, Increased contrast – 4.7:1 auf Grund */
-  --border: 229 229 234;           /* systemGray5 – Trennlinie */
-  --border-strong: 134 134 139;    /* Feldrand: ≥ 3:1 auf Grund und Karte (systemGray wäre 2.9:1) */
+  --text: 23 28 38;
+  --muted: 94 104 120;
+  --border: 224 229 237;           /* Trennlinie */
+  --border-strong: 124 135 151;    /* Feldrand: ≥ 3:1 auf Grund, Karte und surface-2 */
 
-  --accent: 30 110 244;            /* systemBlue, Increased contrast – Weiss darauf 4.6:1 */
+  --accent: 26 102 232;            /* Weiss darauf ≥ 4.5:1 */
   --accent-contrast: 255 255 255;
-  --accent-text: 0 102 204;        /* Link apple.com #0066cc – 5.0:1 auf Grund */
-  --ring: 30 110 244;              /* Fokusring = Akzent, 4.1:1 auf Grund */
+  --accent-text: 8 92 190;         /* Link, ≥ 4.5:1 auf Grund */
+  --ring: 26 102 232;              /* Fokusring = Akzent, ≥ 3:1 auf Grund */
 
   --note-gut: 19 119 56;           /* oklch(0.5 0.13 150) */
   --note-genuegend: 59 105 135;    /* oklch(0.5 0.07 240) */
   --note-knapp: 150 88 2;          /* oklch(0.52 0.116 65) */
   --note-ungenuegend: 190 35 35;   /* oklch(0.52 0.19 27) */
 
-  /* Diagramme: Systemfarben (Increased contrast), jede ≥ 4.5:1 auf der Karte */
-  --chart-1: 30 110 244;           /* Blue */
-  --chart-2: 197 83 0;             /* Orange */
-  --chart-3: 0 129 152;            /* Teal */
-  --chart-4: 176 47 194;           /* Purple */
-  --chart-5: 231 18 77;            /* Pink */
-  --chart-6: 134 134 139;          /* Gray, 3.6:1 */
+  /* Diagramme: jede ≥ 3.8:1 auf der Karte */
+  --chart-1: 26 102 232;           /* Blau */
+  --chart-2: 190 78 8;             /* Orange */
+  --chart-3: 0 122 140;            /* Petrol */
+  --chart-4: 146 58 186;           /* Violett */
+  --chart-5: 210 28 88;            /* Rosa */
+  --chart-6: 120 130 146;          /* Grau */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 119 130 145;
+  --glas-schatten: 16 20 27;
+  --scrim: 18 22 30;
+  --grund-hoch: 248 249 252;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 0.5px rgb(0 0 0 / 0.04);
   --elev-2: 0 12px 32px -4px rgb(0 0 0 / 0.14), 0 2px 6px rgb(0 0 0 / 0.05), 0 0 0 0.5px rgb(0 0 0 / 0.08);
@@ -55,38 +66,51 @@
   --elev-hover-bg: var(--card);
 }
 
-/* Theme Gletscher – dunkel. Flächen aus systemGray6/5/4 (dunkel), Akzentfläche bleibt das
-   kontrastreiche Blau, weil Weiss auf dem hellen Dunkelblau (0 145 255) nur 3.2:1 erreicht. */
+/* Theme Gletscher – dunkel. Kühler, bläulicher Grund; Tiefe über Helligkeitsstufen bg < card < surface-2.
+   Die Akzentfläche bleibt das kräftige Blau, weil Weiss auf einem helleren Blau unter 4.5:1 fällt. */
 .dark,
 [data-theme='gletscher'].dark {
   color-scheme: dark;
 
-  --bg: 28 28 30;                  /* systemGray6 dunkel */
-  --card: 44 44 46;                /* systemGray5 dunkel */
-  --surface-2: 58 58 60;           /* systemGray4 dunkel */
-  --input: 28 28 30;               /* Feld liegt tiefer als die Karte */
-  --text: 245 245 247;             /* apple.com #f5f5f7 */
-  --muted: 174 174 178;            /* systemGray dunkel, Increased contrast – 5.1:1 auf surface-2 */
-  --border: 72 72 74;              /* systemGray3 dunkel */
-  --border-strong: 124 124 128;    /* systemGray2 dunkel, Increased contrast – 3.4:1 auf Karte */
+  --bg: 19 22 28;
+  --card: 32 36 44;
+  --surface-2: 46 51 61;
+  --input: 19 22 28;               /* Feld liegt tiefer als die Karte */
+  --text: 243 245 249;
+  --muted: 168 176 189;            /* ≥ 4.5:1 auf surface-2 */
+  --border: 60 66 77;
+  --border-strong: 116 125 140;    /* ≥ 3:1 auf Karte */
 
-  --accent: 30 110 244;            /* Weiss darauf 4.6:1, 3.7:1 auf Grund */
+  --accent: 26 102 232;            /* Weiss darauf ≥ 4.5:1, ≥ 3:1 auf Grund */
   --accent-contrast: 255 255 255;
-  --accent-text: 92 184 255;       /* systemBlue dunkel, Increased contrast – 5.3:1 auf surface-2 */
-  --ring: 92 184 255;
+  --accent-text: 100 178 255;      /* ≥ 4.5:1 auf surface-2 */
+  --ring: 100 178 255;
 
   --note-gut: 103 210 131;         /* oklch(0.78 0.15 150) */
   --note-genuegend: 152 196 228;   /* oklch(0.8 0.065 240) */
   --note-knapp: 243 189 92;        /* oklch(0.83 0.13 80) */
-  --note-ungenuegend: 253 115 109; /* oklch(0.72 0.17 25) */
+  --note-ungenuegend: 255 158 150; /* oklch(0.8 0.12 25); Marke mit 14 % Tint: Karte 5.29, Zebra 4.88, Hover 4.50 */
 
-  /* Diagramme: Systemfarben dunkel (Standard), jede ≥ 3.8:1 auf der Karte */
-  --chart-1: 0 145 255;            /* Blue */
-  --chart-2: 255 146 48;           /* Orange */
-  --chart-3: 0 210 224;            /* Teal */
-  --chart-4: 219 52 242;           /* Purple */
-  --chart-5: 255 55 95;            /* Pink */
-  --chart-6: 142 142 147;          /* Gray */
+  /* Diagramme: jede ≥ 3.8:1 auf der Karte */
+  --chart-1: 46 148 255;           /* Blau */
+  --chart-2: 250 138 58;           /* Orange */
+  --chart-3: 30 205 215;           /* Petrol */
+  --chart-4: 205 90 235;           /* Violett */
+  --chart-5: 250 72 112;           /* Rosa */
+  --chart-6: 140 150 165;          /* Grau */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 243 245 249;
+  --glas-kante: 122 131 145;
+  --glas-schatten: 6 7 8;
+  --scrim: 8 9 11;
+  --grund-hoch: 26 29 36;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: 0 0 0 0.5px rgb(255 255 255 / 0.06);
   --elev-2: 0 16px 40px -4px rgb(0 0 0 / 0.55), 0 0 0 0.5px rgb(255 255 255 / 0.1);
@@ -124,6 +148,19 @@
   --chart-5: 86 88 171;            /* oklch(0.5 0.13 280) */
   --chart-6: 134 127 119;          /* oklch(0.6 0.015 70) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 137 129 121;
+  --glas-schatten: 26 21 17;
+  --scrim: 30 24 19;
+  --grund-hoch: 251 249 245;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -159,6 +196,19 @@
   --chart-4: 151 152 54;           /* oklch(0.66 0.12 110) */
   --chart-5: 120 123 210;          /* oklch(0.62 0.13 280) */
   --chart-6: 140 133 125;          /* oklch(0.62 0.015 70) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 235 231 224;
+  --glas-kante: 121 115 109;
+  --glas-schatten: 6 5 4;
+  --scrim: 8 7 6;
+  --grund-hoch: 26 22 19;
+  --schalter-knopf: 20 17 14;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -196,6 +246,19 @@
   --chart-5: 205 57 118;           /* oklch(0.58 0.19 0) */
   --chart-6: 130 126 139;          /* oklch(0.6 0.02 300) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 133 129 143;
+  --glas-schatten: 20 16 27;
+  --scrim: 23 18 31;
+  --grund-hoch: 251 251 253;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -231,6 +294,19 @@
   --chart-4: 222 83 136;           /* oklch(0.64 0.18 0) */
   --chart-5: 71 144 216;           /* oklch(0.64 0.13 250) */
   --chart-6: 136 132 145;          /* oklch(0.62 0.02 300) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 236 234 241;
+  --glas-kante: 117 112 129;
+  --glas-schatten: 5 4 7;
+  --scrim: 7 5 9;
+  --grund-hoch: 22 18 29;
+  --schalter-knopf: 17 13 23;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -268,6 +344,19 @@
   --chart-5: 198 60 138;           /* oklch(0.58 0.19 350) */
   --chart-6: 148 148 148;          /* oklch(0.665 0 0) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 132 132 132;
+  --glas-schatten: 15 15 15;
+  --scrim: 18 18 18;
+  --grund-hoch: 253 253 253;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -303,6 +392,19 @@
   --chart-4: 221 111 35;           /* oklch(0.66 0.16 50) */
   --chart-5: 216 85 155;           /* oklch(0.64 0.18 350) */
   --chart-6: 113 113 113;          /* oklch(0.55 0 0) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 238 238 238;
+  --glas-kante: 115 115 115;
+  --glas-schatten: 4 4 4;
+  --scrim: 5 5 5;
+  --grund-hoch: 18 18 18;
+  --schalter-knopf: 18 18 18;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -342,6 +444,19 @@
   --chart-5: 172 48 49;           /* oklch(0.5 0.16 25) */
   --chart-6: 120 132 122;         /* oklch(0.6 0.02 150) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 121 134 124;
+  --glas-schatten: 12 21 15;
+  --scrim: 14 24 17;
+  --grund-hoch: 249 251 250;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -379,6 +494,19 @@
   --chart-4: 157 111 227;         /* oklch(0.64 0.17 300) */
   --chart-5: 229 85 81;           /* oklch(0.64 0.18 25) */
   --chart-6: 126 138 128;         /* oklch(0.62 0.02 150) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 229 238 231;
+  --glas-kante: 108 119 109;
+  --glas-schatten: 3 5 3;
+  --scrim: 4 7 4;
+  --grund-hoch: 14 23 16;
+  --schalter-knopf: 9 18 11;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -418,6 +546,19 @@
   --chart-5: 127 114 33;          /* oklch(0.55 0.1 100) */
   --chart-6: 139 124 119;         /* oklch(0.6 0.02 40) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 144 127 122;
+  --glas-schatten: 25 16 15;
+  --scrim: 28 18 17;
+  --grund-hoch: 254 250 249;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -455,6 +596,19 @@
   --chart-4: 157 111 227;         /* oklch(0.64 0.17 300) */
   --chart-5: 160 148 70;          /* oklch(0.66 0.1 100) */
   --chart-6: 145 130 125;         /* oklch(0.62 0.02 40) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 242 233 231;
+  --glas-kante: 127 112 109;
+  --glas-schatten: 7 4 3;
+  --scrim: 9 5 4;
+  --grund-hoch: 28 18 16;
+  --schalter-knopf: 22 13 11;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -494,6 +648,19 @@
   --chart-5: 168 53 62;           /* oklch(0.5 0.15 20) */
   --chart-6: 130 121 110;         /* oklch(0.58 0.02 70) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 139 125 112;
+  --glas-schatten: 37 26 19;
+  --scrim: 42 30 22;
+  --grund-hoch: 251 245 234;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -531,6 +698,19 @@
   --chart-4: 160 124 219;         /* oklch(0.66 0.14 300) */
   --chart-5: 230 112 95;          /* oklch(0.68 0.15 30) */
   --chart-6: 151 141 130;         /* oklch(0.65 0.02 70) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 238 226 213;
+  --glas-kante: 137 123 112;
+  --glas-schatten: 8 6 4;
+  --scrim: 11 8 6;
+  --grund-hoch: 34 25 19;
+  --schalter-knopf: 28 20 14;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
@@ -570,6 +750,19 @@
   --chart-5: 59 131 78;           /* oklch(0.55 0.11 150) */
   --chart-6: 125 127 140;         /* oklch(0.6 0.02 278) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 126 129 141;
+  --glas-schatten: 15 16 27;
+  --scrim: 17 18 31;
+  --grund-hoch: 250 251 254;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -608,6 +801,19 @@
   --chart-5: 93 173 112;          /* oklch(0.68 0.12 150) */
   --chart-6: 110 113 126;         /* oklch(0.55 0.02 278) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 233 235 243;
+  --glas-kante: 95 98 112;
+  --glas-schatten: 0 0 1;
+  --scrim: 0 0 1;
+  --grund-hoch: 3 3 7;
+  --schalter-knopf: 1 1 3;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
@@ -643,6 +849,19 @@
   --chart-4: 114 74 171;           /* oklch(0.5 0.15 300) */
   --chart-5: 172 48 49;            /* oklch(0.5 0.16 25) */
   --chart-6: 115 132 133;          /* oklch(0.6 0.02 200) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 116 134 135;
+  --glas-schatten: 7 21 22;
+  --scrim: 8 24 25;
+  --grund-hoch: 248 252 252;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
@@ -680,6 +899,19 @@
   --chart-5: 229 85 81;            /* oklch(0.64 0.18 25) */
   --chart-6: 121 138 139;          /* oklch(0.62 0.02 200) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 226 238 238;
+  --glas-kante: 102 119 120;
+  --glas-schatten: 2 5 6;
+  --scrim: 2 7 8;
+  --grund-hoch: 9 24 24;
+  --schalter-knopf: 5 18 19;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
@@ -715,6 +947,19 @@
   --chart-4: 105 75 150;           /* oklch(0.48 0.12 300) */
   --chart-5: 168 53 62;            /* oklch(0.5 0.15 20) */
   --chart-6: 130 121 110;          /* oklch(0.58 0.02 70) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 140 129 115;
+  --glas-schatten: 28 20 14;
+  --scrim: 32 23 16;
+  --grund-hoch: 253 250 246;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
@@ -752,6 +997,19 @@
   --chart-5: 230 109 113;          /* oklch(0.68 0.15 20) */
   --chart-6: 151 141 130;          /* oklch(0.65 0.02 70) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 238 227 215;
+  --glas-kante: 134 121 109;
+  --glas-schatten: 8 5 3;
+  --scrim: 11 7 4;
+  --grund-hoch: 33 23 14;
+  --schalter-knopf: 27 18 9;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
@@ -787,6 +1045,19 @@
   --chart-4: 109 83 152;           /* oklch(0.5 0.11 300) */
   --chart-5: 164 81 123;           /* oklch(0.55 0.12 350) */
   --chart-6: 122 129 137;          /* oklch(0.6 0.015 250) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 124 131 139;
+  --glas-schatten: 15 19 23;
+  --scrim: 18 22 26;
+  --grund-hoch: 250 251 253;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
 
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
@@ -824,6 +1095,19 @@
   --chart-5: 198 104 151;          /* oklch(0.64 0.13 350) */
   --chart-6: 107 114 122;          /* oklch(0.55 0.015 250) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 227 232 238;
+  --glas-kante: 106 115 124;
+  --glas-schatten: 3 4 5;
+  --scrim: 4 6 7;
+  --grund-hoch: 14 19 24;
+  --schalter-knopf: 9 14 18;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1.8;
+  --grund-akzent: 0.02;
+
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.6);
@@ -860,6 +1144,19 @@
   --chart-5: 181 28 121;           /* oklch(0.52 0.2 350) */
   --chart-6: 79 86 97;             /* oklch(0.45 0.02 262) */
 
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 255 255 255;
+  --glas-kante: 93 100 111;
+  --glas-schatten: 5 8 14;
+  --scrim: 6 9 16;
+  --grund-hoch: 255 255 255;
+  --schalter-knopf: 255 255 255;
+  --glas-licht-staerke: 0.6;
+  --glas-kante-staerke: 0.28;
+  --glas-glanz-staerke: 0.05;
+  --glas-saettigung: 1;
+  --grund-akzent: 0;
+
   --elev-1: 0 1px 2px rgb(0 0 0 / 0.05);
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.18);
   --elev-3: 0 24px 48px -12px rgb(0 0 0 / 0.25);
@@ -895,6 +1192,19 @@
   --chart-4: 32 168 155;           /* oklch(0.66 0.11 185) */
   --chart-5: 150 124 219;          /* oklch(0.65 0.14 295) */
   --chart-6: 152 159 171;          /* oklch(0.7 0.02 262) */
+
+  /* Licht und Tiefe der schwebenden Ebene (Seitenleiste, Kapseln, Menüs): Tripel + Stärke */
+  --glas-licht: 248 248 248;
+  --glas-kante: 152 159 171;
+  --glas-schatten: 2 2 2;
+  --scrim: 3 3 3;
+  --grund-hoch: 10 11 14;
+  --schalter-knopf: 7 7 7;
+  --glas-licht-staerke: 0.14;
+  --glas-kante-staerke: 0.45;
+  --glas-glanz-staerke: 0.06;
+  --glas-saettigung: 1;
+  --grund-akzent: 0;
 
   --elev-1: none;
   --elev-2: 0 8px 24px -8px rgb(0 0 0 / 0.5);

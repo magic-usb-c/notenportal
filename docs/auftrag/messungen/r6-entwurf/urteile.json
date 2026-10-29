@@ -1,0 +1,496 @@
+[
+ {
+  "bewertungen": [
+   {
+    "entwurf": "Material zuerst",
+    "apple_treue": 7.5,
+    "messbarkeit": 9,
+    "lesbarkeit_budget": 9,
+    "umsetzbarkeit": 7,
+    "wirkung": 8,
+    "nutzen_statistik": 8,
+    "gesamt": 8,
+    "staerken": [
+     "Setzt die meisten belegten Liquid-Glass-Prinzipien sachlich richtig um: «illuminates from within» als Zeigerlicht mit Obergrenze (HIG Motion: Trackpad «more subdued effect»), «visually recedes» bei Fensterfokusverlust (--np-aktiv), «lift up into Liquid Glass temporarily» nur für Marker, Schalter und Regler, «thicker, more substantial material» für Menüs (0.92 und --elev-3), «As text scrolls underneath, shadows become more prominent» als wachsender Schatten der Symbolleiste.",
+     "Glasbudget folgt «Limit the use of Liquid Glass effects onscreen at the same time»: in Ruhe ≤ 8 % statt 18.4 %, offen ≤ 16 % statt 34.6 %. Unter dem Scrim wird kein Glas gerechnet. Damit wird Glas nur dort gezeigt, wo etwas darunter liegt.",
+     "Behandelt die Backdrop Root bei jeder Morph-Massnahme ausdrücklich: Glas auf dem Element selbst, nur scale/translate, kein clip-path, kein view-transition-name. Der clip-path-Morph wird mit Quelle (Filter Effects 2 §3) verworfen, das entspricht der Korrektur der Widerleger.",
+     "Deckungen werden aus Baseline §4 abgeleitet und bleiben Literale, damit kontrast.mjs sie lesen kann. Die Overlays hell steigen von 0.86 auf 0.92, weil das Gletscher-Minimum 0.91 sonst reisst. Das ist ehrlich: mehr Transparenz nur dort, wo der Kontrast sie trägt.",
+     "Als einziger Entwurf behebt er den bestehenden Verstoss gegen die harte Regel «keine Apple-Systemfarbwerte abschreiben»: Die Gletscher-Werte in theme.css sind wörtlich systemGray6/5, systemBlue und apple.com #0066cc. M24 ersetzt sie und prüft das per grep.",
+     "Genau eine getönte Hauptaktion je Seite (toolbars#Actions, color#Liquid-Glass-color), geprüft durch einen Feature-Test. Harte Kante bei angehefteten Tabellenköpfen. Clear-Variante, Count-up, Knopfskalierung, Orbs und Pfad-Morph werden mit korrekter Begründung verworfen.",
+     "Fallback zuerst in jeder Fundamentstufe: color-mix nur in @supports, @starting-style und @property optional, Lesbarkeit ohne Erweiterung."
+    ],
+    "schwaechen": [
+     "Mehrere Apple-Zitate stehen nicht in der Faktenbasis (inventare.json/synthese.json) und sind darum nur behauptet: «gel-like flexibility», «informed by the ambient environment», «light … spill onto its surface», «Starting right under your fingertips», «best reserved for the navigation layer», die Kapitelzeitmarken «Adaptivity (6:00)» und «Design Language (2:06)» sowie der Zusatz «obscures more of the content behind it». Das widerspricht der Vorgabe «nichts dazuerfinden».",
+     "«hard style» für angeheftete Spaltenköpfe wird WWDC25/219 zugeschrieben. Laut Inventar stammt das Zitat («Hard is mostly used on macOS … pinned table headers») aus WWDC25/356.",
+     "Lichtbrechung (M11) und verworfen: Firefox «meldet url() fälschlich als unterstützt» steht als Tatsache da. Laut Widerleger stammt das nur aus Kommentar 0 des Meldenden und ist keine bestätigte Eigenschaft.",
+     "Seitenleiste dunkel 0.62 ist kaum deckender als die Kapseln (0.60). Das schwächt die HIG-Ordnung «more opaque in larger elements like sidebars». Fachlich ist es vertretbar, weil die Leiste nur über dem Grund liegt, es wird aber nicht gegen die HIG-Aussage abgewogen.",
+     "Dass die Unschärfe in der Scrollkante unter den Kapseln «Glas auf Glas» sei, ist eine Überdehnung. Apples Scroll-Edge-Effekt ist ausdrücklich kein Glas (scroll-views: «aren't decorative … don't block or darken like overlays»). Das Weglassen ist über die Leistung begründbar, nicht über diese Regel.",
+     "Aktive Leistenzeile mit Symbol in accent-text: HIG Color#Liquid-Glass-color empfiehlt «apply color to the background rather than to symbols or text».",
+     "Die angedockte Seitenleiste ohne backdrop-filter ist kein Liquid Glass im Apple-Sinn mehr. Der Entwurf benennt das aber selbst, belegt es per Ausschnittvergleich und legt die Frage David vor.",
+     "25 Massnahmen mit 6 neuen Blade-SVG- bzw. Chart-Bauern sind ein grosser Umfang."
+    ],
+    "regelverstoesse": []
+   },
+   {
+    "entwurf": "Bewegung zuerst",
+    "apple_treue": 5.5,
+    "messbarkeit": 8,
+    "lesbarkeit_budget": 6,
+    "umsetzbarkeit": 6,
+    "wirkung": 8,
+    "nutzen_statistik": 7,
+    "gesamt": 5,
+    "staerken": [
+     "Der Menü-Morph aus dem gemessenen Knopfmass (--np-von-sx/-sy, Ursprung in der Knopfmitte) kommt Apples «bubble pops open … right where you just tapped» und «buttons fluidly morph into menus and popovers» am nächsten. Das Glas sitzt dabei auf dem Panel selbst.",
+     "Saubere Lösung für View Transitions: Namen nur auf leeren Marker-Spans ohne Glas oder kurzzeitig inline und nach finished entfernt. Der Schnappschuss des Glases (300 ms) wird ausdrücklich akzeptiert. So wird die Backdrop Root bewusst behandelt.",
+     "Die Reduktion über Tokens (Weg 0, Skala 1, Dauern auf 150 ms) plus Variante ruhig für Lagebewegungen ist die korrekte Lesart von accessibility#Cognitive «Replacing transitions in x-, y-, and z-axes with fades». Dazu kommt die richtige Erkenntnis, dass Tokens eine Verschiebung nur verkürzen.",
+     "Der Drawer ist als CSS-Transition umkehrbar («Let people cancel motion»). Die Treffer-Hervorhebung in Palette und Menüs springt bewusst, weil das eine häufige Interaktion ist (motion#Providing-feedback).",
+     "Fensterfokus mit grauer Auswahl wie im inaktiven macOS-Fenster («visually recedes»). Apple-Quellen fast durchgehend aus der Faktenbasis, mit Anker.",
+     "Diagramm-Änderungen werden zusätzlich zur Animation über aria-live und Hervorhebung kenntlich gemacht («highlight the changes in other ways, too»)."
+    ],
+    "schwaechen": [
+     "Zählwerk (Heldenzahl zählt vom Vorsemester hoch, Filterkacheln von 0) und gestaffelter Kartenaufbau sind Bewegung ohne Informationsgewinn. HIG Motion: «Don't add motion for the sake of adding motion». Kurzzeitig werden Noten gezeigt, die es nie gab; dass das «einmal je Sitzung» geschieht, ändert daran nichts. Die anderen beiden Entwürfe verwerfen das zu Recht.",
+     "Missbrauch einer Quelle: «Avoiding animating into and out of blurs» (accessibility#Cognitive) ist eine Massnahme für reduzierte Bewegung. Der Entwurf verbietet damit das Materialisieren über die Unschärfe allgemein, obwohl WWDC25/219 genau das als Normalfall beschreibt («materialize in and out by gradually modulating the light bending»). Es ist derselbe Fehlertyp wie bei der von den Widerlegern korrigierten 35-%-Regel.",
+     "Das Glasbudget folgt «Limit the use of Liquid Glass effects onscreen at the same time» nicht: in Ruhe unverändert 18.4 %, offen bis 32 %. Die Seitenleiste behält blur 24px über einem statischen Verlauf, wo es nichts zu brechen gibt.",
+     "«gel-like flexibility» als Apple-Zitat steht nicht in der Faktenbasis.",
+     "Wischgeste für Toasts mit der Maus am Desktop stützt sich auf «follows people's gestures». Das ist für den Massstab (Desktop, Maus) schwach belegt.",
+     "Viele riskante Bausteine (sibling-index(), pageswap/pagereveal mit Typen, Zeilen-View-Transitions, interpolate-size) erhöhen das Umsetzungsrisiko."
+    ],
+    "regelverstoesse": [
+     "Startwert des Zählwerks data-von = Wert − Lernstand::delta wird im Blade berechnet (M15). Das ist ein Notenschnitt, der ausserhalb von App\\Services\\Auswertung entsteht; Regel: «alle Durchschnitte aus Auswertung, nie aus SQL/Controller/View». Behebbar über einen vorhandenen Vorsemesterwert aus Auswertung/Lernstand."
+    ]
+   },
+   {
+    "entwurf": "Daten zuerst",
+    "apple_treue": 8,
+    "messbarkeit": 8,
+    "lesbarkeit_budget": 7,
+    "umsetzbarkeit": 7,
+    "wirkung": 6,
+    "nutzen_statistik": 9,
+    "gesamt": 7,
+    "staerken": [
+     "Die strengste Quellendisziplin der drei Entwürfe: Fast jede Aussage ist ein Zitat aus der Faktenbasis mit HIG-Anker. Dazu gehören toolbars#Item-groupings (höchstens 3 Gruppen), toolbars#Actions (eine Primäraktion trailing), scroll-views («one scroll edge effect per view»), WWDC25/356 (harte Kante bei angehefteten Köpfen, «pair Liquid Glass with a dimming layer»), menus#Icons (alle oder keine Symbole), popovers/sheets (eins zur Zeit) und search-fields (Tokens als Filter).",
+     "Richtige Lesart von accessibility#Cognitive: Das Materialisieren über die Unschärfe ist der Normalfall, unter reduzierter Bewegung gibt es keine Blur-Übergänge.",
+     "HIG Color#Liquid-Glass-color wörtlich umgesetzt: Die aktive Seitenleistenzeile ist im Hintergrund getönt, Symbole bleiben uneingefärbt.",
+     "Die Achsenentscheidung ist präzise mit HIG Charts#Axes begründet: Balken für Noten ab 1 («fixed range when … meaningful»), Anzahlen ab 0, Veränderungen als Hantel statt Balken. Kreis-, Ring- und Tachodiagramme werden mit charts#Marks verworfen.",
+     "Bei der Statistik pilotehrlich: Heatmap und Betriebstrend werden bei n < 3 verworfen. Der Stichtag-Verlauf entsteht über den Rechenkern ohne Schemaänderung, Positionen ohne Datum werden benannt.",
+     "Count-up, Orbs und Glas im Inhalt werden mit korrekten Quellen verworfen."
+    ],
+    "schwaechen": [
+     "Deckungsregel falsch auf die Baseline angewandt: Auch die Seitenleiste wird aus der Spalte «alle Tokenflächen» bemessen (0.89–0.92), obwohl sie am Massstab nur über dem Grund liegt (Baseline: dort genügt 0.00). Die Leiste wird damit fast deckend. Apples Seitenleiste nimmt aber gerade die Umgebung auf («Bigger elements … adapt based on context»). Davids Wunsch nach mehr Transparenz bleibt unerfüllt, und das Glas hat nichts mehr zu zeigen.",
+     "Die Skizze F4 legt ::before in :is() (:root[data-transparenz='reduziert'] :is(.np-glas, .glass-overlay, .np-glas-gruppe::before)). Dieser Selektor ist ungültig, die ganze Regel fiele weg, und reduzierte Transparenz würde kein Glas mehr deckend machen. Die Akzeptanz in M01 würde das fangen; als Skizze ist es aber ein Fehler, den die anderen Entwürfe ausdrücklich vermeiden.",
+     "Fensterfokus («visually recedes») fehlt. Das ist ein belegtes Apple-Verhalten, das die anderen beiden Entwürfe umsetzen.",
+     "Die Lichtbrechung (S8-M24) soll ausgerechnet auf Seitenleiste und Menüs wirken, also auf grosse, textreiche Flächen. Die Leiste hat nichts darunter. Das passt schlechter zu «regular … for components with a significant amount of text» als die Begrenzung auf kleine Kapseln.",
+     "Die Deckung als var() macht kontrast.mjs ohne Umbau blind. Das wird zwar adressiert, schafft aber eine neue Fehlerquelle im Messwerkzeug.",
+     "Glasbudget in Ruhe ≤ 20 % liegt über dem heutigen Wert (18.4 %) und nutzt den Spielraum von «Limit the use» nicht."
+    ],
+    "regelverstoesse": []
+   }
+  ],
+  "beste_ideen_ueber_alle": [
+   {
+    "idee": "Glas nur dort, wo etwas darunter liegt. Die angedockte Seitenleiste wird Leuchtglas ohne backdrop-filter (Tönung, Lichtkante, Glanz) und nur als Schublade echtes Glas. Der Beleg ist ein Ausschnittvergleich vorher/nachher; das Budget in Ruhe sinkt auf ≤ 8 %.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Setzt «Limit the use of Liquid Glass effects onscreen at the same time» messbar um und spart rund 13 % Fensterfläche Rasterkosten, ohne dass sich das Bild ändert. Offene Produktfrage an David ist sauber benannt."
+   },
+   {
+    "idee": "Während Palette oder Dialog offen sind, rechnen Kapseln und Schublade unter dem Scrim kein backdrop-filter. Das Umschalten ist an transitionend des Scrims gekoppelt.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Greift direkt an der gemessenen Ursache an (Tippen in der Palette p95 +10–12 ms durch Glas) und entspricht «avoid glass on glass» sowie dem Glasbudget."
+   },
+   {
+    "idee": "Fensterfokus: html[data-fenster] und --np-aktiv schwächen Lichtkante und Glanz, die Auswahl wird grau wie im inaktiven macOS-Fenster.",
+    "aus_entwurf": "Material zuerst / Bewegung zuerst",
+    "warum": "Belegt durch WWDC25/219 «when a window loses focus … Liquid Glass … visually recedes». Billig und desktop-typisch."
+   },
+   {
+    "idee": "Die Gletscher-Werte, die wörtlich aus Apple-Systemfarben stammen (systemGray6/5, systemBlue, apple.com #0066cc), werden durch eigene Werte mit gleichem gemessenem Kontrast ersetzt, geprüft per grep.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Behebt einen bestehenden Verstoss gegen die harte Regel «keine Apple-Systemfarbwerte abschreiben» in theme.css:16-75."
+   },
+   {
+    "idee": "Deckungen bleiben Zahlenliterale in den @utility-Blöcken. Overlays hell steigen auf 0.92, weil das Gletscher-Minimum 0.91 sonst reisst; Leiste und Kapseln werden nur so weit dünner, wie Baseline §4 es trägt.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Mehr Transparenz genau dort, wo der Kontrast sie erlaubt, und die Messung bleibt intakt. Das ist die ehrliche Antwort auf «mehr Transparenz»."
+   },
+   {
+    "idee": "Menü wächst aus dem gemessenen Knopfmass: --np-von-sx/-sy gleich Knopf geteilt durch Panel, transform-origin in der Knopfmitte, Glas auf dem Panel, nur scale und opacity.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Am nächsten an «bubble simply pops open … right where you just tapped» und «buttons fluidly morph into menus», ohne View-Transition-Backdrop-Root."
+   },
+   {
+    "idee": "View-Transition-Namen nur auf leeren Marker-Spans ohne Glas oder kurzzeitig inline und nach viewTransition.finished entfernt (Seitenleistenauswahl, Tab-Marker).",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Löst den Konflikt zwischen Morph und Backdrop Root (css-view-transitions-1 §2.1.1) regelkonform, statt Morphs ganz aufzugeben."
+   },
+   {
+    "idee": "Reduzierte Bewegung über Tokens (Weg 0, Skala 1, Dauern 150 ms, Feder zu ease) statt der 0.01-ms-Regel, plus eine Variante ruhig für Lagebewegungen.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Exakte Umsetzung von accessibility#Cognitive «Replacing transitions in x-, y-, and z-axes with fades». Zustandswechsel bleiben als Überblendung sichtbar statt zu verschwinden."
+   },
+   {
+    "idee": "Materialisieren über die Unschärfe ist der Normalfall. Nur unter reduzierter Bewegung steht die Unschärfe sofort.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Die einzige korrekte Lesart beider Quellen: WWDC25/219 «materialize … modulating the light bending» als Standard, accessibility#Cognitive «Avoiding animating into and out of blurs» nur als Reduktionsmassnahme."
+   },
+   {
+    "idee": "HIG-Regeln der Symbolleiste als prüfbare Kriterien: höchstens 3 Gruppen (evaluate-Zählung), genau eine getönte Primäraktion trailing (data-hauptaktion-Test), eine Scrollkante pro Ansicht, harte Kante bei angehefteten Tabellenköpfen.",
+    "aus_entwurf": "Daten zuerst / Material zuerst",
+    "warum": "Macht Apple-Treue messbar statt behauptet (toolbars#Item-groupings, toolbars#Actions, scroll-views, WWDC25/356)."
+   },
+   {
+    "idee": "Aktive Seitenleistenzeile: getönter Hintergrund, Symbole nicht eingefärbt. Menüs: alle Einträge mit Symbol oder keiner.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Wörtlich HIG Color#Liquid-Glass-color («apply color to the background rather than to symbols») und menus#Icons. Kleiner Aufwand, sichtbare Konsistenz."
+   },
+   {
+    "idee": "Achsenregel: Notenbalken ab 1 (fixed range meaningful), Anzahlen ab 0, Veränderungen als Hantel statt Balken. Keine Kreis-, Ring- oder Tachodiagramme.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Präzise Anwendung von charts#Axes und charts#Marks, verhindert verzerrte Notengrafiken."
+   },
+   {
+    "idee": "Count-up und Hochzählen von Kennzahlen ausdrücklich verwerfen; Werteänderungen per 150-ms-Überblendung und aria-live.",
+    "aus_entwurf": "Material zuerst / Daten zuerst",
+    "warum": "Count-up zeigt Noten, die es nie gab, und flutet Screenreader. Das widerspricht «Don't add motion for the sake of adding motion» und «don't require interaction to reveal critical information»."
+   },
+   {
+    "idee": "Stichtag-Verlauf über den Rechenkern aus einer Ladung, Positionen ohne Datum (IPA, Schlussprüfung) benannt statt einsortiert, Quartale ab mehr als 60 Monaten. Heatmap und Betriebstrend im Pilot (n < 3) zurückstellen.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Erfüllt Vorentscheidung 5 und die Widerleger-Korrektur zu Leistung::datum. Pilotehrlich statt leerer Diagramme."
+   }
+  ],
+  "sieger": "Material zuerst",
+  "begruendung": "Gemessen an Apple-Treue und Quellenlage setzt «Material zuerst» die belegten Liquid-Glass-Prinzipien am vollständigsten und am sachlichsten um. Dazu gehören Aufleuchten bei Interaktion, Zurücktreten bei Fensterfokusverlust, Glas nur während der Interaktion, dickeres Material für Menüs, ein Schatten, der mit dem Scrollen wächst, und genau eine getönte Primäraktion. Als einziger Entwurf folgt er «Limit the use of Liquid Glass effects» mit einem gemessenen Budget (≤ 8 % in Ruhe statt 18.4 %, offen ≤ 16 % statt 34.6 %), leitet jede Deckung aus Baseline §4 ab und behebt den bestehenden Verstoss gegen «keine Apple-Systemfarbwerte abschreiben» in theme.css (Gletscher ist wörtlich systemGray, systemBlue und apple.com). Abzug gibt es für die Quellenlage: Mehrere Zitate («gel-like flexibility», «informed by the ambient environment», «spill onto its surface», «best reserved for the navigation layer», Kapitelzeitmarken) stehen nicht in der Faktenbasis. «hard style» ist WWDC25/219 statt 356 zugeschrieben, und der @supports-Fehler in Firefox wird als Tatsache dargestellt, obwohl die Widerleger ihn auf Kommentar 0 zurückgeführt haben. Diese Stellen müssen in GUI-R6.md auf belegte Zitate zurückgeführt oder als unbelegt markiert werden.\n\n«Daten zuerst» hat die sauberste Quellendisziplin (fast alles mit HIG-Anker aus der Faktenbasis), wendet accessibility#Cognitive als einziger Entwurf richtig an und liefert die stärksten, pilotehrlichen Statistiken. Er bemisst aber die Seitenleiste aus der falschen Baseline-Spalte (0.92 statt der möglichen Durchsicht über dem Grund), verzichtet auf das Zurücktreten bei Fensterfokusverlust, legt die Lichtbrechung auf grosse Textflächen und enthält einen ungültigen Selektor mit ::before in :is(). Dieser Selektor würde reduzierte Transparenz brechen, wenn ihn die Abnahme nicht fängt.\n\n«Bewegung zuerst» hat den Apple-nächsten Menü-Morph und die beste Behandlung von View Transitions. Mit Zählwerk und gestaffeltem Erstaufbau setzt er aber Bewegung als Dekoration ein (HIG Motion: «Don't add motion for the sake of adding motion»). Das Zitat zu Blur-Übergängen überträgt er aus dem Reduktionskontext auf den Normalfall, und das Glasbudget sinkt nicht. Ausserdem berechnet er den Startwert des Zählwerks (Wert − delta) im Blade. Das ist ein Notenwert ausserhalb von Auswertung, also ein Regelverstoss, der «gesamt» bei 5 deckelt.\n\nEmpfehlung: «Material zuerst» als Gerüst nehmen. Daraus übernehmen: von «Daten zuerst» die Toolbar- und Menü-Kriterien, die Achsenregel, die korrekte Blur-Lesart und den Stichtag-Verlauf; von «Bewegung zuerst» den Morph aus dem Knopfmass, die Marker-Spans mit temporären View-Transition-Namen und die Token-Reduktion. Vorher die unbelegten Zitate bereinigen."
+ },
+ {
+  "bewertungen": [
+   {
+    "entwurf": "Material zuerst",
+    "apple_treue": 9,
+    "messbarkeit": 9,
+    "lesbarkeit_budget": 9,
+    "umsetzbarkeit": 7,
+    "wirkung": 8,
+    "nutzen_statistik": 7,
+    "gesamt": 8,
+    "staerken": [
+     "Deckungen bleiben Zahlenliterale in @utility-Blöcken. Der Parser in kontrast.mjs (materialDeckung, Regex (0?\\.\\d+|1), erste Angabe je Modus) und in ThemeKontrastTest liest sie unverändert. Die neuen Materialien (np-glas-moment, Unterlage grund-hoch, --glanz) werden in die bestehende MATERIAL-Liste eingetragen, das Messinstrument bleibt scharf.",
+     "Die angedockte Seitenleiste verliert backdrop-filter, behält aber Tönung 0.62/0.72, Lichtkante und Glanz. leistung.mjs zählt nur sichtbare Elemente mit backdrop-filter (Zeile 130ff). Damit ist der Glasanteil in Ruhe ≤ 8 % (statt 18.4 %) echt messbar und die Rastereinsparung real. Unter der Leiste liegt nur Grund, Spalte 2 der Baseline nennt dort 0.00, Kontrast ist also kein Risiko.",
+     "Als einziger Entwurf senkt er die Palettenkosten substanziell: Panel 40rem × 28rem, kein Kapselglas unter dem Scrim, keine Unschärfe-Animation. Glas offen ≤ 16 % statt 34.6 %. Die Differenz Tipp-p95 mit/ohne Glas ≤ 5 ms ist ein sauberes A/B-Kriterium auf derselben Maschine mit --ohne-glas.",
+     "Er erkennt und entfernt das Glas auf Glas unter den Kapseln (blur(10px) in np-symbolleiste::before, app.css:419).",
+     "Er ersetzt alle rgb(255 255 255/α) und rgb(0 0 0/α) in app.css durch Tokens (heute np-glas :284, np-glas-gruppe) und greift als einziger die Apple-abgeschriebenen Gletscher-Werte an (theme.css :36 «apple.com #0066cc», :75 «systemBlue dunkel»).",
+     "Die Backdrop-Root-Umgehung ist je Massnahme konkret: Glas auf dem bewegten Element, kein view-transition-name auf Glas oder Vorfahren, Pseudo-Elemente nie in :is(). Im Kapselwirt kommt der Glanz als span statt ::after.",
+     "Die Fallbacks kommen jeweils zuerst: background-color --bg vor dem Verlauf, linear() fällt auf ease zurück, ohne @property springt der Glanz, ohne JS bleibt --np-licht 0. Das Zeigerlicht cacht das Rechteck beim Eintritt und ist per rAF-Flag gedrosselt.",
+     "Die JSON-Antwort trägt Vary: Accept und Cache-Control: no-store (Zurück-Taste), die Tabellen beider Modi aus «Wo stehe ich» werden serverseitig gerendert.",
+     "Fast jede Massnahme hat ein Kriterium, das sich mit den vorhandenen Werkzeugen prüfen lässt (clip.mjs NP_EVAL, leistung.mjs, kontrast.mjs, Feature-Tests)."
+    ],
+    "schwaechen": [
+     "Controller-Pfade sind falsch (aus dem Auftrag übernommen): LernenderNotenController.php, AdminBerichtController.php, LernenderAbschlussController und PruefungenController auf oberster Ebene existieren nicht. Real sind Lernender/NotenController.php, Admin/BerichtController.php, Lernender/AbschlussController.php und Lernender/PruefungenController.php.",
+     "npFilter (F7) hat keinen AbortController. Bei schnellen Filterwechseln kann eine überholte Antwort zuletzt gezeichnet werden.",
+     "glass-overlay animiert die Unschärfe 0 → 24px. Das ist klein und unter «ruhig» aus, widerspricht aber HIG Accessibility «Avoiding animating into and out of blurs» und kostet 200 ms Rasterzeit.",
+     "M06 schaltet das Kapselglas über transitionend des Scrims um. Das ist taktempfindlich, ein sichtbarer Sprung ist möglich (Risiko benannt).",
+     "Die M24-Akzeptanz grep 'apple\\|systemBlue' verfehlt die systemGray-Kommentare (theme.css :30-31) und ist damit unvollständig.",
+     "Heatmap Fach × Lehrjahr und Betriebstrend bleiben im Pilot (5 Lernende) weitgehend leer, weil n < 3. Ihr Nutzen ist vor allem Zukunft.",
+     "kontrast.mjs prüft Pflichtpaare nur über bg/card/surface-2, die Unterlage Akzent ist nur ein Hinweis. Die gesenkten Kapseldeckungen (0.60) sind damit im Scrollkanten-Modell nur so belastbar, wie der Entwurf das Modell erweitert.",
+     "Die Leiste verliert ihren Weichzeichner. Optisch ist das gleich, für Davids «mehr Glas» ist es aber erklärungsbedürftig. Der Ausschnittvergleich als Beleg ist richtig gewählt."
+    ],
+    "regelverstoesse": []
+   },
+   {
+    "entwurf": "Bewegung zuerst",
+    "apple_treue": 8,
+    "messbarkeit": 8,
+    "lesbarkeit_budget": 6,
+    "umsetzbarkeit": 7,
+    "wirkung": 8,
+    "nutzen_statistik": 7,
+    "gesamt": 5,
+    "staerken": [
+     "Die Pfade sind am genauesten: Lernender/NotenController.php, Admin/BerichtController.php und Verwaltung/LernendeController.php existieren so.",
+     "Die Deckung bleibt als erstes Literal stehen, die Tönung per color-mix folgt als zweite Deklaration. Der Parser liest die erste Angabe (??=), kontrast.mjs und ThemeKontrastTest bleiben also gültig.",
+     "Bewegung ist konsequent tokenisiert (theme.css plus @theme inline). Reduzierte Bewegung überschreibt die Tokens selbst (Weg 0, Skala 1, Dauern 150 ms), die Variante ruhig schaltet Lage-Animationen auf opacity. Die Akzeptanz per grep (x-transition mit translate/scale ohne ruhig:) ist streng und prüfbar.",
+     "Die Unschärfe wird nie animiert, auch die Palette materialisiert nur über Deckung und Skala (HIG Accessibility «Avoiding animating into and out of blurs»).",
+     "Die Backdrop-Root-Umgehung ist sauber: view-transition-name nur auf leeren Marker-Spans oder kurzzeitig inline und nach finished entfernt. Die Staffel nie auf Vorfahren von Glas.",
+     "Der Drawer läuft als CSS-Transition und kehrt deshalb mitten im Öffnen um. AbortController plus Entprellung, Vary: Accept und private, no-store sind vorhanden.",
+     "Die Tipp-Schwelle der Palette entspricht der Baseline bei 540 (≤ 27.6/29.4 ms), darf also nicht schlechter werden. Das ist strenger als bei den anderen Entwürfen.",
+     "Das Zählwerk zeigt den Endwert ab dem ersten Bild im DOM (sr-only-Zwilling) und läuft nur beim ersten Aufruf je Sitzung."
+    ],
+    "schwaechen": [
+     "Die Scrollkante behält blur(10px) unter den Kapseln, die selbst backdrop-filter tragen (glas_budget: «unverändert»). Das ist Glas auf Glas.",
+     "Die Glasfläche sinkt kaum: Ruhe bleibt bei 18.4 %, die Palette geht von 34.6 % nur auf ≤ 32 %. Die Leiste behält blur(24px) über einem statischen Verlauf, wo die Unschärfe unsichtbar ist, aber die volle Rasterlast kostet.",
+     "F4: Ein pointermove auf document ruft in jedem rAF-Callback getBoundingClientRect auf, ohne Drosselungs-Flag. Jedes Ereignis plant ein eigenes rAF, das erzwingt Layout-Lesungen pro Bild. Dazu inherits:true auf --np-licht und damit Stil-Neuberechnung bei Nachfahren.",
+     "Die Erstaufbau-Staffel über sibling-index() gibt es nur in Chromium (Fallback benannt). Zusammen mit Zählwerk, Sparkline-Zeichnen, Bullets und Balkenstaffel ist sehr viel Startbewegung pro Seite gestapelt. Das LCP-Kriterium ≤ 197 ms ist knapp.",
+     "Den Count-up der Heldennote lehnen beide anderen Entwürfe aus Gründen der Zugänglichkeit ab: Er zeigt kurz falsche Noten. Der sr-only-Zwilling mildert das nur für Screenreader.",
+     "Die dunkle Kapsel mit 0.56 liegt über dem Scrollkanten-Minimum (0.37) und ist korrekt. Weil aber der Kanten-Blur bleibt, liegt der Kontrastgewinn auf zwei überlagerten Filtern.",
+     "Die Messung der CDP-Emulation von prefers-reduced-transparency übersieht, dass der CDP-Aufruf die colorScheme-Emulation von Playwright überschreibt. Entwurf 3 erkennt das."
+    ],
+    "regelverstoesse": [
+     "Kein Glas auf Glas: Die Kapseln (np-glas-gruppe::before mit backdrop-filter) liegen über der Scrollkante np-symbolleiste::before mit backdrop-filter: blur(10px). Der Entwurf übernimmt das ausdrücklich unverändert. Die harte Vorgabe «Elemente auf Glas bekommen … kein zweites backdrop-filter» ist damit verletzt (Bestand, aber bewusst beibehalten)."
+    ]
+   },
+   {
+    "entwurf": "Daten zuerst",
+    "apple_treue": 6,
+    "messbarkeit": 5,
+    "lesbarkeit_budget": 5,
+    "umsetzbarkeit": 6,
+    "wirkung": 5,
+    "nutzen_statistik": 8,
+    "gesamt": 4,
+    "staerken": [
+     "Die Statistik ist am pragmatischsten. Heatmap Fach × Lehrjahr und Betriebstrend werden für den Pilot verworfen, weil n < 3 fast alle Zellen leer liesse. Dazu kommt «zu viele Daten → Quartale».",
+     "Die Stichtagsreihe ruft Rechenkern::auswerten aus einer einzigen Ladung im Speicher auf. Uebersicht::jahrgangsDiagramm wird gelöscht, weil es mit Rundung::mittel selbst mittelt (Regel «Durchschnitte nur aus Auswertung»).",
+     "data-behalte-filter für Sortier-, Export- und Drucklinks, AbortController, Ladeanzeige erst nach 300 ms. Die vier Zustände (leer, lädt, Fehler, zu viel) sind sauber ausgearbeitet.",
+     "M01 erkennt eine echte Falle: Emulation.setEmulatedMedia ersetzt die Medien-Emulation von Playwright. Ohne prefers-color-scheme in der Merkmalsliste würden die Läufe hell.",
+     "Die Achsenwahl ist fachlich gut begründet: feste Notenachse 1–6, für Anzahlen eine Untergrenze 0, Hanteln statt Delta-Balken, keine Kreisdiagramme.",
+     "Er setzt die Grenze von höchstens 3 Symbolleisten-Gruppen und einer Scrollkante je Seite durch, mit einem evaluate-Kriterium."
+    ],
+    "schwaechen": [
+     "F4 schreibt rgb(var(--card-rgb) / var(--glas-deckung)) und nutzt Klassen statt @utility. Der Parser in kontrast.mjs und ThemeKontrastTest verlangt ein Zahlenliteral im @utility-Block, beide Prüfungen sind damit blind, bis das Messinstrument umgebaut ist. Die Kontrastabnahme hängt also an einem Werkzeugumbau, der selbst ungeprüft ist.",
+     "Die Deckungsregel nimmt für die Seitenleiste die Spalte «alle Tokenflächen» (Gletscher dunkel 0.92), obwohl die Leiste laut Baseline §4 nur über Grund liegt (Spalte 2: 0.00). Das ergibt weniger Transparenz als heute (0.78) ohne Kontrastgrund, also das Gegenteil des Auftrags.",
+     "Die Palette animiert die Unschärfe 0 → 20 px auf der teuersten Glasfläche (Baseline §3), die Menüs ebenso. Das ist ein Widerspruch zum eigenen Leistungsargument und zur HIG-Cognitive-Regel.",
+     "Das Glasbudget erlaubt in Ruhe ≤ 20 %, also mehr als die Baseline mit 18.4 %. Die Tipp-Schwellen 33.1/35.3 ms sind Baseline-540 plus 20 %, eine Verschlechterung wird also zugelassen.",
+     "F7: response()->json ohne Vary: Accept und Cache-Control: no-store. Die Zurück-Taste kann deshalb rohes JSON zeigen.",
+     "S5-M13 rendert die Tabellenalternative von «Wo stehe ich» nur per Alpine x-for. Ohne JS fehlt die Tabelle, im Widerspruch zum eigenen Fallback in F6 und zu «Fallback zuerst».",
+     "Pfade stimmen nicht: LernenderNotenController und AdminBerichtController gibt es nicht, und resources/views/lernender/rechner/index.blade.php existiert nicht (real ist resources/views/rechner/index.blade.php).",
+     "Die Seitenleiste behält blur(24px) über einem statischen Grund, die Scrollkante behält blur(10px) unter den Kapseln."
+    ],
+    "regelverstoesse": [
+     "Reduzierte Transparenz macht nicht jedes Glas deckend: Die Skizze F4 schreibt :root[data-transparenz='reduziert'] :is(.np-glas, .glass-overlay, .np-glas-gruppe::before). Ein Pseudo-Element in :is() ist ungültig, und die Regel wird still verworfen. Baseline §3 dokumentiert genau diesen Fehler: Die Kapseln behielten ihren Weichzeichner.",
+     "Kein Glas auf Glas: Die Scrollkante mit blur(10px) bleibt unter den np-glas-gruppe-Kapseln, die ein eigenes backdrop-filter tragen (glas_budget).",
+     "Lesbarkeit hängt von einer Erweiterung ab: Die Tabellenalternative unter «Wo stehe ich» entsteht nur per JavaScript (x-for), ohne serverseitige Fassung (Vorentscheidung 8: jedes Diagramm hat eine Tabellenalternative)."
+    ]
+   }
+  ],
+  "beste_ideen_ueber_alle": [
+   {
+    "idee": "Angedockte Seitenleiste ohne backdrop-filter: getönte, durchscheinende Fläche (dunkel 0.62) mit Lichtkante, Glanz und --elev-2 über dem statischen Grund. Echtes Glas nur im Schubladenmodus, wo Inhalt darunter liegt.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Über einem ruhigen Verlauf ist Unschärfe unsichtbar, kostet aber rund 13 % Fensterfläche Rasterarbeit. leistung.mjs misst den Glasanteil in Ruhe von 18.4 % auf ≤ 8 % direkt, und nach Baseline-Spalte 2 hält jede Deckung."
+   },
+   {
+    "idee": "Kapselglas der Symbolleiste und der Schublade abschalten, solange die Palette offen ist (unter dem Scrim unsichtbar); Palette auf 40rem × 28rem begrenzen, ohne Unschärfe-Animation.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das ist die einzige Massnahme, die den gemessen teuersten Fall (Tippen p95 +10–12 ms, 34.6 % Glas) substanziell senkt. Sie ist per A/B mit --ohne-glas prüfbar (Differenz ≤ 5 ms)."
+   },
+   {
+    "idee": "Blur aus der Scrollkante unter den Kapseln entfernen; die Kante bleibt ein reiner Verlauf aus --bg, und der wachsende Schatten über --np-kante zeigt, dass Inhalt darunter liegt.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das beseitigt das bestehende Glas auf Glas (WWDC25/219) und spart Rasterzeit beim Scrollen. kontrast.mjs modelliert die Kante ohnehin als bg-Verlauf, das Kontrastmodell bleibt also gültig."
+   },
+   {
+    "idee": "Deckung als erstes Zahlenliteral im @utility-Block, Tönung per color-mix als zweite Deklaration; Licht, Kante und Glanz als Tokens, Deckung nie als var().",
+    "aus_entwurf": "Bewegung zuerst / Material zuerst",
+    "warum": "Der Parser von kontrast.mjs und ThemeKontrastTest liest die erste Literal-Angabe. So bleiben beide Kontrastprüfungen ohne Werkzeugumbau scharf, und ohne color-mix gilt die erste Deklaration als Fallback."
+   },
+   {
+    "idee": "Reduzierte Bewegung über die Tokens selbst (Weg 0, Skala 1, Feder → ease, Dauern 150 ms) statt der 0.01-ms-Regel, plus @custom-variant ruhig für Lage-Animationen.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Überblendungen bleiben erhalten (HIG «Replacing transitions … with fades»), und der persönliche Schalter wirkt gleich wie die Medienabfrage. Die grep-Kriterien finden übersehene Komponenten."
+   },
+   {
+    "idee": "Unschärfe nie animieren; Materialisieren nur über Deckung, Lichtkante und Skala.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "HIG Accessibility «Avoiding animating into and out of blurs», und eine animierte Unschärfe ist der teuerste Rasterfall. Das gilt besonders für die grosse Palette."
+   },
+   {
+    "idee": "Drawer als CSS-Transition statt Keyframe, damit Schliessen mitten im Öffnen von der aktuellen Lage aus umkehrt; ohne Feder, weil Überschwingen am Fensterrand einen Spalt öffnet.",
+    "aus_entwurf": "Bewegung zuerst / Material zuerst",
+    "warum": "HIG «Let people cancel motion». Mit getAnimations().length === 0 nach 400 ms ist das per clip.mjs NP_EVAL prüfbar."
+   },
+   {
+    "idee": "Filter-Fetch mit AbortController und Entprellung; JSON derselben Route mit Vary: Accept und Cache-Control: private, no-store.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Das verhindert, dass eine überholte Antwort zuletzt gezeichnet wird und dass die Zurück-Taste rohes JSON zeigt. Beide Fehler sind in den anderen Entwürfen je einmal offen."
+   },
+   {
+    "idee": "data-behalte-filter auf Sortier-, Export- und Drucklinks, damit replaceState-Zustand und serverseitig gebaute Links nicht auseinanderlaufen.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Diese Lücke ist bei URL-Filtern ohne Neuladen real. Ein Feature-Test, der den Export-Link nach einem Filterwechsel prüft, macht sie sichtbar."
+   },
+   {
+    "idee": "Im CDP-Aufruf Emulation.setEmulatedMedia immer alle Merkmale mitgeben (auch prefers-color-scheme), sonst kippen die Prüfläufe in hell.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Das ist eine konkrete Falle in den Prüfwerkzeugen. Ohne sie wären alle Aufnahmen mit --transparenz=reduziert wertlos."
+   },
+   {
+    "idee": "Gruppen-Statistiken, die im Pilot fast nur n < 3 hätten (Heatmap Fach × Lehrjahr, Betriebstrend), zurückstellen; bei mehr als 60 Monaten auf Quartale umstellen und das im Fazit nennen.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Leere Zellen sind Aufwand ohne Nutzen. Die Reduktion hält Stichtagsreihen und AbfragenAnzahlTest im Budget."
+   },
+   {
+    "idee": "Tabellenalternative für beide Modi von «Wo stehe ich» serverseitig rendern und per x-show umschalten.",
+    "aus_entwurf": "Material zuerst / Bewegung zuerst",
+    "warum": "Das behebt den belegten Fehler (:159) ohne JS-Abhängigkeit, ohne zusätzliche Abfrage und mit Feature-Test prüfbar."
+   },
+   {
+    "idee": "Zeigerlicht nur bei hover:hover und pointer:fine, Rechteck beim pointerenter gecacht, rAF-gedrosselt, @property mit inherits:false auf einem eigenen span.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "«Illuminates from within» ohne Layout-Lesungen pro Ereignis und ohne Stil-Neuberechnung bei Nachfahren. Unter ruhig, bei reduzierter Transparenz und im inaktiven Fenster ist das Licht aus."
+   }
+  ],
+  "sieger": "Material zuerst",
+  "begruendung": "Ich habe vor allem gefragt, welcher Entwurf Kontrast- und Bildbudget mit den vorhandenen Werkzeugen prüfbar hält, ohne gegen eine harte Regel zu verstossen. Geprüft habe ich den Code selbst. kontrast.mjs (Zeile 40-66) und ThemeKontrastTest (Zeile 134-157) lesen die Deckung als erstes Zahlenliteral im @utility-Block. leistung.mjs zählt nur sichtbare Elemente mit backdrop-filter. np-symbolleiste::before trägt heute blur(10px) unter den Kapseln (app.css:419). In app.css steht schon ein @theme-Block mit --ease-in/--ease-out. Neue Bewegungstokens dort sind also gelebte Praxis und kein Verstoss.\n\nMaterial zuerst ist der einzige Entwurf ohne Regelverstoss und senkt das Budget messbar. Er lässt die Deckungen als Literale stehen, damit bleiben die Prüfungen gültig. Glas in Ruhe sinkt auf ≤ 8 %, weil die angedockte Leiste über statischem Grund kein backdrop-filter mehr braucht. Glas bei offener Palette sinkt auf ≤ 16 %, weil das Kapselglas unter dem Scrim abgeschaltet wird und das Panel kleiner ist. Das Glas auf Glas der Scrollkante fällt weg. Fallbacks und Backdrop-Root-Umgehung sind je Massnahme beschrieben. Abzüge gibt es für falsche Controller-Pfade, den fehlenden AbortController, die Blur-Animation der Menüs und Statistiken, die im Pilot leer blieben.\n\nBewegung zuerst ist handwerklich stark: Tokens, Reduktionsregel, Unschärfe nie animiert, umkehrbarer Drawer, die genauesten Pfade. Er übernimmt aber ausdrücklich das Glas auf Glas unter den Kapseln. Deshalb ist er bei 5 gedeckelt. Dazu kommen kaum Einsparung (Ruhe 18.4 %, Palette 32 %) und ein ungedrosseltes pointermove mit Layout-Lesung pro Bild.\n\nDaten zuerst hat die besten Statistikideen: n < 3 im Pilot, data-behalte-filter, Quartale, die Falle mit der CDP-Emulation. Seine Materialskizze verstösst aber gegen die Transparenzregel, weil :is(.np-glas-gruppe::before) still verworfen wird. Genau dieser Fehler ist in Baseline §3 dokumentiert. var()-Deckungen machen beide Kontrastprüfungen blind. Die Leiste wird ohne Kontrastgrund deckender (0.92), die Palettenunschärfe wird animiert, und das Glasbudget liegt über der Baseline. Die Tabelle von «Wo stehe ich» braucht JavaScript. Darum gesamt 4.\n\nEmpfehlung für GUI-R6.md: Fundament und Material aus Material zuerst übernehmen. Dazu aus Bewegung zuerst die Reduktion über Tokens, «Unschärfe nie animieren» für Menüs und den umkehrbaren Drawer. Aus Daten zuerst den Filter-Client mit AbortController, data-behalte-filter, die CDP-Merkmalsliste und die Rückstellung der n<3-Gruppenstatistiken. Die Controller-Pfade sind an das Repo anzupassen: Lernender/NotenController, Admin/BerichtController, Lernender/AbschlussController, Lernender/PruefungenController."
+ },
+ {
+  "bewertungen": [
+   {
+    "entwurf": "Material zuerst",
+    "apple_treue": 9,
+    "messbarkeit": 9,
+    "lesbarkeit_budget": 9,
+    "umsetzbarkeit": 7,
+    "wirkung": 9,
+    "nutzen_statistik": 8,
+    "gesamt": 8.7,
+    "staerken": [
+     "Am ehrlichsten mit den Messwerten umgegangen: Die angedockte Seitenleiste liegt nach Vorentscheidung 1 nur über dem Grund. Darum verzichtet sie auf backdrop-filter und bleibt Leuchtglas mit Tönung, Lichtkante und Glanz (dunkel 0.62). So sinkt das Glas in Ruhe von 18.4 % auf höchstens 8 %, und ein Bildvergleich (clip.mjs) belegt, dass sich die Leiste optisch nicht verändert. Das ist echte Transparenz und kein Effekt um seiner selbst willen.",
+     "Die Deckungen sind direkt aus Baseline §4 abgeleitet: Overlays hell steigen von 0.86 auf 0.92, weil Gletscher hell 0.91 braucht (in app.css:337 heute 0.86). Kapseln stehen bei 0.60 und 0.80 mit Reserve auf das Scrollkanten-Minimum. Mehr Transparenz gibt es nur dort, wo der Kontrast sie trägt.",
+     "Die Befehlspalette wird konsequent behandelt: 40rem breit, Glas nur auf dem Panel, unter dem Scrim wird kein Kapselglas gerechnet, keine animierte Unschärfe. Ziel sind 16 % statt 34.6 % Glas, und die Differenz beim Tippen soll höchstens 5 ms betragen. Das ist die einzige Massnahme mit spürbarem Leistungsgewinn.",
+     "Die Funktionsebene folgt WWDC25/219 sehr genau: Zeigerlicht nur bei feinem Zeiger, ein inaktives Fenster tritt zurück, Menüs wachsen aus dem Knopf mit dickerem Material, Glas nur während der Interaktion (np-glas-moment), keine Unschärfe in der Scrollkante unter den Kapseln (kein Glas auf Glas).",
+     "Das Bewegungsbild ist ruhig und preiswürdig: einmaliges Einzeichnen, danach Stillstand, Hochzählen ausdrücklich verworfen. Bei reduzierter Bewegung bleibt eine Überblendung von 150 ms statt eines Sprungs.",
+     "M24 findet einen bestehenden Regelverstoss: theme.css :29/:34/:36/:68/:75 enthält aus Apple-Quellen übernommene Werte (apple.com #0066cc, systemBlue). Der Entwurf ersetzt sie durch eigene Werte mit gleichem Kontrast.",
+     "Der Fehler bei «Wo stehe ich» wird serverseitig behoben: beide tbody werden gerendert und per x-show umgeschaltet, also auch ohne JavaScript korrekt.",
+     "Die Statistiken beantworten echte Fragen der Lernenden: Verlauf mit ausgewiesenen datumlosen Leistungen, Veränderung als Hantel, Rechner mit Spielraum-Band, Bestehen je Kategorie mit «ausstehend», Agenda mit nötiger Note je Prüfung."
+    ],
+    "schwaechen": [
+     "25 Massnahmen und 8 Fundamentbausteine sind ein sehr grosser Umfang für R6. Mehrere L-Massnahmen (M14, M23) hängen an F6 und F7, das Risiko bei der Reihenfolge ist hoch.",
+     "Heatmap Fach × Lehrjahr und Betriebstrend mit Quartilsband sind im Pilot mit 5 Lernenden fast vollständig grau bzw. bestehen nur aus Einzelpunkten. Der Nutzen für den Admin bleibt bis zur Skalierung gering (Entwurf 3 erkennt das, Entwurf 1 nicht).",
+     "«Die Seitenleiste ist Glas ohne Unschärfe» kann bei David nach «weniger Liquid Glass» klingen. Der Entwurf stellt das zwar als offene Frage, doch die Wirkung hängt am Zeigerlicht und am Grund, die beide sehr dezent sind.",
+     "Ohne Blur in der Scrollkante kann Text unter dem mittleren Verlaufsteil (0.72) durchschimmern. Das Risiko ist benannt, eine Lösung fehlt noch.",
+     "Median und Quartile entstehen «in PHP» in Uebersicht bzw. Bericht statt in einer eigenen Klasse im Namensraum Auswertung. Entwurf 3 legt sie sauberer in Auswertung/Verteilung."
+    ],
+    "regelverstoesse": []
+   },
+   {
+    "entwurf": "Bewegung zuerst",
+    "apple_treue": 7,
+    "messbarkeit": 8,
+    "lesbarkeit_budget": 6,
+    "umsetzbarkeit": 6,
+    "wirkung": 7,
+    "nutzen_statistik": 7,
+    "gesamt": 6.6,
+    "staerken": [
+     "Die Behandlung reduzierter Bewegung ist die gründlichste: Tokens werden überschrieben statt auf 0.01 ms gesetzt, die Variante ruhig deckt Systemeinstellung und persönlichen Schalter ab, grep-Akzeptanz für jedes x-transition mit translate/scale, motion-reduce: wird durch ruhig: ersetzt.",
+     "Bewegung wird als Erklärung von Herkunft verstanden: Die Auswahl in der Seitenleiste gleitet beim Seitenwechsel über einen leeren Marker-Span mit view-transition-name (Backdrop-Root-sauber, weil kein Glas betroffen ist). Die Agenda wechselt Monate mit Richtung über View-Transition-Types, und die Namen werden nur vorübergehend gesetzt.",
+     "Der Drawer lässt sich umkehren, weil er als CSS-Transition statt als Keyframe läuft. Toasts lassen sich wegwischen (Wischen erst ab 6 px Weg), Pause bei Hover und Fokus.",
+     "Die Befehlspalette animiert die Unschärfe ausdrücklich nicht (HIG Accessibility «Avoiding animating into and out of blurs»).",
+     "Die Neuzeichnung der Diagramme per Datensatz-Abgleich über das Label ist durchdacht. Bei reduzierter Bewegung werden Änderungen zusätzlich über aria-live und Farbe hervorgehoben (HIG Charts)."
+    ],
+    "schwaechen": [
+     "Die Heldenzahl zählt 600 ms von der Vorsemesternote hoch, die Filterkacheln für Berufsbildner zählen von 0. Damit stehen kurz falsche Noten auf dem Bildschirm, und die Bewegung trägt keine Information. Gerade bei Noten wirkt das «aufgeregt» statt preiswürdig. Der sr-only-Zwilling lindert das nur für Screenreader.",
+     "data-von = Wert − Lernstand::delta wird in Blade gerechnet. Damit entsteht der Vorsemesterschnitt in der View, nahe an der Regel «Durchschnitte nie aus der View». Lernstand::vorsemesterNote existiert.",
+     "Overlays bleiben hell bei 0.86, obwohl der Entwurf selbst schreibt, dass Text über Akzent- und Diagrammfarben 0.72–0.91 braucht (Gletscher hell 0.91). Das ist eine bewusst offen gelassene Kontrastlücke im hellen Modus.",
+     "Die angedockte Seitenleiste behält blur(24px) über einem statischen Grund. Das kostet Rasterzeit, ohne sichtbar zu sein. Das Glasbudget mit offener Palette liegt bei bis zu 32 % gegenüber 16 % in Entwurf 1.",
+     "Die Staffelung beim Erstaufbau mit sibling-index() funktioniert nur in Chromium. Sie läuft einmal je Seite und Sitzung, also auch täglich bei jeder neu geöffneten Sitzung, und ist damit nahe an «häufiger Interaktion».",
+     "Die Agenda bekommt nur Richtungsbewegung, aber keine nötige Note je Prüfung. Die wichtigste Frage der Lernenden zur Agenda bleibt damit unbeantwortet (offen gelassen wegen der Ziele für Berufsbildner, für Lernende selbst aber unnötig).",
+     "Viele View Transitions (Leiste, Segmente, Tabs, Zeilen, Monat) machen die Seite während des Übergangs nicht klickbar und frieren das Glas als Schnappschuss ein. Die Summe dieser Bewegungen kippt ins Verspielte."
+    ],
+    "regelverstoesse": []
+   },
+   {
+    "entwurf": "Daten zuerst",
+    "apple_treue": 7,
+    "messbarkeit": 8,
+    "lesbarkeit_budget": 7,
+    "umsetzbarkeit": 7,
+    "wirkung": 6,
+    "nutzen_statistik": 9,
+    "gesamt": 7.5,
+    "staerken": [
+     "Die stärkste Statistik-Arbeit. Der Verlauf nach Stichtag ist bis auf Rechenkern::auswerten, Monatsenden, Grenze von 60 Stichtagen (darüber Quartale) und meta.ohneDatum ausgearbeitet. Die Hantel gleicht über die Schlüssel f{id}/m{id} statt über Namen ab.",
+     "Der Entwurf denkt den Pilot mit: Heatmap und Betriebstrend werden verworfen, weil bei 5 Lernenden fast jede Zelle n < 3 hätte. Das ist Nutzen statt Schaufenster.",
+     "Er beantwortet die Fragen, die 16- bis 20-Jährige wirklich haben: nötige Note für die nächste Prüfung in der Agenda, «benötigt 4.2» je offener Abschlussposition, Rechner mit Ziehen über die Fläche und Interpolation ohne neue Anfrage.",
+     "Die Diagrammgestaltung ist klar begründet: Notenbalken ab 1 (HIG Axes «fixed range when meaningful»), Anzahlen ab 0, keine Kreis- oder Tachodiagramme, Hochzählen verworfen, Farbe nur für knappe und ungenügende Balken.",
+     "Saubere Server-Architektur: StatistikFilter mit Whitelist je Rolle (Lernende bekommen nie lernender_id), Verteilung mit Quantil Typ 7 und null unter n = 3 im Namensraum Auswertung. Uebersicht::jahrgangsDiagramm, das selbst mit Rundung::mittel mittelt, wird gelöscht.",
+     "Filter als entfernbare Tokens und data-behalte-filter für Sortier-, Export- und Drucklinks lösen das Auseinanderlaufen von URL und Links."
+    ],
+    "schwaechen": [
+     "Die Deckungsregel max(0.78, Minimum aller Tokenflächen + 0.04) gilt auch für die Seitenleiste, obwohl dort nur Grund liegt (Baseline §4: 0.00 genügt). Gletscher dunkel steigt dadurch auf 0.92 (heute 0.78), mit Blur. Das ist das Gegenteil von «mehr Transparenz», kostet Rasterzeit und macht die Leiste praktisch deckend.",
+     "In der Skizze F4 steht :is(.np-glas, .glass-overlay, .np-glas-gruppe::before). Ein Pseudo-Element in :is() ist ungültig, der ganze Selektor wird verworfen, und reduzierte Transparenz bliebe ohne Wirkung. Die heutige app.css:1472-1473 trennt die Pseudo-Regel bewusst.",
+     "Der Fehler bei «Wo stehe ich» wird über ein Alpine-template x-for behoben. Ohne JavaScript bleibt die Tabellenalternative leer, ein Rückschritt gegenüber dem serverseitigen Rendern beider Zeiträume.",
+     "Bei der Palette wird das Glas kaum gesenkt (Grenze 30 %, Tippen nur bis zur Pflichtgrenze). Das Kapselglas unter dem Scrim wird nicht abgeschaltet.",
+     "Die Funktionsebene bleibt blass: Licht und Menüs wachsen aus dem Knopf, aber es gibt keinen Rückzug bei inaktivem Fenster und keinen gestalteten Glasübergang in die Schublade. Der Grund hat 7 % Akzent, mehr als die anderen Entwürfe. Als «Award-Wirkung» der schwächste Entwurf.",
+     "Die Abnahmen setzen absolute Obergrenzen (AbfragenAnzahlTest ≤ 40) statt des bestehenden Musters klein gegen gross."
+    ],
+    "regelverstoesse": []
+   }
+  ],
+  "beste_ideen_ueber_alle": [
+   {
+    "idee": "Die angedockte Seitenleiste wird Leuchtglas ohne backdrop-filter (durchscheinende Tönung über dem Grund, Lichtkante, Glanz), echte Unschärfe gibt es nur im Schubladenmodus. Damit sinkt das Glas in Ruhe von 18.4 % auf höchstens 8 %, belegt durch einen Bildvergleich vorher und nachher.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Transparenz ist nur dort sinnvoll, wo etwas darunter liegt. Der Entwurf spart rund 13 % Fensterfläche Glas ohne sichtbaren Verlust und entspricht Vorentscheidung 1 und der HIG («without actually scrolling or placing content under it»)."
+   },
+   {
+    "idee": "Bei offener Befehlspalette wird kein Kapsel- oder Schubladenglas unter dem Scrim gerechnet. Die Palette ist höchstens 40rem breit, Glas nur auf dem Panel, ohne animierte Unschärfe.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das ist die einzige Massnahme, die den gemessenen Engpass (Tippen p95 28–36 ms mit Glas) gezielt angreift. Ziel ist eine Differenz von höchstens 5 ms statt 10–12 ms."
+   },
+   {
+    "idee": "Overlays hell von 0.86 auf 0.92 anheben, Seitenleiste und Kapseln im Dunkelmodus dünner machen: Deckung strikt nach den Spalten von kontrast.mjs --minimum je Unterlage.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das schliesst die heutige Kontrastlücke im hellen Modus (Gletscher hell braucht 0.91) und gibt Transparenz nur dort, wo der Kontrast sie trägt."
+   },
+   {
+    "idee": "Bei inaktivem Fenster tritt das Glas zurück (data-fenster, --np-aktiv 0.4 für Licht und Glanz), dazu Zeigerlicht nur bei hover:hover und pointer:fine.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das ist eine direkt aus WWDC25/219 abgeleitete, ruhige Mac-Qualität, die ein Apple-Jurymitglied erkennt, ohne Dauerbewegung."
+   },
+   {
+    "idee": "Bestehende Apple-Farbwerte in theme.css (#0066cc, #1d1d1f, systemBlue) durch eigene Werte mit gleichem gemessenem Kontrast ersetzen, dazu Helligkeitsstufen bg < card < surface-2 per kontrast.mjs --stufen messbar machen.",
+    "aus_entwurf": "Material zuerst",
+    "warum": "Das behebt einen bestehenden Verstoss gegen die harte Regel «keine Apple-Systemfarbwerte abschreiben» und macht «Tiefe über Helligkeit» prüfbar."
+   },
+   {
+    "idee": "Die Reduktionsregel überschreibt Tokens (Weg 0, Feder zu ease, Dauern ab 200 ms auf 150 ms) statt 0.01 ms zu setzen. Die Variante ruhig deckt Systemeinstellung und persönlichen Schalter ab, und ein grep prüft jedes x-transition mit translate oder scale.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Bei reduzierter Bewegung bleibt so jede Zustandsänderung als Überblendung erkennbar, und übersehene Komponenten fallen messbar auf."
+   },
+   {
+    "idee": "Drawer als CSS-Transition, damit Schliessen mitten im Öffnen von der aktuellen Lage aus umkehrt; Toasts lassen sich wegwischen (Start erst ab 6 px Weg).",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "«Let people cancel motion» (HIG Motion), umgesetzt mit kleinem Aufwand und ohne Glas im Inhalt."
+   },
+   {
+    "idee": "Monatswechsel in der Agenda mit Richtung über View-Transition-Types, wobei view-transition-name nur während des Übergangs inline gesetzt und danach entfernt wird.",
+    "aus_entwurf": "Bewegung zuerst",
+    "warum": "Die Bewegung trägt Bedeutung (vor oder zurück in der Zeit) und umgeht das Backdrop-Root-Problem sauber, weil es keine dauerhaften Namen gibt."
+   },
+   {
+    "idee": "Verlauf nach Stichtag über Rechenkern::auswerten mit Leistungen bis zum Stichtag, Monatsenden mit Grenze von 60 (darüber Quartale), datumlose Positionen in meta.ohneDatum benannt.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Das ist die einzige wirklich neue Verlaufsstatistik mit derselben Rechenquelle wie überall, ohne Schemaänderung (Vorentscheidung 5), und sie beachtet die Korrektur zu Leistung::$datum."
+   },
+   {
+    "idee": "Nötige Note je anstehender Prüfung in der Agenda («für Ziel 5.0: ≥ 4.6») und «benötigt 4.2» je offener Abschlussposition, beides aus Zielrechner::loese.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Das beantwortet die drängendste Frage der Lernenden («Was brauche ich?») an der Stelle, wo sie entsteht, ohne Umweg über den Rechner."
+   },
+   {
+    "idee": "Statistiken mit n < 3 im Pilot (Heatmap Fach × Lehrjahr, Betriebstrend mit Quartilen) bewusst zurückstellen und stattdessen Histogramm und Lehrjahresstreifen zeigen.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Grafiken, die bei 5 Lernenden fast nur graue Zellen zeigen, wirken leer statt preiswürdig. Der Nutzen geht vor dem Schaufenster."
+   },
+   {
+    "idee": "Verteilung als Klasse in App\\Services\\Auswertung (Quantil Typ 7, Median und Quartile null unter n = 3), Löschen von Uebersicht::jahrgangsDiagramm, das selbst mittelt.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Eine Rechenquelle für alle Gruppenwerte, die Vorentscheidung 2 serverseitig erzwingt, und die Beseitigung einer bestehenden Mittelung ausserhalb von Auswertung."
+   },
+   {
+    "idee": "Rechner: Ziehen über die ganze Diagrammfläche mit interpoliertem Ergebnis im Tooltip ohne neue Anfrage, ← und → in Schritten von 0.25.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Das ist HIG Charts «expanding the hit target to include the entire plot area … scrub» mit null Serverlast und hoher Wirkung für Lernende."
+   },
+   {
+    "idee": "Aktive Filter als entfernbare Tokens sowie data-behalte-filter für Sortier-, Export- und Drucklinks.",
+    "aus_entwurf": "Daten zuerst",
+    "warum": "Filter bleiben sichtbar und umkehrbar, und URL-Zustand und serverseitig gebaute Links laufen nicht auseinander."
+   }
+  ],
+  "sieger": "Material zuerst",
+  "begruendung": "Der Entwurf «Material zuerst» ist der einzige, den ich so einem Jurymitglied von Apple zeigen würde. Er übersetzt «mehr Transparenz, Liquid Glass auf Apple-Niveau» in Entscheidungen, die die Messdaten tragen. Die Seitenleiste wird dünner und leuchtender, aber ohne nutzlosen Blur über einem statischen Grund. Die Overlays werden dicker, wo Text über Akzent- und Diagrammfarben liegt: hell steigt von 0.86 auf 0.92, weil Gletscher hell 0.91 braucht; in app.css:337 steht heute 0.86. Die Palette verliert ihren teuren Glasanteil. Das Ergebnis ist ruhig: Licht statt Grösse, Morph aus dem Knopf, ein Fenster ohne Fokus tritt zurück, Hochzählen ist verworfen, nach dem Einzeichnen herrscht Stillstand. Nebenbei behebt er einen bestehenden Regelverstoss: Die Apple-Farbwerte in theme.css :29–:75 sind nachweislich vorhanden. Die Statistiken sind solide und an die Rollen gebunden, im Pilot aber teilweise leer (Heatmap, Betriebstrend). Der Entwurf «Daten zuerst» hat die nützlichsten Statistiken (Verlauf nach Stichtag, nötige Note in Agenda und Abschluss, pilottaugliche Auswahl). Er verfehlt aber die Wirkung, weil seine Deckungsformel die Seitenleiste auf 0.92 mit Blur treibt, also weniger statt mehr Transparenz. Dazu kommen ein ungültiger :is(::before)-Selektor in der Transparenz-Skizze und ein Fehlerfix, der ohne JavaScript nicht funktioniert. «Bewegung zuerst» ist bei reduzierter Bewegung und umkehrbarer Bewegung vorbildlich, kippt aber mit zählenden Noten, gestaffeltem Erstaufbau und vielen View Transitions ins Aufgeregte. Er lässt die Kontrastlücke der hellen Overlays bei 0.86 offen und rechnet den Vorsemesterschnitt in Blade. Keiner der Entwürfe verletzt eine harte Regel so, dass die Gesamtnote gedeckelt werden müsste. Empfehlung: Material und Funktionsebene aus «Material zuerst», die Statistik- und Serverschicht (Stichtag, Verteilung, Agenda und Abschluss «benötigt», Filter-Tokens) aus «Daten zuerst», dazu die Reduktionsregel über Tokens, den umkehrbaren Drawer und die gerichteten Monatswechsel aus «Bewegung zuerst»."
+ }
+]

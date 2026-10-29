@@ -40,13 +40,18 @@
          x-on:keydown.escape.window="offen && schliessen()">
         <template x-teleport="body">
             <div x-show="offen" x-cloak class="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]">
-                <div class="absolute inset-0 glass-scrim" @click="schliessen()" x-show="offen" x-transition.opacity.duration.200ms aria-hidden="true"></div>
+                <div class="absolute inset-0 glass-scrim" @click="schliessen()" x-show="offen"
+                     x-transition:enter="transition-opacity ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     aria-hidden="true"></div>
 
+                {{-- Öffnen über @starting-style von glass-overlay (Deckkraft, Skala); nur das Ausblenden läuft über Alpine --}}
                 <div x-ref="dialog"
-                     x-show="offen" x-transition.opacity.duration.200ms
+                     x-show="offen"
+                     x-transition:leave="transition-opacity ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
                      x-on:keydown.tab="haltFokusImDialog($event)"
                      role="dialog" aria-modal="true" aria-labelledby="tastenkuerzel-titel"
-                     class="relative w-full max-w-md overflow-hidden rounded-2xl glass-overlay shadow-e3">
+                     class="relative w-full max-w-md overflow-hidden rounded-2xl glass-overlay [--dauer-morph:var(--dauer-4)] shadow-e3">
                     <div class="flex items-center justify-between border-b border-border px-5 py-3.5">
                         <h2 id="tastenkuerzel-titel" class="text-sm font-semibold text-text">{{ __('Tastenkürzel') }}</h2>
                         <button type="button" x-ref="schliessenKnopf" @click="schliessen()" aria-label="{{ __('Schliessen') }}"

@@ -3,7 +3,7 @@
     <x-slot name="header">
         <x-seitenkopf :titel="__('Module')" :zaehler="$module->count() ?: null">
             <x-slot:aktionen>
-                <a href="{{ route('modules.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="plus" strich="2" />{{ __('Modul anlegen') }}</a>
+                <a href="{{ route('modules.create') }}" data-hauptaktion class="np-knopf np-knopf-sekundaer"><x-symbol name="plus" strich="2" />{{ __('Modul anlegen') }}</a>
             </x-slot:aktionen>
         </x-seitenkopf>
     </x-slot>

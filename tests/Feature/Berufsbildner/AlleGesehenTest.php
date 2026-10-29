@@ -47,7 +47,8 @@ class AlleGesehenTest extends TestCase
         $this->actingAs($this->bb)->get($route)->assertSee('Alle 2 als gesehen markieren');
         $this->actingAs($this->bb)
             ->get($route.'?kategorie_id='.$this->abuNote->kategorie_id)
-            ->assertSee('Alle 1 als gesehen markieren');
+            ->assertSee('Neue Note als gesehen markieren')
+            ->assertDontSee('Alle 1 als gesehen markieren');
     }
 
     #[Test]

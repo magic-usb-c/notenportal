@@ -69,19 +69,31 @@ fi
 
 # 2. Composer
 if [ ! -f vendor/autoload.php ]; then
-    # Dist-Archive kommen von api.github.com. Sperrt die Netzrichtlinie den Host (CONNECT 403, gemessen
-    # 01.10.2026), scheitert jeder Dist-Versuch, und phpstan/phpstan hat keine Git-Quelle – composer
-    # install bricht dann auch mit --prefer-source ab. composer-spiegel.sh schreibt deshalb eine
-    # composer.local.lock mit denselben Versionen, deren Archive vom Packagist-Spiegel kommen (unter
-    # einer Minute statt über zehn Minuten Klonen).
-    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 https://api.github.com/ 2>/dev/null)" = "403" ]; then
-        melde "api.github.com gesperrt – composer install über den Packagist-Spiegel (composer.local.lock)"
+    # Dist-Archive kommen von api.github.com und codeload.github.com. Hinter dem Proxy der Cloud ist das
+    # nicht verlässlich: am 01.10.2026 antwortete api.github.com mit 403, am 02.10. mit 200 – und brach
+    # dann jeden Zipball-Download mit «Proxy CONNECT aborted due to timeout» ab; codeload gab 403.
+    # Composer wich auf git clone aus (zehn Minuten für 122 Pakete) und scheiterte an phpstan/phpstan,
+    # das keine Git-Quelle hat. Darum entscheidet eine echte Archiv-Probe, nicht eine Wurzel-URL: liefert
+    # codeload ein Archiv, läuft composer direkt (Packagist-Hashes, Erstquelle); sonst über den
+    # Packagist-Spiegel (composer-spiegel.sh, dieselben Versionen, unter einer Minute). Der Spiegel ist ein
+    # Drittanbieter, composer.lock trägt keine Prüfsummen für seine Archive – SETUP-CLAUDE.md Abschnitt 12.
+    # Scheitert der gewählte Weg, folgt einmal der andere.
+    ARCHIV_PROBE="https://codeload.github.com/laravel/framework/zip/refs/tags/v13.0.0"
+    composer_direkt() { composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1; }
+    composer_spiegel() {
         bash "$PROJEKT/.claude/hooks/composer-spiegel.sh" >>"$LOG" 2>&1 \
-            && COMPOSER=composer.local.json composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1 \
-            || melde "FEHLER: composer install über den Spiegel (siehe $LOG)"
+            && COMPOSER=composer.local.json composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1
+    }
+    if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$ARCHIV_PROBE" 2>/dev/null)" = "200" ]; then
+        melde "composer install direkt von GitHub"
+        composer_direkt \
+            || { melde "direkt gescheitert – zweiter Versuch über den Packagist-Spiegel (composer.local.lock)"; composer_spiegel; } \
+            || melde "FEHLER: composer install (siehe $LOG)"
     else
-        melde "composer install läuft"
-        composer install --no-interaction --prefer-dist --no-progress >>"$LOG" 2>&1 || melde "FEHLER: composer install (siehe $LOG)"
+        melde "GitHub-Archive nicht erreichbar – composer install über den Packagist-Spiegel (composer.local.lock)"
+        composer_spiegel \
+            || { melde "Spiegel gescheitert – zweiter Versuch direkt von GitHub"; composer_direkt; } \
+            || melde "FEHLER: composer install (siehe $LOG)"
     fi
 fi
 

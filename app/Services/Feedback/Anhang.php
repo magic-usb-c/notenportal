@@ -37,7 +37,7 @@ final class Anhang
      * Dateigewichts an Speicher belegen (Breite × Höhe × 4 Byte). */
     public const int MAX_PX = 4000;
 
-    private const string DISK = 'local';
+    public const string DISK = 'local';
 
     private const string ORDNER = 'feedback/anhaenge';
 

@@ -13,6 +13,9 @@
     Generischer Drawer (Erfassen, Bearbeiten, Planen): schwebt rechts mit Abstand zum Fensterrand wie die
     Seitenleiste links, Scrim schliesst, Esc schliesst. Der Fokus springt ins erste Eingabefeld (wie ein
     macOS-Sheet), bleibt innerhalb und kehrt danach zum Auslöser zurück. Öffnen: $dispatch('open-drawer', 'name').
+    Bewegung (B3): reine CSS-Transition über Klassen am Zustand «offen», darum mitten im Lauf umkehrbar – öffnen
+    300 ms ease-out, schliessen 200 ms ease-in, keine Feder. Sichtbarkeit wechselt beim Öffnen sofort (der Fokus
+    greift gleich), beim Schliessen erst nach der Bewegung. Unter ruhiger Bewegung nur Überblendung.
 --}}
 <div
     x-data="{
@@ -31,35 +34,25 @@
     x-init="offen && $nextTick(() => startFokus()?.focus()); $watch('offen', v => { if (! v && ausloeser?.isConnected) { ausloeser.focus(); ausloeser = null } })"
     x-on:open-drawer.window="if ($event.detail === '{{ $name }}') { ausloeser = document.activeElement; offen = true; $nextTick(() => startFokus()?.focus()) }"
     x-on:close-drawer.window="$event.detail === '{{ $name }}' ? offen = false : null"
-    x-on:keydown.escape.window="offen = false"
+    x-on:keydown.escape.window="if (offen && window.np.escapeGilt($el, $event)) offen = false"
     x-on:keydown.tab.prevent="$event.shiftKey || naechsterFokus().focus()"
     x-on:keydown.shift.tab.prevent="vorherigerFokus().focus()"
-    x-show="offen"
     x-cloak
+    :inert="! offen"
+    :class="offen ? 'visible' : 'invisible pointer-events-none transition-[visibility] duration-200 ruhig:duration-150'"
     class="fixed inset-0 z-[70]"
-    style="display: none;"
 >
     <div
-        x-show="offen"
-        x-transition:enter="transition-opacity ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition-opacity ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
         x-on:click="offen = false"
+        :class="offen ? 'opacity-100 transition-opacity duration-300 ease-out ruhig:duration-150' : 'opacity-0 transition-opacity duration-200 ease-in ruhig:duration-150'"
         class="absolute inset-0 glass-scrim"
         aria-hidden="true"
     ></div>
 
     <aside
-        x-show="offen"
-        x-transition:enter="transition-transform ease-out duration-200"
-        x-transition:enter-start="translate-x-[calc(100%+1rem)]"
-        x-transition:enter-end="translate-x-0"
-        x-transition:leave="transition-transform ease-in duration-150"
-        x-transition:leave-start="translate-x-0"
-        x-transition:leave-end="translate-x-[calc(100%+1rem)]"
+        :class="offen
+            ? 'translate-x-0 opacity-100 transition-[translate,opacity] duration-300 ease-out ruhig:duration-150'
+            : 'translate-x-[calc(100%+1rem)] ruhig:translate-x-0 opacity-100 ruhig:opacity-0 transition-[translate,opacity] duration-200 ease-in ruhig:duration-150'"
         role="dialog"
         aria-modal="true"
         @if($titel) aria-label="{{ $titel }}" @endif
@@ -75,7 +68,8 @@
             </div>
         @endif
 
-        <div class="flex-1 overflow-y-auto px-5 py-5">
+        {{-- Die eine Scrollkante dieser Ansicht: Inhalt blendet unter Kopf und Fuss aus (G7) --}}
+        <div class="np-scroll-edge flex-1 overflow-y-auto px-5 py-5">
             {{ $slot }}
         </div>
 

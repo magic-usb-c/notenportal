@@ -8,9 +8,13 @@
                 @continue($key === 'finish')
                 @php $ok = $stand[$key]['erledigt']; @endphp
                 <li class="flex items-center gap-3 px-5 py-3">
-                    <span @class(['w-7 h-7 rounded-full inline-flex items-center justify-center shrink-0 text-xs font-bold',
-                        'bg-note-gut/15 text-note-gut' => $ok,
-                        'bg-note-knapp/15 text-note-knapp' => ! $ok])>{{ $ok ? '✓' : '!' }}</span>
+                    <span class="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
+                        @if($ok)
+                            <x-symbol name="check-circle" class="size-5 text-note-gut" />
+                        @else
+                            <span class="size-2.5 rounded-full border-[1.5px] border-border-strong"></span>
+                        @endif
+                    </span>
                     <span class="flex-1 min-w-0">
                         <span class="block text-sm font-medium text-text">{{ __($name) }}</span>
                         <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : __('offen') }}</span>
@@ -24,12 +28,11 @@
     @include('admin.einrichtung._zugaenge')
 
     <div class="flex flex-wrap items-center justify-between gap-3 print:hidden">
-        <a href="{{ route('admin.setup', 'people') }}" class="np-knopf np-knopf-sekundaer">{{ __('← Zurück') }}</a>
+        <a href="{{ route('admin.setup', 'mail') }}" class="np-knopf np-knopf-sekundaer">{{ __('Zurück') }}</a>
         @if(\App\Support\Einrichtung::offen())
             <form method="POST" action="{{ route('admin.setup.finish') }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
-                <button type="submit" :disabled="loading" @class(['inline-flex items-center px-5 h-10 rounded-xl text-sm font-semibold disabled:opacity-60',
-                    'np-knopf np-knopf-primaer' => $offen->isEmpty(), 'np-knopf np-knopf-sekundaer' => $offen->isNotEmpty()])>
+                <button type="submit" :disabled="loading" @class(['np-knopf', 'np-knopf-primaer' => $offen->isEmpty(), 'np-knopf-sekundaer' => $offen->isNotEmpty()])>
                     {{ $offen->isEmpty() ? __('Einrichtung abschliessen') : __('Trotzdem abschliessen') }}
                 </button>
             </form>

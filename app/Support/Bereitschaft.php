@@ -31,6 +31,7 @@ final class Bereitschaft
             $this->appEnv(),
             $this->appDebug(),
             $this->appUrl(),
+            $this->trustedHosts(),
             $this->sessionSecure(),
             $this->mailUmleitung(),
             $this->kopieAusserHaus(),
@@ -79,6 +80,15 @@ final class Bereitschaft
         return $this->eintrag('app_url', 'APP_URL https', $ok ? self::OK : self::WARNUNG, $ok
             ? 'APP_URL beginnt mit https://.'
             : 'APP_URL ist kein https:// – vor dem Betrieb ausserhalb des Lab-Netzes auf HTTPS umstellen (docs/betrieb.md «HTTPS»).');
+    }
+
+    private function trustedHosts(): array
+    {
+        $aktiv = TrustedHostPatterns::hosts() !== [];
+
+        return $this->eintrag('trusted_hosts', 'TRUSTED_HOSTS', $aktiv ? self::OK : self::WARNUNG, $aktiv
+            ? 'Host-Header sind auf TRUSTED_HOSTS und APP_URL begrenzt.'
+            : 'TRUSTED_HOSTS ist leer – die App nimmt jeden Host-Header an. sudo ./install.sh trägt alle Namen und Adressen ein, oder von Hand in .env ergänzen und php artisan optimize ausführen (docs/betrieb.md «HTTPS»).');
     }
 
     private function sessionSecure(): array

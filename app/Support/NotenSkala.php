@@ -54,7 +54,7 @@ final class NotenSkala
         self::UNGENUEGEND => 'bg-note-ungenuegend',
     ];
 
-    /** Text in Notenfarbe auf 14 % Tint derselben Farbe (Kontrast in theme.css gerechnet). */
+    /** Text in Notenfarbe auf 14 % Tint derselben Farbe. Kontrast gerechnet für Gletscher dunkel (≥ 4.5:1 auf Karte, Zebrazeile, Hover); Werte je Theme in theme.css. */
     private const array BADGE = [
         self::GUT => 'bg-surface-2 text-text',
         self::GENUEGEND => 'bg-surface-2 text-text',

@@ -40,6 +40,8 @@ class SicherungTest extends TestCase
     {
         $this->dumpGelingt();
         Storage::disk('local')->put('lernende/7/dokumente/2026/abc.pdf', '%PDF-1.4 Test');
+        Storage::disk('local')->put('module/5/unterlagen/skript.pdf', '%PDF-1.4 Modul');
+        Storage::disk('local')->put('modulkatalog/katalog.xlsx', 'xlsx');
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)->post(route('admin.operations.backups.store'))->assertSessionHas('success');
@@ -50,6 +52,9 @@ class SicherungTest extends TestCase
         $zip->open(Storage::disk('local')->path('sicherungen/'.$liste[0]['name']));
         $this->assertNotFalse($zip->locateName('datenbank.sql'));
         $this->assertNotFalse($zip->locateName('dateien/lernende/7/dokumente/2026/abc.pdf'));
+        // Modulunterlagen gehören in die Sicherung, die flüchtige Zwischenablage des Katalogimports (24 h) nicht
+        $this->assertNotFalse($zip->locateName('dateien/module/5/unterlagen/skript.pdf'));
+        $this->assertFalse($zip->locateName('dateien/modulkatalog/katalog.xlsx'));
         $zip->close();
         Process::assertRan(fn (PendingProcess $p) => ! str_contains(implode(' ', (array) $p->command), 'password'));
 

@@ -24,13 +24,16 @@
                         </button>
                     </x-slot>
                     <x-slot name="content">
+                        @can('noteAnlegen', $lernender)
+                            <x-dropdown-link href="{{ route($bereich.'.learners.grades.import.index', $lernender->lernender_id) }}">{{ __('Importieren…') }}</x-dropdown-link>
+                        @endcan
                         <x-dropdown-link href="{{ route($bereich.'.learners.grades.print', $lernender->lernender_id) }}" target="_blank">{{ __('Drucken') }}</x-dropdown-link>
                         <x-dropdown-link href="{{ route($bereich.'.learners.grades.export', ['lernender_id' => $lernender->lernender_id, ...request()->only(['semester_id', 'kategorie_id'])]) }}">CSV</x-dropdown-link>
                     </x-slot>
                 </x-dropdown>
                 @can('noteAnlegen', $lernender)
                     <a href="{{ route("{$bereich}.learners.grades.create", $lernender->lernender_id) }}"
-                       class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note erfassen') }}</a>
+                       data-hauptaktion class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Note erfassen') }}</a>
                 @endcan
             </x-slot:aktionen>
         </x-seitenkopf>
@@ -67,7 +70,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <x-status :status="$stand->status" />
                         @foreach($stand->gruende as $g)
-                            <span class="np-marke {{ $stand->status === 'rot' ? 'bg-note-ungenuegend/10 text-note-ungenuegend' : 'bg-note-knapp/14 text-note-knapp' }}">{{ $g }}</span>
+                            <span class="np-marke {{ $stand->status === 'rot' ? 'bg-note-ungenuegend/14 text-note-ungenuegend' : 'bg-note-knapp/14 text-note-knapp' }}">{{ $g }}</span>
                         @endforeach
                     </div>
                 @endif
@@ -107,7 +110,7 @@
                 @else
                     @php
                         // Nach Speichern, Kommentar oder «gesehen» kommt die Seite mit derselben Note zurück; ein Link mit ?_open= ebenso
-                        $start = (int) (session('opened_note') ?: request()->integer('_open'));
+                        $start = (int) (session('opened_note') ?: old('note_id') ?: request()->integer('_open'));
                         $ids = $notes->pluck('note_id')->map(fn ($id) => (int) $id)->all();
                         $start = in_array($start, $ids, true) ? $start : $ids[0];
                         $infos = $notes->mapWithKeys(fn ($n) => [$n->note_id => [
@@ -232,16 +235,22 @@
                                                 <p class="text-sm text-muted">{{ __('Noch keine Kommentare.') }}</p>
                                             @endif
 
+                                            @php($kommentarFehler = $errors->has('kommentar_text') && (int) old('note_id') === (int) $n->note_id)
                                             <form method="POST" action="{{ route('comments.store', $n->note_id) }}" class="flex max-w-3xl items-end gap-2"
                                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                                 @csrf
                                                 <label for="kommentar-{{ $id }}" class="sr-only">{{ __('Kommentar schreiben') }}</label>
+                                                <input type="hidden" name="note_id" value="{{ $n->note_id }}">
                                                 <textarea id="kommentar-{{ $id }}" name="kommentar_text" rows="2" maxlength="2000" required
                                                           placeholder="{{ __('Kommentar schreiben…') }}"
                                                           x-on:keydown.ctrl.enter="$el.form.requestSubmit()" x-on:keydown.meta.enter="$el.form.requestSubmit()"
-                                                          class="np-feld min-w-0 flex-1 resize-y"></textarea>
+                                                          @if($kommentarFehler) aria-invalid="true" aria-describedby="kommentar-{{ $id }}-fehler" @endif
+                                                          class="np-feld min-w-0 flex-1 resize-y">{{ $kommentarFehler ? old('kommentar_text') : '' }}</textarea>
                                                 <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
                                             </form>
+                                            @if($kommentarFehler)
+                                                <p id="kommentar-{{ $id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $errors->first('kommentar_text') }}</p>
+                                            @endif
                                         </section>
                                     </div>
 
@@ -262,6 +271,7 @@
                                             @if($darfLoeschen)
                                                 <form method="POST" action="{{ route("{$bereich}.learners.grades.destroy", [$lernender->lernender_id, $n->note_id]) }}"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+                                                      @class(['mt-1 border-t border-border pt-3' => $istNeu || $darfKorrigieren])
                                                       data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
                                                     @csrf
                                                     @method('DELETE')

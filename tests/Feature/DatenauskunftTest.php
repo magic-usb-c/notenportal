@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Http\Middleware\SetLocale;
 use App\Models\Betreuung;
+use App\Models\CalendarFeed;
 use App\Models\Dokument;
 use App\Models\Fach;
 use App\Models\Feedback;
@@ -139,6 +140,32 @@ class DatenauskunftTest extends TestCase
         $this->assertStringNotContainsString('Geheime Fremdnote', $alles);
         $this->assertStringNotContainsString($dokumentB->originalname, $alles);
         $this->assertStringNotContainsString('fremdes-dokument', strtolower($alles));
+
+        $zip->close();
+    }
+
+    #[Test]
+    public function kalender_export_enthaelt_nur_den_host_der_feed_adresse_nie_pfad_oder_geheimnis(): void
+    {
+        $a = User::factory()->lernender()->create();
+        CalendarFeed::create([
+            'lernender_id' => $a->lernender->lernender_id,
+            'label' => 'Stundenplan',
+            'url' => 'https://schulnetz.example/ical/geheimer-pfad-xyz?token=geheimes-feed-token-789',
+        ]);
+
+        $zip = $this->oeffnen($a);
+
+        $this->assertNotFalse($zip->locateName('kalender.json'));
+        $kalender = json_decode($zip->getFromName('kalender.json'), true);
+        $this->assertSame('Stundenplan', $kalender['abonnements'][0]['label']);
+        $this->assertSame('schulnetz.example', $kalender['abonnements'][0]['host']);
+        $this->assertArrayNotHasKey('url', $kalender['abonnements'][0]);
+
+        $alles = $this->alleEintraege($zip);
+        $this->assertStringContainsString('schulnetz.example', $alles);
+        $this->assertStringNotContainsString('geheimer-pfad-xyz', $alles);
+        $this->assertStringNotContainsString('geheimes-feed-token-789', $alles);
 
         $zip->close();
     }

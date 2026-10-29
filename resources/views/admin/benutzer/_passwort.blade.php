@@ -7,18 +7,31 @@
     <div class="np-karte np-gruppe">
         <x-einstellung :label="__('Passwort')" fuer="passwort" name="passwort"
                        :hinweis="__('Mindestens 10 Zeichen mit Buchstaben und Ziffern')">
-            <button type="button" @click="sichtbar = !sichtbar" :aria-pressed="sichtbar" aria-label="{{ __('Passwort anzeigen') }}"
-                    class="np-knopf np-knopf-symbol np-knopf-rund">
-                <x-symbol name="eye" class="size-4" x-show="!sichtbar" />
-                <x-symbol name="eye-slash" class="size-4" x-show="sichtbar" x-cloak />
-            </button>
-            <input x-ref="pw1" :type="sichtbar ? 'text' : 'password'" name="passwort" id="passwort" minlength="10" autocomplete="new-password"
-                   @if($pflicht) required @else placeholder="{{ __('Unverändert') }}" @endif
-                   class="np-feld w-72" aria-describedby="passwort-hinweis @error('passwort') passwort-fehler @enderror" @error('passwort') aria-invalid="true" @enderror>
+            <div class="relative w-72">
+                <input x-ref="pw1" :type="sichtbar ? 'text' : 'password'" name="passwort" id="passwort" minlength="10" autocomplete="new-password"
+                       @if($pflicht) required @else placeholder="{{ __('Unverändert') }}" @endif
+                       class="np-feld pr-9" aria-describedby="passwort-hinweis @error('passwort') passwort-fehler @enderror" @error('passwort') aria-invalid="true" @enderror>
+                <div class="absolute inset-y-0 right-2 flex items-center">
+                    <button type="button" @click="sichtbar = !sichtbar" :aria-pressed="sichtbar" aria-label="{{ __('Passwort anzeigen') }}"
+                            class="np-knopf np-knopf-symbol np-knopf-rund np-knopf-klein">
+                        <x-symbol name="eye" class="size-4" x-show="!sichtbar" />
+                        <x-symbol name="eye-slash" class="size-4" x-show="sichtbar" x-cloak />
+                    </button>
+                </div>
+            </div>
         </x-einstellung>
         <x-einstellung :label="__('Passwort bestätigen')" fuer="passwort_confirmation">
-            <input x-ref="pw2" :type="sichtbar ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation" autocomplete="new-password"
-                   @if($pflicht) required @endif class="np-feld w-72">
+            <div class="relative w-72">
+                <input x-ref="pw2" :type="sichtbar ? 'text' : 'password'" name="passwort_confirmation" id="passwort_confirmation" autocomplete="new-password"
+                       @if($pflicht) required @endif class="np-feld pr-9">
+                <div class="absolute inset-y-0 right-2 flex items-center">
+                    <button type="button" @click="sichtbar = !sichtbar" :aria-pressed="sichtbar" aria-label="{{ __('Passwort anzeigen') }}"
+                            class="np-knopf np-knopf-symbol np-knopf-rund np-knopf-klein">
+                        <x-symbol name="eye" class="size-4" x-show="!sichtbar" />
+                        <x-symbol name="eye-slash" class="size-4" x-show="sichtbar" x-cloak />
+                    </button>
+                </div>
+            </div>
         </x-einstellung>
     </div>
 </section>

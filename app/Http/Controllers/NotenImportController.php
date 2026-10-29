@@ -153,7 +153,13 @@ class NotenImportController extends Controller
             }
         }
 
-        $ziel = $bereich ? route($bereich.'.learners.grades.index', $lernender->lernender_id) : route('learner.grades.index');
+        // Zur Notenliste des betroffenen Semesters – sonst zeigte sie das aktuelle und die neuen Noten blieben unsichtbar.
+        // Noten aus mehreren Semestern: Standardansicht, die Erfolgsmeldung nennt die Anzahl.
+        $semesterIds = $ergebnis['semester_ids'] ?? [];
+        $parameter = count($semesterIds) === 1 ? ['semester_id' => $semesterIds[0]] : [];
+        $ziel = $bereich
+            ? route($bereich.'.learners.grades.index', [$lernender->lernender_id, ...$parameter])
+            : route('learner.grades.index', $parameter);
 
         return redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
     }

@@ -36,7 +36,7 @@
 <body class="font-sans antialiased bg-bg text-text min-h-screen flex flex-col items-center justify-center p-6">
     <div class="max-w-md w-full text-center space-y-4">
         <div class="text-display text-ghost" aria-hidden="true">{{ $code }}</div>
-        <h1 class="text-2xl font-semibold text-text">{{ $title }}</h1>
+        <h1 class="text-2xl font-bold text-text">{{ $title }}</h1>
         <p class="text-muted text-sm">{{ $message }}</p>
         @if($code === 403 && $angemeldet)
             {{-- Häufig: Mail-Link für ein anderes Konto (z. B. Admin-Adresse), geöffnet in einer fremden Sitzung --}}

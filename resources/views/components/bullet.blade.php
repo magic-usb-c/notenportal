@@ -4,11 +4,12 @@
     'grenzen' => null,     // ['gut', 'genuegend', 'kritisch'] aus den Einstellungen
     'label' => __('Gesamtschnitt'),
     'skala' => true,       // Grenzwerte unter dem Balken
+    'mini' => false,       // Zeilenformat für Tabellen: schmale Spur ohne Skala, der Balken zeichnet sich beim Einfügen ein
 ])
 {{--
     Bullet Graph 1–6 (Few) als Kapsel: Spur mit den Bändern ungenügend/knapp/genügend/gut in Grautönen, Messbalken
     in der Diagrammfarbe (knapp/ungenügend in Notenfarbe), Zielmarke als Strich über die Spur hinaus.
-    Beschreibung als Satz im aria-label.
+    Beschreibung als Satz im aria-label. Mini: Spur, Balken und Zielmarke als SVG (Höhe 8), ohne Bänder und Skala.
 --}}
 @php
     $skalaKlasse = \App\Support\NotenSkala::class;
@@ -29,7 +30,26 @@
         [$g['genuegend'], $g['gut'], 'bg-muted/18'],
         [$g['gut'], 6, 'bg-muted/10'],
     ];
+    // Mini: Balkenfarbe über currentColor, damit auch die Notenfarben (text-note-*) ohne eigene Strichklassen gehen
+    $miniStrich = match ($skalaKlasse::stufe($wert)) {
+        $skalaKlasse::KNAPP => 'text-note-knapp',
+        $skalaKlasse::UNGENUEGEND => 'text-note-ungenuegend',
+        default => 'stroke-chart-1',
+    };
 @endphp
+@if($mini)
+<div {{ $attributes->class(['w-full']) }}>
+    <svg class="block h-2 w-full overflow-hidden rounded-full" viewBox="0 0 100 8" preserveAspectRatio="none" role="img" aria-label="{{ $satz }}">
+        <rect x="0" y="0" width="100" height="8" class="fill-fill"/>
+        @if($wert !== null)
+            <line x1="0" x2="{{ $pos($wert) }}" y1="4" y2="4" pathLength="1" stroke="currentColor" stroke-width="4" class="np-einzeichnen {{ $miniStrich }}"/>
+        @endif
+        @if($ziel !== null)
+            <line x1="{{ $pos($ziel) }}" x2="{{ $pos($ziel) }}" y1="0" y2="8" stroke-width="1.5" vector-effect="non-scaling-stroke" class="stroke-muted"/>
+        @endif
+    </svg>
+</div>
+@else
 <div {{ $attributes->class(['w-full']) }}>
     <div class="relative py-1" role="img" aria-label="{{ $satz }}">
         {{-- Balken schmaler als die Spur, damit die Bänder (ungenügend/knapp/genügend/gut) sichtbar bleiben --}}
@@ -55,3 +75,4 @@
         </div>
     @endif
 </div>
+@endif

@@ -19,7 +19,10 @@
     $k = $kennzahlen;
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
-    $kopf = 'inline-flex items-center gap-1 hover:text-text';
+    $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
+    // «Kritisch» öffnet die Lernendenliste mit demselben Lehrberuf und Berufsbildner, «Ungenügend» sortiert die Tabelle unten
+    $kritischUrl = route('admin.learners.index', array_filter(['warnung' => 'kritisch', 'lehrberuf_id' => $filter['lehrberuf_id'], 'berufsbildner_id' => $filter['berufsbildner_id']]));
+    $ungenuegendUrl = $sort === 'ungenuegend' && $dir === 'desc' ? '#lernende' : request()->fullUrlWithQuery(['sort' => 'ungenuegend', 'dir' => 'desc']).'#lernende';
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Berichte') }}</x-slot>
@@ -27,7 +30,7 @@
         <x-seitenkopf :titel="__('Berichte')" :untertitel="$semesterName">
             <x-slot:aktionen>
                 <button type="button" x-data x-on:click="window.print()" class="np-knopf np-knopf-sekundaer print:hidden">{{ __('Drucken') }}</button>
-                <a href="{{ route('admin.reports.grades.export', $filterParameter) }}" class="np-knopf np-knopf-sekundaer print:hidden">
+                <a href="{{ route('admin.reports.grades.export', $filterParameter) }}" data-behalte-filter class="np-knopf np-knopf-sekundaer print:hidden">
                     <x-symbol name="arrow-down-tray" />{{ __('Exportieren') }}
                 </a>
             </x-slot:aktionen>
@@ -37,7 +40,8 @@
     <div class="py-6">
         <div class="np-seite mx-auto flex flex-col gap-6 px-8">
             <div class="print:hidden">
-                <x-filterleiste :action="route('admin.reports.grades')" :aktive-filter="$aktiveFilter" :zurueck="route('admin.reports.grades')">
+                <x-filterleiste :action="route('admin.reports.grades')" :aktive-filter="$aktiveFilter" :zurueck="route('admin.reports.grades')"
+                                :statistik="['json' => false, 'ersetze' => ['[data-np-filterstatus]', '.np-seite.flex-col > :not(:first-child)']]">
                     <x-slot:hidden>
                         <input type="hidden" name="sort" value="{{ $sort }}">
                         <input type="hidden" name="dir" value="{{ $dir }}">
@@ -69,8 +73,8 @@
             <div @class(['grid gap-4', 'grid-cols-5' => $sid, 'grid-cols-4' => ! $sid])>
                 <x-kachel :label="__('Lernende')" :wert="$k['lernende']" />
                 <x-kachel :label="__('Ø Gesamtnote')" :note="$k['schnitt']" />
-                <x-kachel :label="__('Kritisch')" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="__(':gelb beobachten', ['gelb' => $k['gelb']])" :href="$sortUrl('status')" />
-                <x-kachel :label="__('Ungenügende Zeugnisnoten')" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="__('von :n', ['n' => $k['zeugnisnoten']])" />
+                <x-kachel :label="__('Kritisch')" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="__(':gelb beobachten', ['gelb' => $k['gelb']])" :href="$kritischUrl" />
+                <x-kachel :label="__('Ungenügende Zeugnisnoten')" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="__('von :n', ['n' => $k['zeugnisnoten']])" :href="$ungenuegendUrl" />
                 @if($sid)
                     <x-kachel :label="__('Promotion gefährdet')" :wert="$k['gefaehrdet']" :ton="$k['gefaehrdet'] ? 'rot' : 'neutral'" />
                 @endif
@@ -84,7 +88,7 @@
                             <x-slot:tabelle>
                                 <table class="np-tabelle text-sm">
                                     <thead>
-                                        <tr><th>{{ __('Note') }}</th><th class="text-right">{{ __('Zeugnisnoten') }}</th><th class="text-right">{{ __('Stufe') }}</th></tr>
+                                        <tr><th scope="col">{{ __('Note') }}</th><th scope="col" class="text-right">{{ __('Zeugnisnoten') }}</th><th scope="col" class="text-right">{{ __('Stufe') }}</th></tr>
                                     </thead>
                                     <tbody>
                                         @foreach($verteilung['labels'] as $i => $label)
@@ -183,7 +187,7 @@
                 </x-karte>
             @endif
 
-            <x-karte :titel="__('Lernende')" :polster="false">
+            <x-karte id="lernende" :titel="__('Lernende')" :polster="false">
                 <div class="px-2 pb-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>
@@ -213,7 +217,7 @@
                                     <td>
                                         <x-status :status="$z->stand->status" />
                                         @if($z->stand->gruende)
-                                            <div class="mt-0.5 truncate text-xs text-muted" title="{{ implode(' · ', $z->stand->gruende) }}">{{ implode(' · ', $z->stand->gruende) }}</div>
+                                            <div class="mt-0.5 text-xs text-muted">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif
                                     </td>
                                     <td class="text-right font-semibold {{ NotenSkala::text($z->gesamt) }}">{{ NotenSkala::format($z->gesamt, 1) }}</td>
@@ -229,7 +233,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">{{ __('Keine Lernenden für diese Filter.') }}</td>
+                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">{{ __('Keine Lernenden für diese Filter.') }} <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a></td>
                                 </tr>
                             @endforelse
                         </tbody>

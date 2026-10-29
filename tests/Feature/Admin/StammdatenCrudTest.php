@@ -8,6 +8,7 @@ use App\Models\Fach;
 use App\Models\Kategorie;
 use App\Models\Lehrberuf;
 use App\Models\Modul;
+use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -217,5 +218,31 @@ class StammdatenCrudTest extends TestCase
         $this->actingAs($admin)->post(route('admin.master-data.categories.store'), [
             'code' => 'ZUSATZ', 'name' => 'Andere', 'sortierung' => 51, ...$felder,
         ])->assertSessionHasErrors('code');
+    }
+
+    #[Test]
+    public function fach_mit_pruefung_zeigt_loeschsperre_und_wird_nicht_geloescht(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $fach = Fach::factory()->create();
+        $lernender = User::factory()->lernender()->create()->lernender;
+        Pruefung::create([
+            'lernender_id' => $lernender->lernender_id, 'fach_id' => $fach->fach_id, 'titel' => 'LB1',
+            'datum' => now()->addDays(5)->toDateString(), 'gewichtung_prozent' => 20, 'quelle' => Pruefung::MANUELL,
+        ]);
+
+        // Hinweis und Sperre im Formular folgen derselben Regel wie destroy(): auch ohne Note ist das Fach in Gebrauch.
+        $this->actingAs($admin)->get(route('admin.master-data.subjects.edit', $fach->fach_id))->assertOk()
+            ->assertSee('Das Fach hat bereits Noten oder Prüfungen.')
+            ->assertDontSee('value="DELETE"', false);
+
+        $frei = Fach::factory()->create();
+        $this->actingAs($admin)->get(route('admin.master-data.subjects.edit', $frei->fach_id))->assertOk()
+            ->assertDontSee('Das Fach hat bereits Noten oder Prüfungen.')
+            ->assertSee('value="DELETE"', false);
+
+        // Zuletzt, weil die Fehlermeldung danach als Flash in der Sitzung liegt.
+        $this->actingAs($admin)->delete(route('admin.master-data.subjects.destroy', $fach->fach_id))->assertSessionHas('error');
+        $this->assertTrue(DB::table('faecher')->where('fach_id', $fach->fach_id)->exists());
     }
 }

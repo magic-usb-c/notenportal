@@ -3,6 +3,13 @@
     'frage' => null,
     'fazit' => null, // Kurzfazit für aria-label, z. B. "3 von 20 ungenügend"
     'polster' => true,
+    // Mit typ zeichnet die Komponente selbst (npChart): fokussierbare Hülle, Ansage, Tipp, Canvas, Zusammenfassung.
+    // Ohne typ steht der Inhalt im Slot wie bisher.
+    'typ' => null,
+    'daten' => null,
+    'optionen' => [],
+    'zusammenfassung' => null,
+    'hoehe' => 'h-64',
 ])
 <section {{ $attributes->merge(['class' => 'np-karte flex flex-col']) }}>
     @if($titel || $frage)
@@ -11,8 +18,21 @@
             @if($frage)<p class="mt-0.5 text-xs text-muted">{{ $frage }}</p>@endif
         </header>
     @endif
-    <div @if($fazit) role="group" aria-label="{{ $fazit }}" @endif @class(['flex-1 min-w-0', 'px-5 pb-3 pt-2' => $polster])>
-        {{ $slot }}
+    <div @if($fazit && ! $typ) role="group" aria-label="{{ $fazit }}" @endif @class(['flex-1 min-w-0', 'px-5 pb-3 pt-2' => $polster])>
+        @if($typ)
+            <div x-data="npChart(@js($typ), @js($daten), @js($optionen))" tabindex="0" role="group" aria-label="{{ $titel ?? $fazit ?? $zusammenfassung }}" class="rounded-lg">
+                <div class="relative {{ $hoehe }}">
+                    <canvas x-ref="canvas" role="img" aria-label="{{ $zusammenfassung ?? $fazit ?? $titel }}"></canvas>
+                    <div class="np-diagramm-tipp glass-overlay absolute pointer-events-none z-20 px-3 py-2 text-xs rounded-xl text-text whitespace-nowrap transition-opacity duration-100" style="opacity: 0" aria-hidden="true"></div>
+                </div>
+                <p class="np-diagramm-ansage sr-only" aria-live="polite"></p>
+            </div>
+            @if($zusammenfassung)
+                <p class="mt-3 text-xs text-muted">{{ $zusammenfassung }}</p>
+            @endif
+        @else
+            {{ $slot }}
+        @endif
     </div>
     @isset($tabelle)
         <details class="group/tabelle np-details border-t border-border">

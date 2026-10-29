@@ -36,7 +36,12 @@
                 </x-slot:aktionen>
 
                 @if($zugewieseneModule->isEmpty())
-                    <p class="px-5 pb-5 text-sm text-muted">{{ __('Noch keine Module zugewiesen.') }}</p>
+                    <div class="flex flex-col items-start gap-3 px-5 pb-5">
+                        <p class="text-sm text-muted">{{ __('Noch keine Module zugewiesen.') }}</p>
+                        @if($verfuegbareModule->isEmpty())
+                            <a href="{{ route('admin.master-data.modules.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Modul anlegen') }}</a>
+                        @endif
+                    </div>
                 @else
                     <div class="px-2 pb-2">
                         <table class="np-tabelle table-fixed text-sm">
@@ -100,7 +105,11 @@
                                                 @csrf
                                                 @method('PATCH')
                                             </form>
-                                            @unless($m->in_gebrauch)
+                                            @if($m->in_gebrauch)
+                                                <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
+                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                </span>
+                                            @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
                                                       data-bestaetigen="{{ __('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer]) }}"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -108,7 +117,7 @@
                                                     @method('DELETE')
                                                     <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
                                                 </form>
-                                            @endunless
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -129,7 +138,12 @@
                 </x-slot:aktionen>
 
                 @if($zugewieseneFaecher->isEmpty())
-                    <p class="px-5 pb-5 text-sm text-muted">{{ __('Noch keine Fächer zugewiesen.') }}</p>
+                    <div class="flex flex-col items-start gap-3 px-5 pb-5">
+                        <p class="text-sm text-muted">{{ __('Noch keine Fächer zugewiesen.') }}</p>
+                        @if($verfuegbareFaecher->isEmpty())
+                            <a href="{{ route('admin.master-data.subjects.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Fach anlegen') }}</a>
+                        @endif
+                    </div>
                 @else
                     <div class="px-2 pb-2">
                         <table class="np-tabelle table-fixed text-sm">
@@ -150,7 +164,7 @@
                                             <div class="flex min-w-0 items-center gap-2">
                                                 <span class="truncate {{ $ton }}" title="{{ $f->name }}">{{ $f->name }}</span>
                                                 @if($f->track_typ)
-                                                    <span class="np-marke shrink-0 bg-accent/12 text-accent-text">{{ $f->track_typ }}</span>
+                                                    <span class="np-marke shrink-0 bg-fill text-muted">{{ $f->track_typ }}</span>
                                                 @endif
                                                 @unless($f->aktiv)
                                                     <span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>
@@ -167,7 +181,11 @@
                                             </form>
                                         </td>
                                         <td class="text-right">
-                                            @unless($f->in_gebrauch)
+                                            @if($f->in_gebrauch)
+                                                <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
+                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                </span>
+                                            @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
                                                       data-bestaetigen="{{ __('Fach :name entfernen?', ['name' => $f->name]) }}"
                                                       x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -175,7 +193,7 @@
                                                     @method('DELETE')
                                                     <button :disabled="loading" class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
                                                 </form>
-                                            @endunless
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

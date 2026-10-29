@@ -10,9 +10,8 @@
 
             <section class="mt-10 np-spalte">
                 <div class="np-karte np-gruppe">
-                    <x-einstellung :label="__('Fach löschen')"
-                                   :hinweis="$notenAnzahl > 0 ? __('Das Fach hat bereits Noten oder Prüfungen. Deaktiviere es stattdessen.') : null">
-                        @if($notenAnzahl > 0)
+                    <x-einstellung :label="__('Fach löschen')" :hinweis="$loeschSperre">
+                        @if($loeschSperre)
                             <button type="button" disabled class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
                         @else
                             <form method="POST" action="{{ route('admin.master-data.subjects.destroy', $fach->fach_id) }}"

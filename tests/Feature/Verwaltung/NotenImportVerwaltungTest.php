@@ -20,6 +20,8 @@ class NotenImportVerwaltungTest extends TestCase
 
     private int $modul;
 
+    private int $semesterId;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -28,7 +30,7 @@ class NotenImportVerwaltungTest extends TestCase
         $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
         $this->modul = DB::table('module')->insertGetId(['modul_nummer' => '908', 'titel' => 'Testmodul Theta durchführen']);
         DB::table('lehrberuf_module')->insert(['lehrberuf_id' => $lehrberuf, 'modul_id' => $this->modul, 'kategorie_id' => $kategorie['FACH']]);
-        DB::table('semester')->insert(['bezeichnung' => '25/26-2', 'start_datum' => '2026-02-01', 'end_datum' => '2026-07-31', 'sortierung' => 10]);
+        $this->semesterId = (int) DB::table('semester')->insertGetId(['bezeichnung' => '25/26-2', 'start_datum' => '2026-02-01', 'end_datum' => '2026-07-31', 'sortierung' => 10]);
         Konfiguration::vergessen();
         $this->lernenderUser = User::factory()->lernender(['lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2024-08-01'])->create();
     }
@@ -49,7 +51,8 @@ class NotenImportVerwaltungTest extends TestCase
 
         $this->actingAs($admin)
             ->post(route('admin.learners.grades.import.apply', $lernenderId), ['zeilen' => json_encode($vorschau['zeilen']), 'token' => $vorschau['token']])
-            ->assertRedirect(route('admin.learners.grades.index', $lernenderId))
+            // Alle Zeilen liegen in einem Semester → die Notenliste öffnet genau dort
+            ->assertRedirect(route('admin.learners.grades.index', [$lernenderId, 'semester_id' => $this->semesterId]))
             ->assertSessionHas('success');
 
         $this->assertSame(1, Note::count());

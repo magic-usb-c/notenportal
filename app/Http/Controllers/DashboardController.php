@@ -5,34 +5,55 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\Auswertung\Konfiguration;
 use App\Services\Noten\NoteService;
 use App\Services\Uebersicht;
 use App\Support\Darstellung;
 use App\Support\DashboardKarten;
 use App\Support\Einrichtung;
+use App\Support\StatistikAntwort;
+use App\Support\StatistikDaten;
+use App\Support\StatistikFilter;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class DashboardController extends Controller
 {
     public function __construct(
         private readonly Uebersicht $uebersicht,
         private readonly NoteService $noteService,
+        private readonly StatistikDaten $statistik,
     ) {}
 
-    public function lernender(Request $request): View
+    /** Verlauf (S1) und Wo stehe ich (S2): ein Filterformular, ein Endpunkt; JSON nur mit den Statistikdaten. */
+    public function lernender(Request $request): Response|JsonResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
+
+        // Lernenden-ID nur aus der Session; ?lernender=… und ?lernender_id=… werden nicht gelesen
+        $geladen = $this->statistik->lernender((int) $lernender->lernender_id);
+        $filter = StatistikFilter::aus($request, $this->statistik->regelnLernender($geladen['auswertung']), StatistikDaten::STANDARD_LERNENDER);
+        $paket = StatistikAntwort::paket(
+            $filter,
+            $this->statistik->verlauf($filter, $geladen['leistungen'], $geladen['auswertung'], $lernender),
+            $this->statistik->wostehe($filter, $geladen['auswertung']),
+        );
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
 
         $daten = $this->uebersicht->lernender($lernender->load('lehrberuf'), $request->user());
         $daten['drawerFehler'] = $this->noteService->drawerNachFehler($request, $lernender);
         $daten['sichtbar'] = $this->kartenSichtbar($request->user());
+        $daten['statistik'] = $paket;
 
-        return view('dashboards.lernender', $daten);
+        return StatistikAntwort::view('dashboards.lernender', $daten);
     }
 
-    public function berufsbildner(Request $request): View
+    /** Wer hat sich bewegt (S7): Hantel je betreute Person, Vorsemester gegen aktuell. */
+    public function berufsbildner(Request $request): Response|JsonResponse
     {
         abort_unless($request->user()->berufsbildner, 403);
 
@@ -41,22 +62,49 @@ class DashboardController extends Controller
             'dir' => $request->input('dir') === 'desc' ? 'desc' : 'asc',
         ];
 
-        return view('dashboards.berufsbildner', [
-            ...$this->uebersicht->berufsbildner($request->user(), $filter['sort'], $filter['dir']),
+        // Berufsbildner nur über Lernender::sichtbarFuer (in Uebersicht::berufsbildner)
+        $daten = $this->uebersicht->berufsbildner($request->user(), $filter['sort'], $filter['dir']);
+        $statistikFilter = StatistikFilter::aus($request, [
+            'status' => ['alle', 'kritisch'],
+            'kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))],
+            'sort' => [...Uebersicht::BB_SORTIERUNGEN, 'delta'],
+        ], ['status' => 'alle', 'sort' => 'delta']);
+        $paket = StatistikAntwort::paket($statistikFilter, $this->statistik->hantelPersonen(
+            $daten['zeilen'],
+            $statistikFilter->wert('kategorie'),
+            (string) $statistikFilter->wert('status'),
+            $statistikFilter->wert('sort') === 'name' ? 'name' : 'delta',
+        ));
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
+        return StatistikAntwort::view('dashboards.berufsbildner', [
+            ...$daten,
             'filter' => $filter,
             'sichtbar' => $this->kartenSichtbar($request->user()),
+            'statistik' => $paket,
         ]);
     }
 
-    public function admin(Request $request): View|RedirectResponse
+    /** Erfassung je Woche (S9): nur Betriebssummen, 12, 26 oder 52 Wochen. */
+    public function admin(Request $request): Response|JsonResponse|RedirectResponse
     {
         if (Einrichtung::offen()) {
             return redirect()->route('admin.setup');
         }
 
-        return view('dashboards.admin', [
-            ...$this->uebersicht->admin(),
+        $filter = StatistikFilter::aus($request, ['zeitraum' => ['12w', '26w', '52w']], ['zeitraum' => '12w']);
+        $daten = $this->uebersicht->admin((int) $filter->wert('zeitraum'));
+        $paket = StatistikAntwort::paket($filter, $this->statistik->erfassung($daten['aktivitaet']));
+        if ($request->wantsJson()) {
+            return StatistikAntwort::json($paket);
+        }
+
+        return StatistikAntwort::view('dashboards.admin', [
+            ...$daten,
             'sichtbar' => $this->kartenSichtbar($request->user()),
+            'statistik' => $paket,
         ]);
     }
 

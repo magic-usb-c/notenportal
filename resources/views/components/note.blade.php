@@ -21,7 +21,7 @@
 @endphp
 @if($stufe !== null && $stufe !== '')
     <span {{ $attributes->merge(['class' => $variante === 'badge'
-        ? 'inline-flex h-6 min-w-11 items-center justify-center rounded-md bg-surface-2 px-1.5 text-sm font-semibold text-text'
+        ? 'inline-flex h-6 min-w-11 items-center justify-center rounded-md bg-fill px-1.5 text-sm font-semibold text-text'
         : 'font-semibold text-text']) }} title="{{ $skala::stufeText($stufe) }}">{{ $skala::stufeKurz($stufe) }}</span>
 @elseif($wert === null)
     {{-- Platzhalter leicht und dünn in Sekundärfarbe: fett wirkte er als Heldenzahl wie ein Balken, zu blass wie ein Ladeplatzhalter (01.10.2026) --}}

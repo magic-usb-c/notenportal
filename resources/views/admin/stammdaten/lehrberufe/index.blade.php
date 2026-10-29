@@ -15,11 +15,11 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($lehrberufe->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-6xl">
                     <x-leer symbol="briefcase" :titel="__('Noch keine Lehrberufe erfasst.')" />
                 </div>
             @else
-                <div class="np-karte p-2">
+                <div class="np-karte max-w-6xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <thead>
                             <tr>
