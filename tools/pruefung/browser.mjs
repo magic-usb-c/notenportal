@@ -91,6 +91,8 @@ export async function starteBrowser(opt) {
     viewport: { width: Number(opt.breite || 1920), height: Number(opt.hoehe || 1080) },
     colorScheme: opt.hell ? 'light' : 'dark',
     locale: 'de-CH',
+    // VMs mit Lab-CA (install.sh): deren CA kennt der Prüf-Browser nicht. Nur ausdrücklich abschalten.
+    ignoreHTTPSErrors: process.env.NP_TLS_UNGEPRUEFT === '1',
   });
   const page = await ctx.newPage();
   await zustandEmulieren(ctx, page, opt);
