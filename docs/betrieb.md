@@ -61,6 +61,24 @@ Entwicklungsmaschine.
   Tabelle `modul_handlungsziele`, Migration `2026_09_12_000015`): einmalig `php artisan notenportal:migrate`
   als Migrations-Benutzer ausführen. Der Befehl steht seit 02.10.2026 nicht mehr in der Oberfläche.
 
+### Update vom Stand 30.09. auf `main`
+
+Am 29.10.2026 zweimal gemessen: im frischen Ubuntu-26.04-Container (Stand 54e8ead mit Demodaten,
+19 Konten, 827 Noten → `main`, nichts verloren, Rundgang 93 Seiten ohne Befund) und auf dva-001.
+
+```bash
+cd /var/www/notenportal
+stat -c '%U:%G %a' .                      # gehört der Ordner root?
+sudo find . -user root | head             # dann zuerst: sudo find . -path ./storage -prune -o -user root -exec chown -h $USER {} +
+sudo mysqldump --single-transaction notenportal > ~/notenportal-$(date +%Y%m%d-%H%M)-vor-main.sql
+git tag vor-main-update
+git fetch origin && git checkout main && git pull --ff-only origin main
+sudo ./install.sh --host notenportal.hamiltonlab.local      # weitere VPN-Adressen: --weitere-namen a,b
+sudo -u www-data php artisan notenportal:bereitschaft
+```
+
+Zurück: `git checkout vor-main-update`, Dump einspielen, `sudo ./install.sh`.
+
 ## Neuinstallation mit install.sh
 
 `git clone https://github.com/magic-usb-c/notenportal.git && cd notenportal && sudo ./install.sh` auf
@@ -169,6 +187,10 @@ Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's En
 | 14.09.2026 | Dump `~/db-backups/notenportal-20260914-0742-vor-modulgemeinschaft.sql` (235 KB) + Git-Tag `vor-modulgemeinschaft`, danach Migration 2026_09_14_000001 (Module als gemeinsame Stammdaten): Spalten `module.link` und `module.erstellt_von_benutzer_id` (FK `fk_module_ersteller`, nullOnDelete), neue Tabelle `modul_dokumente` (Unterlagen am Modul statt an einer Person, CHECK `groesse > 0`). Auf `notenportal_probe` mit Rollback und erneutem Hochfahren geprüft, dann `notenportal` (240 ms); `optimize:clear` als www-data, `/login` 200. |
 | 24.09.2026 | Dump `~/db-backups/notenportal-20260924-1321-vor-zuordnungsversion.sql` (249 KB) + Git-Tag `vor-zuordnungsversion`, danach Migration 2026_09_24_000001 (Katalogversion je Zuordnung): Spalte `lehrberuf_module.version` (nullable). Hintergrund: `module.modul_nummer` ist eindeutig, eine Modulzeile führt also nur eine Version – im Katalog sind einzelne Nummern aber in zwei gleichzeitig gültigen Versionen im Umlauf (117 in V4 für die BiVo 2021, V5 für 2026), worauf der Verweis in den Modulbaukasten dem älteren Jahrgang die neuere Seite zeigte. Bleibt die Spalte leer, gilt weiterhin `module.version`; die 641 bestehenden Zeilen verhalten sich also unverändert, bis eine neue Ernte sie füllt. Auf `notenportal_probe` mit Rollback und erneutem Hochfahren geprüft (641 Zeilen unverändert), dann `notenportal` (11 ms); `optimize:clear` als www-data, `/login` 200. |
 | 28.09.2026 | `.env` auf Prod: `APP_ENV=local` → `production` (Sicherung `/var/backups/notenportal-env/.env.backup-20260928-064052`, 0600, ausserhalb des Repos). `optimize:clear` als www-data, `/login` 200, geschützte Routen 302. `notenportal:bereitschaft` meldet `app_env` jetzt ok; offen bleiben nur die vier Punkte, die an David hängen (HTTPS, Secure-Cookie, Mail-Umleitung, Kopie ausser Haus). Kein Code hängt an `local` – nur `App\Support\Bereitschaft` liest den Wert. |
+| 29.10.2026 | dva-001 auf `main` (f1b578f): Dump `~/db-backups/notenportal-20261029-0854-vor-main-2910.sql` (254 KB) + Git-Tag `vor-main-2910`, Probe auf `notenportal_probe` samt Rückweg aller drei Schritte, dann `git checkout main` und `sudo ./install.sh` (Migrationen `2026_10_01_000001` bis `_000003`, Notenbaum). Erster Versuch brach ab: Projektordner und Build vom 01.10. gehörten root (`root:www-data 2750`), `git checkout` als ubuntu scheiterte mit «unable to unlink» an fünf Dateien im obersten Ordner. Behoben mit `chown -h ubuntu` (Gruppe www-data bleibt, `storage/` an www-data), danach Update ohne Befund, Bereitschaft «betriebsbereit», `TRUSTED_HOSTS` erstmals gesetzt. |
+| 29.10.2026 | `notenportal_demo` (Dump `…-vor-main-2910.sql`) und i2 (`notenportal_i2`, Dump, `install.sh --port 8082 --db notenportal_i2 --ohne-firewall`) auf denselben Stand. Achtung: Die «Demo» auf 127.0.0.1:8090 (`php -S` aus `public/` mit `DB_DATABASE=notenportal_demo`) liest wegen des Config-Caches (`APP_ENV=production`) die Hauptdatenbank `notenportal`; Umgebungsvariablen wirken bei gecachter Konfiguration nicht. Für Migrationen auf Neben-DBs darum aus einer Arbeitskopie ohne `bootstrap/cache/config.php` starten. |
+| 29.10.2026 | Für Installations- und Upgrade-Tests LXD auf dva-001 (Snap, Brücke `lxdbr0` 10.231.77.0/24 mit NAT, Speicher `dir`) und ufw-Regeln «LXD Installtest temp» für `lxdbr0`. Neue Test-DB `notenportal_main_demo` (ALL für np_web). Nach den Tests wieder entfernt, siehe Folgezeile. |
+| 29.10.2026 | Testumgebung abgebaut: Container gelöscht, ufw-Regeln «LXD Installtest temp» gelöscht, `snap remove --purge lxd` (Brücke weg), `notenportal_main_demo` samt Recht entfernt. Belegter Platz wie vorher (7,1 GB frei). |
 
 ### 10.09.2026 – Zweite Instanz für den Installationstest
 - Zweck: `install.sh` auf dieser VM wie auf einem frischen Server durchspielen, ohne die laufende Instanz anzufassen.

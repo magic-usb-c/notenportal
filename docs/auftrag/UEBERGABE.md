@@ -375,6 +375,12 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Lernenden-Routen byte-gleich (?lernender, ?lernender_id, ?id, ?benutzer_id, ?user) und
                   gibt B eine geplante Prüfung. Suite 1426 grün (1 skip). Nächster Schritt: Welle 4
                   (R6-08 + R6-09, dann R6-10 + R6-11), Hinweise in scratch r6/welle4-hinweise.md.
+[Q] 29.10. 08:58  PR #2 (R4–R6 Welle 3b) nach main (11c1cc5), Suite 1428 grün, Rundgang 115 Seiten/4 Rollen
+                  ohne Befund. install.sh: --weitere-namen für VPN-/NAT-Adressen (Zertifikat + TRUSTED_HOSTS,
+                  bleiben erhalten), Update ohne --host behält den Namen aus APP_URL (6a72bdd). Gemessen in
+                  frischen Ubuntu-26.04-Containern: Neuinstallation und Upgrade 54e8ead → main mit Demodaten.
+                  dva-001 und i2 auf main (Dump/Tag vor-main-2910, betrieb.md). dva-003 steht noch auf 30.09. –
+                  Ablauf «Update vom Stand 30.09. auf main» in betrieb.md, braucht David am Server.
 ```
 
 ---

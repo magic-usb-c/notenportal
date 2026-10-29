@@ -26,6 +26,10 @@ Befehle, Modellwahl und Orchestrierung stehen in `docs/auftrag/SETUP-CLAUDE.md`.
 der VM srv-lab-dva-003 (`https://172.26.14.100`, Installation per `install.sh`). Massstab der
 Oberfläche: Desktop-Browser 1920–2560 px im Dunkelmodus (`docs/auftrag/GUI-APPLE.md`).
 
+**Stand 29.10.2026:** `main` ist wieder die einzige Quelle (PR #2 zusammengeführt). dva-001 und i2
+laufen auf `main`; die Test-VM dva-003 steht noch auf dem Stand vom 30.09. und wird nach
+`docs/betrieb.md` «Update vom Stand 30.09. auf `main`» nachgezogen. R6-08 bis R6-12 sind offen.
+
 ---
 
 ## 2. Der zentrale Befund: die Notenrechnung ist falsch
