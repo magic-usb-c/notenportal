@@ -44,12 +44,12 @@ Quelle: [Dark Mode](https://developer.apple.com/design/human-interface-guideline
   oder mit ▼, Fehler mit Text, Fokus mit Ring).
 - **Akzent sparsam.** Farbe auf dem *Hintergrund* genau einer Primäraktion hebt sie hervor; nicht
   mehrere Bedienelemente mit farbigem Hintergrund, keine farbigen Symbole und Texte auf Materialien
-  ohne Grund. Im Portal: ein `bg-accent`-Knopf pro Ansicht, Rest `glass-btn` oder tertiär.
+  ohne Grund. Im Portal: ein `bg-accent`-Knopf pro Ansicht (in der Symbolleiste `data-hauptaktion`), Rest `np-knopf-sekundaer` oder schlicht.
 - **Systemfarbwerte nicht hartcodieren** – sie schwanken von Version zu Version. Darum keine
   Apple-RGB-Werte in `theme.css` abschreiben; eigene Töne mit geprüftem Kontrast.
 - **macOS, Desktop-Tinting:** Transparenz in eigenen Komponenten nur, wenn sie eine sichtbare
   Fläche haben *und* in einem neutralen Zustand sind; nie in farbigen Zuständen. Übertragung auf das
-  Portal: leichte Transparenz nur in `glass-bar`/`glass-overlay`, nie auf `bg-accent` oder
+  Portal: leichte Transparenz nur in den Materialien der funktionalen Ebene (`np-glas`, `np-glas-gruppe`, `glass-overlay`), nie auf `bg-accent` oder
   Notenfarben.
 
 ## 2. Tiefe und Ebenen
@@ -65,13 +65,19 @@ und [Materials](https://developer.apple.com/design/human-interface-guidelines/ma
   Tiefe, im Dunkeln ist es die Helligkeitsstufe.
 - **Materialien nur für die funktionale Ebene.** Liquid Glass bildet eine eigene Schicht für
   Bedienelemente und Navigation (Tab-Leisten, Seitenleisten, Toolbars) *über* dem Inhalt und gehört
-  nicht in die Inhaltsebene. Im Portal: `glass-bar` nur Hauptnavigation und Sticky-Toolbar,
-  `glass-overlay` nur Menüs, Paletten, Toasts, Popover; Karten, Tabellen, Formulare, Diagramme ohne
-  Glas.
+  nicht in die Inhaltsebene. Im Portal (R6, «Licht statt Fläche»): Glas nur funktional – `np-glas`
+  (Seitenleiste), `np-glas-gruppe` (Kapseln der Symbolleiste), `glass-overlay` (Menüs, Palette,
+  Toasts, Popover, Diagramm-Tipp), `np-glas-moment` (Knopf eines Schiebers nur beim Drücken);
+  Karten, Tabellen, Formulare, Diagramme ohne Glas. Hinter der Seitenleiste liegt ein ruhiger
+  Verlauf (`np-grund`), kein Inhalt (HIG: im Ruhezustand keine Überschneidung von Inhalt und Glas).
+  Kein Glas auf Glas; Zahlen und Budget: `docs/gui-konzept.md`, «Glas».
 - **Glas sparsam, reguläre Variante bei Text.** Die reguläre Variante blurrt und hellt den
   Hintergrund für Lesbarkeit auf und ist für textreiche Elemente (Seitenleiste, Popover) gedacht;
   die klare Variante nur über Medien. Grössere Elemente wie Seitenleisten sind opaker. Übertragung:
-  die Seitenleiste darf opaker sein als ein Popover; nie «klares» Glas über Tabellen.
+  die Schublade (Glas über Inhalt) ist deckender als Kapseln und Menüs; die angedockte Leiste liegt
+  nur über dem ruhigen Grund und braucht dort keinen Weichzeichner; nie «klares» Glas über Tabellen.
+  **Deckungen sind Zahlenliterale** in `app.css` (je Modus das erste Literal im `@utility`-Block),
+  gemessen mit `node tools/pruefung/kontrast.mjs --minimum` – keine geschätzte Mindestdeckung.
 - **Dickere Materialien = mehr Kontrast für feine Schrift**, dünnere bewahren den Kontext.
   Übertragung: Wo Text auf `glass-overlay` unter 4.5:1 fällt, Deckkraft des Materials erhöhen,
   nicht die Schrift aufhellen.
@@ -81,7 +87,14 @@ und [Materials](https://developer.apple.com/design/human-interface-guidelines/ma
 - **Scroll-Kante statt Vollfarbe** unter Bedienelementen
   ([Layout](https://developer.apple.com/design/human-interface-guidelines/layout#Visual-hierarchy)):
   Inhalt darf unter Navigation und Toolbars durchlaufen, abgesetzt durch den Scroll-Edge-Effekt. Im
-  Portal: `glass-bar` erfüllt das; eigene Scrollbereiche mit `np-scroll-edge`.
+  Portal: die `np-symbolleiste` trägt die eine Kante der Ansicht (Schatten wächst mit `--np-kante`);
+  eigene Scrollbereiche mit `np-scroll-edge`, höchstens eine je Ansicht, nur wo Inhalt unter
+  schwebenden Elementen läuft.
+- **Einstellungen sind eigene Zustände.** Reduzierte Transparenz und Kontrast-Theme: Deckung 1, kein
+  Weichzeichner, flacher Grund (Variante `deckend:`); mehr Kontrast: zusätzlich 1-px-Kante in
+  `--border-strong` (`kontrastreich:`); reduzierte Bewegung: Variante `ruhig:` statt `motion-reduce:`
+  (Überblendung, Weichzeichner nie animieren). Alle drei mit den Flags `--bewegung=reduziert`,
+  `--transparenz=reduziert`, `--kontrast=mehr` prüfen (Skill `notenportal-pruefwerkzeuge`).
 
 ## 3. Typografie
 
@@ -137,7 +150,7 @@ Bildurteil durch den Agent `bildpruefer`.
 2. **Kein reines Schwarz, kein reines Weiss** als Fläche oder Text.
 3. **Text liest sich:** `text-text` und `text-muted` ≥ 4.5:1 auf jeder Fläche, auf der sie stehen;
    kein `text-faint` für Inhalt.
-4. **Glas nur Navigation und Overlays.** Karten, Tabellen, Formulare, Diagramme sind matt.
+4. **Glas nur funktional** (Seitenleiste, Kapseln, Menüs, Overlays, Schieberknopf beim Drücken). Karten, Tabellen, Formulare, Diagramme sind matt; kein Glas auf Glas.
 5. **Ein Akzent pro Ansicht**, Links in `text-accent-text`, Notenfarben nur bei knapp/ungenügend
    und immer mit Form.
 6. **Vier Zustände** (leer, lädt, Fehler, sehr viele Daten) sehen im Dunkeln gut aus.

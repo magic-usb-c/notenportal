@@ -4,6 +4,8 @@ Stand 11.09.2026. Ziel: ruhiger, klarer, eigenständiger – weg vom Einheitsloo
 
 ## Stand Rebuild R1–R5 (Desktop, 02.10.2026) – gilt vor allem darunter
 
+**R6 (ab 03.10.2026, Plan `docs/auftrag/GUI-R6.md`)** ersetzt in diesem Dokument die Abschnitte «Glas», «Motion» und den neuen «Statistik-Katalog» unter c); die Grundsätze G1–G21 mit Apple-Quellen stehen in `docs/auftrag/GUI-APPLE.md`. Wo ältere Abschnitte (Elevation, f) Diagramme, g) Komponenten) Glas-Stufen G1/G2, feste Deckungen oder `motion-reduce:` nennen, gilt R6.
+
 Seit dem Rebuild ist das Portal **nur für den Desktop-Browser** gebaut (Zielbreiten 1920×1080/1200 und 2560×1440, ab 1280 px tragfähig). Alles Mobile weiter unten (390 px, `h-11 mobil`, `max-md:`, `sm:w-[28rem]`, Kartenansichten von Tabellen, D12) ist historisch und gilt nicht mehr. Verbindliche Regeln stehen im Skill `notenportal-ui`; hier nur die Eckpunkte.
 
 | Bereich | Stand |
@@ -104,18 +106,96 @@ Regeln: keine Versalien-Labels mit `tracking-widest` mehr. Labels in Satzschreib
 
 Dunkel wird Tiefe über hellere Flächen gezeigt, nicht über Schatten; kein reines Schwarz (Material Dark Theme, <https://m2.material.io/design/color/dark-theme.html>).
 
-### Glas-Stufen
-| Stufe | Rezept | Wo | Nie |
-|---|---|---|---|
-| G0 | kein Glas | Karten, Tabellen, Formulare, Diagramme | – |
-| G1 Leiste | `rgb(var(--card-rgb)/0.78)` + `blur(16px) saturate(140%)`, Unterkante `border` | Hauptnavigation, Sticky-Toolbar | über Text-Inhalt ohne Scrollbewegung |
-| G2 Overlay | hell `rgb(var(--card-rgb)/0.86)` + Schatten `elev-2`; dunkel `rgb(var(--surface-2-rgb)/0.92)` + Haarlinie `border` (eine Stufe über der Karte, HIG Dark Mode base/elevated); je `blur(28px)` | Befehlspalette, Menüs, Toasts, Popover | grossflächige Panels |
-| Scrim | `rgb(var(--bg-rgb)/0.6)` + `blur(2px)` | hinter Drawer/Modal | – |
+### Glas (Stand R6, Plan `docs/auftrag/GUI-R6.md` §2–§4)
 
-Deckung mindestens 0.78, damit Text die Token-Kontraste hält. `@supports not (backdrop-filter: blur(1px))` und `@media (prefers-reduced-transparency: reduce)` → volle Deckung. Entfallen: `accent-glow`, `np-glow-*`, `np-text-glow-*`, `glass-lift`, `np-card-lift`, der Radial-Gradient auf `body`, `np-btn-primary`-Scale.
+Leitidee «Licht statt Fläche»: Glas wird lebendiger, nicht grösser. Lichtkante, Glanz unter dem Zeiger, ein Schatten, der beim Scrollen wächst, und Glas, das zurücktritt, wenn das Fenster den Fokus verliert (`html[data-fenster='inaktiv']`, `--np-aktiv`). Weichgezeichnet wird nur noch, wo wirklich Inhalt darunter liegt (Kapseln, Overlays, Schublade). Hinter der Seitenleiste liegt ein statischer Token-Verlauf (`np-grund`), kein Inhalt. Die Inhaltsebene bleibt matt (`np-karte`, `bg-card`).
+
+**Materialien** (Quelle der Zahlen: `resources/css/app.css`, Abschnitt «Materialien»; Tönungen, Kanten, Schatten und Sättigung als Tokens je Theme in `resources/css/theme.css`):
+
+| Utility | Einsatz | Deckung dunkel / hell | Weichzeichner |
+|---|---|---|---|
+| `np-glas`, angedockt | Seitenleiste (ab 64rem) | `card` 0.68 / 0.8 | keiner (`backdrop-filter: none`): sie liegt nur über `np-grund` |
+| `np-glas`, Schublade | `html[data-leiste='schublade']` | `card` 0.92 / 0.92 | `blur(24px) saturate(var(--glas-saettigung))` |
+| `np-glas-gruppe::before` | Kapseln der Symbol- und Tableiste (das Glas liegt auf dem Pseudoelement, damit ein Menü darin die Seite dahinter sieht) | `card` 0.58 / 0.78 | `blur(24px) saturate(var(--glas-saettigung))` |
+| `glass-overlay` | Menüs, Befehlspalette, Tastenkürzel, Toasts, Diagramm-Tipp | dunkel `surface-2` 0.94, hell `card` 0.92 | `blur(28px) saturate(var(--glas-saettigung))` |
+| `np-glas-moment` | Schieber- und Schalterknopf, nur während des Drückens (`:active`) | `card` 0.74 / 0.78 | `blur(8px) saturate(var(--glas-saettigung))` |
+| `np-glanz` | Lichtschicht in Kapseln und Knöpfen, folgt dem Zeiger | Licht höchstens `--glas-glanz-staerke` 0.06 | – |
+| `np-symbolleiste` | Scrollkante: Verlauf aus `--bg` (0.92, 0.72, 0), Opazität = `--np-kante` | – | keiner |
+| `glass-scrim` | Abdunkelung hinter Palette, Dialog, Bearbeitungs-Schublade | `rgb(var(--scrim) / 0.45)` / `0.18` | keiner |
+
+`--glas-saettigung` ist 1.8 in 22 Theme-Blöcken und 1 im Kontrast-Theme; `--glas-glanz-staerke` liegt bei 0.05 oder 0.06 (Grenze 0.07, geprüft mit `kontrast.mjs --glanz=0.07`). Der Weichzeichner der Kapseln (24 px), der Overlays (28 px) und des Schiebers (8 px) steht nur in diesen Utilities.
+
+**Deckungen sind Zahlenliterale.** Die Deckung steht je Modus als erstes Literal im `@utility`-Block; Zustandsregeln (Schublade, Palette offen, `deckend:`) folgen danach. `kontrast.mjs` und `tests/Feature/ThemeKontrastTest.php` lesen die Zahl von dort. Eine Tönung per `color-mix` ist nur als zweite Deklaration erlaubt. Die frühere feste Mindestdeckung (Commit bffe93b) ist abgelöst: Sie hatte keine Messquelle. Es gelten die gemessenen Minima:
+
+- Kleinste Deckung, bei der `text` und `muted` über jeder Token-Unterlage (Grund, Karte, Akzent, Diagramm- und Notenfarben) ihre Schwelle halten (4.5:1, Kontrast-Theme 7:1), ausgegeben von `node tools/pruefung/kontrast.mjs --minimum`, Material `card`: hell 0.79 (Abendrot) bis 0.86 (Gletscher), dunkel 0.72 (Mitternacht) bis 0.84 (Graphit). Mit der Scrollkante als Unterlage (Inhalt blendet zum Grund aus, `bg` 0.72) genügen hell 0.35 bis 0.58 und dunkel 0.00 bis 0.37: Transparenz wird über die Kante gekauft, nicht über die Deckung. Für `glass-overlay` dunkel (Quelle `surface-2`, `--minimum --quelle=surface-2`) liegen die Minima bei 0.75 (Mitternacht) bis 0.90 (Papier). Über Grund und `surface-2` allein ist jede Deckung lesbar (0.00): darum kommt die angedockte Seitenleiste mit 0.68 aus.
+- Basislinie vor R6 mit Quelle: `docs/auftrag/messungen/r6-leistung-baseline.md` §4 (damals Gletscher hell 0.91, dunkel 0.85; die Zahlen haben sich mit den eigenen Gletscher-Werten aus R6-01 verschoben). Massgeblich ist immer der Befehl, nicht diese Seite.
+- Neue Materialien vorher rechnen: `kontrast.mjs --glas=0.7` (Deckung aus `card`), `--minimum --quelle=surface-2` (Material aus `surface-2`), `--glanz=0.07`, `--stufen` (Leuchtdichte dunkel: `bg` < `grund-hoch` < `card` < `surface-2`).
+
+**Einstellungen.** Reduzierte Transparenz (`prefers-reduced-transparency`, `html[data-transparenz='reduziert']`) und das Kontrast-Theme haben einen Regelsatz, die Variante `deckend:` in `app.css`: Deckung 1, kein `backdrop-filter`, `np-grund` flach, `np-glanz` ausgeblendet. Mehr Kontrast (`prefers-contrast: more`, Variante `kontrastreich:`) setzt zusätzlich eine 1-px-Kante in `--border-strong`. Ohne `backdrop-filter`-Unterstützung (`@supports not …`) gilt ebenfalls volle Deckung. Das ist strenger als Apple, das Reduced Transparency nur als «frostier» beschreibt: ein Schalter, ein messbarer Zustand, derselbe für Systemeinstellung und persönlichen Schalter.
+
+**Glas-Budget** (Messung mit `tools/pruefung/leistung.mjs`, Median aus 3 Läufen, nur gleiche Argumente vergleichen; Plan §4.2):
+
+| Grösse | Argumente | Grenze |
+|---|---|---|
+| Glasanteil Ruhe | 1920×1080 | höchstens 2 % des Fensters (Basislinie 18.4 %, Ziel ≈ 0.6 %: nur die zwei Kapseln) |
+| Glasanteil Palette offen | 1920×1080 `--palette` | höchstens 18 % (Basislinie 34.6 %) |
+| Glasanteil Menü offen | 1920×1080 `--menue=<Auslöser>` | höchstens 12 % |
+| Tippen p95 in der Palette | `--laeufe=3 --palette` | nicht über der Basislinie, Ziel höchstens 25 ms |
+| Scroll p95 | 1920×540 `--hoehe=540 --laeufe=3` | Basislinie plus Streuung T (höchstens 1.7 ms), lange Bilder 0 von 150 |
+| Ruhe p95, laufende Animationen | 1920×1080 | höchstens 17.0 ms, 0 Animationen |
+| LCP, DOM-Knoten | 1920×1080 | Basislinie plus 10 % |
+
+Kein Glas auf Glas: Ist die Befehlspalette offen (`html[data-palette]`), verlieren Seitenleiste und Kapseln ihren Weichzeichner und sind deckender. Grosse Flächen sind deckender als kleine (Schublade 0.92, angedockte Leiste 0.68 über ruhigem Grund, Kapseln 0.58). Funktional heisst: Glas trägt nur Navigation, Symbolleiste, Menüs und Overlays, nie Karten, Tabellen, Formulare, Diagramme oder Kacheln. Verworfen und nicht wieder aufzumachen: `docs/auftrag/GUI-R6.md` §9.
+
+Scrollkante. Eine `np-scroll-edge` je Scrollbereich, nur wo Inhalt unter schwebenden Elementen läuft; der Schatten wächst über `--np-kante` (0 bis 1, gesetzt von `np.js`, passiv, ein Aufruf je Bild). Angeheftete Tabellenköpfe in einem eigenen Scrollcontainer tragen `np-kante-hart` (deckende Karte mit Haarlinie); im Seitenscroll heftet der Kopf auf `bg-card` ohne Kanteneffekt, weil dort schon die Symbolleiste die eine Kante der Ansicht ist.
 
 ### Motion
-Dauer: 100 ms Rückmeldung (Hover, Druck) · 150 ms klein (Menü, Tooltip, Segment) · 200 ms mittel (Akkordeon, Drawer) · 300 ms gross (Modal, Palette). NN/g: 100–400 ms, über 500 ms wirkt es wie Verzögerung (<https://www.nngroup.com/articles/animation-duration/>); Material 3: klein 100–200, gross 300–500 ms (<https://m3.material.io/styles/motion/easing-and-duration/applying-easing-and-duration>). Easing: Eintritt `cubic-bezier(0.2,0,0,1)`, Austritt `cubic-bezier(0.3,0,1,1)`. Keine Scale-Effekte auf Buttons. Die globale `transition` auf `*` entfällt (verursacht Farbwischen beim Themewechsel), Transitions nur pro Komponente. `prefers-reduced-motion`: Bewegung durch Überblendung ersetzen, nicht alles abschalten (MDN: <https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion>).
+**Tokens** (`app.css`, `:root`): `--dauer-1` 100 ms (Rückmeldung: Hover, Druck) · `--dauer-2` 150 ms (klein: Menü, Segment, Licht) · `--dauer-3` 200 ms (mittel) · `--dauer-4` 300 ms (gross: Dialog, Schublade) · `--dauer-morph` 360 ms (Menü wächst aus dem Auslöser) · `--ease-out` `cubic-bezier(0.22, 1, 0.36, 1)` und `--ease-in` `cubic-bezier(0.4, 0, 1, 1)` · `--ease-feder` (`linear(…)`, 24 Stützpunkte, Dämpfungsgrad 0.82, Überschwingen höchstens 1.1 %) · `--np-weg` 1 (Versatz der Bewegungen) · `--np-skala-von` 0.96 (Startmass von Palette und Dialog) · `--np-staffel` 30 ms (Staffelung der Diagrammpunkte, gesamt höchstens 500 ms). NN/g: 100–400 ms, über 500 ms wirkt es wie Verzögerung (<https://www.nngroup.com/articles/animation-duration/>). Die Feder gilt nur für Menü-Morph, Auswahlmarken und Segmentmarke; Schublade und Dialog laufen mit `--ease-out`, damit sie mitten im Lauf umkehrbar bleiben.
+
+**Reduktion: Variante `ruhig:`** (`@custom-variant ruhig` in `app.css`) gilt unter `prefers-reduced-motion: reduce` und unter `html[data-bewegung='reduziert']`. Die Tokens ändern sich an einer Stelle: `--ease-feder` wird zu `--ease-out`, `--dauer-3`, `--dauer-4` und `--dauer-morph` zu 150 ms, `--np-weg` zu 0, `--np-skala-von` zu 1, `--np-staffel` zu 0 ms. `ruhig:` steht nur für Ausnahmen, die keine Token-Reduktion abdeckt. Es ersetzt `motion-reduce:` und die frühere Regel, die Dauern auf 0.01 ms zu setzen; `motion-reduce:` wird nicht mehr geschrieben. Jedes `x-transition` mit translate oder scale bekommt ein `ruhig:`-Gegenstück (nur Überblendung). In JS gibt es genau eine Abfrage, `bewegungRuhig()` in `resources/js/np.js`. Weichzeichner werden nie animiert (HIG Accessibility, Cognitive).
+
+**Katalog** (Plan §5; im Ruhezustand läuft nichts, kein Dauerlicht, kein animierter Grund):
+
+| # | Moment | Bewegung | Dauer · Kurve |
+|---|---|---|---|
+| B1 | Menü, Popover | Start in Knopfgrösse, `transform-origin` Knopfmitte (`--np-von-sx/-sy`), dazu Deckkraft; das Panel ist dicker als die Kapsel (`--elev-3`) | `--dauer-morph` `--ease-feder`; zu 150 ms `--ease-in` |
+| B2 | Befehlspalette | Panel `scale(var(--np-skala-von))` → 1 plus Deckkraft, Scrim nur Deckkraft | 200 ms / zu 150 ms |
+| B3 | Schublade, Dialog | Versatz vom Rand, CSS-Transition, keine Feder | 300 ms `--ease-out` / zu 200 ms `--ease-in` |
+| B4 | Toast | 8 px × `--np-weg` plus Deckkraft | 200 ms / zu 150 ms |
+| B5 | Auswahlmarke Leiste, Tab | View Transition nur auf leeren Marker-Spans `np-leiste-auswahl`, `np-tab-auswahl` | 200 ms `--ease-feder` |
+| B6 | Segmentmarke | `np-segment-marke` gleitet (`--np-segment-x`, Breite) | 200 ms `--ease-feder` |
+| B7 | Seitenwechsel | Überblendung der Seite | 180 ms; unter `ruhig` keine |
+| B8 | Licht unter dem Zeiger | `--np-licht-x/-y` folgt dem Zeiger, nur `hover: hover` und `pointer: fine` | Stärke 150 ms `--ease-out`; unter `ruhig` ruht das Licht in der Mitte |
+| B9 | Drücken | `--np-licht` → 1, keine Skalierung (Knöpfe skalieren nie) | 100 ms |
+| B10 | Glas-Moment | Knopf wird beim Ziehen zu `np-glas-moment` | 100 ms |
+| B11 | Fenster ohne Fokus | `--np-aktiv` 1 → 0.4 dämpft Glanz und Schatten | 200 ms |
+| B12 | Scrollkante | Schatten wächst mit `--np-kante` | ohne Transition |
+| B13 | Diagramm, erstes Zeichnen | gestaffelt `--np-staffel` je Punkt | `ease-out`; unter `ruhig` `update('none')` |
+| B14 | Diagramm, Filterwechsel | `chart.update()` an Ort, Punkte wandern | 300 ms; unter `ruhig` `update('none')` plus `aria-live` |
+| B15 | SVG einzeichnen | `stroke-dashoffset` 1 → 0 auf `pathLength="1"` (`np-einzeichnen`) | 300 ms `--ease-out`; unter `ruhig` keine |
+| B16 | Agenda, Monatswechsel | View-Transition-Typen `vor`/`zurueck`, seitlicher Versatz | 200 ms; unter `ruhig` Überblendung |
+| B17 | Rechner-Scrub | Markierung folgt Zeiger und Pfeiltasten (0.25), ohne Animation | – |
+
+Regeln: Keine Bewegung bei Häufigem (Tippen, Sortieren, Zeilenwechsel), keine Skalierung von Knöpfen, Bewegung nie als einziger Träger einer Information. `view-transition-name` steht nur auf leeren Marker-Spans: Ein Element mit diesem Namen wird zur Backdrop Root (Filter Effects Module Level 2) und nähme einem Glas darin den Blick auf die Seite dahinter. Die Katalogzeilen B13 bis B17 gelten, soweit die jeweilige Scheibe umgesetzt ist (Stand: `docs/auftrag/UEBERGABE.md`).
+
+### Statistik-Katalog (Stand R6, Plan §6)
+Elf Darstellungen, je eine Frage der Rolle. Gemeinsamer Vertrag: keine neue Route; dieselbe GET-Route liefert mit `Accept: application/json` das Paket `{filter, diagramm, tabelle, zusammenfassung, meta}` (`Vary: Accept`, `Cache-Control: private, no-store`). Filter laufen durch `App\Support\StatistikFilter::aus($request, $regeln)`: Whitelist, unbekannte Schlüssel und Werte fallen auf den Standard, nie auf einen Fehler; IDs nur aus der sichtbaren Menge; Lernenden-ID immer aus der Session, Berufsbildner nur über `Lernender::sichtbarFuer`. Durchschnitte nur aus `App\Services\Auswertung`, Median und Quartile aus `Verteilung` (Quantil Typ 7, ab n ≥ 3). Client: `x-filterleiste` bleibt ein GET-Formular und funktioniert ohne JS; `npFilter` (`resources/js/statistik.js`) setzt die Adresse mit `history.replaceState`, entprellt 150 ms, holt das JSON mit `AbortController` und meldet `np-statistik` an Diagramm und Tabelle. Links mit `data-behalte-filter` (Sortierung, Export, Druck) übernehmen die Query.
+
+| # | Seite | Frage | Darstellung | Filter |
+|---|---|---|---|---|
+| S1 | `/learner`, Cockpit (`trainer.learners.show`, `admin.learners.show`) | Wie entwickeln sich meine Noten Prüfung für Prüfung? | `x-verlauf`: Prüfungspunkte auf Datumsachse, laufender Schnitt, Genügend-Linie, Semesterbänder; Positionen ohne Datum als Liste darunter | `zeitraum=semester\|lehrjahr\|alles`, `kategorie`, `fach`, `achse=datum\|semester` |
+| S2 | `/learner` «Wo stehe ich» | Wo ziehe ich den Schnitt herunter? | Balken, schwächste zuerst, Genügend-Linie, Stufe als Text | `modus=semester\|lehrzeit`, `kategorie` |
+| S3 | `/grades` | Besser oder schlechter als im Vorsemester? | `x-hantel` je Fach mit Delta als Zahl | `semester`, `kategorie`, `sort=delta\|fach` |
+| S4 | `/grades/calculator` | Welche Note brauche ich, wie gross ist der Spielraum? | Kurve und Band der schlechtesten/besten Endnote, Scrub über die ganze Fläche | Formularzustand |
+| S5 | `/qualification` | Was fehlt mir zum Bestehen? | je offene Position «bestanden» oder «benötigt X.X», Bullet je Position | – |
+| S6 | `/exams` | Welche Note brauche ich in der nächsten Prüfung? | `x-zeitleiste` mit nötiger Note für genügend | `zeitraum=4w\|8w\|alle` (Standard 8w) |
+| S7 | `/trainer` | Wer hat sich bewegt? | `x-hantel` je betreute Person, Vorsemester → aktuell | `status=kritisch\|alle`, `kategorie`, `sort=delta\|name` (im Paket als `hantel_sort`) |
+| S8 | `/trainer/learners`, `/admin/learners` | Wer braucht Aufmerksamkeit? | `x-punktstreifen` über der Liste (Median ab n ≥ 3), je Zeile Mini-`x-bullet` und `x-sparkline`, Filtermarken mit × | `status`, `lehrjahr`, `lehrberuf`, `kategorie`, `sort=schnitt\|delta\|name` |
+| S9 | `/admin` | Wird regelmässig erfasst? | Säulen je Woche (ab 0) mit Median-Linie, nur Betriebssummen | `zeitraum=12w\|26w\|52w` (Standard 12w) |
+| S10 | `/admin/reports/grades` | Wie sind die Noten verteilt? | Histogramm in Viertelnoten (ab 0), Median ab n ≥ 3, Genügend-Linie | `kategorie`, `lehrjahr`, `semester`, `lehrberuf` |
+| S11 | `/admin/reports/grades` | Wie unterscheiden sich die Lehrjahre? | Streifen je Lehrjahr (Small Multiples, gleiche Achse 1–6), Median ab n ≥ 3 | `lehrberuf`, `kategorie` |
+
+Jede Darstellung hat einen Satz mit echten Werten, die Tabelle in einem nativen `<details>`, Tastatur ←/→/Home/End, `aria-live="polite"` und einen Leerzustand ohne leeres Diagramm. **Achsenregel:** Die Notenachse ist fest 1–6, Notenbalken beginnen bei 1 (Breite = (Ø − 1) / 5), Anzahlen und Säulen bei 0, Veränderung ist eine Hantel. Kein Kreis, Ring oder Tacho; Farbe trägt nie allein (Stufe als Text). Zurückgestellt: Heatmap Fach × Lehrjahr und ein Betriebstrend. Welche der Darstellungen schon umgesetzt sind, steht in `docs/auftrag/UEBERGABE.md`; die Tabelle in f) unten ist der ältere Entwurf und wird hierdurch ergänzt.
 
 ## d) Themes
 
@@ -379,7 +459,7 @@ Nächste Woche · KW 39
 | Notenbericht Verteilung | Wie verteilen sich Zeugnisnoten? | Histogramm in 0.5-Klassen | Klassen unter genügend in `note-ungenuegend`, Rest neutral | Zeitraum, Lehrberuf, BB (bestehende Filterzeile) | Tabelle |
 | Jahrgänge | Gibt es schwache Jahrgänge? | Small Multiples je Lehrberuf, Punkt je Lehrjahr (statt 4-Farben-Gruppenbalken) | genügend-Linie | Zeitraum | Tabelle |
 
-Umsetzung in `resources/js/charts.js`: Option `hervorheben` (Index), Plugin für Direktlabels und Schwellen-Label, Gitter als Vollhaarlinie `--border` (keine gestrichelten Gitter), Legende nur ab zwei Reihen und nur, wenn keine Direktlabels passen. Neue Komponente `x-diagramm` = Titel + Canvas + `<details>` «Als Tabelle» mit denselben Daten. Grenzwerte immer aus `$grenzen` (Einstellungen), nie im JS.
+Welche Frage welche Darstellung mit welchen Filtern beantwortet, steht seit R6 im «Statistik-Katalog» unter c); diese Tabelle ist der ältere Entwurf. Umsetzung in `resources/js/charts.js`: Option `hervorheben` (Index), Plugin für Direktlabels und Schwellen-Label, Gitter als Vollhaarlinie `--border` (keine gestrichelten Gitter), Legende nur ab zwei Reihen und nur, wenn keine Direktlabels passen. Neue Komponente `x-diagramm` = Titel + Canvas + `<details>` «Als Tabelle» mit denselben Daten. Grenzwerte immer aus `$grenzen` (Einstellungen), nie im JS.
 
 ## g) Komponenten-Katalog (Tailwind 4)
 

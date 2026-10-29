@@ -68,6 +68,16 @@ Szenario = echte Noten + geplante Prüfungen + Was-wäre-wenn-Noten. Ziel = Eben
 - `pruefungen`: Lernender plant Prüfung (Fach oder Modul, Datum, Gewicht, Titel). «Note eintragen» wandelt sie in eine Note um und löscht die Planung. Vergangene Planungen ohne Note erscheinen als «Note fehlt».
 - `ziele`: Zielwert je Ebene (gesamt, kategorie, fach, modul). Dashboard zeigt Abstand und benötigte Note in den geplanten Prüfungen.
 
+## Statistik (R6)
+
+Die Statistikseiten (`docs/gui-konzept.md`, «Statistik-Katalog») rechnen nichts selbst. Durchschnitte kommen aus `Auswertung`/`Rechenkern`, die folgenden Bausteine aus `App\Services\Auswertung\Statistik` und `Verteilung` bilden sie nur ab.
+
+- **Stichtagsreihe** (`Statistik::stichtagsreihe`, in `StatistikDaten::verlauf` gewählt): der laufende Schnitt einer Zielgrösse nach Stichtag. Je Stichtag rechnet `Rechenkern::auswerten` mit allen Leistungen, die bis dahin datiert sind; es entsteht keine eigene Mittelung. Stichtage sind Monatsenden ab `von`, am Ende immer `bis`; sind es mehr als 60 (`MAX_STICHTAGE`), wird auf Quartalsenden vergröbert (`meta.vergroebert`). Die Punkte im Verlauf sind die einzelnen Noten mit Datum innerhalb des Zeitraums und der Zielgrösse; Platzhalter (unbekannte Prüfungen) und Positionen sind keine Punkte.
+- **Leistungen ohne Datum** (IPA, Schlussprüfung, Positionen des Notenbaums, auch noch offene) stehen nicht in der Reihe, sondern in `meta.ohneDatum` und als Liste unter dem Verlauf. Sie werden nie still einem Datum zugeordnet.
+- **Quantile** (`Verteilung::median`, `Verteilung::quartile`): Typ 7 (lineare Interpolation zwischen den Rängen, wie R `quantile(type = 7)`), das Ergebnis auf 0.01 gerundet. **Gruppenwerte erst ab n ≥ 3** (`Verteilung::MINDESTANZAHL`): darunter liefern Median und Quartile `null`, die Oberfläche zeigt dann keinen Median und keine Gruppenaussage (zu wenige Werte sagen nichts; im Pilot ist n je Zelle oft kleiner als 3). `Verteilung::histogramm` zählt in Klassen [von, von + Breite) von 1.0 bis 6.0 (Standard Viertelnoten, die letzte Klasse schliesst 6.0 ein); Werte ausserhalb zählen nicht in n und nicht in den Median.
+- **Veränderung** (`Statistik::delta`): Differenz zweier Noten, auf 0.01 gerundet; nur wenn beide vorhanden sind. Die Hantel (`Statistik::hanteln`) stellt Vorsemester und aktuelles Semester je Fach nebeneinander (Zeugnisnoten aus `Auswertung::semester`), grösster Rückgang zuerst; wer nicht in beiden Semestern eine Note hat, steht am Ende ohne Delta.
+- **Was fehlt zum Bestehen** (`Statistik::benoetigt`): die Note, die jede offene Leistung braucht, damit ihre Zielgrösse «genügend» erreicht (Grenze `note_genuegend` aus den Einstellungen). Offene Leistungen derselben Zielgrösse löst `Zielrechner::loese` gemeinsam (dieselbe Note in jeder). Offene Positionen: `StatistikDaten::mitOffenenPositionen` ergänzt je tragendes Positionsblatt des Hauptbaums (nur über zählende Teile mit Gewicht) ohne Eintrag eine offene Leistung; erst damit kann S5 «benötigt X.X» je Position nennen. Der Rechner selbst simuliert weiterhin keine Positionen (siehe Notenbaum).
+
 ## Entfernt
 
 - `modul_note_gruppen`, `noten.gruppe_id`: in der Oberfläche nie erfassbar, flache Gewichte decken die Fälle ab.

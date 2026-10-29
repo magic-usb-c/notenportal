@@ -6,7 +6,7 @@ description: Design-System und Blade-Konventionen des Notenportals (Tokens Theme
 # Notenportal UI-Regeln
 
 Quelle: `docs/gui-konzept.md` (a–h). Tokens: `resources/css/theme.css`. Klassen/Skala: `resources/css/app.css`.
-Leitsatz: ruhig, Hierarchie über Typografie und Abstand, **Farbe nur mit Bedeutung**, Glas nur für die schwebende Ebene.
+Leitsatz: ruhig, Hierarchie über Typografie und Abstand, **Farbe nur mit Bedeutung**, Glas nur für die funktionale (schwebende) Ebene – «Licht statt Fläche» (Plan R6: `docs/auftrag/GUI-R6.md`, Grundsätze G1–G21 mit Quellen in `docs/auftrag/GUI-APPLE.md`).
 
 ## 1. Texte
 - Schweizer Hochdeutsch, **ss statt ß** (`grep -rn "ß" resources/views` muss leer sein).
@@ -46,7 +46,7 @@ Füllebenen (Tertiary/Quaternary), aus `--text` per Deckung abgeleitet, damit si
 jedem Theme passen. Sie liegen bewusst unter 4.5:1 – WCAG 1.4.3 nimmt inaktive
 Bedienelemente aus. Platzhalter und Sekundärtext bleiben bei `text-muted`.
 
-Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `node tools/pruefung/kontrast.mjs` rechnen (alle 24 Theme-Blöcke, 14 Akzentblöcke, Materialien als Alpha-Komposition; Exit 1, sobald ein Pflichtpaar reisst): Text ≥ 4.5:1, Kontrast-Theme 7:1, UI-Grenzen/Grafik ≥ 3:1. `--minimum` nennt je Theme die kleinste Glas-Deckung, bei der Text über jeder Token-Unterlage lesbar bleibt; `--glas=0.7` rechnet ein neues Material durch.
+Neue Tokens nur in `theme.css` (hell in `:root, [data-theme='gletscher']`, dunkel in `.dark, [data-theme='gletscher'].dark`, Werte als RGB-Tripel, OKLCH als Kommentar) **und** in `@theme inline` in `app.css` als `--color-…`. Kontrast vorher mit `node tools/pruefung/kontrast.mjs` rechnen (alle 24 Theme-Blöcke, 14 Akzentblöcke, Materialien als Alpha-Komposition; Exit 1, sobald ein Pflichtpaar reisst): Text ≥ 4.5:1, Kontrast-Theme 7:1, UI-Grenzen/Grafik ≥ 3:1. `--minimum` nennt je Theme die kleinste Glas-Deckung, bei der Text über jeder Token-Unterlage lesbar bleibt; `--glas=0.7` rechnet ein neues Material durch, `--minimum --quelle=surface-2` eines aus `surface-2`, `--glanz=0.07` den Lichtglanz, `--stufen` die Helligkeitsfolge `bg` < `grund-hoch` < `card` < `surface-2`. **Deckungen von Materialien sind Zahlenliterale** (erstes Literal je Modus im `@utility`-Block von `app.css`, Zustandsregeln danach): `kontrast.mjs` und `ThemeKontrastTest` lesen sie dort; eine Tönung per `color-mix` nur als zweite Deklaration. Eine feste Mindestdeckung gibt es nicht mehr, es gelten die gemessenen Minima (`docs/gui-konzept.md`, «Glas»). Licht-, Kanten-, Schatten- und Scrim-Farben sind Tokens (`--glas-licht`, `--glas-kante`, `--glas-schatten`, `--scrim`, `--grund-hoch`, Stärken als Zahl): in `app.css` steht kein `rgb(255 255 255 / …)` und kein `rgb(0 0 0 / …)`.
 
 ## 3. Themes und Modus
 - `<html data-theme="gletscher">` (Standard) + Klasse `.dark` für Dunkel. Weitere Themes (Paket 8) als `[data-theme='…']` / `[data-theme='…'].dark` **nach** dem Gletscher-Block in `theme.css`.
@@ -95,12 +95,18 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 | `np-tabelle` | macOS-Tabelle: Kopf ohne Fläche, Zeilen im Wechsel hinterlegt, Hover gerundet. Mehrere Tabellen untereinander: `table-fixed` + `<colgroup>` mit festen Breiten, damit die Spalten bündig stehen. Spalten ohne einen einzigen Wert entfallen. |
 | `np-marke` | Badge/Zähler (Pille, `text-2xs` 600); Bedeutung über `bg-note-…/14 text-note-…` |
 | `np-feld` · `np-feld-klein` | Eingabefeld/Auswahl 36 px bzw. 28 px (Filterleiste) |
-| `glass-bar` / `np-symbolleiste` | nur Hauptnavigation und Symbolleiste |
-| `glass-overlay` | Befehlspalette, Menüs, Toasts, Popover |
-| `glass-scrim` | hinter Drawer/Modal |
+| `np-glas` | Seitenleiste: angedockt deckender ohne Weichzeichner über `np-grund`, als Schublade (`html[data-leiste='schublade']`) Glas über dem Inhalt |
+| `np-symbolleiste` · `np-glas-gruppe` | Symbolleiste mit Scrollkante (ohne Weichzeichner) und ihre Glaskapseln (Suchfeld, Tableiste; Glas auf `::before`) |
+| `glass-overlay` | Befehlspalette, Menüs, Tastenkürzel, Toasts, Popover, Diagramm-Tipp |
+| `np-glas-moment` | Schieber-/Schalterknopf nur beim Drücken (`:active`) |
+| `np-glanz` | Lichtschicht in Kapseln und Knöpfen (`<span class="np-glanz" aria-hidden="true">`), Licht folgt dem Zeiger über `x-np-licht` |
+| `np-grund` | ruhiger Token-Verlauf hinter der Seitenleiste (kein Inhalt darunter) |
+| `np-scroll-edge` · `np-kante-hart` | eine Scrollkante je Scrollbereich · angehefteter Tabellenkopf in eigenem Scrollcontainer (deckend); im Seitenscroll genügt `bg-card` |
+| `glass-scrim` | hinter Drawer/Modal/Palette, nie zwei Overlays |
 
-- Glas **nie** auf Karten, Tabellen, Formularen, Diagrammen oder grossen Panels.
-- Entfernt (nicht mehr schreiben): `accent-glow`, `np-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, Scale-Effekte, Deko-Orbs, mobile Kartenansichten von Tabellen.
+- **Glas nur funktional:** Navigation, Symbolleiste, Menüs, Overlays – **nie** auf Karten, Tabellen, Formularen, Diagrammen, Kacheln oder grossen Panels. Kein Glas auf Glas (Palette offen: Seitenleiste und Kapseln ohne Weichzeichner). Neues Glas nur nach Glas-Budget (`docs/gui-konzept.md`) und mit `leistung.mjs` gemessen.
+- Reduzierte Transparenz, Kontrast-Theme und mehr Kontrast laufen über die Varianten `deckend:` und `kontrastreich:` (Deckung 1, kein Weichzeichner, Kante); neue Materialien brauchen beide.
+- Entfernt (nicht mehr schreiben): `glass-bar`, `glass-seitenleiste`, `accent-glow`, `np-glow-*`, `np-card-lift`, `np-btn-tactile`, `glass-lift`, `glass-subtle`, Scale-Effekte auf Knöpfen, Deko-Orbs, mobile Kartenansichten von Tabellen.
 - Radien: `rounded-md` Badge-Ecke · `rounded-lg` Feld/Segment · `rounded-xl` Karte · `rounded-2xl` Drawer/Modal/Palette · `rounded-full` Knopf, Marke, Avatar, Punkt.
 - Abstände im 4-px-Raster: Karte `p-5`, zwischen Karten `gap-4`, zwischen Abschnitten `gap-8`.
 - **Trefferfläche:** jedes Bedienelement mindestens 24x24 px (WCAG 2.5.8); Textlinks als Aktion `inline-flex min-h-6 items-center`.
@@ -114,8 +120,11 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 - Notenfarben kommen aus `NotenSkala::text()/badge()` (gut/genügend neutral, knapp/ungenügend farbig, ungenügend zusätzlich unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()`, Punkte `NotenSkala::punkt()`.
 
 ## 6. Bewegung
-- Transitions nur pro Komponente: `transition-colors duration-100` (Hover), 150 ms (Menü, Segment), 200 ms (Akkordeon, Drawer), 300 ms (Modal). Easing `ease-out`.
-- Keine Bewegung als Deko. `prefers-reduced-motion`: Überblendung statt Bewegung (ist in `app.css` für `details` und Progress gelöst).
+Katalog B1–B17 und Begründung: `docs/gui-konzept.md`, «Motion».
+- **Tokens statt Zahlen:** `--dauer-1` 100 ms (Hover, Druck) · `--dauer-2` 150 ms · `--dauer-3` 200 ms · `--dauer-4` 300 ms (Dialog, Schublade) · `--dauer-morph` 360 ms (Menü wächst aus dem Auslöser) · `--ease-out`/`--ease-in` · `--ease-feder` (nur Menü-Morph, Auswahlmarken, Segmentmarke) · `--np-weg`, `--np-skala-von`, `--np-staffel`. Transitions nur pro Komponente, nie global.
+- **Reduktion: `ruhig:` statt `motion-reduce:`.** Die Variante gilt unter `prefers-reduced-motion` und `html[data-bewegung='reduziert']`; die Tokens reduzieren sich selbst (Feder → `--ease-out`, lange Dauern 150 ms, Weg 0, Skala 1). Jedes `x-transition` mit translate oder scale bekommt ein `ruhig:`-Gegenstück (nur Überblendung); `motion-reduce:` ist ersetzt und wird nicht mehr geschrieben. In JS genau eine Abfrage: `bewegungRuhig()` aus `np.js`. Weichzeichner nie animieren.
+- **`view-transition-name` nur auf leeren Marker-Spans** (`np-leiste-auswahl`, `np-tab-auswahl`): ein Element mit diesem Namen wird zur Backdrop Root, ein Glas darin sähe die Seite dahinter nicht mehr. Nie auf Container, Zeilen oder Kapseln.
+- Keine Bewegung als Deko, nicht bei Häufigem (Tippen, Sortieren, Zeilenwechsel), Knöpfe skalieren nie; Rückmeldung durch Licht (`np-glanz`), Press-State Pflicht. Im Ruhezustand läuft nichts.
 
 ## 7. Muster (kopieren)
 
@@ -184,7 +193,7 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 - Mutierende Formulare: Alpine `x-data="{ loading: false }"` gegen Doppelabsenden.
 - Erfolg/Fehler nur über Flash-Toast (`->with('success'|'error')`), keine Inline-Banner.
 - Trefferfläche ≥ 24 px (WCAG 2.5.8; `np-knopf-klein` erfüllt das), Icon-Buttons mit `aria-label`, Fokus sichtbar (`focus-visible:outline-2 outline-ring`).
-- Diagrammbalken beginnen bei Note 1: Breite = (Ø − 1) / 5.
+- **Achsenregel:** Notenachse fest 1–6, Notenbalken beginnen bei Note 1 (Breite = (Ø − 1) / 5), Anzahlen und Säulen bei 0, Veränderung als Hantel (nicht als zwei Balken). Jedes Diagramm: Satz mit echten Werten, Tabelle in `<details>`, Tastatur, Stufe als Text statt nur Farbe; Filter über `x-filterleiste` (GET-Formular, URL-Zustand), Statistikkatalog S1–S11 in `docs/gui-konzept.md`.
 - Browser-Titel pro Seite setzen.
 
 ## 9. Tailwind 4 (CSS-first, keine tailwind.config.js)
