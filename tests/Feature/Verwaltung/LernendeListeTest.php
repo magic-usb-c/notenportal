@@ -46,7 +46,7 @@ class LernendeListeTest extends TestCase
                 return [$q['sort'] => ['aria' => $th->getAttribute('aria-sort'), 'dir' => $q['dir']]];
             });
 
-        $this->assertSame(['name', 'lehrjahr', 'last_note', 'avg'], $koepfe->keys()->all());
+        $this->assertSame(['name', 'lehrjahr', 'last_note', 'avg', 'delta'], $koepfe->keys()->all());
         $this->assertSame(['aria' => 'descending', 'dir' => 'asc'], $koepfe['avg'], 'Aktive Spalte nennt die Richtung und kehrt sie um');
         $this->assertSame(['aria' => 'none', 'dir' => 'asc'], $koepfe['name']);
     }
