@@ -218,8 +218,12 @@ final class Statistik
             if (! $l->istPosition() || $l->wert === null) {
                 continue;
             }
-            $fallnote = $haupt->knotenMitId((int) $l->knotenId)?->fallnote;
-            if ($fallnote !== null && $l->wert < $fallnote - 1e-9) {
+            // Ein Knoten, der für diese Person entfällt (Track) oder nicht zählt, hat auch keine Fallnote mehr
+            $knoten = $haupt->knotenMitId((int) $l->knotenId);
+            if ($knoten === null || ! $knoten->zaehlt || $knoten->entfaellt) {
+                continue;
+            }
+            if ($knoten->fallnote !== null && $l->wert < $knoten->fallnote - 1e-9) {
                 return true;
             }
         }

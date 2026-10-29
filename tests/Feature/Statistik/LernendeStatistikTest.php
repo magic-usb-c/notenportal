@@ -203,6 +203,35 @@ class LernendeStatistikTest extends TestCase
     }
 
     #[Test]
+    public function s5_ignoriert_die_fallnote_einer_position_die_fuer_den_track_der_person_entfaellt(): void
+    {
+        $lernender = $this->mitNoten->lernender;
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), (int) $lernender->lehrberuf_id);
+        DB::table('notenbaum_knoten')->where('code', 'ipa')->update(['entfaellt_mit_track' => 'BMS']);
+        Konfiguration::vergessen();
+        $ipaId = (int) DB::table('notenbaum_knoten')->where('code', 'ipa')->value('knoten_id');
+
+        // Die IPA wurde erfasst, bevor die Person in den BMS-Track wechselte: sie entfällt jetzt und darf
+        // mit ihrer Fallnote die übrigen Positionen nicht mehr auf «nicht erreichbar» setzen
+        DB::table('notenbaum_positionen')->insert([
+            'lernender_id' => $lernender->lernender_id, 'knoten_id' => $ipaId, 'note_wert' => 3.5, 'datum' => null,
+            'erfasst_von_benutzer_id' => $this->mitNoten->benutzer_id, 'erstellt_am' => now(), 'aktualisiert_am' => now(),
+        ]);
+        DB::table('lernender_tracks')->insert([
+            'lernender_id' => $lernender->lernender_id, 'track_typ' => 'BMS',
+            'start_semester_id' => Semester::factory()->create()->semester_id,
+            'start_datum' => now()->subMonths(12)->toDateString(), 'end_datum' => null,
+        ]);
+
+        $zeilen = $this->actingAs($this->mitNoten)->getJson(route('learner.qualification.index'))->assertOk()
+            ->json('diagramm.positionen.zeilen');
+        $this->assertNotEmpty($zeilen);
+        foreach ($zeilen as $z) {
+            $this->assertSame('benoetigt', $z['status'], $z['titel']);
+        }
+    }
+
+    #[Test]
     public function s6_agenda_rendert_die_zeitleiste_mit_nötiger_note_satz_und_tabelle(): void
     {
         $html = $this->actingAs($this->mitNoten)->get(route('learner.exams.index'))->assertOk()->getContent();
