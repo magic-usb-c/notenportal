@@ -1208,3 +1208,36 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   nicht): Fallnoten auf einer *Gruppe* über einem Positionsblatt – dafür gibt es keine Zielgrösse im
   Zielrechner. Tests: S5 prüft IPA ≥ 4.0 und den unbestehbaren Baum (ohne Korrektur 3.95 → rot);
   BB-Hantel-Fixture mit Delta-Reihenfolge ≠ Namensreihenfolge; Leerzustand nur im Hantel-Baustein gesucht.
+
+## R6 Welle 5 (R6-10 Admin-Statistik, R6-11 Doku/Skills): bewusst gelassen (29.10.2026)
+
+- **Druck ohne `data-behalte-filter`**: Der Knopf «Drucken» druckt per `window.print()` die aktuelle
+  Seite, die Filter stehen schon im DOM – gleichwertig zum Plan-Wortlaut «Export und Druck mit
+  data-behalte-filter». Im Druck ist die Filterleiste ausgeblendet (`print:hidden`), die gesetzten
+  Filter stehen also nicht auf Papier. Grund: erst nötig, wenn jemand Berichte mit Filtermarken druckt.
+- **Lehrjahr-Filter 1–4, Controller akzeptiert 1–5**: wie `verwaltung/lernende/index`; `BerichtTest`
+  duldet «5. Lehrjahr» nirgends im HTML. Titel bleibt «Gesamtschnitt nach Lehrjahr» statt des
+  Paket-Titels «Lehrjahre im Vergleich» (gleicher Test). Grund: kein Betrieb mit fünftem Lehrjahr.
+- **Erfassung: Median über alle Wochen** (auch leere) – mit den Demodaten «Median 0 je Woche», die
+  Linie liegt auf der Achse. Statistisch richtig (Noten kommen in Schüben); ein Median nur über Wochen
+  mit Noten wäre eine andere Aussage und steht nicht im Plan.
+- **`benoetigt`-Prämisse bei Fallnote**: «benötigt x» gilt für «dieselbe Note in jeder offenen
+  Position» (`docs/notenlogik.md`). Wird eine Position auf ihre Fallnote gehoben (IPA 4.0), bräuchten
+  die übrigen rechnerisch weniger als x (Demo: 2.25 statt 3.45). Die Zahl bleibt bewusst konservativ;
+  der Text nennt die Prämisse nicht. Fallnote auf einer *Gruppe* (ik 4.0) ignoriert `benoetigt()`
+  ganz – keine Zielgrösse im Zielrechner, die Vorlage hat kein Positionsblatt unter so einer Gruppe.
+- **Summary-Pfeil `duration-200`** in `dashboards/admin.blade.php` (Tabelle in details): 1:1 aus
+  `components/diagramm.blade.php`; wird mit der Komponente auf `--dauer-*` umgestellt.
+- **Quartilband (IQR)** in Histogramm und Streifen, Markierung der laufenden Woche, Säulenanimation:
+  Daten liegen im Paket, der Plan verlangt nur den Median.
+- **gui-konzept.md Altlast**: die ältere Typografie-Tabelle (iOS-Werte) und die Diagramm-Tabelle f)
+  sind der alte Entwurf; Hinweise oben (Z. 7) und unter f) fangen es ab. Zusammenführen in R6-13.
+- **ß-Akzeptanz** für R6-11 gilt als «in neuem Text leer»: die einzigen Treffer sind Meta-Sätze
+  «ss statt ß» und der grep-Befehl selbst.
+- **LCP-Messung heute systematisch höher**: `/admin/reports/grades` 248/304 ms (Basislinie 180),
+  aber auch die Kontrolle nina `/dashboard` 308 (Basislinie 172) – Messbedingung, nicht die Seite.
+  R6-12 misst Basislinie (Stand 3e34ab2 per Demo-Server) und Nachher in derselben Sitzung.
+- Nach der Gegenprüfung (pruefer, dritter Lauf) umgesetzt: eine erfasste Position, die für den Track
+  der Person entfällt (`Knoten::$zaehlt`/`$entfaellt`), setzt mit ihrer Fallnote die übrigen nicht
+  mehr auf «nicht erreichbar» (Test `s5_ignoriert_die_fallnote_einer_position_die_fuer_den_track…`).
+

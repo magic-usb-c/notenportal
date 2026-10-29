@@ -398,6 +398,19 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   richtige Cockpit. ui-checker ×2 ohne Blocker, Empfehlungen im Backlog. Bilder dunkel
                   1920/2560 gesichtet, Rundgang ×3 Exit 0. Nächster Schritt: Welle R6-10 (Admin) +
                   R6-11 (Doku/Skills), dann R6-12.
+[O] 29.10. 19:40  Welle 5 fertig (R6-10 Admin, R6-11 Doku/Skills; Workflow wf_4d082326, beide Reviews
+                  «annehmen»). Admin-Dashboard: «Erfasste Noten pro Woche» als Server-SVG (Säulen ab 0,
+                  Medianlinie, Segment 12/26/52 Wochen per npFilter, Baustein np-erfassung, Tabelle in
+                  details). Bericht: Histogramm in 20 Viertelnoten mit Genügend- und Medianlinie,
+                  Lehrjahres-Streifen 1–6 mit Median ab drei Personen, Filter Kategorie/Lehrjahr,
+                  Export-Link trägt sie mit; Ansage der Lehrjahre auch ohne Streifen. AdminStatistikTest
+                  (8). Doku: gui-konzept (Materialtabelle mit gemessenen Minima, Bewegungstokens,
+                  Glas-Budget, Kataloge B/S), GUI-APPLE G1–G21 mit wörtlichen Zitaten, notenlogik,
+                  funktionsumfang, Skills ui/dunkelmodus/pruefwerkzeuge, rules/oberflaeche. Nachweise:
+                  Build, Suite 1455 grün (1 skip), kontrast.mjs Exit 0, Rundgang laura 57 Seiten,
+                  Klick 26 Wochen tauscht ohne Volllader, Bilder dunkel 1920/2560, reduziert, hell.
+                  Dritte pruefer-Runde zu S5: Fallnote bestätigt, Track-Randfall behoben (a30f577).
+                  Bewusst gelassen: Backlog «R6 Welle 5». Nächster Schritt: R6-12 Schlussabnahme.
 ```
 
 ---
