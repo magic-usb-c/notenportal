@@ -10,6 +10,7 @@ use App\Services\Auswertung\Element;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Leistung;
 use App\Services\Auswertung\Lernstand;
+use App\Services\Auswertung\Notenbaum\Knoten;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechenkern;
 use App\Services\Auswertung\Statistik;
@@ -382,8 +383,10 @@ final class StatistikDaten
             'schluessel' => 'hantel',
             'diagramm' => ['semester' => null, 'vorsemester' => null, 'zeilen' => $rows, 'grenze' => NotenSkala::genuegend()],
             'tabelle' => $this->hantelTabelle($rows, __('Name')),
-            'zusammenfassung' => __(':besser besser, :schlechter schlechter als im Vorsemester.', ['besser' => $besser, 'schlechter' => $schlechter]),
-            'meta' => ['titel' => __('Wer hat sich bewegt'), 'optionen' => ['status' => $this->optionen()['status'], 'sort' => ['delta' => $this->optionen()['sort']['delta'], 'name' => $this->optionen()['sort']['name']]]],
+            'zusammenfassung' => $rows === []
+                ? __('Keine Lernenden für diesen Filter.')
+                : __(':besser besser, :schlechter schlechter als im Vorsemester.', ['besser' => $besser, 'schlechter' => $schlechter]),
+            'meta' => ['titel' => __('Wer hat sich bewegt'), 'optionen' => ['status' => $this->optionen()['status'], 'hantel_sort' => ['delta' => $this->optionen()['sort']['delta'], 'name' => $this->optionen()['sort']['name']]]],
         ];
     }
 
@@ -419,6 +422,54 @@ final class StatistikDaten
                 : __(':n offene Positionen, :b davon bestanden.', ['n' => count($zeilen), 'b' => $bestanden]),
             'meta' => ['titel' => __('Was fehlt zum Bestehen')],
         ];
+    }
+
+    /**
+     * Ergänzt je tragendes Positionsblatt des Hauptbaums (IPA, Vertiefungsarbeit …), für das noch kein Wert erfasst
+     * ist, eine offene Leistung – erst damit kann «Was fehlt zum Bestehen» die nötige Note je Position rechnen.
+     *
+     * @param  list<Leistung>  $leistungen
+     * @return list<Leistung>
+     */
+    public function mitOffenenPositionen(array $leistungen, Konfiguration $k): array
+    {
+        $haupt = $k->hauptbaum();
+        if ($haupt === null) {
+            return $leistungen;
+        }
+        $erfasst = [];
+        foreach ($leistungen as $l) {
+            if ($l->istPosition()) {
+                $erfasst[(int) $l->knotenId] = true;
+            }
+        }
+        foreach ($this->positionsblaetter($haupt->wurzel) as $knoten) {
+            if (! isset($erfasst[$knoten->id])) {
+                $leistungen[] = new Leistung(0, null, null, null, null, null, titel: $knoten->name, knotenId: $knoten->id);
+            }
+        }
+
+        return $leistungen;
+    }
+
+    /**
+     * Positionsblätter, deren Note bis zur Wurzel durchschlägt (nur über zählende Teile mit Gewicht, wie im Zielrechner).
+     *
+     * @return list<Knoten>
+     */
+    private function positionsblaetter(Knoten $knoten): array
+    {
+        if ($knoten->istBlatt()) {
+            return $knoten->typ === Knoten::MANUELL ? [$knoten] : [];
+        }
+        $out = [];
+        foreach ($knoten->kinder as $kind) {
+            if ($kind->zaehlt && $kind->gewicht > 0) {
+                array_push($out, ...$this->positionsblaetter($kind));
+            }
+        }
+
+        return $out;
     }
 
     /**

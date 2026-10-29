@@ -30,7 +30,8 @@ class AbschlussController extends Controller
 
         // Lernenden-ID nur aus der Session; die Seite kennt keine Filter, unbekannte Parameter fallen weg
         $geladen = $this->statistik->lernender((int) $lernender->lernender_id);
-        $paket = StatistikAntwort::paket(StatistikFilter::aus($request, []), $this->statistik->positionen($geladen['leistungen'], $geladen['konfiguration']));
+        $leistungen = $this->statistik->mitOffenenPositionen($geladen['leistungen'], $geladen['konfiguration']);
+        $paket = StatistikAntwort::paket(StatistikFilter::aus($request, []), $this->statistik->positionen($leistungen, $geladen['konfiguration']));
         if ($request->wantsJson()) {
             return StatistikAntwort::json($paket);
         }

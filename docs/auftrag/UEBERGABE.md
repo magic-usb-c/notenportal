@@ -377,6 +377,8 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   (R6-08 + R6-09, dann R6-10 + R6-11), Hinweise in scratch r6/welle4-hinweise.md.
 [O] 29.10. 17:30  Welle 4 fertig (R6-08 Lernende, R6-09 Berufsbildner/Lernendenliste; Workflow
                   wf_d769e215 brach am Nutzungslimit ab, Reviews danach als direkte reviewer-Agents).
+                  Der pruefer widerlegte die erste Fertigmeldung (S5 ohne offene Positionen, sort-Kollision
+                  im BB-Dashboard); beides behoben, siehe audit-backlog «Nach der Gegenprüfung umgesetzt».
                   Lernende: Dashboard mit einem npFilter-Formular (Zeitraum, Kategorie, Fach, Achse
                   Datum/Semester) um «Wo stehe ich» (Modus-Segment als Radio) und x-verlauf; Noten mit
                   x-hantel je Fach; Rechner-Kurve als x-diagramm mit Satz und Tabelle; Abschluss mit

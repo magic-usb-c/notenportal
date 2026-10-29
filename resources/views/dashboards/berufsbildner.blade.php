@@ -103,7 +103,7 @@
                                 <colgroup>
                                     <col class="w-32"><col class="w-48"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
                                 </colgroup>
-                                <thead>
+                                <thead data-np-sortkoepfe>
                                     <tr>
                                         <th scope="col" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
                                         <th scope="col" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
@@ -189,7 +189,11 @@
                              } }"
                              @click="geheZu($event)">
                         <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard')"
-                                        :statistik="['json' => false, 'standard' => ['status' => 'alle', 'sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-unter-genuegend]']]">
+                                        :statistik="['json' => false, 'standard' => ['status' => 'alle', 'hantel_sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-unter-genuegend]', '[data-np-sortkoepfe]']]">
+                            @if($filter['sort'] !== null)
+                                <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
+                                <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
+                            @endif
                             <label for="hantel-status" class="sr-only">{{ __('Status') }}</label>
                             <select name="status" id="hantel-status" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
                                 @foreach($hantelOptionen['status'] as $wert => $text)
@@ -206,9 +210,9 @@
                             </select>
 
                             <label for="hantel-sort" class="sr-only">{{ __('Sortierung') }}</label>
-                            <select name="sort" id="hantel-sort" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
-                                @foreach($hantelOptionen['sort'] as $wert => $text)
-                                    <option value="{{ $wert }}" @selected($hantelFilter['sort'] === $wert)>{{ $text }}</option>
+                            <select name="hantel_sort" id="hantel-sort" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
+                                @foreach($hantelOptionen['hantel_sort'] as $wert => $text)
+                                    <option value="{{ $wert }}" @selected($hantelFilter['hantel_sort'] === $wert)>{{ $text }}</option>
                                 @endforeach
                             </select>
                         </x-filterleiste>

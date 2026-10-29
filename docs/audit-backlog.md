@@ -1155,10 +1155,6 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Datum-Achse zeigt bei vielen Punkten jeden Punkt** (`/learner`, 118 Prüfungen → Punktkette statt
   Linie): `npChart('verlauf')` soll `pointRadius` ab ≈40 Punkten auf 0 senken und nur beim Hover
   zeigen → R6-12.
-- **«Was fehlt zum Bestehen» (S5) ist in der Demo unsichtbar**, weil `notenbaum_positionen` dort
-  keine offene Position hat (`Statistik::benoetigt` liefert leer). `DemoSeeder` könnte eine offene
-  IPA-Position anlegen; der Block selbst ist nur mit Fixture getestet (`LernendeStatistikTest` s5
-  prüft die Seite ohne Positionen – Fixture mit Modul-Prüfung und Ziel nachrüsten).
 - **`max-w-[100rem]` in `abschluss/index.blade.php`** ist ein Arbitrary Value ohne Token; mit
   `np-seite` (Deckel 2048 px) vergleichen und entweder Token oder weglassen → R6-12.
 - **Beschriftung «genügend 4.0» überlappt links die Linie**, wenn die erste Note knapp über 4 liegt
@@ -1166,9 +1162,6 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Hantel-Zeilen nur per Maus** (`dashboards/berufsbildner.blade.php`, `x-hantel`): der Name in der
   Hantel ist kein Link, per Tastatur erreichbar sind nur die Links unter genügend. Fix gehört in die
   Komponente (Name als `<a>` mit `data-ziele`-Ziel) → R6-12.
-- **Parameter `sort` geteilt** zwischen BB-Tabelle (`Uebersicht::BB_SORTIERUNGEN`) und Hantel-Select:
-  bei `?sort=status` zeigt das Select «Veränderung», ohne Wirkung auf die Hantel. Eigener Parameter
-  `hantel_sort` oder Sortierung im Paket → R6-12.
 - **Punktstreifen und Zeilen uneinheitlich bei Kategorie-Filter** (`verwaltung/lernende/index`): der
   Streifen zeigt die Kategorienote, Bullet und «Ø gesamt» weiter den Gesamtschnitt. Entscheid in
   R6-10: Spalten folgen dem Filter oder der Streifen bekommt den Zusatz «(Kategorie)».
@@ -1201,3 +1194,10 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Umgesetzt statt gelassen**: Admin-/Trainer-Lernendenliste ohne `max-w-7xl` (Status-Spalte brach
   auf 3–4 Zeilen, Zeilen 80–100 px hoch; jetzt einzeilig), Pfeile ▲/▼ in der BB-Tabelle
   `aria-hidden` mit `tabular-nums`, `hidden`/`flex` nicht mehr gleichzeitig auf der Liste unter genügend.
+- **Nach der Gegenprüfung (pruefer) umgesetzt**: S5 rechnete nie, weil erfasste Positionen immer einen
+  Wert haben – `StatistikDaten::mitOffenenPositionen()` ergänzt je tragendes Positionsblatt des
+  Hauptbaums ohne Eintrag eine offene Leistung (Demo zeigt jetzt IPA, Schlussarbeit, Schlussprüfung
+  mit «benötigt»); Hantel-Sortierung als eigener Parameter `hantel_sort`, Tabellensortierung `sort`/`dir`
+  als versteckte Felder im Hantelformular, Spaltenköpfe (`data-np-sortkoepfe`) werden mit ersetzt;
+  leere Hantel sagt «Keine Lernenden für diesen Filter.»; Tests mit zwei Semestern (Delta-Reihenfolge)
+  und gültiger Kategorie.

@@ -67,13 +67,13 @@ class DashboardController extends Controller
         $statistikFilter = StatistikFilter::aus($request, [
             'status' => ['alle', 'kritisch'],
             'kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))],
-            'sort' => [...Uebersicht::BB_SORTIERUNGEN, 'delta'],
-        ], ['status' => 'alle', 'sort' => 'delta']);
+            'hantel_sort' => ['delta', 'name'],
+        ], ['status' => 'alle', 'hantel_sort' => 'delta']);
         $paket = StatistikAntwort::paket($statistikFilter, $this->statistik->hantelPersonen(
             $daten['zeilen'],
             $statistikFilter->wert('kategorie'),
             (string) $statistikFilter->wert('status'),
-            $statistikFilter->wert('sort') === 'name' ? 'name' : 'delta',
+            (string) $statistikFilter->wert('hantel_sort'),
         ));
         if ($request->wantsJson()) {
             return StatistikAntwort::json($paket);

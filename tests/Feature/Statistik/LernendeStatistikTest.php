@@ -11,6 +11,8 @@ use App\Models\Lehrberuf;
 use App\Models\Modul;
 use App\Models\Semester;
 use App\Models\User;
+use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -146,17 +148,35 @@ class LernendeStatistikTest extends TestCase
     }
 
     #[Test]
-    public function s5_qualifikation_rendert_die_seite_ohne_fehler_und_ohne_paket_nicht_fuer_die_verwaltung(): void
+    public function s5_qualifikation_rechnet_je_offener_position_des_notenbaums_die_noetige_note(): void
     {
+        // Ohne Notenbaum gibt es keine Positionen: Seite ohne den Block, Paket ohne Zeilen
         $antwort = $this->actingAs($this->mitNoten)->get(route('learner.qualification.index'))->assertOk();
-        $paket = $antwort->viewData('statistik');
-        $zeilen = $paket['diagramm']['positionen']['zeilen'];
+        $this->assertSame([], $antwort->viewData('statistik')['diagramm']['positionen']['zeilen']);
+        $antwort->assertDontSee('Was fehlt zum Bestehen');
 
-        if ($zeilen === []) {
-            $antwort->assertDontSee('Was fehlt zum Bestehen');
-        } else {
-            $antwort->assertSee('Was fehlt zum Bestehen')->assertSee($paket['zusammenfassung']['positionen'])->assertSee('<details', false);
+        // Mit dem Baum des Lehrberufs sind alle Positionsblätter (IPA …) offen, solange niemand eine Note eingetragen hat
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), (int) $this->mitNoten->lernender->lehrberuf_id);
+        Konfiguration::vergessen();
+
+        $json = $this->actingAs($this->mitNoten)->getJson(route('learner.qualification.index'))->assertOk()->json();
+        $zeilen = $json['diagramm']['positionen']['zeilen'];
+        $this->assertNotEmpty($zeilen);
+        foreach ($zeilen as $z) {
+            $this->assertNotNull($z['knotenId']);
+            $this->assertNotSame('', $z['titel']);
+            $this->assertContains($z['status'], ['benoetigt', 'erreicht', 'unerreichbar', 'ohne_einfluss', 'keine_unbekannten']);
         }
+        $this->assertStringContainsString(count($zeilen).' offene Positionen', $json['zusammenfassung']['positionen']);
+
+        $html = $this->actingAs($this->mitNoten)->get(route('learner.qualification.index'))->assertOk()->getContent();
+        $this->assertStringContainsString('Was fehlt zum Bestehen', $html);
+        $this->assertStringContainsString($json['zusammenfassung']['positionen'], $html);
+        $this->assertSame(count($zeilen), substr_count($html, 'viewBox="0 0 100 8"'), 'ein Mini-Bullet je Position');
+        $this->assertStringContainsString('<details', $html);
+
+        // Verwaltung sieht die Seite ohne Statistikpaket, und die Lernenden-ID kommt nur aus der Session
+        $this->actingAs(User::factory()->admin()->create())->get(route('learner.qualification.index'))->assertForbidden();
     }
 
     #[Test]
