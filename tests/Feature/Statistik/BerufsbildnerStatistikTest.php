@@ -142,7 +142,8 @@ class BerufsbildnerStatistikTest extends TestCase
         $fach = (int) Kategorie::where('code', 'FACH')->value('kategorie_id');
         $vorher = Semester::factory()->create(['start_datum' => now()->subMonths(14)->toDateString(), 'end_datum' => now()->subMonths(8)->toDateString(), 'sortierung' => 1]);
         $jetzt = Semester::factory()->create(['start_datum' => now()->subMonths(2)->toDateString(), 'end_datum' => now()->addMonths(4)->toDateString(), 'sortierung' => 2]);
-        foreach ([['Zoe', 'Aufsteiger', 3.0, 5.0], ['Anna', 'Absteiger', 5.0, 3.0]] as [$vorname, $name, $alt, $neu]) {
+        // Anna steigt, Zoe fällt: nach Veränderung steht Zoe (−2) zuerst, nach Name Anna – die Reihenfolgen unterscheiden sich
+        foreach ([['Anna', 'Aufsteiger', 3.0, 5.0], ['Zoe', 'Absteiger', 5.0, 3.0]] as [$vorname, $name, $alt, $neu]) {
             $user = User::factory()->lernender()->create(['vorname' => $vorname, 'nachname' => $name]);
             Betreuung::factory()->create(['berufsbildner_id' => $this->bb->berufsbildner->berufsbildner_id, 'lernender_id' => $user->lernender->lernender_id]);
             foreach ([[$vorher, $alt], [$jetzt, $neu]] as [$s, $wert]) {
@@ -155,9 +156,10 @@ class BerufsbildnerStatistikTest extends TestCase
 
         $standard = $zeilen([]);
         $this->assertEquals([-2, 2], array_column($standard, 'delta'), 'grösster Rückgang zuerst');
+        $this->assertSame(['Zoe Absteiger', 'Anna Aufsteiger'], array_column($standard, 'fach'));
         $this->assertStringEndsWith('Absteiger', $standard[0]['fach']);
 
-        $this->assertSame(['Anna Absteiger', 'Zoe Aufsteiger'], array_column($zeilen(['hantel_sort' => 'name']), 'fach'));
+        $this->assertSame(['Anna Aufsteiger', 'Zoe Absteiger'], array_column($zeilen(['hantel_sort' => 'name']), 'fach'));
 
         $kategorie = $zeilen(['kategorie' => $fach]);
         $this->assertSame([$fach, $fach], array_column($kategorie, 'kategorie_id'));
@@ -173,7 +175,9 @@ class BerufsbildnerStatistikTest extends TestCase
 
         $this->assertStringContainsString('id="np-hantel-personen"', $html);
         $this->assertStringContainsString('data-np-unter-genuegend', $html);
-        $this->assertStringContainsString('Keine Lernenden für diesen Filter.', $html);
+        // Der Satz steht im Hantel-Baustein selbst, nicht nur in der Leerzeile der Tabelle weiter oben
+        $hantel = substr($html, strpos($html, 'id="np-hantel-personen"'));
+        $this->assertStringContainsString('Keine Lernenden für diesen Filter.', $hantel);
         $this->assertStringNotContainsString('0 besser, 0 schlechter', $html);
     }
 

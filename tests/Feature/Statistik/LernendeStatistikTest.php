@@ -162,18 +162,41 @@ class LernendeStatistikTest extends TestCase
         $json = $this->actingAs($this->mitNoten)->getJson(route('learner.qualification.index'))->assertOk()->json();
         $zeilen = $json['diagramm']['positionen']['zeilen'];
         $this->assertNotEmpty($zeilen);
+        $ipa = null;
         foreach ($zeilen as $z) {
             $this->assertNotNull($z['knotenId']);
             $this->assertNotSame('', $z['titel']);
-            $this->assertContains($z['status'], ['benoetigt', 'erreicht', 'unerreichbar', 'ohne_einfluss', 'keine_unbekannten']);
+            // Ohne eine einzige erfasste Position ist jede offen und hat eine konkrete nötige Note
+            $this->assertSame('benoetigt', $z['status'], $z['titel']);
+            $this->assertNotNull($z['note'], $z['titel']);
+            $this->assertStringContainsString('benötigt', $z['text']);
+            if (str_contains($z['titel'], 'IPA')) {
+                $ipa = $z;
+            }
         }
-        $this->assertStringContainsString(count($zeilen).' offene Positionen', $json['zusammenfassung']['positionen']);
+        $this->assertNotNull($ipa, 'die IPA ist ein offenes Positionsblatt');
+        // Die IPA trägt die Fallnote 4.0: die nötige Note liegt nie darunter, auch wenn der Gesamtschnitt weniger verlangt
+        $this->assertGreaterThanOrEqual(4.0, $ipa['note']);
+        $this->assertSame(count($zeilen).' offene Positionen, 0 davon bestanden.', $json['zusammenfassung']['positionen']);
 
         $html = $this->actingAs($this->mitNoten)->get(route('learner.qualification.index'))->assertOk()->getContent();
         $this->assertStringContainsString('Was fehlt zum Bestehen', $html);
         $this->assertStringContainsString($json['zusammenfassung']['positionen'], $html);
         $this->assertSame(count($zeilen), substr_count($html, 'viewBox="0 0 100 8"'), 'ein Mini-Bullet je Position');
         $this->assertStringContainsString('<details', $html);
+
+        // Eine erfasste IPA unter der Fallnote macht den Baum unbestehbar: keine andere Position kann das noch retten
+        $this->actingAs($this->mitNoten)->put(route('learner.qualification.update'), ['werte' => [$ipa['knotenId'] => '3.5']])->assertSessionHas('success');
+        $vorher = count($zeilen);
+        $json = $this->actingAs($this->mitNoten)->getJson(route('learner.qualification.index'))->assertOk()->json();
+        $zeilen = $json['diagramm']['positionen']['zeilen'];
+        $this->assertCount($vorher - 1, $zeilen, 'die IPA ist nicht mehr offen');
+        $this->assertNotContains($ipa['titel'], array_column($zeilen, 'titel'));
+        $this->assertNotEmpty($zeilen);
+        foreach ($zeilen as $z) {
+            $this->assertSame('unerreichbar', $z['status'], $z['titel']);
+            $this->assertSame('nicht erreichbar', $z['text']);
+        }
 
         // Verwaltung sieht die Seite ohne Statistikpaket, und die Lernenden-ID kommt nur aus der Session
         $this->actingAs(User::factory()->admin()->create())->get(route('learner.qualification.index'))->assertForbidden();

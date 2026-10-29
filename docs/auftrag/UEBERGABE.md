@@ -379,6 +379,8 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   wf_d769e215 brach am Nutzungslimit ab, Reviews danach als direkte reviewer-Agents).
                   Der pruefer widerlegte die erste Fertigmeldung (S5 ohne offene Positionen, sort-Kollision
                   im BB-Dashboard); beides behoben, siehe audit-backlog «Nach der Gegenprüfung umgesetzt».
+                  Zweite Gegenprüfung: S5 ignorierte die Fallnote (IPA «benötigt 3.45» neben «mindestens
+                  4.0») – behoben in `Statistik::benoetigt()`, drei Tests geschärft (Backlog «Zweite Gegenprüfung»).
                   Lernende: Dashboard mit einem npFilter-Formular (Zeitraum, Kategorie, Fach, Achse
                   Datum/Semester) um «Wo stehe ich» (Modus-Segment als Radio) und x-verlauf; Noten mit
                   x-hantel je Fach; Rechner-Kurve als x-diagramm mit Satz und Tabelle; Abschluss mit

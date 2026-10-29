@@ -1201,3 +1201,10 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   als versteckte Felder im Hantelformular, Spaltenköpfe (`data-np-sortkoepfe`) werden mit ersetzt;
   leere Hantel sagt «Keine Lernenden für diesen Filter.»; Tests mit zwei Semestern (Delta-Reihenfolge)
   und gültiger Kategorie.
+- **Zweite Gegenprüfung (pruefer) umgesetzt**: S5 nannte für die IPA «benötigt 3.45», während die Seite
+  «mindestens 4.0» verlangte – `Statistik::benoetigt()` hebt die nötige Note einer Position auf ihre
+  Fallnote (`Knoten::$fallnote` des Hauptbaums) und setzt alle offenen Positionen auf «nicht erreichbar»,
+  sobald eine erfasste Position unter ihrer Fallnote liegt. Nicht abgedeckt (Lücke, Vorlage braucht es
+  nicht): Fallnoten auf einer *Gruppe* über einem Positionsblatt – dafür gibt es keine Zielgrösse im
+  Zielrechner. Tests: S5 prüft IPA ≥ 4.0 und den unbestehbaren Baum (ohne Korrektur 3.95 → rot);
+  BB-Hantel-Fixture mit Delta-Reihenfolge ≠ Namensreihenfolge; Leerzustand nur im Hantel-Baustein gesucht.

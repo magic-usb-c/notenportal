@@ -151,13 +151,14 @@ final class Statistik
             $loesungen[$schluessel] = $this->zielrechner->loese($leistungen, $ziel, $zielwert, $k);
         }
 
+        $verletzt = $this->fallnoteVerletzt($leistungen, $k);
         $out = [];
         foreach ($leistungen as $l) {
             $ziel = $l->istUnbekannt() ? $this->zielFuer($l, $k) : null;
             if ($ziel === null) {
                 continue;
             }
-            $r = $loesungen[(string) $ziel];
+            $r = $this->mitFallnote($loesungen[(string) $ziel], $l, $k, $verletzt);
             $out[] = [
                 'id' => $l->id,
                 'titel' => $l->titel,
@@ -178,6 +179,52 @@ final class Statistik
         usort($out, fn (array $x, array $y) => [$x['datum'] === null, $x['datum'] ?? ''] <=> [$y['datum'] === null, $y['datum'] ?? '']);
 
         return $out;
+    }
+
+    /**
+     * Eine Position mit Fallnote (IPA: mindestens 4.0) muss diese selbst erreichen, auch wenn der Gesamtschnitt
+     * weniger verlangt oder schon steht; sonst ist der Baum nicht bestanden (docs/notenlogik.md, Fallnoten).
+     *
+     * @param  array{status: string, note: ?float, resultat: ?float, minimum: ?float, maximum: ?float, aktuell: ?float, unbekannte: int}  $r
+     * @return array{status: string, note: ?float, resultat: ?float, minimum: ?float, maximum: ?float, aktuell: ?float, unbekannte: int}
+     */
+    private function mitFallnote(array $r, Leistung $l, Konfiguration $k, bool $verletzt): array
+    {
+        if (! $l->istPosition() || $r['status'] === Zielrechner::UNERREICHBAR) {
+            return $r;
+        }
+        if ($verletzt) {
+            return ['status' => Zielrechner::UNERREICHBAR, 'note' => null] + $r;
+        }
+        $fallnote = $k->hauptbaum()?->knotenMitId((int) $l->knotenId)?->fallnote;
+        if ($fallnote === null) {
+            return $r;
+        }
+        if ($r['status'] === Zielrechner::BENOETIGT && $r['note'] !== null && $r['note'] >= $fallnote - 1e-9) {
+            return $r;
+        }
+
+        return ['status' => Zielrechner::BENOETIGT, 'note' => $fallnote] + $r;
+    }
+
+    /** Liegt eine erfasste Position schon unter ihrer Fallnote, ist der Baum nicht mehr zu bestehen. */
+    private function fallnoteVerletzt(array $leistungen, Konfiguration $k): bool
+    {
+        $haupt = $k->hauptbaum();
+        if ($haupt === null) {
+            return false;
+        }
+        foreach ($leistungen as $l) {
+            if (! $l->istPosition() || $l->wert === null) {
+                continue;
+            }
+            $fallnote = $haupt->knotenMitId((int) $l->knotenId)?->fallnote;
+            if ($fallnote !== null && $l->wert < $fallnote - 1e-9) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return array{0: list<Carbon>, 1: bool} Stichtage und ob auf Quartale vergröbert wurde */
