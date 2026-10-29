@@ -126,6 +126,7 @@ class BerufsbildnerStatistikTest extends TestCase
         $this->assertMatchesRegularExpression('/<select name="hantel_sort" id="hantel-sort"[^>]*>.*?<option value="name" selected/s', $html);
         $this->assertStringContainsString('<input type="hidden" name="sort" value="gesamt">', $html);
         $this->assertStringContainsString('<input type="hidden" name="dir" value="desc">', $html);
+        $this->assertStringContainsString('href="'.e(route('trainer.dashboard', ['sort' => 'gesamt', 'dir' => 'desc'])).'"', $html, 'Zurücksetzen behält die Tabellensortierung');
         // Die Spaltenköpfe werden mit dem Filter neu geladen und tragen die Hantelfilter weiter
         $this->assertStringContainsString('<thead data-np-sortkoepfe>', $html);
         $this->assertMatchesRegularExpression('/aria-sort="descending"><a href="[^"]*hantel_sort=name[^"]*"/', $html);
@@ -141,8 +142,8 @@ class BerufsbildnerStatistikTest extends TestCase
         $fach = (int) Kategorie::where('code', 'FACH')->value('kategorie_id');
         $vorher = Semester::factory()->create(['start_datum' => now()->subMonths(14)->toDateString(), 'end_datum' => now()->subMonths(8)->toDateString(), 'sortierung' => 1]);
         $jetzt = Semester::factory()->create(['start_datum' => now()->subMonths(2)->toDateString(), 'end_datum' => now()->addMonths(4)->toDateString(), 'sortierung' => 2]);
-        foreach ([['Aufsteiger', 3.0, 5.0], ['Absteiger', 5.0, 3.0]] as [$name, $alt, $neu]) {
-            $user = User::factory()->lernender()->create(['nachname' => $name]);
+        foreach ([['Zoe', 'Aufsteiger', 3.0, 5.0], ['Anna', 'Absteiger', 5.0, 3.0]] as [$vorname, $name, $alt, $neu]) {
+            $user = User::factory()->lernender()->create(['vorname' => $vorname, 'nachname' => $name]);
             Betreuung::factory()->create(['berufsbildner_id' => $this->bb->berufsbildner->berufsbildner_id, 'lernender_id' => $user->lernender->lernender_id]);
             foreach ([[$vorher, $alt], [$jetzt, $neu]] as [$s, $wert]) {
                 Note::factory()->create(['lernender_id' => $user->lernender->lernender_id, 'kategorie_id' => $fach, 'semester_id' => $s->semester_id,
@@ -156,8 +157,7 @@ class BerufsbildnerStatistikTest extends TestCase
         $this->assertEquals([-2, 2], array_column($standard, 'delta'), 'grösster Rückgang zuerst');
         $this->assertStringEndsWith('Absteiger', $standard[0]['fach']);
 
-        $this->assertStringEndsWith('Absteiger', $zeilen(['hantel_sort' => 'name'])[0]['fach']);
-        $this->assertStringEndsWith('Aufsteiger', $zeilen(['hantel_sort' => 'name'])[1]['fach']);
+        $this->assertSame(['Anna Absteiger', 'Zoe Aufsteiger'], array_column($zeilen(['hantel_sort' => 'name']), 'fach'));
 
         $kategorie = $zeilen(['kategorie' => $fach]);
         $this->assertSame([$fach, $fach], array_column($kategorie, 'kategorie_id'));

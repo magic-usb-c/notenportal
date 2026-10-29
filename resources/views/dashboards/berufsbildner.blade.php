@@ -177,7 +177,7 @@
                         $cockpit = fn (array $r) => route('trainer.learners.show', (int) substr($r['schluessel'], 1));
                         // Unter genügend steht die Person zusätzlich mit Symbol und Text, nie nur über die Farbe des Punkts
                         $unterGenuegend = array_values(array_filter($hantel['zeilen'], fn ($r) => $r['jetzt'] !== null && $r['jetzt'] < $hantel['grenze']));
-                        $hantelAktiv = collect([$hantelFilter['status'] !== 'alle' ? 1 : null, $hantelFilter['kategorie']])->filter()->count();
+                        $hantelAktiv = collect([$hantelFilter['status'] !== 'alle' ? 1 : null, $hantelFilter['kategorie'], $hantelFilter['hantel_sort'] !== 'delta' ? 1 : null])->filter()->count();
                     @endphp
                     <section class="flex flex-col gap-3" aria-label="{{ $statistik['meta']['hantel']['titel'] }}"
                              x-data="{ geheZu(ev) {
@@ -188,7 +188,7 @@
                                  if (ziel) location.assign(ziel);
                              } }"
                              @click="geheZu($event)">
-                        <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard')"
+                        <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard', $filter['sort'] !== null ? ['sort' => $filter['sort'], 'dir' => $filter['dir']] : [])"
                                         :statistik="['json' => false, 'standard' => ['status' => 'alle', 'hantel_sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-unter-genuegend]', '[data-np-sortkoepfe]']]">
                             @if($filter['sort'] !== null)
                                 <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
