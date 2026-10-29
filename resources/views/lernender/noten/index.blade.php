@@ -30,7 +30,7 @@
     <x-slot name="header">
         <x-seitenkopf titel="{{ __('Noten') }}">
             <div class="flex items-center gap-3">
-                <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}">
+                <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}" data-np-semester-wechsel>
                     <a class="{{ $pfeil }}" aria-label="{{ __('Vorheriges Semester') }}"
                        @if($prevSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-left" strich="2" /></a>
                     <x-semester :id="$selectedSemesterId ?: null" :lernender="$a->lernenderId" class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text" />
@@ -84,7 +84,7 @@
                     <button type="button" role="radio" :aria-checked="ansicht === 'semester'" @click="ansicht = 'semester'">{{ __('Semester') }}</button>
                     <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'">{{ __('Zeugnisübersicht') }}</button>
                 </div>
-                <nav class="np-segment max-w-full overflow-x-auto" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}">
+                <nav class="np-segment max-w-full overflow-x-auto" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}" data-np-kategorie-wechsel>
                     <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" @if(! $kategorieId) aria-current="page" @endif>{{ __('Alle') }}</a>
                     @foreach($kategorien as $k)
                         <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" @if($kategorieId === $k->kategorie_id) aria-current="page" @endif>{{ $k->name }}</a>
@@ -120,6 +120,24 @@
                 $spalten = [$gruppenListe->take($teilung), $gruppenListe->slice($teilung)];
             @endphp
             <div class="@container" x-show="ansicht === 'semester'">
+                @if($a->elemente !== [])
+                    {{-- Vorsemester gegen aktuell: die Sortierung gilt sofort, Semester und Kategorie bleiben Links der Seite --}}
+                    <form method="GET" action="{{ route('learner.grades.index') }}" class="mb-6 flex max-w-7xl flex-col gap-3"
+                          x-data="npFilter(@js(['json' => false, 'standard' => ['sort' => 'delta'], 'ersetze' => ['[data-np-semester-wechsel]', '[data-np-kategorie-wechsel]']]))">
+                        @if($selectedSemesterId)<input type="hidden" name="semester_id" value="{{ $selectedSemesterId }}">@endif
+                        @if($kategorieId)<input type="hidden" name="kategorie_id" value="{{ $kategorieId }}">@endif
+                        <div class="flex min-w-0 flex-col gap-2">
+                            <div class="flex justify-end">
+                                <div class="np-segment np-segment-klein" role="radiogroup" aria-label="{{ __('Vorsemester gegen aktuell') }}">
+                                    @foreach($statistik['meta']['hantel']['optionen']['sort'] as $wert => $text)
+                                        <label><input type="radio" name="sort" value="{{ $wert }}" class="sr-only" @checked($statistik['filter']['sort'] === $wert)>{{ $text }}</label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <x-hantel :paket="$statistik" />
+                        </div>
+                    </form>
+                @endif
                 @if($gruppenListe->isNotEmpty())
                 <div class="grid grid-cols-1 items-start gap-6 @min-[92rem]:grid-cols-2">
                 @foreach($spalten as $spalte)

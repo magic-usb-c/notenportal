@@ -70,7 +70,8 @@
             <div class="grid grid-cols-12 items-start gap-5">
                 {{-- Meine Lernenden --}}
                 @if($zeigen['lernende'])
-                <x-karte :titel="__('Meine Lernenden')" symbol="users" :polster="false" @class(['min-w-0', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
+                <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
+                <x-karte :titel="__('Meine Lernenden')" symbol="users" :polster="false" class="min-w-0">
                     @if($zeilen->isNotEmpty())
                         <x-slot:aktionen>
                             <x-suchfeld x-model="suche" class="w-56" :label="__('Lernende suchen')" />
@@ -97,7 +98,7 @@
                             $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
                         @endphp
                         <div class="overflow-x-auto px-2 pb-2">
-                            <table class="np-tabelle table-fixed text-sm">
+                            <table class="np-tabelle table-fixed text-sm" data-np-lernende>
                                 <caption class="sr-only">{{ __('Meine Lernenden') }}</caption>
                                 <colgroup>
                                     <col class="w-32"><col class="w-48"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
@@ -135,7 +136,7 @@
                                             <td class="whitespace-nowrap text-right">
                                                 <x-note :wert="$s->semesterNote" :stellen="1" />
                                                 @if($d !== null && $d != 0)
-                                                    <span class="ml-1 text-2xs {{ $d > 0 ? 'text-muted' : 'text-note-knapp' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format(abs($d), 1) }}</span>
+                                                    <span class="ml-1 text-2xs tabular-nums {{ $d > 0 ? 'text-muted' : 'text-note-knapp' }}"><span aria-hidden="true">{{ $d > 0 ? '▲' : '▼' }}</span> {{ $d > 0 ? '+' : '' }}{{ \App\Support\NotenSkala::format(abs($d), 1) }}</span>
                                                 @endif
                                             </td>
                                             <td class="text-right font-semibold"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
@@ -165,6 +166,69 @@
                         </div>
                     @endif
                 </x-karte>
+
+                @if($zeilen->isNotEmpty())
+                    @php
+                        // Wer hat sich bewegt (S7): das Paket kommt gefiltert aus dem Controller (nur aktiv betreute Personen)
+                        $hantel = $statistik['diagramm']['hantel'];
+                        $hantelOptionen = $statistik['meta']['hantel']['optionen'];
+                        $hantelFilter = $statistik['filter'];
+                        $hantelKategorien = \App\Services\Auswertung\Konfiguration::ausDb()->kategorien;
+                        $cockpit = fn (array $r) => route('trainer.learners.show', (int) substr($r['schluessel'], 1));
+                        // Unter genügend steht die Person zusätzlich mit Symbol und Text, nie nur über die Farbe des Punkts
+                        $unterGenuegend = array_values(array_filter($hantel['zeilen'], fn ($r) => $r['jetzt'] !== null && $r['jetzt'] < $hantel['grenze']));
+                        $hantelAktiv = collect([$hantelFilter['status'] !== 'alle' ? 1 : null, $hantelFilter['kategorie']])->filter()->count();
+                    @endphp
+                    <section class="flex flex-col gap-3" aria-label="{{ $statistik['meta']['hantel']['titel'] }}"
+                             x-data="{ geheZu(ev) {
+                                 if (ev.target.closest('details, a, button')) return;
+                                 const li = ev.target.closest('li');
+                                 const ziele = JSON.parse(ev.target.closest('[data-ziele]')?.dataset.ziele ?? '[]');
+                                 const ziel = li ? ziele[[...li.parentElement.children].indexOf(li)] : null;
+                                 if (ziel) location.assign(ziel);
+                             } }"
+                             @click="geheZu($event)">
+                        <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard')"
+                                        :statistik="['json' => false, 'standard' => ['status' => 'alle', 'sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-unter-genuegend]']]">
+                            <label for="hantel-status" class="sr-only">{{ __('Status') }}</label>
+                            <select name="status" id="hantel-status" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
+                                @foreach($hantelOptionen['status'] as $wert => $text)
+                                    <option value="{{ $wert }}" @selected($hantelFilter['status'] === $wert)>{{ $text }}</option>
+                                @endforeach
+                            </select>
+
+                            <label for="hantel-kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                            <select name="kategorie" id="hantel-kategorie" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
+                                <option value="">{{ __('Kategorie') }}</option>
+                                @foreach($hantelKategorien as $kategorieId => $kategorie)
+                                    <option value="{{ $kategorieId }}" @selected($hantelFilter['kategorie'] === (int) $kategorieId)>{{ $kategorie['name'] }}</option>
+                                @endforeach
+                            </select>
+
+                            <label for="hantel-sort" class="sr-only">{{ __('Sortierung') }}</label>
+                            <select name="sort" id="hantel-sort" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
+                                @foreach($hantelOptionen['sort'] as $wert => $text)
+                                    <option value="{{ $wert }}" @selected($hantelFilter['sort'] === $wert)>{{ $text }}</option>
+                                @endforeach
+                            </select>
+                        </x-filterleiste>
+
+                        <x-hantel :paket="$statistik" id="np-hantel-personen" :data-ziele="json_encode(array_map($cockpit, $hantel['zeilen']), JSON_UNESCAPED_SLASHES)" />
+
+                        {{-- Ersatzbereich von npFilter: bleibt auch ohne Treffer im DOM --}}
+                        <ul data-np-unter-genuegend class="{{ $unterGenuegend === [] ? 'hidden' : 'flex flex-col gap-0.5 px-1 text-xs' }}" role="list">
+                            @foreach($unterGenuegend as $r)
+                                <li>
+                                    <a href="{{ $cockpit($r) }}" class="inline-flex min-h-6 items-center gap-1.5 hover:underline {{ \App\Support\NotenSkala::text($r['jetzt']) ?: 'text-text' }}">
+                                        <span aria-hidden="true">▼</span>
+                                        {{ __(':name :wert liegt unter :grenze', ['name' => $r['fach'], 'wert' => \App\Support\NotenSkala::format($r['jetzt'], 1), 'grenze' => \App\Support\NotenSkala::format($hantel['grenze'], 1)]) }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </section>
+                @endif
+                </div>
                 @endif
 
                 @if($rechts)

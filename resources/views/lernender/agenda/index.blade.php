@@ -51,7 +51,9 @@
                         @include('lernender.agenda._punkt', ['art' => $art]){{ \App\Support\AgendaArt::label($art) }}
                     </span>
                 @endforeach
-                <form method="GET" action="{{ route('learner.exams.index') }}" class="ml-auto flex items-center gap-2.5">
+                <form method="GET" action="{{ route('learner.exams.index') }}" class="ml-auto flex items-center gap-2.5"
+                      x-data @submit="const z = new URLSearchParams(location.search).get('zeitraum'); if (z) $el.elements.zeitraum.value = z; else $el.elements.zeitraum.disabled = true">
+                    <input type="hidden" name="zeitraum" value="">
                     @if($ansicht === 'monat')
                         <input type="hidden" name="ansicht" value="monat">
                         <input type="hidden" name="monat" value="{{ $monat->format('Y-m') }}">
@@ -75,6 +77,20 @@
                 {{-- Liste über die ganze Breite, daneben der Mini-Monat wie die Seitenleiste in Apple Kalender --}}
                 <div class="grid grid-cols-[minmax(0,78rem)_20rem] items-start gap-8">
                 <div class="flex min-w-0 flex-col gap-8">
+                    {{-- Nächste Prüfungen auf einer Zeitachse mit der nötigen Note; der Zeitraum gilt sofort (npFilter), Stundenplan bleibt in der Adresse --}}
+                    <form method="GET" action="{{ route('learner.exams.index') }}" class="flex flex-col gap-2"
+                          x-data="npFilter(@js(['json' => false, 'standard' => ['zeitraum' => '8w']]))">
+                        @if($zeigeLektionen)<input type="hidden" name="lektionen" value="1">@endif
+                        <div class="flex justify-end">
+                            <div class="np-segment np-segment-klein" role="radiogroup" aria-label="{{ __('Zeitraum') }}">
+                                @foreach($statistik['meta']['zeitleiste']['optionen']['zeitraum'] as $wert => $text)
+                                    <label><input type="radio" name="zeitraum" value="{{ $wert }}" class="sr-only" @checked($statistik['filter']['zeitraum'] === $wert)>{{ $text }}</label>
+                                @endforeach
+                            </div>
+                        </div>
+                        <x-zeitleiste :paket="$statistik" />
+                    </form>
+
                     @foreach($abschnitte as $abschnitt)
                         {{-- Gruppierte Liste (HIG «Lists and tables», Stil «inset grouped»): Überschrift über der Fläche --}}
                         <section class="flex flex-col gap-2">

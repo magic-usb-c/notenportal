@@ -76,7 +76,7 @@ class UebersichtUndNotenTest extends TestCase
 
         $response->assertSeeInOrder([
             'Wo stehe ich', 'Als Tabelle', 'Testmodul Theta durchführen', '5.0',
-            'Verlauf', 'Als Tabelle', 'Semesterschnitt',
+            'Verlauf', 'Als Tabelle', 'Datum', 'Note',
         ], false);
     }
 

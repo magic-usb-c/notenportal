@@ -66,6 +66,56 @@
                     @csrf
                     @method('PUT')
 
+                    @isset($statistik)
+                        {{-- Was fehlt zum Bestehen: je offene Position bestanden oder die nötige Note für genügend --}}
+                        @php
+                            $offenePositionen = $statistik['diagramm']['positionen']['zeilen'];
+                            $positionenTabelle = $statistik['tabelle']['positionen'];
+                            $zielrechner = \App\Services\Auswertung\Zielrechner::class;
+                        @endphp
+                        @if($offenePositionen !== [])
+                            <x-diagramm :titel="$statistik['meta']['positionen']['titel']" class="max-w-[100rem]">
+                                <ul class="flex max-w-3xl flex-col divide-y divide-border" role="list">
+                                    @foreach($offenePositionen as $z)
+                                        @php
+                                            $stand = match ($z['status']) {
+                                                $zielrechner::BENOETIGT => $z['note'],
+                                                $zielrechner::UNERREICHBAR => $z['maximum'],
+                                                default => $z['aktuell'] ?? $z['minimum'],
+                                            };
+                                        @endphp
+                                        <li class="grid grid-cols-[minmax(0,1fr)_12rem_8rem] items-center gap-x-5 py-2 text-sm">
+                                            <span class="truncate text-text" title="{{ $z['titel'] }}">{{ $z['titel'] }}</span>
+                                            <x-bullet :mini="true" :wert="$stand" :ziel="$z['grenze']" :label="$z['titel']" />
+                                            <span @class(['text-right tabular-nums', 'text-note-ungenuegend' => $z['status'] === $zielrechner::UNERREICHBAR, 'text-text' => $z['status'] !== $zielrechner::UNERREICHBAR])>{{ $z['text'] }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                                <p class="mt-3 text-xs text-muted">{{ $statistik['zusammenfassung']['positionen'] }}</p>
+                                <x-slot:tabelle>
+                                    <table class="np-tabelle text-sm">
+                                        <thead>
+                                            <tr>
+                                                @foreach($positionenTabelle['spalten'] as $i => $spalte)
+                                                    <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                                @endforeach
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($positionenTabelle['zeilen'] as $zeile)
+                                                <tr>
+                                                    @foreach($zeile as $i => $zelle)
+                                                        <td @class(['text-right' => $i > 0])>{{ $zelle }}</td>
+                                                    @endforeach
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </x-slot:tabelle>
+                            </x-diagramm>
+                        @endif
+                    @endisset
+
                     @foreach($ergebnisse as $i => $e)
                         @php
                             $wurzel = $e->wurzel();

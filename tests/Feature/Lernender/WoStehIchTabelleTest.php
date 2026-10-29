@@ -12,8 +12,9 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Übersicht «Wo stehe ich»: Der Umschalter wechselt Semester und Lehrzeit, deshalb stehen beide Tabellen
- * serverseitig im Dokument; Alpine blendet per x-show um, ohne JS gilt der Servermodus.
+ * Übersicht «Wo stehe ich»: Der Modus (Semester/Lehrzeit) ist ein Filter des Statistikpakets. Der Server rendert
+ * genau eine Tabelle für den gewählten Modus; das Segment steht als Radio im Filterformular, ohne JS trägt die
+ * Adresse den Modus, mit JS tauscht npFilter die Zeilen ohne Volllader.
  */
 class WoStehIchTabelleTest extends TestCase
 {
@@ -60,55 +61,64 @@ class WoStehIchTabelleTest extends TestCase
         $this->note($this->modulAlt, '4.0', now()->subMonths(5)->toDateString());
     }
 
-    /** Das <table>-Element eines Zeitraums samt Inhalt. */
-    private function tabelle(string $html, string $zeitraum): ?string
+    /** Die Tabelle «Wo stehe ich» samt Inhalt – es gibt sie genau einmal. */
+    private function tabelle(string $html): string
     {
-        preg_match('/<table[^>]*data-zeitraum="'.$zeitraum.'".*?<\/table>/s', $html, $treffer);
+        $anzahl = preg_match_all('/<table[^>]*>\s*<caption class="sr-only">'.preg_quote(__('Zeugnisnoten je Fach und Modul, schwächste zuerst'), '/').'<\/caption>.*?<\/table>/s', $html, $treffer);
+        $this->assertSame(1, $anzahl, 'Genau eine Tabelle «Wo stehe ich»');
 
-        return $treffer[0] ?? null;
+        return $treffer[0][0];
+    }
+
+    private function dom(string $html): \DOMXPath
+    {
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
+
+        return new \DOMXPath($dom);
     }
 
     #[Test]
-    public function beide_tabellen_stehen_serverseitig_im_dokument_und_haengen_am_modus(): void
+    public function der_server_rendert_das_laufende_semester_mit_zeilenkoepfen(): void
     {
         $this->zweiSemester();
 
-        $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
+        $tabelle = $this->tabelle($this->get(route('learner.dashboard'))->assertOk()->getContent());
 
-        $semester = $this->tabelle($html, 'semester');
-        $lehrzeit = $this->tabelle($html, 'lehrzeit');
-        $this->assertNotNull($semester, 'Tabelle Semester fehlt');
-        $this->assertNotNull($lehrzeit, 'Tabelle Lehrzeit fehlt');
-        $this->assertStringContainsString("x-show=\"modus === 'semester'\"", $semester);
-        $this->assertStringContainsString("x-show=\"modus === 'lehrzeit'\"", $lehrzeit);
-        $this->assertSame(2, substr_count($html, 'data-zeitraum='), 'Genau eine Tabelle je Zeitraum');
+        $this->assertStringContainsString('Testmodul Theta durchführen', $tabelle);
+        $this->assertStringNotContainsString('Testmodul Omega prüfen', $tabelle);
+        $this->assertStringContainsString('<th scope="row"', $tabelle);
+        $this->assertStringContainsString('>'.__('Fach / Modul').'<', $tabelle);
     }
 
     #[Test]
-    public function die_zeilen_unterscheiden_semester_und_lehrzeit(): void
+    public function die_adresse_schaltet_auf_die_lehrzeit_um(): void
     {
         $this->zweiSemester();
 
-        $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
-        $semester = $this->tabelle($html, 'semester');
-        $lehrzeit = $this->tabelle($html, 'lehrzeit');
+        $html = $this->get(route('learner.dashboard', ['modus' => 'lehrzeit']))->assertOk()->getContent();
+        $tabelle = $this->tabelle($html);
 
-        $this->assertStringContainsString('Testmodul Theta durchführen', $semester);
-        $this->assertStringNotContainsString('Testmodul Omega prüfen', $semester);
-        $this->assertStringContainsString('Testmodul Theta durchführen', $lehrzeit);
-        $this->assertStringContainsString('Testmodul Omega prüfen', $lehrzeit);
+        $this->assertStringContainsString('Testmodul Theta durchführen', $tabelle);
+        $this->assertStringContainsString('Testmodul Omega prüfen', $tabelle);
+        $this->assertSame('lehrzeit', $this->dom($html)->query('//input[@name="modus"][@checked]')->item(0)?->getAttribute('value'));
     }
 
     #[Test]
-    public function ohne_javascript_ist_der_servermodus_sichtbar(): void
+    public function das_modus_segment_steht_als_radio_im_filterformular(): void
     {
         $this->zweiSemester();
 
-        $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
+        $xpath = $this->dom($this->get(route('learner.dashboard'))->assertOk()->getContent());
+        $formulare = $xpath->query('//form[.//input[@name="modus"]]');
 
-        // Semester hat Zeilen, also ist es der Servermodus: es trägt kein x-cloak, die Lehrzeit schon
-        $this->assertStringNotContainsString('x-cloak', strtok($this->tabelle($html, 'semester'), '>'));
-        $this->assertStringContainsString('x-cloak', strtok($this->tabelle($html, 'lehrzeit'), '>'));
-        $this->assertMatchesRegularExpression('/modus: (\'|&#039;)semester(\'|&#039;)/', $html);
+        $this->assertSame(1, $formulare->length, 'Genau ein Formular trägt den Modus');
+        $form = $formulare->item(0);
+        $this->assertSame(route('learner.dashboard'), $form->getAttribute('action'));
+        $this->assertSame('GET', strtoupper($form->getAttribute('method')));
+        $this->assertSame(0, $xpath->query('.//form', $form)->length, 'Kein verschachteltes Formular');
+        $this->assertSame(['semester', 'lehrzeit'], array_map(fn (\DOMElement $i) => $i->getAttribute('value'), iterator_to_array($xpath->query('.//input[@name="modus"]', $form))));
+        $this->assertSame('semester', $xpath->query('.//input[@name="modus"][@checked]', $form)->item(0)?->getAttribute('value'), 'Ohne Adresse gilt das Semester');
+        $this->assertNotNull($xpath->query('.//select[@name="zeitraum"]', $form)->item(0), 'Verlauf-Filter im selben Formular');
     }
 }

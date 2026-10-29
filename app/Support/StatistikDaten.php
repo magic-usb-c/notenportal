@@ -277,7 +277,7 @@ final class StatistikDaten
                 'lehrzeit' => ['labels' => array_keys($lehrzeit), 'werte' => array_values($lehrzeit)],
                 'grenzen' => NotenSkala::grenzen(),
             ],
-            'tabelle' => ['spalten' => [__('Fach'), __('Note'), __('Stufe')], 'zeilen' => array_map(
+            'tabelle' => ['spalten' => [__('Fach / Modul'), __('Note'), __('Stufe')], 'zeilen' => array_map(
                 fn ($l, $w) => [$l, NotenSkala::format($w, 1), NotenSkala::stufeName($w)],
                 $labels,
                 $werte,

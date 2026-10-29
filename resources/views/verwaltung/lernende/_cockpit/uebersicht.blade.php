@@ -56,6 +56,54 @@
             @endif
             <x-heatmap :daten="$heatmap" />
         </x-karte>
+
+        {{-- Notenverlauf (S1) wie bei den Lernenden: dieselben Farben und Achsen, die Filter gelten sofort (npFilter, JSON) --}}
+        @if($stand->auswertung->gesamtNote !== null)
+            @php
+                $verlaufFilter = $statistik['filter'];
+                $verlaufOptionen = $statistik['meta']['verlauf']['optionen'];
+                $verlaufKonfig = $stand->auswertung->konfiguration;
+                // Nur Kategorien und Fächer dieser Person, wie die Regeln des Controllers (StatistikDaten::regelnLernender)
+                $verlaufKategorien = collect(array_keys($stand->auswertung->kategorien))->mapWithKeys(fn ($id) => [(int) $id => $verlaufKonfig->kategorieName((int) $id)]);
+                $verlaufFaecher = collect($stand->auswertung->elemente)
+                    ->filter(fn ($e) => $e->typ === \App\Services\Auswertung\Element::FACH && $e->fachId !== null)
+                    ->mapWithKeys(fn ($e) => [(int) $e->fachId => $verlaufKonfig->fachName((int) $e->fachId)])
+                    ->sort(SORT_NATURAL | SORT_FLAG_CASE);
+            @endphp
+            <x-filterleiste :action="route($bereich.'.learners.show', $stand->auswertung->lernenderId)"
+                            :statistik="['standard' => \App\Support\StatistikDaten::STANDARD_LERNENDER]">
+                <label for="verlauf-zeitraum" class="sr-only">{{ __('Zeitraum') }}</label>
+                <select name="zeitraum" id="verlauf-zeitraum" class="np-feld np-feld-klein w-auto max-w-64">
+                    @foreach($verlaufOptionen['zeitraum'] as $wert => $text)
+                        <option value="{{ $wert }}" @selected($verlaufFilter['zeitraum'] === $wert)>{{ $text }}</option>
+                    @endforeach
+                </select>
+
+                <label for="verlauf-kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                <select name="kategorie" id="verlauf-kategorie" class="np-feld np-feld-klein w-auto max-w-64">
+                    <option value="">{{ __('Kategorie') }}</option>
+                    @foreach($verlaufKategorien as $id => $name)
+                        <option value="{{ $id }}" @selected($verlaufFilter['kategorie'] === $id)>{{ $name }}</option>
+                    @endforeach
+                </select>
+
+                <label for="verlauf-fach" class="sr-only">{{ __('Fach') }}</label>
+                <select name="fach" id="verlauf-fach" class="np-feld np-feld-klein w-auto max-w-64">
+                    <option value="">{{ __('Fach') }}</option>
+                    @foreach($verlaufFaecher as $id => $name)
+                        <option value="{{ $id }}" @selected($verlaufFilter['fach'] === $id)>{{ $name }}</option>
+                    @endforeach
+                </select>
+
+                <label for="verlauf-achse" class="sr-only">{{ __('Verlauf') }}</label>
+                <select name="achse" id="verlauf-achse" class="np-feld np-feld-klein w-auto max-w-64">
+                    @foreach($verlaufOptionen['achse'] as $wert => $text)
+                        <option value="{{ $wert }}" @selected($verlaufFilter['achse'] === $wert)>{{ $text }}</option>
+                    @endforeach
+                </select>
+            </x-filterleiste>
+            <x-verlauf :paket="$statistik" />
+        @endif
     </div>
 
     <div class="col-span-4 flex flex-col gap-4">

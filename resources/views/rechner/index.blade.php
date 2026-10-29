@@ -224,11 +224,33 @@
                         </template>
                     </section>
 
-                    <x-karte :titel="__('Ergebnis je Note in den offenen Prüfungen')" x-show="kurve" x-cloak>
+                    {{-- Kurve mit Band (schlechteste bis beste Endnote), Satz mit den Zahlen und Tabelle; kein Statistikpaket, alles aus dem Ergebnis des Rechners --}}
+                    <x-diagramm :titel="__('Ergebnis je Note in den offenen Prüfungen')" x-show="kurve" x-cloak>
                         <div class="h-64" x-data="npChart('kurve')" x-effect="zeichne(kurve)">
                             <canvas x-ref="canvas" role="img" aria-label="{{ __('Ergebnis in Abhängigkeit der Note') }}"></canvas>
                         </div>
-                    </x-karte>
+                        <p class="mt-3 text-xs text-muted"
+                           x-data="{ satz(k, f) { const w = (k?.punkte ?? []).map((p) => p.wert).filter(Number.isFinite); return w.length ? @js(__('Ergebnis')) + ': ' + @js(__('schlechteste Endnote :wert')).replace(':wert', f(Math.min(...w), 1)) + ', ' + @js(__('beste Endnote :wert')).replace(':wert', f(Math.max(...w), 1)) : ''; } }"
+                           x-text="satz(kurve, fmt)"></p>
+                        <x-slot:tabelle>
+                            <table class="np-tabelle text-sm">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">{{ __('Note') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Ergebnis') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="punkt in (kurve?.punkte ?? []).filter((q) => Math.round(q.x * 4) % 2 === 0)" :key="punkt.x">
+                                        <tr>
+                                            <td class="tabular-nums" x-text="fmt(punkt.x, 1)"></td>
+                                            <td class="text-right tabular-nums" x-text="fmt(punkt.wert, 2)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </x-slot:tabelle>
+                    </x-diagramm>
 
                     <x-karte :titel="__('Auswirkung')" :polster="false" x-show="ergebnis?.vergleich?.some((v) => v.vorher != null || v.nachher != null)" x-cloak>
                         <x-slot:aktionen>
