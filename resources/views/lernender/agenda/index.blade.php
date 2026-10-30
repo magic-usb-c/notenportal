@@ -142,9 +142,8 @@
                         // Die Zeilen tragen (noch) keine Prüfungs-ID: Zuordnung über Datum und Bezeichnung, mit ID, sobald sie mitkommt
                         $noetig = collect($statistik['diagramm']['zeitleiste']['zeilen'])->filter(fn ($z) => $z['knotenId'] === null)
                             ->keyBy(fn ($z) => isset($z['id']) ? 'id:'.$z['id'] : $z['datum'].'|'.$z['titel']);
-                        // Die Zeitleiste zeigt nur künftige Prüfungen: überfällige, Termine und Lektionen zählen nicht
-                        $hatPruefungen = collect($abschnitte)->reject(fn ($abschnitt) => $abschnitt['faellig'])
-                            ->contains(fn ($abschnitt) => $abschnitt['eintraege']->contains('art', 'pruefung'));
+                        // Zeitleiste nur, wenn sie im Zeitraum etwas zeichnet: überfällige, Termine und spätere Prüfungen stehen in der Liste
+                        $hatPruefungen = $statistik['diagramm']['zeitleiste']['zeilen'] !== [];
                     @endphp
                     @if($hatPruefungen || $statistik['filter']['zeitraum'] !== '8w')
                         {{-- Kommende Prüfungen mit der Note, die für genügend nötig ist; der Zeitraum gilt auch für die Zeilen darunter --}}

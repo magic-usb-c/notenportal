@@ -108,6 +108,15 @@ class AgendaTest extends TestCase
         $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()
             ->assertSee('LB1')->assertDontSee('id="np-zeitleiste"', false);
 
+        // Prüfung ausserhalb der acht Wochen: steht unter «Später», die Zeitleiste bliebe leer
+        $this->actingAs($this->user)->post(route('learner.exams.store'), [
+            'bezug' => 'modul:'.$this->modul->modul_id, 'datum' => now()->addDays(70)->toDateString(), 'gewichtung_prozent' => 50, 'titel' => 'LB3',
+        ])->assertSessionHasNoErrors();
+        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()
+            ->assertSee('LB3')->assertDontSee('id="np-zeitleiste"', false);
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['zeitraum' => 'alle']))->assertOk()
+            ->assertSee('id="np-zeitleiste"', false);
+
         $this->actingAs($this->user)->post(route('learner.exams.store'), [
             'bezug' => 'modul:'.$this->modul->modul_id, 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 60, 'titel' => 'LB2',
         ])->assertSessionHasNoErrors();

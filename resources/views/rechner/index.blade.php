@@ -143,7 +143,7 @@
                                 <form method="POST" action="{{ $zielUrl }}" x-show="speicherbar" x-cloak @submit.prevent="speichereZiel()">
                                     @csrf
                                     <input type="hidden" name="ziel" :value="zielText">
-                                    <input type="hidden" name="zielwert" :value="zahl(zielwert)">
+                                    <input type="hidden" name="zielwert" :value="Number.isFinite(zahl(zielwert)) ? zahl(zielwert) : ''">
                                     <button class="np-knopf np-knopf-sekundaer"
                                             x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
                                             :disabled="speichert || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert))"></button>
