@@ -16,11 +16,13 @@ final class FeedbackReceived
         $name = trim($melder->vorname.' '.$melder->nachname);
         $rolle = $melder->rollen()->pluck('name')->first() ?? '–';
         $kategorie = __(Feedback::kategorieLabel($feedback->kategorie));
+        // Nur der Pfad der Seite: weder Routenname (Entwicklersprache) noch Host oder Query-String (können Tokens tragen).
+        $seite = $feedback->url ? parse_url($feedback->url, PHP_URL_PATH) : null;
 
         return new MailContent(
             subject: __('Neue Meldung («:kategorie») von :name', ['kategorie' => $kategorie, 'name' => $name]),
             lines: [__(':name (:rolle) hat eine Meldung erfasst.', ['name' => $name, 'rolle' => $rolle])],
-            facts: array_filter([__('Kategorie') => $kategorie, __('Seite') => $feedback->route_name ?? $feedback->url]),
+            facts: array_filter([__('Kategorie') => $kategorie, __('Seite') => is_string($seite) ? $seite : null]),
             sections: [['title' => __('Text'), 'text' => $feedback->text]],
             actionLabel: __('Meldung ansehen'),
             actionUrl: route('admin.feedback.index'),

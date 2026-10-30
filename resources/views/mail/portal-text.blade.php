@@ -1,20 +1,26 @@
-{!! $c->title ?? $c->subject !!}
-
+@php
+    // Freitext: Zeilenende ohne Leerzeichen, höchstens eine Leerzeile hintereinander. Sonderzeichen bleiben unverändert.
+    $frei = fn ($t) => preg_replace(['/[ \t]+(?=\r?\n|$)/u', '/(\r?\n){3,}/u'], ['', "\n\n"], trim((string) $t));
+@endphp
+{!! $frei($c->title ?? $c->subject) !!}
 @if($vorname)
-{!! __('Hallo :vorname', ['vorname' => $vorname]) !!}
 
+{!! __('Hallo :vorname', ['vorname' => $vorname]) !!}
 @endif
 @foreach($c->lines as $zeile)
-{!! $zeile !!}
 
+{!! $frei($zeile) !!}
 @endforeach
+@if($c->facts)
+
 @foreach($c->facts as $label => $wert)
-{!! $label !!}: {!! $wert !!}
+{!! $label !!}: {!! $frei($wert) !!}
 @endforeach
+@endif
 @foreach($c->sections as $abschnitt)
 
 {!! mb_strtoupper($abschnitt['title']) !!}
-{!! trim($abschnitt['text']) !!}
+{!! $frei($abschnitt['text']) !!}
 @endforeach
 @if($c->table)
 
@@ -28,7 +34,8 @@
 @if($gruppe !== ''){!! mb_strtoupper($gruppe) !!}
 @endif
 @foreach($eintraege as $e)
-- {!! $e['title'] !!}@if(! empty($e['text'])) – {!! $e['text'] !!}@endif @if(! empty($e['url']))
+- {!! $frei($e['title']) !!}{!! ! empty($e['text']) ? ' – '.$frei($e['text']) : '' !!}
+@if(! empty($e['url']))
   {!! $e['url'] !!}
 @endif
 @endforeach
@@ -39,7 +46,7 @@
 @endif
 @foreach($c->outro as $zeile)
 
-{!! $zeile !!}
+{!! $frei($zeile) !!}
 @endforeach
 
 --

@@ -31,8 +31,10 @@ final class BelowThreshold
             lines: $fuerBetreuer
                 ? [$anzahl === 1
                     ? __('Bei :name ist ein Schnitt unter die Grenze «genügend» gefallen.', ['name' => $name])
-                    : __('Bei :name ist ein Schnitt bzw. mehrere Schnitte unter die Grenze «genügend» gefallen.', ['name' => $name])]
-                : [__('Nach der letzten Note liegt folgender Schnitt unter der Grenze «genügend»:')],
+                    : __('Bei :name sind :anzahl Schnitte unter die Grenze «genügend» gefallen.', ['name' => $name, 'anzahl' => $anzahl])]
+                : [$anzahl === 1
+                    ? __('Nach der letzten Note liegt folgender Schnitt unter der Grenze «genügend»:')
+                    : __('Nach der letzten Note liegen folgende Schnitte unter der Grenze «genügend»:')],
             table: ['head' => [__('Bereich'), __('Vorher'), __('Neu')], 'rows' => $rows],
             actionLabel: __('Noten ansehen'),
             actionUrl: $fuerBetreuer

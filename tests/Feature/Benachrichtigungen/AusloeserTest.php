@@ -370,6 +370,25 @@ class AusloeserTest extends TestCase
     }
 
     #[Test]
+    public function reiner_statuswechsel_bei_stehender_antwort_behauptet_keine_neue_antwort(): void
+    {
+        Notification::fake();
+        $admin = User::factory()->admin()->create(['email' => 'admin@firma.ch']);
+        $melder = User::factory()->lernender()->create(['email' => 'melder@firma.ch']);
+        $feedback = Feedback::factory()->create(['benutzer_id' => $melder->benutzer_id, 'status' => Feedback::STATUS_IN_ARBEIT, 'admin_notiz' => 'Wir schauen es an.']);
+
+        $this->actingAs($admin)
+            ->patchJson(route('admin.feedback.update', $feedback->feedback_id), [
+                'status' => Feedback::STATUS_ERLEDIGT,
+                'admin_notiz' => 'Wir schauen es an.',
+            ])
+            ->assertOk();
+
+        Notification::assertSentTo($melder, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::FEEDBACK_ANSWERED
+            && ! str_contains($m->content->subject, 'beantwortet') && $m->content->sections === []);
+    }
+
+    #[Test]
     public function unveraenderte_meldung_meldet_dem_melder_nichts(): void
     {
         Notification::fake();

@@ -4,6 +4,11 @@
     $schrift = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
     // Lange Wörter ohne Leerzeichen (URLs in Kommentaren) dürfen die Karte nicht aufweiten.
     $umbruch = 'overflow-wrap:anywhere;word-break:break-word;';
+    // Namen und Bezeichnungen brechen an Wortgrenzen (anywhere würde «Semesterschnitt» schon in der Spalte mitten im Wort trennen);
+    // nur ein übermässig langes Wort (URL, Mailadresse) darf überall brechen.
+    $wortumbruch = fn (string $text): string => preg_match('/\S{23,}/u', $text) ? $umbruch : 'overflow-wrap:break-word;';
+    // Zahlen und kurze Werte bleiben in einer Zeile («3.75 / 5»); Längeres bricht weiterhin um.
+    $zahlumbruch = fn (string $text): string => mb_strlen($text) <= 24 && ! preg_match('/\S{23,}/u', $text) ? 'white-space:nowrap;' : $umbruch;
     $absatz = function (string $text) use ($umbruch): string {
         $html = '';
         $liste = false;
@@ -76,7 +81,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="np-soft" style="background:{{ $f['soft'] }};border-radius:12px;">
                                 @foreach($c->facts as $label => $wert)
                                     <tr>
-                                        <td class="np-muted np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};width:38%;vertical-align:top;{{ $umbruch }}{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $label }}</td>
+                                        <td class="np-muted np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};width:38%;vertical-align:top;{{ $wortumbruch((string) $label) }}{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $label }}</td>
                                         <td class="np-text np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:14px;font-weight:600;color:{{ $f['text'] }};vertical-align:top;{{ $umbruch }}{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $wert }}</td>
                                     </tr>
                                 @endforeach
@@ -102,7 +107,7 @@
                                 @foreach($c->table['rows'] as $zeile)
                                     <tr>
                                         @foreach($zeile as $i => $zelle)
-                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 4px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $umbruch }}{{ $i === 0 ? '' : 'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
+                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 4px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $i === 0 ? $wortumbruch((string) $zelle) : $zahlumbruch((string) $zelle).'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
                                         @endforeach
                                     </tr>
                                 @endforeach

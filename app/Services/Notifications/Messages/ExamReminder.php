@@ -8,6 +8,7 @@ use App\Models\Pruefung;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Notifications\MailContent;
 use App\Support\NotenSkala;
+use App\Support\Zahl;
 
 /**
  * Erinnerung an eine geplante Prüfung: Datum/Uhrzeit, Fach/Modul, Titel, Gewichtung, bisheriger Schnitt,
@@ -20,7 +21,7 @@ final class ExamReminder
     {
         $p->loadMissing(['fach', 'modul']);
         $bezug = $p->bezeichnung();
-        $gewicht = $p->gewichtung_prozent !== null ? NotenSkala::format($p->gewichtung_prozent, 1).' %' : '–';
+        $gewicht = $p->gewichtung_prozent !== null ? Zahl::prozent($p->gewichtung_prozent) : '–';
         $datum = $p->datum->format('d.m.Y').($p->uhrzeit ? ', '.$p->beginn()->format('H:i') : '');
 
         $a = (new NotenQuelle)->auswertung((int) $p->lernender_id);

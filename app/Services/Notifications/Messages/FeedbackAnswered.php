@@ -7,21 +7,25 @@ namespace App\Services\Notifications\Messages;
 use App\Models\Feedback;
 use App\Services\Notifications\MailContent;
 
-/** Die eigene Meldung wurde beantwortet oder ihr Status hat sich geändert. */
+/** Die eigene Meldung wurde beantwortet – oder nur ihr Status hat sich geändert (dann ohne Antwort-Behauptung). */
 final class FeedbackAnswered
 {
-    public static function content(Feedback $feedback): MailContent
+    /** $antwortNeu: Hat diese Änderung die Antwort gesetzt oder geändert? Ohne Angabe zählt jede vorhandene Notiz. */
+    public static function content(Feedback $feedback, ?bool $antwortNeu = null): MailContent
     {
-        $statusLabel = Feedback::STATUS[$feedback->status] ?? $feedback->status;
+        $status = __(Feedback::STATUS[$feedback->status] ?? $feedback->status);
+        $beantwortet = filled($feedback->admin_notiz) && ($antwortNeu ?? true);
 
         return new MailContent(
-            subject: __('Deine Meldung wurde beantwortet'),
-            lines: [__('Deine Meldung hat den Status «:status».', ['status' => $statusLabel])],
-            facts: [__('Status') => $statusLabel],
-            sections: $feedback->admin_notiz ? [['title' => __('Antwort'), 'text' => $feedback->admin_notiz]] : [],
+            subject: $beantwortet ? __('Deine Meldung wurde beantwortet') : __('Deine Meldung ist jetzt «:status»', ['status' => $status]),
+            lines: [$beantwortet
+                ? __('Deine Meldung hat den Status «:status».', ['status' => $status])
+                : __('Der Status deiner Meldung ist jetzt «:status».', ['status' => $status])],
+            facts: [__('Status') => $status],
+            sections: $beantwortet ? [['title' => __('Antwort'), 'text' => $feedback->admin_notiz]] : [],
             actionLabel: __('Meine Meldungen'),
             actionUrl: route('feedback.index'),
-            digestTitle: __('Deine Meldung ist jetzt «:status»', ['status' => $statusLabel]),
+            digestTitle: __('Deine Meldung ist jetzt «:status»', ['status' => $status]),
         );
     }
 }
