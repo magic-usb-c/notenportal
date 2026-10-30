@@ -100,6 +100,24 @@ class AgendaTest extends TestCase
     }
 
     #[Test]
+    public function zeitleiste_erscheint_nur_mit_kuenftigen_pruefungen(): void
+    {
+        $vergangen = $this->planen(['datum' => now()->subDay()->toDateString(), 'titel' => 'LB1']);
+
+        // Nur eine überfällige Prüfung: keine leere Zeitleiste über der Liste
+        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()
+            ->assertSee('LB1')->assertDontSee('id="np-zeitleiste"', false);
+
+        $this->actingAs($this->user)->post(route('learner.exams.store'), [
+            'bezug' => 'modul:'.$this->modul->modul_id, 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 60, 'titel' => 'LB2',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()
+            ->assertSee('id="np-zeitleiste"', false);
+        $this->assertNull($vergangen->fresh()->note_id);
+    }
+
+    #[Test]
     public function liste_bietet_je_pruefung_die_passende_naechste_aktion(): void
     {
         $vergangen = $this->planen(['datum' => now()->subDay()->toDateString(), 'titel' => 'LB1']);
