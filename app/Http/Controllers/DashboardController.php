@@ -21,6 +21,9 @@ use Illuminate\Http\Response;
 
 class DashboardController extends Controller
 {
+    /** Sortierschlüssel, die früher als `sort` an der Tabelle hingen und nicht mit der Hantel (delta|name) kollidieren. */
+    private const array TABELLE_SORT_ALT = ['status', 'semester', 'gesamt', 'trend'];
+
     public function __construct(
         private readonly Uebersicht $uebersicht,
         private readonly NoteService $noteService,
@@ -57,17 +60,24 @@ class DashboardController extends Controller
     {
         abort_unless($request->user()->berufsbildner, 403);
 
+        // Tabelle «Meine Lernenden»: order/dir. `sort` gehört der Hantel (delta|name); alte Lesezeichen mit sort=gesamt|status|semester|trend
+        // verstehen wir für die Tabelle weiter, nur `name` ist mehrdeutig und bleibt bei der Hantel.
+        $order = $request->query('order');
+        if (! in_array($order, Uebersicht::BB_SORTIERUNGEN, true)) {
+            $alt = $request->query('sort');
+            $order = in_array($alt, self::TABELLE_SORT_ALT, true) ? $alt : null;
+        }
         $filter = [
-            'sort' => in_array($request->input('sort'), Uebersicht::BB_SORTIERUNGEN, true) ? $request->input('sort') : null,
-            'dir' => $request->input('dir') === 'desc' ? 'desc' : 'asc',
+            'order' => $order,
+            'dir' => $request->query('dir') === 'desc' ? 'desc' : 'asc',
         ];
 
         // Berufsbildner nur über Lernender::sichtbarFuer (in Uebersicht::berufsbildner)
-        $daten = $this->uebersicht->berufsbildner($request->user(), $filter['sort'], $filter['dir']);
+        $daten = $this->uebersicht->berufsbildner($request->user(), $filter['order'], $filter['dir']);
         $statistikFilter = StatistikFilter::aus($request, [
             'status' => ['alle', 'kritisch'],
             'kategorie' => ['id' => array_map('intval', array_keys(Konfiguration::ausDb()->kategorien))],
-            'sort' => [...Uebersicht::BB_SORTIERUNGEN, 'delta'],
+            'sort' => ['delta', 'name'],
         ], ['status' => 'alle', 'sort' => 'delta']);
         $paket = StatistikAntwort::paket($statistikFilter, $this->statistik->hantelPersonen(
             $daten['zeilen'],

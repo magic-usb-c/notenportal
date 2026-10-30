@@ -33,6 +33,70 @@ class BerichtTest extends TestCase
     }
 
     #[Test]
+    public function ohne_zeugnisnoten_steht_ein_leerzustand_mit_weg_zur_ganzen_lehrzeit(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $html = $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => 'alle', 'lehrjahr' => 2]))->assertOk();
+
+        $html->assertSee(__('Keine Zeugnisnoten im Zeitraum.'));
+        $html->assertSee(__('Filter zurücksetzen'));
+        $html->assertSee('href="'.e(route('admin.reports.grades', ['semester' => 'alle'])).'"', false);
+        $html->assertDontSee('id="np-histogramm-satz"', false);
+    }
+
+    #[Test]
+    public function die_ansage_liegt_ausserhalb_des_ersetzten_bereichs_und_das_histogramm_wird_einmal_beschriftet(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $html = $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => 'alle']))->assertOk()->getContent();
+
+        $ansage = strpos($html, 'data-np-ansage');
+        $this->assertNotFalse($ansage);
+        // Ersetzt wird alles nach dem ersten Kind von .np-seite; die Ansage steht im ersten Kind (hinter dem Filterformular)
+        $this->assertGreaterThan(strpos($html, '</form>'), $ansage);
+        $this->assertMatchesRegularExpression('/<p class="sr-only" aria-live="polite" data-np-ansage data-np-text="[^"]+"><\/p>\s*<\/div>/', $html, 'leer beim Laden, direkt vor dem Ende des ersten Kindes');
+    }
+
+    #[Test]
+    public function tabellen_haben_eine_beschriftung_und_das_lehrjahr_eine_stufenspalte(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
+        $kategorie = (int) Kategorie::where('code', 'FACH')->value('kategorie_id');
+        $semester = Semester::factory()->create(['start_datum' => '2020-08-01', 'end_datum' => '2021-01-31']);
+        foreach ([[18, 4.5], [6, 3.0]] as $i => [$monate, $wert]) {
+            $user = User::factory()->lernender([
+                'lehrberuf_id' => $lehrberuf,
+                'lehrbeginn' => now()->subMonths($monate)->toDateString(),
+                'lehrende' => now()->addMonths(48 - $monate)->toDateString(),
+            ])->create();
+            $fach = Fach::factory()->create(['track_typ' => null, 'kategorie_id' => $kategorie]);
+            DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $lehrberuf, 'fach_id' => $fach->fach_id, 'aktiv' => 1]);
+            DB::table('noten')->insert([
+                'lernender_id' => $user->lernender->lernender_id, 'kategorie_id' => $kategorie, 'semester_id' => $semester->semester_id,
+                'fach_id' => $fach->fach_id, 'modul_belegung_id' => null, 'titel' => 'Note', 'pruefungsdatum' => '2020-08-20',
+                'note_wert' => $wert, 'gewichtung_prozent' => 100, 'erfasst_von_benutzer_id' => $user->benutzer_id,
+                'erstellt_am' => now()->toDateTimeString(), 'geloescht_am' => null,
+            ]);
+        }
+
+        $html = $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => 'alle']))->assertOk();
+
+        $html->assertSee('<caption class="sr-only">'.e(__('Verteilung der Zeugnisnoten')).'</caption>', false);
+        $html->assertSee('<caption class="sr-only">'.e(__('Kategorien')).'</caption>', false);
+        $html->assertSee('<caption class="sr-only">'.e(__('Gesamtschnitt nach Lehrjahr')).'</caption>', false);
+        $html->assertSee('<span class="sr-only">'.e(__('Durchschnitt')).'</span>', false);
+        $html->assertSee('role="img" aria-labelledby="np-histogramm-satz"', false);
+        $html->assertSee('id="np-histogramm-satz"', false);
+
+        $inhalt = $html->getContent();
+        $lehrjahre = substr($inhalt, (int) strpos($inhalt, '<caption class="sr-only">'.e(__('Gesamtschnitt nach Lehrjahr'))));
+        $this->assertMatchesRegularExpression('/<th scope="col">'.preg_quote(e(__('Stufe')), '/').'<\/th>/', $lehrjahre);
+        $this->assertStringNotContainsString('text-right">'.e(__('Stufe')), $inhalt, 'Textspalte linksbündig');
+    }
+
+    #[Test]
     public function kachel_kritisch_oeffnet_die_lernendenliste_mit_denselben_filtern(): void
     {
         $admin = User::factory()->admin()->create();

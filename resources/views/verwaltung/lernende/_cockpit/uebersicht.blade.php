@@ -1,4 +1,4 @@
-{{-- Cockpit Übersicht: links Stand + Zeugnisnoten-Heatmap (Hauptelement), rechts Hinweise/Ziele/Prüfungen/Aktivität. --}}
+{{-- Cockpit Übersicht: links Stand, Notenverlauf (x-verlauf) und Zeugnisnoten-Heatmap, rechts Hinweise/Ziele/Prüfungen/Aktivität. --}}
 @php
     $delta = $stand->delta();
     $heute = today();
@@ -28,7 +28,7 @@
                 <div class="flex min-h-6 items-center text-xs font-medium text-muted">@if($semesterBekannt)<x-semester :id="$stand->semesterId" :lernender="$stand->auswertung->lernenderId" />@else{{ __('Semester') }}@endif</div>
                 <x-note :wert="$stand->semesterNote" variante="hero" :stellen="1" class="text-3xl leading-none" />
                 @if($delta !== null && $delta != 0)
-                    <div @class(['text-xs', 'text-muted' => $delta > 0, 'font-medium text-note-knapp' => $delta < 0])>
+                    <div @class(['text-xs', 'text-muted', 'font-medium' => $delta < 0])>
                         <span aria-hidden="true">{{ $delta > 0 ? '▲' : '▼' }}</span> {{ __(':delta zum Vorsemester', ['delta' => ($delta > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($delta), 1)]) }}
                     </div>
                 @endif
@@ -48,6 +48,49 @@
                 @endif
             </div>
         </section>
+
+        {{-- Notenverlauf wie bei den Lernenden (x-verlauf): gleiche Farben und Achsen, Filter folgen der Adresse. Ohne Noten
+             gibt es keinen Verlauf, nur die leere Karte der Zeugnisnoten. --}}
+        @if($letzteNoten->isNotEmpty() || $stand->auswertung->gesamtNote !== null)
+            @php
+                $vFilter = $statistik['filter'];
+                $vOptionen = $statistik['meta']['verlauf']['optionen'];
+                $vKonfiguration = $stand->auswertung->konfiguration;
+                $vAktiv = collect([
+                    ($vFilter['zeitraum'] ?? 'alles') !== 'alles',
+                    ($vFilter['kategorie'] ?? null) !== null,
+                    ($vFilter['achse'] ?? 'datum') !== 'datum',
+                ])->filter()->count();
+                $vFeld = 'np-feld np-feld-klein w-auto max-w-64';
+            @endphp
+            <section class="flex flex-col gap-3" aria-label="{{ __('Notenverlauf') }}">
+                <x-filterleiste :action="route($bereich.'.learners.show', $lernender->lernender_id)" :aktive-filter="$vAktiv"
+                                :zurueck="route($bereich.'.learners.show', $lernender->lernender_id)"
+                                :statistik="['standard' => ['zeitraum' => 'alles', 'achse' => 'datum']]">
+                    <label for="verlauf-zeitraum" class="sr-only">{{ __('Zeitraum') }}</label>
+                    <select name="zeitraum" id="verlauf-zeitraum" class="{{ $vFeld }}">
+                        @foreach($vOptionen['zeitraum'] as $wert => $name)
+                            <option value="{{ $wert }}" @selected(($vFilter['zeitraum'] ?? 'alles') === $wert)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    <label for="verlauf-kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                    <select name="kategorie" id="verlauf-kategorie" class="{{ $vFeld }}">
+                        <option value="">{{ __('Gesamtschnitt') }}</option>
+                        @foreach($stand->auswertung->kategorien as $kid => $kat)
+                            <option value="{{ $kid }}" @selected(($vFilter['kategorie'] ?? null) === (int) $kid)>{{ $vKonfiguration->kategorieName((int) $kid) }}</option>
+                        @endforeach
+                    </select>
+                    <label for="verlauf-achse" class="sr-only">{{ __('Verlauf') }}</label>
+                    <select name="achse" id="verlauf-achse" class="{{ $vFeld }}">
+                        @foreach($vOptionen['achse'] as $wert => $name)
+                            <option value="{{ $wert }}" @selected(($vFilter['achse'] ?? 'datum') === $wert)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </x-filterleiste>
+
+                <x-verlauf :paket="$statistik" />
+            </section>
+        @endif
 
         {{-- Zeugnisnoten --}}
         <x-karte :titel="__('Zeugnisnoten')" :polster="false">

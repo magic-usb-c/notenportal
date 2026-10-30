@@ -34,6 +34,7 @@
     </ul>
     <x-slot:tabelle>
         <table class="np-tabelle text-sm" data-np-tabelle>
+            <caption class="sr-only">{{ $titel }}</caption>
             <thead>
                 <tr>
                     @foreach($tabelle['spalten'] as $i => $spalte)
@@ -45,7 +46,11 @@
                 @foreach($tabelle['zeilen'] as $zeile)
                     <tr>
                         @foreach($zeile as $i => $zelle)
-                            <td @class(['text-right' => $i === count($zeile) - 1])>{{ $zelle }}</td>
+                            @if($i === 0)
+                                <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                            @else
+                                <td @class(['text-right' => $i === count($zeile) - 1])>{{ $zelle }}</td>
+                            @endif
                         @endforeach
                     </tr>
                 @endforeach

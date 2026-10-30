@@ -709,4 +709,87 @@ class AgendaTest extends TestCase
         $this->assertSame('Kapitel 1-3', $texts['Prüfungsstoff']);
         $this->assertSame('Gut vorbereiten', $texts['Eigene Notizen']);
     }
+
+    private function xpath(string $html): \DOMXPath
+    {
+        $dom = new \DOMDocument;
+        libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8"?>'.$html);
+        libxml_clear_errors();
+
+        return new \DOMXPath($dom);
+    }
+
+    #[Test]
+    public function stundenplan_schalter_liegt_in_einem_bestaendigen_block_den_beide_blaetterwege_mittauschen(): void
+    {
+        // Monat: der Block trägt den angezeigten Monat, wechsle() tauscht ihn mit aus
+        $monat = $this->actingAs($this->user)->get(route('learner.exams.index', ['ansicht' => 'monat', 'monat' => '2026-02']))->assertOk()->getContent();
+        $xp = $this->xpath($monat);
+        $this->assertSame(1, $xp->query('//form//*[@data-np-agendaschalter]//input[@type="hidden"][@name="monat"][@value="2026-02"]')->length);
+        $this->assertSame(0, $xp->query('//*[@data-np-monat]//*[@data-np-agendaschalter]')->length, 'Der Block liegt ausserhalb des Monatsblocks');
+
+        // Liste mit Zeitraum: Block mit zeitraum, und die Filterleiste tauscht ihn mit aus
+        $this->planen();
+        $liste = $this->actingAs($this->user)->get(route('learner.exams.index', ['zeitraum' => '4w']))->assertOk()->getContent();
+        $xp = $this->xpath($liste);
+        $this->assertSame(1, $xp->query('//form//*[@data-np-agendaschalter]//input[@type="hidden"][@name="zeitraum"][@value="4w"]')->length);
+        $this->assertStringContainsString('[data-np-agendaschalter]', $liste);
+
+        // Standardzeitraum: der Block bleibt trotzdem stehen (leer), sonst fehlt dem Tausch das Ziel
+        $standard = $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()->getContent();
+        $this->assertSame(1, $this->xpath($standard)->query('//form//*[@data-np-agendaschalter]')->length);
+        $this->assertSame(0, $this->xpath($standard)->query('//*[@data-np-agendaschalter]//input')->length);
+    }
+
+    #[Test]
+    public function blaettern_fuehrt_link_monat_ansage_fokus_und_abbruch_mit(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('learner.exams.index', ['ansicht' => 'monat', 'monat' => '2026-02']))->assertOk()->getContent();
+        $xp = $this->xpath($html);
+
+        // Link «Monat» im Seitenkopf wird nach dem Blättern nachgeführt
+        $this->assertSame(1, $xp->query('//a[@data-np-monat-link][contains(@href, "2026-02")]')->length);
+        // Ansage: beständige Live-Region ausserhalb des getauschten Blocks
+        $this->assertSame(1, $xp->query('//*[@data-np-monat-ansage][@aria-live="polite"]')->length);
+        $this->assertSame(0, $xp->query('//*[@data-np-monat]//*[@data-np-monat-ansage]')->length);
+        // Fokus: die drei Blätter-Links lassen sich im neuen Block wiederfinden
+        foreach (['zurueck', 'heute', 'vor'] as $ziel) {
+            $this->assertSame(1, $xp->query('//*[@data-np-monat]//a[@data-np-blaettern="'.$ziel.'"]')->length, $ziel);
+        }
+        $this->assertSame(1, $xp->query('//*[@data-np-monat]//h2[@tabindex="-1"]')->length, 'Rückfall für den Fokus');
+        // Schnelles Blättern: die ältere Anfrage wird abgebrochen
+        $this->assertStringContainsString('new AbortController()', $html);
+        $this->assertStringContainsString('signal: abbruch.signal', $html);
+    }
+
+    #[Test]
+    public function zurueck_im_verlauf_laedt_nur_bei_geaenderter_adresse_neu(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('learner.exams.index', ['ansicht' => 'monat']))->assertOk()->getContent();
+
+        // Ein Sprunglink (#inhalt) legt einen Verlaufseintrag nur mit Fragment an: kein Neuladen
+        $this->assertStringNotContainsString('@popstate.window="location.reload()"', $html);
+        $this->assertStringContainsString('location.pathname + location.search', $html);
+    }
+
+    #[Test]
+    public function eintraege_ohne_ziel_im_tagesdrawer_sind_keine_links(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString("?? '#'", $html);
+        $this->assertStringContainsString('<template x-if="e.href">', $html);
+        $this->assertStringContainsString('<template x-if="! e.href">', $html);
+    }
+
+    #[Test]
+    public function link_monat_neben_der_monatsuebersicht_hat_24_px_trefferflaeche(): void
+    {
+        $html = $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()->getContent();
+
+        $klasse = $this->xpath($html)->query('//aside//a[contains(@class, "text-accent-text")]')->item(0)?->getAttribute('class');
+        $this->assertNotNull($klasse);
+        $this->assertStringContainsString('min-h-6', $klasse);
+    }
 }

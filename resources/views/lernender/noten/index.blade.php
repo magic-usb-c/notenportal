@@ -92,6 +92,29 @@
                 </nav>
             </div>
 
+            {{-- Vorsemester gegen aktuell je Fach (S3): Semester und Kategorie folgen der Seite, nur die Sortierung ist ein eigener Filter --}}
+            @php
+                $hantel = $statistik['diagramm']['hantel'];
+                $hantelSort = $statistik['meta']['hantel']['optionen']['sort'];
+            @endphp
+            @if($hantel['zeilen'] !== [] && $hantel['vorsemester'] !== null)
+                <div class="flex flex-col gap-3" x-show="ansicht === 'semester'">
+                    <x-filterleiste :action="route('learner.grades.index')" :statistik="['standard' => ['sort' => 'delta']]">
+                        <x-slot:hidden>
+                            @if(request()->filled('semester_id'))<input type="hidden" name="semester_id" value="{{ (int) request('semester_id') }}">@endif
+                            @if($kategorieId)<input type="hidden" name="kategorie_id" value="{{ (int) $kategorieId }}">@endif
+                        </x-slot:hidden>
+                        <label for="hantel-sort" class="sr-only">{{ __('Veränderung') }}</label>
+                        <select name="sort" id="hantel-sort" class="np-feld np-feld-klein np-auswahl w-auto max-w-56">
+                            @foreach($hantelSort as $wert => $text)
+                                <option value="{{ $wert }}" @selected($statistik['filter']['sort'] === $wert)>{{ $text }}</option>
+                            @endforeach
+                        </select>
+                    </x-filterleiste>
+                    <x-hantel :paket="$statistik" />
+                </div>
+            @endif
+
             {{-- Zeugnisübersicht --}}
             <x-karte titel="{{ __('Zeugnisnoten über die Lehrzeit') }}" :polster="false" x-show="ansicht === 'alle'" x-cloak>
                 @if($heatmap['gruppen'])

@@ -62,6 +62,7 @@
     <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
     <x-slot:tabelle>
         <table class="np-tabelle text-sm">
+            <caption class="sr-only">{{ $titel }}</caption>
             <thead>
                 <tr>
                     @foreach($tabelle['spalten'] as $spalte)
@@ -72,8 +73,12 @@
             <tbody>
                 @foreach($tabelle['zeilen'] as $zeile)
                     <tr>
-                        @foreach($zeile as $zelle)
-                            <td>{{ $zelle }}</td>
+                        @foreach($zeile as $i => $zelle)
+                            @if($i === 0)
+                                <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                            @else
+                                <td>{{ $zelle }}</td>
+                            @endif
                         @endforeach
                     </tr>
                 @endforeach

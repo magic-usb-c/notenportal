@@ -17,6 +17,19 @@
             ['gelb', __('Beobachten'), 'eye', 'bg-note-knapp/14 text-note-knapp', $zeilen->filter(fn ($z) => $z->stand->status === 'gelb')->count()],
             ['neu', __('Mit neuen Noten'), 'inbox-stack', 'bg-fill text-muted', $zeilen->filter(fn ($z) => $z->neu > 0)->count()],
         ];
+        // Hantel (Vorsemester → aktuell): Filter aus der Adresse, unter genügend liegende Personen mit Symbol, Wort und Link
+        $hantel = $statistik['diagramm']['hantel'];
+        $hantelFilter = $statistik['filter'];
+        $kategorien = \App\Services\Auswertung\Konfiguration::ausDb()->kategorien;
+        $hantelAktiv = collect([
+            ($hantelFilter['status'] ?? 'alle') !== 'alle',
+            ($hantelFilter['kategorie'] ?? null) !== null,
+            ($hantelFilter['sort'] ?? null) === 'name',
+        ])->filter()->count();
+        $unterGenuegend = collect($hantel['zeilen'])
+            ->filter(fn ($r) => in_array(\App\Support\NotenSkala::stufe($r['jetzt']), [\App\Support\NotenSkala::KNAPP, \App\Support\NotenSkala::UNGENUEGEND], true))
+            ->values();
+        $feld = 'np-feld np-feld-klein w-auto max-w-64';
         // Filter und Suche prüfen im Browser dieselben Werte, die die Zeile zeigt
         $filterDaten = $zeilen->map(fn ($z) => [
             's' => $z->stand->status,
@@ -70,10 +83,64 @@
             <div class="grid grid-cols-12 items-start gap-5">
                 {{-- Meine Lernenden --}}
                 @if($zeigen['lernende'])
-                <x-karte :titel="__('Meine Lernenden')" symbol="users" :polster="false" @class(['min-w-0', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
+                <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
+                @if($zeilen->isNotEmpty())
+                    {{-- Wer hat sich bewegt: Hantel je betreute Person, Filter aus der Adresse (funktioniert ohne JavaScript) --}}
+                    <section class="flex flex-col gap-3" aria-label="{{ __('Wer hat sich bewegt') }}">
+                        <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard')"
+                                        :statistik="['json' => false, 'standard' => ['status' => 'alle', 'sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-untergenuegend]', '[data-np-tabellenkopf]']]">
+                            <x-slot:hidden>
+                                @if($filter['order'])
+                                    <input type="hidden" name="order" value="{{ $filter['order'] }}">
+                                    <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
+                                @endif
+                            </x-slot:hidden>
+                            <label for="hantel-status" class="sr-only">{{ __('Status') }}</label>
+                            <select name="status" id="hantel-status" class="{{ $feld }}">
+                                <option value="alle" @selected(($hantelFilter['status'] ?? 'alle') === 'alle')>{{ __('Alle') }}</option>
+                                <option value="kritisch" @selected(($hantelFilter['status'] ?? 'alle') === 'kritisch')>{{ __('Kritisch') }}</option>
+                            </select>
+                            <label for="hantel-kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                            <select name="kategorie" id="hantel-kategorie" class="{{ $feld }}">
+                                <option value="">{{ __('Gesamtschnitt') }}</option>
+                                @foreach($kategorien as $kid => $kat)
+                                    <option value="{{ $kid }}" @selected(($hantelFilter['kategorie'] ?? null) === (int) $kid)>{{ $kat['name'] }}</option>
+                                @endforeach
+                            </select>
+                            <label for="hantel-sort" class="sr-only">{{ __('Sortierung') }}</label>
+                            <select name="sort" id="hantel-sort" class="{{ $feld }}">
+                                <option value="delta" @selected(($hantelFilter['sort'] ?? null) !== 'name')>{{ __('Veränderung') }}</option>
+                                <option value="name" @selected(($hantelFilter['sort'] ?? null) === 'name')>{{ __('Name') }}</option>
+                            </select>
+                        </x-filterleiste>
+
+                        <x-hantel :paket="$statistik" />
+
+                        <div class="contents" data-np-untergenuegend>
+                            @if($unterGenuegend->isNotEmpty())
+                                <ul class="flex flex-wrap gap-2" role="list">
+                                    @foreach($unterGenuegend as $r)
+                                        @php
+                                            $stufe = \App\Support\NotenSkala::stufe($r['jetzt']);
+                                            $ton = $stufe === \App\Support\NotenSkala::UNGENUEGEND ? 'bg-note-ungenuegend/14 text-note-ungenuegend' : 'bg-note-knapp/14 text-note-knapp';
+                                        @endphp
+                                        <li>
+                                            <a href="{{ route('trainer.learners.show', (int) substr($r['schluessel'], 1)) }}" class="inline-flex min-h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium tabular-nums transition-colors duration-100 hover:bg-fill-2 {{ $ton }}">
+                                                <x-symbol name="exclamation-triangle" strich="2" class="size-3.5" />
+                                                <span class="text-text">{{ $r['fach'] }}</span>
+                                                {{ \App\Support\NotenSkala::format($r['jetzt'], 1) }} · {{ \App\Support\NotenSkala::stufeName($r['jetzt']) }}
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </section>
+                @endif
+                <x-karte :titel="__('Meine Lernenden')" symbol="users" :polster="false" class="min-w-0">
                     @if($zeilen->isNotEmpty())
                         <x-slot:aktionen>
-                            <x-suchfeld x-model="suche" class="w-56" :label="__('Lernende suchen')" />
+                            <x-suchfeld x-model.debounce.200ms="suche" class="w-56" :label="__('Lernende suchen')" />
                         </x-slot:aktionen>
                     @endif
 
@@ -85,16 +152,16 @@
                         @php
                             $trendSortierbar = $zeilen->contains(fn ($z) => $z->stand->delta() !== null);
                             $sortLink = function (string $spalte, string $label, bool $rechts = false) use ($filter) {
-                                $aktiv = $filter['sort'] === $spalte;
+                                $aktiv = $filter['order'] === $spalte;
                                 $naechsteDir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
                                 $pfeil = ! $aktiv
-                                    ? '<span class="invisible text-faint group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
+                                    ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
                                     : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
-                                $url = e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $naechsteDir]));
+                                $url = e(request()->fullUrlWithQuery(['order' => $spalte, 'dir' => $naechsteDir]));
 
                                 return '<a href="'.$url.'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text'.($rechts ? ' flex-row-reverse' : '').($aktiv ? ' font-semibold text-text' : '').'">'.e($label).' '.$pfeil.'</a>';
                             };
-                            $ariaSort = fn (string $spalte) => $filter['sort'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
+                            $ariaSort = fn (string $spalte) => $filter['order'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
                         @endphp
                         <div class="overflow-x-auto px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
@@ -102,7 +169,7 @@
                                 <colgroup>
                                     <col class="w-32"><col class="w-48"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
                                 </colgroup>
-                                <thead>
+                                <thead data-np-tabellenkopf>
                                     <tr>
                                         <th scope="col" aria-sort="{{ $ariaSort('status') }}">{!! $sortLink('status', __('Status')) !!}</th>
                                         <th scope="col" aria-sort="{{ $ariaSort('name') }}">{!! $sortLink('name', __('Lernende')) !!}</th>
@@ -135,7 +202,11 @@
                                             <td class="whitespace-nowrap text-right">
                                                 <x-note :wert="$s->semesterNote" :stellen="1" />
                                                 @if($d !== null && $d != 0)
-                                                    <span class="ml-1 text-2xs {{ $d > 0 ? 'text-muted' : 'text-note-knapp' }}">{{ $d > 0 ? '▲ +' : '▼ ' }}{{ \App\Support\NotenSkala::format(abs($d), 1) }}</span>
+                                                    @php $deltaText = ($d > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($d), 1); @endphp
+                                                    <span class="ml-1 text-2xs text-muted" title="{{ __(':delta zum Vorsemester', ['delta' => $deltaText]) }}">
+                                                        <span aria-hidden="true">{{ $d > 0 ? '▲' : '▼' }} {{ $deltaText }}</span>
+                                                        <span class="sr-only">{{ __(':delta zum Vorsemester', ['delta' => $deltaText]) }}</span>
+                                                    </span>
                                                 @endif
                                             </td>
                                             <td class="text-right font-semibold"><x-note :wert="$s->auswertung->gesamtNote" :stellen="1" /></td>
@@ -163,8 +234,10 @@
                                 </tbody>
                             </table>
                         </div>
+                        <p class="sr-only" role="status" aria-live="polite" x-text="@js(__(':anzahl von :gesamt Lernenden angezeigt')).replace(':anzahl', zeilen.filter((z) => passt(z)).length).replace(':gesamt', zeilen.length)"></p>
                     @endif
                 </x-karte>
+                </div>
                 @endif
 
                 @if($rechts)

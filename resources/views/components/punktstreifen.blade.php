@@ -65,7 +65,7 @@
         </svg>
         <div class="relative mt-1 h-4 text-2xs tabular-nums text-muted" aria-hidden="true">
             @foreach([1, 2, 3, 4, 5, 6] as $note)
-                <span class="absolute -translate-x-1/2" style="left: {{ round($skala::breite($note), 2) }}%">{{ $note }}</span>
+                <span class="absolute -translate-x-1/2" style="left: {{ round($x((float) $note) / $breite * 100, 2) }}%">{{ $note }}</span>
             @endforeach
         </div>
         <p class="mt-2 text-xs text-muted">{{ $satz }}</p>
@@ -73,6 +73,7 @@
     <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
     <x-slot:tabelle>
         <table class="np-tabelle text-sm">
+            <caption class="sr-only">{{ $titel }}</caption>
             <thead>
                 <tr>
                     @foreach($tabelle['spalten'] as $i => $spalte)
@@ -84,7 +85,11 @@
                 @foreach($tabelle['zeilen'] as $zeile)
                     <tr>
                         @foreach($zeile as $i => $zelle)
-                            <td @class(['text-right' => $i === 1])>{{ $zelle }}</td>
+                            @if($i === 0)
+                                <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                            @else
+                                <td @class(['text-right' => $i === 1])>{{ $zelle }}</td>
+                            @endif
                         @endforeach
                     </tr>
                 @endforeach

@@ -514,6 +514,7 @@
     "Zu den Prüfungsterminen": "Go to exam dates",
     "Zu meinen Modulen hinzufügen": "Add to my modules",
     "Zu viele Anfragen": "Too many requests",
+    "Zu viele Versuche. Bitte :seconds Sekunden warten.": "Too many attempts. Please wait :seconds seconds.",
     "Zum Profil": "Go to profile",
     "Zuordnungen Beruf zu Modul": "Occupation-to-module assignments",
     "Zur Agenda": "Go to agenda",
@@ -646,5 +647,6 @@
     "nicht erreichbar": "out of reach",
     "ohne Einfluss": "no influence",
     "Filter entfernen: :name": "Remove filter: :name",
-    ":von auf :bis": ":von to :bis"
+    ":von auf :bis": ":von to :bis",
+    "Bitte ein Fach oder Modul wählen.": "Please choose a subject or module."
 }

@@ -1,14 +1,16 @@
-{{-- Lernendenliste für Admin und Berufsbildner: Symbolleiste mit Suche und Filtern, darunter eine sortierbare
-     Tabelle. Die ganze Zeile führt zum Profil, «Noten» direkt zur Notenliste. --}}
+{{-- Lernendenliste für Admin und Berufsbildner: Suche und Filter (npFilter, aktive Filter als Marken mit ×), darunter der
+     Punktstreifen über die gefilterte Liste und eine sortierbare Tabelle mit Mini-Bullet und Verlauf je Zeile. Die ganze
+     Zeile führt zum Profil, «Noten» direkt zur Notenliste. Ohne JavaScript bleibt das Formular ein gewöhnlicher GET. --}}
 @php
     $aktiveFilter = collect([$filter['suche'], $filter['lehrberuf_id'], $filter['lehrjahr'], $filter['berufsbildner_id'],
-        $filter['bms'], $filter['warnung'], $filter['inaktive']])->filter()->count();
+        $filter['bms'], $filter['warnung'], $filter['inaktive'], $filter['kategorie']])->filter()->count();
+    $kategorien = \App\Services\Auswertung\Konfiguration::ausDb()->kategorien;
 
     // Rechtsbündige Spalten: Pfeil vor dem Text (flex-row-reverse), damit der Kopf mit den Zahlen bündig bleibt
     $sortLink = function (string $spalte, string $label, bool $rechts = false) use ($filter) {
         $aktiv = $filter['sort'] === $spalte;
         $dir = $aktiv && $filter['dir'] === 'asc' ? 'desc' : 'asc';
-        $pfeil = ! $aktiv ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
+        $pfeil = ! $aktiv ? '<span class="invisible text-faint group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>' : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
 
         return '<a href="'.e(request()->fullUrlWithQuery(['sort' => $spalte, 'dir' => $dir])).'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text'.($rechts ? ' flex-row-reverse' : '').($aktiv ? ' text-text font-semibold' : '').'">'.e($label).' '.$pfeil.'</a>';
     };
@@ -23,9 +25,11 @@
         $tage === 1 => __('gestern'),
         default => __('vor :tage Tagen', ['tage' => $tage]),
     };
-    $spalten = $bereich === 'admin' ? 8 : 7;
-    // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte (Admin hat eine Spalte mehr)
-    $kartenbreite = $bereich === 'admin' ? 'max-w-7xl' : 'max-w-6xl';
+    $spalten = $bereich === 'admin' ? 9 : 8;
+    // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte; der Admin hat zwei Spalten mehr und füllt das Fenster
+    $kartenbreite = $bereich === 'admin' ? '' : 'max-w-7xl';
+    // Veränderung zum Vorsemester als Text mit Pfeil (nie nur Farbe)
+    $deltaText = fn (float $d) => ($d > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($d), 1);
     // Gar keine sichtbaren Lernenden (auch keine inaktiven) und kein Filter: Leerzustand für die ganze Ansicht.
     // Nur inaktive Lernende zeigen die Tabelle mit Filterleiste, damit «Inkl. inaktive» erreichbar bleibt.
     $leer = $gesamt === 0 && $aktiveFilter === 0;
@@ -33,7 +37,7 @@
 <x-app-layout>
     <x-slot name="title">{{ __('Lernende') }}</x-slot>
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Lernende')" :zaehler="$zeilen->count()">
+        <x-seitenkopf :titel="__('Lernende')">
             <x-slot:aktionen>
                 @unless($leer)
                     <a href="{{ route("{$bereich}.grades.export_all") }}" class="np-knopf np-knopf-sekundaer">
@@ -59,7 +63,9 @@
             @else
                 <x-filterleiste :action="route($bereich.'.learners.index')" suche-name="suche" :suche-wert="$filter['suche']"
                                  :suche-platzhalter="__('Name, E-Mail, Benutzername')"
-                                 :zurueck="route($bereich.'.learners.index')" :aktive-filter="$aktiveFilter">
+                                 :zurueck="route($bereich.'.learners.index')" :aktive-filter="$aktiveFilter"
+                                 :zaehler="$zeilen->count()" :zaehler-label="__('Lernende')"
+                                 :statistik="['json' => false, 'marken' => true, 'standard' => ['sort' => 'name', 'dir' => 'asc', 'inaktive' => '0'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-liste]']]">
                     <x-slot:hidden>
                         <input type="hidden" name="sort" value="{{ $filter['sort'] }}">
                         <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
@@ -78,6 +84,14 @@
                         <option value="">{{ __('Alle Lehrjahre') }}</option>
                         @foreach([1, 2, 3, 4] as $jahr)
                             <option value="{{ $jahr }}" @selected($filter['lehrjahr'] === $jahr)>{{ __(':jahr. Lehrjahr', ['jahr' => $jahr]) }}</option>
+                        @endforeach
+                    </select>
+
+                    <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                    <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="">{{ __('Gesamtschnitt') }}</option>
+                        @foreach($kategorien as $kid => $kat)
+                            <option value="{{ $kid }}" @selected($filter['kategorie'] === (int) $kid)>{{ $kat['name'] }}</option>
                         @endforeach
                     </select>
 
@@ -122,14 +136,16 @@
                     </x-slot:weitere>
                 </x-filterleiste>
 
-                <div class="np-karte {{ $kartenbreite }} overflow-hidden">
+                <x-punktstreifen :paket="$statistik" class="{{ $kartenbreite }}" />
+
+                <div class="np-karte {{ $kartenbreite }} overflow-hidden" data-np-liste>
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
                             <caption class="sr-only">{{ __('Lernende') }}</caption>
                             <colgroup>
-                                <col class="w-72"><col class="w-32">
-                                @if($bereich === 'admin')<col class="w-48">@endif
-                                <col class="w-20"><col class="w-32"><col class="w-28"><col><col class="w-24">
+                                <col class="w-56"><col class="w-28">
+                                @if($bereich === 'admin')<col class="w-40">@endif
+                                <col class="w-16"><col class="w-28"><col class="w-36"><col class="w-36"><col><col class="w-20">
                             </colgroup>
                             <thead>
                                 <tr>
@@ -141,6 +157,7 @@
                                     <th scope="col" class="text-right whitespace-nowrap">{{ __('Noten') }}</th>
                                     <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('last_note') }}">{!! $sortLink('last_note', __('Letzte Note'), true) !!}</th>
                                     <th scope="col" class="text-right whitespace-nowrap" aria-sort="{{ $ariaSort('avg') }}">{!! $sortLink('avg', __('Ø gesamt'), true) !!}</th>
+                                    <th scope="col" class="whitespace-nowrap" aria-sort="{{ $ariaSort('delta') }}">{!! $sortLink('delta', __('Verlauf')) !!}</th>
                                     <th scope="col">{{ __('Status') }}</th>
                                     <th scope="col" class="text-right"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
@@ -170,13 +187,32 @@
                                             <span class="text-muted">· {{ $z->lehrjahr ?: '–' }}</span>
                                         </td>
                                         @if($bereich === 'admin')
-                                            <td class="whitespace-nowrap text-muted">
+                                            <td class="truncate text-muted">
                                                 {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}
                                             </td>
                                         @endif
                                         <td class="text-right tabular-nums">{{ $z->anzahl }}</td>
                                         <td class="text-right whitespace-nowrap text-muted">{{ $wann($tagSeit) }}</td>
-                                        <td class="text-right"><x-note :wert="$z->avg" :stellen="1" /></td>
+                                        <td>
+                                            <div class="flex items-center justify-end gap-3">
+                                                @if($z->avg !== null)
+                                                    {{-- Die Zahl daneben sagt dasselbe, der Balken zeigt nur die Lage auf der Skala --}}
+                                                    <span class="w-16" aria-hidden="true"><x-bullet :wert="$z->avg" mini /></span>
+                                                @endif
+                                                <x-note :wert="$z->avg" :stellen="1" class="min-w-8 text-right" />
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="flex items-center gap-2">
+                                                <x-sparkline :werte="$z->stand->verlauf" mini />
+                                                @if($z->delta !== null && $z->delta != 0)
+                                                    <span @class(['whitespace-nowrap text-2xs tabular-nums', 'text-muted', 'font-medium' => $z->delta < 0]) title="{{ __(':delta zum Vorsemester', ['delta' => $deltaText($z->delta)]) }}">
+                                                        <span aria-hidden="true">{{ $z->delta > 0 ? '▲' : '▼' }} {{ $deltaText($z->delta) }}</span>
+                                                        <span class="sr-only">{{ __(':delta zum Vorsemester', ['delta' => $deltaText($z->delta)]) }}</span>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td>
                                             <div class="flex flex-wrap items-center gap-1">@include('verwaltung.lernende._status')</div>
                                         </td>

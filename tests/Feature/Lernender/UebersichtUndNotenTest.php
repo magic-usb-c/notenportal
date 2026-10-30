@@ -76,7 +76,7 @@ class UebersichtUndNotenTest extends TestCase
 
         $response->assertSeeInOrder([
             'Wo stehe ich', 'Als Tabelle', 'Testmodul Theta durchführen', '5.0',
-            'Verlauf', 'Als Tabelle', 'Semesterschnitt',
+            'Notenverlauf', 'Als Tabelle', 'Datum', 'Fach', 'Note', 'Testmodul Theta durchführen', '5.00',
         ], false);
     }
 
@@ -88,7 +88,7 @@ class UebersichtUndNotenTest extends TestCase
         $response = $this->get(route('learner.dashboard'))->assertOk();
 
         $response->assertSeeInOrder(['ungenügend', 'knapp', 'genügend', 'gut']);
-        $response->assertSeeInOrder(['Wo stehe ich', 'Als Tabelle', 'Fach / Modul', 'Stufe', 'Testmodul Theta durchführen', '5.0', 'gut'], false);
+        $response->assertSeeInOrder(['Wo stehe ich', 'Als Tabelle', 'Fach', 'Note', 'Stufe', 'Testmodul Theta durchführen', '5.0', 'gut'], false);
     }
 
     #[Test]

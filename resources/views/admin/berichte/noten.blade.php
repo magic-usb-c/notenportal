@@ -13,10 +13,30 @@
     // Richtung für Screenreader über aria-sort am Spaltenkopf, der Pfeil ist nur fürs Auge
     $pfeil = fn (string $spalte) => $sort === $spalte ? new \Illuminate\Support\HtmlString('<span aria-hidden="true">'.($dir === 'asc' ? '↑' : '↓').'</span>') : '';
     $ariaSort = fn (string $spalte) => $sort === $spalte ? ($dir === 'desc' ? 'descending' : 'ascending') : 'none';
-    $filterParameter = request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id']);
-    $aktiveFilter = count(array_filter([$filter['lehrberuf_id'], $filter['berufsbildner_id'], request()->filled('semester') ? 1 : null]));
+    $filterParameter = request()->only(['semester', 'lehrberuf_id', 'berufsbildner_id', 'kategorie', 'lehrjahr']);
+    $aktiveFilter = count(array_filter([$filter['lehrberuf_id'], $filter['berufsbildner_id'], $filter['kategorie_id'], $filter['lehrjahr'], request()->filled('semester') ? 1 : null]));
+    // Auswahl für die Filter Kategorie und Lehrjahr (der Controller reicht beide Listen nicht durch)
+    $kategorieAuswahl = collect(\App\Services\Auswertung\Konfiguration::ausDb()->kategorien)->map(fn ($kat) => $kat['name']);
+    $lehrjahrAuswahl = range(1, max(4, (int) $filter['lehrjahr']));
+    $skala = NotenSkala::class;
+    $genuegend = $skala::genuegend();
+    // Achse der Anzahlen ab 0 mit ganzzahligen Marken; Obergrenze ist ein Vielfaches des Schritts
+    $achseAnzahl = function (int $spitze): array {
+        $schritt = match (true) {
+            $spitze <= 4 => 1,
+            $spitze <= 10 => 2,
+            $spitze <= 20 => 5,
+            $spitze <= 50 => 10,
+            default => (int) (ceil($spitze / 5 / 10) * 10),
+        };
+        $oben = max($schritt, (int) (ceil($spitze / $schritt) * $schritt));
+
+        return [$oben, range(0, $oben, $schritt)];
+    };
     $auswahl = 'np-feld np-feld-klein w-auto max-w-72';
     $k = $kennzahlen;
+    $hSatz = $statistik['zusammenfassung']['histogramm'];
+    $andereFilter = (bool) ($filter['lehrberuf_id'] || $filter['berufsbildner_id'] || $filter['kategorie_id'] || $filter['lehrjahr']);
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
     $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
@@ -67,7 +87,23 @@
                             <option value="{{ $bb->berufsbildner_id }}" @selected($filter['berufsbildner_id'] === (int) $bb->berufsbildner_id)>{{ $bb->nachname }} {{ $bb->vorname }}</option>
                         @endforeach
                     </select>
+                    <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                    <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="">{{ __('Kategorie') }}</option>
+                        @foreach($kategorieAuswahl as $kid => $kname)
+                            <option value="{{ $kid }}" @selected($filter['kategorie_id'] === (int) $kid)>{{ $kname }}</option>
+                        @endforeach
+                    </select>
+                    <label for="lehrjahr" class="sr-only">{{ __('Lehrjahr') }}</label>
+                    <select name="lehrjahr" id="lehrjahr" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
+                        <option value="">{{ __('Alle Lehrjahre') }}</option>
+                        @foreach($lehrjahrAuswahl as $jahr)
+                            <option value="{{ $jahr }}" @selected($filter['lehrjahr'] === $jahr)>{{ __(':jahr. Lehrjahr', ['jahr' => $jahr]) }}</option>
+                        @endforeach
+                    </select>
                 </x-filterleiste>
+                {{-- Bleibt beim Tausch stehen; statistik.js schreibt nach jedem Filterwechsel den neuen Satz aus data-np-text hinein --}}
+                <p class="sr-only" aria-live="polite" data-np-ansage data-np-text="{{ $hSatz }}"></p>
             </div>
 
             <div @class(['grid gap-4', 'grid-cols-5' => $sid, 'grid-cols-4' => ! $sid])>
@@ -80,29 +116,83 @@
                 @endif
             </div>
 
+            @if($k['zeugnisnoten'] === 0)
+                <section class="np-karte">
+                    <x-leer symbol="chart-bar" :titel="$hSatz">
+                        @if($andereFilter || $sid !== null)
+                            <a href="{{ route('admin.reports.grades', ['semester' => 'alle']) }}" class="np-knopf np-knopf-sekundaer">{{ $andereFilter ? __('Filter zurücksetzen') : __('Ganze Lehrzeit anzeigen') }}</a>
+                        @endif
+                    </x-leer>
+                </section>
+            @endif
+
             @if($k['zeugnisnoten'] > 0 || $mitLehrjahr)
                 <div class="grid grid-cols-2 items-start gap-4">
                     @if($k['zeugnisnoten'] > 0)
-                        <x-diagramm :titel="__('Verteilung der Zeugnisnoten')"
-                                    :fazit="__(':ungenuegend von :gesamt Zeugnisnoten ungenügend, Durchschnitt :schnitt', ['ungenuegend' => $k['ungenuegend'], 'gesamt' => $k['zeugnisnoten'], 'schnitt' => NotenSkala::format($k['schnitt'], 2)])">
+                        {{-- Notenverteilung (S10): Viertelnoten ab 0, Genügend-Linie, Median erst ab drei Noten. Die Seite ersetzt npFilter als Ganzes. --}}
+                        @php
+                            [$hOben, $hMarken] = $achseAnzahl((int) max($verteilung['werte']));
+                            $hHoehe = fn (int|float $v) => round($v / $hOben * 100, 2);
+                            $hLinks = fn (float $v) => round($skala::breite($v), 2);
+                        @endphp
+                        <x-diagramm :titel="__('Verteilung der Zeugnisnoten')">
+                            <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs tabular-nums text-muted" aria-hidden="true">
+                                <span class="inline-flex items-center gap-1.5"><span class="w-4 border-t border-dashed border-muted"></span>{{ __('genügend :wert', ['wert' => $skala::format($genuegend, 1)]) }}</span>
+                                @if($verteilung['median'] !== null)
+                                    <span class="inline-flex items-center gap-1.5"><span class="h-0.5 w-4 rounded-full bg-text"></span>{{ __('Median') }} {{ $skala::format($verteilung['median'], 2) }}</span>
+                                @endif
+                            </div>
+                            <div class="flex gap-2" role="img" aria-labelledby="np-histogramm-satz">
+                                <div class="relative h-64 w-7 shrink-0" aria-hidden="true">
+                                    @foreach($hMarken as $marke)
+                                        <span class="absolute right-0 translate-y-1/2 text-2xs tabular-nums leading-none text-muted" style="bottom: {{ $hHoehe($marke) }}%">{{ $marke }}</span>
+                                    @endforeach
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="relative h-64" aria-hidden="true">
+                                        @foreach($hMarken as $marke)
+                                            <div class="absolute inset-x-0 border-t {{ $marke === 0 ? 'border-border-strong/60' : 'border-border' }}" style="bottom: {{ $hHoehe($marke) }}%"></div>
+                                        @endforeach
+                                        <div class="absolute inset-0 flex items-end gap-px">
+                                            @foreach($verteilung['werte'] as $i => $anzahl)
+                                                <div class="flex h-full min-w-0 flex-1 items-end" title="{{ __('Note ab') }} {{ $verteilung['labels'][$i] }}: {{ $anzahl }}">
+                                                    @if($anzahl > 0)
+                                                        <div class="w-full rounded-t-sm {{ $skala::balken($verteilung['farben'][$i]) }}" style="height: {{ max(1.5, $hHoehe($anzahl)) }}%"></div>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        <div class="absolute inset-y-0 border-l border-dashed border-muted" style="left: {{ $hLinks($genuegend) }}%"></div>
+                                        @if($verteilung['median'] !== null)
+                                            <div class="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-text" style="left: {{ $hLinks($verteilung['median']) }}%"></div>
+                                        @endif
+                                    </div>
+                                    <div class="relative mt-1 h-4" aria-hidden="true">
+                                        @foreach([1, 2, 3, 4, 5, 6] as $note)
+                                            <span class="absolute -translate-x-1/2 text-2xs tabular-nums text-muted" style="left: {{ $hLinks($note) }}%">{{ $note }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <x-noten-legende class="mt-3" />
+                            <p id="np-histogramm-satz" class="mt-2 text-xs text-muted">{{ $hSatz }}</p>
                             <x-slot:tabelle>
                                 <table class="np-tabelle text-sm">
+                                    <caption class="sr-only">{{ __('Verteilung der Zeugnisnoten') }}</caption>
                                     <thead>
-                                        <tr><th scope="col">{{ __('Note') }}</th><th scope="col" class="text-right">{{ __('Zeugnisnoten') }}</th><th scope="col" class="text-right">{{ __('Stufe') }}</th></tr>
+                                        <tr><th scope="col">{{ __('Note ab') }}</th><th scope="col" class="text-right">{{ __('Zeugnisnoten') }}</th><th scope="col">{{ __('Stufe') }}</th></tr>
                                     </thead>
                                     <tbody>
                                         @foreach($verteilung['labels'] as $i => $label)
                                             <tr>
                                                 <td>{{ $label }}</td>
                                                 <td class="text-right">{{ $verteilung['werte'][$i] }}</td>
-                                                <td class="text-right text-muted">{{ NotenSkala::stufeName((float) $label) }}</td>
+                                                <td class="text-muted">{{ NotenSkala::stufeName((float) $label) }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
                             </x-slot:tabelle>
-                            <div class="h-80" x-data="npChart('histogramm', {{ \Illuminate\Support\Js::from($verteilung) }})"><canvas x-ref="canvas" aria-label="{{ __('Verteilung der Zeugnisnoten') }}" role="img"></canvas></div>
-                            <x-noten-legende class="mt-2" />
                         </x-diagramm>
                     @endif
 
@@ -111,11 +201,12 @@
                             <x-karte :titel="__('Kategorien')" :polster="false">
                                 <div class="px-2 pb-2">
                                     <table class="np-tabelle table-fixed text-sm">
+                                        <caption class="sr-only">{{ __('Kategorien') }}</caption>
                                         <thead>
                                             <tr>
                                                 <th scope="col">{{ __('Kategorie') }}</th>
                                                 <th scope="col" class="w-24 text-right">{{ __('Lernende') }}</th>
-                                                <th scope="col" class="w-16 text-right">Ø</th>
+                                                <th scope="col" class="w-16 text-right"><span aria-hidden="true">Ø</span><span class="sr-only">{{ __('Durchschnitt') }}</span></th>
                                                 <th scope="col" class="w-28 text-right">{{ __('Min – Max') }}</th>
                                                 <th scope="col" class="w-28 text-right">{{ __('Ungenügend') }}</th>
                                                 @if($sid)<th scope="col" class="w-28 text-right">{{ __('Gefährdet') }}</th>@endif
@@ -140,29 +231,98 @@
                             </x-karte>
                         @endif
 
+                        {{-- Lehrjahre im Vergleich (S11): ein Streifen je Lehrjahr, alle auf derselben Achse 1 bis 6, Median erst ab drei Personen --}}
                         @if($mitLehrjahr)
-                            <x-karte :titel="__('Gesamtschnitt nach Lehrjahr')" :polster="false">
-                                <div class="px-2 pb-2">
-                                    <table class="np-tabelle table-fixed text-sm">
+                            @php
+                                $lj = $statistik['diagramm']['lehrjahre']['jahre'];
+                                $ljTabelle = $statistik['tabelle']['lehrjahre'];
+                                $ljSatz = $statistik['zusammenfassung']['lehrjahre'];
+                                // Punkte der Breite nach sortiert; berührt ein Punkt den Vorgänger, rückt er in die nächste Reihe
+                                $ljBreite = 600;
+                                $ljRadius = 4;
+                                $ljSchritt = 9;
+                                $ljX = fn (float $v) => round($skala::breite($v) / 100 * $ljBreite, 2);
+                                $ljLage = [];
+                                $ljReihen = 1;
+                                foreach ($lj as $zeile => $j) {
+                                    $reihen = [];
+                                    foreach (collect($j['werte'])->sort()->values() as $wert) {
+                                        $px = $ljX((float) $wert);
+                                        $reihe = 0;
+                                        while (isset($reihen[$reihe]) && $px - $reihen[$reihe] < 2 * $ljRadius + 1) {
+                                            $reihe++;
+                                        }
+                                        $reihen[$reihe] = $px;
+                                        $ljLage[$zeile][] = ['x' => $px, 'reihe' => $reihe, 'wert' => $wert];
+                                    }
+                                    $ljReihen = max($ljReihen, count($reihen));
+                                }
+                                $ljHoehe = 2 * $ljRadius + 6 + ($ljReihen - 1) * $ljSchritt;
+                            @endphp
+                            <x-diagramm :titel="__('Gesamtschnitt nach Lehrjahr')">
+                                <div class="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs tabular-nums text-muted" aria-hidden="true">
+                                    <span class="inline-flex items-center gap-1.5"><span class="w-4 border-t border-dashed border-muted"></span>{{ __('genügend :wert', ['wert' => $skala::format($genuegend, 1)]) }}</span>
+                                    @if(collect($lj)->contains(fn ($j) => $j['median'] !== null))
+                                        <span class="inline-flex items-center gap-1.5"><span class="h-3 w-0.5 rounded-full bg-text"></span>{{ __('Median') }}</span>
+                                    @endif
+                                </div>
+                                <div class="relative" role="group" aria-label="{{ __('Gesamtschnitt nach Lehrjahr') }}">
+                                    <ul class="flex flex-col" role="list">
+                                        @foreach($lj as $zeile => $j)
+                                            <li class="flex items-center gap-4 py-1.5">
+                                                <span class="w-24 shrink-0 text-sm text-text">{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}</span>
+                                                <svg class="block min-w-0 flex-1 overflow-visible" viewBox="0 0 {{ $ljBreite }} {{ $ljHoehe }}" role="img"
+                                                     aria-label="{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}: {{ $j['anzahl'] }} {{ $j['anzahl'] === 1 ? __('Person') : __('Personen') }}, {{ __('Durchschnitt') }} {{ $skala::format($j['schnitt'], 1) }}@if($j['median'] !== null), {{ __('Median') }} {{ $skala::format($j['median'], 1) }}@endif">
+                                                    <line x1="0" x2="{{ $ljBreite }}" y1="{{ $ljHoehe - 1 }}" y2="{{ $ljHoehe - 1 }}" class="stroke-border" stroke-width="1"/>
+                                                    @if($j['median'] !== null)
+                                                        <rect x="{{ $ljX((float) $j['median']) - 1 }}" y="0" width="2" height="{{ $ljHoehe }}" rx="1" class="fill-text"/>
+                                                    @endif
+                                                    @foreach($ljLage[$zeile] ?? [] as $punkt)
+                                                        <circle cx="{{ $punkt['x'] }}" cy="{{ $ljHoehe - $ljRadius - 3 - $punkt['reihe'] * $ljSchritt }}" r="{{ $ljRadius }}" class="{{ str_replace('bg-', 'fill-', $skala::balken($punkt['wert'])) }}">
+                                                            <title>{{ $skala::format($punkt['wert'], 1) }}</title>
+                                                        </circle>
+                                                    @endforeach
+                                                </svg>
+                                                <span class="w-44 shrink-0 text-right text-xs tabular-nums text-muted">
+                                                    {{ $j['anzahl'] }} {{ $j['anzahl'] === 1 ? __('Person') : __('Personen') }} · <span class="text-sm font-semibold {{ $skala::text($j['schnitt']) }}"><span aria-hidden="true">Ø</span><span class="sr-only">{{ __('Durchschnitt') }}</span> {{ $skala::format($j['schnitt'], 1) }}</span>
+                                                </span>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                    <div class="pointer-events-none absolute inset-y-0 left-28 right-48" aria-hidden="true">
+                                        <div class="absolute inset-y-0 border-l border-dashed border-muted" style="left: {{ round($skala::breite($genuegend), 2) }}%"></div>
+                                    </div>
+                                </div>
+                                <div class="relative mb-1 ml-28 mr-48 mt-1 h-4" aria-hidden="true">
+                                    @foreach([1, 2, 3, 4, 5, 6] as $note)
+                                        <span class="absolute -translate-x-1/2 text-2xs tabular-nums text-muted" style="left: {{ round($skala::breite($note), 2) }}%">{{ $note }}</span>
+                                    @endforeach
+                                </div>
+                                <p class="mt-2 text-xs text-muted">{{ $ljSatz }}</p>
+                                <x-slot:tabelle>
+                                    <table class="np-tabelle text-sm">
+                                        <caption class="sr-only">{{ __('Gesamtschnitt nach Lehrjahr') }}</caption>
                                         <thead>
                                             <tr>
-                                                <th scope="col">{{ __('Lehrjahr') }}</th>
-                                                <th scope="col" class="w-24 text-right">{{ __('Lernende') }}</th>
-                                                <th scope="col" class="w-16 text-right">Ø</th>
+                                                @foreach($ljTabelle['spalten'] as $i => $spalte)
+                                                    <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                                @endforeach
+                                                <th scope="col">{{ __('Stufe') }}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach($nachLehrjahr as $j)
+                                            @foreach($ljTabelle['zeilen'] as $ljZeile => $zeile)
                                                 <tr>
-                                                    <td class="text-text">{{ __(':jahr. Lehrjahr', ['jahr' => $j['jahr']]) }}</td>
-                                                    <td class="text-right text-muted">{{ $j['anzahl'] }}</td>
-                                                    <td class="text-right font-semibold {{ NotenSkala::text($j['schnitt']) }}">{{ NotenSkala::format($j['schnitt'], 1) }}</td>
+                                                    @foreach($zeile as $i => $zelle)
+                                                        <td @class(['text-right' => $i > 0])>{{ $i === 0 ? __(':jahr. Lehrjahr', ['jahr' => $zelle]) : $zelle }}</td>
+                                                    @endforeach
+                                                    <td class="text-muted">{{ NotenSkala::stufeName($lj[$ljZeile]['anzahl'] > 0 ? (float) $lj[$ljZeile]['schnitt'] : null) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                     </table>
-                                </div>
-                            </x-karte>
+                                </x-slot:tabelle>
+                            </x-diagramm>
                         @endif
                     </div>
                 </div>

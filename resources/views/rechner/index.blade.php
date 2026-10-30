@@ -14,6 +14,10 @@
         $person = $lernender?->benutzer->vorname;
         // Verwaltung: Bereich (admin|trainer) aus dem Routennamen, für die Cockpit-Navigation
         $cockpitBereich = \Illuminate\Support\Str::before((string) \Illuminate\Support\Facades\Route::currentRouteName(), '.');
+        // Spielraum der Endnote (S4): schlechteste und beste Endnote aus der Lösung, als Satz unter der Kurve; leer, wenn die offenen Prüfungen nichts bewegen
+        $spielraum = '(ergebnis?.loesung?.minimum != null && ergebnis.loesung.maximum != null && Math.abs(ergebnis.loesung.maximum - ergebnis.loesung.minimum) > 0.005 ? '
+            .\Illuminate\Support\Js::from(__('schlechteste Endnote :wert')).".replace(':wert', fmt(ergebnis.loesung.minimum)) + ' · ' + "
+            .\Illuminate\Support\Js::from(__('beste Endnote :wert')).".replace(':wert', fmt(ergebnis.loesung.maximum)) : '')";
         // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
         $texte = [
             'ebene' => [
@@ -224,11 +228,32 @@
                         </template>
                     </section>
 
-                    <x-karte :titel="__('Ergebnis je Note in den offenen Prüfungen')" x-show="kurve" x-cloak>
-                        <div class="h-64" x-data="npChart('kurve')" x-effect="zeichne(kurve)">
-                            <canvas x-ref="canvas" role="img" aria-label="{{ __('Ergebnis in Abhängigkeit der Note') }}"></canvas>
+                    {{-- S4: Kurve mit Band zwischen schlechtester und bester Endnote; der Scrub über die Fläche rechnet im Browser, ←/→ in Viertelnoten --}}
+                    <x-diagramm :titel="__('Ergebnis je Note in den offenen Prüfungen')" x-show="kurve" x-cloak>
+                        <div class="h-64 rounded-lg" x-data="npChart('kurve')" x-effect="zeichne(kurve)" tabindex="0" role="group" aria-label="{{ __('Ergebnis je Note in den offenen Prüfungen') }}">
+                            <canvas x-ref="canvas" role="img" :aria-label="{{ $spielraum }} || @js(__('Ergebnis in Abhängigkeit der Note'))"></canvas>
                         </div>
-                    </x-karte>
+                        <p class="mt-3 text-xs tabular-nums text-muted" x-show="{{ $spielraum }}" x-text="{{ $spielraum }}"></p>
+                        <x-slot:tabelle>
+                            <table class="np-tabelle text-sm">
+                                <caption class="sr-only">{{ __('Ergebnis je Note in den offenen Prüfungen') }}</caption>
+                                <thead>
+                                    <tr>
+                                        <th scope="col" class="text-right">{{ __('Note') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Ergebnis') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="p in (kurve?.punkte ?? [])" :key="p.x">
+                                        <tr>
+                                            <th scope="row" class="text-right font-normal tabular-nums text-text" x-text="fmt(p.x, 2)"></th>
+                                            <td class="text-right font-semibold tabular-nums" :class="klasse(p.wert)" x-text="fmt(p.wert, 2)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </x-slot:tabelle>
+                    </x-diagramm>
 
                     <x-karte :titel="__('Auswirkung')" :polster="false" x-show="ergebnis?.vergleich?.some((v) => v.vorher != null || v.nachher != null)" x-cloak>
                         <x-slot:aktionen>

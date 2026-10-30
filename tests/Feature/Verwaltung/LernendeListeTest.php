@@ -6,6 +6,7 @@ namespace Tests\Feature\Verwaltung;
 
 use App\Models\Kategorie;
 use App\Models\Modul;
+use App\Models\Note;
 use App\Models\Semester;
 use App\Models\User;
 use App\Services\Auswertung\Lernstand;
@@ -46,7 +47,7 @@ class LernendeListeTest extends TestCase
                 return [$q['sort'] => ['aria' => $th->getAttribute('aria-sort'), 'dir' => $q['dir']]];
             });
 
-        $this->assertSame(['name', 'lehrjahr', 'last_note', 'avg'], $koepfe->keys()->all());
+        $this->assertSame(['name', 'lehrjahr', 'last_note', 'avg', 'delta'], $koepfe->keys()->all());
         $this->assertSame(['aria' => 'descending', 'dir' => 'asc'], $koepfe['avg'], 'Aktive Spalte nennt die Richtung und kehrt sie um');
         $this->assertSame(['aria' => 'none', 'dir' => 'asc'], $koepfe['name']);
     }
@@ -152,6 +153,56 @@ class LernendeListeTest extends TestCase
 
             $mit = (string) $this->actingAs($user)->get(route($bereich.'.learners.index', ['inaktive' => 1]))->assertOk()->getContent();
             $this->assertStringContainsString($lernender->benutzer->nachname, $mit, $bereich);
+        }
+    }
+
+    #[Test]
+    public function eine_suche_als_array_wirft_keinen_fehler(): void
+    {
+        $lernender = $this->neuerLernender();
+        $bb = $this->verwalter('trainer', $lernender);
+
+        foreach (['admin' => User::factory()->admin()->create(), 'trainer' => $bb] as $bereich => $user) {
+            $this->actingAs($user)->get(route($bereich.'.learners.index', ['suche' => ['x']]))->assertOk();
+            $this->actingAs($user)->getJson(route($bereich.'.learners.index', ['suche' => ['x']]))->assertOk();
+        }
+    }
+
+    #[Test]
+    public function der_rueckgang_zum_vorsemester_ist_neutral_und_hat_einen_text_fuer_screenreader(): void
+    {
+        $lernender = $this->neuerLernender();
+        $alt = Semester::factory()->create(['start_datum' => now()->subMonths(9)->toDateString(), 'end_datum' => now()->subMonths(3)->toDateString(), 'sortierung' => 1]);
+        $neu = Semester::factory()->create(['sortierung' => 2]);
+        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'semester_id' => $alt->semester_id, 'note_wert' => 5.5, 'pruefungsdatum' => now()->subMonths(5)->toDateString()]);
+        Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'semester_id' => $neu->semester_id, 'note_wert' => 5.0, 'pruefungsdatum' => now()->subWeek()->toDateString()]);
+
+        $html = (string) $this->actingAs(User::factory()->admin()->create())->get(route('admin.learners.index'))->assertOk()->getContent();
+        $delta = $this->dom($html)->query("//tbody//span[contains(@class,'tabular-nums')][.//*[@aria-hidden='true'][contains(.,'▼')]]")->item(0);
+
+        $this->assertNotNull($delta, 'Der Rückgang zum Vorsemester fehlt');
+        $this->assertStringContainsString('▼ −0.5', $delta->textContent);
+        $this->assertStringContainsString(__(':delta zum Vorsemester', ['delta' => '−0.5']), $delta->getElementsByTagName('span')->item(1)->textContent, 'Text für Screenreader');
+        $this->assertStringNotContainsString('text-note-knapp', $delta->getAttribute('class'), 'Ein Rückgang ist keine Notenstufe');
+    }
+
+    #[Test]
+    public function der_sortierpfeil_und_die_spaltenbreiten_geben_den_statuschips_platz(): void
+    {
+        $lernender = $this->neuerLernender();
+        $bb = $this->verwalter('trainer', $lernender);
+
+        foreach (['admin' => User::factory()->admin()->create(), 'trainer' => $bb] as $bereich => $user) {
+            $html = (string) $this->actingAs($user)->get(route($bereich.'.learners.index'))->assertOk()->getContent();
+
+            $this->assertStringContainsString('invisible text-faint group-hover/sort:visible', $html, $bereich.': Pfeil wie im Dashboard');
+            $this->assertStringNotContainsString('invisible text-muted', $html, $bereich);
+            preg_match('~<colgroup>(.*?)</colgroup>~s', $html, $m);
+            $this->assertStringNotContainsString('w-72', $m[1], $bereich.': Namensspalte nicht breiter als nötig');
+            $this->assertStringNotContainsString('w-48', $m[1], $bereich.': Berufsbildnerspalte nicht breiter als nötig');
+            preg_match_all('~class="w-(\d+)"~', $m[1], $breiten);
+            // Feste Spalten zusammen in Einheiten zu 0.25rem: Beim Berufsbildner (Karte 1280 px) bleiben dem Status danach über 360 px
+            $this->assertLessThanOrEqual($bereich === 'admin' ? 260 : 220, array_sum($breiten[1]), $bereich.': feste Spalten zu breit');
         }
     }
 }

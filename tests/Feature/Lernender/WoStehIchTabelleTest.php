@@ -12,8 +12,8 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * Übersicht «Wo stehe ich»: Der Umschalter wechselt Semester und Lehrzeit, deshalb stehen beide Tabellen
- * serverseitig im Dokument; Alpine blendet per x-show um, ohne JS gilt der Servermodus.
+ * Übersicht «Wo stehe ich»: Der Filter «modus» (Semester oder Lehrzeit) steht in der Adresse; der Server
+ * zeichnet Diagramm und Tabelle des gewählten Zeitraums, ohne JavaScript gilt derselbe Stand.
  */
 class WoStehIchTabelleTest extends TestCase
 {
@@ -60,28 +60,30 @@ class WoStehIchTabelleTest extends TestCase
         $this->note($this->modulAlt, '4.0', now()->subMonths(5)->toDateString());
     }
 
-    /** Das <table>-Element eines Zeitraums samt Inhalt. */
-    private function tabelle(string $html, string $zeitraum): ?string
+    /** Die Tabelle des Bausteins «Wo stehe ich» samt Inhalt (genau eine, die des gewählten Zeitraums). */
+    private function tabelle(string $html): ?string
     {
-        preg_match('/<table[^>]*data-zeitraum="'.$zeitraum.'".*?<\/table>/s', $html, $treffer);
+        preg_match('/data-np-baustein="wostehe".*?<\/section>/s', $html, $baustein);
+        preg_match('/<table.*?<\/table>/s', $baustein[0] ?? '', $treffer);
 
         return $treffer[0] ?? null;
     }
 
     #[Test]
-    public function beide_tabellen_stehen_serverseitig_im_dokument_und_haengen_am_modus(): void
+    public function der_baustein_zeigt_genau_eine_tabelle_und_der_filter_haengt_in_der_adresse(): void
     {
         $this->zweiSemester();
 
         $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
 
-        $semester = $this->tabelle($html, 'semester');
-        $lehrzeit = $this->tabelle($html, 'lehrzeit');
-        $this->assertNotNull($semester, 'Tabelle Semester fehlt');
-        $this->assertNotNull($lehrzeit, 'Tabelle Lehrzeit fehlt');
-        $this->assertStringContainsString("x-show=\"modus === 'semester'\"", $semester);
-        $this->assertStringContainsString("x-show=\"modus === 'lehrzeit'\"", $lehrzeit);
-        $this->assertSame(2, substr_count($html, 'data-zeitraum='), 'Genau eine Tabelle je Zeitraum');
+        $this->assertNotNull($this->tabelle($html), 'Tabelle fehlt');
+        preg_match('/data-np-baustein="wostehe".*?<\/section>/s', $html, $baustein);
+        $this->assertSame(1, substr_count($baustein[0], '<table'), 'Genau eine Tabelle im Baustein');
+        $this->assertStringNotContainsString('data-zeitraum=', $html);
+        $this->assertMatchesRegularExpression('/<select name="modus"[^>]*>\s*<option value="semester"\s+selected/', $html);
+
+        $lehrzeit = $this->get(route('learner.dashboard', ['modus' => 'lehrzeit']))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<option value="lehrzeit"\s+selected/', $lehrzeit);
     }
 
     #[Test]
@@ -89,10 +91,11 @@ class WoStehIchTabelleTest extends TestCase
     {
         $this->zweiSemester();
 
-        $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
-        $semester = $this->tabelle($html, 'semester');
-        $lehrzeit = $this->tabelle($html, 'lehrzeit');
+        $semester = $this->tabelle($this->get(route('learner.dashboard', ['modus' => 'semester']))->assertOk()->getContent());
+        $lehrzeit = $this->tabelle($this->get(route('learner.dashboard', ['modus' => 'lehrzeit']))->assertOk()->getContent());
 
+        $this->assertNotNull($semester);
+        $this->assertNotNull($lehrzeit);
         $this->assertStringContainsString('Testmodul Theta durchführen', $semester);
         $this->assertStringNotContainsString('Testmodul Omega prüfen', $semester);
         $this->assertStringContainsString('Testmodul Theta durchführen', $lehrzeit);
@@ -100,15 +103,14 @@ class WoStehIchTabelleTest extends TestCase
     }
 
     #[Test]
-    public function ohne_javascript_ist_der_servermodus_sichtbar(): void
+    public function ohne_filter_gilt_der_servermodus_semester(): void
     {
         $this->zweiSemester();
 
-        $html = $this->get(route('learner.dashboard'))->assertOk()->getContent();
+        $tabelle = $this->tabelle($this->get(route('learner.dashboard'))->assertOk()->getContent());
 
-        // Semester hat Zeilen, also ist es der Servermodus: es trägt kein x-cloak, die Lehrzeit schon
-        $this->assertStringNotContainsString('x-cloak', strtok($this->tabelle($html, 'semester'), '>'));
-        $this->assertStringContainsString('x-cloak', strtok($this->tabelle($html, 'lehrzeit'), '>'));
-        $this->assertMatchesRegularExpression('/modus: (\'|&#039;)semester(\'|&#039;)/', $html);
+        $this->assertNotNull($tabelle);
+        $this->assertStringContainsString('Testmodul Theta durchführen', $tabelle);
+        $this->assertStringNotContainsString('Testmodul Omega prüfen', $tabelle);
     }
 }

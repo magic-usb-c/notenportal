@@ -140,17 +140,116 @@
 
             @if($rechts)
             <div @class(['flex min-w-0 flex-col gap-5', 'col-span-4' => $links, 'col-span-12' => ! $links])>
-                {{-- Erfasste Noten pro Woche: Summe als Kennzahl über dem Diagramm wie in Health --}}
+                {{-- Erfassung je Woche (S9): Säulen ab 0 mit Medianlinie, nur Betriebssummen. Der Zeitraum gilt ohne Seitenwechsel:
+                     npFilter holt die Seite und ersetzt den Baustein «erfassung». --}}
                 @if($zeigen['aktivitaet'])
-                    <x-karte :titel="__('Erfasste Noten pro Woche')" symbol="chart-bar">
-                        <p class="flex items-baseline gap-2">
-                            <span class="text-xl font-semibold tabular-nums text-text">{{ array_sum($aktivitaet['werte']) }}</span>
-                            <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => count($aktivitaet['werte'])]) }}</span>
-                        </p>
-                        <div class="mt-3 h-48" x-data="npChart('saeulen', {{ \Illuminate\Support\Js::from(['labels' => $aktivitaet['labels'], 'werte' => $aktivitaet['werte'], 'name' => __('Noten')]) }})">
-                            <canvas x-ref="canvas" role="img" aria-label="{{ __('Erfasste Noten pro Woche') }}"></canvas>
+                    @php
+                        $erf = $statistik['diagramm']['erfassung'];
+                        $erfSatz = $statistik['zusammenfassung']['erfassung'];
+                        $erfTabelle = $statistik['tabelle']['erfassung'];
+                        $erfOptionen = $statistik['meta']['erfassung']['optionen']['zeitraum'];
+                        $erfAnzahl = count($erf['werte']);
+                        $erfSpitze = $erf['werte'] === [] ? 0 : max($erf['werte']);
+                        // Achse ab 0 mit ganzzahligen Marken; die Obergrenze ist ein Vielfaches des Schritts
+                        $erfSchritt = match (true) {
+                            $erfSpitze <= 4 => 1,
+                            $erfSpitze <= 10 => 2,
+                            $erfSpitze <= 20 => 5,
+                            $erfSpitze <= 50 => 10,
+                            default => (int) (ceil($erfSpitze / 5 / 10) * 10),
+                        };
+                        $erfOben = max($erfSchritt, (int) (ceil($erfSpitze / $erfSchritt) * $erfSchritt));
+                        $erfMarken = range(0, $erfOben, $erfSchritt);
+                        $erfHoehe = fn (int|float $v) => round($v / $erfOben * 100, 2);
+                        $erfLabelSchritt = $erfAnzahl <= 12 ? 2 : ($erfAnzahl <= 26 ? 4 : 8);
+                        // Ohne Noten im Zeitraum bleibt nur der Leerzustand; der längste Zeitraum ist der Weiterweg
+                        $erfLeer = array_sum($erf['werte']) === 0;
+                        $erfLaengster = array_key_last($erfOptionen);
+                        $erfLaenger = $statistik['filter']['zeitraum'] !== $erfLaengster;
+                    @endphp
+                    <x-filterleiste :action="route('admin.dashboard')" :statistik="['json' => false, 'standard' => ['zeitraum' => '12w']]">
+                        <span id="stat-erfassung-zeitraum" class="sr-only">{{ __('Zeitraum') }}</span>
+                        <x-segment-auswahl name="zeitraum" beschriftung="stat-erfassung-zeitraum" :optionen="$erfOptionen" :wert="$statistik['filter']['zeitraum']" />
+                    </x-filterleiste>
+                    <x-diagramm :titel="__('Erfasste Noten pro Woche')" id="np-erfassung" data-np-baustein="erfassung">
+                        @if($erfLeer)
+                            <x-leer symbol="chart-bar" :titel="__('Keine Noten erfasst')" :text="__('In diesen :anzahl Wochen wurde keine Note erfasst.', ['anzahl' => $erfAnzahl])" class="py-10">
+                                @if($erfLaenger)
+                                    <a href="{{ route('admin.dashboard', ['zeitraum' => $erfLaengster]) }}" class="np-knopf np-knopf-sekundaer">{{ __('Zeitraum auf :zeitraum erweitern', ['zeitraum' => $erfOptionen[$erfLaengster]]) }}</a>
+                                @endif
+                            </x-leer>
+                        @else
+                        <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <p class="flex items-baseline gap-2">
+                                <span class="text-xl font-semibold tabular-nums text-text">{{ array_sum($erf['werte']) }}</span>
+                                <span class="text-sm text-muted">{{ __('Noten in :anzahl Wochen', ['anzahl' => $erfAnzahl]) }}</span>
+                            </p>
+                            @if($erf['median'])
+                                <span class="inline-flex items-center gap-1.5 text-xs tabular-nums text-muted" aria-hidden="true">
+                                    <span class="h-0.5 w-4 rounded-full bg-text"></span>{{ __('Median') }} {{ \App\Support\NotenSkala::format($erf['median'], floor($erf['median']) == $erf['median'] ? 0 : 1) }}
+                                </span>
+                            @endif
                         </div>
-                    </x-karte>
+                        <div class="flex gap-2" role="img" aria-label="{{ $erfSatz }}">
+                            <div class="relative h-48 w-7 shrink-0" aria-hidden="true">
+                                @foreach($erfMarken as $marke)
+                                    <span class="absolute right-0 translate-y-1/2 text-2xs tabular-nums leading-none text-muted" style="bottom: {{ $erfHoehe($marke) }}%">{{ $marke }}</span>
+                                @endforeach
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="relative h-48" aria-hidden="true">
+                                    @foreach($erfMarken as $marke)
+                                        <div class="absolute inset-x-0 border-t {{ $marke === 0 ? 'border-border-strong/60' : 'border-border' }}" style="bottom: {{ $erfHoehe($marke) }}%"></div>
+                                    @endforeach
+                                    <div class="absolute inset-0 flex items-end gap-px">
+                                        @foreach($erf['werte'] as $i => $wert)
+                                            <div class="flex h-full min-w-0 flex-1 items-end" title="{{ $erf['labels'][$i] }}: {{ $wert }}">
+                                                @if($wert > 0)
+                                                    <div class="w-full rounded-t-sm bg-chart-1" style="height: {{ max(1.5, $erfHoehe($wert)) }}%"></div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @if($erf['median'])
+                                        <div class="absolute inset-x-0 h-0.5 bg-text" style="bottom: calc({{ $erfHoehe($erf['median']) }}% - 1px)"></div>
+                                    @endif
+                                </div>
+                                <div class="relative mt-1 h-4" aria-hidden="true">
+                                    @foreach($erf['labels'] as $i => $label)
+                                        @if(($erfAnzahl - 1 - $i) % $erfLabelSchritt === 0)
+                                            <span class="absolute -translate-x-1/2 whitespace-nowrap text-2xs tabular-nums text-muted" style="left: {{ round(($i + 0.5) / $erfAnzahl * 100, 2) }}%">{{ $label }}</span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        {{-- Beim Laden leer (Zeile oben und Beschriftung des Diagramms sagen es schon); nach einem Filterwechsel sagt statistik.js data-np-text einmal an --}}
+                        <p class="sr-only" aria-live="polite" data-np-ansage data-np-text="{{ $erfSatz }}"></p>
+                        @unless($erfLeer)
+                        <x-slot:tabelle>
+                            <table class="np-tabelle text-sm">
+                                <caption class="sr-only">{{ __('Erfasste Noten pro Woche') }}</caption>
+                                <thead>
+                                    <tr>
+                                        @foreach($erfTabelle['spalten'] as $i => $spalte)
+                                            <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($erfTabelle['zeilen'] as $zeile)
+                                        <tr>
+                                            @foreach($zeile as $i => $zelle)
+                                                <td @class(['text-right' => $i > 0])>{{ $zelle }}</td>
+                                            @endforeach
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </x-slot:tabelle>
+                        @endunless
+                    </x-diagramm>
                 @endif
 
                 @if($zeigen['lehrende'])

@@ -47,6 +47,9 @@
             @elseif($tage <= 0)
                 <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer np-knopf-klein mr-1">{{ __('Note eintragen') }}</a>
             @elseif($ziel = $rechnerZiel($p))
+                @if($n = ($noetig ?? collect())->get('id:'.$p->pruefung_id) ?? ($noetig ?? collect())->get($p->datum->toDateString().'|'.(filled($p->titel) ? $p->titel : $p->bezeichnung())))
+                    <span @class(['mr-1 text-xs tabular-nums', 'text-note-ungenuegend' => $n['status'] === \App\Services\Auswertung\Zielrechner::UNERREICHBAR, 'text-muted' => $n['status'] !== \App\Services\Auswertung\Zielrechner::UNERREICHBAR])>{{ $n['text'] }}</span>
+                @endif
                 <a href="{{ route('learner.grades.calculator', ['ziel' => $ziel]) }}" class="np-knopf np-knopf-schlicht np-knopf-klein mr-1">{{ __('Was brauche ich?') }}</a>
             @endif
             <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}" class="np-knopf np-knopf-symbol"

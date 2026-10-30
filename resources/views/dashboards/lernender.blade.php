@@ -115,118 +115,114 @@
                     <p class="flex items-center gap-3 text-sm text-muted">
                         {{ __('Noch keine Noten') }}
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
-                           class="text-accent-text underline-offset-2 hover:underline">{{ __('Erste Note erfassen') }}</a>
+                           class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Erste Note erfassen') }}</a>
                     </p>
                 @endif
             </x-karte>
             @endif
 
             @if($zeigen['wo_stehe_ich'] || $zeigen['verlauf'])
-            <div @class(['grid min-w-0 gap-5', 'grid-cols-2' => $paar])>
-            {{-- Wo stehe ich pro Fach und Modul --}}
-            @if($zeigen['wo_stehe_ich'])
-                <x-karte titel="{{ __('Wo stehe ich') }}" symbol="chart-bar-square" class="min-w-0"
-                         x-data="{ modus: {{ \Illuminate\Support\Js::from($balkenModus) }}, d: {{ \Illuminate\Support\Js::from($balken) }}, g: {{ \Illuminate\Support\Js::from($grenzen) }} }">
-                    <x-slot:aktionen>
-                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Zeitraum') }}">
-                            <button type="button" role="radio" :aria-checked="modus === 'semester'" @click="modus = 'semester'" x-show="d.semester.labels.length" x-text="d.semester.name"></button>
-                            <button type="button" role="radio" :aria-checked="modus === 'lehrzeit'" @click="modus = 'lehrzeit'">{{ __('Lehrzeit') }}</button>
-                        </div>
-                    </x-slot:aktionen>
-                    <div class="flex h-full flex-col">
-                    <div class="shrink-0" x-data="npChart('balken')" :style="`height: ${Math.max(120, d[modus].labels.length * 30 + 56)}px`"
-                         x-effect="zeichne({ labels: d[modus].labels, werte: d[modus].werte, grenzen: g })">
-                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}"></canvas>
-                    </div>
-                    <x-noten-legende class="mb-3 mt-3" neutral="bg-text/50" />
-                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
-                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
-                            {{ __('Als Tabelle') }}
-                        </summary>
-                        {{-- Beide Zeiträume serverseitig, der Umschalter blendet um; ohne JS gilt der Servermodus ($balkenModus) --}}
-                        <div class="overflow-x-auto pb-1 pt-1">
-                            @foreach(['semester', 'lehrzeit'] as $zeitraum)
-                                @continue($balken[$zeitraum]['labels'] === [])
-                                <table class="np-tabelle table-fixed text-sm" data-zeitraum="{{ $zeitraum }}" x-show="modus === '{{ $zeitraum }}'" @if($zeitraum !== $balkenModus) x-cloak @endif>
-                                    <caption class="sr-only">{{ __('Zeugnisnoten je Fach und Modul, schwächste zuerst') }}</caption>
-                                    <colgroup><col><col class="w-20"><col class="w-28"></colgroup>
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">{{ __('Fach / Modul') }}</th>
-                                            <th scope="col" class="text-right">{{ __('Note') }}</th>
-                                            <th scope="col" class="text-right">{{ __('Stufe') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($balken[$zeitraum]['labels'] as $i => $label)
-                                            <tr>
-                                                <td class="text-text">{{ $label }}</td>
-                                                <td class="text-right font-semibold {{ $skala::text($balken[$zeitraum]['werte'][$i]) }}">{{ $skala::format($balken[$zeitraum]['werte'][$i], 1) }}</td>
-                                                <td class="text-right text-muted">{{ $skala::stufeName($balken[$zeitraum]['werte'][$i]) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @endforeach
-                        </div>
-                    </details>
-                    </div>
-                </x-karte>
-            @endif
+            @php
+                // Filter der beiden Statistiken: eine Leiste, eine Adresse. Kategorien und Fächer nur aus dem, was dieser Lernende hat.
+                $optionen = $statistik['meta']['verlauf']['optionen'];
+                $wMeta = $statistik['meta']['wostehe'];
+                $f = $statistik['filter'];
+                $statKategorien = collect($a->kategorien)->keys()->mapWithKeys(fn ($kid) => [(int) $kid => $a->konfiguration->kategorieName((int) $kid)])->all();
+                $statFaecher = collect($a->elemente)->filter(fn ($e) => $e->typ === \App\Services\Auswertung\Element::FACH && $e->fachId !== null)
+                    ->mapWithKeys(fn ($e) => [(int) $e->fachId => $a->konfiguration->fachName((int) $e->fachId)])->sort()->all();
+                $auswahl = 'np-feld np-feld-klein np-auswahl w-auto max-w-56';
+                $w = $statistik['diagramm']['wostehe'];
+                $wSicht = $w[$w['modus']];
+                $wSatz = $statistik['zusammenfassung']['wostehe'];
+                $wTabelle = $statistik['tabelle']['wostehe'];
+            @endphp
+            <x-filterleiste :action="route('learner.dashboard')" :statistik="['standard' => \App\Support\StatistikDaten::STANDARD_LERNENDER]">
+                @if($zeigen['verlauf'])
+                    <label for="stat-zeitraum" class="sr-only">{{ __('Zeitraum') }}</label>
+                    <select name="zeitraum" id="stat-zeitraum" class="{{ $auswahl }}">
+                        @foreach($optionen['zeitraum'] as $wert => $text)
+                            <option value="{{ $wert }}" @selected($f['zeitraum'] === $wert)>{{ $text }}</option>
+                        @endforeach
+                    </select>
+                @endif
+                <label for="stat-kategorie" class="sr-only">{{ __('Kategorie') }}</label>
+                <select name="kategorie" id="stat-kategorie" class="{{ $auswahl }}">
+                    <option value="">{{ __('Kategorie') }}</option>
+                    @foreach($statKategorien as $kid => $name)
+                        <option value="{{ $kid }}" @selected($f['kategorie'] === $kid)>{{ $name }}</option>
+                    @endforeach
+                </select>
+                @if($zeigen['verlauf'])
+                    <label for="stat-fach" class="sr-only">{{ __('Fach') }}</label>
+                    <select name="fach" id="stat-fach" class="{{ $auswahl }}">
+                        <option value="">{{ __('Fach') }}</option>
+                        @foreach($statFaecher as $fid => $name)
+                            <option value="{{ $fid }}" @selected($f['fach'] === $fid)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    <label for="stat-achse" class="sr-only">{{ __('Verlauf') }}</label>
+                    <select name="achse" id="stat-achse" class="{{ $auswahl }}">
+                        @foreach($optionen['achse'] as $wert => $text)
+                            <option value="{{ $wert }}" @selected($f['achse'] === $wert)>{{ $text }}</option>
+                        @endforeach
+                    </select>
+                @endif
+                @if($zeigen['wo_stehe_ich'])
+                    <label for="stat-modus" class="sr-only">{{ __('Wo stehe ich') }}</label>
+                    <select name="modus" id="stat-modus" class="{{ $auswahl }}">
+                        @foreach($wMeta['optionen']['modus'] as $wert => $text)
+                            <option value="{{ $wert }}" @selected($f['modus'] === $wert)>{{ $text }}</option>
+                        @endforeach
+                    </select>
+                @endif
+            </x-filterleiste>
 
-            {{-- Verlauf je Semester: Kategorien oder ein Fach --}}
-            @if($zeigen['verlauf'])
-                <x-karte titel="{{ __('Verlauf') }}" symbol="arrow-trending-up" class="min-w-0"
-                         x-data="{ modus: 'kategorien', fach: 0, d: {{ \Illuminate\Support\Js::from($verlauf) }} }">
-                    <x-slot:aktionen>
-                        <select x-show="modus === 'fach'" x-cloak x-model.number="fach" class="np-feld np-feld-klein np-auswahl h-7 w-auto min-w-0 max-w-44 truncate text-xs" aria-label="{{ __('Fach') }}">
-                            <template x-for="(f, i) in d.faecher" :key="i"><option :value="i" x-text="f.name"></option></template>
-                        </select>
-                        <div class="np-segment np-segment-klein" role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}">
-                            <button type="button" role="radio" :aria-checked="modus === 'kategorien'" @click="modus = 'kategorien'">{{ __('Kategorien') }}</button>
-                            <button type="button" role="radio" :aria-checked="modus === 'fach'" @click="modus = 'fach'" x-show="d.faecher.length">{{ __('Fach') }}</button>
+            <div @class(['grid min-w-0 gap-5', 'grid-cols-2' => $paar])>
+            {{-- Wo stehe ich pro Fach und Modul: serverseitig gezeichneter Baustein, npFilter ersetzt ihn nach einer Filteränderung --}}
+            @if($zeigen['wo_stehe_ich'])
+                <x-diagramm :titel="$wMeta['titel']" id="np-wostehe" data-np-baustein="wostehe" class="min-w-0">
+                    @if($wSicht['labels'] === [])
+                        <p class="py-6 text-center text-sm text-muted">{{ $wSatz }}</p>
+                    @else
+                        <div class="shrink-0" x-data="npChart('balken', @js(['labels' => $wSicht['labels'], 'werte' => $wSicht['werte'], 'grenzen' => $w['grenzen']]))" style="height: {{ max(120, count($wSicht['labels']) * 30 + 56) }}px">
+                            <canvas x-ref="canvas" role="img" aria-label="{{ $wSatz }}"></canvas>
                         </div>
-                    </x-slot:aktionen>
-                    <div class="flex h-full flex-col">
-                    <div class="mb-3 h-72 shrink-0" x-data="npChart('verlauf')"
-                         x-effect="zeichne(modus === 'fach' && d.faecher[fach]
-                            ? { labels: d.labels, grenze: d.grenze, serien: [{ name: d.faecher[fach].name, werte: d.faecher[fach].werte, farbe: '--accent', dick: true }] }
-                            : { labels: d.labels, grenze: d.grenze, serien: d.serien })">
-                        <canvas x-ref="canvas" role="img" aria-label="{{ __('Notenverlauf je Semester') }}"></canvas>
-                    </div>
-                    <details class="group/tabelle np-details mt-auto border-t border-border pt-2">
-                        <summary class="flex min-h-8 cursor-pointer list-none items-center gap-1.5 text-xs font-medium text-muted hover:text-text">
-                            <x-symbol name="chevron-right" strich="2" class="size-3 transition-transform duration-200 group-open/tabelle:rotate-90" />
-                            {{ __('Als Tabelle') }}
-                        </summary>
-                        <div class="overflow-x-auto pb-1 pt-1">
-                            {{-- Kein table-fixed: Seriennamen sind konfigurierbar und dürfen nicht abgeschnitten werden; bei Bedarf scrollt die Tabelle --}}
-                            <table class="np-tabelle text-sm">
-                                <caption class="sr-only">{{ __('Notenverlauf je Semester') }}</caption>
-                                <thead>
+                        <x-noten-legende class="mb-3 mt-3" neutral="bg-text/50" />
+                        <p class="text-xs text-muted">{{ $wSatz }}</p>
+                    @endif
+                    <p class="sr-only" aria-live="polite" data-np-ansage>{{ $wSatz }}</p>
+                    <x-slot:tabelle>
+                        <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ $wMeta['titel'] }}</caption>
+                            <colgroup><col><col class="w-20"><col class="w-28"></colgroup>
+                            <thead>
+                                <tr>
+                                    @foreach($wTabelle['spalten'] as $i => $spalte)
+                                        <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($wTabelle['zeilen'] as $zeile)
                                     <tr>
-                                        <th scope="col" class="w-28">{{ __('Semester') }}</th>
-                                        @foreach($verlauf['serien'] as $s)
-                                            <th scope="col" class="whitespace-nowrap text-right">{{ $s['name'] }}</th>
+                                        @foreach($zeile as $i => $zelle)
+                                            @if($i === 0)
+                                                <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                                            @else
+                                                <td @class(['text-right', 'text-muted' => $i === 2])>{{ $zelle }}</td>
+                                            @endif
                                         @endforeach
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($verlauf['labels'] as $i => $label)
-                                        <tr>
-                                            <th scope="row" class="whitespace-nowrap text-left font-normal text-text">{{ $label }}</th>
-                                            @foreach($verlauf['serien'] as $s)
-                                                <td class="text-right {{ $skala::text($s['werte'][$i] ?? null) }}">{{ $skala::format($s['werte'][$i] ?? null, 1) }}</td>
-                                            @endforeach
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                    </div>
-                </x-karte>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </x-slot:tabelle>
+                </x-diagramm>
+            @endif
+
+            {{-- Notenverlauf: Prüfungen auf der Datumsachse (oder Semesternoten), Filter ohne Seitenwechsel --}}
+            @if($zeigen['verlauf'])
+                <x-verlauf :paket="$statistik" hoehe="h-72" class="min-w-0" />
             @endif
             </div>
             @endif
@@ -267,7 +263,7 @@
                 @else
                     <p class="flex items-center gap-3 px-5 pb-4 pt-1 text-sm text-muted">
                         {{ __('Nichts offen') }}
-                        <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="text-accent-text underline-offset-2 hover:underline">{{ __('Prüfung planen') }}</a>
+                        <a href="{{ route('learner.exams.index', ['planen' => 1]) }}" class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Prüfung planen') }}</a>
                     </p>
                 @endif
             </x-karte>

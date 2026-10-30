@@ -44,7 +44,7 @@
                     $breite = $beide ? abs($pos($bis) - $pos($von)) : 0;
                 @endphp
                 <li class="flex items-center gap-3 py-1">
-                    <span class="w-40 shrink-0 truncate text-sm text-text" title="{{ $z['fach'] }}">{{ $z['fach'] }}</span>
+                    <span class="w-64 shrink-0 truncate text-sm text-text" title="{{ $z['fach'] }}">{{ $z['fach'] }}</span>
                     <div class="relative h-6 flex-1" aria-hidden="true">
                         <div class="absolute left-0 top-1/2 w-full -translate-y-1/2 border-t border-border"></div>
                         <div class="absolute inset-y-0 w-px bg-muted/40" style="left: {{ $pos($d['grenze']) }}%"></div>
@@ -70,7 +70,7 @@
                 </li>
             @endforeach
             <li class="flex items-center gap-3" aria-hidden="true">
-                <span class="w-40 shrink-0"></span>
+                <span class="w-64 shrink-0"></span>
                 <div class="relative h-4 flex-1 text-2xs tabular-nums text-muted">
                     @foreach([1, 2, 3, 4, 5, 6] as $note)
                         <span class="absolute -translate-x-1/2" style="left: {{ $pos($note) }}%">{{ $note }}</span>
@@ -84,6 +84,7 @@
     <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
     <x-slot:tabelle>
         <table class="np-tabelle text-sm">
+            <caption class="sr-only">{{ $titel }}</caption>
             <thead>
                 <tr>
                     @foreach($tabelle['spalten'] as $i => $spalte)
@@ -95,7 +96,11 @@
                 @foreach($tabelle['zeilen'] as $zeile)
                     <tr>
                         @foreach($zeile as $i => $zelle)
-                            <td @class(['text-right' => $i > 0])>{{ $zelle }}</td>
+                            @if($i === 0)
+                                <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                            @else
+                                <td class="text-right">{{ $zelle }}</td>
+                            @endif
                         @endforeach
                     </tr>
                 @endforeach

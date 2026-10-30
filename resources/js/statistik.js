@@ -9,6 +9,9 @@ import { format, t } from './np';
 const ENTPRELLEN_MS = 150;
 const BAUSTEIN = '[data-np-baustein]';
 const ANSAGE = '[data-np-ansage]';
+// Der Server gibt die Ansage beim Laden leer aus (der sichtbare Satz und das aria-label des Diagramms sagen es schon) und legt
+// den Text für den Wechsel in data-np-text ab; ohne das Attribut zählt der Inhalt des Absatzes
+const ansageText = (el) => el?.dataset.npText ?? el?.textContent ?? '';
 
 export function registriereStatistik(Alpine) {
     // cfg: { standard: { name: wert } (Werte, die nicht in die Adresse gehören), json: false (kein JSON-Paket holen), ersetze: [selektor] (HTML-Teile, die nach
@@ -131,6 +134,7 @@ export function registriereStatistik(Alpine) {
                 alt[0].before(...neu.map((n) => document.adoptNode(n)));
                 alt.forEach((el) => el.remove());
             });
+            this.ansagen(doc);
         },
 
         // Wurzel und Ansage bleiben stehen (die Ansage liest der Screenreader nur, wenn sich ihr Text ändert),
@@ -138,7 +142,7 @@ export function registriereStatistik(Alpine) {
         baustein(alt, neu) {
             const offen = [...alt.querySelectorAll('details')].map((d) => d.open);
             const ansageAlt = alt.querySelector(ANSAGE);
-            const ansageText = neu.querySelector(ANSAGE)?.textContent ?? '';
+            const text = ansageText(neu.querySelector(ANSAGE));
             [...alt.attributes].forEach((a) => alt.removeAttribute(a.name));
             [...neu.attributes].forEach((a) => alt.setAttribute(a.name, a.value));
             alt.replaceChildren(...[...neu.childNodes].map((n) => document.adoptNode(n)));
@@ -146,8 +150,17 @@ export function registriereStatistik(Alpine) {
             const ansageNeu = alt.querySelector(ANSAGE);
             if (ansageAlt && ansageNeu) {
                 ansageNeu.replaceWith(ansageAlt);
-                ansageAlt.textContent = ansageText;
+                ansageAlt.textContent = text;
             }
+        },
+
+        // Ansage ausserhalb der ersetzten Teile (Seiten, die ihre Bausteine über cfg.ersetze tauschen): der Absatz bleibt stehen,
+        // der neue Satz kommt aus data-np-text des Absatzes in der Antwort
+        ansagen(doc) {
+            const aussen = (el) => ! el.closest(BAUSTEIN);
+            const alt = [...document.querySelectorAll(ANSAGE)].filter(aussen);
+            const neu = [...doc.querySelectorAll(ANSAGE)].filter(aussen);
+            alt.forEach((el, i) => { if (neu[i]) el.textContent = ansageText(neu[i]); });
         },
 
         markenBerechnen() {
@@ -192,15 +205,21 @@ export function registriereStatistik(Alpine) {
     }));
 }
 
+// art: 'th' (Spaltenkopf), 'row' (Zeilenkopf: th scope=row) oder 'td'
 const zelle = (art, text, rechts) => {
-    const el = document.createElement(art);
+    const el = document.createElement(art === 'td' ? 'td' : 'th');
     el.textContent = text;
     if (art === 'th') el.scope = 'col';
-    if (rechts) el.className = 'text-right';
+    if (art === 'row') {
+        el.scope = 'row';
+        el.className = 'text-left font-normal text-text';
+    } else if (rechts) {
+        el.className = 'text-right';
+    }
     return el;
 };
 
-// Tabelle aus {spalten, zeilen}; letzte Spalte rechtsbündig wie im Server-HTML von x-verlauf
+// Tabelle aus {spalten, zeilen}; letzte Spalte rechtsbündig, erste Zelle einer Zeile ist ihr Kopf – wie im Server-HTML von x-verlauf
 function tabelleRendern(tabelle, daten) {
     if (!daten) return;
     const letzte = daten.spalten.length - 1;
@@ -209,7 +228,7 @@ function tabelleRendern(tabelle, daten) {
     tabelle.tHead?.replaceChildren(kopf);
     tabelle.tBodies[0]?.replaceChildren(...daten.zeilen.map((z) => {
         const tr = document.createElement('tr');
-        z.forEach((c, i) => tr.append(zelle('td', c, i === letzte)));
+        z.forEach((c, i) => tr.append(zelle(i === 0 ? 'row' : 'td', c, i === letzte)));
         return tr;
     }));
 }

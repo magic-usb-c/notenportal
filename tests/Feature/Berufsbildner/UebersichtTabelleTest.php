@@ -29,12 +29,18 @@ class UebersichtTabelleTest extends TestCase
         return new \DOMXPath($dom);
     }
 
-    /** @return array{string, string} sort, dir */
+    /** Gezielt die Tabelle «Meine Lernenden» (die Diagrammtabellen der Hantel haben ebenfalls ein caption) */
+    private function tabellenPfad(string $rest = ''): string
+    {
+        return '//table[caption[normalize-space()="'.__('Meine Lernenden').'"]]'.$rest;
+    }
+
+    /** @return array{string, string} order, dir */
     private static function sortierung(string $url): array
     {
         parse_str((string) parse_url($url, PHP_URL_QUERY), $q);
 
-        return [$q['sort'] ?? '', $q['dir'] ?? ''];
+        return [$q['order'] ?? '', $q['dir'] ?? ''];
     }
 
     /** Lernender mit einer Note im vergangenen und einer im laufenden Semester, damit es einen Verlauf gibt */
@@ -55,17 +61,17 @@ class UebersichtTabelleTest extends TestCase
         $this->betreue($bb, $this->neuerLernender());
         $this->mitVerlauf($a, 5.0, 4.0);
 
-        $spalten = collect(iterator_to_array($this->seite($bb)->query('//th[@aria-sort]//a')))
+        $spalten = collect(iterator_to_array($this->seite($bb)->query($this->tabellenPfad('/thead/tr/th[@aria-sort]//a'))))
             ->map(fn (\DOMElement $link) => self::sortierung($link->getAttribute('href')));
         $this->assertSame(['status', 'name', 'trend', 'semester', 'gesamt'], $spalten->pluck(0)->all());
         $this->assertSame(['asc'], $spalten->pluck(1)->unique()->values()->all(), 'Ein inaktiver Kopf sortiert zuerst aufsteigend');
 
         foreach ($spalten->pluck(0) as $sort) {
-            $xpath = $this->seite($bb, ['sort' => $sort, 'dir' => 'asc']);
-            $kopf = $xpath->query('//th[@aria-sort="ascending"]')->item(0);
+            $xpath = $this->seite($bb, ['order' => $sort, 'dir' => 'asc']);
+            $kopf = $xpath->query($this->tabellenPfad('/thead/tr/th[@aria-sort="ascending"]'))->item(0);
             $this->assertNotNull($kopf, "«{$sort}» aufsteigend ist markiert");
             $this->assertSame([$sort, 'desc'], self::sortierung($xpath->query('.//a', $kopf)->item(0)->getAttribute('href')));
-            $this->assertSame(1, $xpath->query('//th[@aria-sort!="none"]')->length, 'Nur eine Spalte ist aktiv');
+            $this->assertSame(1, $xpath->query($this->tabellenPfad('/thead/tr/th[@aria-sort!="none"]'))->length, 'Nur eine Spalte ist aktiv');
         }
     }
 
@@ -76,7 +82,7 @@ class UebersichtTabelleTest extends TestCase
         $this->betreue($bb, $this->neuerLernender());
 
         $xpath = $this->seite($bb);
-        $koepfe = collect(iterator_to_array($xpath->query('//table/thead/tr/th')));
+        $koepfe = collect(iterator_to_array($xpath->query($this->tabellenPfad('/thead/tr/th'))));
 
         $this->assertCount(8, $koepfe);
         foreach ($koepfe as $th) {
@@ -91,7 +97,7 @@ class UebersichtTabelleTest extends TestCase
         $lernender = $this->neuerLernender();
         $this->betreue($bb, $lernender);
 
-        $zeile = $this->seite($bb)->query('//tbody/tr[@data-href]')->item(0);
+        $zeile = $this->seite($bb)->query($this->tabellenPfad('/tbody/tr[@data-href]'))->item(0);
 
         $this->assertNotNull($zeile);
         $this->assertSame(route('trainer.learners.show', $lernender->lernender_id), $zeile->getAttribute('data-href'));
@@ -105,12 +111,12 @@ class UebersichtTabelleTest extends TestCase
         $this->betreue($bb, $this->neuerLernender());
 
         $xpath = $this->seite($bb);
-        $leer = $xpath->query('//tbody/tr[not(@data-href)]/td')->item(0);
+        $leer = $xpath->query($this->tabellenPfad('/tbody/tr[not(@data-href)]/td'))->item(0);
 
         $this->assertNotNull($leer);
         $this->assertStringStartsWith(__('Keine Lernenden für diesen Filter.'), trim($leer->textContent));
-        $this->assertNotNull($xpath->query('//tbody/tr[not(@data-href)]/td/button')->item(0), 'Leerzeile bietet einen Weg zurück');
-        $this->assertSame((string) $xpath->query('//table/thead/tr/th')->length, $leer->getAttribute('colspan'));
+        $this->assertNotNull($xpath->query($this->tabellenPfad('/tbody/tr[not(@data-href)]/td/button'))->item(0), 'Leerzeile bietet einen Weg zurück');
+        $this->assertSame((string) $xpath->query($this->tabellenPfad('/thead/tr/th'))->length, $leer->getAttribute('colspan'));
         $this->assertTrue($leer->parentNode->hasAttribute('x-cloak'), 'Erst sichtbar, wenn Alpine kein Treffer findet');
     }
 }

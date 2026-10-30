@@ -28,10 +28,12 @@
         return $out;
     };
     $regel = fn (Bedingung $b) => match ($b->regel) {
-        Grund::FALLNOTE => __('mindestens :note', ['note' => NotenSkala::format($b->grenze, 1)]),
+        Grund::FALLNOTE => __('mindestens :note', ['note' => NotenSkala::format($b->grenze)]),
         Grund::UNGENUEGEND => __('höchstens :anzahl ungenügend', ['anzahl' => (int) $b->grenze]),
-        Grund::MINUSPUNKTE => __('höchstens :anzahl Minuspunkte', ['anzahl' => NotenSkala::format($b->grenze, 1)]),
+        Grund::MINUSPUNKTE => __('höchstens :anzahl Minuspunkte', ['anzahl' => NotenSkala::format($b->grenze)]),
     };
+    // Offene Positionen mit der Note, die sie für «genügend» brauchen (S5, StatistikDaten::positionen); nur die Seite der Lernenden trägt sie
+    $offen = collect($statistik['diagramm']['positionen']['zeilen'] ?? [])->filter(fn ($z) => $z['knotenId'] !== null)->keyBy('knotenId');
     $hatManuell = collect($ergebnisse)->contains(fn ($e) => collect($e->baum->alle())->contains(fn ($k) => $k->typ === Knoten::MANUELL && ! $k->entfaellt));
 @endphp
 <x-app-layout>
@@ -65,6 +67,38 @@
                       x-data x-init="$nextTick(() => { const feld = $el.querySelector('[aria-invalid]'); if (feld) { feld.focus({ preventScroll: true }); feld.scrollIntoView({ block: 'center' }); } })">
                     @csrf
                     @method('PUT')
+
+                    @if($offen->isNotEmpty())
+                        {{-- Was fehlt zum Bestehen: Zusammenfassung in einem Satz, die Positionen selbst zeigen ihren Stand in der Tabelle des Baums --}}
+                        <x-diagramm :titel="$statistik['meta']['positionen']['titel']" class="max-w-[100rem]">
+                            <p class="text-sm text-text">{{ $statistik['zusammenfassung']['positionen'] }}</p>
+                            <x-slot:tabelle>
+                                <table class="np-tabelle text-sm">
+                                    <caption class="sr-only">{{ $statistik['meta']['positionen']['titel'] }}</caption>
+                                    <thead>
+                                        <tr>
+                                            @foreach($statistik['tabelle']['positionen']['spalten'] as $i => $spalte)
+                                                <th scope="col" @class(['text-right' => $i > 0])>{{ $spalte }}</th>
+                                            @endforeach
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($statistik['tabelle']['positionen']['zeilen'] as $zeile)
+                                            <tr>
+                                                @foreach($zeile as $i => $zelle)
+                                                    @if($i === 0)
+                                                        <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
+                                                    @else
+                                                        <td class="text-right">{{ $zelle }}</td>
+                                                    @endif
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </x-slot:tabelle>
+                        </x-diagramm>
+                    @endif
 
                     @foreach($ergebnisse as $i => $e)
                         @php
@@ -179,6 +213,15 @@
                                                 <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
                                                     <div @class(['wrap-break-word text-text', 'font-semibold' => $gruppe])>{{ $k->name }}</div>
                                                     @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
+                                                    @if($pos = $offen->get($k->id))
+                                                        {{-- Offene Position: bestanden oder die Note, die sie für genügend braucht, dazu die Lage als Mini-Bullet --}}
+                                                        <div class="mt-1 flex items-center gap-3 text-xs">
+                                                            <span @class(['shrink-0 tabular-nums', 'text-note-ungenuegend' => $pos['status'] === \App\Services\Auswertung\Zielrechner::UNERREICHBAR, 'text-muted' => $pos['status'] !== \App\Services\Auswertung\Zielrechner::UNERREICHBAR])>{{ $pos['text'] }}</span>
+                                                            @if($pos['aktuell'] !== null)
+                                                                <div class="w-24"><x-bullet :mini="true" :wert="$pos['aktuell']" :ziel="$pos['grenze']" :label="$k->name" /></div>
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                 </td>
                                                 <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>
                                                 <td class="text-right">

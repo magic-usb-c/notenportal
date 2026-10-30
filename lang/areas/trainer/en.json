@@ -1,4 +1,5 @@
 {
+    "Keine neuen Noten.": "No new grades.",
     "1 Note als gesehen markiert.": "1 grade marked as seen.",
     "1 Note fehlt": "1 grade missing",
     "1 neue Note": "1 new grade",
@@ -10,6 +11,7 @@
     ":anzahl neue Noten": ":anzahl new grades",
     ":anzahl offene Meldungen": ":anzahl open reports",
     ":anzahl ungenügende Noten": ":anzahl failing grades",
+    ":anzahl von :gesamt Lernenden angezeigt": ":anzahl of :gesamt learners shown",
     ":datum Uhr": ":datum",
     ":delta zum Vorsemester": ":delta vs previous semester",
     ":label abbestellen?": "Unsubscribe from :label?",

@@ -11,6 +11,9 @@ use App\Services\Auswertung\Lernstand;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Benutzer\LernendeErfassungService;
 use App\Services\Benutzer\Startpasswort;
+use App\Services\Notifications\Messages\LearnerAssigned;
+use App\Services\Notifications\NotificationCatalog;
+use App\Services\Notifications\Notifier;
 use App\Services\Uebersicht;
 use App\Support\Betrieb;
 use App\Support\NotenSkala;
@@ -51,7 +54,8 @@ class LernendeController extends VerwaltungController
         $istAdmin = $user->hasRole('Admin');
 
         $filter = [
-            'suche' => trim((string) $request->input('suche', '')),
+            // Ein Array-Parameter (?suche[]=x) gilt als leere Suche
+            'suche' => is_string($suche = $request->input('suche')) ? trim($suche) : '',
             'lehrberuf_id' => $request->integer('lehrberuf_id') ?: null,
             'lehrjahr' => $request->integer('lehrjahr') ?: null,
             'bms' => in_array($request->input('bms'), ['ja', 'nein'], true) ? $request->input('bms') : '',
@@ -177,7 +181,7 @@ class LernendeController extends VerwaltungController
         ];
 
         if ($istAdmin) {
-            $regeln['berufsbildner_id'] = ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')];
+            $regeln['berufsbildner_id'] = ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')->whereIn('benutzer_id', DB::table('benutzer')->where('aktiv', 1)->select('benutzer_id'))];
         }
 
         $daten = $request->validate($regeln);
@@ -191,7 +195,18 @@ class LernendeController extends VerwaltungController
             $berufsbildnerId ? (int) $berufsbildnerId : null,
         );
 
-        Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, Lernender::find($lernenderId), ['rolle' => 'Lernender']);
+        $neuerLernender = Lernender::find($lernenderId);
+        Protokoll::schreiben(Protokoll::ADMIN_KONTO_ANGELEGT, $neuerLernender, ['rolle' => 'Lernender']);
+
+        // Wählt der Admin einen Berufsbildner, erfährt dieser von der Betreuung; legt ein Berufsbildner
+        // seinen eigenen Lernenden an, wäre die Mail überflüssig.
+        if ($istAdmin && $berufsbildnerId && $neuerLernender) {
+            $empfaenger = Berufsbildner::with('benutzer')->find((int) $berufsbildnerId)?->benutzer;
+            $neuerLernender->loadMissing('benutzer', 'lehrberuf');
+            if ($empfaenger) {
+                Notifier::send($empfaenger, NotificationCatalog::LEARNER_ASSIGNED, fn () => LearnerAssigned::content($neuerLernender));
+            }
+        }
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernenderId))
