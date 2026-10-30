@@ -30,9 +30,11 @@ final readonly class Grund
 
     public function text(): string
     {
-        // Punkt als Dezimalzeichen wie überall im Portal (NotenSkala::format), sonst stünde «3,7» neben «3.5»
-        $z = fn (float $x) => number_format($x, 1, '.', '');
-        $werte = ['name' => $this->name, 'wert' => $z($this->wert), 'grenze' => $z($this->grenze),
+        // Wie NotenSkala::format: Punkt als Dezimalzeichen, zwei Stellen ohne Schlussnull – eine Stelle machte aus 3.95 «4.0 liegt unter 4.0».
+        // Eine Note unter der Fallnote wird abgeschnitten statt gerundet, damit auch ein ungerundeter Knoten (3.996) nie «4.0 liegt unter 4.0» heisst.
+        $z = fn (float $x) => preg_replace('/(\.\d)0$/', '$1', number_format($x, 2, '.', ''));
+        $wert = $this->regel === self::FALLNOTE ? floor($this->wert * 100 + 1e-6) / 100 : $this->wert;
+        $werte = ['name' => $this->name, 'wert' => $z($wert), 'grenze' => $z($this->grenze),
             'anzahl' => (string) (int) $this->wert, 'max' => (string) (int) $this->grenze];
 
         // Rechenkern-Tests laufen ohne Laravel-App: dort der deutsche Text mit eingesetzten Werten.

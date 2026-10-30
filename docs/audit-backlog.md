@@ -1149,3 +1149,52 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   erscheint im Bild schräg, nach 4 s ist sie waagrecht (eigene Aufnahme `verlauf-4s.png`). Kein
   Produktfehler; R6-12 soll `shot.mjs`/`rundgang.mjs` auf das Ende der Chart-Animation warten
   lassen (Ereignis oder `--bewegung=reduziert` als Standard für Vergleichsbilder).
+
+## Fertigstellung Funktionsprüfung und R6 Welle 4 (30.10.2026): bewusst gelassen
+
+- **Notenimport mit Stufen-Noten (A/B/C, z. B. Sport)**: der Import lehnt Stufenzeilen ab. Kein Fehler,
+  sondern eine Erweiterung (Stufenfächer lassen sich von Hand erfassen); braucht `WertParser`,
+  `NotenImport` (Vorschau, Prüfung, Dublettenschlüssel), Import-Controller und Vorschau-View samt Test in
+  `NotenImportTest` – eigener Auftrag.
+- **«Was fehlt zum Bestehen» kennt nur den Hauptbaum**: Positionen von Bildungsgang-Bäumen (BM:
+  Abschlussprüfungen, IDPA) erscheinen dort nicht, weil `Statistik::zielFuer` für Positionen nur die
+  Zielgrösse «gesamt» kennt. Braucht eine Zielgrösse je Baum.
+- **Nachtrag mit altem Prüfungsdatum bei Modulwiederholung**: landet in der offenen Belegung, deren Start
+  auf das Ende des alten Versuchs geklemmt bleibt. Ob er in den alten Versuch gehört, ist fachlich nicht
+  entschieden.
+- **Mail «Note gesehen» bei Aktion durch einen Admin** sagt «Dein Berufsbildner …». Neutraler Wortlaut
+  würde den Normalfall verschlechtern; eigener Textentscheid. Ebenso offen: ob «einzeln gesehen» nur bei
+  vorher neuer Note eine Mail auslöst (heute gewollt immer, Kommentar im `NotenGesehenController`).
+- **Semesterabschluss an Betreuer, wenn die Lehre am Semesterende endet**: der Lernende zählt jetzt mit,
+  die Sammelmail geht aber nur an Betreuer mit zum Laufzeitpunkt aktiver Betreuung
+  (`Empfaenger::aktiveBetreuer`). Endete die Betreuung mit der Lehre, kommt sie nicht.
+- **Mailvorlagen**: Semesterabschluss-Mail läuft bei 320 px um 20 px über (375 px passt); Outlook Desktop
+  ignoriert `overflow-wrap`, sehr lange Wörter bleiben dort ein Randfall. Geprüft nur in Chromium.
+- **Mail-Wiederholung räumt den fehlgeschlagenen Job** über die `logId` im Payload der letzten 500
+  `failed_jobs` auf; hängt an der öffentlichen Eigenschaft `PortalMail::$logId` (Hinweis im Code, kein
+  Test bei Umbenennung). Statusfilter «retried» hat keine eigene Kachel.
+- **Beendete Sitzung bei fetch-Aufrufen**: nach Passwortwechsel auf einem anderen Gerät bekommen
+  JSON-Aufrufe 401 statt 419; `sitzung.js` führt zur Anmeldung, andere Aufrufer sind nicht einzeln
+  durchgesehen.
+- **`Lehrsemester::nummer()` rechnet die Schrittweite bei jedem Aufruf** aus allen Semestern (rund 20,
+  unkritisch); bei vielen Aufrufen je Seite pro Konfiguration zwischenspeichern.
+- **R6-10 Admin-Statistik weicht vom Plan ab**: Wochensäulen als Server-SVG/Blade statt `npChart`, ohne
+  Tastaturnavigation der einzelnen Säulen (Tabelle in «Als Tabelle» deckt den Zugang ab);
+  Lehrjahr-Streifen inline statt `x-punktstreifen`; Kategorienliste des Berichts kommt aus der View statt
+  aus dem Controller.
+
+## «Was fehlt zum Bestehen» nach der Bestehensregel (30.10.2026): bewusst gelassen
+
+- **Eine gemeinsame Note für alle offenen Positionen**: wie im Zielrechner bekommen alle offenen Positionen
+  dasselbe x. Hat nur die IPA eine Fallnote 4.0, steht auch bei der Schlussarbeit «benötigt 4.00». Eine
+  Mindestnote je Position wäre nicht eindeutig (sie hängt davon ab, was die anderen erreichen).
+- **`Grund::text()` rundet den Wert auf eine Stelle** (`number_format`): eine IPA 3.95 ohne Rundung im Baum
+  erscheint in den Gründen als «4.0 liegt unter 4.0», 3.75 als «3.8». Die Zusammenfassung von «Was fehlt zum
+  Bestehen» nennt deshalb nur Name und Grenze. Korrektur gehört in `Grund` (Stellen wie `NotenSkala::format`).
+- **Offen gehaltener Baum ohne entscheidende Position**: Liegt in einer Gruppe mit Gewicht 0 und ohne eigene
+  Regel neben einer Position mit Fallnote eine Position ohne Regel, hält `BaumRechner` das Ergebnis offen, bis
+  auch diese erfasst ist; in «Was fehlt zum Bestehen» erscheint sie nicht, weil sie nichts entscheidet.
+- **Nur ein Grund in der Zusammenfassung** (endgültiger zuerst); weitere stehen im Block «Bestehen» der Seite.
+  «1 offene Positionen» (Singular fehlt) ist ein bestehender Text in `lang/en.json`, hier nicht angefasst.
+- **Verwaltung und Cockpit** zeigen «Was fehlt zum Bestehen» weiterhin nicht (`Verwaltung\AbschlussController`
+  übergibt keine Statistik); unverändert.

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Auswertung;
 
+use App\Services\Auswertung\Notenbaum\BaumErgebnis;
 use App\Services\Auswertung\Notenbaum\BaumRechner;
+use App\Services\Auswertung\Notenbaum\Grund;
 use App\Services\Auswertung\Notenbaum\Knoten;
 
 /**
@@ -74,6 +76,116 @@ final class Zielrechner
         $note = $lo / 20;
 
         return $antwort(self::BENOETIGT, $note, $this->wertBei($leistungen, $note, $ziel, $k), $minimum, $maximum);
+    }
+
+    /**
+     * Wie loese(), aber das Ziel ist das Bestehen nach dem Hauptbaum: kleinstes x im 0.05er-Raster, mit dem (alle
+     * Unbekannten = x) keine Bestehensregel des Baums verletzt ist – Fallnoten (die Gesamtnote über die Fallnote der
+     * Wurzel), ungenügende Teile, Minuspunkte –, genau wie BaumRechner «bestanden» rechnet. Gerechnet wird mit
+     * Rechenkern und BaumRechner; monoton in x (Noten steigen,
+     * ungenügende Teile und Minuspunkte sinken), deshalb binär. Bleibt schon mit 6.0 eine Regel verletzt (etwa ein
+     * endgültiger Grund aus einer erfassten Position), ist Bestehen unerreichbar; «gruende» sind dann die Regeln, die
+     * auch mit 6.0 verletzt bleiben. Ohne Hauptbaum null.
+     *
+     * @param  list<Leistung>  $leistungen  unbekannte = wert null
+     * @return array{status: string, note: ?float, resultat: ?float, minimum: ?float, maximum: ?float, aktuell: ?float, unbekannte: int, gruende: list<Grund>}|null
+     */
+    public function loeseBestehen(array $leistungen, Konfiguration $k): ?array
+    {
+        $haupt = $k->hauptbaum();
+        if ($haupt === null) {
+            return null;
+        }
+
+        $bei = fn (?float $x): BaumErgebnis => $this->kern->auswerten($x === null ? $leistungen
+            : array_map(fn (Leistung $l) => $l->istUnbekannt() ? $l->mitWert($x) : $l, $leistungen), $k)->baeume[$haupt->id];
+        // Dieselbe Regel wie der Baumstatus (BaumRechner: ohne Grund bestanden), sonst sagte die Seite «nicht erreichbar» und danach «Bestanden»
+        $besteht = fn (BaumErgebnis $e) => $e->gruende === [];
+
+        $aktuell = $bei(null)->wurzel()->note;
+        $unbekannte = count(array_filter($leistungen, fn (Leistung $l) => $l->istUnbekannt()));
+        if ($unbekannte === 0) {
+            return ['status' => self::KEINE_UNBEKANNTEN, 'note' => null, 'resultat' => $aktuell, 'minimum' => null,
+                'maximum' => null, 'aktuell' => $aktuell, 'unbekannte' => 0, 'gruende' => []];
+        }
+
+        $hoch = $bei(6.0);
+        $tief = $bei(1.0);
+        $antwort = fn (string $status, ?float $note, ?float $resultat, array $gruende = []) => [
+            'status' => $status, 'note' => $note, 'resultat' => $resultat, 'minimum' => $tief->wurzel()->note,
+            'maximum' => $hoch->wurzel()->note, 'aktuell' => $aktuell, 'unbekannte' => $unbekannte, 'gruende' => $gruende,
+        ];
+
+        if (! $besteht($hoch)) {
+            return $antwort(self::UNERREICHBAR, null, $hoch->wurzel()->note, $hoch->gruende);
+        }
+        if ($besteht($tief)) {
+            return $antwort(self::ERREICHT, 1.0, $tief->wurzel()->note);
+        }
+
+        // kleinstes x im 0.05er-Raster, binär (Bestehen ist monoton in x)
+        $lo = 20;
+        $hi = 120;
+        while ($lo < $hi) {
+            $mitte = intdiv($lo + $hi, 2);
+            if ($besteht($bei($mitte / 20))) {
+                $hi = $mitte;
+            } else {
+                $lo = $mitte + 1;
+            }
+        }
+        $note = $lo / 20;
+
+        return $antwort(self::BENOETIGT, $note, $bei($note)->wurzel()->note);
+    }
+
+    /**
+     * Positionen von Hand des Baums, die übers Bestehen entscheiden. Nur über zählende Teile (nicht entfallend); von
+     * der Position aufwärts entscheidet sie, sobald ein Knoten, den sie bewegt, eine Fallnote hat oder in einer Gruppe
+     * mit Grenze für ungenügende Teile bzw. Minuspunkte zählt – die Wurzel eingeschlossen (Fallnote der Gesamtnote).
+     * Ein Teil mit Gewicht 0 bewegt seine Gruppe nicht – darüber endet die Wirkung (wie BaumRechner, tragendeBlaetter()).
+     *
+     * @return list<Knoten>
+     */
+    public static function entscheidendePositionen(Knoten $wurzel): array
+    {
+        $out = [];
+        $gehe = function (Knoten $knoten, array $pfad) use (&$gehe, &$out): void {
+            $pfad[] = $knoten;
+            if ($knoten->typ === Knoten::MANUELL) {
+                if (self::entscheidet($pfad)) {
+                    $out[] = $knoten;
+                }
+
+                return;
+            }
+            foreach ($knoten->kinder as $kind) {
+                if ($kind->zaehlt && ! $kind->entfaellt) {
+                    $gehe($kind, $pfad);
+                }
+            }
+        };
+        $gehe($wurzel, []);
+
+        return $out;
+    }
+
+    /** @param  list<Knoten>  $pfad  von der Wurzel bis zur Position */
+    private static function entscheidet(array $pfad): bool
+    {
+        for ($i = count($pfad) - 1; $i > 0; $i--) {
+            $knoten = $pfad[$i];
+            $gruppe = $pfad[$i - 1];
+            if ($knoten->fallnote !== null || $gruppe->maxUngenuegend !== null || $gruppe->maxMinuspunkte !== null) {
+                return true;
+            }
+            if ($knoten->gewicht <= 0) {
+                return false;
+            }
+        }
+
+        // bis zur Wurzel getragen: entscheidet nur, wenn die Gesamtnote selbst eine Fallnote hat
+        return $pfad[0]->fallnote !== null;
     }
 
     /**

@@ -188,6 +188,81 @@ class ZielrechnerTest extends TestCase
     }
 
     #[Test]
+    public function bestehen_beachtet_grenzen_fuer_ungenuegende_teile_und_minuspunkte(): void
+    {
+        $baum = fn (array $regel) => Baum::ausArray(1, 'QV', ['id' => 1, 'code' => 'qv', 'typ' => 'gruppe', 'rundung' => 0.1, ...$regel, 'kinder' => [
+            ['id' => 2, 'code' => 'a', 'typ' => 'manuell'],
+            ['id' => 3, 'code' => 'b', 'typ' => 'manuell'],
+        ]]);
+
+        // Für die Gesamtnote reichten (5.0 + 2.9) / 2; kein ungenügender Teil erlaubt → 4.0
+        $k = $this->testKonfiguration()->mitBaeumen([$baum(['max_ungenuegend' => 0])]);
+        $r = (new Zielrechner)->loeseBestehen([Leistung::position(2, 5.0), Leistung::position(3, null)], $k);
+        $this->assertSame(Zielrechner::BENOETIGT, $r['status']);
+        $this->assertSame(4.0, $r['note']);
+
+        // Für die Gesamtnote reichten (6.0 + 1.9) / 2; höchstens 0.5 Minuspunkte → 3.5
+        $k = $this->testKonfiguration()->mitBaeumen([$baum(['max_minuspunkte' => 0.5])]);
+        $r = (new Zielrechner)->loeseBestehen([Leistung::position(2, 6.0), Leistung::position(3, null)], $k);
+        $this->assertSame(3.5, $r['note']);
+    }
+
+    #[Test]
+    public function bestehen_unerreichbar_nennt_die_verletzte_regel_aus_dem_heutigen_stand(): void
+    {
+        // Informatikkompetenzen 3.0 unter der Fallnote 4.0: keine IPA-Note hilft, der Grund ist aber nicht endgültig
+        $baum = Baum::ausArray(1, 'QV', ['id' => 1, 'code' => 'qv', 'typ' => 'gruppe', 'rundung' => 0.1, 'kinder' => [
+            ['id' => 2, 'code' => 'ipa', 'typ' => 'manuell'],
+            ['id' => 3, 'code' => 'ik', 'typ' => 'kategorie', 'kategorie_id' => self::FACH, 'fallnote' => 4.0],
+        ]]);
+        $r = (new Zielrechner)->loeseBestehen([$this->modul(100, 3.0), Leistung::position(2, null)], $this->testKonfiguration()->mitBaeumen([$baum]));
+
+        $this->assertSame(Zielrechner::UNERREICHBAR, $r['status']);
+        $this->assertSame(['ik'], array_map(fn ($g) => $g->code, $r['gruende']));
+        $this->assertFalse($r['gruende'][0]->definitiv);
+
+        // Ohne Fallnote der Wurzel gilt wie im Baumstatus nur die Regel des Baums: die Gesamtnote 3.5 verhindert das Bestehen nicht
+        $baum = Baum::ausArray(1, 'QV', ['id' => 1, 'code' => 'qv', 'typ' => 'gruppe', 'rundung' => 0.1, 'kinder' => [
+            ['id' => 2, 'code' => 'ipa', 'typ' => 'manuell'],
+            ['id' => 3, 'code' => 'ik', 'typ' => 'kategorie', 'kategorie_id' => self::FACH],
+        ]]);
+        $r = (new Zielrechner)->loeseBestehen([$this->modul(100, 1.0), Leistung::position(2, null)], $this->testKonfiguration()->mitBaeumen([$baum]));
+
+        $this->assertSame(Zielrechner::ERREICHT, $r['status']);
+        $this->assertSame([], $r['gruende']);
+    }
+
+    #[Test]
+    public function entscheidende_positionen_folgen_gewicht_und_regeln_bis_zur_wurzel(): void
+    {
+        $baum = fn (?float $fallnote) => Baum::ausArray(1, 'QV', ['code' => 'qv', 'typ' => 'gruppe', 'fallnote' => $fallnote, 'kinder' => [
+            ['code' => 'traegt', 'typ' => 'manuell'],
+            ['code' => 'g0', 'typ' => 'gruppe', 'gewicht' => 0, 'kinder' => [
+                ['code' => 'g0_ohne_regel', 'typ' => 'manuell'],
+                ['code' => 'g0_mit_fallnote', 'typ' => 'manuell', 'fallnote' => 4.0],
+            ]],
+            ['code' => 'gz', 'typ' => 'gruppe', 'zaehlt' => false, 'kinder' => [
+                ['code' => 'gz_mit_fallnote', 'typ' => 'manuell', 'fallnote' => 4.0],
+            ]],
+            ['code' => 'gu', 'typ' => 'gruppe', 'gewicht' => 0, 'max_ungenuegend' => 1, 'kinder' => [
+                ['code' => 'gu_ohne_gewicht', 'typ' => 'manuell', 'gewicht' => 0],
+            ]],
+            ['code' => 'ohne_gewicht', 'typ' => 'manuell', 'gewicht' => 0],
+            ['code' => 'ohne_gewicht_mit_fallnote', 'typ' => 'manuell', 'gewicht' => 0, 'fallnote' => 4.5],
+        ]]);
+
+        $this->assertSame(
+            ['traegt', 'g0_mit_fallnote', 'gu_ohne_gewicht', 'ohne_gewicht_mit_fallnote'],
+            array_map(fn ($k) => $k->code, Zielrechner::entscheidendePositionen($baum(4.0)->wurzel)),
+        );
+        // Ohne Fallnote der Gesamtnote entscheidet, was nur die Gesamtnote trägt, nicht übers Bestehen (wie BaumRechner)
+        $this->assertSame(
+            ['g0_mit_fallnote', 'gu_ohne_gewicht', 'ohne_gewicht_mit_fallnote'],
+            array_map(fn ($k) => $k->code, Zielrechner::entscheidendePositionen($baum(null)->wurzel)),
+        );
+    }
+
+    #[Test]
     public function zielgroesse_parst_und_serialisiert(): void
     {
         foreach (['gesamt', 'kategorie:3', 'kategorie:3@semester:2', 'semester:2', 'fach:10', 'fach:10@semester:1', 'modul:100'] as $text) {

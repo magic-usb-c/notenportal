@@ -180,6 +180,52 @@ final class Statistik
         return $out;
     }
 
+    /**
+     * «Was fehlt zum Bestehen» mit Hauptbaum: je offene Position, die übers Bestehen entscheidet
+     * (Zielrechner::entscheidendePositionen), die gemeinsame Note nach der Bestehensregel des Baums
+     * (Zielrechner::loeseBestehen) statt nur nach der Gesamtnote. Ohne Hauptbaum null – dann gilt benoetigt().
+     *
+     * @param  list<Leistung>  $leistungen  erfasste und offene (wert null) Leistungen eines Lernenden
+     * @return array{status: string, gruende: list<Notenbaum\Grund>, zeilen: list<array{id: ?int, titel: ?string, datum: null, knotenId: int, grenze: float, status: string, note: ?float, aktuell: ?float, minimum: ?float, maximum: ?float, unbekannte: int}>}|null
+     */
+    public function bestehen(array $leistungen, Konfiguration $k): ?array
+    {
+        $haupt = $k->hauptbaum();
+        if ($haupt === null) {
+            return null;
+        }
+
+        $entscheidend = [];
+        foreach (Zielrechner::entscheidendePositionen($haupt->wurzel) as $knoten) {
+            $entscheidend[$knoten->id] = true;
+        }
+        $offen = array_values(array_filter($leistungen,
+            fn (Leistung $l) => $l->istPosition() && $l->istUnbekannt() && isset($entscheidend[(int) $l->knotenId])));
+        if ($offen === []) {
+            return ['status' => Zielrechner::KEINE_UNBEKANNTEN, 'gruende' => [], 'zeilen' => []];
+        }
+
+        $r = $this->zielrechner->loeseBestehen($leistungen, $k);
+
+        return [
+            'status' => $r['status'],
+            'gruende' => $r['gruende'],
+            'zeilen' => array_map(fn (Leistung $l) => [
+                'id' => $l->id,
+                'titel' => $l->titel,
+                'datum' => null,
+                'knotenId' => (int) $l->knotenId,
+                'grenze' => $k->genuegend,
+                'status' => $r['status'],
+                'note' => $r['note'],
+                'aktuell' => $r['aktuell'],
+                'minimum' => $r['minimum'],
+                'maximum' => $r['maximum'],
+                'unbekannte' => $r['unbekannte'],
+            ], $offen),
+        ];
+    }
+
     /** @return array{0: list<Carbon>, 1: bool} Stichtage und ob auf Quartale vergröbert wurde */
     private function stichtage(Carbon $von, Carbon $bis): array
     {

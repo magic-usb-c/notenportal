@@ -10,6 +10,7 @@ use App\Services\Auswertung\Element;
 use App\Services\Auswertung\Konfiguration;
 use App\Services\Auswertung\Leistung;
 use App\Services\Auswertung\Lernstand;
+use App\Services\Auswertung\Notenbaum\Grund;
 use App\Services\Auswertung\NotenQuelle;
 use App\Services\Auswertung\Rechenkern;
 use App\Services\Auswertung\Statistik;
@@ -401,24 +402,115 @@ final class StatistikDaten
     // ── S5 / S6 Benötigte Note ──────────────────────────────────────────────────────────────────────────
 
     /**
-     * Qualifikation: je offene Position «bestanden» oder «benötigt X.X» für genügend (Grenze aus der Konfiguration).
+     * Qualifikation: je offene Position «bestanden», «benötigt X.XX» oder «nicht erreichbar». Mit Hauptbaum nach dessen
+     * Bestehensregel (Fallnoten, ungenügende Teile, Minuspunkte und Gesamtnote ≥ genügend, Statistik::bestehen), ohne
+     * nach der Gesamtnote allein; die Grenze kommt aus der Konfiguration.
      *
      * @param  list<Leistung>  $leistungen
      */
     public function positionen(array $leistungen, Konfiguration $k): array
     {
-        $zeilen = $this->benoetigtZeilen($leistungen, $k, fn (array $r) => $r['knotenId'] !== null);
+        $alle = [...$leistungen, ...$this->offenePositionen($leistungen, $k)];
+        $bestehen = $this->statistik->bestehen($alle, $k);
+        $zeilen = $bestehen !== null
+            ? $this->bestehenZeilen($bestehen['zeilen'], $k)
+            : $this->benoetigtZeilen($alle, $k, fn (array $r) => $r['knotenId'] !== null);
         $bestanden = count(array_filter($zeilen, fn (array $z) => $z['status'] === Zielrechner::ERREICHT));
 
         return [
             'schluessel' => 'positionen',
             'diagramm' => ['zeilen' => $zeilen, 'grenze' => $k->genuegend],
             'tabelle' => $this->benoetigtTabelle($zeilen, __('Position')),
-            'zusammenfassung' => $zeilen === []
-                ? __('Keine offenen Positionen.')
-                : __(':n offene Positionen, :b davon bestanden.', ['n' => count($zeilen), 'b' => $bestanden]),
+            'zusammenfassung' => match (true) {
+                $zeilen === [] => __('Keine offenen Positionen.'),
+                $bestehen !== null && $bestehen['status'] === Zielrechner::UNERREICHBAR && $bestehen['gruende'] !== [] => $this->unerreichbarSatz($bestehen['gruende']),
+                default => __(':n offene Positionen, :b davon bestanden.', ['n' => count($zeilen), 'b' => $bestanden]),
+            },
             'meta' => ['titel' => __('Was fehlt zum Bestehen')],
         ];
+    }
+
+    /**
+     * Zeilen aus Statistik::bestehen in der Form von benoetigtZeilen (Name der Position, Text zur nötigen Note).
+     *
+     * @param  list<array<string, mixed>>  $roh
+     * @return list<array{id: ?int, titel: string, datum: ?string, status: string, note: ?float, aktuell: ?float, minimum: ?float, maximum: ?float, grenze: float, knotenId: ?int, text: string}>
+     */
+    private function bestehenZeilen(array $roh, Konfiguration $k): array
+    {
+        $namen = $this->knotenNamen($k);
+
+        return array_map(function (array $r) use ($namen) {
+            $zeile = [
+                'id' => $r['id'],
+                'titel' => $r['titel'] !== null && $r['titel'] !== '' ? $r['titel'] : ($namen[$r['knotenId']] ?? '–'),
+                'datum' => $r['datum'],
+                'status' => $r['status'],
+                'note' => $r['note'],
+                'aktuell' => $r['aktuell'],
+                'minimum' => $r['minimum'],
+                'maximum' => $r['maximum'],
+                'grenze' => $r['grenze'],
+                'knotenId' => $r['knotenId'],
+            ];
+            $zeile['text'] = $this->benoetigtText($zeile);
+
+            return $zeile;
+        }, $roh);
+    }
+
+    /**
+     * Ein Satz, warum Bestehen auch mit 6.0 in jeder offenen Position nicht erreichbar ist: ein endgültiger Grund
+     * (erfasste Position unter ihrer Fallnote) zuerst, sonst der erste Grund aus dem heutigen Stand.
+     *
+     * @param  non-empty-list<Grund>  $gruende
+     */
+    private function unerreichbarSatz(array $gruende): string
+    {
+        $endgueltig = array_values(array_filter($gruende, fn ($g) => $g->definitiv));
+        $g = $endgueltig[0] ?? $gruende[0];
+        $grund = $g->regel === Grund::FALLNOTE
+            ? __(':name unter :grenze', ['name' => $g->name, 'grenze' => NotenSkala::format($g->grenze)])
+            : $g->text();
+
+        return $endgueltig !== []
+            ? __('Bestehen nicht mehr möglich: :grund.', ['grund' => $grund])
+            : __('Bestehen mit dem heutigen Stand nicht erreichbar: :grund.', ['grund' => $grund]);
+    }
+
+    /**
+     * Noch nicht erfasste Positionen von Hand (IPA, Schlussarbeit …) des Hauptbaums als unbekannte Leistung: BaumLader
+     * liefert nur erfasste Zeilen, die Rechnung braucht aber die offenen. Nur Positionen, die übers Bestehen entscheiden
+     * (Zielrechner::entscheidendePositionen): nicht unter einem entfallenden oder nicht zählenden Teil und mit Wirkung bis
+     * zur Gesamtnote oder auf eine Bestehensregel – ein Teil mit Gewicht 0 bleibt also drin, wenn er eine eigene
+     * Mindestnote hat. Die Gesamtnote ändert sich nicht, weil der Rechenkern Positionen ohne Wert überspringt.
+     * Positionen eines Bildungsgang-Baums (BM) bleiben aussen vor.
+     *
+     * @param  list<Leistung>  $leistungen
+     * @return list<Leistung>
+     */
+    private function offenePositionen(array $leistungen, Konfiguration $k): array
+    {
+        $haupt = $k->hauptbaum();
+        if ($haupt === null) {
+            return [];
+        }
+
+        $vorhanden = [];
+        foreach ($leistungen as $l) {
+            if ($l->istPosition()) {
+                $vorhanden[(int) $l->knotenId] = true;
+            }
+        }
+
+        $offen = [];
+        foreach (Zielrechner::entscheidendePositionen($haupt->wurzel) as $knoten) {
+            if (! isset($vorhanden[$knoten->id])) {
+                $offen[] = Leistung::position($knoten->id, null);
+            }
+        }
+
+        return $offen;
     }
 
     /**
@@ -463,7 +555,7 @@ final class StatistikDaten
     /**
      * @param  list<Leistung>  $leistungen
      * @param  \Closure(array<string, mixed>): bool  $behalten
-     * @return list<array{titel: string, datum: ?string, status: string, note: ?float, aktuell: ?float, minimum: ?float, maximum: ?float, grenze: float, knotenId: ?int, text: string}>
+     * @return list<array{id: ?int, titel: string, datum: ?string, status: string, note: ?float, aktuell: ?float, minimum: ?float, maximum: ?float, grenze: float, knotenId: ?int, text: string}>
      */
     private function benoetigtZeilen(array $leistungen, Konfiguration $k, \Closure $behalten): array
     {
@@ -482,6 +574,7 @@ final class StatistikDaten
                 default => __('Gesamtschnitt'),
             };
             $zeile = [
+                'id' => $r['id'],
                 'titel' => $bezeichnung,
                 'datum' => $r['datum'],
                 'status' => $r['status'],
@@ -571,9 +664,9 @@ final class StatistikDaten
                 $aktivitaet['labels'],
                 $aktivitaet['werte'],
             )],
-            'zusammenfassung' => $aktivitaet['median'] === null
+            'zusammenfassung' => ! $aktivitaet['median']
                 ? __(':n Noten in :wochen Wochen.', ['n' => $summe, 'wochen' => $aktivitaet['wochen']])
-                : __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => NotenSkala::format($aktivitaet['median'])]),
+                : __(':n Noten in :wochen Wochen, Median :median je Woche.', ['n' => $summe, 'wochen' => $aktivitaet['wochen'], 'median' => NotenSkala::format($aktivitaet['median'], floor($aktivitaet['median']) == $aktivitaet['median'] ? 0 : 1)]),
             'meta' => ['titel' => __('Erfassung je Woche'), 'optionen' => ['zeitraum' => $this->optionen()['erfassung']]],
         ];
     }
