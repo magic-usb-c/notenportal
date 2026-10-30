@@ -1,6 +1,6 @@
 ---
 name: notenportal-pruefwerkzeuge
-description: Browser-Prüfwerkzeuge im Repo (tools/pruefung – shot, klick, rundgang, demo-server) für Screenshots und Layoutbefunde im Dunkelmodus auf Desktop-Breiten, Sicherheitsregeln, bekannte Regressionsmuster. Laden, bevor Notenportal-UI-Änderungen geprüft werden.
+description: Browser-Prüfwerkzeuge im Repo (tools/pruefung – shot, klick, clip, rundgang, leistung, kontrast, vergleich, demo-server) für Screenshots, Layoutbefunde, Bildzeiten und Kontraste im Dunkelmodus auf Desktop-Breiten, mit den Zustandsflags für reduzierte Bewegung, Transparenz und mehr Kontrast, Sicherheitsregeln, bekannte Regressionsmuster. Laden, bevor Notenportal-UI-Änderungen geprüft werden.
 ---
 
 # Notenportal-Prüfwerkzeuge
@@ -23,11 +23,20 @@ Liegen im Repo unter `tools/pruefung/` (Node 22 + Playwright, Chromium). In der 
 | Werkzeug | Aufruf | Findet / liefert |
 |---|---|---|
 | `demo-server.sh` | `tools/pruefung/demo-server.sh start\|stop\|status\|neu` | Demo-Instanz (DB `notenportal_demo`); `neu` setzt die Daten mit `DemoSeeder` zurück |
-| `shot.mjs` | `node tools/pruefung/shot.mjs <email> "/pfad,/pfad2" [--breite=1920] [--hoehe=1080] [--hell] [--fenster] [--name=x] [--dir=.]` | Screenshot je Pfad (ganze Seite), HTTP-Status, `UEBERLAUF`, JS-Fehler |
-| `klick.mjs` | `node tools/pruefung/klick.mjs <email> /pfad "sel1,sel2" [--dir=.]` | Zustand nach Klicks (Menü, Tab, Drawer) als Fenster-Screenshot |
-| `leistung.mjs` | `node tools/pruefung/leistung.mjs <email> "/pfad,/pfad2" [--frames=150] [--laeufe=3] [--palette] [--json=datei]` | Je Seite LCP/Load, DOM-Knoten, sichtbare Glasflächen (Anzahl, % des Fensters), Bilddauer p50/p95/max in Ruhe und beim Scrollen, lange Bilder > 33.4 ms, Layout-/Stil-/Skriptzeit (CDP); `--palette` misst Strg+K, Tippen, Escape. Headless rastert in Software: nur Vorher/Nachher auf derselben Maschine vergleichen |
-| `kontrast.mjs` | `node tools/pruefung/kontrast.mjs [--alle] [--minimum] [--glas=0.7] [--json=datei]` | WCAG-Kontrast aller Theme- und Akzentblöcke aus `theme.css` samt Materialien (Alpha über bg/card/surface-2). Exit 1 bei Pflichtverstoss; `--minimum` = kleinste Glas-Deckung je Theme, die Text über jeder Token-Unterlage lesbar hält |
-| `rundgang.mjs` | `node tools/pruefung/rundgang.mjs <email> [--max=150] [--start=/dashboard] [--shots=dir]` | Folgt allen internen Links einer Rolle; je Seite `UEBERLAUF`, `KLEIN` (<10 px), `ABGESCHNITTEN`, `ELLIPSE<90`, `RAND`, `VORFAHR-CLIP`, `UEBERLAPPUNG`, `STATUS`, `JS`. Exit 1 bei Befunden |
+| `shot.mjs` | `node tools/pruefung/shot.mjs <email> "/pfad,/pfad2" [--breite=1920] [--hoehe=1080] [--hell] [--fenster] [--name=x] [--dir=.] [Zustandsflags]` | Screenshot je Pfad (ganze Seite), HTTP-Status, `UEBERLAUF`, JS-Fehler, Zustandszeile |
+| `klick.mjs` | `node tools/pruefung/klick.mjs <email> /pfad "sel1,sel2" [--dir=.] [Zustandsflags]` | Zustand nach Klicks (Menü, Tab, Drawer) als Fenster-Screenshot |
+| `clip.mjs` | `node tools/pruefung/clip.mjs <email> /pfad x,y,breite,hoehe --out=datei.png [--open=<selektor>]` (`NP_EVAL='<js>'` wertet vor dem Bild aus und gibt aus) | Ausschnitt statt Vollbild: Scrollkanten, Tabellenköpfe, Fokusringe, `getComputedStyle`-Werte |
+| `leistung.mjs` | `node tools/pruefung/leistung.mjs <email> "/pfad,/pfad2" [--frames=150] [--laeufe=3] [--palette] [--menue=<Selektor>] [--ohne-glas] [--trace] [--json=datei] [Zustandsflags]` | Je Seite LCP/Load, DOM-Knoten, sichtbare Glasflächen (Anzahl, % des Fensters), Bilddauer p50/p95/max in Ruhe und beim Scrollen, lange Bilder > 33.4 ms, Layout-/Stil-/Skriptzeit (CDP); `--palette` misst Strg+K, Tippen, Escape; `--menue=<Selektor des Auslösers>` klickt ihn und misst Glasanteil und Hover im offenen Menü (`menue.glas`, `menue.hover`); `--ohne-glas` setzt `data-transparenz='reduziert'`; `--trace` summiert Raster-, Paint- und Composite-Zeit. Headless rastert in Software: nur Vorher/Nachher auf derselben Maschine mit denselben Argumenten vergleichen |
+| `vergleich.mjs` | `node tools/pruefung/vergleich.mjs --vorher=a.json[,a2.json] --nachher=b.json[,b2.json]` | Markdown-Tabelle vorher/nachher/Differenz aus zwei `leistung.mjs --json`-Ausgaben |
+| `r6-vergleich.sh` | `tools/pruefung/r6-vergleich.sh <vorher-url> <nachher-url> <ordner>` | Vorher/nachher je Rolle auf derselben Maschine (Median aus 3 Läufen, 1920×1080 mit Palette und 1920×540 Scroll); nur in einem ruhigen Fenster, ohne laufende Agents oder Testsuite |
+| `kontrast.mjs` | `node tools/pruefung/kontrast.mjs [--alle] [--minimum [--quelle=card\|surface-2]] [--glas=0.7] [--glanz=0.07] [--stufen] [--json=datei]` | WCAG-Kontrast aller 24 Theme-Blöcke und 14 Akzentblöcke aus `theme.css` samt Materialien (Deckungen direkt aus den `@utility`-Blöcken in `app.css`). Exit 1 bei Pflichtverstoss. `--minimum` = kleinste Glas-Deckung je Theme, die Text über jeder Token-Unterlage lesbar hält, `--quelle=surface-2` für Material aus `surface-2`; `--glanz=a` legt die Lichtschicht über jedes Material; `--stufen` prüft dunkel bg < grund-hoch < card < surface-2; Fokusring auf jedem Material und Glaskante gegen `surface-2` je ≥ 3:1. Liest nur Dateien, braucht keinen Build und keinen Server |
+| `rundgang.mjs` | `node tools/pruefung/rundgang.mjs <email> [--max=150] [--start=/dashboard] [--shots=dir] [Zustandsflags]` | Folgt allen internen Links einer Rolle; je Seite `UEBERLAUF`, `KLEIN` (<10 px), `ABGESCHNITTEN`, `ELLIPSE<90`, `RAND`, `VORFAHR-CLIP`, `UEBERLAPPUNG`, `STATUS`, `JS`. Exit 1 bei Befunden |
+
+**Zustandsflags** (an `shot`, `klick`, `rundgang`, `leistung`; Pflicht bei Arbeit an Material, Bewegung und Kontrast, weil jede Seite in jeder Einstellung lesbar bleiben muss):
+- `--bewegung=reduziert` – `prefers-reduced-motion: reduce` und zusätzlich `html[data-bewegung='reduziert']` (Variante `ruhig:`).
+- `--transparenz=reduziert` – `prefers-reduced-transparency: reduce` per CDP; Playwright kann die Medienabfrage nicht über `matchMedia` sichtbar machen, darum setzt das Werkzeug zusätzlich `html[data-transparenz='reduziert']` und meldet «Ersatz: data-transparenz» (Variante `deckend:`).
+- `--kontrast=mehr` – `prefers-contrast: more` (Variante `kontrastreich:`).
+- Jede Seite druckt eine **Zustandszeile**: `reduced-motion`, `contrast-more`, `reduced-transparency` und `fenster` (`document.documentElement.dataset.fenster`, `aktiv` oder `inaktiv`; das Werkzeug holt das Fenster mit `bringToFront()` nach vorn). Erst die Zeile prüfen, dann das Bild werten.
 
 Konten: `nina.huber@demo.example` (Lernende), `michael.baumann@demo.example` (Berufsbildner),
 `laura.frei@demo.example` (Admin). Start-Pfade: Lernende `/dashboard`, Berufsbildner `/trainer`, Admin `/admin`.
@@ -41,6 +50,14 @@ node tools/pruefung/shot.mjs nina.huber@demo.example "/dashboard" --breite=2560 
 node tools/pruefung/rundgang.mjs nina.huber@demo.example
 node tools/pruefung/rundgang.mjs michael.baumann@demo.example
 node tools/pruefung/rundgang.mjs laura.frei@demo.example
+# Material, Bewegung, Kontrast: dieselbe Seite in den drei Einstellungen
+node tools/pruefung/shot.mjs nina.huber@demo.example "/dashboard" --bewegung=reduziert --transparenz=reduziert --kontrast=mehr --dir=$D --name=z
+node tools/pruefung/kontrast.mjs && node tools/pruefung/kontrast.mjs --stufen && node tools/pruefung/kontrast.mjs --minimum
+```
+Bildzeiten (Glas-Budget in `docs/gui-konzept.md`), nur auf einer ruhigen Maschine und immer mit denselben Argumenten vor und nach der Änderung:
+```bash
+node tools/pruefung/leistung.mjs nina.huber@demo.example "/dashboard,/grades" --laeufe=3 --palette --json=$D/nachher.json
+node tools/pruefung/leistung.mjs nina.huber@demo.example "/grades" --hoehe=540 --laeufe=3
 ```
 Bilder mit `Read` ansehen – jedes, nicht nur das erste. Sichtprüfung nach Skill `notenportal-dunkelmodus`;
 für viele Bilder Agent `bildpruefer` (sonnet high) oder Workflow `notenportal-dunkel-rundgang`.

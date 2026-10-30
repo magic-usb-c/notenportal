@@ -25,7 +25,7 @@ Verboten: bg-white, bg-gray-*, bg-slate-*, text-black, text-white, #hex, Palette
 uppercase tracking-widest, font-extrabold/black, harte Schriftgrössen, max-w-* mit mx-auto als Seitencontainer statt np-seite
 (Kartenobergrenzen ohne mx-auto sind erlaubt: Tabellen nicht breiter als ihre Spalten), rounded-3xl, entfernte Klassen
 (accent-glow, np-glow-*, np-card-lift, np-btn-tactile, glass-lift, glass-subtle, scale-Effekte, blur-3xl-Orbs).
-Materialien: glass-bar nur Hauptnavigation und Sticky-Toolbar, glass-overlay nur Menüs, Paletten, Toasts, Popover;
+Materialien: np-glas nur Seitenleiste, np-glas-gruppe nur Kapseln der Symbolleiste (np-symbolleiste ohne Weichzeichner), glass-overlay nur Menüs, Paletten, Toasts, Popover;
 Karten, Tabellen, Formulare, Diagramme ohne Glas. Notenfarben nur über NotenSkala::text()/badge() und text-note-*-Tokens.
 Texte: Schweizer Hochdeutsch, ss statt ß, keine Hinweistexte oder Entwicklernotizen in der Oberfläche.
 Daten: Noten-Queries mit whereNull('geloescht_am'); Lernende sehen nur eigene Daten (ID aus der Session), Berufsbildner nur
@@ -72,7 +72,7 @@ const DIMENSIONEN = [
     prompt: `${KONTEXT}
 Dimension: DUNKELMODUS nach Apple HIG. Lies resources/css/theme.css (Block .dark) und resources/css/app.css vollständig, dann die Layouts und Komponenten in resources/views/layouts und resources/views/components, danach Stichproben je Rolle.
 1. Ebenen: sind bg-bg, bg-card, bg-surface-2 und die Overlay-Flächen im Dunkeln vier erkennbar verschiedene Helligkeiten (hellere Fläche = vorne)? Rechne die Luminanz aus den RGB-Tripeln.
-2. Kontrast: text-text und text-muted auf bg-bg, bg-card, bg-surface-2, bg-input und auf glass-bar/glass-overlay mindestens 4.5:1 (WCAG-Formel, selbst rechnen, z. B. mit node -e). text-faint/text-ghost für lesbaren Inhalt verwendet?
+2. Kontrast: text-text und text-muted auf bg-bg, bg-card, bg-surface-2, bg-input und auf np-glas/np-glas-gruppe/glass-overlay mindestens 4.5:1 (WCAG-Formel, selbst rechnen, z. B. mit node -e). text-faint/text-ghost für lesbaren Inhalt verwendet?
 3. Reines Schwarz oder Weiss als Fläche oder Text; weisse Bildhintergründe (Logos, Diagramme, Mail-Vorschau), die im Dunkeln leuchten.
 4. Glas auf Inhaltsflächen (Karten, Tabellen, Formulare, Diagramme) oder Transparenz auf farbigen Zuständen (bg-accent, Notenfarben).
 5. dark:-Varianten in Views, die ein Token schon abdeckt; Schatten als einzige Tiefe im Dunkeln.
