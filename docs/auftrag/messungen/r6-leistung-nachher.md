@@ -9,7 +9,7 @@ Abnahmebericht zu R6-12 (`docs/auftrag/GUI-R6.md` §4.2, §8, §11). Gegenstück
 - **DOM-Knoten:** das alte Mass zählte abgehängte Knoten früherer Seiten mit (Abschnitt 2.8). Bereinigt: `/dashboard` 6 342 (vorher 3 628), `/grades` 9 156 (7 378), `/admin/learners` 7 186 (4 742) – alle drei über «vorher + 10 %»; vor allem `<details>`-Tabellen der Diagramme und die vorab gerenderte Suchpalette; Bildzeiten nicht schlechter.
 - **Nicht erfüllt:** (b) Ruhe p95 ≤ 17.0 ms auf drei Seiten (17.4, 17.2, 17.1 ms); (c) LCP gegen die Basislinie, weil der Rechner heute langsamer ist als am 03.10. – im Vergleich mit vorher derselben Maschine erfüllt; (d) Tippen `/exams` gegen die Basislinie (34.9 gegen 32.9 ms).
 - **Kontrast und Regel-Greps:** alle Modi Exit 0, 0 Pflichtverstösse, alle Greps leer.
-- **Bilder, Rundgang, UI-Check:** Rundgang für alle vier Konten ohne Layoutbefund; 34 bestätigte Befunde (16 mittel, 18 niedrig), 16 verworfen. Sie sind offen (Abschnitt 4).
+- **Bilder, Rundgang, UI-Check:** Rundgang für alle vier Konten ohne Layoutbefund; 34 bestätigte Befunde (16 mittel, 18 niedrig), 16 verworfen. Behoben in Commit 20739bf (Abschnitt 4.3, bewusst Gelassenes in `docs/audit-backlog.md`).
 
 ## 1 Messbedingungen
 
@@ -231,7 +231,7 @@ Alle Aufrufe lieferten HTTP 200 ohne Überlauf- oder JS-Meldung; die Zustandszei
 
 Befundarten (UEBERLAUF, KLEIN, ABGESCHNITTEN, ELLIPSE, RAND, VORFAHR-CLIP, UEBERLAPPUNG, STATUS, LADEN, JS) über alle vier Ausgaben: 0 Treffer. Nur ein Lauf bei 1920 px, nicht bei 2560. Bilder unter `scratchpad/r6pruefung/rundgang/<konto>/`.
 
-### 4.3 Bestätigte Befunde (34; keiner behoben)
+### 4.3 Bestätigte Befunde (34; behoben in Commit 20739bf)
 
 Bildbefunde (9):
 
@@ -318,5 +318,5 @@ Zählung: 16 mittel (ADMIN-1; UI-lernende-1 bis 6; UI-berufsbildner-1, 3, 4, 5; 
 4. **Absolute Zeiten (Tippen, LCP)** lassen sich auf diesem Rechner nicht gegen die Cloud-Basislinie halten. Für ein sauberes Urteil entweder dieselbe Umgebung wie am 03.10. verwenden oder die Grenze als «≤ vorher» festschreiben. Tippen `/exams` überschreitet die Basislinie auch im Minimum.
 5. **Ziel Tippen ≤ 25 ms** (Bedingung für R6-13 Lichtbrechung, GUI-R6.md §6 Z. 210): auf der VM nicht bewertbar – das Ziel ist an der Cloud-Maschine der Basislinie festgemacht, die VM misst denselben alten Code 2.3- bis 2.8-mal langsamer. Im Median liegt keine Seite unter 29 ms (Einzellauf `/trainer/learners/1` 24.2 ms, Median 43.3 – kein Beleg). Entscheid 30.10.2026: R6-13 wird an seinem eigenen, relativen Kriterium aus §11 abgenommen (Tippen und Scroll p95 mit `data-brechung` ≤ diese Messung + T, auf derselben Maschine); fällt es durch, bleibt `data-brechung` aus.
 6. **Messung wiederholen:** vorher-Instanz lieferte für `/trainer` HTTP 500; vorher-Knotenzahlen von `/trainer/learners` sind verdächtig. Ein Lauf mit gesunder vorher-Instanz und dokumentiertem ruhigem Fenster schliesst die Lücken in den Spalten «vorher».
-7. **34 bestätigte Befunde** (16 mittel, 18 niedrig) sind nicht umgesetzt; vor der Fertigmeldung `notenportal-befunde-beheben` und danach erneute Prüfung.
+7. **34 bestätigte Befunde** (16 mittel, 18 niedrig): behoben in Commit 20739bf (30.10.2026), ganze Suite grün, Bilder der geänderten Seiten angesehen. Bewusst gelassen und begründet: Abschnitt «R6-12 Sichtbefunde behoben» in `docs/audit-backlog.md`. Offen: erneuter Audit und Rundgang über alle Rollen.
 8. **Nicht Teil dieser Abnahme:** `php artisan test` (ganze Suite) und `pruefer` – liegen bei der Hauptsitzung; ebenso der Commit.
