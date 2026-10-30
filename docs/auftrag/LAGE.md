@@ -297,6 +297,11 @@ Nicht raten — als offen markieren und David fragen:
 > seit 03.10. 09:20 in `docs/auftrag/GUI-R6.md` (zwei Workflows: Verstehen und Entwurf mit Jury,
 > Rohdaten unter `docs/auftrag/messungen/r6-*`); Umsetzung in Scheiben R6-00 bis R6-12, Lichtbrechung
 > R6-13 optional (30.10. gebaut und gemessen, nicht übernommen: unsichtbar über der Scrollkante, Scroll langsamer).
+>
+> **Stand 30.10.:** R6 abgeschlossen (Abnahme R6-12 mit Messbericht `messungen/r6-leistung-nachher.md`,
+> R6-13 nicht übernommen). Funktionsprüfung je Rolle und Audit in sechs Dimensionen umgesetzt, jeder
+> Befund mit Test (Übergabebrett 30.10. 18:10). Offen sind die Entscheide unter «Offen für David» und das
+> Bewusst-Gelassene in `docs/audit-backlog.md`.
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 

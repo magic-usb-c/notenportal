@@ -381,6 +381,17 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   frischen Ubuntu-26.04-Containern: Neuinstallation und Upgrade 54e8ead → main mit Demodaten.
                   dva-001 und i2 auf main (Dump/Tag vor-main-2910, betrieb.md). dva-003 steht noch auf 30.09. –
                   Ablauf «Update vom Stand 30.09. auf main» in betrieb.md, braucht David am Server.
+[Q] 30.10. 18:10  Auftrag David «alles perfekt und fertig» (Ultracode), 19 Commits 07818cd…7c2c312 auf main.
+                  Funktionsprüfung je Rolle mit Sonden: Passwortwechsel, Erinnerungen, Notenlogik, Notenblatt,
+                  Kalender, Array-Parameter, Mails (Umbruch, Zahlenspalten, Textfassung) behoben (3da30ac…60dbe66).
+                  R6 Welle 4 und Abnahme R6-12: Diagramme mit Tabelle/Ansage/Leerzustand (502371a), 34
+                  Sichtbefunde behoben (20739bf), Messbericht r6-leistung-nachher.md. «Was fehlt zum Bestehen»
+                  rechnet nach der Bestehensregel (56e7e63, de3b05d). R6-13 Lichtbrechung gebaut, gemessen,
+                  nicht übernommen (08cefb1, Patch liegt bei). Audit 6 Dimensionen: 15 Befunde bestätigt, alle
+                  behoben mit Tests (7c2c312): Rechner prüft Eingaben, Leerzustand, Ziele per fetch; Rückweg nach
+                  dem Erfassen (Übersicht, Rechner, Modul, Agenda); Promotion gefährdet im Bericht; Kürzel ruhen
+                  bei offenem Dialog; CSV geschützt. Suite 1679 grün. Teilpunkte bewusst gelassen: audit-backlog
+                  «Audit-Fix-Welle». Ungeprüft: Mails in echten Clients (nur HTML/Text im Browser gesichtet).
 ```
 
 ---
