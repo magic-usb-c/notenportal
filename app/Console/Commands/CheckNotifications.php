@@ -53,15 +53,20 @@ class CheckNotifications extends Command
         return self::SUCCESS;
     }
 
-    /** @return Collection<int, Lernender> aktive Lernende mit laufender Lehre */
-    private function aktiveLernende(): Collection
+    /**
+     * @param  Carbon|null  $stichtag  Bis wann die Lehre mindestens laufen muss (Standard: heute); der Semesterabschluss
+     *                                 läuft erst nach dem Semesterende und braucht dessen Datum.
+     * @return Collection<int, Lernender> aktive Lernende mit laufender Lehre
+     */
+    private function aktiveLernende(?Carbon $stichtag = null): Collection
     {
         $heute = today()->toDateString();
+        $lehrendeAb = ($stichtag ?? today())->toDateString();
 
         return Lernender::query()
             ->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))
             ->where('lehrbeginn', '<=', $heute)
-            ->where(fn ($q) => $q->whereNull('lehrende')->orWhere('lehrende', '>=', $heute))
+            ->where(fn ($q) => $q->whereNull('lehrende')->orWhere('lehrende', '>=', $lehrendeAb))
             ->with('benutzer')
             ->get();
     }
@@ -99,8 +104,13 @@ class CheckNotifications extends Command
                 continue;
             }
 
+            // Übergang: Merker vor dem 30.10.2026 hiessen «pruefung:<id>» ohne Datum; einer aus dem laufenden Fenster gilt als verschickt.
+            if ($this->alterMerker($benutzer, NotificationCatalog::EXAM_REMINDER, 'pruefung:'.$p->pruefung_id, today()->subDays($tage))) {
+                continue;
+            }
+
             $this->melden(
-                $benutzer, NotificationCatalog::EXAM_REMINDER, 'pruefung:'.$p->pruefung_id,
+                $benutzer, NotificationCatalog::EXAM_REMINDER, 'pruefung:'.$p->pruefung_id.':'.$p->datum->toDateString(),
                 fn () => ExamReminder::content($p), 'Prüfung '.$p->bezeichnung().' am '.$p->datum->format('d.m.Y')
             );
         }
@@ -135,12 +145,32 @@ class CheckNotifications extends Command
             }
 
             $periode = intdiv($ueberschuss, $wiederholung);
+            // Bezugsdatum im Schlüssel: jede neue Inaktivitätsphase (nach einer neuen Note) beginnt mit frischen Merkern.
+            $schluessel = 'inaktiv:'.$l->lernender_id.':'.$bezug->copy()->startOfDay()->toDateString().':'.$periode;
+
+            // Übergang: Merker vor dem 30.10.2026 hiessen «inaktiv:<id>:<periode>» ohne Bezugsdatum. Einer aus der laufenden
+            // Phase (nach der letzten Note bzw. ab Lehrbeginn) gilt als verschickt.
+            $phaseAb = isset($letzte[$l->lernender_id]) ? $bezug : $bezug->copy()->startOfDay();
+            if ($this->alterMerker($l->benutzer, NotificationCatalog::INACTIVITY, 'inaktiv:'.$l->lernender_id.':'.$periode, $phaseAb)) {
+                continue;
+            }
 
             $this->melden(
-                $l->benutzer, NotificationCatalog::INACTIVITY, 'inaktiv:'.$l->lernender_id.':'.$periode,
+                $l->benutzer, NotificationCatalog::INACTIVITY, $schluessel,
                 fn () => Inactivity::content($l, $tageSeit), 'Inaktivität '.$tageSeit.' Tage ('.$l->benutzer->email.')'
             );
         }
+    }
+
+    /** Merker in der alten Schlüsselform (vor dem 30.10.2026), angelegt ab $ab. Nach einer Wiederholungsperiode entbehrlich. */
+    private function alterMerker(User $benutzer, string $typ, string $schluessel, Carbon $ab): bool
+    {
+        return NotificationMark::query()
+            ->where('user_id', $benutzer->benutzer_id)
+            ->where('type', $typ)
+            ->where('subject_key', $schluessel)
+            ->where('created_at', '>=', $ab)
+            ->exists();
     }
 
     private function semesterEnding(NotenQuelle $quelle): void
@@ -201,7 +231,8 @@ class CheckNotifications extends Command
         foreach ($semester as $semesterEintrag) {
             $betreuerZeilen = []; // berufsbildner_id => list<array{lernender: Lernender, schnitt: ?float, ungenuegend: int}>
 
-            foreach ($this->aktiveLernende() as $l) {
+            // Wer bis einschliesslich Semesterende in Lehre war, gehört dazu, auch wenn die Lehre heute schon vorbei ist.
+            foreach ($this->aktiveLernende($semesterEintrag->end_datum) as $l) {
                 if ($l->lehrbeginn->toDateString() > $semesterEintrag->end_datum->toDateString()) {
                     continue;
                 }

@@ -26,7 +26,7 @@ class BetreuungController extends VerwaltungController
         Gate::authorize('betreuungVerwalten', $lernender);
 
         $daten = $request->validate([
-            'berufsbildner_id' => ['required', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')],
+            'berufsbildner_id' => ['required', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')->whereIn('benutzer_id', DB::table('benutzer')->where('aktiv', 1)->select('benutzer_id'))],
             'gueltig_von' => ['required', 'date'],
         ]);
 
@@ -53,7 +53,7 @@ class BetreuungController extends VerwaltungController
         Protokoll::schreiben(Protokoll::ADMIN_BETREUUNG_ANGELEGT, $betreuung->setRelation('lernender', $lernender));
         if ($neuerBerufsbildner?->benutzer) {
             $lernender->loadMissing('benutzer', 'lehrberuf');
-            Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, fn () => LearnerAssigned::content($lernender));
+            Notifier::send($neuerBerufsbildner->benutzer, NotificationCatalog::LEARNER_ASSIGNED, fn () => LearnerAssigned::content($lernender, $von));
         }
 
         return $this->zurueckZumLernenden($request, $lernender_id, __('Betreuung eingetragen.'));

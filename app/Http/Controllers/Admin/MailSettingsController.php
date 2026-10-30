@@ -31,6 +31,12 @@ class MailSettingsController extends Controller
         $validated = $request->validate(['test_to' => ['required', 'email', 'max:190']]);
         $to = $validated['test_to'];
 
+        // Ohne eingerichteten Server schreibt der Log-Transport die Mail nur in die Logdatei und meldet trotzdem «gesendet»
+        if (MailSettings::values()['source'] === 'none' && config('mail.default') === 'log') {
+            return $this->zurueck($request)
+                ->with('error', __('Kein Mailserver eingerichtet – die Testmail wurde nicht verschickt.'));
+        }
+
         $werte = MailSettings::values();
         $content = new MailContent(
             subject: __('Testmail aus dem Notenportal'),

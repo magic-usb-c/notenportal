@@ -1,52 +1,52 @@
-{{ $c->title ?? $c->subject }}
+{!! $c->title ?? $c->subject !!}
 
 @if($vorname)
-{{ __('Hallo :vorname', ['vorname' => $vorname]) }}
+{!! __('Hallo :vorname', ['vorname' => $vorname]) !!}
 
 @endif
 @foreach($c->lines as $zeile)
-{{ $zeile }}
+{!! $zeile !!}
 
 @endforeach
 @foreach($c->facts as $label => $wert)
-{{ $label }}: {{ $wert }}
+{!! $label !!}: {!! $wert !!}
 @endforeach
 @foreach($c->sections as $abschnitt)
 
-{{ mb_strtoupper($abschnitt['title']) }}
-{{ trim($abschnitt['text']) }}
+{!! mb_strtoupper($abschnitt['title']) !!}
+{!! trim($abschnitt['text']) !!}
 @endforeach
 @if($c->table)
 
-{{ implode(' | ', $c->table['head']) }}
+{!! implode(' | ', $c->table['head']) !!}
 @foreach($c->table['rows'] as $zeile)
-{{ implode(' | ', $zeile) }}
+{!! implode(' | ', $zeile) !!}
 @endforeach
 @endif
 @foreach(collect($c->items)->groupBy(fn ($i) => $i['group'] ?? '') as $gruppe => $eintraege)
 
-@if($gruppe !== ''){{ mb_strtoupper($gruppe) }}
+@if($gruppe !== ''){!! mb_strtoupper($gruppe) !!}
 @endif
 @foreach($eintraege as $e)
-- {{ $e['title'] }}@if(! empty($e['text'])) – {{ $e['text'] }}@endif @if(! empty($e['url']))
-  {{ $e['url'] }}
+- {!! $e['title'] !!}@if(! empty($e['text'])) – {!! $e['text'] !!}@endif @if(! empty($e['url']))
+  {!! $e['url'] !!}
 @endif
 @endforeach
 @endforeach
 @if($c->actionUrl)
 
-{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}: {{ $c->actionUrl }}
+{!! $c->actionLabel ?? __('Im Notenportal öffnen') !!}: {!! $c->actionUrl !!}
 @endif
 @foreach($c->outro as $zeile)
 
-{{ $zeile }}
+{!! $zeile !!}
 @endforeach
 
 --
-@if($anlass){{ __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) }}
+@if($anlass){!! __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) !!}
 @endif
-@if($einstellungenUrl){{ __('Benachrichtigungen einstellen') }}: {{ $einstellungenUrl }}
+@if($einstellungenUrl){!! __('Benachrichtigungen einstellen') !!}: {!! $einstellungenUrl !!}
 @endif
-@if($abmeldenUrl){{ __('Abbestellen') }}: {{ $abmeldenUrl }}
+@if($abmeldenUrl){!! __('Abbestellen') !!}: {!! $abmeldenUrl !!}
 @endif
-Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }} – {{ $portalUrl }}
+Notenportal{!! $betrieb !== '' ? ' '.$betrieb : '' !!} – {!! $portalUrl !!}

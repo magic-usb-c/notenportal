@@ -28,11 +28,14 @@ final class GradeSeen
 
     public static function sammel(int $anzahl, string $zielUrl): MailContent
     {
-        $betreff = __(':anzahl Noten angesehen', ['anzahl' => $anzahl]);
+        $betreff = $anzahl === 1 ? __('1 Note angesehen') : __(':anzahl Noten angesehen', ['anzahl' => $anzahl]);
+        $zeile = $anzahl === 1
+            ? __('Dein Berufsbildner hat 1 Note als gesehen markiert.')
+            : __('Dein Berufsbildner hat :anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl]);
 
         return new MailContent(
             subject: $betreff,
-            lines: [__('Dein Berufsbildner hat :anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl])],
+            lines: [$zeile],
             actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
             digestTitle: $betreff,

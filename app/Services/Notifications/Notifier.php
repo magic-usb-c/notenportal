@@ -13,6 +13,7 @@ use App\Notifications\PortalMail;
 use Closure;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -26,6 +27,9 @@ use Illuminate\Support\Facades\Notification;
  */
 final class Notifier
 {
+    /** Code der RuntimeException aus retry(), wenn die Adresse nicht zustellbar ist. */
+    public const int NICHT_ZUSTELLBAR = 1;
+
     /** Domains, die nie zustellbar sind (Test- und Demo-Konten). */
     private const array UNZUSTELLBAR = ['.local', '.example', '.test', '.invalid', '.localhost', '@example.com', '@example.org', '@example.net'];
 
@@ -142,8 +146,39 @@ final class Notifier
         if ($log->user_id && (! $user || ! $user->aktiv || $user->trashed())) {
             throw new \RuntimeException('Das Konto ist deaktiviert oder gelöscht – kein erneuter Versand.');
         }
+        // Testadresse ohne Umleitung: gar nicht erst eine weitere «Nicht zustellbar»-Zeile anlegen
+        if (! self::deliverable((string) ($user?->email ?? $log->recipient)) && ! MailSettings::redirectTo()) {
+            throw new \RuntimeException('Adresse nicht zustellbar', self::NICHT_ZUSTELLBAR);
+        }
 
-        return self::dispatch($user ?? $log->recipient, $log->type, MailContent::fromArray((array) $log->payload));
+        $neu = self::dispatch($user ?? $log->recipient, $log->type, MailContent::fromArray((array) $log->payload));
+        self::fehlgeschlageneJobsAbraeumen($log->id);
+
+        return $neu;
+    }
+
+    /**
+     * Entfernt den fehlgeschlagenen Queue-Job einer Protokollzeile, deren Mail neu gesendet wurde –
+     * sonst bleibt «Fehlgeschlagene Jobs» (Übersicht, Bereitschaft) dauerhaft rot.
+     * Zuordnung über die logId im serialisierten PortalMail; Wirft nie.
+     */
+    private static function fehlgeschlageneJobsAbraeumen(int $logId): void
+    {
+        try {
+            $muster = '/s:5:"logId";i:'.$logId.';/';
+            $ids = [];
+            foreach (DB::table('failed_jobs')->select('id', 'payload')->orderByDesc('id')->limit(500)->get() as $job) {
+                $befehl = (string) (json_decode((string) $job->payload, true)['data']['command'] ?? '');
+                if ($befehl !== '' && preg_match($muster, $befehl) === 1) {
+                    $ids[] = $job->id;
+                }
+            }
+            if ($ids !== []) {
+                DB::table('failed_jobs')->whereIn('id', $ids)->delete();
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     /** true beim ersten Aufruf je Benutzer/Anlass/Gegenstand, danach false. */

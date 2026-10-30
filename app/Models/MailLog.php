@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/** Versandprotokoll: jede Mail mit Status queued → sent | failed, skipped (nicht zustellbar). */
+/** Versandprotokoll: jede Mail mit Status queued → sent | failed, skipped (nicht zustellbar); retried = erneut gesendet (neue Zeile). */
 #[Fillable(['user_id', 'type', 'recipient', 'redirected_to', 'subject', 'status', 'attempts', 'error', 'payload', 'sent_at', 'failed_at'])]
 #[Table(name: 'mail_log')]
 class MailLog extends Model
@@ -24,11 +24,14 @@ class MailLog extends Model
 
     public const string SKIPPED = 'skipped';
 
+    public const string RETRIED = 'retried';
+
     public const array STATUS = [
         self::QUEUED => 'In Warteschlange',
         self::SENT => 'Verschickt',
         self::FAILED => 'Fehlgeschlagen',
         self::SKIPPED => 'Nicht zustellbar',
+        self::RETRIED => 'Erneut gesendet',
     ];
 
     public function user(): BelongsTo

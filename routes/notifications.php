@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\UnsubscribeController;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Support\Facades\Route;
 
@@ -20,12 +21,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/settings/notifications', [NotificationPreferenceController::class, 'update'])->name('notifications.settings.update');
 });
 
-// Abbestellen aus der Mail: signierter Link ohne Login; POST = One-Click nach RFC 8058 (Mailprogramm, ohne CSRF-Token)
+// Abbestellen aus der Mail: signierter Link ohne Login; POST = One-Click nach RFC 8058 (Mailprogramm, ohne CSRF-Token).
+// Beide Klassen ausschliessen: Die web-Gruppe enthält PreventRequestForgery, ValidateCsrfToken ist nur eine veraltete Unterklasse davon.
 Route::middleware(['signed', 'throttle:30,1,unsubscribe'])->group(function () {
     Route::get('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'show'])
         ->whereNumber('user')->name('notifications.unsubscribe');
     Route::post('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'store'])
-        ->whereNumber('user')->withoutMiddleware(ValidateCsrfToken::class)->name('notifications.unsubscribe.store');
+        ->whereNumber('user')->withoutMiddleware([ValidateCsrfToken::class, PreventRequestForgery::class])->name('notifications.unsubscribe.store');
 });
 
 // Passwort vergessen / festlegen per Mail-Link (auch für neu eröffnete Konten)

@@ -23,6 +23,10 @@ Schedule::command('notifications:check')->dailyAt('06:30')->withoutOverlapping()
 // Abonnierte Kalender (Schulnetz-iCal) stündlich abgleichen
 Schedule::command('calendar:sync')->hourlyAt(17)->withoutOverlapping()->runInBackground();
 
+// Fehlgeschlagene Jobs nach 7 Tagen löschen: Bereitschaft und Admin-Übersicht zählen alle Einträge in failed_jobs
+// und blieben sonst dauerhaft auf alten Fehlern stehen; das Mail-Protokoll zeigt ohnehin nur die letzte Woche.
+Schedule::command('queue:prune-failed --hours=168')->dailyAt('03:30')->withoutOverlapping();
+
 // Aktivitätsprotokoll: Einträge älter als 365 Tage löschen
 Schedule::command('notenportal:aktivitaeten-aufraeumen')->dailyAt('03:15')->withoutOverlapping();
 

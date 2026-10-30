@@ -2,7 +2,9 @@
     // Mailprogramme kennen keine CSS-Variablen: Farben inline (entsprechen den Tokens aus theme.css, Hell).
     $f = ['bg' => '#eef2f7', 'card' => '#ffffff', 'text' => '#0f172a', 'muted' => '#475569', 'border' => '#e2e8f0', 'accent' => '#2563eb', 'soft' => '#f1f5f9'];
     $schrift = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif";
-    $absatz = function (string $text) use ($f): string {
+    // Lange Wörter ohne Leerzeichen (URLs in Kommentaren) dürfen die Karte nicht aufweiten.
+    $umbruch = 'overflow-wrap:anywhere;word-break:break-word;';
+    $absatz = function (string $text) use ($umbruch): string {
         $html = '';
         $liste = false;
         foreach (preg_split('/\R/u', trim($text)) as $zeile) {
@@ -12,14 +14,14 @@
                     $html .= '<ul style="margin:4px 0 10px;padding-left:20px;">';
                     $liste = true;
                 }
-                $html .= '<li style="margin:3px 0;">'.e($m[1]).'</li>';
+                $html .= '<li style="margin:3px 0;'.$umbruch.'">'.e($m[1]).'</li>';
                 continue;
             }
             if ($liste) {
                 $html .= '</ul>';
                 $liste = false;
             }
-            $html .= $t === '' ? '<div style="height:6px;line-height:6px;">&nbsp;</div>' : '<p style="margin:0 0 6px;">'.e($t).'</p>';
+            $html .= $t === '' ? '<div style="height:6px;line-height:6px;">&nbsp;</div>' : '<p style="margin:0 0 6px;'.$umbruch.'">'.e($t).'</p>';
         }
 
         return $html.($liste ? '</ul>' : '');
@@ -40,6 +42,7 @@
             .np-body { background: #020617 !important; } .np-card { background: #0f172a !important; border-color: #334155 !important; }
             .np-text { color: #e2e8f0 !important; } .np-muted { color: #94a3b8 !important; } .np-soft { background: #1e293b !important; }
             .np-line { border-color: #334155 !important; }
+            .np-link { color: #93c5fd !important; } .np-link-muted { color: #94a3b8 !important; }
         }
     </style>
 </head>
@@ -61,10 +64,10 @@
             <tr><td class="np-card" style="background:{{ $f['card'] }};border:1px solid {{ $f['border'] }};border-radius:16px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr><td class="np-pad np-text" style="padding:32px 36px 8px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:15px;line-height:1.55;">
-                        <h1 class="np-text" style="margin:0 0 18px;font-size:21px;line-height:1.3;font-weight:700;color:{{ $f['text'] }};">{{ $c->title ?? $c->subject }}</h1>
+                        <h1 class="np-text" style="margin:0 0 18px;font-size:21px;line-height:1.3;font-weight:700;color:{{ $f['text'] }};{{ $umbruch }}">{{ $c->title ?? $c->subject }}</h1>
                         @if($vorname)<p style="margin:0 0 12px;">{{ __('Hallo :vorname', ['vorname' => $vorname]) }}</p>@endif
                         @foreach($c->lines as $zeile)
-                            <p style="margin:0 0 12px;">{{ $zeile }}</p>
+                            <p style="margin:0 0 12px;{{ $umbruch }}">{{ $zeile }}</p>
                         @endforeach
                     </td></tr>
 
@@ -73,8 +76,8 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" class="np-soft" style="background:{{ $f['soft'] }};border-radius:12px;">
                                 @foreach($c->facts as $label => $wert)
                                     <tr>
-                                        <td class="np-muted np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};width:38%;vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $label }}</td>
-                                        <td class="np-text np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:14px;font-weight:600;color:{{ $f['text'] }};vertical-align:top;{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $wert }}</td>
+                                        <td class="np-muted np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};width:38%;vertical-align:top;{{ $umbruch }}{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $label }}</td>
+                                        <td class="np-text np-line" style="padding:10px 16px;font-family:{{ $schrift }};font-size:14px;font-weight:600;color:{{ $f['text'] }};vertical-align:top;{{ $umbruch }}{{ $loop->last ? '' : 'border-bottom:1px solid '.$f['border'].';' }}">{{ $wert }}</td>
                                     </tr>
                                 @endforeach
                             </table>
@@ -93,13 +96,13 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:{{ $schrift }};font-size:14px;border-collapse:collapse;">
                                 <tr>
                                     @foreach($c->table['head'] as $i => $kopf)
-                                        <th class="np-muted np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 6px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
+                                        <th class="np-muted np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 4px;font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
                                     @endforeach
                                 </tr>
                                 @foreach($c->table['rows'] as $zeile)
                                     <tr>
                                         @foreach($zeile as $i => $zelle)
-                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 6px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $i === 0 ? '' : 'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
+                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 4px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $umbruch }}{{ $i === 0 ? '' : 'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
                                         @endforeach
                                     </tr>
                                 @endforeach
@@ -113,11 +116,11 @@
                             @foreach($eintraege as $e)
                                 <div class="np-line" style="padding:9px 0;border-bottom:1px solid {{ $f['border'] }};">
                                     @if(! empty($e['url']))
-                                        <a href="{{ $e['url'] }}" style="color:{{ $f['accent'] }};font-weight:600;font-size:14px;text-decoration:none;">{{ $e['title'] }}</a>
+                                        <a class="np-link" href="{{ $e['url'] }}" style="color:{{ $f['accent'] }};font-weight:600;font-size:14px;text-decoration:none;{{ $umbruch }}">{{ $e['title'] }}</a>
                                     @else
-                                        <span class="np-text" style="color:{{ $f['text'] }};font-weight:600;font-size:14px;">{{ $e['title'] }}</span>
+                                        <span class="np-text" style="color:{{ $f['text'] }};font-weight:600;font-size:14px;{{ $umbruch }}">{{ $e['title'] }}</span>
                                     @endif
-                                    @if(! empty($e['text']))<div class="np-muted" style="color:{{ $f['muted'] }};font-size:13px;margin-top:2px;">{{ $e['text'] }}</div>@endif
+                                    @if(! empty($e['text']))<div class="np-muted" style="color:{{ $f['muted'] }};font-size:13px;margin-top:2px;{{ $umbruch }}">{{ $e['text'] }}</div>@endif
                                 </div>
                             @endforeach
                         </td></tr>
@@ -131,7 +134,7 @@
 
                     <tr><td class="np-pad np-text" style="padding:18px 36px 30px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:14px;line-height:1.55;">
                         @foreach($c->outro as $zeile)
-                            <p style="margin:0 0 10px;">{{ $zeile }}</p>
+                            <p style="margin:0 0 10px;{{ $umbruch }}">{{ $zeile }}</p>
                         @endforeach
                         @if($c->actionUrl)
                             <p class="np-muted" style="margin:10px 0 0;font-size:12px;color:{{ $f['muted'] }};word-break:break-all;">{{ __('Knopf funktioniert nicht?') }} {{ $c->actionUrl }}</p>
@@ -141,9 +144,9 @@
             </td></tr>
             <tr><td class="np-pad np-muted" style="padding:18px 8px 0;font-family:{{ $schrift }};font-size:12px;line-height:1.6;color:{{ $f['muted'] }};">
                 @if($anlass){{ __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) }}@endif
-                @if($einstellungenUrl) <a href="{{ $einstellungenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Benachrichtigungen einstellen') }}</a>@endif
-                @if($abmeldenUrl) · <a href="{{ $abmeldenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Diese Mails abbestellen') }}</a>@endif
-                <br><a href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
+                @if($einstellungenUrl) <a class="np-link-muted" href="{{ $einstellungenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Benachrichtigungen einstellen') }}</a>@endif
+                @if($abmeldenUrl) · <a class="np-link-muted" href="{{ $abmeldenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Diese Mails abbestellen') }}</a>@endif
+                <br><a class="np-link-muted" href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
             </td></tr>
         </table>
     </td></tr>

@@ -12,6 +12,7 @@ use App\Models\Semester;
 use App\Models\User;
 use App\Notifications\PortalMail;
 use App\Services\Notifications\NotificationCatalog;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use PHPUnit\Framework\Attributes\Test;
@@ -174,6 +175,170 @@ class TaeglichePruefungTest extends TestCase
         Notification::assertSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_CLOSED);
         Notification::assertSentTo($bb, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_CLOSED);
         $this->assertSame(2, DB::table('mail_log')->where('type', NotificationCatalog::SEMESTER_CLOSED)->count());
+    }
+
+    #[Test]
+    public function verschobene_pruefung_wird_zum_neuen_datum_erneut_erinnert(): void
+    {
+        Notification::fake();
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $pruefung = Pruefung::create([
+            'lernender_id' => $lernenderUser->lernender->lernender_id, 'fach_id' => Fach::factory()->create()->fach_id,
+            'titel' => 'Testat', 'datum' => today()->addDays(2)->toDateString(), 'gewichtung_prozent' => 50,
+        ]);
+        $anzahl = fn () => Notification::sent($lernenderUser, PortalMail::class)->filter(fn (PortalMail $m) => $m->type === NotificationCatalog::EXAM_REMINDER)->count();
+
+        $this->artisan('notifications:check');
+        $this->artisan('notifications:check');
+        $this->assertSame(1, $anzahl());
+
+        $pruefung->update(['datum' => today()->addDays(20)->toDateString()]);
+        $this->travel(17)->days();
+        $this->artisan('notifications:check');
+        $this->artisan('notifications:check');
+
+        $this->assertSame(2, $anzahl());
+    }
+
+    #[Test]
+    public function alter_pruefungsmerker_ohne_datum_verhindert_doppelte_erinnerung(): void
+    {
+        Notification::fake();
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $pruefung = Pruefung::create([
+            'lernender_id' => $lernenderUser->lernender->lernender_id, 'fach_id' => Fach::factory()->create()->fach_id,
+            'titel' => 'Testat', 'datum' => today()->addDays(2)->toDateString(), 'gewichtung_prozent' => 50,
+        ]);
+        $marke = fn (Carbon $am) => NotificationMark::query()->insert([
+            'user_id' => $lernenderUser->benutzer_id, 'type' => NotificationCatalog::EXAM_REMINDER,
+            'subject_key' => 'pruefung:'.$pruefung->pruefung_id, 'created_at' => $am,
+        ]);
+        $anzahl = fn () => Notification::sent($lernenderUser, PortalMail::class)->filter(fn (PortalMail $m) => $m->type === NotificationCatalog::EXAM_REMINDER)->count();
+
+        // Alter Merker von gestern (laufendes Fenster): keine zweite Erinnerung
+        $marke(now()->subDay());
+        $this->artisan('notifications:check');
+        $this->assertSame(0, $anzahl());
+
+        // Alter Merker vor dem Fenster (Prüfung seither verschoben): Erinnerung kommt
+        NotificationMark::query()->delete();
+        $marke(now()->subDays(30));
+        $this->artisan('notifications:check');
+        $this->assertSame(1, $anzahl());
+    }
+
+    #[Test]
+    public function inaktivitaetserinnerung_kommt_in_einer_zweiten_inaktivitaetsphase_erneut(): void
+    {
+        Notification::fake();
+        $start = Carbon::create(2027, 3, 1, 7, 0, 0);
+        Carbon::setTestNow($start);
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $id = $lernenderUser->lernender->lernender_id;
+        DB::table('lernende')->where('lernender_id', $id)->update(['lehrbeginn' => $start->toDateString(), 'lehrende' => null]);
+        $anzahl = fn () => Notification::sent($lernenderUser, PortalMail::class)->filter(fn (PortalMail $m) => $m->type === NotificationCatalog::INACTIVITY)->count();
+
+        try {
+            for ($tag = 1; $tag <= 60; $tag++) {
+                Carbon::setTestNow($start->copy()->addDays($tag));
+                $this->artisan('notifications:check');
+            }
+            $ersteStufe = $anzahl();
+            $this->assertGreaterThanOrEqual(1, $ersteStufe);
+
+            $note = Note::factory()->create(['lernender_id' => $id]);
+            DB::table('noten')->where('note_id', $note->note_id)->update(['erstellt_am' => $start->copy()->addDays(60)->toDateTimeString()]);
+
+            for ($tag = 61; $tag <= 100; $tag++) {
+                Carbon::setTestNow($start->copy()->addDays($tag));
+                $this->artisan('notifications:check');
+            }
+
+            $this->assertGreaterThan($ersteStufe, $anzahl());
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    #[Test]
+    public function alter_inaktivitaetsmerker_ohne_bezugsdatum_verhindert_doppelte_erinnerung(): void
+    {
+        Notification::fake();
+        $start = Carbon::create(2027, 3, 1, 7, 0, 0);
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $id = $lernenderUser->lernender->lernender_id;
+        DB::table('lernende')->where('lernender_id', $id)->update(['lehrbeginn' => $start->toDateString(), 'lehrende' => null]);
+        $tage = NotificationCatalog::param(NotificationCatalog::INACTIVITY, 'days');
+        $marke = fn (Carbon $am) => NotificationMark::query()->insert([
+            'user_id' => $lernenderUser->benutzer_id, 'type' => NotificationCatalog::INACTIVITY,
+            'subject_key' => 'inaktiv:'.$id.':0', 'created_at' => $am,
+        ]);
+        $anzahl = fn () => Notification::sent($lernenderUser, PortalMail::class)->filter(fn (PortalMail $m) => $m->type === NotificationCatalog::INACTIVITY)->count();
+
+        try {
+            // Alter Merker aus der laufenden Phase: keine zweite Erinnerung
+            $marke($start->copy()->addDays($tage));
+            Carbon::setTestNow($start->copy()->addDays($tage + 1));
+            $this->artisan('notifications:check');
+            $this->assertSame(0, $anzahl());
+
+            // Alter Merker liegt vor der laufenden Phase (neue Note danach): Erinnerung kommt
+            NotificationMark::query()->delete();
+            $marke($start->copy()->subDays(5));
+            $this->artisan('notifications:check');
+            $this->assertSame(1, $anzahl());
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    #[Test]
+    public function semesterabschluss_kommt_auch_wenn_die_lehre_am_semesterende_endet(): void
+    {
+        Notification::fake();
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $lernender = $lernenderUser->lernender;
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch']);
+        $this->betreue($bb, $lernender);
+
+        $semester = Semester::factory()->create([
+            'start_datum' => today()->subMonths(6)->toDateString(),
+            'end_datum' => today()->subDay()->toDateString(),
+        ]);
+        DB::table('lernende')->where('lernender_id', $lernender->lernender_id)->update(['lehrende' => today()->subDay()->toDateString()]);
+        Note::factory()->create([
+            'lernender_id' => $lernender->lernender_id,
+            'semester_id' => $semester->semester_id,
+            'fach_id' => Fach::factory()->create()->fach_id,
+            'note_wert' => 4.5,
+        ]);
+
+        $this->artisan('notifications:check');
+
+        Notification::assertSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_CLOSED);
+        Notification::assertSentTo($bb, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_CLOSED);
+    }
+
+    #[Test]
+    public function semesterabschluss_kommt_nicht_wenn_die_lehre_vor_dem_semesterende_endete(): void
+    {
+        Notification::fake();
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $semester = Semester::factory()->create([
+            'start_datum' => today()->subMonths(6)->toDateString(),
+            'end_datum' => today()->subDay()->toDateString(),
+        ]);
+        DB::table('lernende')->where('lernender_id', $lernenderUser->lernender->lernender_id)->update(['lehrende' => today()->subDays(3)->toDateString()]);
+        Note::factory()->create([
+            'lernender_id' => $lernenderUser->lernender->lernender_id,
+            'semester_id' => $semester->semester_id,
+            'fach_id' => Fach::factory()->create()->fach_id,
+            'note_wert' => 4.5,
+        ]);
+
+        $this->artisan('notifications:check');
+
+        Notification::assertNotSentTo($lernenderUser, PortalMail::class, fn (PortalMail $m) => $m->type === NotificationCatalog::SEMESTER_CLOSED);
     }
 
     #[Test]

@@ -1,6 +1,6 @@
 {{-- Versandprotokoll: Kennzahlen der letzten sieben Tage (antippbar = Filter), darunter jede verschickte E-Mail. --}}
 @php
-    $statusMap = ['sent' => 'gruen', 'failed' => 'rot', 'skipped' => 'neutral', 'queued' => 'gelb'];
+    $statusMap = ['sent' => 'gruen', 'failed' => 'rot', 'skipped' => 'neutral', 'retried' => 'neutral', 'queued' => 'gelb'];
     $kacheln = [
         ['label' => __('Verschickt (7 Tage)'), 'wert' => $kennzahlen['verschickt'], 'status' => \App\Models\MailLog::SENT, 'ton' => 'neutral'],
         ['label' => __('Fehlgeschlagen (7 Tage)'), 'wert' => $kennzahlen['fehlgeschlagen'], 'status' => \App\Models\MailLog::FAILED, 'ton' => $kennzahlen['fehlgeschlagen'] > 0 ? 'rot' : 'neutral'],

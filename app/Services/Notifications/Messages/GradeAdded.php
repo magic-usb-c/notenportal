@@ -31,11 +31,16 @@ final class GradeAdded
     public static function sammel(Lernender $lernender, int $anzahl, string $zielUrl): MailContent
     {
         $name = trim($lernender->benutzer->vorname.' '.$lernender->benutzer->nachname);
-        $betreff = __(':name: :anzahl Noten importiert', ['name' => $name, 'anzahl' => $anzahl]);
+        $betreff = $anzahl === 1
+            ? __(':name: 1 Note importiert', ['name' => $name])
+            : __(':name: :anzahl Noten importiert', ['name' => $name, 'anzahl' => $anzahl]);
+        $zeile = $anzahl === 1
+            ? __(':name hat 1 Note importiert.', ['name' => $name])
+            : __(':name hat :anzahl Noten importiert.', ['name' => $name, 'anzahl' => $anzahl]);
 
         return new MailContent(
             subject: $betreff,
-            lines: [__(':name hat :anzahl Noten importiert.', ['name' => $name, 'anzahl' => $anzahl])],
+            lines: [$zeile],
             actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
             digestTitle: $betreff,

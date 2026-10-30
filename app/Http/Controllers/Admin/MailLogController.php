@@ -18,16 +18,16 @@ class MailLogController extends Controller
 {
     public function index(Request $request): View
     {
-        $status = (string) $request->input('status', '');
-        $type = (string) $request->input('type', '');
-        $q = trim((string) $request->input('q', ''));
+        $status = is_string($status = $request->input('status')) ? $status : '';
+        $type = is_string($type = $request->input('type')) ? $type : '';
+        $q = is_string($q = $request->input('q')) ? trim($q) : '';
 
         $seit = now()->subDays(7);
         $kennzahlen = [
             'verschickt' => MailLog::where('status', MailLog::SENT)->where('created_at', '>=', $seit)->count(),
             'fehlgeschlagen' => MailLog::where('status', MailLog::FAILED)->where('created_at', '>=', $seit)->count(),
             'nicht_zustellbar' => MailLog::where('status', MailLog::SKIPPED)->where('created_at', '>=', $seit)->count(),
-            'warteschlange' => DB::table('jobs')->count() + DB::table('failed_jobs')->count(),
+            'warteschlange' => DB::table('jobs')->count() + DB::table('failed_jobs')->where('failed_at', '>=', $seit)->count(),
         ];
 
         $eintraege = MailLog::query()
@@ -55,16 +55,33 @@ class MailLogController extends Controller
     public function retry(int $id): RedirectResponse
     {
         $log = MailLog::findOrFail($id);
+        $vorher = $log->status;
 
-        if (! in_array($log->status, [MailLog::FAILED, MailLog::SKIPPED], true)) {
+        // Zeile atomar beanspruchen: Doppelklick oder zweiter Admin kann dieselbe Mail nicht noch einmal auslösen
+        $beansprucht = MailLog::whereKey($id)
+            ->whereIn('status', [MailLog::FAILED, MailLog::SKIPPED])
+            ->update(['status' => MailLog::RETRIED]);
+        if ($beansprucht === 0) {
             return redirect()->route('admin.mail-log.index')
                 ->with('error', __('Nur fehlgeschlagene oder nicht zustellbare Mails können erneut gesendet werden.'));
         }
 
         try {
-            Notifier::retry($log);
-        } catch (\RuntimeException $e) {
-            return redirect()->route('admin.mail-log.index')->with('error', __($e->getMessage()));
+            $neu = Notifier::retry($log);
+        } catch (\Throwable $e) {
+            MailLog::whereKey($id)->update(['status' => $vorher]);
+            if (! $e instanceof \RuntimeException) {
+                throw $e;
+            }
+
+            return redirect()->route('admin.mail-log.index')->with('error', $e->getCode() === Notifier::NICHT_ZUSTELLBAR
+                ? __('Adresse nicht zustellbar – Mail-Umleitung setzen oder Adresse korrigieren.')
+                : __($e->getMessage()));
+        }
+
+        if ($neu->status === MailLog::FAILED) {
+            return redirect()->route('admin.mail-log.index')
+                ->with('error', __('Erneuter Versand fehlgeschlagen: :fehler', ['fehler' => mb_substr((string) $neu->error, 0, 150)]));
         }
 
         return redirect()->route('admin.mail-log.index')->with('success', __('Erneut in die Warteschlange gestellt.'));
