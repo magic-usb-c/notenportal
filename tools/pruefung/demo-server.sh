@@ -31,6 +31,13 @@ if [ -z "${APP_KEY:-}" ] && [ -s "$ZUSTAND/app_key" ]; then
     export APP_KEY
 fi
 
+# VM: install.sh cacht Konfiguration und Routen (bootstrap/cache). Mit Cache wirken DB_DATABASE und
+# APP_ENV nicht – der Demo-Server läse die Hauptdatenbank. Darum Cache-Pfade auf leere Ziele lenken.
+CACHE_LEER="$ZUSTAND/kein-cache"
+mkdir -p "$CACHE_LEER"
+export APP_CONFIG_CACHE="$CACHE_LEER/config.php" APP_ROUTES_CACHE="$CACHE_LEER/routes.php" \
+    APP_EVENTS_CACHE="$CACHE_LEER/events.php"
+
 laeuft() { curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$URL/login" 2>/dev/null | grep -q '^200$'; }
 
 starten() {
