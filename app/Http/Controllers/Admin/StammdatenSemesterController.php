@@ -36,7 +36,7 @@ class StammdatenSemesterController extends Controller
             'bezeichnung' => ['required', 'string', 'max:20', 'unique:semester,bezeichnung'],
             'start_datum' => ['required', 'date'],
             'end_datum' => ['required', 'date', 'after:start_datum'],
-            'sortierung' => ['nullable', 'integer', 'min:0'],
+            'sortierung' => ['nullable', 'integer', 'min:0', 'max:65535'],
         ]);
 
         // Ueberlappende Semester fuehren zu mehrdeutiger Notenzuordnung
@@ -86,7 +86,7 @@ class StammdatenSemesterController extends Controller
                 Rule::unique('semester', 'bezeichnung')->ignore($semester_id, 'semester_id')],
             'start_datum' => ['required', 'date'],
             'end_datum' => ['required', 'date', 'after:start_datum'],
-            'sortierung' => ['required', 'integer', 'min:0'],
+            'sortierung' => ['required', 'integer', 'min:0', 'max:65535'],
         ]);
 
         $overlap = DB::table('semester')

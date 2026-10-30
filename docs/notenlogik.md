@@ -1,6 +1,6 @@
 # Notenlogik
 
-Stand 30.09.2026. Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
+Stand 30.09.2026, Abschnitt «Statistik» ergänzt am 30.10.2026 (R6). Einzige fachliche Referenz für Durchschnitte, Rundung, Rechner, Ziele und geplante Prüfungen. Code: `app/Services/Auswertung/`.
 
 ## Begriffe
 
@@ -67,6 +67,28 @@ Szenario = echte Noten + geplante Prüfungen + Was-wäre-wenn-Noten. Ziel = Eben
 
 - `pruefungen`: Lernender plant Prüfung (Fach oder Modul, Datum, Gewicht, Titel). «Note eintragen» wandelt sie in eine Note um und löscht die Planung. Vergangene Planungen ohne Note erscheinen als «Note fehlt».
 - `ziele`: Zielwert je Ebene (gesamt, kategorie, fach, modul). Dashboard zeigt Abstand und benötigte Note in den geplanten Prüfungen.
+
+## Statistik (Verlauf, Verteilung, Veränderung)
+
+Die Statistikseiten (Katalog S1 bis S11 in `docs/gui-konzept.md`) rechnen nichts selbst: Durchschnitte kommen aus `Auswertung`/`Rechenkern`, Kennzahlen über Verteilungen aus `App\Services\Auswertung\Verteilung`, Verläufe und Vergleiche aus `App\Services\Auswertung\Statistik`. Controller, SQL und Views mitteln nie.
+
+**Stichtagsreihe** (`Statistik::stichtagsreihe`, S1): Wert einer Zielgrösse (Gesamt, Kategorie, Fach, Modul, Semester) an jedem Stichtag = Stand der Auswertung mit allen Leistungen, die **bis einschliesslich dieses Tages** datiert sind. Die Rechnung ist dieselbe wie sonst (`Rechenkern::auswerten`), nur auf die bis dahin bekannten Leistungen beschränkt, also mit denselben Rundungen und Gewichten.
+- Stichtage sind Monatsenden ab dem ersten Periodenende ab Beginn des Zeitraums; ist das Ende des Zeitraums kein Periodenende, ist es der letzte Stichtag. Gibt es mehr als 60 Monatsenden (`MAX_STICHTAGE`), wird auf Quartalsenden vergröbert und `meta.vergroebert` ist wahr.
+- Die Punkte des Diagramms sind die einzelnen erfassten Noten mit Datum (Fach, Titel, Wert) innerhalb des Zeitraums und der gewählten Zielgrösse; Annahmen ohne Wert, geplante Prüfungen und Notenbaum-Positionen sind keine Punkte.
+- **Leistungen ohne Datum** (IPA, Schlussprüfung, Positionen von Hand im Notenbaum, auch noch offene) stehen nie still in der Reihe, sondern in `meta.ohneDatum` und werden als Liste unter dem Verlauf gezeigt.
+- Zeiträume: Semester, Lehrjahr oder ganze Lehrzeit; die Achse ist das Datum oder das Semester.
+
+**Verteilung** (`Verteilung`, S8 bis S11):
+- **Quantile nach Typ 7** (lineare Interpolation, wie `quantile(type = 7)` in R): Position h = (n − 1) · p auf den sortierten Werten, Wert = Unterwert + Rest · (Oberwert − Unterwert). Median und Quartile q1 und q3 werden auf zwei Stellen gerundet.
+- **Mindestens 3 Werte** (`MINDESTANZAHL`): bei weniger gibt es keinen Median und keine Quartile (`null`), die Oberfläche zeigt dann keine Marke. Das gilt auch für kleine Gruppen, etwa ein Lehrjahr mit zwei Lernenden, und schützt vor Aussagen über einzelne Personen.
+- **Histogramm** in Klassen der Breite 0.25 von 1.0 bis 6.0 (`[von, von + Breite)`, die letzte Klasse schliesst 6.0 ein). Werte ausserhalb 1 bis 6 zählen nicht, weder in `n` noch im Median. Die Klassenzahlen summieren sich zur Zahl der gezählten Noten; gelöschte Noten (`geloescht_am`) fehlen.
+- Gerechnet wird über fertige Noten. Welche Noten das sind, bestimmt die Quelle der jeweiligen Statistik (`Bericht`, `Uebersicht`) nach den Regeln oben (Stufen werden nie gerechnet, nicht zählende Fächer zählen nicht).
+
+**Veränderung** (`Statistik::delta`, `hanteln`, S3 und S7): Delta = aktuell − Vorsemester, **auf zwei Stellen gerundet**; fehlt eine der beiden Noten, ist das Delta `null`. Eine Rundungsregel für Hanteln, Lernstand und Personenvergleich. Sortiert wird nach Delta, grösster Rückgang zuerst; Zeilen ohne Delta stehen am Ende. Die Gesamtveränderung einer Person (`Lernstand::delta`) ist die der Gesamtnote; mit Kategorienfilter wird je Person `Auswertung::semester` für beide Semester gerechnet.
+
+**Benötigte Note** (`Statistik::benoetigt`, S5 und S6): für jede offene Position und jede kommende Prüfung die Note für «genügend» (Grenze aus der Einstellung, nie aus dem Code), gelöst wie im Zielrechner: gleiche offene Leistungen auf derselben Zielgrösse erhalten gemeinsam dieselbe Note. Ergebnis je Zeile: bestanden, benötigt (Wert), nicht erreichbar, mit Minimum und Maximum. Datierte Prüfungen stehen zuerst. Die Berufsbildner-Seiten zeigen vorerst nur die Note für «genügend»; ob sie auch die persönlichen Ziele der Lernenden sehen dürfen, ist offen (`GUI-R6.md` §10).
+
+**Filter** (`App\Support\StatistikFilter`): Whitelist je Seite. Unbekannte Schlüssel werden ignoriert, unbekannte oder doppelte Werte fallen auf den Standard, nie ein Fehler; IDs (Kategorie, Fach, Semester, Lehrberuf) zählen nur, wenn sie zur Menge gehören, die die Person sehen darf. Die Adresse trägt nur, was vom Standard abweicht.
 
 ## Entfernt
 

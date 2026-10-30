@@ -193,4 +193,19 @@ class EinrichtungTest extends TestCase
 
         $this->assertDatabaseMissing('benutzer', ['email' => 'ra@betrieb.ch']);
     }
+
+    #[Test]
+    public function massenanlage_lehnt_inaktive_berufsbildner_ab(): void
+    {
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'TST', 'name' => 'Test EFZ']);
+        $bbUser = User::factory()->berufsbildner()->create(['aktiv' => false]);
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->post(route('admin.setup.learners'), ['lernende' => [
+            ['vorname' => 'Reto', 'nachname' => 'Amrein', 'email' => 'ra@betrieb.ch',
+                'lehrberuf_id' => $lehrberuf, 'lehrbeginn' => '2026-08-01', 'berufsbildner_id' => $bbUser->berufsbildner->berufsbildner_id],
+        ]])->assertSessionHasErrors('lernende.0.berufsbildner_id');
+
+        $this->assertDatabaseMissing('benutzer', ['email' => 'ra@betrieb.ch']);
+    }
 }

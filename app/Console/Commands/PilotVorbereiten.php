@@ -10,15 +10,16 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Start Testbetrieb: Konten, Lernende, Betreuungen und Tracks bleiben,
- * alle Testnoten samt Kommentaren, gesehen-Markierungen, Modulbelegungen
- * und Feedback werden gelöscht. Alle Konten müssen ihr Passwort neu setzen.
+ * alle Testnoten samt Kommentaren, gesehen-Markierungen, Modulbelegungen,
+ * Feedback, Tageszusammenfassungs-Einträge und Benachrichtigungs-Merker werden
+ * gelöscht. Alle Konten müssen ihr Passwort neu setzen.
  */
 #[Description('Testdaten für den Start des Testbetriebs bereinigen')]
 #[Signature('notenportal:pilot-vorbereiten {--ausfuehren : Änderungen wirklich schreiben (sonst nur Vorschau)}')]
 class PilotVorbereiten extends Command
 {
     /** Reihenfolge wegen Fremdschlüsseln. */
-    private const array TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'pruefungen', 'ziele', 'modul_belegungen', 'feedback'];
+    private const array TABELLEN = ['noten_gesehen', 'noten_kommentare', 'noten', 'pruefungen', 'ziele', 'modul_belegungen', 'feedback', 'notification_digest_items', 'notification_marks'];
 
     public function handle(): int
     {

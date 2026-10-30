@@ -76,7 +76,7 @@ class EinrichtungController extends Controller
     {
         $daten = $request->validate([
             'kategorien' => ['required', 'array'],
-            'kategorien.*.name' => ['required', 'string', 'max:50', 'distinct'],
+            'kategorien.*.name' => ['required', 'string', 'max:50', 'distinct:ignore_case'],
             'kategorien.*.aktiv' => ['boolean'],
             ...KategorieRegeln::regeln('kategorien.*.'),
         ]);
@@ -280,7 +280,7 @@ class EinrichtungController extends Controller
             'personen' => ['required', 'array', 'min:1', 'max:50'],
             'personen.*.vorname' => ['required', 'string', 'max:100'],
             'personen.*.nachname' => ['required', 'string', 'max:100'],
-            'personen.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:benutzer,email'],
+            'personen.*.email' => ['required', 'email', 'max:255', 'distinct:ignore_case', 'unique:benutzer,email'],
             'personen.*.rolle' => ['required', 'in:Berufsbildner,Admin'],
         ]);
 
@@ -327,11 +327,11 @@ class EinrichtungController extends Controller
             'lernende' => ['required', 'array', 'min:1', 'max:100'],
             'lernende.*.vorname' => ['required', 'string', 'max:100'],
             'lernende.*.nachname' => ['required', 'string', 'max:100'],
-            'lernende.*.email' => ['required', 'email', 'max:255', 'distinct', 'unique:benutzer,email'],
+            'lernende.*.email' => ['required', 'email', 'max:255', 'distinct:ignore_case', 'unique:benutzer,email'],
             'lernende.*.lehrberuf_id' => ['required', 'integer', 'exists:lehrberufe,lehrberuf_id'],
             'lernende.*.lehrbeginn' => ['required', 'date'],
             'lernende.*.lehrende' => ['nullable', 'date', 'after:lernende.*.lehrbeginn'],
-            'lernende.*.berufsbildner_id' => ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')],
+            'lernende.*.berufsbildner_id' => ['nullable', 'integer', Rule::exists('berufsbildner', 'berufsbildner_id')->whereNull('geloescht_am')->whereIn('benutzer_id', DB::table('benutzer')->where('aktiv', 1)->select('benutzer_id'))],
             'lernende.*.track' => ['nullable', 'in:BMS,ABU'],
         ]);
 
@@ -437,6 +437,7 @@ class EinrichtungController extends Controller
                     ->join('benutzer as b', 'b.benutzer_id', '=', 'bb.benutzer_id')
                     ->whereNull('bb.geloescht_am')
                     ->whereNull('b.geloescht_am')
+                    ->where('b.aktiv', 1)
                     ->orderBy('b.nachname')
                     ->get(['bb.berufsbildner_id', 'b.vorname', 'b.nachname']),
                 'lehrbeginn' => $schuljahr.'-08-01',

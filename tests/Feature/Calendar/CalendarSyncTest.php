@@ -222,7 +222,8 @@ class CalendarSyncTest extends TestCase
     #[Test]
     public function pruefung_ohne_modulnummer_wird_ueber_das_fachkuerzel_zugeordnet(): void
     {
-        $fach = Fach::factory()->create(['name' => 'Mathematik', 'kurzname' => 'MATH']);
+        $fach = Fach::factory()->create(['name' => 'Mathematik', 'kurzname' => 'MATH', 'track_typ' => null, 'kategorie_id' => Kategorie::where('code', 'FACH')->value('kategorie_id')]);
+        DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $this->user->lernender->lehrberuf_id, 'fach_id' => $fach->fach_id, 'aktiv' => 1]);
         $start = CarbonImmutable::now('Europe/Zurich')->addDays(10)->setTime(10, 0);
 
         $stats = app(CalendarSync::class)->apply($this->feed, $this->ics([

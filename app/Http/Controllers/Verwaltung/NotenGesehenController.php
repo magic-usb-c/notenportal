@@ -9,6 +9,7 @@ use App\Services\Notifications\MailContent;
 use App\Services\Notifications\Messages\GradeSeen;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Ungelesen;
 use Closure;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -37,13 +38,22 @@ class NotenGesehenController extends VerwaltungController
     {
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
 
-        $noteIds = self::gefilterteNoten($request, $lernender_id)->pluck('n.note_id')->all();
-        $this->markieren($noteIds, (int) $request->user()->benutzer_id);
+        $viewerId = (int) $request->user()->benutzer_id;
+
+        // Nur die für den Betrachter neuen Noten im Filter – dieselbe Menge, die der Zähler der Notenseite nennt
+        $noteIds = self::gefilterteNoten($request, $lernender_id)
+            ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
+            ->where(Ungelesen::bedingung($viewerId))
+            ->pluck('n.note_id')
+            ->all();
 
         $anzahl = count($noteIds);
-        if ($anzahl > 0) {
-            $this->benachrichtigen($lernender, fn () => GradeSeen::sammel($anzahl, route('learner.grades.index')));
+        if ($anzahl === 0) {
+            return back()->with('success', __('Keine neuen Noten.'));
         }
+
+        $this->markieren($noteIds, $viewerId);
+        $this->benachrichtigen($lernender, fn () => GradeSeen::sammel($anzahl, route('learner.grades.index')));
 
         return back()->with('success', $anzahl === 1 ? __('1 Note als gesehen markiert.') : __(':anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl]));
     }

@@ -102,7 +102,7 @@ class PruefungenController extends VerwaltungController
     /**
      * Prüfungen nach «kürzlich vergangen», dieser/nächster Woche und danach nach Monat gruppiert.
      *
-     * @return Collection<int, array{label: string, fehlt: bool, zeilen: Collection}>
+     * @return Collection<int, array{label: string, fehlt: bool, anzahlFehlt?: int, zeilen: Collection}>
      */
     private function gruppieren(Collection $pruefungen, CarbonImmutable $heute): Collection
     {
@@ -117,7 +117,10 @@ class PruefungenController extends VerwaltungController
 
         $gruppen = collect();
         if ($vergangen->isNotEmpty()) {
-            $gruppen->push(['label' => __('Kürzlich vergangen, ohne Note'), 'fehlt' => true, 'zeilen' => $mitStatus($vergangen)]);
+            $zeilen = $mitStatus($vergangen);
+            // Abgesagte Termine bleiben sichtbar, erwarten aber keine Note – wie in der Seitenleiste nicht mitzählen
+            $anzahlFehlt = $zeilen->where('zustand', 'fehlt')->count();
+            $gruppen->push(['label' => __('Kürzlich vergangen, ohne Note'), 'fehlt' => $anzahlFehlt > 0, 'anzahlFehlt' => $anzahlFehlt, 'zeilen' => $zeilen]);
         }
 
         $dieseWoche = $kommend->filter(fn (Pruefung $p) => $datum($p)->lte($endeDieseWoche))->values();

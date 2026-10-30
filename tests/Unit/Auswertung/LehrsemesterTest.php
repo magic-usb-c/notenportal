@@ -49,6 +49,24 @@ class LehrsemesterTest extends TestCase
     }
 
     #[Test]
+    public function nummer_stimmt_auch_bei_sortierung_in_zehnerschritten(): void
+    {
+        $ids = [];
+        foreach ([['24/25-1', '2024-08-01', '2025-01-31'], ['24/25-2', '2025-02-01', '2025-07-31'], ['25/26-1', '2025-08-01', '2026-01-31']] as $i => [$b, $start, $ende]) {
+            $ids[$b] = DB::table('semester')->insertGetId(['bezeichnung' => $b, 'start_datum' => $start, 'end_datum' => $ende, 'sortierung' => ($i + 1) * 10]);
+        }
+        $l = $this->lernender('2024-08-01');
+
+        $this->assertSame(1, Lehrsemester::nummer($l, $ids['24/25-1']));
+        $this->assertSame(2, Lehrsemester::nummer($l, $ids['24/25-2']));
+        $this->assertSame(3, Lehrsemester::nummer($l, $ids['25/26-1']));
+
+        $spaeter = $this->lernender('2025-08-01');
+        $this->assertNull(Lehrsemester::nummer($spaeter, $ids['24/25-2']));
+        $this->assertSame(1, Lehrsemester::nummer($spaeter, $ids['25/26-1']));
+    }
+
+    #[Test]
     public function start_2425_1_ist_in_2627_1_im_5_semester(): void
     {
         $s = $this->semesterReihe();

@@ -203,11 +203,12 @@ class NotenController extends Controller
             ? $lernender->pruefungen()->with(['fach', 'modul'])->find($request->integer('pruefung'))
             : null;
 
+        $bezug = $request->query('bezug');
         $daten = [
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
             'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
             'pruefung' => $pruefung,
-            'vorauswahl' => preg_match('/^(fach|modul):\d+$/', (string) $request->query('bezug')) ? $request->query('bezug') : null,
+            'vorauswahl' => is_string($bezug) && preg_match('/^(fach|modul):\d+$/', $bezug) ? $bezug : null,
         ];
 
         // ?drawer=1: nur das Formular für den Drawer der Notenliste
@@ -233,7 +234,7 @@ class NotenController extends Controller
             'pruefungsdatum' => ['required', 'date'],
             ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ]);
+        ], NoteService::bezugMeldungen());
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
@@ -325,9 +326,9 @@ class NotenController extends Controller
             'pruefungsdatum' => ['required', 'date'],
             ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ]);
+        ], NoteService::bezugMeldungen());
 
-        $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
+        $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id, $note);
 
         $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $note->update([

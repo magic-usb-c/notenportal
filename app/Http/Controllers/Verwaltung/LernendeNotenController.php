@@ -166,7 +166,7 @@ class LernendeNotenController extends VerwaltungController
         Gate::authorize('noteKorrigieren', $lernender);
 
         $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
-        $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id);
+        $daten = $this->noteService->normalizeForSave($this->validiere($request), $lernender_id, $note);
 
         $alterWert = $note->anzeige();
         $vorher = $this->gradeWatcher->schnappschuss($lernender_id);
@@ -175,6 +175,8 @@ class LernendeNotenController extends VerwaltungController
             'aktualisiert_von_benutzer_id' => (int) $request->user()->benutzer_id,
         ]);
         $this->gradeWatcher->pruefen($lernender_id, $vorher);
+        // Fach/Modul können sich geändert haben: die vorgeladenen Relationen für die Mail neu laden
+        $note->refresh();
 
         $lernender->loadMissing('benutzer');
         if ($lernender->benutzer && $alterWert !== $note->anzeige()) {
@@ -212,7 +214,7 @@ class LernendeNotenController extends VerwaltungController
             'pruefungsdatum' => ['required', 'date'],
             ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ]);
+        ], NoteService::bezugMeldungen());
     }
 
     private function notenfelder(array $daten): array

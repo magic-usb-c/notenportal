@@ -41,7 +41,13 @@ final class Lehrsemester
             return null;
         }
 
-        $n = $k->semesterSortierung($semesterId) - $erste + 1;
+        // Die Anlege-Wege vergeben Zehnerschritte: Differenz durch die kleinste Schrittweite teilen. Eine gelöschte
+        // Lücke (z. B. Sortierung 1, 3, 4) zählt weiterhin als Semester, solange irgendwo zwei Nachbarn den Schritt zeigen.
+        $aktuelle = $k->semesterSortierung($semesterId);
+        if ($aktuelle < $erste) {
+            return null;
+        }
+        $n = intdiv($aktuelle - $erste, self::schrittweite($k->semester)) + 1;
 
         return $n >= 1 ? $n : null;
     }
@@ -73,6 +79,21 @@ final class Lehrsemester
     public static function vergessen(): void
     {
         self::$ersteSortierung = [];
+    }
+
+    /** @param  array<int, array{sortierung: int}>  $semester */
+    private static function schrittweite(array $semester): int
+    {
+        $werte = array_values(array_unique(array_column($semester, 'sortierung')));
+        sort($werte);
+
+        $schritt = 0;
+        for ($i = 1; $i < count($werte); $i++) {
+            $d = $werte[$i] - $werte[$i - 1];
+            $schritt = $schritt === 0 ? $d : min($schritt, $d);
+        }
+
+        return max(1, $schritt);
     }
 
     private static function sortierungDesErstenSemesters(string $lehrbeginn): ?int

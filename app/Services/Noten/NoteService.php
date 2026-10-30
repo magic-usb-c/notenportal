@@ -353,6 +353,20 @@ class NoteService
     }
 
     /**
+     * Meldungen für das versteckte Feld «typ»: es wird erst durch die Auswahl von Fach oder Modul gesetzt,
+     * der Hinweis gehört deshalb zur Bezug-Auswahl.
+     *
+     * @return array<string, string>
+     */
+    public static function bezugMeldungen(): array
+    {
+        return [
+            'typ.required' => __('Bitte ein Fach oder Modul wählen.'),
+            'typ.in' => __('Bitte ein Fach oder Modul wählen.'),
+        ];
+    }
+
+    /**
      * Zahl oder Stufe je nach Skala des Fachs; genau eines von beiden ist gesetzt.
      *
      * @return array{note_wert: mixed, note_stufe: ?string}
@@ -480,13 +494,17 @@ class NoteService
     /**
      * Prüft wie pruefeZeile() und legt bei einem Modul zusätzlich die offene Modulbelegung an/findet sie
      * (einziger schreibende Schritt) -> modul_belegung_id setzen.
+     *
+     * Wird eine bestehende Note bearbeitet ($bisher) und bleibt das Modul gleich, behält sie ihre Belegung:
+     * eine Note eines abgeschlossenen Versuchs wandert beim Bearbeiten nicht in den aktuellen Versuch.
      */
-    public function normalizeForSave(array $data, int $lernenderId): array
+    public function normalizeForSave(array $data, int $lernenderId, ?Note $bisher = null): array
     {
         $ergebnis = $this->pruefeZeile($data, $lernenderId);
 
         if (($data['typ'] ?? null) === 'modul') {
-            $ergebnis['modul_belegung_id'] = $this->resolveOrCreateOpenModulBelegung($lernenderId, (int) $ergebnis['modul_id'], $ergebnis['pruefungsdatum']);
+            $ergebnis['modul_belegung_id'] = $this->behalteBelegung($bisher, $lernenderId, (int) $ergebnis['modul_id'], $ergebnis['pruefungsdatum'])
+                ?? $this->resolveOrCreateOpenModulBelegung($lernenderId, (int) $ergebnis['modul_id'], $ergebnis['pruefungsdatum']);
         }
         unset($ergebnis['modul_id']);
 
@@ -707,6 +725,52 @@ class NoteService
         return null;
     }
 
+    /** Belegung der bearbeiteten Note, wenn sie dem Lernenden und demselben Modul gehört; sonst null. */
+    private function behalteBelegung(?Note $bisher, int $lernenderId, int $modulId, string $datum): ?int
+    {
+        if ($bisher === null || $bisher->modul_belegung_id === null) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($bisher, $lernenderId, $modulId, $datum) {
+            $belegung = ModulBelegung::query()
+                ->whereKey($bisher->modul_belegung_id)
+                ->where('lernender_id', $lernenderId)
+                ->where('modul_id', $modulId)
+                ->lockForUpdate()
+                ->first();
+            if ($belegung === null) {
+                return null;
+            }
+            if ($belegung->end_datum === null) {
+                $this->startVorziehen($belegung, $datum);
+            }
+
+            return (int) $belegung->modul_belegung_id;
+        });
+    }
+
+    /**
+     * Zieht den Start einer offenen Belegung auf ein früheres Prüfungsdatum vor, aber nie vor das Ende
+     * eines abgeschlossenen Versuchs desselben Moduls: sonst kehrte sich die Reihenfolge der Versuche um.
+     */
+    private function startVorziehen(ModulBelegung $offen, string $datum): void
+    {
+        $abgeschlossenBis = ModulBelegung::query()
+            ->where('lernender_id', $offen->lernender_id)
+            ->where('modul_id', $offen->modul_id)
+            ->whereNotNull('end_datum')
+            ->max('end_datum');
+        if ($abgeschlossenBis !== null) {
+            $datum = max($datum, substr((string) $abgeschlossenBis, 0, 10));
+        }
+
+        if (substr((string) $offen->start_datum, 0, 10) > $datum) {
+            $offen->start_datum = $datum;
+            $offen->save();
+        }
+    }
+
     /**
      * Findet eine offene Modul-Belegung (end_datum IS NULL) oder erstellt sie.
      * start_datum setzen wir auf das Prüfungsdatum der ersten Note.
@@ -723,13 +787,18 @@ class NoteService
                 ->first();
 
             if ($existing) {
-                // optional: start_datum früher setzen, falls neue Note früher ist
-                if ((string) $existing->start_datum > $startDatum) {
-                    $existing->start_datum = $startDatum;
-                    $existing->save();
-                }
+                $this->startVorziehen($existing, $startDatum);
 
                 return (int) $existing->modul_belegung_id;
+            }
+
+            $abgeschlossenBis = ModulBelegung::query()
+                ->where('lernender_id', $lernenderId)
+                ->where('modul_id', $modulId)
+                ->whereNotNull('end_datum')
+                ->max('end_datum');
+            if ($abgeschlossenBis !== null) {
+                $startDatum = max($startDatum, substr((string) $abgeschlossenBis, 0, 10));
             }
 
             $created = ModulBelegung::create([

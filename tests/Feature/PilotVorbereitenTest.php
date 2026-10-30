@@ -21,6 +21,8 @@ class PilotVorbereitenTest extends TestCase
         $note = Note::factory()->create(['lernender_id' => $lernender->lernender->lernender_id]);
         DB::table('noten_kommentare')->insert(['note_id' => $note->note_id, 'autor_benutzer_id' => $lernender->benutzer_id, 'kommentar_text' => 'Test']);
         DB::table('noten_gesehen')->insert(['note_id' => $note->note_id, 'viewer_benutzer_id' => $lernender->benutzer_id]);
+        DB::table('notification_digest_items')->insert(['user_id' => $lernender->benutzer_id, 'type' => 'grade_created', 'title' => 'Neue Note erfasst', 'url' => '/grades/'.$note->note_id, 'created_at' => now(), 'sent_at' => null]);
+        DB::table('notification_marks')->insert(['user_id' => $lernender->benutzer_id, 'type' => 'inactivity', 'subject_key' => 'inaktiv:1:0', 'created_at' => now()]);
         Storage::disk('local')->put('feedback/2026/test.jpg', 'bild');
         Feedback::factory()->create(['benutzer_id' => $lernender->benutzer_id, 'screenshot_pfad' => 'feedback/2026/test.jpg']);
 
@@ -46,7 +48,7 @@ class PilotVorbereitenTest extends TestCase
 
         $this->artisan('notenportal:pilot-vorbereiten', ['--ausfuehren' => true])->assertSuccessful();
 
-        foreach (['noten', 'noten_kommentare', 'noten_gesehen', 'feedback'] as $tabelle) {
+        foreach (['noten', 'noten_kommentare', 'noten_gesehen', 'feedback', 'notification_digest_items', 'notification_marks'] as $tabelle) {
             $this->assertSame(0, DB::table($tabelle)->count(), $tabelle);
         }
         Storage::disk('local')->assertMissing('feedback/2026/test.jpg');

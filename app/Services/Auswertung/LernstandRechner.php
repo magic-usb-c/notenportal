@@ -83,7 +83,7 @@ final class LernstandRechner
             }
             if ($vorher !== null) {
                 foreach ($a->elemente as $e) {
-                    if ($e->typ !== Element::FACH || $e->semesterId !== $bezug || $e->note === null) {
+                    if ($e->typ !== Element::FACH || ! $e->zaehlt || $e->semesterId !== $bezug || $e->note === null) {
                         continue;
                     }
                     $alt = $a->elemente["f{$e->fachId}s{$vorher}"] ?? null;

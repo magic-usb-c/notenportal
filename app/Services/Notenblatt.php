@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Lernender;
 use App\Services\Auswertung\Element;
 use App\Services\Auswertung\Leistung;
+use App\Services\Auswertung\Notenbaum\Abschluss;
 use App\Services\Auswertung\NotenQuelle;
 use App\Support\Einstellungen;
 use App\Support\NotenSkala;
@@ -76,6 +77,9 @@ final class Notenblatt
             }
         }
 
+        // Mit Notenbaum ist die Gesamtnote seine Wurzel: «QV-Prognose», bis alles erfasst ist (wie Dashboard und Cockpit)
+        $qv = $a->gesamtNote !== null ? Abschluss::hauptergebnis($a) : null;
+
         return [
             'name' => $l->benutzer->vorname.' '.$l->benutzer->nachname,
             'lehrberuf' => $l->lehrberuf?->name,
@@ -83,6 +87,12 @@ final class Notenblatt
             'lehrende' => $l->lehrende,
             'betrieb' => Einstellungen::get(Einstellungen::BETRIEB_NAME, ''),
             'gesamt' => $a->gesamtNote,
+            'gesamt_label' => match (true) {
+                $qv === null => __('Gesamtnote'),
+                $qv->wurzel()->vollstaendig => __('QV-Gesamtnote'),
+                default => __('QV-Prognose'),
+            },
+            'qv_status' => $qv?->status,
             'kategorien' => $kategorien,
             'semester' => $semester,
         ];

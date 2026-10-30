@@ -50,7 +50,7 @@
                         <h2 class="flex h-5 items-center gap-2 px-1 text-sm font-semibold text-text">
                             {{ $g['label'] }}
                             @if($g['fehlt'])
-                                <span class="np-marke bg-note-knapp/14 tabular-nums text-note-knapp" title="{{ __('Note fehlt') }}">{{ $g['zeilen']->count() }}<span class="sr-only"> {{ __('Note fehlt') }}</span></span>
+                                <span class="np-marke bg-note-knapp/14 tabular-nums text-note-knapp" title="{{ __('Note fehlt') }}">{{ $g['anzahlFehlt'] }}<span class="sr-only"> {{ __('Note fehlt') }}</span></span>
                             @else
                                 <span class="text-xs font-normal tabular-nums text-muted">{{ $g['zeilen']->count() }}</span>
                             @endif

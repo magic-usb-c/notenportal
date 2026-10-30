@@ -38,7 +38,7 @@ class StammdatenKategorieController extends Controller
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:30', 'unique:kategorien,code'],
             'name' => ['required', 'string', 'max:50', 'unique:kategorien,name'],
-            'sortierung' => ['nullable', 'integer', 'min:0'],
+            'sortierung' => ['nullable', 'integer', 'min:0', 'max:65535'],
             ...KategorieRegeln::regeln(),
         ]);
 
@@ -69,7 +69,7 @@ class StammdatenKategorieController extends Controller
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:30', Rule::unique('kategorien', 'code')->ignore($kategorie_id, 'kategorie_id')],
             'name' => ['required', 'string', 'max:50', Rule::unique('kategorien', 'name')->ignore($kategorie_id, 'kategorie_id')],
-            'sortierung' => ['nullable', 'integer', 'min:0'],
+            'sortierung' => ['nullable', 'integer', 'min:0', 'max:65535'],
             'aktiv' => ['boolean'],
             ...KategorieRegeln::regeln(),
         ]);

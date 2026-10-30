@@ -18,7 +18,7 @@ final class KategorieRegeln
         return [
             $praefix.'rundung_element' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
             $praefix.'rundung_schnitt' => ['required', 'numeric', 'in:0,0.1,0.25,0.5,1'],
-            $praefix.'gewicht_gesamt' => ['required', 'numeric', 'min:0'],
+            $praefix.'gewicht_gesamt' => ['required', 'numeric', 'min:0', 'max:999.99'],
             $praefix.'promotion_min_schnitt' => ['nullable', 'numeric', 'between:1,6'],
             $praefix.'promotion_max_ungenuegend' => ['nullable', 'integer', 'between:0,20'],
             $praefix.'promotion_max_minuspunkte' => ['nullable', 'numeric', 'between:0,20'],

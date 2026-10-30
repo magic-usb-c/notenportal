@@ -32,6 +32,7 @@
         .eckdaten span { font-weight: 600; }
         .gesamt { text-align: right; }
         .gesamt strong { display: block; font-size: 22pt; line-height: 1; }
+        .gesamt .status { display: block; margin-top: 3px; font-size: 8pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #b91c1c; }
         .kats { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 9pt; color: #444; margin-bottom: 18px; padding: 0 2px; }
         .kats strong { margin-left: 4px; }
         .semester { margin-bottom: 18px; }
@@ -100,7 +101,7 @@
         <div><label>{{ __('Lehrberuf') }}</label><span>{{ $blatt['lehrberuf'] ?? '–' }}</span></div>
         <div><label>{{ __('Lehrbeginn') }}</label><span>{{ $datum($blatt['lehrbeginn']) }}</span></div>
         <div><label>{{ __('Ende der Lehre') }}</label><span>{{ $datum($blatt['lehrende']) }}</span></div>
-        <div class="gesamt"><label>{{ __('Gesamtnote') }}</label><strong class="{{ $stufe($blatt['gesamt']) }}">{{ NotenSkala::format($blatt['gesamt'], 1) }}</strong></div>
+        <div class="gesamt"><label>{{ $blatt['gesamt_label'] ?? __('Gesamtnote') }}</label><strong class="{{ $stufe($blatt['gesamt']) }}">{{ NotenSkala::format($blatt['gesamt'], 1) }}</strong>@if(($blatt['qv_status'] ?? null) === \App\Services\Auswertung\Notenbaum\BaumErgebnis::NICHT_BESTANDEN)<span class="status">{{ __('Nicht bestanden') }}</span>@endif</div>
     </section>
 
     @if($blatt['kategorien'])

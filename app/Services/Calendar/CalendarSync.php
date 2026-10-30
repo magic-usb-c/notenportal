@@ -9,6 +9,7 @@ use App\Models\CalendarFeed;
 use App\Models\Dokument;
 use App\Models\Lernender;
 use App\Models\Pruefung;
+use App\Services\Noten\NoteService;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use DateTimeZone;
@@ -99,17 +100,19 @@ final class CalendarSync
                 $kalender->remove($event);
             }
         }
-        $kalender = $kalender->expand($von->toDateTime(), $bis->toDateTime());
+        // Termine ohne Zeitzone («floating») gelten in der Zeitzone der Anwendung, nicht in UTC.
         $zone = new DateTimeZone((string) config('app.timezone'));
+        $kalender = $kalender->expand($von->toDateTime(), $bis->toDateTime(), $zone);
         $lernender = $feed->lernender()->firstOrFail();
         $module = $this->moduleNachNummer($lernender);
-        $faecher = $this->faecherNachKuerzel($lernender);
+        $faecher = $this->faecherNachKuerzel();
+        $fachErlaubt = app(NoteService::class)->fachErlaubtAm((int) $lernender->lernender_id);
 
         $stats = ['events' => 0, 'exams' => 0, 'unmatched' => 0, 'removed' => 0];
         $gesehen = [];
         $pruefungenGesehen = [];
 
-        DB::transaction(function () use ($kalender, $feed, $zone, $lernender, $module, $faecher, &$stats, &$gesehen, &$pruefungenGesehen, $von) {
+        DB::transaction(function () use ($kalender, $feed, $zone, $lernender, $module, $faecher, $fachErlaubt, &$stats, &$gesehen, &$pruefungenGesehen, $von) {
             foreach ($kalender->select('VEVENT') as $event) {
                 /** @var VEvent $event */
                 $uid = mb_substr(trim((string) ($event->UID ?? '')) ?: md5((string) $event->serialize()), 0, 255);
@@ -131,7 +134,7 @@ final class CalendarSync
 
                 $pruefungId = null;
                 if ($kind === CalendarEvent::EXAM) {
-                    $bezug = $this->bezug($info, $module, $faecher);
+                    $bezug = $this->bezug($info, $module, $faecher, $fachErlaubt, $start);
                     if ($bezug) {
                         $pruefungId = $this->pruefungSpeichern($feed, $lernender, $uid, $bezug, $info, $start, $ende, $ganztags, $ort);
                         $pruefungenGesehen[] = $pruefungId;
@@ -330,15 +333,28 @@ final class CalendarSync
         return $info['course_code'] !== null ? CalendarEvent::LESSON : CalendarEvent::APPOINTMENT;
     }
 
-    /** @return array{0: string, 1: int}|null ['modul'|'fach', id] */
-    private function bezug(array $info, array $module, array $faecher): ?array
+    /**
+     * Fachbezug nur, wenn das Fach dem Lernenden am Prüfungsdatum freigegeben ist (gleiche Regel wie beim
+     * manuellen Übernehmen, NoteService::kategorieFuer); bei gleichem Kürzel gewinnt das erste freigegebene Fach.
+     *
+     * @param  array<string, list<int>>  $faecher
+     * @param  \Closure(string, int): bool  $fachErlaubt
+     * @return array{0: string, 1: int}|null ['modul'|'fach', id]
+     */
+    private function bezug(array $info, array $module, array $faecher, \Closure $fachErlaubt, CarbonImmutable $start): ?array
     {
         if ($info['module_number'] !== null && isset($module[$info['module_number']])) {
             return ['modul', $module[$info['module_number']]];
         }
         $code = mb_strtoupper((string) $info['course_code']);
 
-        return $code !== '' && isset($faecher[$code]) ? ['fach', $faecher[$code]] : null;
+        foreach ($faecher[$code] ?? [] as $fachId) {
+            if ($fachErlaubt($start->toDateString(), $fachId)) {
+                return ['fach', $fachId];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -416,14 +432,18 @@ final class CalendarSync
             ->pluck('m.modul_id', 'm.modul_nummer')->mapWithKeys(fn ($id, $nr) => [(string) $nr => (int) $id])->all();
     }
 
-    /** @return array<string, int> Kürzel/Name (gross) => fach_id */
-    private function faecherNachKuerzel(Lernender $lernender): array
+    /** @return array<string, list<int>> Kürzel/Name (gross) => fach_ids, aufsteigend */
+    private function faecherNachKuerzel(): array
     {
         $map = [];
-        foreach (DB::table('faecher')->get(['fach_id', 'kurzname', 'name']) as $f) {
+        foreach (DB::table('faecher')->orderBy('fach_id')->get(['fach_id', 'kurzname', 'name']) as $f) {
             foreach ([$f->kurzname, $f->name] as $k) {
                 if (filled($k)) {
-                    $map[mb_strtoupper(trim((string) $k))] ??= (int) $f->fach_id;
+                    $schluessel = mb_strtoupper(trim((string) $k));
+                    $map[$schluessel] ??= [];
+                    if (! in_array((int) $f->fach_id, $map[$schluessel], true)) {
+                        $map[$schluessel][] = (int) $f->fach_id;
+                    }
                 }
             }
         }
