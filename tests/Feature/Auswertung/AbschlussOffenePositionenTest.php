@@ -153,6 +153,20 @@ class AbschlussOffenePositionenTest extends TestCase
         $this->assertSame(Zielrechner::BENOETIGT, $zeilen[0]['status']);
         $this->assertEquals(4.0, $zeilen[0]['note']);
         $this->assertSame('benötigt 4.00', $zeilen[0]['text']);
+        $this->assertSame('1 offene Position.', $this->zusammenfassung());
+    }
+
+    #[Test]
+    public function einzige_offene_position_ohne_eigene_fallnote_ist_schon_bestanden(): void
+    {
+        $this->position('ipa', 6.0);
+        $this->position('ab_schlusspruefung', 6.0);
+
+        $zeilen = $this->zeilen();
+
+        $this->assertSame([$this->knoten('ab_schlussarbeit')], array_column($zeilen, 'knotenId'));
+        $this->assertSame(Zielrechner::ERREICHT, $zeilen[0]['status']);
+        $this->assertSame('1 offene Position, schon bestanden.', $this->zusammenfassung());
     }
 
     #[Test]
