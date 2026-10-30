@@ -1,0 +1,183 @@
+diff --git a/.claude/skills/notenportal-pruefwerkzeuge/SKILL.md b/.claude/skills/notenportal-pruefwerkzeuge/SKILL.md
+index b0b9a9c..fe9592a 100644
+--- a/.claude/skills/notenportal-pruefwerkzeuge/SKILL.md
++++ b/.claude/skills/notenportal-pruefwerkzeuge/SKILL.md
+@@ -36,6 +36,7 @@ ## Werkzeuge
+ - `--bewegung=reduziert` – `prefers-reduced-motion: reduce` und zusätzlich `html[data-bewegung='reduziert']` (Variante `ruhig:`).
+ - `--transparenz=reduziert` – `prefers-reduced-transparency: reduce` per CDP; Playwright kann die Medienabfrage nicht über `matchMedia` sichtbar machen, darum setzt das Werkzeug zusätzlich `html[data-transparenz='reduziert']` und meldet «Ersatz: data-transparenz» (Variante `deckend:`).
+ - `--kontrast=mehr` – `prefers-contrast: more` (Variante `kontrastreich:`).
++- `--brechung=aus` – setzt vor dem Laden `localStorage np-brechung=aus`, damit `np.js` die Lichtbrechung (R6-13, `html[data-brechung]`) nicht einschaltet; Dateinamen bekommen `-ohne-brechung`, die Zustandszeile meldet `brechung=`. Für Vergleiche mit/ohne Brechung auf derselben Maschine.
+ - Jede Seite druckt eine **Zustandszeile**: `reduced-motion`, `contrast-more`, `reduced-transparency` und `fenster` (`document.documentElement.dataset.fenster`, `aktiv` oder `inaktiv`; das Werkzeug holt das Fenster mit `bringToFront()` nach vorn). Erst die Zeile prüfen, dann das Bild werten.
+ 
+ Konten: `nina.huber@demo.example` (Lernende), `michael.baumann@demo.example` (Berufsbildner),
+diff --git a/resources/css/app.css b/resources/css/app.css
+index 5fe35c4..7a84e2a 100644
+--- a/resources/css/app.css
++++ b/resources/css/app.css
+@@ -675,6 +675,23 @@ @utility np-glas-gruppe {
+   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+     &::before { background-color: rgb(var(--card)); }
+   }
++  /* Lichtbrechung am Rand (html[data-brechung] setzt np.js nur in Chromium): der Filter #np-brechung im Layout
++     zeichnet selbst 24px weich und bricht nur den Rand. Kein blur() in der Kette – ein url() davor ändert in
++     Chromium die ganze Fläche, ein url() danach bricht nur Weichgezeichnetes. Gleiche Spezifität wie alle Regeln
++     danach: Bewegung reduziert, mehr Kontrast, Palette, deckend und Kontrast-Theme heben sie per Reihenfolge auf. */
++  :where(html[data-brechung]) &::before {
++    backdrop-filter: url(#np-brechung) saturate(var(--glas-saettigung));
++  }
++  @variant ruhig {
++    &::before {
++      backdrop-filter: blur(24px) saturate(var(--glas-saettigung));
++    }
++  }
++  @variant kontrastreich {
++    &::before {
++      backdrop-filter: blur(24px) saturate(var(--glas-saettigung));
++    }
++  }
+   /* Palette offen: hinter den Kapseln liegt schon ein Overlay, darum deckend ohne Weichzeichner */
+   :where(html[data-palette]) &::before {
+     background-color: rgb(var(--card) / 0.92);
+diff --git a/resources/js/app.js b/resources/js/app.js
+index 49f664a..0ff656f 100644
+--- a/resources/js/app.js
++++ b/resources/js/app.js
+@@ -4,7 +4,7 @@ import Alpine from 'alpinejs';
+ import { registriereBestaetigung } from './bestaetigung';
+ import { registriereCharts } from './charts';
+ import { registriereFeedback } from './feedback';
+-import { kopieren, registriereAuswahlliste, registriereFenster, registriereFormhilfen, registriereLeiste, registriereLicht, registriereRadiogroup, registriereScrollbereiche, registriereSeitenleiste, registriereSofortSenden, registriereZeilenLinks, bewegungRuhig, escapeGilt, mitRichtung, morphStarten, morphUrsprung, t } from './np';
++import { kopieren, registriereAuswahlliste, registriereBrechung, registriereFenster, registriereFormhilfen, registriereLeiste, registriereLicht, registriereRadiogroup, registriereScrollbereiche, registriereSeitenleiste, registriereSofortSenden, registriereZeilenLinks, bewegungRuhig, escapeGilt, mitRichtung, morphStarten, morphUrsprung, t } from './np';
+ import { registrierePraeferenzen } from './praeferenzen';
+ import { registrierePwa } from './pwa';
+ import { registriereRechner } from './rechner';
+@@ -35,6 +35,7 @@ registriereSuche(Alpine);
+ registriereTastenkuerzel(Alpine);
+ registriereLicht(Alpine);
+ registriereFenster();
++registriereBrechung();
+ registriereLeiste();
+ registriereScrollbereiche();
+ registriereZeilenLinks();
+diff --git a/resources/js/np.js b/resources/js/np.js
+index ffaac06..8f9030b 100644
+--- a/resources/js/np.js
++++ b/resources/js/np.js
+@@ -204,6 +204,30 @@ export function registriereFenster() {
+     document.addEventListener('visibilitychange', setze);
+ }
+ 
++// Lichtbrechung am Kapselrand: html[data-brechung] nur, wenn der Browser einen SVG-Filter als backdrop-filter
++// zeichnet. Erkennung per JS, nie per @supports (Firefox meldet url() als unterstützt und zeichnet es nicht,
++// Bug 1961378): Chromium-Engine, Filter #np-brechung im Dokument (nur layouts/app) und ein Probe-Element, dessen
++// berechneter backdrop-filter die url() behält. Die Ausschlüsse (Bewegung, Transparenz, Kontrast, Palette) stehen
++// im CSS. Prüfschalter für Messungen ohne Brechung: localStorage 'np-brechung' = 'aus' (--brechung=aus).
++export function registriereBrechung() {
++    try {
++        if (localStorage.getItem('np-brechung') === 'aus') return;
++    } catch {
++        /* Speicher gesperrt: Erkennung läuft weiter */
++    }
++    const marken = navigator.userAgentData?.brands ?? [];
++    if (!marken.some((m) => m.brand === 'Chromium')) return;
++    if (!(document.getElementById('np-brechung') instanceof SVGFilterElement)) return;
++
++    const probe = document.createElement('div');
++    probe.style.position = 'absolute';
++    probe.style.backdropFilter = 'url(#np-brechung)';
++    document.body.append(probe);
++    const wert = getComputedStyle(probe).backdropFilter;
++    probe.remove();
++    if (wert.includes('url(')) document.documentElement.dataset.brechung = '';
++}
++
+ // Seitenleiste angedockt oder als Schublade: html[data-leiste]. Angedockt nur ab 64rem Breite und bei
+ // Navigation «seite»; die Materialregel der Schublade hängt an diesem Attribut. Den Wechsel von
+ // data-navigation meldet der MutationObserver von npLeistenUeberlauf (leisteAktualisieren).
+diff --git a/resources/views/layouts/app.blade.php b/resources/views/layouts/app.blade.php
+index d71af34..9f6cb45 100644
+--- a/resources/views/layouts/app.blade.php
++++ b/resources/views/layouts/app.blade.php
+@@ -144,6 +144,33 @@ function npFehlermeldung() {
+         {{-- Ruhiger Grund hinter Seitenleiste und Inhalt: statischer Verlauf aus Tokens --}}
+         <div class="np-grund" aria-hidden="true"></div>
+ 
++        {{-- Lichtbrechung am Kapselrand (np-glas-gruppe unter html[data-brechung], nur Chromium). Bei backdrop-filter ist
++             SourceAlpha der Seitenhintergrund, nicht die Kapsel: die Verschiebungskarte entsteht darum aus der Filterfläche
++             selbst (= Kapsel). Fläche weichzeichnen, Steigung in x (R) und y (G) als Differenz zweier Versätze, 0.5 heisst
++             keine Verschiebung; am Rand zeigt sie nach innen. Mitte: Weichzeichner 24px wie ohne Brechung. Rand 3–5 px:
++             kaum weichgezeichneter Hintergrund, bis 5 px nach innen versetzt. Keine Farbwerte, kein Abruf. --}}
++        <svg class="absolute" width="0" height="0" aria-hidden="true" focusable="false">
++            <filter id="np-brechung" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
++                <feFlood result="flaeche" />
++                <feGaussianBlur in="flaeche" stdDeviation="2.5" result="rand" />
++                <feOffset in="rand" dx="-2.5" result="rechts" />
++                <feOffset in="rand" dx="2.5" result="links" />
++                <feComposite in="rechts" in2="links" operator="arithmetic" k2="0.5" k3="-0.5" k4="0.5" result="steigung-x" />
++                <feOffset in="rand" dy="-2.5" result="unten" />
++                <feOffset in="rand" dy="2.5" result="oben" />
++                <feComposite in="unten" in2="oben" operator="arithmetic" k2="0.5" k3="-0.5" k4="0.5" result="steigung-y" />
++                <feColorMatrix in="steigung-x" values="0 0 0 1 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 1" result="kanal-x" />
++                <feColorMatrix in="steigung-y" values="0 0 0 0 0  0 0 0 1 0  0 0 0 0 0  0 0 0 0 1" result="kanal-y" />
++                <feComposite in="kanal-x" in2="kanal-y" operator="arithmetic" k2="1" k3="1" result="karte" />
++                <feComponentTransfer in="rand" result="maske"><feFuncA type="linear" slope="-2" intercept="2" /></feComponentTransfer>
++                <feGaussianBlur in="SourceGraphic" stdDeviation="24" result="frost" />
++                <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="klar" />
++                <feDisplacementMap in="klar" in2="karte" scale="12" xChannelSelector="R" yChannelSelector="G" result="gebrochen" />
++                <feComposite in="gebrochen" in2="maske" operator="in" result="randbild" />
++                <feComposite in="randbild" in2="frost" operator="over" />
++            </filter>
++        </svg>
++
+         <a href="#inhalt" class="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[90] focus:inline-flex focus:h-9 focus:items-center focus:rounded-lg focus:px-3.5 focus:text-sm focus:font-medium focus:text-text glass-overlay">{{ __('Zum Inhalt springen') }}</a>
+ 
+         {{-- Page-Progress-Bar (accent, 2px, oben) --}}
+diff --git a/tools/pruefung/browser.mjs b/tools/pruefung/browser.mjs
+index 9e3139e..3e065c1 100644
+--- a/tools/pruefung/browser.mjs
++++ b/tools/pruefung/browser.mjs
+@@ -64,10 +64,10 @@ function startOptionen() {
+   return { env: { ...process.env, LANG: 'de_CH.UTF-8', LC_ALL: 'de_CH.UTF-8' } };
+ }
+ 
+-export const ZUSTAND_USAGE = '[--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr]';
++export const ZUSTAND_USAGE = '[--bewegung=reduziert] [--transparenz=reduziert] [--kontrast=mehr] [--brechung=aus]';
+ 
+ function pruefeZustandsflags(opt) {
+-  for (const [flag, erlaubt] of [['bewegung', 'reduziert'], ['transparenz', 'reduziert'], ['kontrast', 'mehr']]) {
++  for (const [flag, erlaubt] of [['bewegung', 'reduziert'], ['transparenz', 'reduziert'], ['kontrast', 'mehr'], ['brechung', 'aus']]) {
+     if (opt[flag] !== undefined && opt[flag] !== erlaubt) {
+       throw new Error(`--${flag} kennt nur den Wert «${erlaubt}» (--${flag}=${erlaubt}).`);
+     }
+@@ -135,6 +135,13 @@ async function zustandEmulieren(ctx, page, opt) {
+     });
+   }
+   if (bewegung) await attributVorAlpine(page, 'bewegung', 'reduziert');
++  // Lichtbrechung (R6-13) abschalten: np.js setzt html[data-brechung] nicht, solange der Prüfschalter steht –
++  // für den Vergleich mit/ohne Brechung auf derselben Maschine (Leistung und Pixelgleichheit).
++  if (opt.brechung === 'aus') {
++    await page.addInitScript(() => {
++      try { localStorage.setItem('np-brechung', 'aus'); } catch { /* about:blank hat keinen Speicher */ }
++    });
++  }
+   if (!transparenz) return;
+   // CDP ersetzt die gesamte Feature-Liste: prefers-color-scheme (sonst verliert die Seite den Dunkelmodus) und
+   // die oben gesetzten Playwright-Zustände müssen mitgegeben werden.
+@@ -162,8 +169,9 @@ export async function zustandsZeile(page) {
+     transparenz: matchMedia('(prefers-reduced-transparency: reduce)').matches,
+     ersatz: document.documentElement.dataset.transparenz === 'reduziert',
+     fenster: document.documentElement.dataset.fenster ?? '',
++    brechung: document.documentElement.dataset.brechung !== undefined,
+   }));
+-  return `Zustand: reduced-motion=${z.bewegung} contrast-more=${z.kontrast} reduced-transparency=${z.transparenz}${z.ersatz ? ' (Ersatz: data-transparenz)' : ''} fenster=${z.fenster}`;
++  return `Zustand: reduced-motion=${z.bewegung} contrast-more=${z.kontrast} reduced-transparency=${z.transparenz}${z.ersatz ? ' (Ersatz: data-transparenz)' : ''} fenster=${z.fenster} brechung=${z.brechung}`;
+ }
+ 
+ export async function anmelden(page, email) {
+@@ -183,5 +191,5 @@ export async function anmelden(page, email) {
+ }
+ 
+ export function suffix(opt) {
+-  return `${Number(opt.breite || 1920)}${opt.hell ? '-hell' : ''}`;
++  return `${Number(opt.breite || 1920)}${opt.hell ? '-hell' : ''}${opt.brechung === 'aus' ? '-ohne-brechung' : ''}`;
+ }

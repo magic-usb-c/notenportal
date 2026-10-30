@@ -387,10 +387,12 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
 
 ## Offen für David
 
-- **R6-13 Lichtbrechung am Kapselrand**: dein Auftrag vom 30.10. («schönstes cleanstes liquid glass
-  gui ever») ist als Ja zu R6-13 gelesen. Das 25-ms-Gate aus GUI-R6 gilt auf der VM nicht (2.3- bis
-  2.8-mal langsamer als die Cloud-Basislinie); abgenommen wird relativ (Scroll und Hover mit/ohne
-  Brechung, GUI-R6.md §6 Punkt 9). Nur Chrome/Edge. Willst du es nicht, ein Veto genügt.
+- **R6-13 Lichtbrechung am Kapselrand: gebaut, geprüft, nicht übernommen (30.10.).** Dein Auftrag
+  («liquid glass») galt als Ja. Unter den Kapseln liegt aber die Scrollkante, also eine gleichförmige
+  Fläche: Die Brechung ändert dort höchstens 2 von 255 Farbstufen, man sieht sie nicht. Scrollen auf
+  `/grades` wird dabei messbar langsamer (p95 17.1 → 20.2 ms, Grenze 18.2). Der Code liegt als
+  `docs/auftrag/messungen/r6-13-brechung.patch` bereit. Sichtbar würde die Brechung nur mit einer
+  durchlässigeren Scrollkante, und die kostet Lesbarkeit (GUI-R6.md §11 R6-13 «Ergebnis»).
 - **R6 – Ziele für Berufsbildner sichtbar?** Dürfen Berufsbildner die persönlichen Ziele der
   Lernenden sehen? Erst dann zeigt ihre Seite «nötige Note fürs Ziel»; bis dahin nur «nötige Note
   für genügend» (`docs/auftrag/GUI-R6.md` §10).

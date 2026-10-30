@@ -1220,3 +1220,15 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
   unterstrichen; im Rechner (`notenKlasse` in `np.js`) bleibt «knapp» bis zum Nachziehen nur Farbe.
 - **Weitere Admin-Tabellen**: caption ergänzt in Versandprotokoll, Benutzerkonten, Aktivitätsprotokoll und
   Berufsbildner; andere Listen nicht einzeln durchgesehen.
+
+## R6-13 Lichtbrechung (30.10.2026): nicht übernommen
+
+- **Lichtbrechung am Kapselrand (`np-glas-gruppe`, SVG-Filter `#np-brechung`).** Gebaut und geprüft,
+  dann zurückgenommen.
+  - Unter den Kapseln liegt die Scrollkante bzw. `np-grund`, also ein gleichförmiger Hintergrund.
+    Die Brechung ändert dort höchstens 2 von 255 Stufen.
+  - Probe mit eingespielter Regel: Scroll p95 auf `/grades` 17.1 → 20.2 ms, Grenze 18.2.
+  - Patch: `docs/auftrag/messungen/r6-13-brechung.patch`. Begründung und Zahlen: `docs/auftrag/GUI-R6.md`
+    §11 R6-13 «Ergebnis».
+  - Wieder aufnehmen nur zusammen mit einer durchlässigeren Scrollkante. Das widerspricht der Kernzahl
+    der Basislinie (Lesbarkeit auf Glas kommt über die Kante).

@@ -296,7 +296,7 @@ Nicht raten — als offen markieren und David fragen:
 > Dunkeln 0.00–0.37 – Transparenz wird über die Kante gekauft, nicht über die Deckung. Der Plan steht
 > seit 03.10. 09:20 in `docs/auftrag/GUI-R6.md` (zwei Workflows: Verstehen und Entwurf mit Jury,
 > Rohdaten unter `docs/auftrag/messungen/r6-*`); Umsetzung in Scheiben R6-00 bis R6-12, Lichtbrechung
-> R6-13 optional.
+> R6-13 optional (30.10. gebaut und gemessen, nicht übernommen: unsichtbar über der Scrollkante, Scroll langsamer).
 
 Reihenfolge ist bindend; jeder Schritt lässt das Portal lauffähig zurück.
 
