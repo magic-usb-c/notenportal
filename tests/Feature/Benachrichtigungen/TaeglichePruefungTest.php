@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Benachrichtigungen;
 
+use App\Http\Middleware\SetLocale;
 use App\Models\Fach;
+use App\Models\MailLog;
 use App\Models\Note;
 use App\Models\NotificationMark;
 use App\Models\Pruefung;
 use App\Models\Semester;
 use App\Models\User;
 use App\Notifications\PortalMail;
+use App\Services\Auswertung\LernstandRechner;
 use App\Services\Notifications\NotificationCatalog;
+use App\Support\Einstellungen;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -391,5 +395,52 @@ class TaeglichePruefungTest extends TestCase
         $this->assertDatabaseCount('mail_log', 0);
         $this->assertDatabaseCount('notification_marks', 0);
         $this->assertDatabaseCount('notification_digest_items', 0);
+    }
+
+    #[Test]
+    public function lernstand_rot_nennt_die_gruende_in_der_sprache_des_betreuers(): void
+    {
+        Einstellungen::set(SetLocale::WAHL_AKTIV, '1');
+        $lernender = User::factory()->lernender()->create(['email' => 'lernender@firma.ch'])->lernender;
+        $en = User::factory()->berufsbildner()->create(['email' => 'en@firma.ch', 'locale' => 'en']);
+        $de = User::factory()->berufsbildner()->create(['email' => 'de@firma.ch', 'locale' => 'de']);
+        $this->betreue($en, $lernender);
+        $this->betreue($de, $lernender);
+
+        $semester = Semester::factory()->create();
+        $this->bmsTrack($lernender, $semester->semester_id);
+        Note::factory()->create([
+            'lernender_id' => $lernender->lernender_id,
+            'semester_id' => $semester->semester_id,
+            'fach_id' => Fach::factory()->create(['track_typ' => 'BMS'])->fach_id,
+            'note_wert' => 3.0,
+        ]);
+
+        app()->setLocale('de');
+        $this->artisan('notifications:check');
+
+        $text = fn (User $u) => json_encode(MailLog::where('user_id', $u->benutzer_id)->where('type', NotificationCatalog::LEARNER_AT_RISK)->sole()->payload, JSON_UNESCAPED_UNICODE);
+        $this->assertStringContainsString('Semester average', $text($en));
+        $this->assertStringNotContainsString('Semesterschnitt', $text($en));
+        $this->assertStringContainsString('Semesterschnitt', $text($de));
+    }
+
+    #[Test]
+    public function zeugnis_mit_datum_semesterende_zaehlt_nicht_als_letzte_pruefung(): void
+    {
+        $lernender = User::factory()->lernender()->create(['email' => 'lernender@firma.ch'])->lernender;
+        $semester = Semester::factory()->create();
+        $fach = Fach::factory()->create(['track_typ' => 'BMS']);
+        $this->bmsTrack($lernender, $semester->semester_id);
+        foreach ([now()->subDays(5), now()->addDays(60)] as $datum) {
+            Note::factory()->create([
+                'lernender_id' => $lernender->lernender_id, 'semester_id' => $semester->semester_id,
+                'fach_id' => $fach->fach_id, 'note_wert' => 5.0, 'pruefungsdatum' => $datum->toDateString(),
+            ]);
+        }
+
+        $stand = app(LernstandRechner::class)->fuer([(int) $lernender->lernender_id])[(int) $lernender->lernender_id];
+
+        $this->assertSame(now()->subDays(5)->toDateString(), $stand->letztePruefung->toDateString());
     }
 }

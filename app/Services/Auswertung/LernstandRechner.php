@@ -29,7 +29,9 @@ final class LernstandRechner
         }
 
         $auswertungen = $this->quelle->auswertungen($lernenderIds);
+        // Nur Prüfungen bis heute: ein Zeugnis mit Datum Semesterende ist keine «letzte Prüfung in 93 Tagen»
         $letzte = DB::table('noten')->whereIn('lernender_id', $lernenderIds)->whereNull('geloescht_am')
+            ->where('pruefungsdatum', '<=', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, MAX(pruefungsdatum) as letzte')->pluck('letzte', 'lernender_id');
         $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->whereNull('note_id')->whereNull('abgesagt_am')->where('datum', '<', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, COUNT(*) as anzahl')->pluck('anzahl', 'lernender_id');

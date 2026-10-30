@@ -58,6 +58,8 @@ final class BaumVorlage
     /** @return array<string, mixed> geprüfte Vorlage */
     public static function lesen(string $json): array
     {
+        // Editoren unter Windows speichern UTF-8 gern mit BOM; json_decode lehnt es ab.
+        $json = preg_replace('/^\xEF\xBB\xBF/', '', $json) ?? $json;
         $d = json_decode($json, true);
         if (! is_array($d)) {
             throw new RuntimeException(__('Die Datei ist kein gültiges JSON.'));

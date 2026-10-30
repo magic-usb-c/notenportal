@@ -368,8 +368,10 @@ Laravel-Scheduler auf; Kontrolle mit `php artisan schedule:list`.
 
 | Zeit | Aufgabe | Befehl |
 |---|---|---|
-| 02:30 | Sicherung, danach Kopie ausser Haus | `notenportal:sicherung` |
 | 03:15 | Aktivitätsprotokoll aufräumen (älter als 365 Tage) | `notenportal:aktivitaeten-aufraeumen` |
+| 03:30 | Fehlgeschlagene Mailaufträge nach 7 Tagen entfernen | `queue:prune-failed --hours=168` |
+| Mo 03:45 | Verwaiste Feedback-Anhänge entfernen | `notenportal:feedback-aufraeumen` |
+| 04:10 | Sicherung, danach Kopie ausser Haus (nicht 02:00–03:00: Zeitumstellung) | `notenportal:sicherung` |
 | 06:30 | Benachrichtigungen prüfen | `notifications:check` |
 | 18:00 | Tageszusammenfassungen versenden | `notifications:digest` |
 | :17 stündlich | Abonnierte Kalender abgleichen | `calendar:sync` |
@@ -421,7 +423,7 @@ ein wiederherstellbares Portal.
 
 | Art | Zeit | Inhalt | Aufbewahrung | Ort |
 |---|---|---|---|---|
-| Automatisch | täglich 02:30 | ZIP mit `datenbank.sql`, `dateien/lernende/…`, `LIESMICH.txt` | die 14 neusten | `storage/app/private/sicherungen/` |
+| Automatisch | täglich 04:10 | ZIP mit `datenbank.sql`, `dateien/lernende/…`, `LIESMICH.txt` | die 14 neusten | `storage/app/private/sicherungen/` |
 | Kopie ausser Haus | nach jeder Sicherung | dieselben ZIP-Dateien | Ziel bestimmt | Ordner oder SSH-Server, per rsync |
 | Auf Knopfdruck | bei Bedarf | wie automatisch | zählt zu den 14 | Admin → Betrieb → «Jetzt sichern» |
 | Manueller Dump | vor jedem Eingriff | nur Datenbank | von Hand | `~/db-backups/` |
@@ -619,7 +621,7 @@ Sprung auf eine Seite. Oben rechts: Feedback melden (Sprechblase), Hell/Dunkel, 
 | Einwilligung Katalogdaten | offen | Product Owner | Schriftliche Zustimmung von ICT-Berufsbildung Schweiz |
 | Lizenz und Meldeweg für Sicherheitslücken | offen | Product Owner | Lizenztext festlegen, Kontaktadresse publizieren |
 | Restore-Test dokumentiert | erledigt | Product Owner | 11.09.2026, Ergebnis im Restorelog. Wiederholung halbjährlich |
-| Automatische Sicherung aktiv | erledigt | Betrieb | Täglich 02:30, 14 Stände, Kontrolle im Admin-Dashboard |
+| Automatische Sicherung aktiv | erledigt | Betrieb | Täglich 04:10, 14 Stände, Kontrolle im Admin-Dashboard |
 
 Reihenfolge am Tag des Produktivgangs: Zertifikat und Redirect setzen →
 `notenportal:bereitschaft` ohne Fehler → SMTP eintragen und Testmail → Mail-Umleitung leeren →

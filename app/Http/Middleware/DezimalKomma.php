@@ -39,6 +39,6 @@ final class DezimalKomma extends TransformsRequest
             return $value;
         }
 
-        return preg_match('/^\s*-?\d*,\d+\s*$/', $value) === 1 ? str_replace(',', '.', trim($value)) : $value;
+        return preg_match('/^\s*-?(\d*,\d+|\d+,)\s*$/', $value) === 1 ? str_replace(',', '.', trim($value)) : $value;
     }
 }

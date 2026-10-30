@@ -13,7 +13,7 @@ Server-Konfiguration und alle Änderungen ausserhalb des Repos (Datenbanken, /et
 | DB | MariaDB 10.11, Datenbanken `notenportal` (Betrieb), `notenportal_test` und `notenportal_b_test` (PHPUnit, werden bei jedem Lauf neu aufgebaut; die zweite für parallele Läufe: `DB_DATABASE=notenportal_b_test php artisan test`) |
 | DB-User | `np_web` (Web, .env `DB_USERNAME`): auf `notenportal` nur SELECT/INSERT/UPDATE/DELETE/LOCK TABLES/CREATE TEMPORARY TABLES/SHOW VIEW/EXECUTE; ALL auf den Test-, Demo- und Probe-Datenbanken. `np_migrate` (.env `DB_MIGRATE_USERNAME/-PASSWORD`): ALL auf `notenportal` und `notenportal_probe`, nur für `php artisan notenportal:migrate` |
 | Firewall | ufw: SSH, 80, 443. Port 8082 (zweite Instanz) bewusst nicht freigegeben – Apache lauscht auf `*:8082`, von aussen durch ufw gesperrt, nur lokal (`http://127.0.0.1:8082`) erreichbar |
-| Backups | täglich 02:30 `storage/app/private/sicherungen/` (ZIP, 14 Stände, Seite «Betrieb»); manuelle Dumps vor Eingriffen in `~/db-backups/` |
+| Backups | täglich 04:10 `storage/app/private/sicherungen/` (ZIP, 14 Stände, Seite «Betrieb»); manuelle Dumps vor Eingriffen in `~/db-backups/` |
 
 ## Dateirechte
 
@@ -214,8 +214,8 @@ Im geschlossenen Lab gibt es keinen öffentlichen DNS-Namen, darum kein Let's En
 
 ## Datensicherung (Block F, 10.09.2026)
 
-- Täglich 02:30 über den Laravel-Scheduler: `notenportal:sicherung` erstellt `storage/app/private/sicherungen/notenportal-JJJJMMTT-HHMMSS.zip` (`datenbank.sql` aus `mariadb-dump --single-transaction`, `dateien/` mit `lernende/`, `betrieb/`, `feedback/` und `module/` (Modulunterlagen seit 03.10.2026; `modulkatalog/` bleibt draussen, weil es nur die Zwischenablage des Katalogimports ist; beim nächsten Katalog-Upload wird gelöscht, was älter als 24 h ist), `LIESMICH.txt`), die 14 neusten bleiben. Status, «Jetzt sichern», Herunterladen und Löschen auf Admin → Betrieb.
-- Zeitplan: `install.sh` schreibt `/etc/cron.d/<verzeichnisname>` (`* * * * * www-data … php artisan schedule:run`). **Prod** (`/var/www/notenportal`): Eintrag `/etc/cron.d/notenportal` besteht seit 10.09.2026 (Sicherung 02:30, Queue, Tageszusammenfassung, Kalenderabgleich).
+- Täglich 04:10 über den Laravel-Scheduler (bewusst nicht zwischen 02:00 und 03:00: bei der Umstellung auf Winterzeit kommt 02:xx doppelt vor und die Sicherung liefe zweimal; bis 30.10.2026 stand 02:30): `notenportal:sicherung` erstellt `storage/app/private/sicherungen/notenportal-JJJJMMTT-HHMMSS.zip` (`datenbank.sql` aus `mariadb-dump --single-transaction`, `dateien/` mit `lernende/`, `betrieb/`, `feedback/` und `module/` (Modulunterlagen seit 03.10.2026; `modulkatalog/` bleibt draussen, weil es nur die Zwischenablage des Katalogimports ist; beim nächsten Katalog-Upload wird gelöscht, was älter als 24 h ist), `LIESMICH.txt`), die 14 neusten bleiben. Läuft zur Startzeit schon eine Sicherung (z. B. «Jetzt sichern»), beendet sich der Lauf ohne Fehlermeldung und ohne Mail an die Admins. Status, «Jetzt sichern», Herunterladen und Löschen auf Admin → Betrieb.
+- Zeitplan: `install.sh` schreibt `/etc/cron.d/<verzeichnisname>` (`* * * * * www-data … php artisan schedule:run`). **Prod** (`/var/www/notenportal`): Eintrag `/etc/cron.d/notenportal` besteht seit 10.09.2026 (Sicherung 04:10, Queue, Tageszusammenfassung, Kalenderabgleich).
 - Wiederherstellen (Notfall, im Terminal):
 
 ```bash

@@ -52,6 +52,12 @@ final class Modulstatus
             $istModul = $element->typ === Element::MODUL;
 
             $termineDesElements = ($istModul ? $termineJeModul[$element->modulId] ?? null : $termineJeFach[$element->fachId] ?? null) ?? collect();
+            if (! $istModul && $element->semesterId !== null) {
+                // Fach-Elemente gibt es je Semester: nur Termine, die der Rechenkern diesem Semester zuordnet.
+                $termineDesElements = $termineDesElements->filter(
+                    fn (Pruefung $p) => $k->semesterFuerDatum($p->datum->toDateString()) === $element->semesterId
+                );
+            }
             $rohTermine = $termineDesElements->map(fn (Pruefung $p) => [
                 'datum' => $p->datum->toDateString(),
                 'titel' => $p->titel,

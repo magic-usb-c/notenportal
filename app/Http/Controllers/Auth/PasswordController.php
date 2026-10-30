@@ -44,6 +44,7 @@ class PasswordController extends Controller
         $user->update([
             'passwort_hash' => Hash::make($validated['password']),
         ]);
+        NewPasswordController::offeneLinksLoeschen($user);
 
         // Kein PasswordReset-Event hier (nur in NewPasswordController::store()) – kein Doppel-Eintrag mit LogPasswordReset.
         Protokoll::schreiben(Protokoll::AUTH_PASSWORT_GEAENDERT, $user);

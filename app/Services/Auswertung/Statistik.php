@@ -115,6 +115,15 @@ final class Statistik
             ];
         }
 
+        // Gleichnamige Fächer verschiedener Kategorien (Englisch im Fachunterricht und in der BMS) mit Kategorie
+        $namen = array_count_values(array_map(fn (array $z) => mb_strtolower($z['fach']), $zeilen));
+        foreach ($zeilen as &$z) {
+            if ($namen[mb_strtolower($z['fach'])] > 1) {
+                $z['fach'] .= ' · '.$a->konfiguration->kategorieName($z['kategorie_id']);
+            }
+        }
+        unset($z);
+
         usort($zeilen, function (array $x, array $y) {
             if (($x['delta'] === null) !== ($y['delta'] === null)) {
                 return $x['delta'] === null ? 1 : -1;

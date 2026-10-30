@@ -24,10 +24,21 @@ class NotenGesehenController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         $note = $lernender->noten()->with(['fach', 'modulBelegung.modul'])->whereKey($note_id)->firstOrFail();
 
-        // Auch bei bestehender Markierung neu setzen, damit der «Neu»-Badge nach neuen Kommentaren verschwindet
-        $this->markieren([$note->note_id], (int) $request->user()->benutzer_id);
+        $viewerId = (int) $request->user()->benutzer_id;
 
-        $this->benachrichtigen($lernender, fn () => GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
+        // Nur wenn die Note für den Betrachter vorher neu war, erfährt der Lernende davon (ein erneutes Senden meldet nichts)
+        $warNeu = DB::table('noten as n')
+            ->leftJoin('noten_gesehen as g', fn ($j) => $j->on('g.note_id', '=', 'n.note_id')->where('g.viewer_benutzer_id', '=', $viewerId))
+            ->where('n.note_id', $note->note_id)
+            ->where(Ungelesen::bedingung($viewerId))
+            ->exists();
+
+        // Auch bei bestehender Markierung neu setzen, damit der «Neu»-Badge nach neuen Kommentaren verschwindet
+        $this->markieren([$note->note_id], $viewerId);
+
+        if ($warNeu) {
+            $this->benachrichtigen($lernender, fn () => GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
+        }
 
         return back()
             ->with('success', __('Note als gesehen markiert.'))

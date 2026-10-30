@@ -52,6 +52,7 @@ class NewPasswordController extends Controller
                 $user->remember_token = Str::random(60);
             }
             $user->save();
+            self::offeneLinksLoeschen($user);
 
             Notifier::send($user, NotificationCatalog::PASSWORD_CHANGED, fn () => new MailContent(
                 subject: __('Dein Passwort wurde geändert'),
@@ -72,5 +73,15 @@ class NewPasswordController extends Controller
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('status', __($status))
             : back()->withErrors(['email' => [__($status)]]);
+    }
+
+    /**
+     * Nach jeder Passwortänderung: offene Links beider Broker («users» 60 Minuten, «invites» 7 Tage) löschen,
+     * sonst bliebe ein älterer Link aus dem anderen Broker gültig und könnte das Konto übernehmen.
+     */
+    public static function offeneLinksLoeschen(User $user): void
+    {
+        Password::broker('users')->deleteToken($user);
+        Password::broker('invites')->deleteToken($user);
     }
 }

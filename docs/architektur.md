@@ -25,7 +25,8 @@ app/Services/
   Bericht          Admin-Notenbericht; Notenblatt (Druckansicht)
   Noten/NoteService  Bezug Fach/Modul, Kategorie ableiten, normalizeForSave
   Dokumente/Ablage   private Ablage (Disk local), Upload-Regeln, sichere Auslieferung, sprechende Dateinamen
-  Import/            TabellenLeser (PhpSpreadsheet, CSV, smalot/pdfparser), NotenImport (Spalten, Zuordnung mit Fach-Synonymen/Kürzeln,
+  Import/            TabellenLeser (PhpSpreadsheet mit Zip-Grössenprüfung, CSV), PdfLeser (smalot/pdfparser mit Entpack-Limit je Stream
+                     und gesamt, für Notenimport und Zeugnis-Abgleich), NotenImport (Spalten, Zuordnung mit Fach-Synonymen/Kürzeln,
                      Dubletten, Import über normalizeForSave), Schulnetz (PDF «Aktuelle Noten»/«Zeugnisnoten» → Tabelle,
                      Faktor → Prozent), ZeugnisText (Zeugniszeilen: aktuelle Semesternote statt Ø, OCR-Zeilen, BM/BFS-Blöcke),
                      ZeugnisAbgleich; Fixtures anonymisiert in tests/Fixtures/import
@@ -41,7 +42,7 @@ app/Services/Feedback/Anhang      eigene Anhaenge: Inhalt statt Endung geprueft 
 app/Support/AppVersion           liest .git/HEAD bzw. packed-refs direkt, kein Shell-Aufruf, null ohne Git-Verzeichnis
 routes/            Routennamen und URL-Pfade englisch (learner.*, trainer.*, admin.*; z.B. /grades, /trainer/learners, /admin/master-data);
                    Parameter ({lernender_id} …), Controller, Views und DB bleiben vorerst deutsch
-app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten
+app/Services/Betrieb/Sicherung  ZIP mit datenbank.sql (mariadb-dump, Passwort via MYSQL_PWD) + dateien/lernende, unter storage/app/private/sicherungen, 14 behalten; läuft schon eine (Sperre), wirft sie SicherungLaeuftBereits
 app/Services/Betrieb/SicherungKopie  rsync (Argumentliste, keine Shell) nur notenportal-*.zip in Ordner oder per SSH (Schlüssel storage/app/private/ssh)
 app/Services/Notifications/  NotificationCatalog (Anlässe, Standards, gesperrt/verpflichtend) → notification_policies (Admin) → notification_preferences (Benutzer);
                    Notifier::send (sofort = PortalMail in Queue | täglich = DigestItem), once() über notification_marks, mail_log;
@@ -50,7 +51,7 @@ app/Notifications/PortalMail  eine Mail-Klasse für alles (views mail/portal, ma
 app/Listeners/     RedirectMail (Umleitung Testbetrieb, Test-Domains → skipped), LogSentMail
 app/Services/Calendar/  CalendarSync (iCal abrufen: nur http/https/webcal, keine privaten IPs, max. 3 Redirects/5 MB; Prüfungen → pruefungen,
                    Lektionen/Termine → calendar_events), SchoolNetDescriptionParser, CalendarExport (Token-Feed)
-app/Console/Commands/  ErstesAdminKonto (Installer), PilotVorbereiten, SicherungErstellen (notenportal:sicherung 02:30, danach Kopie ausser Haus),
+app/Console/Commands/  ErstesAdminKonto (Installer), PilotVorbereiten, SicherungErstellen (notenportal:sicherung 04:10, danach Kopie ausser Haus),
                    SicherungKopieren, SendDigests (18:00), CheckNotifications (06:30), SyncCalendars (stündlich), Migrieren (notenportal:migrate als np_migrate);
                    Queue-Worker jede Minute (queue:work --stop-when-empty) über den Scheduler
 install.sh         Installation/Update auf Ubuntu 24.04 (--port, --db, --host, --ohne-firewall, --neues-admin-passwort); legt /etc/cron.d/<verzeichnis> für schedule:run als www-data an

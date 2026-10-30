@@ -44,6 +44,7 @@ class PasswortWechselController extends Controller
             'passwort_hash' => $validated['password'],
             'passwort_wechsel_noetig' => false,
         ]);
+        NewPasswordController::offeneLinksLoeschen($user);
         $request->session()->regenerate();
 
         // Kein PasswordReset-Event hier (nur in NewPasswordController::store()) – kein Doppel-Eintrag mit LogPasswordReset.

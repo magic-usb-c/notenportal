@@ -649,7 +649,7 @@ export function registriereSeitenleiste(Alpine) {
 export function registriereDezimalfelder() {
     document.addEventListener('change', (ev) => {
         const feld = ev.target;
-        if (!(feld instanceof HTMLInputElement) || feld.inputMode !== 'decimal' || !/^\s*-?\d*,\d+\s*$/.test(feld.value)) return;
+        if (!(feld instanceof HTMLInputElement) || feld.inputMode !== 'decimal' || !/^\s*-?(\d*,\d+|\d+,)\s*$/.test(feld.value)) return;
         feld.value = feld.value.trim().replace(',', '.');
         feld.dispatchEvent(new Event('input', { bubbles: true }));
     }, true);

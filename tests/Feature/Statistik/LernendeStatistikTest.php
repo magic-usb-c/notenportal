@@ -352,4 +352,31 @@ class LernendeStatistikTest extends TestCase
             }
         }
     }
+
+    #[Test]
+    public function s3_hantel_unterscheidet_gleichnamige_faecher_nach_kategorie(): void
+    {
+        $lernenderId = $this->lernender->lernender->lernender_id;
+        $fach = Fach::find(DB::table('noten')->where('lernender_id', $lernenderId)->value('fach_id'));
+        $abu = (int) Kategorie::where('code', 'ABU')->value('kategorie_id');
+        $zwilling = Fach::factory()->create(['name' => $fach->name, 'kurzname' => $fach->kurzname, 'track_typ' => null, 'kategorie_id' => $abu]);
+        DB::table('lehrberuf_faecher')->insert(['lehrberuf_id' => $this->lehrberufId, 'fach_id' => $zwilling->fach_id, 'aktiv' => 1]);
+        $semester = Semester::find($this->zweitesSemester);
+        DB::table('noten')->insert([
+            'lernender_id' => $lernenderId, 'kategorie_id' => $abu, 'semester_id' => $semester->semester_id,
+            'fach_id' => $zwilling->fach_id, 'modul_belegung_id' => null, 'titel' => 'Note',
+            'pruefungsdatum' => Carbon::parse($semester->start_datum)->addDays(12)->toDateString(),
+            'note_wert' => 4.5, 'gewichtung_prozent' => 100, 'erfasst_von_benutzer_id' => $this->lernender->benutzer_id,
+        ]);
+
+        $zeilen = $this->actingAs($this->lernender)->get(route('learner.grades.index', ['semester_id' => $this->zweitesSemester]))
+            ->assertOk()->viewData('statistik')['diagramm']['hantel']['zeilen'];
+        $namen = array_column($zeilen, 'fach');
+
+        $this->assertCount(2, $namen);
+        $this->assertSame(count($namen), count(array_unique($namen)));
+        foreach ($namen as $name) {
+            $this->assertStringStartsWith($fach->name.' · ', $name);
+        }
+    }
 }

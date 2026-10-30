@@ -901,7 +901,7 @@ if (( FRISCH )); then
     # Einmal jetzt statt erst in der Nacht: damit ist bewiesen, dass der Sicherungsweg funktioniert,
     # und die Bereitschaftsprüfung meldet nicht am ersten Tag «keine Sicherung in den letzten 2 Tagen».
     if als "php artisan notenportal:sicherung" >/dev/null 2>&1; then
-        echo "  storage/app/private/sicherungen/ – täglich 02:30 automatisch, 14 Stände"
+        echo "  storage/app/private/sicherungen/ – täglich 04:10 automatisch, 14 Stände"
     else
         echo "  Die erste Sicherung ist fehlgeschlagen – auf der Seite Betrieb «Jetzt sichern» versuchen."
     fi

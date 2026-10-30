@@ -226,4 +226,16 @@ class CalendarExportTest extends TestCase
         }
         $this->assertSame(route('learner.exams.index'), (string) $terminEvent->URL);
     }
+
+    #[Test]
+    public function abgabetermin_heisst_im_feed_abgabetermin_und_nicht_pruefung(): void
+    {
+        $this->pruefung->forceFill(['art' => Pruefung::ART_ABGABE])->save();
+
+        $event = Reader::read(app(CalendarExport::class)->forUser($this->lernender))->VEVENT;
+
+        $this->assertStringStartsWith('Abgabetermin 902 Testmodul Beta', (string) $event->SUMMARY);
+        $this->assertStringNotContainsString('Prüfung', (string) $event->SUMMARY);
+        $this->assertSame('Abgabetermin', (string) $event->CATEGORIES);
+    }
 }

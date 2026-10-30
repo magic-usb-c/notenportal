@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Services\Betrieb\Sicherung;
 use App\Services\Betrieb\SicherungKopie;
+use App\Services\Betrieb\SicherungLaeuftBereits;
 use App\Services\Notifications\Empfaenger;
 use App\Services\Notifications\Messages\BackupFailed;
 use App\Services\Notifications\NotificationCatalog;
@@ -22,6 +23,11 @@ class SicherungErstellen extends Command
     {
         try {
             $this->line('Sicherung erstellt: '.$sicherung->erstellen());
+        } catch (SicherungLaeuftBereits $e) {
+            // Eine andere Sicherung ist noch im Gang (z. B. «Jetzt sichern»): kein Fehlschlag, keine Mail an die Admins.
+            $this->warn($e->getMessage());
+
+            return self::SUCCESS;
         } catch (\Throwable $e) {
             $this->error($e->getMessage());
             $this->melden($e->getMessage());

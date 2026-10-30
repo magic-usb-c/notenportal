@@ -32,35 +32,45 @@
         return $html.($liste ? '</ul>' : '');
     };
     $gruppen = collect($c->items)->groupBy(fn ($i) => $i['group'] ?? '');
+    // Vorschautext im Posteingang: gesetzter Preheader, sonst die erste Inhaltszeile (Zeile, Fakt, Abschnitt), höchstens 140 Zeichen.
+    $vorschau = $c->preheader;
+    if (trim((string) $vorschau) === '') {
+        $erster = collect($c->facts)->map(fn ($wert, $label) => $label.': '.$wert)->first();
+        $vorschau = $c->lines[0] ?? $erster ?? ($c->sections[0]['text'] ?? '');
+    }
+    $vorschau = \Illuminate\Support\Str::limit(trim((string) preg_replace('/\s+/u', ' ', (string) $vorschau)), 139, '…');
 @endphp
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="supported-color-schemes" content="light dark">
     <title>{{ $c->subject }}</title>
+    <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
     <style>
-        @media (max-width: 620px) { .np-card { border-radius: 0 !important; } .np-pad { padding-left: 22px !important; padding-right: 22px !important; } .np-btn { display: block !important; text-align: center !important; } }
+        @media (max-width: 620px) { .np-card { border-radius: 0 !important; } .np-pad { padding-left: 22px !important; padding-right: 22px !important; } .np-btn-tabelle { width: 100% !important; } .np-btn { display: block !important; text-align: center !important; } }
         @media (prefers-color-scheme: dark) {
             .np-body { background: #020617 !important; } .np-card { background: #0f172a !important; border-color: #334155 !important; }
             .np-text { color: #e2e8f0 !important; } .np-muted { color: #94a3b8 !important; } .np-soft { background: #1e293b !important; }
             .np-line { border-color: #334155 !important; }
+            .np-logo { background: #ffffff !important; padding: 3px 6px !important; border-radius: 6px !important; }
             .np-link { color: #93c5fd !important; } .np-link-muted { color: #94a3b8 !important; }
         }
     </style>
 </head>
 <body class="np-body" style="margin:0;padding:0;background:{{ $f['bg'] }};">
-@if($c->preheader)
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{ $c->preheader }}&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
+@if($vorschau !== '')
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;{{ $umbruch }}">{{ $vorschau }}&#8199;&#65279;&#847;&#8199;&#65279;&#847;</div>
 @endif
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{{ $f['bg'] }};" class="np-body">
     <tr><td align="center" style="padding:28px 12px;">
+        <!--[if mso]><table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
             <tr><td class="np-pad" style="padding:0 8px 14px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};" >
                 @if($logoUrl ?? null)
-                    <img src="{{ $logoUrl }}" alt="" height="20" style="vertical-align:middle;margin-right:8px;border-radius:4px;">
+                    <img class="np-logo" src="{{ $logoUrl }}" alt="" height="20" style="vertical-align:middle;margin-right:8px;border-radius:4px;">
                 @else
                     <span style="display:inline-block;width:8px;height:8px;border-radius:4px;background:{{ $f['accent'] }};margin-right:8px;vertical-align:middle;"></span>
                 @endif
@@ -133,7 +143,10 @@
 
                     @if($c->actionUrl)
                         <tr><td class="np-pad" style="padding:22px 36px 6px;">
-                            <a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;background:{{ $f['accent'] }};color:#ffffff;font-family:{{ $schrift }};font-size:15px;font-weight:600;text-decoration:none;padding:13px 24px;border-radius:12px;">{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}</a>
+                            {{-- Knopf als Zelle (Outlook-Desktop kennt kein Padding auf Links): Farbe und Rundung auf der Zelle, mso-padding-alt für Word, Link trägt das Padding für alle anderen. --}}
+                            <table role="presentation" cellpadding="0" cellspacing="0" class="np-btn-tabelle"><tr>
+                                <td class="np-btn-zelle" bgcolor="{{ $f['accent'] }}" style="background:{{ $f['accent'] }};border-radius:12px;mso-padding-alt:13px 24px;"><a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;color:#ffffff;font-family:{{ $schrift }};font-size:15px;font-weight:600;text-decoration:none;padding:13px 24px;">{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}</a></td>
+                            </tr></table>
                         </td></tr>
                     @endif
 
@@ -154,6 +167,7 @@
                 <br><a class="np-link-muted" href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
             </td></tr>
         </table>
+        <!--[if mso]></td></tr></table><![endif]-->
     </td></tr>
 </table>
 </body>

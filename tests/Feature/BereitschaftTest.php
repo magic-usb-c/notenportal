@@ -12,6 +12,7 @@ use App\Services\Betrieb\SicherungKopie;
 use App\Services\Notifications\MailSettings;
 use App\Support\Bereitschaft;
 use App\Support\Einstellungen;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -104,7 +105,68 @@ class BereitschaftTest extends TestCase
 
         Einstellungen::set(SicherungKopie::ZIEL, 'ordner');
         Einstellungen::set(SicherungKopie::PFAD, '/var/backups/notenportal');
+        Einstellungen::set(SicherungKopie::LETZTE, now()->subHours(3)->toIso8601String());
         $this->assertSame(Bereitschaft::OK, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'kopie_ausser_haus'));
+    }
+
+    #[Test]
+    public function kopie_ausser_haus_warnt_bei_fehlgeschlagener_alter_oder_fehlender_kopie(): void
+    {
+        Einstellungen::set(SicherungKopie::ZIEL, 'ordner');
+        Einstellungen::set(SicherungKopie::PFAD, '/var/backups/notenportal');
+
+        // Ziel eingerichtet, aber noch nie kopiert
+        $this->assertSame(Bereitschaft::WARNUNG, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'kopie_ausser_haus'));
+
+        // letzte erfolgreiche Kopie vor 20 Tagen
+        Einstellungen::set(SicherungKopie::LETZTE, now()->subDays(20)->toIso8601String());
+        $this->assertSame(Bereitschaft::WARNUNG, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'kopie_ausser_haus'));
+
+        // frische Kopie, aber der letzte Lauf ist fehlgeschlagen
+        Einstellungen::set(SicherungKopie::LETZTE, now()->subHours(1)->toIso8601String());
+        Einstellungen::set(SicherungKopie::FEHLER, '13.10.2026 02:31 – ssh: Could not resolve hostname backup.beispielfirma.ch');
+        $this->assertSame(Bereitschaft::WARNUNG, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'kopie_ausser_haus'));
+
+        // Fehler weg, Kopie frisch: ok
+        Einstellungen::set(SicherungKopie::FEHLER, null);
+        $this->assertSame(Bereitschaft::OK, $this->statusVon(app(Bereitschaft::class)->pruefen(), 'kopie_ausser_haus'));
+    }
+
+    #[Test]
+    public function kopie_ausser_haus_warnung_nennt_den_rohen_fehlertext_nicht(): void
+    {
+        Einstellungen::set(SicherungKopie::ZIEL, 'ssh');
+        Einstellungen::set(SicherungKopie::HOST, 'backup.beispielfirma.ch');
+        Einstellungen::set(SicherungKopie::PFAD, '/geheim/pfad');
+        Einstellungen::set(SicherungKopie::LETZTE, now()->subHours(1)->toIso8601String());
+        Einstellungen::set(SicherungKopie::FEHLER, 'ssh: Could not resolve hostname backup.beispielfirma.ch, mkdir "/geheim/pfad" failed');
+
+        $eintrag = collect(app(Bereitschaft::class)->pruefen())->firstWhere('schluessel', 'kopie_ausser_haus');
+        $this->assertSame(Bereitschaft::WARNUNG, $eintrag['status']);
+        $this->assertStringContainsString('fehlgeschlagen', $eintrag['hinweis']);
+        $this->assertStringNotContainsString('beispielfirma', $eintrag['hinweis']);
+        $this->assertStringNotContainsString('/geheim/pfad', $eintrag['hinweis']);
+    }
+
+    #[Test]
+    public function die_tagessicherung_laeuft_ausserhalb_der_zeitumstellung(): void
+    {
+        $ereignis = collect(app(Schedule::class)->events())
+            ->first(fn ($e) => str_contains((string) $e->command, 'notenportal:sicherung'));
+        $this->assertNotNull($ereignis);
+
+        // Cron «Minute Stunde …»: zweites Feld ist die Stunde
+        $felder = explode(' ', (string) $ereignis->expression);
+        $stunde = (int) $felder[1];
+        $minute = (int) $felder[0];
+
+        // Die Stunde 02:xx kommt bei der Umstellung auf Winterzeit doppelt vor.
+        $this->assertNotSame(2, $stunde);
+        $this->assertNotSame(3, $stunde, 'Auch 03:xx liegt nahe an der Umstellung.');
+
+        // Die anderen nächtlichen Läufe dürfen nicht zur selben Zeit starten.
+        $belegt = ['03:15', '03:30', '03:45', '06:30', '18:00'];
+        $this->assertNotContains(sprintf('%02d:%02d', $stunde, $minute), $belegt);
     }
 
     #[Test]

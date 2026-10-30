@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Http\Middleware\DezimalKomma;
+use App\Services\Import\WertParser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -70,5 +72,28 @@ class DezimalKommaTest extends TestCase
         $this->assertSame('4.5', $r->input('gewichtung_prozent'));
         $this->assertSame('abc,5', $r->input('zielwert'));
         $this->assertSame('fach:3,kategorie:1', $r->input('ziel'));
+    }
+
+    #[Test]
+    public function abschliessendes_komma_wird_zum_punkt_und_ist_numerisch_gueltig(): void
+    {
+        $r = $this->durch(['note_wert' => '4,', 'gewichtung_prozent' => ' 50, ', 'zielwert' => ',', 'ziel' => '4,,']);
+
+        $this->assertSame('4.', $r->input('note_wert'));
+        $this->assertSame('50.', $r->input('gewichtung_prozent'));
+        $this->assertSame(',', $r->input('zielwert'), 'ein Komma allein ist keine Zahl');
+        $this->assertSame('4,,', $r->input('ziel'));
+        $this->assertTrue(Validator::make(['note_wert' => $r->input('note_wert')], ['note_wert' => 'required|numeric|between:1,6'])->passes());
+    }
+
+    #[Test]
+    public function importwerte_mit_abschliessendem_komma_werden_wie_in_den_formularen_zum_punkt(): void
+    {
+        $this->assertSame('4.', WertParser::punkt('4,'));
+        $this->assertSame('4.5', WertParser::punkt('4,5'));
+        $this->assertSame('.5', WertParser::punkt(',5'));
+        $this->assertSame(',', WertParser::punkt(','));
+        $this->assertSame('4,5,6', WertParser::punkt('4,5,6'));
+        $this->assertNull(WertParser::punkt(null));
     }
 }

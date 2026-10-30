@@ -1275,3 +1275,31 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
   oder Text bleiben unverändert und fallen in der Validierung durch.
 - **Abschlussnoten (`werte[ID]`)**: Der Schlüssel endet auf die ID, nicht auf einen Feldnamen, darum greift die
   Middleware hier nicht. Das Komma ersetzt `Auswertung\Notenbaum\Abschluss` beim Einlesen selbst; das bleibt so.
+
+## Funktionsprüfung Runde 2 (30.10.2026): bewusst gelassen
+
+- **Doppelt gesendeter Kommentar und doppelte Betreuung**: `KommentarController::store` und `BetreuungController::store`
+  sind nicht idempotent, ein zweiter identischer POST legt einen zweiten Eintrag samt Mail an. Der Browser sperrt den
+  Knopf beim Absenden bereits; ein Zeitfenster-Dedup auf dem Server wäre neue Logik für einen Fall, der nur bei
+  erneutem Senden nach Netzfehler auftritt. Behoben sind die Fälle, in denen das Wiederholen Schaden anrichtet:
+  Konto aktiv/inaktiv setzt den Zielzustand (Feld `aktiv`), «Als gesehen markieren» meldet nur bei vorher neuer Note.
+- **Import-Bomben, Restrisiko**: PDFs werden je Stream auf 20 MB und vorab über alle Flate-Streams zusammen auf
+  48 MB entpackt geprüft (`PdfLeser`, echte Dokumente: höchstens 0.1 MB), xlsx/ods vor dem Lesen an der Summe der
+  unkomprimierten Grössen gemessen (30 MB). Offen bleibt: Gnumeric-, SLK- oder HTML-Dateien mit `.xlsx`-Endung erkennt
+  `IOFactory::identify` am Inhalt und liest sie ohne Grössenprüfung; die Zip-Grösse stammt aus dem Archivverzeichnis.
+  Der Import ist angemeldeten Personen vorbehalten und gedrosselt; ein Fatal Error trifft nur den eigenen Worker.
+- **Klartext-Token im Versandprotokoll**: Konto- und Passwort-Mails speichern den Link samt Token im `mail_log`-Payload.
+  «Erneut senden» prüft damit, ob der Link noch gilt, und lehnt abgelaufene ab. Einsehen können ihn nur Admins, die
+  das Passwort ohnehin zurücksetzen dürfen; nach jedem Passwortwechsel sind die Tokens beider Broker gelöscht.
+- **Datenauskunft, Namen zu gelöschten Noten**: `eigeneKommentare()` und `gesehen()` laden die Note ohne
+  `withTrashed`; bei einer gelöschten Note bleibt die Spalte «Lernender» leer, Text und Datum stehen in der Auskunft.
+  Ob Namen Dritter zu gelöschten Noten in die Auskunft gehören, ist eine Datenschutzfrage, keine Programmfrage.
+- **Kategorie-Namen mit Akzent**: Die Einrichtung prüft Namenskollisionen ohne Akzentunterschied nur über
+  `mb_strtolower`; die Kollation ist zusätzlich akzentunempfindlich. Ein Name, der sich nur im Akzent von einer
+  Kategorie ausserhalb des Formulars unterscheidet, endet weiterhin im Datenbankfehler; im Formular stehen aber
+  alle Kategorien, der Fall ist nur mit manipuliertem Request erreichbar.
+- **Fach-Termin ausserhalb jedes Semesters**: `Modulstatus` ordnet Fach-Termine über `semesterFuerDatum` dem Semester
+  zu, das auch der Rechenkern nimmt. Ein Termin nach Lehrende oder vor dem ersten Semester gehört zu keinem Fach-Element
+  und erscheint im Modulstatus nicht; die Agenda zeigt ihn weiterhin. Das Planungsformular prüft das Datum nicht gegen
+  die Lehrzeit; ein Fach-Termin ausserhalb jedes Semesters ist aber auch für Rechner und Zeugnis bedeutungslos, der
+  Rechenkern verwirft ihn ebenso.

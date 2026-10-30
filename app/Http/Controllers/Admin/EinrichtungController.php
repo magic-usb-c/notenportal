@@ -81,16 +81,33 @@ class EinrichtungController extends Controller
             ...KategorieRegeln::regeln('kategorien.*.'),
         ]);
 
-        $ids = DB::table('kategorien')->pluck('kategorie_id')->map(fn ($id) => (int) $id)->all();
-        DB::transaction(function () use ($daten, $ids) {
-            foreach ($daten['kategorien'] as $id => $k) {
-                if (in_array((int) $id, $ids, true)) {
-                    DB::table('kategorien')->where('kategorie_id', (int) $id)->update([
-                        'name' => $k['name'],
-                        'aktiv' => (bool) ($k['aktiv'] ?? false),
-                        ...KategorieRegeln::werte($k),
-                    ]);
-                }
+        $vorhanden = DB::table('kategorien')->pluck('name', 'kategorie_id')->mapWithKeys(fn ($name, $id) => [(int) $id => (string) $name]);
+        $ids = $vorhanden->keys()->all();
+        $uebermittelt = array_values(array_filter(array_keys($daten['kategorien']), fn ($id) => in_array((int) $id, $ids, true)));
+
+        // Namen sind eindeutig: ein Name darf nicht auf eine Kategorie fallen, die dieser Request nicht umbenennt
+        $fehler = [];
+        foreach ($uebermittelt as $id) {
+            $name = mb_strtolower(trim($daten['kategorien'][$id]['name']));
+            $fremd = $vorhanden->contains(fn ($alt, $altId) => ! in_array($altId, array_map('intval', $uebermittelt), true) && mb_strtolower(trim($alt)) === $name);
+            if ($fremd) {
+                $fehler["kategorien.$id.name"] = __('validation.unique', ['attribute' => __('Name')]);
+            }
+        }
+        if ($fehler !== []) {
+            throw ValidationException::withMessages($fehler);
+        }
+
+        DB::transaction(function () use ($daten, $uebermittelt) {
+            // Zuerst eindeutige Platzhalter, damit ein Tausch von Namen den Unique-Index nicht verletzt
+            DB::table('kategorien')->whereIn('kategorie_id', array_map('intval', $uebermittelt))->update(['name' => DB::raw("CONCAT('~', kategorie_id)")]);
+            foreach ($uebermittelt as $id) {
+                $k = $daten['kategorien'][$id];
+                DB::table('kategorien')->where('kategorie_id', (int) $id)->update([
+                    'name' => $k['name'],
+                    'aktiv' => (bool) ($k['aktiv'] ?? false),
+                    ...KategorieRegeln::werte($k),
+                ]);
             }
         });
         Einstellungen::set(Einrichtung::KATEGORIEN_GEPRUEFT, '1');

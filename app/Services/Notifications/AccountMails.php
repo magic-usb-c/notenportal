@@ -26,11 +26,11 @@ final class AccountMails
             subject: __('Dein Konto im Notenportal'),
             title: __('Dein Konto im Notenportal'),
             lines: [__('Für dich wurde ein Konto im Notenportal eingerichtet.')],
-            facts: [
+            facts: array_filter([
                 __('Login-E-Mail') => (string) $user->email,
-                ($user->rollen()->count() > 1 ? __('Rollen') : __('Rolle')) => $user->rollen()->pluck('name')->implode(', '),
+                ($user->rollen()->count() > 1 ? __('Rollen') : __('Rolle')) => $user->rollen()->pluck('name')->map(fn ($name) => __($name))->implode(', '),
                 __('Betrieb') => (string) Einstellungen::get(Einstellungen::BETRIEB_NAME, ''),
-            ],
+            ], fn (string $wert) => $wert !== ''),
             actionLabel: __('Passwort festlegen'),
             actionUrl: route('password.reset', ['token' => $token, 'email' => $user->email]),
         ));

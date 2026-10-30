@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 
 /**
  * Einziger Weg, eine Benachrichtigung auszulösen:
@@ -144,17 +145,36 @@ final class Notifier
         // Konto inzwischen deaktiviert oder gelöscht: nicht an die alte Adresse ausweichen
         $user = $log->user_id ? User::withTrashed()->find($log->user_id) : null;
         if ($log->user_id && (! $user || ! $user->aktiv || $user->trashed())) {
-            throw new \RuntimeException('Das Konto ist deaktiviert oder gelöscht – kein erneuter Versand.');
+            throw new \RuntimeException(__('Das Konto ist deaktiviert oder gelöscht – kein erneuter Versand.'));
         }
         // Testadresse ohne Umleitung: gar nicht erst eine weitere «Nicht zustellbar»-Zeile anlegen
         if (! self::deliverable((string) ($user?->email ?? $log->recipient)) && ! MailSettings::redirectTo()) {
             throw new \RuntimeException('Adresse nicht zustellbar', self::NICHT_ZUSTELLBAR);
         }
 
+        // Der Link steckt fertig im gespeicherten Inhalt: abgelaufen oder eingelöst → nicht erneut verschicken
+        if (in_array($log->type, [NotificationCatalog::PASSWORD_RESET, NotificationCatalog::ACCOUNT_CREATED], true)
+            && ! self::linkNochGueltig($user, (array) $log->payload)) {
+            throw new \RuntimeException(__('Der Link ist abgelaufen – Passwort im Benutzerkonto neu zurücksetzen.'));
+        }
+
         $neu = self::dispatch($user ?? $log->recipient, $log->type, MailContent::fromArray((array) $log->payload));
         self::fehlgeschlageneJobsAbraeumen($log->id);
 
         return $neu;
+    }
+
+    /** Token aus dem gespeicherten Link der Passwort-/Konto-Mail: in einem der beiden Broker («users», «invites») noch gültig? */
+    private static function linkNochGueltig(?User $user, array $payload): bool
+    {
+        $url = $payload['actionUrl'] ?? null;
+        $token = is_string($url) ? rawurldecode(basename((string) parse_url($url, PHP_URL_PATH))) : '';
+        if ($user === null || $token === '') {
+            return false;
+        }
+
+        return Password::broker('users')->tokenExists($user, $token)
+            || Password::broker('invites')->tokenExists($user, $token);
     }
 
     /**
@@ -187,9 +207,32 @@ final class Notifier
         return NotificationMark::query()->insertOrIgnore([
             'user_id' => $user->benutzer_id,
             'type' => $type,
-            'subject_key' => mb_substr($key, 0, 191),
+            'subject_key' => self::merkerSchluessel($key),
             'created_at' => now(),
         ]) > 0;
+    }
+
+    /** Würde send() diesem Empfänger überhaupt etwas zustellen (Konto, Admin-Richtlinie, persönliche Wahl)? Für Vorschauen. */
+    public static function wuerdeZustellen(User $user, string $type): bool
+    {
+        return $user->aktiv && ! $user->trashed() && ! blank($user->email)
+            && NotificationCatalog::policy($type)['enabled']
+            && self::frequencyFor($user, $type) !== NotificationCatalog::NEVER;
+    }
+
+    /** Wie once(), setzt aber keinen Merker: true, wenn der Fall schon gemeldet wurde (Vorschau von notifications:check). */
+    public static function bereitsGemeldet(User $user, string $type, string $key): bool
+    {
+        return NotificationMark::query()
+            ->where('user_id', $user->benutzer_id)
+            ->where('type', $type)
+            ->where('subject_key', self::merkerSchluessel($key))
+            ->exists();
+    }
+
+    private static function merkerSchluessel(string $key): string
+    {
+        return mb_substr($key, 0, 191);
     }
 
     public static function deliverable(string $email): bool

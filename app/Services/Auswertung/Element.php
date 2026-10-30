@@ -44,14 +44,15 @@ final class Element
             return null;
         }
 
-        return max(0.0, $this->zielGewicht - $this->gewichtSumme);
+        // Eine Definition von «offen» für Liste, Rechner und Mails: Reste unter 0.01 % sind Rundung
+        $offen = round($this->zielGewicht - $this->gewichtSumme, 2);
+
+        return $offen < 0.01 ? 0.0 : $offen;
     }
 
     public function abgeschlossen(): bool
     {
-        $offen = $this->offenGewicht();
-
-        return $offen !== null && $offen <= 0.001;
+        return $this->offenGewicht() === 0.0;
     }
 
     public function anzahlBewertet(): int

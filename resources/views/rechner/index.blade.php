@@ -157,7 +157,7 @@
                             <h2 id="offene-titel" class="flex items-baseline gap-2 text-sm font-semibold text-text">{{ __('Offene Prüfungen') }} <span class="font-normal tabular-nums text-muted" x-text="offene"></span></h2>
                             <div class="flex gap-1.5">
                                 <button type="button" x-show="katalog.faecher.length" @click="neueZeile('fach')" class="np-knopf np-knopf-sekundaer np-knopf-klein"><x-symbol name="plus" strich="2" class="size-3.5" />{{ __('Fach') }}</button>
-                                <button type="button" x-show="katalog.module.length" @click="neueZeile('modul')" class="np-knopf np-knopf-sekundaer np-knopf-klein"><x-symbol name="plus" strich="2" class="size-3.5" />{{ __('Modul') }}</button>
+                                <button type="button" x-show="katalog.module.some(m => m.erfassbar)" @click="neueZeile('modul')" class="np-knopf np-knopf-sekundaer np-knopf-klein"><x-symbol name="plus" strich="2" class="size-3.5" />{{ __('Modul') }}</button>
                             </div>
                         </div>
 
@@ -174,7 +174,7 @@
                                 <div class="grid grid-cols-[minmax(0,1fr)_11rem_5rem_4.5rem_2rem] items-center gap-2 rounded-lg px-3 py-1.5 even:bg-fill-2">
                                     <select x-model="z.id" class="np-feld np-feld-klein min-w-0" :aria-label="z.typ === 'fach' ? @js(__('Fach')) : @js(__('Modul'))">
                                         <option value="">–</option>
-                                        <template x-for="o in (z.typ === 'fach' ? katalog.faecher.filter(f => f.erfassbar || String(f.id) === z.id) : katalog.module)" :key="o.id">
+                                        <template x-for="o in (z.typ === 'fach' ? katalog.faecher.filter(f => f.erfassbar || String(f.id) === z.id) : katalog.module.filter(m => m.erfassbar || String(m.id) === z.id))" :key="o.id">
                                             <option :value="String(o.id)" x-text="o.name" :selected="String(o.id) === z.id"></option>
                                         </template>
                                     </select>

@@ -107,6 +107,7 @@ final class CalendarExport
     private function pruefung(VCalendar $kalender, Pruefung $p, bool $mitName, ?string $cockpitRoute): void
     {
         $name = $mitName ? ($p->lernender?->benutzer?->vorname.' '.$p->lernender?->benutzer?->nachname).': ' : '';
+        $art = $p->istAbgabe() ? __('Abgabetermin') : __('Prüfung');
         $titel = trim($p->bezeichnung().($p->titel ? ' – '.$p->titel : ''));
         $zeilen = array_filter([
             $p->pruefungsart ? __('Prüfungsart').': '.$p->pruefungsart : null,
@@ -121,10 +122,10 @@ final class CalendarExport
 
         $event = $kalender->add('VEVENT', [
             'UID' => 'pruefung-'.$p->pruefung_id.'@'.parse_url((string) config('app.url'), PHP_URL_HOST),
-            'SUMMARY' => $name.__('Prüfung').' '.$titel,
+            'SUMMARY' => $name.$art.' '.$titel,
             'DTSTAMP' => new DateTimeImmutable('now', new DateTimeZone('UTC')),
             'DESCRIPTION' => implode("\n", $zeilen),
-            'CATEGORIES' => __('Prüfung'),
+            'CATEGORIES' => $art,
             'URL' => $this->pruefungUrl($p, $cockpitRoute),
             'LAST-MODIFIED' => $this->utc($p->aktualisiert_am),
             'SEQUENCE' => max(0, $p->aktualisiert_am->getTimestamp() - self::SEQUENCE_EPOCH),

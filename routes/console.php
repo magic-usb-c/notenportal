@@ -8,8 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Tägliche Sicherung (Datenbank + Dokumente); der Installer richtet dafür /etc/cron.d/<instanz> ein.
-Schedule::command('notenportal:sicherung')->dailyAt('02:30')->withoutOverlapping();
+// Tägliche Sicherung (Datenbank + Dokumente) samt Kopie ausser Haus; der Installer richtet dafür /etc/cron.d/<instanz> ein.
+// Bewusst nicht zwischen 02:00 und 03:00: die Stunde 02:xx kommt bei der Umstellung auf Winterzeit doppelt vor.
+Schedule::command('notenportal:sicherung')->dailyAt('04:10')->withoutOverlapping();
 
 // Mail-Queue: Worker startet jede Minute über den Scheduler und beendet sich, wenn die Queue leer ist (kein Systemdienst nötig).
 Schedule::command('queue:work --stop-when-empty --max-time=50 --tries=3')->everyMinute()->withoutOverlapping()->runInBackground();

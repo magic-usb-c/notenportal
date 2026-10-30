@@ -103,6 +103,43 @@ class AusloeserTest extends TestCase
     }
 
     #[Test]
+    public function note_einzeln_gesehen_meldet_nur_beim_ersten_mal(): void
+    {
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $lernender = $lernenderUser->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id]);
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch']);
+        $this->betreue($bb, $lernender);
+        $url = route('trainer.learners.grades.seen', [$lernender->lernender_id, $note->note_id]);
+
+        // Zweiter identischer POST (erneutes Senden): Markierung bleibt, aber keine zweite Meldung
+        $this->actingAs($bb)->post($url)->assertSessionHas('success');
+        $this->actingAs($bb)->post($url)->assertSessionHas('success');
+
+        $this->assertDatabaseCount('notification_digest_items', 1);
+        $this->assertDatabaseHas('noten_gesehen', ['note_id' => $note->note_id, 'viewer_benutzer_id' => $bb->benutzer_id]);
+    }
+
+    #[Test]
+    public function note_einzeln_gesehen_meldet_erneut_nach_neuem_kommentar_der_anderen(): void
+    {
+        $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        $lernender = $lernenderUser->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id]);
+        $bb = User::factory()->berufsbildner()->create(['email' => 'bb@firma.ch']);
+        $this->betreue($bb, $lernender);
+        $url = route('trainer.learners.grades.seen', [$lernender->lernender_id, $note->note_id]);
+
+        $this->actingAs($bb)->post($url);
+        $this->travel(1)->minutes();
+        $this->actingAs($lernenderUser)->post(route('comments.store', $note->note_id), ['kommentar_text' => 'Frage']);
+        $this->travel(1)->minutes();
+        $this->actingAs($bb)->post($url);
+
+        $this->assertDatabaseCount('notification_digest_items', 2);
+    }
+
+    #[Test]
     public function alle_gesehen_ohne_treffer_erzeugt_keine_meldung(): void
     {
         $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);

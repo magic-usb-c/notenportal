@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auswertung;
 
+use App\Models\Fach;
 use App\Models\Lernender;
+use App\Models\Note;
 use App\Models\Pruefung;
+use App\Models\Semester;
 use App\Models\User;
 use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Modulstatus;
 use App\Support\Zahl;
 use Database\Seeders\BasisSeeder;
 use Illuminate\Support\Facades\DB;
@@ -93,5 +97,29 @@ class ModulstatusAnzeigeTest extends TestCase
             ->assertSee(__('Modulstatus'))
             ->assertSee('Kundendaten verwalten')
             ->assertSee(Zahl::prozent(40), false);
+    }
+
+    #[Test]
+    public function fach_zeile_eines_frueheren_semesters_zeigt_keine_termine_des_laufenden_semesters(): void
+    {
+        $lernender = $this->neuerLernender(['vorname' => 'Sina', 'nachname' => 'Test'], ['lehrberuf_id' => $this->lehrberuf]);
+        $id = (int) $lernender->lernender_id;
+        $alt = Semester::factory()->create(['start_datum' => now()->subMonths(18)->toDateString(), 'end_datum' => now()->subMonths(7)->subDay()->toDateString()]);
+        $fach = Fach::factory()->create();
+        Note::factory()->create(['lernender_id' => $id, 'fach_id' => $fach->fach_id, 'semester_id' => $alt->semester_id, 'pruefungsdatum' => now()->subMonths(10)->toDateString(), 'note_wert' => 4.0]);
+        Note::factory()->create(['lernender_id' => $id, 'fach_id' => $fach->fach_id, 'semester_id' => $this->semester, 'pruefungsdatum' => now()->subMonths(2)->toDateString(), 'note_wert' => 5.0]);
+        Pruefung::create(['lernender_id' => $id, 'fach_id' => $fach->fach_id, 'titel' => 'Zukunftspruefung', 'datum' => now()->addDays(10)->toDateString(), 'gewichtung_prozent' => 100, 'quelle' => Pruefung::MANUELL]);
+        Konfiguration::vergessen();
+
+        $zeilen = collect((new Modulstatus)->fuerLernenden($id))->where('fach_id', $fach->fach_id);
+        $zeileAlt = $zeilen->firstWhere('semester_id', $alt->semester_id);
+        $zeileNeu = $zeilen->firstWhere('semester_id', $this->semester);
+
+        $this->assertNotNull($zeileAlt);
+        $this->assertNotNull($zeileNeu);
+        $this->assertNull($zeileAlt['naechster_termin']);
+        $this->assertNull($zeileAlt['letzter_termin']);
+        $this->assertNull($zeileAlt['fortschritt_prozent']);
+        $this->assertSame('Zukunftspruefung', $zeileNeu['naechster_termin']['titel']);
     }
 }

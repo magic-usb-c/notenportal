@@ -35,7 +35,7 @@ final class Sicherung
     {
         $sperre = Cache::lock('notenportal-sicherung', 900);
         if (! $sperre->get()) {
-            throw new RuntimeException('Es läuft bereits eine Sicherung.');
+            throw new SicherungLaeuftBereits;
         }
 
         try {

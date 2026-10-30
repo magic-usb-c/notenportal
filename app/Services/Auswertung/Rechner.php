@@ -140,7 +140,7 @@ final class Rechner
     }
 
     /**
-     * Fächer (erfassbar oder mit Noten), Module des Lehrberufs, Semester der Lehrzeit.
+     * Fächer und Module (erfassbar oder mit Noten bzw. geplanten Prüfungen), Semester der Lehrzeit.
      *
      * @return array{faecher: list<array<string, mixed>>, module: list<array<string, mixed>>, semester: list<array<string, mixed>>, kategorien: list<array{id: int, name: string}>, aktuelles_semester: ?int}
      */
@@ -170,7 +170,32 @@ final class Rechner
                 'kategorie_id' => (int) $m->kategorie_id,
                 'ziel' => $k->module[(int) $m->modul_id]['ziel'] ?? null,
                 'empfohlen' => $m->empfohlenes_lehrsemester_nr !== null ? (int) $m->empfohlenes_lehrsemester_nr : null,
+                'erfassbar' => true,
             ])->all();
+
+        // Module, die später deaktiviert wurden, aber Noten oder geplante Prüfungen haben, bleiben im Katalog
+        // (gleiches Muster wie bei den Fächern): ihr Restgewicht zählt weiter, neu erfassen lässt sich dort nichts.
+        $bekannt = array_column($module, 'id');
+        $ausserhalb = DB::table('noten as n')->join('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
+            ->where('n.lernender_id', $id)->whereNull('n.geloescht_am')->whereNotNull('n.kategorie_id')
+            ->distinct()->pluck('n.kategorie_id', 'mb.modul_id')->all();
+        foreach ($this->quelle->geplante([$id])[$id] ?? [] as $p) {
+            if ($p->modulId !== null) {
+                $ausserhalb += [$p->modulId => $p->kategorieId];
+            }
+        }
+        foreach ($ausserhalb as $modulId => $kategorieId) {
+            if (! in_array((int) $modulId, $bekannt, true)) {
+                $module[] = [
+                    'id' => (int) $modulId,
+                    'name' => $k->modulName((int) $modulId),
+                    'kategorie_id' => (int) $kategorieId,
+                    'ziel' => $k->module[(int) $modulId]['ziel'] ?? null,
+                    'empfohlen' => null,
+                    'erfassbar' => false,
+                ];
+            }
+        }
 
         $von = $lernender->lehrbeginn?->toDateString() ?? now()->toDateString();
         $bis = $lernender->lehrende?->toDateString() ?? Carbon::parse($von)->addYears(4)->toDateString();
@@ -239,9 +264,9 @@ final class Rechner
             if ($e->typ !== Element::MODUL || $e->offenGewicht() === null || $e->abgeschlossen()) {
                 continue;
             }
-            $rest = $e->offenGewicht() - ($geplantProModul[$e->modulId] ?? 0);
-            if ($rest > 0.001) {
-                $zeilen[] = ['element' => "modul:{$e->modulId}", 'gewicht' => round($rest, 2), 'wert' => null, 'datum' => null,
+            $rest = round($e->offenGewicht() - ($geplantProModul[$e->modulId] ?? 0), 2);
+            if ($rest >= 0.01) {
+                $zeilen[] = ['element' => "modul:{$e->modulId}", 'gewicht' => $rest, 'wert' => null, 'datum' => null,
                     'titel' => null, 'quelle' => 'rest'];
             }
         }

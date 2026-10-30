@@ -19,13 +19,13 @@ final class GradeWatcher
 {
     public function __construct(private readonly NotenQuelle $quelle = new NotenQuelle) {}
 
-    /** @return array<string, array{label: string, wert: float}> Schnappschuss vor der Änderung. */
+    /** @return array<string, array{typ: string, name: string, semesterId: ?int, wert: float}> Schnappschuss vor der Änderung. */
     public function schnappschuss(int $lernenderId): array
     {
         return $this->werte($this->quelle->auswertung($lernenderId));
     }
 
-    /** @param  array<string, array{label: string, wert: float}>  $vorher */
+    /** @param  array<string, array{typ: string, name: string, semesterId: ?int, wert: float}>  $vorher */
     public function pruefen(int $lernenderId, array $vorher): void
     {
         $a = $this->quelle->auswertung($lernenderId);
@@ -37,7 +37,7 @@ final class GradeWatcher
             $alt = $vorher[$schluessel]['wert'] ?? null;
             $neu = $info['wert'];
             if ($neu < $grenze - 1e-9 && ($alt === null || $alt >= $grenze - 1e-9)) {
-                $unterschritten[] = ['label' => $info['label'], 'alt' => $alt, 'neu' => $neu];
+                $unterschritten[] = ['typ' => $info['typ'], 'name' => $info['name'], 'semesterId' => $info['semesterId'], 'alt' => $alt, 'neu' => $neu];
             }
         }
 
@@ -50,14 +50,35 @@ final class GradeWatcher
             return;
         }
 
-        Notifier::send($lernender->benutzer, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: false));
+        Notifier::send($lernender->benutzer, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $this->beschriftet($a, $unterschritten), fuerBetreuer: false));
 
         foreach (Empfaenger::aktiveBetreuer($lernenderId) as $betreuerUser) {
-            Notifier::send($betreuerUser, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $unterschritten, fuerBetreuer: true));
+            Notifier::send($betreuerUser, NotificationCatalog::BELOW_THRESHOLD, fn () => BelowThreshold::content($lernender, $this->beschriftet($a, $unterschritten), fuerBetreuer: true));
         }
     }
 
-    /** @return array<string, array{label: string, wert: float}> */
+    /**
+     * Beschriftungen erst hier bauen: die Closure läuft in der Sprache des Empfängers
+     * (Notifier setzt die Locale), nicht in der des Auslösers.
+     *
+     * @param  list<array{typ: string, name: string, semesterId: ?int, alt: ?float, neu: float}>  $unterschritten
+     * @return list<array{label: string, alt: ?float, neu: float}>
+     */
+    private function beschriftet(Auswertung $a, array $unterschritten): array
+    {
+        return array_map(function (array $u) use ($a) {
+            $semester = $a->konfiguration->semesterName($u['semesterId'], $a->lernenderId);
+            $label = match ($u['typ']) {
+                Element::FACH => $u['name'].' ('.$semester.')',
+                'semester' => __('Semesterschnitt :semester', ['semester' => $semester]),
+                default => $u['name'],
+            };
+
+            return ['label' => $label, 'alt' => $u['alt'], 'neu' => $u['neu']];
+        }, $unterschritten);
+    }
+
+    /** @return array<string, array{typ: string, name: string, semesterId: ?int, wert: float}> */
     private function werte(Auswertung $a): array
     {
         $out = [];
@@ -65,16 +86,13 @@ final class GradeWatcher
             if ($e->note === null) {
                 continue;
             }
-            $label = $e->typ === Element::FACH
-                ? $e->label.' ('.$a->konfiguration->semesterName($e->semesterId, $a->lernenderId).')'
-                : $e->label;
-            $out[$schluessel] = ['label' => $label, 'wert' => $e->note];
+            $out[$schluessel] = ['typ' => $e->typ, 'name' => $e->label, 'semesterId' => $e->semesterId, 'wert' => $e->note];
         }
 
         foreach ($a->semesterIds() as $sid) {
             $note = $a->semester($sid)['note'];
             if ($note !== null) {
-                $out['semester:'.$sid] = ['label' => 'Semesterschnitt '.$a->konfiguration->semesterName($sid, $a->lernenderId), 'wert' => $note];
+                $out['semester:'.$sid] = ['typ' => 'semester', 'name' => '', 'semesterId' => $sid, 'wert' => $note];
             }
         }
 

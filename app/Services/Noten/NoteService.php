@@ -290,7 +290,7 @@ class NoteService
             ->groupBy('mb.modul_id');
 
         // Module des Lehrberufs – und zusätzlich jene, die sich die Person selbst dazugenommen hat
-        // (eigene offene Belegung). Module sind gemeinsame Stammdaten: wer eines führt, das der
+        // (eigene Belegung, offen oder durch «Wiederholen» geschlossen). Module sind gemeinsame Stammdaten: wer eines führt, das der
         // Lehrberuf nicht vorsieht, soll dazu trotzdem eigene Noten erfassen können.
         $fallbackKategorie = $this->fallbackModulKategorie((int) $lernender->lehrberuf_id);
 
@@ -304,8 +304,12 @@ class NoteService
                 $join->on('openmb.modul_id', '=', 'm.modul_id');
             })
             ->where('m.aktiv', 1)
-            ->where(function ($w) {
-                $w->whereNotNull('lbm.modul_id')->orWhereNotNull('openmb.open_modul_belegung_id');
+            ->where(function ($w) use ($lernenderId) {
+                $w->whereNotNull('lbm.modul_id')->orWhereExists(function ($q) use ($lernenderId) {
+                    $q->select(DB::raw(1))->from('modul_belegungen as alle')
+                        ->whereColumn('alle.modul_id', 'm.modul_id')
+                        ->where('alle.lernender_id', $lernenderId);
+                });
             })
             ->select([
                 'm.modul_id',
@@ -535,9 +539,11 @@ class NoteService
         $lehrberufId = $this->lehrberufIdFuer($lernenderId);
         $kategorieId = $this->modulKategorien($lehrberufId)->get($id);
 
-        // Ein selbst dazugenommenes Modul gehört nicht zum Lehrberuf, aber zur Person: die offene
-        // Belegung ist der Nachweis. Die Kategorie kommt dann aus der im Lehrberuf üblichen.
-        if (! $kategorieId && $this->hatOffeneBelegung($lernenderId, $id)) {
+        // Ein selbst dazugenommenes Modul gehört nicht zum Lehrberuf, aber zur Person: die Belegung
+        // ist der Nachweis – auch eine geschlossene, denn nach «Wiederholen» bleiben die alten Noten
+        // bearbeitbar und der nächste Versuch öffnet die Belegung neu. Die Kategorie kommt dann aus
+        // der im Lehrberuf üblichen.
+        if (! $kategorieId && $this->hatBelegung($lernenderId, $id)) {
             $kategorieId = $this->fallbackModulKategorie($lehrberufId);
         }
 
@@ -548,12 +554,11 @@ class NoteService
         return (int) $kategorieId;
     }
 
-    private function hatOffeneBelegung(int $lernenderId, int $modulId): bool
+    private function hatBelegung(int $lernenderId, int $modulId): bool
     {
         return DB::table('modul_belegungen')
             ->where('lernender_id', $lernenderId)
             ->where('modul_id', $modulId)
-            ->whereNull('end_datum')
             ->exists();
     }
 

@@ -111,11 +111,22 @@ final class Bereitschaft
 
     private function kopieAusserHaus(): array
     {
-        $aktiv = app(SicherungKopie::class)->aktiv();
+        $kopie = app(SicherungKopie::class);
+        if (! $kopie->aktiv()) {
+            return $this->eintrag('kopie_ausser_haus', 'Kopie ausser Haus', self::WARNUNG,
+                'Kein Ziel für «Kopie ausser Haus» eingerichtet – auf der Seite Betrieb einrichten (Ordner oder SSH).');
+        }
 
-        return $this->eintrag('kopie_ausser_haus', 'Kopie ausser Haus', $aktiv ? self::OK : self::WARNUNG, $aktiv
-            ? 'Ziel für Kopie ausser Haus eingerichtet.'
-            : 'Kein Ziel für «Kopie ausser Haus» eingerichtet – auf der Seite Betrieb einrichten (Ordner oder SSH).');
+        // Der Fehlertext stammt aus rsync/ssh und kann Host oder Pfad enthalten – hier nur der feste Hinweis.
+        $letzte = $kopie->letzte();
+        [$ok, $hinweis] = match (true) {
+            filled($kopie->fehler()) => [false, 'Letzte Kopie ausser Haus fehlgeschlagen – Details auf der Seite Betrieb.'],
+            $letzte === null => [false, 'Ziel eingerichtet, aber noch keine Kopie ausser Haus erstellt – auf der Seite Betrieb prüfen.'],
+            $letzte->lt(now()->subDays(2)) => [false, 'Letzte Kopie ausser Haus ist älter als 2 Tage – auf der Seite Betrieb prüfen.'],
+            default => [true, 'Ziel für Kopie ausser Haus eingerichtet, letzte Kopie ist weniger als 2 Tage alt.'],
+        };
+
+        return $this->eintrag('kopie_ausser_haus', 'Kopie ausser Haus', $ok ? self::OK : self::WARNUNG, $hinweis);
     }
 
     private function sicherung(): array
@@ -125,7 +136,7 @@ final class Bereitschaft
 
         return $this->eintrag('sicherung', 'Letzte Sicherung', $ok ? self::OK : self::FEHLER, $ok
             ? 'Letzte Sicherung ist weniger als 2 Tage alt.'
-            : 'Keine Sicherung in den letzten 2 Tagen – prüfen, ob der tägliche Cron (02:30) läuft, ggf. auf der Seite Betrieb «Jetzt sichern».');
+            : 'Keine Sicherung in den letzten 2 Tagen – prüfen, ob der tägliche Cron (04:10) läuft, ggf. auf der Seite Betrieb «Jetzt sichern».');
     }
 
     private function failedJobs(): array

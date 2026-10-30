@@ -6,7 +6,6 @@ namespace App\Services\Import;
 
 use App\Services\Auswertung\NotenQuelle;
 use Illuminate\Support\Facades\DB;
-use Smalot\PdfParser\Parser;
 
 /**
  * Zeugnis (PDF mit Textlayer) gegen die Zeugnisnoten des Rechenkerns prüfen:
@@ -24,7 +23,7 @@ final class ZeugnisAbgleich
     public function pruefen(string $pfad, int $lernenderId, ?int $semesterId): array
     {
         try {
-            $text = (new Parser)->parseFile($pfad)->getText();
+            $text = PdfLeser::text($pfad);
         } catch (\Throwable) {
             $text = '';
         }

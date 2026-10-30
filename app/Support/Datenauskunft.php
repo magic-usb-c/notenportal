@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support;
 
+use App\Models\Berufsbildner;
 use App\Models\Betreuung;
 use App\Models\CalendarEvent;
 use App\Models\CalendarFeed;
@@ -62,9 +63,18 @@ final class Datenauskunft
         return $frei !== false && $frei < ($groesse + self::FREIER_SPEICHER_RESERVE);
     }
 
+    /**
+     * Der Lernenden-Datensatz des Kontos, auch wenn er soft-gelöscht ist: Die Auskunft gehört gerade
+     * ausgetretenen Personen, und User::lernender() blendet gelöschte Datensätze aus.
+     */
+    private function lernenderVon(User $user): ?Lernender
+    {
+        return Lernender::withTrashed()->where('benutzer_id', $user->benutzer_id)->first();
+    }
+
     private function dokumenteGroesse(User $user): int
     {
-        $lernender = $user->lernender;
+        $lernender = $this->lernenderVon($user);
         if (! $lernender) {
             return 0;
         }
@@ -110,7 +120,7 @@ final class Datenauskunft
     private function befuellen(ZipArchive $zip, User $user): void
     {
         $enthalten = ['konto.json'];
-        $lernender = $user->lernender;
+        $lernender = $this->lernenderVon($user);
 
         $zip->addFromString('konto.json', $this->json($this->konto($user)));
 
@@ -252,7 +262,7 @@ final class Datenauskunft
     /** @return list<list<string>> Datum, Fach/Modul, Lernender (leer, wenn es die eigene Note ist). */
     private function gesehen(User $user): array
     {
-        $eigenerLernenderId = $user->lernender?->lernender_id;
+        $eigenerLernenderId = $this->lernenderVon($user)?->lernender_id;
 
         return NotenGesehen::where('viewer_benutzer_id', $user->benutzer_id)
             ->with(['note.fach', 'note.modulBelegung.modul', 'note.lernender.benutzer'])
@@ -542,14 +552,15 @@ final class Datenauskunft
     /** @return list<list<string>> */
     private function betreuungen(User $user): array
     {
-        $berufsbildnerId = $user->berufsbildner?->berufsbildner_id;
+        // Deaktivieren löscht den Berufsbildner-Datensatz weich (Admin\BenutzerController::toggleAktiv).
+        $berufsbildnerId = Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->value('berufsbildner_id');
         if (! $berufsbildnerId) {
             return [];
         }
 
         return Betreuung::query()
             ->where('berufsbildner_id', $berufsbildnerId)
-            ->with('lernender.benutzer')
+            ->with(['lernender' => fn ($q) => $q->withTrashed()->with('benutzer')])
             ->orderByDesc('gueltig_von')
             ->get()
             ->map(fn (Betreuung $b) => [

@@ -255,6 +255,8 @@ aus.punkt = feld('decimal', '4.5');
 aus.text = feld('text', '4,5');
 aus.unsinn = feld('decimal', '4,5,6');
 aus.kurz = feld('decimal', ',5');
+aus.ende = feld('decimal', ' 4, ');
+aus.nurKomma = feld('decimal', ',');
 aus.zahlKurz = (await import('./np.mjs')).zahl('.5');
 JS);
         $this->assertTrue($aus['capture'], 'läuft vor den change-Listenern der Seite');
@@ -263,6 +265,8 @@ JS);
         $this->assertSame(['4,5', []], $aus['text']);
         $this->assertSame(['4,5,6', []], $aus['unsinn']);
         $this->assertSame(['.5', ['input']], $aus['kurz']);
+        $this->assertSame(['4.', ['input']], $aus['ende'], 'wie die Middleware: «4,» wird «4.»');
+        $this->assertSame([',', []], $aus['nurKomma']);
         $this->assertSame(0.5, $aus['zahlKurz']);
     }
 }

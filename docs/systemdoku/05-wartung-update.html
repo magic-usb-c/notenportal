@@ -41,8 +41,10 @@ find . -path './.git' -prune -o -user ubuntu ! -group www-data -exec chgrp www-d
 dieser startet die Aufgaben zu ihrer Zeit.</p>
 <table>
 <tr><th>Zeit</th><th>Aufgabe</th><th>Befehl</th></tr>
-<tr><td>02:30</td><td>Sicherung, danach Kopie ausser Haus</td><td><code>notenportal:sicherung</code></td></tr>
 <tr><td>03:15</td><td>Aktivitätsprotokoll aufräumen (älter als 365 Tage)</td><td><code>notenportal:aktivitaeten-aufraeumen</code></td></tr>
+<tr><td>03:30</td><td>Fehlgeschlagene Mailaufträge nach 7 Tagen entfernen</td><td><code>queue:prune-failed --hours=168</code></td></tr>
+<tr><td>Mo 03:45</td><td>Verwaiste Feedback-Anhänge entfernen</td><td><code>notenportal:feedback-aufraeumen</code></td></tr>
+<tr><td>04:10</td><td>Sicherung, danach Kopie ausser Haus (nicht 02:00–03:00: Zeitumstellung)</td><td><code>notenportal:sicherung</code></td></tr>
 <tr><td>06:30</td><td>Benachrichtigungen prüfen (Prüfung bald, Note fehlt, Inaktivität …)</td><td><code>notifications:check</code></td></tr>
 <tr><td>18:00</td><td>Tageszusammenfassungen versenden</td><td><code>notifications:digest</code></td></tr>
 <tr><td>stündlich (:17)</td><td>Abonnierte Kalender abgleichen</td><td><code>calendar:sync</code></td></tr>

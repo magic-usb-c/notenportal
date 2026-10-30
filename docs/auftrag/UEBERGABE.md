@@ -399,6 +399,15 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   künftige Prüfungen. Blockprüfung (Reviewer, UI-Check Lernende/Admin, Prüfer) behoben: Notenbaum-
                   Löschen volle Breite, «In Gebrauch» statt gesperrter Knopf, Spinner je Knopf, Statusnamen gross.
                   Im Browser belegt (Playwright, de). Bewusst gelassen: audit-backlog «Dezimalfelder und Blockprüfung».
+[Q] 30.10. 21:15  Funktionsprüfung Runde 2 (Rollen, Notenlogik, Sicherheit, Mails, Jobs, Klicktests): 25 Befunde
+                  bestätigt, alle mit Regressionstest behoben. Modulstatus je Semester, Konto aktiv/inaktiv als
+                  Zielzustand, Kategorien tauschen, Kalender Abgabe/Prüfung, Datenauskunft Ausgetretene, Import-
+                  Bomben (PDF je Stream 20 MB und gesamt 48 MB, xlsx/ods 30 MB), Reset-Links nach Passwortwechsel
+                  ungültig, erneuter Versand abgelaufener Links abgelehnt, Sicherung 04:10 (Zeitumstellung), Modul
+                  wiederholen, «4,» als Dezimalzahl, inaktive Module im Rechner, nicht zählende Fächer aus Übersicht/
+                  Statistik, Mails in Empfängersprache, Mail-Layout (Preheader, Logo dunkel, Outlook-Tabelle), eine
+                  Schwelle für «offen», gleichnamige Fächer im Veränderungsdiagramm, «Letzte Prüfung» nur bis heute.
+                  Suite 1783 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 2».
 ```
 
 ---

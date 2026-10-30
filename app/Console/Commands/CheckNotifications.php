@@ -75,6 +75,9 @@ class CheckNotifications extends Command
     private function melden(User $empfaenger, string $type, string $key, MailContent|Closure $inhalt, string $log): void
     {
         if ($this->dryRun) {
+            if (! Notifier::wuerdeZustellen($empfaenger, $type) || Notifier::bereitsGemeldet($empfaenger, $type, $key)) {
+                return;
+            }
             $this->line('[dry-run] '.$log.' → '.$empfaenger->email);
 
             return;
@@ -202,7 +205,7 @@ class CheckNotifications extends Command
                 $a = $quelle->auswertung((int) $l->lernender_id);
                 $offeneModule = array_values(array_filter(
                     $a->elemente,
-                    fn (Element $e) => $e->typ === Element::MODUL && $e->offenGewicht() !== null && $e->offenGewicht() > 0.01
+                    fn (Element $e) => $e->typ === Element::MODUL && $e->offenGewicht() > 0
                 ));
 
                 if ($offenePruefungen === [] && $offeneModule === []) {
@@ -291,10 +294,16 @@ class CheckNotifications extends Command
                 continue;
             }
 
+            // Gründe in der Sprache des Empfängers: beim Versand rechnen, je Sprache einmal
+            $gruende = [];
             foreach (Empfaenger::aktiveBetreuer((int) $l->lernender_id) as $betreuerUser) {
                 $this->melden(
                     $betreuerUser, NotificationCatalog::LEARNER_AT_RISK, $schluessel,
-                    fn () => LearnerAtRisk::content($l, $stand->gruende),
+                    function () use ($l, $lernstaende, &$gruende) {
+                        $gruende[app()->getLocale()] ??= $lernstaende->fuer([(int) $l->lernender_id])[(int) $l->lernender_id]->gruende;
+
+                        return LearnerAtRisk::content($l, $gruende[app()->getLocale()]);
+                    },
                     'Lernstand kritisch '.$l->benutzer->email.' ('.$betreuerUser->email.')'
                 );
             }

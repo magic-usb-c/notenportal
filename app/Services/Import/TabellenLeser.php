@@ -6,7 +6,9 @@ namespace App\Services\Import;
 
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use Smalot\PdfParser\Parser;
+use PhpOffice\PhpSpreadsheet\Reader\IReadFilter;
+use RuntimeException;
+use ZipArchive;
 
 /**
  * Liest Notenlisten als Zeilen mit Zellen: Excel/ODS über PhpSpreadsheet (nur Daten, erstes Blatt),
@@ -17,6 +19,9 @@ final class TabellenLeser
     public const int MAX_ZEILEN = 500;
 
     public const int MAX_SPALTEN = 60;
+
+    /** Summe der entpackten Einträge einer xlsx/ods: Notenlisten liegen weit darunter, Bomben weit darüber. */
+    public const int MAX_ENTPACKT_BYTES = 30 * 1024 * 1024;
 
     /** @return list<list<string>> */
     public function lesen(string $pfad, string $endung): array
@@ -47,8 +52,13 @@ final class TabellenLeser
     /** @return list<list<string>> */
     private function tabelle(string $pfad): array
     {
-        $reader = IOFactory::createReader(IOFactory::identify($pfad));
+        $format = IOFactory::identify($pfad);
+        if (in_array($format, ['Xlsx', 'Ods'], true)) {
+            $this->entpackteGroessePruefen($pfad);
+        }
+        $reader = IOFactory::createReader($format);
         $reader->setReadDataOnly(true);
+        $reader->setReadFilter($this->bereichsfilter());
         $blatt = $reader->load($pfad)->getSheet(0);
 
         $letzteSpalte = Coordinate::stringFromColumnIndex(min(Coordinate::columnIndexFromString($blatt->getHighestDataColumn()), self::MAX_SPALTEN));
@@ -66,10 +76,46 @@ final class TabellenLeser
         return $zeilen;
     }
 
+    /**
+     * Eine xlsx/ods ist ein Zip; ein kleines Archiv kann zu Gigabytes XML entpacken. Die Summe der
+     * entpackten Grössen steht im Verzeichnis des Archivs und lässt sich prüfen, ohne etwas zu entpacken.
+     */
+    private function entpackteGroessePruefen(string $pfad): void
+    {
+        $zip = new ZipArchive;
+        if ($zip->open($pfad, ZipArchive::RDONLY) !== true) {
+            throw new RuntimeException('Archiv nicht lesbar.');
+        }
+        try {
+            $summe = 0;
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $summe += (int) ($zip->statIndex($i)['size'] ?? 0);
+                if ($summe > self::MAX_ENTPACKT_BYTES) {
+                    throw new RuntimeException('Archiv entpackt zu gross.');
+                }
+            }
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /** Nur den Bereich laden, den tabelle() ohnehin auswertet. */
+    private function bereichsfilter(): IReadFilter
+    {
+        return new class implements IReadFilter
+        {
+            public function readCell(string $columnAddress, int $row, string $worksheetName = ''): bool
+            {
+                return $row <= TabellenLeser::MAX_ZEILEN + 20
+                    && Coordinate::columnIndexFromString($columnAddress) <= TabellenLeser::MAX_SPALTEN;
+            }
+        };
+    }
+
     /** @return list<list<string>> */
     private function pdf(string $pfad): array
     {
-        return $this->pdfText((new Parser)->parseFile($pfad)->getText());
+        return $this->pdfText(PdfLeser::text($pfad));
     }
 
     /**

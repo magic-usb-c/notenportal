@@ -39,11 +39,16 @@ class KontoController extends VerwaltungController
         $lernender = $this->sichtbarerLernender($request, $lernender_id);
         Gate::authorize('verwalten', $lernender);
 
-        $benutzer = $lernender->benutzer;
-        $benutzer->aktiv = ! $benutzer->aktiv;
-        $benutzer->save();
+        // Zielzustand kommt aus dem Formular: ein wiederholt gesendetes Formular schaltet nicht zurück
+        $ziel = (bool) $request->validate(['aktiv' => ['required', 'boolean']])['aktiv'];
 
-        Protokoll::schreiben($benutzer->aktiv ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $benutzer);
+        $benutzer = $lernender->benutzer;
+        if ($benutzer->aktiv !== $ziel) {
+            $benutzer->aktiv = $ziel;
+            $benutzer->save();
+
+            Protokoll::schreiben($ziel ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $benutzer);
+        }
 
         return redirect()
             ->to($this->zuRoute($request, 'learners.show', $lernender_id))

@@ -14,7 +14,7 @@ final class FeedbackReceived
     public static function content(Feedback $feedback, User $melder): MailContent
     {
         $name = trim($melder->vorname.' '.$melder->nachname);
-        $rolle = $melder->rollen()->pluck('name')->first() ?? '–';
+        $rolle = ($rollenname = $melder->rollen()->pluck('name')->first()) ? __($rollenname) : '–';
         $kategorie = __(Feedback::kategorieLabel($feedback->kategorie));
         // Nur der Pfad der Seite: weder Routenname (Entwicklersprache) noch Host oder Query-String (können Tokens tragen).
         $seite = $feedback->url ? parse_url($feedback->url, PHP_URL_PATH) : null;

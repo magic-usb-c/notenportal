@@ -31,7 +31,7 @@ final class Modulkatalog
         if (! is_array($daten)) {
             return [...$leer, 'fehler' => [__('Die Datei enthält kein Objekt.')]];
         }
-        if ((int) ($daten['format'] ?? 0) !== self::FORMAT) {
+        if ((int) self::skalar($daten['format'] ?? null) !== self::FORMAT) {
             return [...$leer, 'fehler' => [__('Unbekanntes Format der Ernte (erwartet :n).', ['n' => self::FORMAT])]];
         }
 
@@ -46,7 +46,10 @@ final class Modulkatalog
 
         $abschluesse = [];
         foreach ((array) ($daten['abschluesse'] ?? []) as $roh) {
-            $name = trim((string) ($roh['name'] ?? ''));
+            if (! is_array($roh)) {
+                continue;
+            }
+            $name = trim(self::skalar($roh['name'] ?? null));
             if ($name === '') {
                 $fehler[] = __('Ein Abschluss ohne Namen wurde übersprungen.');
 
@@ -54,7 +57,10 @@ final class Modulkatalog
             }
             $zuordnungen = [];
             foreach ((array) ($roh['module'] ?? []) as $m) {
-                $nummer = Modulbaukasten::nummerNormalisieren((string) ($m['nummer'] ?? ''));
+                if (! is_array($m)) {
+                    continue;
+                }
+                $nummer = Modulbaukasten::nummerNormalisieren(self::skalar($m['nummer'] ?? null));
                 if ($nummer === null) {
                     continue;
                 }
@@ -123,7 +129,7 @@ final class Modulkatalog
      */
     private static function modul(array $roh, array &$fehler, int $i): ?array
     {
-        $nummer = Modulbaukasten::nummerNormalisieren((string) ($roh['nummer'] ?? ''));
+        $nummer = Modulbaukasten::nummerNormalisieren(self::skalar($roh['nummer'] ?? null));
         if ($nummer === null) {
             $fehler[] = __('Modul :i hat keine verwertbare Nummer.', ['i' => $i + 1]);
 
@@ -138,7 +144,10 @@ final class Modulkatalog
 
         $ziele = [];
         foreach ((array) ($roh['handlungsziele'] ?? []) as $z) {
-            $nr = trim((string) ($z['nummer'] ?? ''));
+            if (! is_array($z)) {
+                continue;
+            }
+            $nr = trim(self::skalar($z['nummer'] ?? null));
             $text = self::text($z['text'] ?? null, 2000);
             if ($nr !== '' && $text !== null && preg_match('/^\d{1,2}$/', $nr) === 1) {
                 $ziele[$nr] = ['nummer' => $nr, 'text' => $text];
@@ -146,7 +155,11 @@ final class Modulkatalog
         }
 
         $elemente = [];
-        foreach ((array) (($roh['lbv']['elemente'] ?? [])) as $e) {
+        $lbv = is_array($roh['lbv'] ?? null) ? $roh['lbv'] : [];
+        foreach ((array) ($lbv['elemente'] ?? []) as $e) {
+            if (! is_array($e)) {
+                continue;
+            }
             $bez = self::text($e['bezeichnung'] ?? null, 150);
             if ($bez === null) {
                 continue;
@@ -177,14 +190,20 @@ final class Modulkatalog
 
     private static function text(mixed $wert, int $max): ?string
     {
-        $wert = trim(preg_replace('/\s+/u', ' ', (string) $wert) ?? '');
+        $wert = trim(preg_replace('/\s+/u', ' ', self::skalar($wert)) ?? '');
 
         return $wert === '' ? null : mb_substr($wert, 0, $max);
     }
 
+    /** Text eines JSON-Werts; Arrays, Objekte und null (aus einer von Hand bearbeiteten Datei) ergeben ''. */
+    private static function skalar(mixed $wert): string
+    {
+        return is_string($wert) || is_int($wert) || is_float($wert) ? (string) $wert : '';
+    }
+
     private static function version(mixed $wert): ?string
     {
-        $wert = trim((string) $wert);
+        $wert = trim(self::skalar($wert));
 
         return preg_match('/^\d{1,2}$/', $wert) === 1 ? $wert : null;
     }
@@ -201,14 +220,14 @@ final class Modulkatalog
 
     private static function datum(mixed $wert): ?string
     {
-        $wert = trim((string) $wert);
+        $wert = trim(self::skalar($wert));
 
         return preg_match('/^\d{4}-\d{2}-\d{2}$/', $wert) === 1 ? $wert : null;
     }
 
     private static function zeitpunkt(mixed $wert): ?string
     {
-        $wert = trim((string) $wert);
+        $wert = trim(self::skalar($wert));
         if ($wert === '') {
             return null;
         }

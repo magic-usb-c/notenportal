@@ -26,7 +26,7 @@ final class SemesterEnding
             $sections[] = ['title' => __('Offene geplante Prüfungen'), 'text' => implode("\n", $zeilen)];
         }
         if ($offeneModule !== []) {
-            $zeilen = array_map(fn (Element $e) => '- '.$e->label.' ('.__('offen: :prozent %', ['prozent' => rtrim(rtrim(number_format((float) $e->offenGewicht(), 1), '0'), '.')]).')', $offeneModule);
+            $zeilen = array_map(fn (Element $e) => '- '.$e->label.' ('.__('offen: :prozent %', ['prozent' => rtrim(rtrim(number_format((float) $e->offenGewicht(), 2, '.', ''), '0'), '.')]).')', $offeneModule);
             $sections[] = ['title' => __('Module mit offener Gewichtung'), 'text' => implode("\n", $zeilen)];
         }
 

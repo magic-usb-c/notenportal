@@ -53,7 +53,7 @@ final class WertParser
      */
     public static function punkt(mixed $wert): mixed
     {
-        return is_string($wert) && preg_match('/^\s*-?\d*,\d+\s*$/', $wert) === 1 ? str_replace(',', '.', trim($wert)) : $wert;
+        return is_string($wert) && preg_match('/^\s*-?(\d*,\d+|\d+,)\s*$/', $wert) === 1 ? str_replace(',', '.', trim($wert)) : $wert;
     }
 
     public static function note(string $s): ?float

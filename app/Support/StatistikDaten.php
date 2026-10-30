@@ -245,7 +245,7 @@ final class StatistikDaten
 
         $lehrzeit = [];
         foreach ($a->elemente as $e) {
-            if ($kat !== null && $e->kategorieId !== $kat) {
+            if (($kat !== null && $e->kategorieId !== $kat) || ! $e->zaehlt) {
                 continue;
             }
             if ($e->typ === Element::MODUL && $e->note !== null) {

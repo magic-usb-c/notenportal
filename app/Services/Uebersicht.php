@@ -504,6 +504,9 @@ final class Uebersicht
 
         $lehrzeit = [];
         foreach ($a->elemente as $e) {
+            if (! $e->zaehlt) {
+                continue;
+            }
             if ($e->typ === Element::MODUL && $e->note !== null) {
                 $lehrzeit[$e->label] = $e->note;
             } elseif ($e->typ === Element::FACH && ! isset($lehrzeit[$e->label])) {
