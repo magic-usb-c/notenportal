@@ -101,13 +101,13 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:{{ $schrift }};font-size:14px;border-collapse:collapse;">
                                 <tr>
                                     @foreach($c->table['head'] as $i => $kopf)
-                                        <th class="np-muted np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 4px;font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
+                                        <th class="np-muted np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 4px 8px {{ $i === 0 ? 4 : 14 }}px;font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
                                     @endforeach
                                 </tr>
                                 @foreach($c->table['rows'] as $zeile)
                                     <tr>
                                         @foreach($zeile as $i => $zelle)
-                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 4px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $i === 0 ? $wortumbruch((string) $zelle) : $zahlumbruch((string) $zelle).'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
+                                            <td class="np-text np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:9px 4px 9px {{ $i === 0 ? 4 : 14 }}px;color:{{ $f['text'] }};border-bottom:1px solid {{ $f['border'] }};{{ $i === 0 ? $wortumbruch((string) $zelle) : $zahlumbruch((string) $zelle).'font-variant-numeric:tabular-nums;font-weight:600;' }}">{{ $zelle }}</td>
                                         @endforeach
                                     </tr>
                                 @endforeach
