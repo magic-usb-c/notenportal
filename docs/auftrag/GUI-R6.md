@@ -74,7 +74,7 @@ Reduzierte Transparenz (`prefers-reduced-transparency`, `data-transparenz='reduz
 | Glasanteil Ruhe | 1920×1080 | 4 Flächen, 18.4 % | ≤ 2 % | ≈ 0.6 % (nur die zwei Kapseln ≈ 12 000 px²; Leiste 260×1064 = 13.3 %, Symbolleiste 4.5 % entfallen – Rechnung Widerleger Codebasis, konsistent bei 540 und 1440) |
 | Glasanteil Palette offen | 1920×1080 `--palette` | 5 Flächen, 34.6 % | ≤ 18 % | Panel 42rem (`max-w-2xl`, `navigation.blade.php:187`) allein, heute 16.2 % |
 | Glasanteil Menü offen | 1920×1080 `--menue=<Auslöser>` | neu (R6-00) | ≤ 12 % | – |
-| Tippen p95 Palette | 1920×1080 `--laeufe=3 --palette` | `/dashboard` 35.2 · `/grades` 35.9 · `/grades/calculator` 35.5 · `/exams` 32.9 · `/admin` 40.2 · `/admin/reports/grades` 38.3 · `/admin/learners` 36.5 · `/trainer` 31.5* · `/trainer/learners` 31.2* · `/trainer/learners/1` 33.7* ms | ≤ Basislinie | ≤ 25 ms |
+| Tippen p95 Palette | 1920×1080 `--laeufe=3 --palette` | `/dashboard` 35.2 · `/grades` 35.9 · `/grades/calculator` 35.5 · `/exams` 32.9 · `/admin` 40.2 · `/admin/reports/grades` 38.3 · `/admin/learners` 36.5 · `/trainer` 31.5* · `/trainer/learners` 31.2* · `/trainer/learners/1` 33.7* ms | ≤ Basislinie | ≤ 25 ms (Cloud-Basislinie; VM: relativ, §6 Punkt 9) |
 | Scroll p95 | 1920×540 `--hoehe=540 --laeufe=3` | `/dashboard` 20.2 · `/grades` 16.9 · `/grades/calculator` 19.2 · `/admin/reports/grades` 20.3 · `/admin/learners` 19.2 · `/trainer` 17.6* · `/trainer/learners/1` 19.6* · `/trainer/learners/1/grades` 19.8* ms | ≤ Basislinie + T, lange Bilder 0/150 | – |
 | Ruhe p95 / Animationen | 1920×1080 | 16.9 ms (`/dashboard` 17.0) / 0 | ≤ 17.0 ms / 0 | – |
 | LCP | 1920×1080 | `/dashboard` 164 · `/grades` 168 · `/grades/calculator` 176 · `/exams` 136 · `/admin` 148 · `/admin/reports/grades` 188 · `/admin/learners` 172 · `/trainer` 148 · `/trainer/learners` 144 ms | ≤ Basislinie + 10 % | – |
@@ -209,7 +209,7 @@ Die Synthese hatte acht Fragen; sechs sind Gestaltungs- oder Messfragen, die die
 
 **Vorentscheidungen 9–14 der Hauptsitzung (Fortsetzung der acht aus dem Jury-Kontext):**
 
-9. Lichtbrechung am Kapselrand (R6-13) kommt erst nach R6-12 und nur, wenn die Bildzeiten Luft lassen (Tippen p95 ≤ 25 ms); nur Chrome/Edge per JS-Erkennung, Firefox und Safari zeigen normales Glas.
+9. Lichtbrechung am Kapselrand (R6-13) kommt erst nach R6-12 und nur, wenn die Bildzeiten Luft lassen (Tippen p95 ≤ 25 ms); nur Chrome/Edge per JS-Erkennung, Firefox und Safari zeigen normales Glas. Entscheid 30.10.2026: das absolute Gate (25 ms) ist auf der Cloud-Maschine der Basislinie definiert; auf der VM (2.3- bis 2.8-mal langsamer) gilt stattdessen das relative Kriterium aus §11 R6-13 – Scroll und Hover auf der Kapsel mit `data-brechung` ≤ ohne + T, abwechselnd in einer Sitzung gemessen (Bericht `messungen/r6-leistung-nachher.md` §5 Punkt 5). Fällt es durch, wird R6-13 nicht übernommen.
 10. Grund-Akzent: 2 % (`--grund-akzent: 0.02`) in Gletscher, je Theme 0–0.04; Kontrast-Theme 0.
 11. Die angedockte Seitenleiste trägt keinen Weichzeichner (`backdrop-filter: none`) – über dem ruhigen Grund sieht Tönung plus Lichtkante gleich aus und spart den grössten Glasanteil (Basislinie §1: 18.4 % → ≈ 0.6 %). Echtes Glas nur als Schublade.
 12. Gletscher verliert die übernommenen Apple-Werte (`theme.css:16-75`, Verbot `GUI-APPLE.md:31`) und bekommt eigene Werte mit denselben gemessenen Kontrasten (`kontrast.mjs` Exit 0, `--minimum` je Theme nicht schlechter). Blau und Grau verschieben sich leicht; das ist Regelkonformität, keine neue Gestaltung.

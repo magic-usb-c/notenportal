@@ -387,6 +387,10 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
 
 ## Offen für David
 
+- **R6-13 Lichtbrechung am Kapselrand**: dein Auftrag vom 30.10. («schönstes cleanstes liquid glass
+  gui ever») ist als Ja zu R6-13 gelesen. Das 25-ms-Gate aus GUI-R6 gilt auf der VM nicht (2.3- bis
+  2.8-mal langsamer als die Cloud-Basislinie); abgenommen wird relativ (Scroll und Hover mit/ohne
+  Brechung, GUI-R6.md §6 Punkt 9). Nur Chrome/Edge. Willst du es nicht, ein Veto genügt.
 - **R6 – Ziele für Berufsbildner sichtbar?** Dürfen Berufsbildner die persönlichen Ziele der
   Lernenden sehen? Erst dann zeigt ihre Seite «nötige Note fürs Ziel»; bis dahin nur «nötige Note
   für genügend» (`docs/auftrag/GUI-R6.md` §10).
