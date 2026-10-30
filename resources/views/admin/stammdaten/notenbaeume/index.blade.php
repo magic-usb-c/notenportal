@@ -31,6 +31,7 @@
             @else
                 <div class="np-karte p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Notenbäume') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col">{{ __('Name') }}</th>

@@ -123,11 +123,7 @@
                                 </div>
 
                                 <div class="mt-4 flex items-baseline gap-3">
-                                    @if($wurzel->note !== null)
-                                        <x-note :wert="$wurzel->note" variante="hero" :stellen="1" @class(['leading-none', 'text-display' => $i === 0, 'text-3xl' => $i > 0]) />
-                                    @else
-                                        <span @class(['font-semibold leading-none text-muted', 'text-display' => $i === 0, 'text-3xl' => $i > 0])>–</span>
-                                    @endif
+                                    <x-note :wert="$wurzel->note" variante="hero" :stellen="1" @class(['leading-none', 'text-display' => $i === 0, 'text-3xl' => $i > 0]) />
                                     <span class="text-sm text-muted">{{ $wurzel->vollstaendig ? __('Gesamtnote') : __('Prognose') }}</span>
                                 </div>
 
@@ -188,6 +184,7 @@
 
                             <div class="np-karte p-2">
                                 <table class="np-tabelle table-fixed text-sm">
+                                    <caption class="sr-only">{{ $e->baum->name }}</caption>
                                     <colgroup>
                                         <col>
                                         <col class="w-28">
@@ -210,7 +207,7 @@
                                                 $anteil = $z['anteil'] !== null ? $prozent($z['anteil']) : ($k->entfaellt ? __('entfällt') : __('zählt nicht'));
                                             @endphp
                                             <tr>
-                                                <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
+                                                <th scope="row" class="text-left font-normal {{ $einzug[min($z['tiefe'], 4)] }}">
                                                     <div @class(['wrap-break-word text-text', 'font-semibold' => $gruppe])>{{ $k->name }}</div>
                                                     @error($feld)<p id="wert-{{ $k->id }}-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                                                     @if($pos = $offen->get($k->id))
@@ -222,7 +219,7 @@
                                                             @endif
                                                         </div>
                                                     @endif
-                                                </td>
+                                                </th>
                                                 <td class="whitespace-nowrap text-right text-muted">{{ $anteil }}</td>
                                                 <td class="text-right">
                                                     @if($k->entfaellt)

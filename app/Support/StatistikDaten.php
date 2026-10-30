@@ -148,7 +148,7 @@ final class StatistikDaten
             foreach ($labels as $i => $label) {
                 $zeilen[] = [$label, NotenSkala::format($werte[$i], 1), ...array_map(fn (array $n) => NotenSkala::format($n['werte'][$i], 1), $nebenreihen)];
             }
-            $tabelle = ['spalten' => $spalten, 'zeilen' => $zeilen];
+            $tabelle = ['spalten' => $spalten, 'zeilen' => $zeilen, 'rechts' => range(1, count($spalten) - 1)];
             $kennwerte = array_values(array_filter($werte, fn ($w) => $w !== null));
             $satz = $kennwerte === []
                 ? __('Noch keine Noten im Zeitraum.')
@@ -163,7 +163,7 @@ final class StatistikDaten
             $tabelle = ['spalten' => [__('Datum'), __('Fach'), __('Note')], 'zeilen' => array_map(
                 fn (array $p) => [Carbon::parse($p['datum'])->format('d.m.Y'), $p['fach'], NotenSkala::format($p['note'], 2)],
                 $r['punkte'],
-            )];
+            ), 'rechts' => [2]];
             $kennwerte = array_values(array_filter($werte, fn ($w) => $w !== null));
             $satz = $kennwerte === []
                 ? __('Noch keine Noten im Zeitraum.')
@@ -424,6 +424,7 @@ final class StatistikDaten
             'zusammenfassung' => match (true) {
                 $zeilen === [] => __('Keine offenen Positionen.'),
                 $bestehen !== null && $bestehen['status'] === Zielrechner::UNERREICHBAR && $bestehen['gruende'] !== [] => $this->unerreichbarSatz($bestehen['gruende']),
+                count($zeilen) === 1 => $bestanden === 1 ? __('1 offene Position, schon bestanden.') : __('1 offene Position.'),
                 default => __(':n offene Positionen, :b davon bestanden.', ['n' => count($zeilen), 'b' => $bestanden]),
             },
             'meta' => ['titel' => __('Was fehlt zum Bestehen')],

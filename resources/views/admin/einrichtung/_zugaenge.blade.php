@@ -6,12 +6,13 @@
         </div>
         <div class="overflow-x-auto px-2 pb-2">
             <table class="np-tabelle text-sm">
+                <caption class="sr-only">{{ __('Zugänge') }}</caption>
                 <thead>
                     <tr>
-                        <th>{{ __('Name') }}</th>
-                        <th>{{ __('Rolle') }}</th>
-                        <th>{{ __('E-Mail') }}</th>
-                        <th>{{ __('Startpasswort') }}</th>
+                        <th scope="col">{{ __('Name') }}</th>
+                        <th scope="col">{{ __('Rolle') }}</th>
+                        <th scope="col">{{ __('E-Mail') }}</th>
+                        <th scope="col">{{ __('Startpasswort') }}</th>
                     </tr>
                 </thead>
                 <tbody>

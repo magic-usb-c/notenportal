@@ -7,17 +7,19 @@
 
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
-            <div class="np-karte np-spalte p-6">
-                @if(empty($bezugOptionen))
-                    <p class="mb-5 text-sm text-note-knapp">{{ __('Keine Fächer oder Module verfügbar – zuerst einen Track oder Lehrberuf-Module einrichten.') }}</p>
-                @endif
-
-                @include('noten._formular', [
-                    'zurueck' => route("{$bereich}.learners.grades.index", $lernender->lernender_id),
-                    'vorschauUrl' => route("{$bereich}.learners.calculator.calculate", $lernender->lernender_id),
-                    'action' => route("{$bereich}.learners.grades.store", $lernender->lernender_id),
-                ])
-            </div>
+            @if(empty($bezugOptionen))
+                <x-leer class="np-karte np-spalte" symbol="clipboard-document-check" :titel="__('Keine Fächer oder Module')">
+                    <a href="{{ route($bereich.'.learners.show', [$lernender->lernender_id, 'tab' => 'profil']) }}" class="np-knopf np-knopf-sekundaer">{{ __('Profil & Betreuung') }}</a>
+                </x-leer>
+            @else
+                <div class="np-karte np-spalte p-6">
+                    @include('noten._formular', [
+                        'zurueck' => route("{$bereich}.learners.grades.index", $lernender->lernender_id),
+                        'vorschauUrl' => route("{$bereich}.learners.calculator.calculate", $lernender->lernender_id),
+                        'action' => route("{$bereich}.learners.grades.store", $lernender->lernender_id),
+                    ])
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

@@ -255,6 +255,50 @@ class LernendeStatistikTest extends TestCase
     }
 
     #[Test]
+    public function verlauftabelle_stellt_im_semestermodus_alle_notenspalten_rechtsbuendig(): void
+    {
+        $antwort = $this->actingAs($this->lernender)->get(route('learner.dashboard', ['achse' => 'semester']))->assertOk();
+        $paket = $antwort->viewData('statistik');
+        $this->assertGreaterThanOrEqual(3, count($paket['tabelle']['verlauf']['spalten']), 'Semester, Gesamt und mindestens eine Kategorie');
+        $this->assertSame([1, 2], array_slice($paket['tabelle']['verlauf']['rechts'], 0, 2));
+
+        $tabelle = $this->tabelleNach($antwort->getContent(), 'x-data="npVerlauf(');
+        $kopf = $tabelle->query('//thead//th');
+        $this->assertStringNotContainsString('text-right', $kopf->item(0)->getAttribute('class'));
+        foreach (range(1, $kopf->length - 1) as $i) {
+            $this->assertStringContainsString('text-right', $kopf->item($i)->getAttribute('class'), 'Kopf der Spalte '.$i);
+            $this->assertSame(0, $tabelle->query('//tbody//tr/*['.($i + 1).'][not(contains(@class,"text-right"))]')->length, 'Zellen der Spalte '.$i);
+        }
+    }
+
+    #[Test]
+    public function verlauftabelle_stellt_im_datumsmodus_nur_die_note_rechtsbuendig(): void
+    {
+        $antwort = $this->actingAs($this->lernender)->get(route('learner.dashboard', ['achse' => 'datum']))->assertOk();
+        $this->assertSame([2], $antwort->viewData('statistik')['tabelle']['verlauf']['rechts']);
+
+        $tabelle = $this->tabelleNach($antwort->getContent(), 'x-data="npVerlauf(');
+        $this->assertSame(1, $tabelle->query('//thead//th[contains(@class,"text-right")]')->length);
+        $this->assertStringContainsString('text-right', $tabelle->query('//thead//th[3]')->item(0)->getAttribute('class'));
+        $this->assertSame(0, $tabelle->query('//tbody//tr/*[3][not(contains(@class,"text-right"))]')->length);
+        $this->assertSame(0, $tabelle->query('//tbody//tr/*[2][contains(@class,"text-right")]')->length);
+    }
+
+    #[Test]
+    public function diagramm_misst_die_achse_nach_dem_laden_der_schrift_neu(): void
+    {
+        // Chart.js behält Skalen und gemessene Textbreiten; chart.update() nach dem Laden der Schrift misst nicht neu,
+        // die Zeitachse teilte sich je nach Ladezeit der Schrift anders (6, 7 oder 5 Monate). Neu bauen statt aktualisieren,
+        // und auf die Schrift selbst warten (fonts.load), nicht auf fonts.ready, das vor dem Ladebeginn schon aufgelöst sein kann.
+        $js = file_get_contents(base_path('resources/js/charts.js'));
+        $this->assertSame(1, preg_match('/document\.fonts\?\.load\((.*?)\)\.then\(\(\) => \{(.*?)\}\)/s', $js, $treffer), 'Rückruf nach dem Laden der Schrift fehlt');
+        $this->assertStringContainsString('ohneSchrift', $treffer[2]);
+        $this->assertStringContainsString('baue(', $treffer[2]);
+        $this->assertStringNotContainsString("update('none')", $treffer[2]);
+        $this->assertStringNotContainsString('document.fonts?.ready', $js);
+    }
+
+    #[Test]
     public function rechner_kurventabelle_stellt_die_note_rechtsbuendig_wie_das_ergebnis(): void
     {
         $html = $this->actingAs($this->lernender)->get(route('learner.grades.calculator'))->assertOk()->getContent();

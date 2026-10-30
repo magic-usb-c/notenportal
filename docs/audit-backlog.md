@@ -1188,13 +1188,35 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Eine gemeinsame Note für alle offenen Positionen**: wie im Zielrechner bekommen alle offenen Positionen
   dasselbe x. Hat nur die IPA eine Fallnote 4.0, steht auch bei der Schlussarbeit «benötigt 4.00». Eine
   Mindestnote je Position wäre nicht eindeutig (sie hängt davon ab, was die anderen erreichen).
-- **`Grund::text()` rundet den Wert auf eine Stelle** (`number_format`): eine IPA 3.95 ohne Rundung im Baum
-  erscheint in den Gründen als «4.0 liegt unter 4.0», 3.75 als «3.8». Die Zusammenfassung von «Was fehlt zum
-  Bestehen» nennt deshalb nur Name und Grenze. Korrektur gehört in `Grund` (Stellen wie `NotenSkala::format`).
+- ~~`Grund::text()` rundet den Wert auf eine Stelle~~ – erledigt 30.10.2026 (56e7e63): zwei Stellen ohne
+  Schlussnull, eine Note unter der Fallnote wird abgeschnitten (3.996 → «3.99 liegt unter 4.0»).
 - **Offen gehaltener Baum ohne entscheidende Position**: Liegt in einer Gruppe mit Gewicht 0 und ohne eigene
   Regel neben einer Position mit Fallnote eine Position ohne Regel, hält `BaumRechner` das Ergebnis offen, bis
   auch diese erfasst ist; in «Was fehlt zum Bestehen» erscheint sie nicht, weil sie nichts entscheidet.
 - **Nur ein Grund in der Zusammenfassung** (endgültiger zuerst); weitere stehen im Block «Bestehen» der Seite.
-  «1 offene Positionen» (Singular fehlt) ist ein bestehender Text in `lang/en.json`, hier nicht angefasst.
+  ~~«1 offene Positionen»~~ – erledigt 30.10.2026 (eigener Satz für eine Position).
 - **Verwaltung und Cockpit** zeigen «Was fehlt zum Bestehen» weiterhin nicht (`Verwaltung\AbschlussController`
   übergibt keine Statistik); unverändert.
+
+## R6-12 Sichtbefunde behoben (30.10.2026): bewusst gelassen
+
+- **Heatmap auf `np-tabelle` umbauen** (Teil von UI-berufsbildner-3): `np-tabelle` streift jede gerade
+  tbody-Zeile (`app.css` «np-tabelle»), die Heatmap hat Gruppenzeilen dazwischen, das Muster kippte; die
+  angeheftete Namensspalte braucht ihren eigenen Hover-Verlauf. Eigener Entwurf nötig. Behoben sind caption,
+  Zahlenausrichtung und das vorgelesene ▼.
+- **Punktstreifen hebt kritischen Status nicht hervor** (ADMIN-3, vom Finder als optional benannt): die
+  Punktfarbe folgt der Note, der Status steht in der Tabelle. Ebenso fehlt dort eine Spalte «Stufe»; die
+  Stufe steht in der Ansage und als Form (hohler Punkt = ungenügend).
+- **«Wo stehe ich» (Hantel)**: die Beschriftungsspalte verschiebt sich je nach Ladezeit der Schrift um rund
+  9 px; der Verlauf misst jetzt nach dem Laden der Schrift neu, die Hantel ist nicht nachgezogen.
+- **Filter-Auswahlfelder senden bei jeder Änderung ab** (`x-on:change` + `requestSubmit`, z. B. Kategorie und
+  Semester in der Notenliste der Verwaltung): beim Blättern mit den Pfeiltasten im geschlossenen Feld lädt
+  jede Stufe die Seite neu (WCAG 3.2.2). Der Lernenden-Wechsel ist auf ein Menü mit Links umgestellt; die
+  übrigen Filter überall gleich zu behandeln ist ein eigener Block.
+- **Notenzeile der Lernenden**: Stift und Papierkorb liegen jetzt ausserhalb der `summary` (absolut darüber).
+  Die Zeilen-Hervorhebung endet, sobald der Zeiger auf einem der beiden Knöpfe steht; bei einer mehrzeiligen
+  Zeile stehen die Knöpfe oben, die Note mittig.
+- **`np.js` spiegelt `NotenSkala::text()`**: «knapp» ist serverseitig jetzt zusätzlich gepunktet
+  unterstrichen; im Rechner (`notenKlasse` in `np.js`) bleibt «knapp» bis zum Nachziehen nur Farbe.
+- **Weitere Admin-Tabellen**: caption ergänzt in Versandprotokoll, Benutzerkonten, Aktivitätsprotokoll und
+  Berufsbildner; andere Listen nicht einzeln durchgesehen.

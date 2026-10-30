@@ -14,10 +14,11 @@
         $person = $lernender?->benutzer->vorname;
         // Verwaltung: Bereich (admin|trainer) aus dem Routennamen, für die Cockpit-Navigation
         $cockpitBereich = \Illuminate\Support\Str::before((string) \Illuminate\Support\Facades\Route::currentRouteName(), '.');
-        // Spielraum der Endnote (S4): schlechteste und beste Endnote aus der Lösung, als Satz unter der Kurve; leer, wenn die offenen Prüfungen nichts bewegen
-        $spielraum = '(ergebnis?.loesung?.minimum != null && ergebnis.loesung.maximum != null && Math.abs(ergebnis.loesung.maximum - ergebnis.loesung.minimum) > 0.005 ? '
+        // Spielraum der Endnote (S4): schlechteste und beste Endnote aus der Lösung, als Satz unter der Kurve; bewegen die offenen Prüfungen nichts, nennt der Satz den gleichbleibenden Wert
+        $spielraum = '(ergebnis?.loesung?.minimum != null && ergebnis.loesung.maximum != null ? (Math.abs(ergebnis.loesung.maximum - ergebnis.loesung.minimum) > 0.005 ? '
             .\Illuminate\Support\Js::from(__('schlechteste Endnote :wert')).".replace(':wert', fmt(ergebnis.loesung.minimum)) + ' · ' + "
-            .\Illuminate\Support\Js::from(__('beste Endnote :wert')).".replace(':wert', fmt(ergebnis.loesung.maximum)) : '')";
+            .\Illuminate\Support\Js::from(__('beste Endnote :wert')).".replace(':wert', fmt(ergebnis.loesung.maximum)) : "
+            .\Illuminate\Support\Js::from(__('Endnote bleibt bei :wert, egal welche Note')).".replace(':wert', fmt(ergebnis.loesung.minimum))) : '')";
         // Satzbausteine für das grosse, einsätzige Ergebnis (:platzhalter werden im JS ersetzt, formatiere() in rechner.js).
         $texte = [
             'ebene' => [
@@ -69,7 +70,7 @@
                             <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" x-data="{ loading: false }" @submit="loading = true">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="loading" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-text/10 hover:text-text disabled:opacity-50"
+                                <button :disabled="loading" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-fill hover:text-text disabled:opacity-50"
                                         :aria-label="@js(__('Ziel entfernen')) + ': ' + z.label" title="{{ __('Ziel entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-3.5" /></button>
                             </form>
                         @endif
@@ -164,7 +165,7 @@
                                 <span></span>
                             </div>
                             <template x-for="z in zeilen" :key="z.nr">
-                                <div class="grid grid-cols-[minmax(0,1fr)_11rem_5rem_4.5rem_2rem] items-center gap-2 rounded-lg px-3 py-1.5 even:bg-text/3">
+                                <div class="grid grid-cols-[minmax(0,1fr)_11rem_5rem_4.5rem_2rem] items-center gap-2 rounded-lg px-3 py-1.5 even:bg-fill-2">
                                     <select x-model="z.id" class="np-feld np-feld-klein min-w-0" :aria-label="z.typ === 'fach' ? @js(__('Fach')) : @js(__('Modul'))">
                                         <option value="">–</option>
                                         <template x-for="o in (z.typ === 'fach' ? katalog.faecher.filter(f => f.erfassbar || String(f.id) === z.id) : katalog.module)" :key="o.id">
@@ -261,6 +262,7 @@
                         </x-slot:aktionen>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <caption class="sr-only">{{ __('Auswirkung') }}</caption>
                                 <colgroup>
                                     <col>
                                     <col class="w-24">
@@ -278,7 +280,7 @@
                                 <tbody>
                                     <template x-for="v in ergebnis?.vergleich ?? []" :key="v.text">
                                         <tr>
-                                            <td class="truncate" :class="v.ist_ziel ? 'font-semibold text-text' : 'text-text'" x-text="v.label"></td>
+                                            <th scope="row" class="truncate text-left font-normal" :class="v.ist_ziel ? 'font-semibold text-text' : 'text-text'" x-text="v.label"></th>
                                             <td class="text-right text-muted" x-text="fmt(v.vorher)"></td>
                                             <td class="text-right font-semibold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></td>
                                             <td class="text-right tabular-nums text-muted"
@@ -293,6 +295,7 @@
                     <x-karte :titel="__('Promotion')" :polster="false" x-show="ergebnis?.promotion?.length" x-cloak>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <caption class="sr-only">{{ __('Promotion') }}</caption>
                                 <colgroup>
                                     <col>
                                     <col class="w-24">
@@ -312,7 +315,7 @@
                                 <tbody>
                                     <template x-for="p in ergebnis?.promotion ?? []" :key="p.kategorie + p.semester">
                                         <tr>
-                                            <td class="truncate"><span class="font-medium text-text" x-text="p.kategorie"></span> <span class="text-muted" x-text="p.semester"></span></td>
+                                            <th scope="row" class="truncate text-left font-normal"><span class="font-medium text-text" x-text="p.kategorie"></span> <span class="text-muted" x-text="p.semester"></span></th>
                                             <td class="text-right font-semibold" :class="klasse(p.nachher.schnitt)" x-text="fmt(p.nachher.schnitt)"></td>
                                             <td class="text-right text-text" x-text="p.nachher.ungenuegend"></td>
                                             <td class="text-right text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></td>

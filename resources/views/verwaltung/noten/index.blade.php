@@ -51,8 +51,8 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
             @include('verwaltung.lernende._tabs', ['lernender' => $lernender, 'bereich' => $bereich, 'aktiv' => 'grades'])
 
-            {{-- Inhalt bis max-w-[100rem] wie die Agenda: bei 2560 px bleiben Kacheln, Filter und Detail in einer Breite --}}
-            <div class="flex max-w-[100rem] flex-col gap-4">
+            {{-- Volle Seitenbreite wie die Übersicht: beim Wechsel der Reiter bleiben Kartenränder und Raster stehen --}}
+            <div class="flex flex-col gap-4">
                 @php
                     $a = $stand->auswertung;
                     $semNr = $semesterId ?: $stand->semesterId;
@@ -77,14 +77,22 @@
 
                 <x-filterleiste :action="$zuruecksetzen" :zaehler="$notes->total()" zaehler-label="{{ __('Prüfungen') }}"
                                 :zurueck="$zuruecksetzen" :aktive-filter="(int) request()->filled('kategorie_id') + (int) request()->filled('semester_id')">
-                    <label for="lernenden_wechseln" class="sr-only">{{ __('Lernender') }}</label>
-                    <select id="lernenden_wechseln" class="np-feld np-feld-klein w-auto max-w-64" x-data x-on:change="if ($el.value) window.location.href = $el.value">
-                        @foreach($switcher as $l)
-                            <option value="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}" @selected($l->lernender_id === $lernender->lernender_id)>
-                                {{ $l->benutzer->nachname }} {{ $l->benutzer->vorname }}
-                            </option>
-                        @endforeach
-                    </select>
+                    {{-- Menü mit Links statt Auswahlfeld: Blättern mit den Pfeiltasten lädt keine neue Seite (WCAG 3.2.2) --}}
+                    <x-dropdown align="left" width="64" content-classes="max-h-[min(24rem,70dvh)] overflow-y-auto p-1 text-text">
+                        <x-slot name="trigger">
+                            <button type="button" id="lernenden_wechseln" class="np-feld np-feld-klein np-auswahl w-auto max-w-64 truncate text-left">
+                                <span class="sr-only">{{ __('Lernender') }}: </span>{{ $lernender->benutzer->nachname }} {{ $lernender->benutzer->vorname }}
+                            </button>
+                        </x-slot>
+                        <x-slot name="content">
+                            @foreach($switcher as $l)
+                                <a href="{{ route("{$bereich}.learners.grades.index", $l->lernender_id) }}" @if($l->lernender_id === $lernender->lernender_id) aria-current="true" @endif class="np-menue-eintrag">
+                                    <span class="min-w-0 flex-1 truncate">{{ $l->benutzer->nachname }} {{ $l->benutzer->vorname }}</span>
+                                    @if($l->lernender_id === $lernender->lernender_id)<x-symbol name="check" strich="2" class="size-4 shrink-0" />@endif
+                                </a>
+                            @endforeach
+                        </x-slot>
+                    </x-dropdown>
                     <label for="kategorie_id" class="sr-only">{{ __('Kategorie') }}</label>
                     <select id="kategorie_id" name="kategorie_id" x-on:change="$el.form.requestSubmit()" class="np-feld np-feld-klein w-auto max-w-64">
                         <option value="">{{ __('Kategorie: alle') }}</option>

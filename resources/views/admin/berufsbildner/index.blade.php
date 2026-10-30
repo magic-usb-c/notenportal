@@ -27,6 +27,7 @@
                 <div class="np-karte max-w-5xl overflow-hidden">
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ __('Berufsbildner') }}</caption>
                             <colgroup><col><col class="w-32"><col class="w-56"><col class="w-40"><col class="w-28"></colgroup>
                             <thead>
                                 <tr>

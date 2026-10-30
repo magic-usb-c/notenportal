@@ -54,6 +54,7 @@
                 <div class="np-karte overflow-hidden">
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ __('Versandprotokoll') }}</caption>
                             <thead>
                                 <tr>
                                     <th scope="col" class="w-40">{{ __('Zeit') }}</th>

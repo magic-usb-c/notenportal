@@ -35,6 +35,7 @@
             @else
                 <div class="np-karte p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Kategorien') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="w-28">{{ __('Code') }}</th>

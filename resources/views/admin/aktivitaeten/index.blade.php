@@ -47,6 +47,7 @@
                 <div @class(['np-karte overflow-hidden', 'max-w-4xl' => ! $hatZiel && ! $hatDetails])>
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ __('Aktivitätsprotokoll') }}</caption>
                             <thead>
                                 <tr>
                                     <th scope="col" class="w-40">{{ __('Zeit') }}</th>

@@ -8,8 +8,9 @@ namespace App\Support;
  * Einzige Stelle für Notenstufen und ihre Farben. Grenzen kommen aus den Einstellungen.
  *
  * Einsatzregel (docs/gui-konzept.md, d): Farbe nur für Abweichung. Gut und genügend
- * stehen in Text-Farbe, knapp und ungenügend tragen ihre Notenfarbe; ungenügend
- * zusätzlich mit Form (Unterstrich), damit die Stufe nie nur an der Farbe hängt.
+ * stehen in Text-Farbe, knapp und ungenügend tragen ihre Notenfarbe, dazu je eine Form
+ * (knapp gepunktet, ungenügend durchgezogen unterstrichen), damit die Stufe nie nur an
+ * der Farbe hängt (WCAG 1.4.1).
  */
 final class NotenSkala
 {
@@ -23,10 +24,12 @@ final class NotenSkala
 
     private const string FORM = 'underline decoration-2 underline-offset-4';
 
+    private const string FORM_KNAPP = 'underline decoration-dotted decoration-2 underline-offset-4';
+
     private const array TEXT = [
         self::GUT => 'text-text',
         self::GENUEGEND => 'text-text',
-        self::KNAPP => 'text-note-knapp',
+        self::KNAPP => 'text-note-knapp '.self::FORM_KNAPP,
         self::UNGENUEGEND => 'text-note-ungenuegend '.self::FORM,
     ];
 
@@ -58,7 +61,7 @@ final class NotenSkala
     private const array BADGE = [
         self::GUT => 'bg-surface-2 text-text',
         self::GENUEGEND => 'bg-surface-2 text-text',
-        self::KNAPP => 'bg-note-knapp/14 text-note-knapp',
+        self::KNAPP => 'bg-note-knapp/14 text-note-knapp '.self::FORM_KNAPP,
         self::UNGENUEGEND => 'bg-note-ungenuegend/14 text-note-ungenuegend '.self::FORM,
     ];
 

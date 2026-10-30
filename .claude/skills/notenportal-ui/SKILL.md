@@ -122,7 +122,7 @@ ohnehin alle; der Desktopwert ist die Basisklasse. Einzige Ausnahme: die Hauptna
 - Klickbare Tabellenzeilen: `data-href` auf `<tr>` (ganze Zeile klickbar, Tastatur über den Link in der ersten Zelle).
 - Zahlenfelder ohne Pfeile (Spinner sind global ausgeblendet); Gewichtungen über `<x-gewicht-feld>`.
 - Lernstand nur über `<x-status status>`: rot «Kritisch», gelb «Beobachten», grün «Im Plan», grau «Offen» und «Abgeschlossen» (Lehrende vorbei – keine Warnungen mehr).
-- Notenfarben kommen aus `NotenSkala::text()/badge()` (gut/genügend neutral, knapp/ungenügend farbig, ungenügend zusätzlich unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()`, Punkte `NotenSkala::punkt()`.
+- Notenfarben kommen aus `NotenSkala::text()/badge()` (gut/genügend neutral, knapp/ungenügend farbig mit Form: knapp gepunktet, ungenügend durchgezogen unterstrichen); volle Stufenfarbe nur `NotenSkala::farbe()`, Punkte `NotenSkala::punkt()`.
 
 ## 6. Bewegung
 - Dauer und Weg hängen an Tokens (`app.css`, `:root`): `--dauer-1` 100 ms (Rückmeldung) · `--dauer-2` 150 ms (Menü, Segment) · `--dauer-3` 200 ms · `--dauer-4` 300 ms (Schublade, Dialog) · `--dauer-morph` 360 ms (Menü wächst aus dem Auslöser) · `--ease-out` · `--ease-in` · `--ease-feder` (nur Menü-Morph und Auswahlmarken, nie Schublade) · `--np-weg` · `--np-skala-von` · `--np-staffel`. Katalog und Reduktion: `docs/gui-konzept.md` «Motion».

@@ -587,6 +587,7 @@ export function registriereCharts(Alpine) {
         let ansage = null;
         let tasteHoerer = null;
         let blurHoerer = null;
+        let ohneSchrift = false;
         return {
             init() {
                 host = this.$el;
@@ -595,9 +596,11 @@ export function registriereCharts(Alpine) {
                 // Themewechsel: Farben sind im Chart festgeschrieben, deshalb neu bauen
                 beobachter = new MutationObserver(() => aktuell && this.baue(aktuell));
                 beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'data-diagramm'] });
-                // Beschriftungen werden in der Schrift gemessen, die beim ersten Zeichnen gilt: erst nach dem Laden der Schrift
-                // neu messen (ohne Animation), sonst kürzt eine breitere Ersatzschrift Namen, die in Inter ganz hinpassen
-                document.fonts?.ready.then(() => chart?.update('none'));
+                // Beschriftungen werden in der Schrift gemessen, die beim Bauen gilt, und Chart.js behält Skalen samt gemessener
+                // Textbreiten (update misst nicht neu): wurde vor dem Laden der Schrift gebaut, nach dem Laden neu bauen (ohne
+                // Animation), sonst teilen Achsen mit der Ersatzschrift anders ein (6, 7 oder 5 Monate) und kürzen Namen zu früh
+                // fonts.load statt fonts.ready: ready kann schon aufgelöst sein, bevor die Schrift zu laden beginnt
+                document.fonts?.load(`13px ${Chart.defaults.font.family}`).then(() => { if (chart && aktuell && ohneSchrift) this.baue(aktuell, true); }).catch(() => {});
             },
 
             // Fokussierbare Hülle mit Namen und Ansage; fehlt etwas (Aufrufer ohne x-diagramm), wird es ergänzt
@@ -623,11 +626,14 @@ export function registriereCharts(Alpine) {
                 this.setze(neu);
             },
 
-            baue(neu) {
+            baue(neu, ohneAnimation = false) {
                 aktuell = kopie(neu);
                 chart?.destroy();
                 index = null;
-                chart = new Chart(this.$refs.canvas, BAUER[typ](aktuell, optionen));
+                const config = BAUER[typ](aktuell, optionen);
+                try { ohneSchrift = !document.fonts.check(`13px ${Chart.defaults.font.family}`); } catch { ohneSchrift = false; }
+                if (ohneAnimation) config.options.animation = false;
+                chart = new Chart(this.$refs.canvas, config);
             },
 
             setze(neu) {

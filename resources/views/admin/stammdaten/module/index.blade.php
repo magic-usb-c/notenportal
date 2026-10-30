@@ -65,6 +65,7 @@
                         <h3 class="px-5 pt-4 pb-1 text-sm font-semibold text-text">{{ $name }}</h3>
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
+                                <caption class="sr-only">{{ $name }}</caption>
                                 <thead>
                                     @include('admin.stammdaten.module._kopf')
                                 </thead>
@@ -83,6 +84,7 @@
                 <div class="np-karte max-w-7xl">
                     <div class="p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Module') }}</caption>
                         <thead>
                             @include('admin.stammdaten.module._kopf')
                         </thead>

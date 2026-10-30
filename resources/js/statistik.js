@@ -219,16 +219,16 @@ const zelle = (art, text, rechts) => {
     return el;
 };
 
-// Tabelle aus {spalten, zeilen}; letzte Spalte rechtsbündig, erste Zelle einer Zeile ist ihr Kopf – wie im Server-HTML von x-verlauf
+// Tabelle aus {spalten, zeilen, rechts}; die Zahlenspalten (Indizes in «rechts», sonst die letzte) rechtsbündig, erste Zelle einer Zeile ist ihr Kopf – wie im Server-HTML von x-verlauf
 function tabelleRendern(tabelle, daten) {
     if (!daten) return;
-    const letzte = daten.spalten.length - 1;
+    const rechts = daten.rechts ?? [daten.spalten.length - 1];
     const kopf = document.createElement('tr');
-    daten.spalten.forEach((s, i) => kopf.append(zelle('th', s, i === letzte)));
+    daten.spalten.forEach((s, i) => kopf.append(zelle('th', s, rechts.includes(i))));
     tabelle.tHead?.replaceChildren(kopf);
     tabelle.tBodies[0]?.replaceChildren(...daten.zeilen.map((z) => {
         const tr = document.createElement('tr');
-        z.forEach((c, i) => tr.append(zelle(i === 0 ? 'row' : 'td', c, i === letzte)));
+        z.forEach((c, i) => tr.append(zelle(i === 0 ? 'row' : 'td', c, rechts.includes(i))));
         return tr;
     }));
 }

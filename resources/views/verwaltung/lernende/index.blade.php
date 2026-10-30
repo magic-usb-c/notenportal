@@ -44,10 +44,12 @@
                         <x-symbol name="arrow-down-tray" />{{ __('Alle Noten (CSV)') }}
                     </a>
                 @endunless
+            </x-slot:aktionen>
+            <x-slot:hauptaktion>
                 <a href="{{ route("{$bereich}.learners.create") }}" class="np-knopf np-knopf-primaer">
                     <x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}
                 </a>
-            </x-slot:aktionen>
+            </x-slot:hauptaktion>
         </x-seitenkopf>
     </x-slot>
 
@@ -61,7 +63,7 @@
                     </x-leer>
                 </div>
             @else
-                <x-filterleiste :action="route($bereich.'.learners.index')" suche-name="suche" :suche-wert="$filter['suche']"
+                <x-filterleiste class="{{ $kartenbreite }}" :action="route($bereich.'.learners.index')" suche-name="suche" :suche-wert="$filter['suche']"
                                  :suche-platzhalter="__('Name, E-Mail, Benutzername')"
                                  :zurueck="route($bereich.'.learners.index')" :aktive-filter="$aktiveFilter"
                                  :zaehler="$zeilen->count()" :zaehler-label="__('Lernende')"

@@ -45,6 +45,7 @@
                 @else
                     <div class="px-2 pb-2">
                         <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ __('Module') }}</caption>
                             <thead>
                                 <tr>
                                     <th scope="col" class="w-24">{{ __('Nummer') }}</th>
@@ -107,7 +108,7 @@
                                             </form>
                                             @if($m->in_gebrauch)
                                                 <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
-                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}<span class="sr-only">{{ __('Noten oder Prüfungen vorhanden') }}</span></button>
                                                 </span>
                                             @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
@@ -147,6 +148,7 @@
                 @else
                     <div class="px-2 pb-2">
                         <table class="np-tabelle table-fixed text-sm">
+                            <caption class="sr-only">{{ __('Fächer (berufsspezifisch)') }}</caption>
                             <thead>
                                 <tr>
                                     <th scope="col" class="w-20">{{ __('Kürzel') }}</th>
@@ -183,7 +185,7 @@
                                         <td class="text-right">
                                             @if($f->in_gebrauch)
                                                 <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
-                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}</button>
+                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}<span class="sr-only">{{ __('Noten oder Prüfungen vorhanden') }}</span></button>
                                                 </span>
                                             @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"

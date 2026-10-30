@@ -20,6 +20,7 @@
             @else
                 <div class="np-karte max-w-7xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Fächer') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="w-28">{{ __('Kürzel') }}</th>

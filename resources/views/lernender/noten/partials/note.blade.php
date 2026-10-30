@@ -7,7 +7,10 @@
         && (! $eigeneSicht || $k->erstellt_am > $eigeneSicht->gesehen_am));
     $letzter = $n->kommentare->last();
     $feld = 'np-feld';
+    // Aktionen stehen ausserhalb der summary; der Name sagt, welche Prüfung gemeint ist
+    $kontext = trim(($n->pruefungsdatum?->format('d.m.Y') ?? '').' '.($n->titel ?? ''));
 @endphp
+<div class="relative">
 <details class="np-note-detail" data-note-id="{{ $n->note_id }}"
          x-data="npTitelEdit({{ json_encode($n->titel) }}, '{{ route('learner.grades.title.update', $n->note_id) }}')">
     {{-- Raster wie die Spalten der Notentabelle (lernender/noten/index): Gewicht unter «Prüfungen», Note unter «Schnitt» --}}
@@ -35,21 +38,6 @@
         </div>
         <span class="px-3 text-xs tabular-nums text-muted">{{ \App\Support\Zahl::prozent($n->gewichtung_prozent ?? 100) }}</span>
         <span class="px-3 text-right"><x-note :wert="$n->note_wert" :stufe="$n->note_stufe" /></span>
-        <div class="flex items-center justify-end pr-1.5" x-on:click.stop>
-            <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}" title="{{ __('Bearbeiten') }}"
-               @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
-               class="np-knopf np-knopf-symbol np-knopf-klein"><x-symbol name="pencil-square" />
-            </a>
-            <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
-                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
-                  data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
-                @csrf
-                @method('DELETE')
-                <button :disabled="loading" aria-label="{{ __('Note löschen') }}" title="{{ __('Löschen') }}"
-                        class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" />
-                </button>
-            </form>
-        </div>
     </summary>
 
     <div class="border-t border-border bg-fill-2">
@@ -110,3 +98,19 @@
         </form>
     </div>
 </details>
+    <div class="absolute right-0 top-0 flex h-9 items-center justify-end pr-1.5">
+        <a href="{{ route('learner.grades.edit', $n->note_id) }}" aria-label="{{ __('Note bearbeiten') }}: {{ $kontext }}" title="{{ __('Bearbeiten') }}"
+           x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Note bearbeiten')) })"
+           class="np-knopf np-knopf-symbol np-knopf-klein"><x-symbol name="pencil-square" />
+        </a>
+        <form method="POST" action="{{ route('learner.grades.destroy', $n->note_id) }}"
+              x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true"
+              data-bestaetigen="{{ __('Note löschen?') }}" data-bestaetigen-knopf="{{ __('Löschen') }}">
+            @csrf
+            @method('DELETE')
+            <button :disabled="loading" aria-label="{{ __('Note löschen') }}: {{ $kontext }}" title="{{ __('Löschen') }}"
+                    class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr np-knopf-klein"><x-symbol name="trash" />
+            </button>
+        </form>
+    </div>
+</div>

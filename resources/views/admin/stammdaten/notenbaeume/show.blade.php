@@ -72,6 +72,7 @@
                     @endif
                     <div class="overflow-x-auto px-2 pb-2">
                         <table class="np-tabelle text-sm">
+                            <caption class="sr-only">{{ __('Aufbau') }}</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">{{ __('Teil') }}</th>

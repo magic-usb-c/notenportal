@@ -21,6 +21,7 @@
             @else
                 <div class="np-karte max-w-6xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Lehrberufe') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="w-32">{{ __('Kürzel') }}</th>

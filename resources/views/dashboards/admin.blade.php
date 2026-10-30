@@ -25,7 +25,7 @@
         ];
     @endphp
     <x-slot name="header">
-        <x-seitenkopf :titel="__('Betrieb')" :untertitel="\App\Support\Format::date(now())">
+        <x-seitenkopf :titel="__('Übersicht')" :untertitel="\App\Support\Format::date(now())">
             <x-slot:aktionen>
                 <a href="{{ route('admin.users.create') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="user-plus" strich="2" />{{ __('Benutzer erfassen') }}</a>
                 <a href="{{ route('admin.learners.create') }}" data-hauptaktion class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}</a>
@@ -126,7 +126,7 @@
                                                 <td class="text-right">
                                                     @if($bb->gelb)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'beobachten']) }}" aria-label="{{ __(':anzahl zu beobachten bei :name', ['anzahl' => $bb->gelb, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-knapp underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-knapp" aria-hidden="true"></span>{{ $bb->gelb }}</a>@else<span class="text-muted">0</span>@endif
                                                 </td>
-                                                <td class="text-right {{ $bb->neu > 20 ? 'font-semibold text-text' : 'text-muted' }}">{{ $bb->neu }}</td>
+                                                <td class="text-right {{ $bb->neu > 0 ? 'font-semibold text-text' : 'text-muted' }}">{{ $bb->neu }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>

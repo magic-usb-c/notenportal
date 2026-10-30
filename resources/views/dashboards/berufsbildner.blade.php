@@ -12,7 +12,7 @@
         $imPlan = ! count($aufmerksamkeit) && $laufend ? __('Alle :anzahl Lernenden im Plan', ['anzahl' => $laufend]) : null;
         // Intelligente Listen wie in Erinnerungen: Zähler oben, ein Klick filtert die Tabelle
         $listen = [
-            ['alle', __('Alle'), 'users', 'bg-accent/12 text-accent-text', $zeilen->count()],
+            ['alle', __('Alle'), 'users', 'bg-fill text-muted', $zeilen->count()],
             ['rot', __('Kritisch'), 'exclamation-triangle', 'bg-note-ungenuegend/14 text-note-ungenuegend', $zeilen->filter(fn ($z) => $z->stand->status === 'rot')->count()],
             ['gelb', __('Beobachten'), 'eye', 'bg-note-knapp/14 text-note-knapp', $zeilen->filter(fn ($z) => $z->stand->status === 'gelb')->count()],
             ['neu', __('Mit neuen Noten'), 'inbox-stack', 'bg-fill text-muted', $zeilen->filter(fn ($z) => $z->neu > 0)->count()],
@@ -42,8 +42,10 @@
                       :untertitel="implode(' · ', array_filter([\App\Support\Format::date(now()), $imPlan]))">
             <x-slot:aktionen>
                 <a href="{{ route('trainer.grades.export_all') }}" class="np-knopf np-knopf-sekundaer"><x-symbol name="arrow-down-tray" strich="2" />{{ __('Exportieren') }}</a>
-                <a href="{{ route('trainer.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}</a>
             </x-slot:aktionen>
+            <x-slot:hauptaktion>
+                <a href="{{ route('trainer.learners.create') }}" class="np-knopf np-knopf-primaer"><x-symbol name="plus" strich="2" />{{ __('Lernende erfassen') }}</a>
+            </x-slot:hauptaktion>
         </x-seitenkopf>
     </x-slot>
 
@@ -122,10 +124,10 @@
                                     @foreach($unterGenuegend as $r)
                                         @php
                                             $stufe = \App\Support\NotenSkala::stufe($r['jetzt']);
-                                            $ton = $stufe === \App\Support\NotenSkala::UNGENUEGEND ? 'bg-note-ungenuegend/14 text-note-ungenuegend' : 'bg-note-knapp/14 text-note-knapp';
+                                            $ton = $stufe === \App\Support\NotenSkala::UNGENUEGEND ? 'bg-note-ungenuegend/14 text-note-ungenuegend hover:bg-note-ungenuegend/22' : 'bg-note-knapp/14 text-note-knapp hover:bg-note-knapp/22';
                                         @endphp
                                         <li>
-                                            <a href="{{ route('trainer.learners.show', (int) substr($r['schluessel'], 1)) }}" class="inline-flex min-h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium tabular-nums transition-colors duration-100 hover:bg-fill-2 {{ $ton }}">
+                                            <a href="{{ route('trainer.learners.show', (int) substr($r['schluessel'], 1)) }}" class="inline-flex min-h-7 items-center gap-1.5 rounded-full px-3 text-xs font-medium tabular-nums transition-colors duration-100 {{ $ton }}">
                                                 <x-symbol name="exclamation-triangle" strich="2" class="size-3.5" />
                                                 <span class="text-text">{{ $r['fach'] }}</span>
                                                 {{ \App\Support\NotenSkala::format($r['jetzt'], 1) }} · {{ \App\Support\NotenSkala::stufeName($r['jetzt']) }}
@@ -324,7 +326,7 @@
                                                 <span class="block truncate text-sm text-text">{{ $l->benutzer->vorname }} {{ $l->benutzer->nachname }}</span>
                                                 <span class="block text-xs tabular-nums text-muted">{{ $l->lehrende->format('d.m.Y') }}</span>
                                             </span>
-                                            <span class="shrink-0 text-xs tabular-nums text-muted">{{ __('in :tage Tagen', ['tage' => (int) now()->startOfDay()->diffInDays($l->lehrende)]) }}</span>
+                                            <span class="shrink-0 text-xs tabular-nums text-muted">{{ \App\Support\Format::wann($l->lehrende) }}</span>
                                         </a>
                                     </li>
                                 @endforeach

@@ -305,4 +305,89 @@ class BerichtTest extends TestCase
         $noten = $xpath->query('td[last()]//a', $zeile)->item(0);
         $this->assertSame(route('admin.learners.grades.index', ['lernender_id' => $lernender->lernender_id, 'semester_id' => $note->semester_id]), $noten->getAttribute('href'));
     }
+
+    /** ADMIN-1: Die Karten einer Reihe sind gleich hoch, die linke wird bis zur rechten Spalte gestreckt. */
+    #[Test]
+    public function verteilung_und_nebenspalte_stehen_im_raster_mit_gleicher_kartenhoehe(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = User::factory()->lernender()->create()->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 4.0]);
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => $note->semester_id]))->assertOk()->getContent();
+
+        $this->assertStringContainsString('<div class="grid grid-cols-2 gap-4">', $html);
+        $this->assertStringNotContainsString('grid-cols-2 items-start', $html, 'items-start lässt die linke Karte kürzer als die rechte Spalte enden');
+    }
+
+    /** ADMIN-5: Die Gründe unter dem Status brechen ohne einzelnes Wort in der letzten Zeile um. */
+    #[Test]
+    public function gruende_im_status_brechen_ausgewogen_um(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $lernender = User::factory()->lernender()->create(['nachname' => 'Gruendemann'])->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id, 'note_wert' => 2.0]);
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => $note->semester_id]))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<div class="mt-0\.5 text-pretty text-xs text-muted">[^<]+<\/div>/', $html);
+    }
+
+    /** UI-admin-1: Die Haupttabelle trägt wie die Diagrammtabellen eine Beschriftung für Screenreader. */
+    #[Test]
+    public function die_lernendentabelle_hat_eine_beschriftung(): void
+    {
+        $admin = User::factory()->admin()->create();
+        User::factory()->lernender()->create();
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => 'alle']))->assertOk()->getContent();
+        $dom = new \DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8">'.$html, LIBXML_NOERROR);
+        $xpath = new \DOMXPath($dom);
+
+        $caption = $xpath->query('//*[@id="lernende"]//table/caption[contains(@class, "sr-only")]')->item(0);
+        $this->assertNotNull($caption);
+        $this->assertSame(__('Lernende'), trim($caption->textContent));
+    }
+
+    /** UI-admin-8: Ohne Filter bietet der Leerzustand den nächsten Schritt statt eines wirkungslosen Zurücksetzens. */
+    #[Test]
+    public function ohne_lernende_und_ohne_filter_fuehrt_der_leerzustand_zum_erfassen(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $erfassen = 'href="'.e(route('admin.learners.create')).'"';
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades'))->assertOk()->getContent();
+        $this->assertSame(2, substr_count($html, $erfassen), 'je einmal im Leerzustand der Karten und in der Tabelle');
+
+        $tabelle = substr($html, strpos($html, 'id="lernende"'));
+        $this->assertStringContainsString(__('Noch keine Lernenden.'), $tabelle);
+        $this->assertStringNotContainsString(__('Keine Lernenden für diese Filter.'), $tabelle);
+        $this->assertStringNotContainsString(__('Filter zurücksetzen'), $tabelle);
+    }
+
+    #[Test]
+    public function mit_aktivem_filter_bleibt_das_zuruecksetzen_in_der_leeren_tabelle(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['lehrjahr' => 3]))->assertOk()->getContent();
+
+        $tabelle = substr($html, strpos($html, 'id="lernende"'));
+        $this->assertStringContainsString(__('Keine Lernenden für diese Filter.'), $tabelle);
+        $this->assertStringContainsString(__('Filter zurücksetzen'), $tabelle);
+        $this->assertStringNotContainsString('href="'.e(route('admin.learners.create')).'"', $tabelle);
+    }
+
+    /** UI-admin-11: Die Leeroption des Kategoriefilters heisst wie bei den Nachbarfiltern «Alle …». */
+    #[Test]
+    public function der_kategoriefilter_hat_die_leeroption_alle_kategorien(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $html = (string) $this->actingAs($admin)->get(route('admin.reports.grades', ['semester' => 'alle']))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<select name="kategorie"[^>]*>\s*<option value="">'.preg_quote(e(__('Alle Kategorien')), '/').'<\/option>/', $html);
+        $this->assertSame('All categories', json_decode((string) file_get_contents(lang_path('en.json')), true)['Alle Kategorien'] ?? null);
+    }
 }

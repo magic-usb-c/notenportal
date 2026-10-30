@@ -66,7 +66,9 @@
                     <section class="flex flex-col gap-2">
                         <div class="h-5" aria-hidden="true"></div>
                         <x-leer class="np-karte" symbol="calendar" :titel="__('Keine Prüfungstermine für die aktuelle Auswahl')">
-                            <a href="{{ route("{$bereich}.exams.index") }}" class="np-knopf np-knopf-sekundaer">{{ __('Alle Termine') }}</a>
+                            @if($einLernender || $filter['zeitraum'] !== 'alle')
+                                <a href="{{ route("{$bereich}.exams.index") }}" class="np-knopf np-knopf-sekundaer">{{ __('Alle Termine') }}</a>
+                            @endif
                         </x-leer>
                     </section>
                 @endforelse

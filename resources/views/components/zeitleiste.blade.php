@@ -7,8 +7,9 @@
 {{--
     Zeitleiste: kommende Prüfungen auf einer Datumsachse von heute bis zum Ende des Zeitraums, darunter je Prüfung
     Datum, Name und die nötige Note als Text («benötigt 4.5», «bestanden», «nicht erreichbar»). Die Farbe unterstützt nur:
-    blau für eine nötige Note, Notenfarbe für nicht erreichbar, grau für bestanden. Serverseitig gezeichneter Baustein
-    (npFilter ersetzt ihn nach einer Filteränderung).
+    blau für eine nötige Note, Notenfarbe für nicht erreichbar, grau für bestanden. Ohne Prüfungen entfällt die Tabelle
+    (kein leeres Diagramm, keine tote Aufklappung). Serverseitig gezeichneter Baustein (npFilter ersetzt ihn nach einer
+    Filteränderung).
 --}}
 @php
     $skala = \App\Support\NotenSkala::class;
@@ -60,6 +61,7 @@
         <p class="mt-3 text-xs text-muted">{{ $satz }}</p>
     @endif
     <p class="sr-only" aria-live="polite" data-np-ansage>{{ $satz }}</p>
+    @if($zeilen !== [])
     <x-slot:tabelle>
         <table class="np-tabelle text-sm">
             <caption class="sr-only">{{ $titel }}</caption>
@@ -85,4 +87,5 @@
             </tbody>
         </table>
     </x-slot:tabelle>
+    @endif
 </x-diagramm>

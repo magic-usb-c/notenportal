@@ -89,7 +89,7 @@
                     </select>
                     <label for="kategorie" class="sr-only">{{ __('Kategorie') }}</label>
                     <select name="kategorie" id="kategorie" x-on:change="$el.form.requestSubmit()" class="{{ $auswahl }}">
-                        <option value="">{{ __('Kategorie') }}</option>
+                        <option value="">{{ __('Alle Kategorien') }}</option>
                         @foreach($kategorieAuswahl as $kid => $kname)
                             <option value="{{ $kid }}" @selected($filter['kategorie_id'] === (int) $kid)>{{ $kname }}</option>
                         @endforeach
@@ -121,13 +121,15 @@
                     <x-leer symbol="chart-bar" :titel="$hSatz">
                         @if($andereFilter || $sid !== null)
                             <a href="{{ route('admin.reports.grades', ['semester' => 'alle']) }}" class="np-knopf np-knopf-sekundaer">{{ $andereFilter ? __('Filter zurücksetzen') : __('Ganze Lehrzeit anzeigen') }}</a>
+                        @elseif($k['lernende'] === 0)
+                            <a href="{{ route('admin.learners.create') }}" class="np-knopf np-knopf-sekundaer">{{ __('Lernende erfassen') }}</a>
                         @endif
                     </x-leer>
                 </section>
             @endif
 
             @if($k['zeugnisnoten'] > 0 || $mitLehrjahr)
-                <div class="grid grid-cols-2 items-start gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     @if($k['zeugnisnoten'] > 0)
                         {{-- Notenverteilung (S10): Viertelnoten ab 0, Genügend-Linie, Median erst ab drei Noten. Die Seite ersetzt npFilter als Ganzes. --}}
                         @php
@@ -350,6 +352,7 @@
             <x-karte id="lernende" :titel="__('Lernende')" :polster="false">
                 <div class="px-2 pb-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Lernende') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="w-72" aria-sort="{{ $ariaSort('name') }}"><a href="{{ $sortUrl('name') }}" class="{{ $kopf }}">{{ __('Name') }} {{ $pfeil('name') }}</a></th>
@@ -377,7 +380,7 @@
                                     <td>
                                         <x-status :status="$z->stand->status" />
                                         @if($z->stand->gruende)
-                                            <div class="mt-0.5 text-xs text-muted">{{ implode(' · ', $z->stand->gruende) }}</div>
+                                            <div class="mt-0.5 text-pretty text-xs text-muted">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif
                                     </td>
                                     <td class="text-right font-semibold {{ NotenSkala::text($z->gesamt) }}">{{ NotenSkala::format($z->gesamt, 1) }}</td>
@@ -393,7 +396,13 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">{{ __('Keine Lernenden für diese Filter.') }} <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a></td>
+                                    <td colspan="{{ $spalten }}" class="py-10 text-center text-sm text-muted">
+                                        @if($aktiveFilter > 0)
+                                            {{ __('Keine Lernenden für diese Filter.') }} <a href="{{ route('admin.reports.grades') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Filter zurücksetzen') }}</a>
+                                        @else
+                                            {{ __('Noch keine Lernenden.') }} <a href="{{ route('admin.learners.create') }}" class="np-knopf np-knopf-schlicht np-knopf-klein">{{ __('Lernende erfassen') }}</a>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>

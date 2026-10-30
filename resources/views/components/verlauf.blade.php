@@ -14,6 +14,7 @@
     $d = $paket['diagramm'][$schluessel];
     $tabelle = $paket['tabelle'][$schluessel];
     $satz = $paket['zusammenfassung'][$schluessel];
+    $rechts = $tabelle['rechts'] ?? [count($tabelle['spalten']) - 1];
     $meta = $paket['meta'][$schluessel] ?? [];
     $titel ??= $meta['titel'] ?? null;
     $ohneDatum = $meta['ohneDatum'] ?? [];
@@ -38,7 +39,7 @@
             <thead>
                 <tr>
                     @foreach($tabelle['spalten'] as $i => $spalte)
-                        <th scope="col" @class(['text-right' => $i === count($tabelle['spalten']) - 1])>{{ $spalte }}</th>
+                        <th scope="col" @class(['text-right' => in_array($i, $rechts, true)])>{{ $spalte }}</th>
                     @endforeach
                 </tr>
             </thead>
@@ -49,7 +50,7 @@
                             @if($i === 0)
                                 <th scope="row" class="text-left font-normal text-text">{{ $zelle }}</th>
                             @else
-                                <td @class(['text-right' => $i === count($zeile) - 1])>{{ $zelle }}</td>
+                                <td @class(['text-right' => in_array($i, $rechts, true)])>{{ $zelle }}</td>
                             @endif
                         @endforeach
                     </tr>

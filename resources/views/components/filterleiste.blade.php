@@ -17,7 +17,7 @@
     Mit statistik übernimmt npFilter (resources/js/statistik.js) das Absenden: Adresse und Diagramme folgen dem Filter, ohne
     dass die Seite neu lädt; das Formular selbst bleibt ein GET und funktioniert ohne JavaScript unverändert.
 --}}
-<form method="{{ $method }}" action="{{ $action }}" class="flex flex-wrap items-center gap-2"
+<form method="{{ $method }}" action="{{ $action }}" {{ $attributes->class(['flex flex-wrap items-center gap-2']) }}
       @if($statistik !== null) x-data="npFilter(@js($statistik))" @endif>
     {{ $hidden ?? '' }}
 

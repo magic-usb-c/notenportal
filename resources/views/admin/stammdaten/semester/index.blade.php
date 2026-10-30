@@ -23,6 +23,7 @@
             @else
                 <div class="np-karte max-w-5xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
+                        <caption class="sr-only">{{ __('Semester') }}</caption>
                         <thead>
                             <tr>
                                 <th scope="col" class="w-48">{{ __('Bezeichnung') }}</th>
