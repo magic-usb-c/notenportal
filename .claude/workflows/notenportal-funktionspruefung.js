@@ -1,7 +1,7 @@
 export const meta = {
   name: 'notenportal-funktionspruefung',
   description: 'Funktionsprüfung des Notenportals: Fehler je Rolle, Notenlogik, Sicherheit, Mails, Jobs und Klicktests im Browser finden, jeden Befund mit Sonde nachweisen und gegnerisch prüfen',
-  whenToUse: 'Vor einer Fertigmeldung oder nach grösseren Änderungen an Controllern, Services, Mails oder Jobs. args: { dimensionen?: string[], dbs: string[] (eigene *_test-DBs, je Agent eine), env: "<env.sh>", scratch: "<ordner>", max?: number }. Mehrere Läufe mit getrennten dimensionen und dbs dürfen gleichzeitig laufen.',
+  whenToUse: 'Vor einer Fertigmeldung oder nach grösseren Änderungen an Controllern, Services, Mails oder Jobs. args: { dimensionen?: string[], dbs: string[] (eigene *_test-DBs, je Agent eine), env: "<env.sh>", scratch: "<ordner>", max?: number, hinweise?: { <dimension>: "Schwerpunkt dieser Runde" } }. Mehrere Läufe mit getrennten dimensionen und dbs dürfen gleichzeitig laufen.',
   phases: [
     { title: 'Suche', detail: 'ein Finder je Dimension (sonnet high), Sonden in eigener Test-DB' },
     { title: 'Nachweis', detail: 'je Befund ein Nachweis per Sonde oder Messung (sonnet high)' },
@@ -151,7 +151,9 @@ const ergebnisse = await pipeline(
     const db = naechsteDb()
     return agent(`${KONTEXT(db)}
 
-${DIMENSIONEN[dim]}
+${DIMENSIONEN[dim]}${A.hinweise && A.hinweise[dim] ? `
+
+SCHWERPUNKT DIESER RUNDE (eine frühere Runde hat das Übrige schon abgedeckt und ihre Befunde sind behoben): ${A.hinweise[dim]}` : ''}
 
 Vorgehen: Routen der Dimension mit \`source ${ENV} && php artisan route:list --except-vendor\` (gefiltert) erfassen, Controller/Services lesen,
 Verdachtsstellen mit Sonden oder Browser-Skripten nachweisen. Erst melden, wenn der Beleg steht. Liste unter «abgedeckt», was du geprüft hast
