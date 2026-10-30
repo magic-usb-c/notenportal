@@ -31,7 +31,8 @@ class SucheController extends Controller
         }
 
         $user = $request->user();
-        $q = trim((string) $request->query('q', ''));
+        $suchwort = $request->query('q');
+        $q = is_string($suchwort) ? trim($suchwort) : '';
         if (mb_strlen($q) < 2) {
             return response()->json([]);
         }

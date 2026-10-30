@@ -26,10 +26,10 @@ class FeedbackController extends Controller
 {
     public function index(Request $request): View
     {
-        $status = (string) $request->input('status', '');
-        $kategorie = (string) $request->input('kategorie', '');
-        $rolle = (string) $request->input('rolle', '');
-        $suche = trim((string) $request->input('suche', ''));
+        $status = is_string($status = $request->input('status')) ? $status : '';
+        $kategorie = is_string($kategorie = $request->input('kategorie')) ? $kategorie : '';
+        $rolle = is_string($rolle = $request->input('rolle')) ? $rolle : '';
+        $suche = is_string($suche = $request->input('suche')) ? trim($suche) : '';
         $duplikate = $request->boolean('duplikate');
         $hatDuplikatSpalte = Feedback::hatDuplikatSpalte();
         $hatStimmenTabelle = FeedbackStimme::tabelleVorhanden();

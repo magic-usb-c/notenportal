@@ -26,9 +26,9 @@ class BenutzerController extends Controller
 
     public function index(Request $request)
     {
-        $suche = $request->input('suche', '');
-        $rolleId = $request->input('rolle_id', '');
-        $status = $request->input('status', '');
+        $suche = is_string($s = $request->input('suche')) ? trim($s) : '';
+        $rolleId = is_string($r = $request->input('rolle_id')) && ctype_digit($r) ? $r : '';
+        $status = is_string($st = $request->input('status')) ? $st : '';
 
         $q = DB::table('benutzer as b')
             ->leftJoin('benutzer_rollen as br', 'br.benutzer_id', '=', 'b.benutzer_id')
@@ -173,7 +173,7 @@ class BenutzerController extends Controller
                 'benutzername' => $validated['benutzername'],
             ]);
             $user->rollen()->sync(DB::table('rollen')->whereIn('name', $rollen)->pluck('rolle_id')->all());
-            if ($rollen->contains('Berufsbildner') && ! $berufsbildner) {
+            if ($rollen->contains('Berufsbildner') && ! $berufsbildner && $user->aktiv) {
                 Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore()
                     ?? Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
             } elseif (! $rollen->contains('Berufsbildner') && $berufsbildner) {
@@ -218,7 +218,8 @@ class BenutzerController extends Controller
             if (! $neuAktiv) {
                 $berufsbildner?->delete();
             } elseif ($user->rollen()->whereRaw('LOWER(name) = LOWER(?)', ['Berufsbildner'])->exists()) {
-                Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore();
+                Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->first()?->restore()
+                    ?? Berufsbildner::create(['benutzer_id' => $user->benutzer_id]);
             }
         });
 

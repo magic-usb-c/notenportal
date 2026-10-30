@@ -56,7 +56,8 @@ class PruefungenController extends Controller
         $ansicht = $request->query('ansicht') === 'monat' ? 'monat' : 'liste';
         $zeigeLektionen = $request->boolean('lektionen');
         $heute = CarbonImmutable::today();
-        $monatParam = (string) $request->query('monat', '');
+        $monatParam = $request->query('monat');
+        $monatParam = is_string($monatParam) ? $monatParam : '';
         $monat = preg_match('/^\d{4}-\d{2}$/', $monatParam)
             ? CarbonImmutable::createFromFormat('Y-m-d', $monatParam.'-01')->startOfMonth()
             : $heute->startOfMonth();

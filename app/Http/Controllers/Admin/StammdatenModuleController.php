@@ -16,7 +16,7 @@ class StammdatenModuleController extends Controller
 
     public function index(Request $request)
     {
-        $suche = trim((string) $request->input('suche', ''));
+        $suche = is_string($suche = $request->input('suche')) ? trim($suche) : '';
         $lehrberufId = $request->integer('lehrberuf_id') ?: null;
         $kategorieId = $request->integer('kategorie_id') ?: null;
         $gruppieren = in_array($request->input('gruppieren'), self::GRUPPIERUNGEN, true) ? $request->input('gruppieren') : '';

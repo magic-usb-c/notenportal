@@ -90,7 +90,7 @@ class NotenImportController extends Controller
     public function pruefen(Request $request): JsonResponse
     {
         [$lernender] = $this->kontext($request);
-        abort_unless(strlen((string) $request->input('zeilen')) <= self::MAX_ZEILEN_JSON, 422);
+        abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
         $request->validate(['zeilen' => ['required', 'json']]);
         $zeilen = json_decode((string) $request->input('zeilen'), true);
         abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
@@ -111,7 +111,7 @@ class NotenImportController extends Controller
     public function uebernehmen(Request $request): RedirectResponse
     {
         [$lernender, $bereich] = $this->kontext($request);
-        abort_unless(strlen((string) $request->input('zeilen')) <= self::MAX_ZEILEN_JSON, 422);
+        abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
         $request->validate(['zeilen' => ['required', 'json'], 'token' => ['required', 'string']]);
 
         // Vorschau atomar aus der Session ziehen und an das mitgesendete Einmal-Token binden: ein zweiter Post

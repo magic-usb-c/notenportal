@@ -151,7 +151,7 @@ class StammdatenFaecherController extends Controller
     /** @return array<string, mixed> */
     private function validiere(Request $request, ?int $fachId = null): array
     {
-        $track = $request->input('track_typ') ?: null;
+        $track = is_string($t = $request->input('track_typ')) && $t !== '' ? $t : null;
         $eindeutig = fn (string $spalte) => Rule::unique('faecher', $spalte)
             ->where(fn ($q) => $track === null ? $q->whereNull('track_typ') : $q->where('track_typ', $track))
             ->ignore($fachId, 'fach_id');

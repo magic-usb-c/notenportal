@@ -86,7 +86,8 @@ class ModulController extends Controller
     /** @return list<string> */
     private function suchbegriffe(Request $request, bool $klein = true): array
     {
-        $suche = mb_substr(trim((string) $request->input('suche', '')), 0, 100);
+        $eingabe = $request->input('suche');
+        $suche = mb_substr(is_string($eingabe) ? trim($eingabe) : '', 0, 100);
         $begriffe = preg_split('/\s+/u', $klein ? mb_strtolower($suche) : $suche, -1, PREG_SPLIT_NO_EMPTY);
 
         return $begriffe ?: [];
@@ -238,7 +239,7 @@ class ModulController extends Controller
      */
     private function standPruefen(Request $request, Modul $modul): void
     {
-        $mitgebracht = trim((string) $request->input('stand', ''));
+        $mitgebracht = is_string($mitgebracht = $request->input('stand')) ? trim($mitgebracht) : '';
 
         if ($mitgebracht !== '' && $mitgebracht !== (string) $modul->aktualisiert_am?->getTimestamp()) {
             throw ValidationException::withMessages([

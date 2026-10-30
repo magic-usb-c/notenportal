@@ -16,7 +16,7 @@ class SystemhinweisController extends Controller
     /** Wegklicken (pro Benutzer, dauerhaft) – nimmt nur die aktuell gültige Version an. */
     public function schliessen(Request $request): Response|JsonResponse
     {
-        $version = (string) $request->input('version');
+        $version = is_string($version = $request->input('version')) ? $version : '';
         $aktuelleVersion = (string) Einstellungen::get(Einstellungen::HINWEIS_VERSION, '');
 
         if ($version === '' || $aktuelleVersion === '' || $version !== $aktuelleVersion) {
