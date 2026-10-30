@@ -328,6 +328,9 @@ async function messen(pfad) {
       hoehe: document.documentElement.scrollHeight,
     };
   });
+  // «Nodes» zählt auch abgehängte Knoten früherer Seiten derselben Registerkarte, bis der Speicher bereinigt ist –
+  // ohne Bereinigung wuchs die Zahl je Lauf um die ganze Vorseite (13k → 19k → 26k bei gleicher Seite).
+  await cdp.send('HeapProfiler.collectGarbage');
   const m = await metriken();
   const ergebnis = {
     pfad,

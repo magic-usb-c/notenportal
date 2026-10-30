@@ -157,7 +157,6 @@
                                     $rollen = $m->rolle ? __($m->rolle) : ($m->rollen ? implode(', ', array_map('__', explode(', ', $m->rollen))) : null);
                                     $kontext = array_filter([
                                         __('Seite') => $m->url,
-                                        __('Route') => $m->route_name,
                                         __('Fenster') => $m->viewport,
                                         __('Browser') => $m->browser ?? $m->user_agent,
                                     ], fn ($w) => filled($w));
