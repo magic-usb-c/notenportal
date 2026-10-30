@@ -138,7 +138,7 @@ class AdminTabellenBefundeTest extends TestCase
     }
 
     #[Test]
-    public function gesperrtes_entfernen_traegt_den_grund_als_text_im_knopf(): void
+    public function entfernen_in_gebrauch_zeigt_den_grund_als_text(): void
     {
         $lehrberuf = Lehrberuf::factory()->create(['aktiv' => true]);
         $modul = Modul::factory()->create();
@@ -156,10 +156,12 @@ class AdminTabellenBefundeTest extends TestCase
 
         $html = $this->actingAs($this->admin)->get(route('admin.master-data.professions.show', $lehrberuf->lehrberuf_id))->assertOk()->getContent();
 
+        // Kein gesperrter Knopf: der Grund steht als Text in der Zeile, vorgelesen samt Begründung
         $this->assertMatchesRegularExpression(
-            '~<button type="button" disabled[^>]*>\s*Entfernen\s*<span class="sr-only">Noten oder Prüfungen vorhanden</span>\s*</button>~u',
+            '~<span class="text-xs text-muted"[^>]*>In Gebrauch<span class="sr-only">: Noten oder Prüfungen vorhanden</span></span>~u',
             $html,
         );
+        $this->assertStringNotContainsString('<button type="button" disabled', $html);
     }
 
     private function kategorie(string $code): int

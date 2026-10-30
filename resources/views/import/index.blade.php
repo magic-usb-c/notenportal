@@ -47,14 +47,22 @@
                             get gewaehlt() { return this.zeilen.filter((z) => z.uebernehmen).length; },
                             get waehlbar() { return this.zeilen.filter((z) => z.status !== 'fehler').length; },
                             anzahl(status) { return this.zeilen.filter((z) => z.status === status).length; },
-                            get json() { return JSON.stringify(this.zeilen.filter((z) => z.uebernehmen)); },
+                            // Note und Gewicht sind Textfelder: «4,5» und «4.5» gehen als Zahl an den Server, alles andere unverändert (der Server weist es ab).
+                            serialisiert(liste) {
+                                const alsZahl = (w) => { const n = window.np.zahl(w); return Number.isFinite(n) ? n : w; };
+                                return JSON.stringify(liste.map((z) => ({ ...z, note: alsZahl(z.note), gewicht: String(z.gewicht ?? '').trim() === '' ? null : alsZahl(z.gewicht) })));
+                            },
+                            ungueltigeNote(z) { return ! Number.isFinite(window.np.zahl(z.note)); },
+                            ungueltigesGewicht(z) { const n = window.np.zahl(z.gewicht); return String(z.gewicht ?? '').trim() !== '' && ! (n >= 0 && n <= 100); },
+                            meldungId(z) { return z.meldung ? 'import-meldung-' + z.nr : null; },
+                            get json() { return this.serialisiert(this.zeilen.filter((z) => z.uebernehmen)); },
                             alle(an) { this.zeilen.forEach((z) => { z.uebernehmen = an && z.status !== 'fehler'; }); },
                             statusName(s) {
                                 return {
-                                    ok: @js(__('bereit')),
+                                    ok: @js(__('Bereit')),
                                     warnung: @js(__('Warnung')),
-                                    pruefen: @js(__('prüfen')),
-                                    doppelt: @js(__('bereits erfasst')),
+                                    pruefen: @js(__('Prüfen')),
+                                    doppelt: @js(__('Bereits erfasst')),
                                     fehler: @js(__('Fehler')),
                                 }[s] ?? '';
                             },
@@ -79,7 +87,7 @@
                                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                             Accept: 'application/json',
                                         },
-                                        body: JSON.stringify({ zeilen: JSON.stringify(this.zeilen) }),
+                                        body: JSON.stringify({ zeilen: this.serialisiert(this.zeilen) }),
                                     });
                                     if (!antwort.ok) {
                                         throw new Error(String(antwort.status));
@@ -114,7 +122,7 @@
                             </div>
                         </div>
                         <dl class="ml-auto flex flex-wrap gap-x-8 gap-y-3">
-                            @foreach(['ok' => [__('bereit'), 'bg-note-gut'], 'warnung' => [__('Warnung'), 'bg-note-knapp'], 'pruefen' => [__('prüfen'), 'bg-note-knapp'], 'doppelt' => [__('bereits erfasst'), 'bg-faint'], 'fehler' => [__('Fehler'), 'bg-note-ungenuegend']] as $status => [$text, $punkt])
+                            @foreach(['ok' => [__('Bereit'), 'bg-note-gut'], 'warnung' => [__('Warnung'), 'bg-note-knapp'], 'pruefen' => [__('Prüfen'), 'bg-note-knapp'], 'doppelt' => [__('Bereits erfasst'), 'bg-faint'], 'fehler' => [__('Fehler'), 'bg-note-ungenuegend']] as $status => [$text, $punkt])
                                 <div>
                                     <dt class="flex items-center gap-1.5 text-xs text-muted"><span class="size-2 rounded-full {{ $punkt }}" aria-hidden="true"></span>{{ $text }}</dt>
                                     <dd class="mt-0.5 text-xl font-semibold tabular-nums" :class="anzahl(@js($status)) === 0 && 'text-muted'"
@@ -165,9 +173,9 @@
                                                 </label>
                                             </td>
                                             <td class="text-right text-xs text-muted" x-text="z.nr"></td>
-                                            <td><input type="date" x-model="z.datum" :aria-label="@js(__('Datum Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :aria-invalid="! z.datum ? 'true' : null"></td>
+                                            <td><input type="date" x-model="z.datum" :aria-label="@js(__('Datum Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} tabular-nums" :aria-invalid="! z.datum ? 'true' : null" :aria-describedby="meldungId(z)"></td>
                                             <td>
-                                                <select x-model="z.bezug" :title="bezeichnungen[z.bezug] ?? null" :aria-label="@js(__('Fach oder Modul Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}" :aria-invalid="! z.bezug ? 'true' : null">
+                                                <select x-model="z.bezug" :title="bezeichnungen[z.bezug] ?? null" :aria-label="@js(__('Fach oder Modul Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}" :aria-invalid="! z.bezug ? 'true' : null" :aria-describedby="meldungId(z)">
                                                     <option value="">–</option>
                                                     @foreach($optionen as $gruppe => $liste)
                                                         <optgroup label="{{ $gruppe }}">
@@ -180,11 +188,11 @@
                                                 <div class="mt-1 truncate text-2xs text-muted" x-show="z.bezug_roh && z.bezug_roh !== bezeichnungen[z.bezug]" :title="z.bezug_roh" x-text="z.bezug_roh"></div>
                                             </td>
                                             <td><input type="text" x-model="z.titel" maxlength="150" :title="z.titel" :aria-label="@js(__('Titel Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }}"></td>
-                                            <td><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums" :aria-invalid="! z.note ? 'true' : null"></td>
-                                            <td><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums"></td>
+                                            <td><input type="text" inputmode="decimal" autocomplete="off" x-model="z.note" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums" :aria-invalid="ungueltigeNote(z) ? 'true' : null" :aria-describedby="meldungId(z)"></td>
+                                            <td><input type="text" inputmode="decimal" autocomplete="off" x-model="z.gewicht" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums" :aria-invalid="ungueltigesGewicht(z) ? 'true' : null" :aria-describedby="meldungId(z)"></td>
                                             <td>
                                                 <span class="np-marke" :class="farbe(z.status)" x-text="statusName(z.status)"></span>
-                                                <div class="mt-1 text-pretty text-xs" :class="z.status === 'fehler' ? 'text-note-ungenuegend' : 'text-muted'" data-import-meldung x-show="z.meldung" x-text="z.meldung"></div>
+                                                <div class="mt-1 text-pretty text-xs" :class="z.status === 'fehler' ? 'text-note-ungenuegend' : 'text-muted'" data-import-meldung :id="'import-meldung-' + z.nr" x-show="z.meldung" x-text="z.meldung"></div>
                                             </td>
                                         </tr>
                                     </template>

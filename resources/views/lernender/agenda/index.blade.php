@@ -248,9 +248,9 @@
                                               'text-text' => ! $tag['heute'] && $tag['imMonat'],
                                               'text-muted' => ! $tag['heute'] && ! $tag['imMonat']])>{{ $tag['datum']->format('j') }}</span>
                                 @foreach($chips as $c)
-                                    <span class="flex min-w-0 items-center gap-1.5 px-0.5 text-xs">
-                                        @include('lernender.agenda._punkt', ['art' => $c['art']])
-                                        <span @class(['truncate', 'text-text' => in_array($c['art'], ['pruefung', 'erkannt'], true), 'text-muted' => ! in_array($c['art'], ['pruefung', 'erkannt'], true)])>{{ $c['titel'] }}</span>
+                                    <span class="flex min-w-0 items-start gap-1.5 px-0.5 text-xs">
+                                        <span class="flex h-4 shrink-0 items-center">@include('lernender.agenda._punkt', ['art' => $c['art']])</span>
+                                        <span @class(['min-w-0 line-clamp-2 break-words', 'text-text' => in_array($c['art'], ['pruefung', 'erkannt'], true), 'text-muted' => ! in_array($c['art'], ['pruefung', 'erkannt'], true)])>{{ $c['titel'] }}</span>
                                         @if($c['zeit'])<span class="ml-auto shrink-0 tabular-nums text-muted">{{ $c['zeit'] }}</span>@endif
                                     </span>
                                 @endforeach

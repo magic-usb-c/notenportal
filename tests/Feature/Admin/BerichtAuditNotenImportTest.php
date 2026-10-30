@@ -126,6 +126,7 @@ class BerichtAuditNotenImportTest extends TestCase
                 }
             }
         }
-        $this->assertSame(7, $gefunden);
+        // Sicherungskopie und Logo: je Knopf eine eigene Anzeige (Testen/Kopieren, Entfernen/Hochladen)
+        $this->assertSame(9, $gefunden);
     }
 }

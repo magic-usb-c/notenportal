@@ -71,7 +71,7 @@
 
     <x-modal name="load-grade-tree-template" maxWidth="lg" :show="$vorlageFehler" focusable>
         <form method="POST" action="{{ route('admin.master-data.grade-trees.template') }}" role="dialog" aria-modal="true" aria-labelledby="load-grade-tree-template-title"
-              x-data="{ loading: false, vorlage: @js(old('vorlage', array_key_first($vorlagen) ?? '')), bezuege: @js($bezuege) }" @submit="loading = true">
+              x-data="{ loading: false, vorlage: @js(old('vorlage', array_key_first($vorlagen) ?? '')), bezuege: @js($bezuege) }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
                 <h2 id="load-grade-tree-template-title" class="text-base font-semibold text-text">{{ __('Vorlage laden') }}</h2>
@@ -84,7 +84,7 @@
                     </select>
                     @error('vorlage')<p id="vorlage-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>
-                <div x-show="bezuege[vorlage] !== 'bildungsgang'">
+                <div x-show="bezuege[vorlage] !== 'bildungsgang'" x-cloak>
                     <label for="vorlage-lehrberuf" class="text-sm font-medium text-text">{{ __('Lehrberuf') }}</label>
                     <select id="vorlage-lehrberuf" name="lehrberuf_id" class="{{ $feld }}" :disabled="bezuege[vorlage] === 'bildungsgang'"
                             @error('lehrberuf_id') aria-invalid="true" aria-describedby="vorlage-lehrberuf-fehler" @enderror>
@@ -105,7 +105,7 @@
 
     <x-modal name="import-grade-tree" maxWidth="lg" :show="$importFehler" focusable>
         <form method="POST" action="{{ route('admin.master-data.grade-trees.import') }}" enctype="multipart/form-data" role="dialog" aria-modal="true"
-              aria-labelledby="import-grade-tree-title" x-data="{ loading: false }" @submit="loading = true">
+              aria-labelledby="import-grade-tree-title" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <div class="flex flex-col gap-4 p-6">
                 <h2 id="import-grade-tree-title" class="text-base font-semibold text-text">{{ __('Datei importieren') }}</h2>

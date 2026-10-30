@@ -320,6 +320,7 @@
                 'berechnenUrl' => route('learner.grades.calculator.simulate'),
                 'grenzen' => \App\Support\NotenSkala::grenzen(),
                 'heute' => now()->toDateString(),
+                'texte' => ['fehlerGewicht' => __('Gewicht zwischen 0 und 100.'), 'fehlerNote' => __('Note zwischen 1 und 6.')],
             ]))" class="flex flex-col gap-5">
             <div class="flex flex-col gap-3">
                 <template x-for="z in zeilen" :key="z.nr">
@@ -344,19 +345,22 @@
                             <label class="flex w-24 shrink-0 flex-col gap-1">
                                 <span class="text-xs text-muted">{{ __('Gewichtung') }}</span>
                                 <span class="relative">
-                                    <input type="number" min="0" max="100" step="1" x-model="z.gewicht"
+                                    <input type="text" inputmode="decimal" autocomplete="off" x-model="z.gewicht"
                                            class="np-feld pl-2 pr-6 text-right tabular-nums"
-                                           aria-label="{{ __('Gewichtung in Prozent') }}">
+                                           aria-label="{{ __('Gewichtung in Prozent') }}"
+                                           :aria-invalid="gewichtFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'rechner-zeile-' + z.nr + '-fehler' : null">
                                     <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                 </span>
                             </label>
                             <label class="flex flex-1 flex-col gap-1">
                                 <span class="text-xs text-muted">{{ __('Note') }}</span>
-                                <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="4.5"
+                                <input type="text" inputmode="decimal" autocomplete="off" x-model="z.wert" placeholder="4.5"
                                        class="np-feld border-2 text-center font-semibold tabular-nums"
-                                       :class="klasse(z.wert)" aria-label="{{ __('Note') }}">
+                                       :class="klasse(z.wert)" aria-label="{{ __('Note') }}"
+                                       :aria-invalid="wertFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'rechner-zeile-' + z.nr + '-fehler' : null">
                             </label>
                         </div>
+                        <p :id="'rechner-zeile-' + z.nr + '-fehler'" class="text-xs text-note-ungenuegend" x-show="zeilenFehler(z)" x-cloak x-text="zeilenFehler(z)"></p>
                     </div>
                 </template>
             </div>
@@ -464,7 +468,7 @@
             const ziel = offen && document.querySelector(`details.np-note-detail[data-note-id="${offen}"]`);
             if (ziel) {
                 ziel.open = true;
-                setTimeout(() => ziel.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+                setTimeout(() => ziel.scrollIntoView({ behavior: window.np?.bewegungRuhig?.() ? 'auto' : 'smooth', block: 'center' }), 60);
             }
         });
     </script>

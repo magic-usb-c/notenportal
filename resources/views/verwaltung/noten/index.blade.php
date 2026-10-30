@@ -78,7 +78,7 @@
                 <x-filterleiste :action="$zuruecksetzen" :zaehler="$notes->total()" zaehler-label="{{ __('Prüfungen') }}"
                                 :zurueck="$zuruecksetzen" :aktive-filter="(int) request()->filled('kategorie_id') + (int) request()->filled('semester_id')">
                     {{-- Menü mit Links statt Auswahlfeld: Blättern mit den Pfeiltasten lädt keine neue Seite (WCAG 3.2.2) --}}
-                    <x-dropdown align="left" width="64" content-classes="max-h-[min(24rem,70dvh)] overflow-y-auto p-1 text-text">
+                    <x-dropdown align="left" width="w-64" content-classes="max-h-[min(24rem,70dvh)] overflow-y-auto p-1 text-text">
                         <x-slot name="trigger">
                             <button type="button" id="lernenden_wechseln" class="np-feld np-feld-klein np-auswahl w-auto max-w-64 truncate text-left">
                                 <span class="sr-only">{{ __('Lernender') }}: </span>{{ $lernender->benutzer->nachname }} {{ $lernender->benutzer->vorname }}

@@ -91,6 +91,10 @@ class RechnerEingabeUndZieleTest extends TestCase
         $this->assertStringContainsString('Zielwert zwischen 1 und 6.', $html);
         $this->assertStringContainsString('Gewicht zwischen 0 und 100.', $html);
         $this->assertStringContainsString('Note zwischen 1 und 6.', $html);
+        // Zielwert als Textfeld: ein Zahlenfeld zeigte «4,5» je nach Browsersprache
+        $this->assertSame(1, preg_match('/<input id="zielwert"[^>]*>/s', $html, $z));
+        $this->assertStringContainsString('type="text"', $z[0]);
+        $this->assertStringContainsString('inputmode="decimal"', $z[0]);
     }
 
     /** Führt die echte Komponente npRechner in Node aus (Alpine und Netz gestellt) und liefert die Ergebnisse. */
@@ -109,6 +113,7 @@ class RechnerEingabeUndZieleTest extends TestCase
 export const format = (v, s = null) => (v === null || v === undefined || v === '' ? '–' : s ? Number(v).toFixed(s) : String(Number(v)));
 export const notenKlasse = () => '';
 export const stufenFarbe = () => '';
+export const zahl = (w) => { const t = String(w ?? '').trim().replace(',', '.'); return /^-?(\d+(\.\d*)?|\.\d+)$/.test(t) ? Number(t) : NaN; };
 export const postJson = async (url, body) => { globalThis.anfragen.push(body); return globalThis.antwort(body); };
 JS);
             file_put_contents($dir.'/lauf.mjs', <<<JS
@@ -117,7 +122,7 @@ globalThis.toasts = [];
 globalThis.window = globalThis;
 globalThis.CustomEvent = class { constructor(n, o) { this.type = n; this.detail = o?.detail; } };
 globalThis.dispatchEvent = (e) => { globalThis.toasts.push(e.detail); };
-globalThis.document = { querySelector: () => null };
+globalThis.document = { querySelector: () => null, getElementById: () => ({ focus: () => {} }) };
 let fabrik;
 const { registriereRechner } = await import('./rechner.mjs');
 registriereRechner({ data: (n, f) => { if (n === 'npRechner') fabrik = f; } });
@@ -127,6 +132,7 @@ globalThis.antwort = () => erg;
 const cfg = { daten: { katalog: { faecher: [{ id: 7, name: 'F', erfassbar: true }], module: [], semester: [{ id: 1, name: 'S' }], kategorien: [] }, grenzen: {}, ziele: [], auswertung: { gesamt: { note: null } }, vorschlaege: [] }, berechnenUrl: '/x', zielUrl: '/goals', zielEntfernenUrl: '/goals/0', start: { ziel: 'gesamt', zielwert: '4.5' }, texte };
 const c = fabrik(cfg);
 c.\$watch = () => {};
+c.\$nextTick = (f) => f();
 c.init();
 const warte = () => new Promise((r) => setTimeout(r, 30));
 const aus = {};

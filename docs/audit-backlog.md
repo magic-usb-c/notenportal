@@ -1256,3 +1256,22 @@ Aus dem Audit vom 30.10. (15 bestätigte Befunde, alle behoben) blieben diese Te
 - **Rechner, leeres Gewicht (#1)**: Ein leeres Gewicht gilt als unvollständig, nicht als falsch. Das Feld wird
   nicht markiert und bekommt keinen eigenen Satz. Die Ergebnis-Karte zeigt dann «Ergebnis –». Markiert werden
   nur Werte ausserhalb des Bereichs.
+
+## Dezimalfelder und Blockprüfung (30.10.2026): bewusst gelassen
+
+Dezimalfelder sind seit dem 30.10. Textfelder (`type="text" inputmode="decimal"`). Grund: Chromium zeigt einen
+vorbelegten Wert in `type=number` nach der Sprache des Browsers an, also «4,5» statt «4.5». Das `lang`-Attribut der
+Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
+
+- **Grenzen nur noch serverseitig**: Die Textfelder haben kein `min`, `max` oder `step` mehr. Der Browser meldet
+  Werte ausserhalb des Bereichs also nicht mehr vor dem Absenden. Das übernimmt die Validierung des Servers, die
+  Fehlermeldung erscheint am Feld.
+- **Nur ganze Zahlen bleiben `type=number`**: «max. ungenügend» (Kategorien, Notenbaum) und die übrigen
+  Anzahlen. Diese Felder zeigen nie ein Komma. Gewichte sind überall Dezimalfelder, auch im Notenimport, in der
+  Mehrfacherfassung, im Notenrechner und in der Einrichtung («Gewichtssumme je Modul»), weil der Server dort
+  Dezimalwerte annimmt (z. B. 33.33).
+- **Komma beim Tippen**: Ein getipptes «4,5» wird beim Verlassen des Felds zu «4.5» (`registriereDezimalfelder`
+  in `np.js`). Auf dem Server macht die Middleware `DezimalKomma` dasselbe, auch ohne JavaScript. Mehrere Kommas
+  oder Text bleiben unverändert und fallen in der Validierung durch.
+- **Abschlussnoten (`werte[ID]`)**: Der Schlüssel endet auf die ID, nicht auf einen Feldnamen, darum greift die
+  Middleware hier nicht. Das Komma ersetzt `Auswertung\Notenbaum\Abschluss` beim Einlesen selbst; das bleibt so.

@@ -18,11 +18,11 @@
         @endif
         {{-- Kein x-html: dessen Effekt merkte sich die Daten des eingefügten Formulars und setzte es bei
              jeder Eingabe neu – die Felder blieben leer. Eingefügt wird direkt, Alpine initialisiert per Observer. --}}
-        <div x-show="! server" data-np-inhalt></div>
+        <div x-show="! server" data-np-inhalt :aria-busy="laedt"></div>
         <div x-show="laedt" x-cloak class="flex flex-col gap-4" aria-hidden="true">
-            <div class="mx-auto h-20 w-36 rounded-xl bg-surface-2"></div>
-            <div class="h-10 rounded-lg bg-surface-2"></div>
-            <div class="h-10 rounded-lg bg-surface-2"></div>
+            <div class="mx-auto h-20 w-36 rounded-xl bg-fill"></div>
+            <div class="h-10 rounded-lg bg-fill"></div>
+            <div class="h-10 rounded-lg bg-fill"></div>
         </div>
     </x-drawer>
 </div>
@@ -51,7 +51,10 @@
                     const res = await fetch(ziel, { headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' } });
                     if (!res.ok || res.redirected) throw new Error(res.status);
                     this.$root.querySelector('[data-np-inhalt]').innerHTML = await res.text();
-                    this.$nextTick(() => this.$root.querySelector('#note_wert')?.focus());
+                    // Fokus auf das erste bedienbare Feld: Note, bei Stufenfächern die gewählte (sonst erste) Stufe, zuletzt Fach/Modul
+                    this.$nextTick(() => ['#note_wert', 'input[name="note_stufe"]:checked', 'input[name="note_stufe"]', '#bezug']
+                        .flatMap((s) => [...this.$root.querySelectorAll(s)])
+                        .find((el) => !el.disabled && (el.checkVisibility?.() ?? true))?.focus());
                 } catch (e) {
                     window.location.href = url;
                 } finally {

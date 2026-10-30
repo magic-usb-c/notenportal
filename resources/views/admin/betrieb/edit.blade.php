@@ -110,7 +110,7 @@
                               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                             @csrf
                             <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer np-knopf-klein">
-                                <span x-show="loading" x-cloak class="h-3.5 w-3.5 animate-spin ruhig:animate-pulse rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
+                                <span x-show="loading" x-cloak class="h-3.5 w-3.5 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Jetzt sichern') }}
                             </button>
                         </form>

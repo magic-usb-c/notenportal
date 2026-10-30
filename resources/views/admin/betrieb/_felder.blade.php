@@ -13,13 +13,13 @@
     </div>
 </section>
 
-<section x-data="{ gut: {{ (float) $wert('note_gut') }}, gen: {{ (float) $wert('note_genuegend') }}, krit: {{ (float) $wert('note_kritisch') }},
-                   b(v) { return Math.max(0, Math.min(100, (v - 1) / 5 * 100)); } }">
+<section x-data="{ gut: @js((string) $wert('note_gut')), gen: @js((string) $wert('note_genuegend')), krit: @js((string) $wert('note_kritisch')),
+                   b(v) { const n = window.np.zahl(v); return Number.isFinite(n) ? Math.max(0, Math.min(100, (n - 1) / 5 * 100)) : 0; } }">
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Notengrenzen') }}</h2>
     <div class="np-karte np-gruppe">
         @foreach(['note_gut' => [__('Gut ab'), 'gut'], 'note_genuegend' => [__('Genügend ab'), 'gen'], 'note_kritisch' => [__('Knapp ab'), 'krit']] as $k => [$text, $modell])
             <x-einstellung :label="$text" :fuer="$k" :name="$k">
-                <input id="{{ $k }}" name="{{ $k }}" type="number" required min="1" max="6" step="0.05" value="{{ $wert($k) }}" x-model.number="{{ $modell }}"
+                <input id="{{ $k }}" name="{{ $k }}" type="text" inputmode="decimal" autocomplete="off" required value="{{ $wert($k) }}" x-model="{{ $modell }}"
                        class="{{ $zahl }}" @error($k) aria-invalid="true" aria-describedby="{{ $k }}-fehler" @enderror>
             </x-einstellung>
         @endforeach

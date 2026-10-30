@@ -67,7 +67,7 @@ export async function kopieren(text) {
 const STANDARD_GRENZEN = { gut: 5.0, genuegend: 4.0, kritisch: 3.5 };
 
 export function stufe(wert, grenzen = STANDARD_GRENZEN) {
-    const v = parseFloat(wert);
+    const v = typeof wert === 'string' ? zahl(wert) : parseFloat(wert);
     if (!Number.isFinite(v)) return null;
     if (v >= grenzen.gut - 1e-9) return 'gut';
     if (v >= grenzen.genuegend - 1e-9) return 'genuegend';
@@ -100,8 +100,14 @@ export function stufenFarbe(wert, grenzen = STANDARD_GRENZEN) {
     return FARBE[stufe(wert, grenzen)] ?? 'text-muted';
 }
 
+// Eingabe aus einem Dezimalfeld: «4,5» und «4.5» gelten gleich, alles andere (auch «4,5,6» oder «4.5x») ist keine Zahl
+export function zahl(wert) {
+    const text = String(wert ?? '').trim().replace(',', '.');
+    return /^-?(\d+(\.\d*)?|\.\d+)$/.test(text) ? Number(text) : NaN;
+}
+
 export function format(wert, stellen = null) {
-    const v = parseFloat(wert);
+    const v = typeof wert === 'string' ? zahl(wert) : parseFloat(wert);
     if (!Number.isFinite(v)) return '–';
     if (stellen !== null) return v.toFixed(stellen);
     const s = v.toFixed(2);
@@ -638,6 +644,17 @@ export function registriereSeitenleiste(Alpine) {
 // Felder mit data-sofort senden ihr Formular beim Ändern ab (Einstellungen, die sofort gelten). Ein Formular
 // geht nur einmal weg, auch wenn zwei seiner Felder kurz nacheinander ändern; ungültige Eingaben meldet der
 // Browser am Feld. Kommt die Seite aus dem Verlaufscache zurück, ist die Sperre wieder offen.
+// Dezimalfelder (inputmode="decimal"): ein getipptes Dezimalkomma wird beim Verlassen zum Punkt, so wie die Seite
+// Noten schreibt. Läuft vor anderen change-Listenern (Capture) und meldet den neuen Wert als input an Alpine.
+export function registriereDezimalfelder() {
+    document.addEventListener('change', (ev) => {
+        const feld = ev.target;
+        if (!(feld instanceof HTMLInputElement) || feld.inputMode !== 'decimal' || !/^\s*-?\d*,\d+\s*$/.test(feld.value)) return;
+        feld.value = feld.value.trim().replace(',', '.');
+        feld.dispatchEvent(new Event('input', { bubbles: true }));
+    }, true);
+}
+
 export function registriereSofortSenden() {
     document.addEventListener('change', (ev) => {
         const form = ev.target.closest?.('[data-sofort]')?.form;

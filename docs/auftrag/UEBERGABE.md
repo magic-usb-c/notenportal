@@ -392,6 +392,13 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   dem Erfassen (Übersicht, Rechner, Modul, Agenda); Promotion gefährdet im Bericht; Kürzel ruhen
                   bei offenem Dialog; CSV geschützt. Suite 1679 grün. Teilpunkte bewusst gelassen: audit-backlog
                   «Audit-Fix-Welle». Ungeprüft: Mails in echten Clients (nur HTML/Text im Browser gesichtet).
+[Q] 30.10. 19:55  Dezimalfelder (69d05f0…7a3270e und dieser Commit): Noten, Gewichte, Grenzen, Notenbaum,
+                  Rechner, Import und Einrichtung sind Textfelder mit inputmode=decimal, zeigen den Punkt und verstehen
+                  ein getipptes Komma (np.js beim Verlassen, Middleware DezimalKomma auf dem Server). Import nimmt
+                  33.33 als Gewicht, Notenrechner-Drawer meldet Werte ausserhalb am Feld. Agenda-Zeitleiste nur für
+                  künftige Prüfungen. Blockprüfung (Reviewer, UI-Check Lernende/Admin, Prüfer) behoben: Notenbaum-
+                  Löschen volle Breite, «In Gebrauch» statt gesperrter Knopf, Spinner je Knopf, Statusnamen gross.
+                  Im Browser belegt (Playwright, de). Bewusst gelassen: audit-backlog «Dezimalfelder und Blockprüfung».
 ```
 
 ---

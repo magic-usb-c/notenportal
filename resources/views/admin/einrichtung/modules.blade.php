@@ -46,7 +46,7 @@
                 </p>
                 <div class="w-56">
                     <label for="ziel" class="{{ $label }}">{{ __('Gewichtssumme je Modul') }}</label>
-                    <input id="ziel" name="ziel" type="number" required min="1" max="9999" step="1" value="{{ old('ziel', 100) }}" class="{{ $feld }} text-right tabular-nums"
+                    <input id="ziel" name="ziel" type="text" inputmode="decimal" autocomplete="off" required value="{{ old('ziel', 100) }}" class="{{ $feld }} text-right tabular-nums"
                            @error('ziel') aria-invalid="true" aria-describedby="ziel-fehler" @enderror>
                     @error('ziel')<p id="ziel-fehler" class="mt-1 text-xs text-note-ungenuegend">{{ $message }}</p>@enderror
                 </div>

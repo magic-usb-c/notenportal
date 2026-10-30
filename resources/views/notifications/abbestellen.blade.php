@@ -3,7 +3,7 @@
         <p class="text-center text-sm text-muted">{{ __('Der Betrieb schreibt diesen Anlass vor – er lässt sich nicht abbestellen.') }}</p>
     @else
         <p class="text-center text-sm text-muted">{{ __('Du erhältst dann keine Mails mehr zu diesem Anlass.') }}</p>
-        <form method="POST" action="{{ request()->fullUrl() }}" class="mt-6" x-data="{ loading: false }" @submit="loading = true">
+        <form method="POST" action="{{ request()->fullUrl() }}" class="mt-6" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer np-knopf-gross w-full">{{ __('Abbestellen') }}</button>
         </form>
     @endif

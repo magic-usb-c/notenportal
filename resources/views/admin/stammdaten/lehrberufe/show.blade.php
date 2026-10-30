@@ -51,7 +51,7 @@
                                     <th scope="col" class="w-24">{{ __('Nummer') }}</th>
                                     <th scope="col">{{ __('Titel') }}</th>
                                     <th scope="col" class="w-52">{{ __('Lernort') }}</th>
-                                    <th scope="col" class="w-24 text-center">{{ __('Semester') }}</th>
+                                    <th scope="col" class="w-24 text-right">{{ __('Semester') }}</th>
                                     <th scope="col" class="w-20 text-center">{{ __('Pflicht') }}</th>
                                     <th scope="col" class="w-20 text-center">{{ __('Aktiv') }}</th>
                                     <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
@@ -88,7 +88,7 @@
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}"
                                                    form="{{ $formular }}" data-sofort placeholder="–"
                                                    aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
-                                                   class="np-feld np-feld-klein mx-auto w-16 text-center">
+                                                   class="np-feld np-feld-klein ml-auto w-16 text-right tabular-nums">
                                         </td>
                                         <td class="text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
@@ -111,9 +111,8 @@
                                                 @method('PATCH')
                                             </form>
                                             @if($m->in_gebrauch)
-                                                <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
-                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}<span class="sr-only">{{ __('Noten oder Prüfungen vorhanden') }}</span></button>
-                                                </span>
+                                                {{-- Statt eines gesperrten Knopfs der Grund als Text: lesbar ohne Hover und für die Tastatur kein toter Halt --}}
+                                                <span class="text-xs text-muted" title="{{ __('Noten oder Prüfungen vorhanden') }}">{{ __('In Gebrauch') }}<span class="sr-only">: {{ __('Noten oder Prüfungen vorhanden') }}</span></span>
                                             @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.modules.remove', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}"
                                                       data-bestaetigen="{{ __('Modul :nummer entfernen?', ['nummer' => $m->modul_nummer]) }}"
@@ -190,9 +189,8 @@
                                         </td>
                                         <td class="text-right">
                                             @if($f->in_gebrauch)
-                                                <span class="inline-flex" title="{{ __('Noten oder Prüfungen vorhanden') }}">
-                                                    <button type="button" disabled class="np-knopf np-knopf-gefahr np-knopf-klein">{{ __('Entfernen') }}<span class="sr-only">{{ __('Noten oder Prüfungen vorhanden') }}</span></button>
-                                                </span>
+                                                {{-- Statt eines gesperrten Knopfs der Grund als Text: lesbar ohne Hover und für die Tastatur kein toter Halt --}}
+                                                <span class="text-xs text-muted" title="{{ __('Noten oder Prüfungen vorhanden') }}">{{ __('In Gebrauch') }}<span class="sr-only">: {{ __('Noten oder Prüfungen vorhanden') }}</span></span>
                                             @else
                                                 <form method="POST" action="{{ route('admin.master-data.professions.subjects.remove', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}"
                                                       data-bestaetigen="{{ __('Fach :name entfernen?', ['name' => $f->name]) }}"
@@ -216,7 +214,7 @@
     @if($verfuegbareModule->isNotEmpty())
         <x-modal name="assign-module" maxWidth="lg" :show="$modulFehler->any()" focusable>
             <form method="POST" action="{{ route('admin.master-data.professions.modules.assign', $lehrberuf->lehrberuf_id) }}"
-                  role="dialog" aria-modal="true" aria-labelledby="assign-module-title" x-data="{ loading: false }" @submit="loading = true">
+                  role="dialog" aria-modal="true" aria-labelledby="assign-module-title" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
                     <h2 id="assign-module-title" class="text-base font-semibold text-text">{{ __('Modul hinzufügen') }}</h2>
@@ -245,7 +243,7 @@
                         <div>
                             <label for="empfohlenes_lehrsemester_nr" class="text-sm font-medium text-text">{{ __('Empfohlenes Semester') }}</label>
                             <input type="number" id="empfohlenes_lehrsemester_nr" name="empfohlenes_lehrsemester_nr" min="1" max="12"
-                                   value="{{ old('empfohlenes_lehrsemester_nr') }}" class="{{ $feld }}"
+                                   value="{{ old('empfohlenes_lehrsemester_nr') }}" class="{{ $feld }} text-right tabular-nums"
                                    @if($modulFehler->has('empfohlenes_lehrsemester_nr')) aria-invalid="true" aria-describedby="empfohlenes_lehrsemester_nr-fehler" @endif>
                             @if($modulFehler->has('empfohlenes_lehrsemester_nr'))<p id="empfohlenes_lehrsemester_nr-fehler" class="{{ $fehlerText }}">{{ $modulFehler->first('empfohlenes_lehrsemester_nr') }}</p>@endif
                         </div>
@@ -267,7 +265,7 @@
     @if($verfuegbareFaecher->isNotEmpty())
         <x-modal name="assign-subject" maxWidth="md" :show="$fachFehler->any()" focusable>
             <form method="POST" action="{{ route('admin.master-data.professions.subjects.assign', $lehrberuf->lehrberuf_id) }}"
-                  role="dialog" aria-modal="true" aria-labelledby="assign-subject-title" x-data="{ loading: false }" @submit="loading = true">
+                  role="dialog" aria-modal="true" aria-labelledby="assign-subject-title" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 <div class="flex flex-col gap-4 p-6">
                     <h2 id="assign-subject-title" class="text-base font-semibold text-text">{{ __('Fach hinzufügen') }}</h2>

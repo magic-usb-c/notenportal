@@ -1,14 +1,12 @@
 // Noten-Rechner und Live-Vorschau im Notenformular. Gerechnet wird serverseitig (eine Engine),
 // die Oberfläche schickt nur das Szenario.
-import { format, notenKlasse, postJson, stufenFarbe } from './np';
+import { format, notenKlasse, postJson, stufenFarbe, zahl } from './np';
 
 const SPEICHERBAR = ['gesamt', 'kategorie', 'fach', 'modul'];
 let zeilenNummer = 0;
 
 const imBereich = (wert, min, max) => Number.isFinite(wert) && wert >= min && wert <= max;
 const roh = (wert) => String(wert ?? '').trim();
-// Eingaben dürfen ein Dezimalkomma tragen («4,5»), gerechnet und angezeigt wird mit Punkt
-const zahl = (wert) => parseFloat(roh(wert).replace(',', '.'));
 
 function meldung(message, art = null) {
     window.dispatchEvent(new CustomEvent('np-toast', { detail: art ? { message, art } : { message } }));
@@ -143,12 +141,13 @@ export function registriereRechner(Alpine) {
         },
 
         async speichereZiel() {
-            if (this.speichert || !this.speicherbar) return;
+            if (this.speichert || !this.speicherbar || this.zielSchonGespeichert) return;
             this.speichert = true;
             try {
                 const r = await sendeZiel(cfg.zielUrl, 'POST', { ziel: this.zielText, zielwert: zahl(this.zielwert) }, cfg.texte.fehlerZielSpeichern);
                 this.ziele = r.ziele;
                 meldung(r.message);
+                this.$nextTick(() => document.getElementById('zielwert')?.focus());
             } catch (e) {
                 meldung(e.message, 'fehler');
             } finally {
@@ -163,6 +162,7 @@ export function registriereRechner(Alpine) {
                 const r = await sendeZiel(cfg.zielEntfernenUrl.replace(/0$/, z.id), 'DELETE', null, cfg.texte.fehlerZielEntfernen);
                 this.ziele = r.ziele;
                 meldung(r.message);
+                this.$nextTick(() => document.getElementById('zielwert')?.focus());
             } catch (e) {
                 meldung(e.message, 'fehler');
             } finally {
@@ -172,6 +172,11 @@ export function registriereRechner(Alpine) {
 
         get gespeichertesZiel() {
             return this.ziele.find((z) => z.ziel === this.zielText) ?? null;
+        },
+
+        // Der Speichern-Knopf bleibt fokussierbar (aria-disabled); ein schon gespeicherter Wert löst nichts aus
+        get zielSchonGespeichert() {
+            return !!this.gespeichertesZiel && Number(this.gespeichertesZiel.zielwert) === zahl(this.zielwert);
         },
 
         elementText(z) {
@@ -340,8 +345,8 @@ export function registriereRechner(Alpine) {
         },
 
         async laden() {
-            const w = parseFloat(this.wert);
-            const g = parseFloat(this.gewicht);
+            const w = zahl(this.wert);
+            const g = zahl(this.gewicht);
             const element = this.typ === 'fach' ? (this.semester ? `fach:${this.id}@semester:${this.semester.id}` : null) : (this.id ? `modul:${this.id}` : null);
             if (!cfg.vorschauUrl || !element || this.istStufe || !Number.isFinite(w) || w < 1 || w > 6) {
                 this.vorschau = [];
@@ -360,7 +365,7 @@ export function registriereRechner(Alpine) {
         },
 
         klasse(v) {
-            return notenKlasse(v, cfg.grenzen);
+            return notenKlasse(zahl(v), cfg.grenzen);
         },
 
         fmt(v) {
@@ -396,6 +401,19 @@ export function registriereRechner(Alpine) {
             return cfg.semesterListe.find((s) => s.start <= datum && s.ende >= datum) ?? null;
         },
 
+        // Wie im Rechner: leer ist nur unvollständig, ein Wert ausserhalb des Bereichs wird am Feld gemeldet und nicht gerechnet.
+        gewichtFehler(z) {
+            return roh(z.gewicht) === '' || imBereich(zahl(z.gewicht), 0, 100) ? null : cfg.texte?.fehlerGewicht;
+        },
+
+        wertFehler(z) {
+            return roh(z.wert) === '' || imBereich(zahl(z.wert), 1, 6) ? null : cfg.texte?.fehlerNote;
+        },
+
+        zeilenFehler(z) {
+            return [this.gewichtFehler(z), this.wertFehler(z)].filter(Boolean).join(' ');
+        },
+
         planen() {
             clearTimeout(this.timer);
             this.timer = setTimeout(() => this.berechnen(), 250);
@@ -403,21 +421,21 @@ export function registriereRechner(Alpine) {
 
         get gueltigeZeilen() {
             return this.zeilen
-                .filter((z) => z.bezug && z.datum && z.wert !== '')
+                .filter((z) => z.bezug && z.datum && roh(z.wert) !== '')
                 .map((z) => {
                     const [typ, id] = z.bezug.split(':');
-                    const gewicht = parseFloat(z.gewicht);
+                    const gewicht = zahl(z.gewicht);
 
                     return {
                         typ,
                         fach_id: typ === 'fach' ? id : null,
                         modul_id: typ === 'modul' ? id : null,
                         pruefungsdatum: z.datum,
-                        note_wert: parseFloat(z.wert),
+                        note_wert: zahl(z.wert),
                         gewichtung_prozent: Number.isFinite(gewicht) ? gewicht : null,
                     };
                 })
-                .filter((z) => Number.isFinite(z.note_wert) && z.note_wert >= 1 && z.note_wert <= 6);
+                .filter((z) => imBereich(z.note_wert, 1, 6) && (z.gewichtung_prozent === null || imBereich(z.gewichtung_prozent, 0, 100)));
         },
 
         async berechnen() {
@@ -445,7 +463,7 @@ export function registriereRechner(Alpine) {
         },
 
         klasse(v) {
-            return notenKlasse(v, cfg.grenzen);
+            return notenKlasse(zahl(v), cfg.grenzen);
         },
 
         fmt(v, stellen = null) {

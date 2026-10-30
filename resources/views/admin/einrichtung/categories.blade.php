@@ -3,10 +3,10 @@
         $label = 'text-sm font-medium text-text';
         $fehler = 'mt-1 text-xs text-note-ungenuegend';
         $zahlen = [
-            'gewicht_gesamt' => [__('Gewicht Gesamt'), 'min="0" step="0.1" required'],
-            'promotion_min_schnitt' => [__('Promotion Ø min.'), 'min="1" max="6" step="0.1" placeholder="–"'],
-            'promotion_max_ungenuegend' => [__('max. ungenügend'), 'min="0" max="20" step="1" placeholder="–"'],
-            'promotion_max_minuspunkte' => [__('max. Minuspunkte'), 'min="0" max="20" step="0.5" placeholder="–"'],
+            'gewicht_gesamt' => [__('Gewicht Gesamt'), 'required', true],
+            'promotion_min_schnitt' => [__('Promotion Ø min.'), 'placeholder="'.e(__('Optional')).'"', true],
+            'promotion_max_ungenuegend' => [__('Max. ungenügende Noten'), 'min="0" max="20" step="1" placeholder="'.e(__('Optional')).'"', false],
+            'promotion_max_minuspunkte' => [__('Max. Minuspunkte'), 'placeholder="'.e(__('Optional')).'"', true],
         ];
     @endphp
     {{-- Je Kategorie eine Gruppe wie in den Systemeinstellungen: Name und Aktiv oben, darunter Rundung,
@@ -52,10 +52,10 @@
                     </div>
                 @endforeach
 
-                @foreach($zahlen as $f => [$text, $grenzen])
+                @foreach($zahlen as $f => [$text, $grenzen, $dezimal])
                     <div>
                         <label for="k{{ $id }}-{{ $f }}" class="{{ $label }}">{{ $text }}</label>
-                        <input type="number" id="k{{ $id }}-{{ $f }}" name="{{ $name($f) }}" value="{{ $alt($f) }}" {!! $grenzen !!} class="np-feld mt-1.5 text-right tabular-nums" {!! $fehlerAttr($f) !!}>
+                        <input {!! $dezimal ? 'type="text" inputmode="decimal" autocomplete="off"' : 'type="number"' !!} id="k{{ $id }}-{{ $f }}" name="{{ $name($f) }}" value="{{ $alt($f) }}" {!! $grenzen !!} class="np-feld mt-1.5 text-right tabular-nums" {!! $fehlerAttr($f) !!}>
                         @error($schluessel($f))<p id="k{{ $id }}-{{ $f }}-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
                     </div>
                 @endforeach

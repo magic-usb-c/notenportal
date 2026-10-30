@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\DezimalKomma;
 use App\Http\Middleware\EnsurePasswordChanged;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\RoleMiddleware;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
             EnsureUserIsActive::class,
             EnsurePasswordChanged::class,
+            DezimalKomma::class,
         ]);
 
         // Ein Passwortwechsel (Profil, Reset, Einladung, Zurücksetzen durch einen Admin) beendet alle anderen

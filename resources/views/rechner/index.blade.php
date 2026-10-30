@@ -75,7 +75,7 @@
                             <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" @submit.prevent="entferneZiel(z)">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="speichert" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-fill hover:text-text disabled:opacity-50"
+                                <button :aria-disabled="speichert ? 'true' : null" :aria-busy="speichert ? 'true' : null" :class="speichert && 'pointer-events-none opacity-50'" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-fill hover:text-text"
                                         :aria-label="@js(__('Ziel entfernen')) + ': ' + z.label" title="{{ __('Ziel entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-3.5" /></button>
                             </form>
                         @endif
@@ -145,8 +145,8 @@
                                     <input type="hidden" name="ziel" :value="zielText">
                                     <input type="hidden" name="zielwert" :value="Number.isFinite(zahl(zielwert)) ? zahl(zielwert) : ''">
                                     <button class="np-knopf np-knopf-sekundaer"
-                                            x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
-                                            :disabled="speichert || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert))"></button>
+                                            x-text="gespeichertesZiel ? (zielSchonGespeichert ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
+                                            :aria-disabled="(speichert || zielSchonGespeichert) ? 'true' : null" :aria-busy="speichert ? 'true' : null"></button>
                                 </form>
                             @endif
                         </div>
@@ -189,7 +189,7 @@
                                         </div>
                                     </div>
                                     <span class="relative">
-                                        <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="np-feld np-feld-klein pl-2 pr-6 text-right tabular-nums" aria-label="{{ __('Gewichtung in Prozent') }}"
+                                        <input type="text" inputmode="decimal" autocomplete="off" x-model="z.gewicht" class="np-feld np-feld-klein pl-2 pr-6 text-right tabular-nums" aria-label="{{ __('Gewichtung in Prozent') }}"
                                                :aria-invalid="gewichtFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'zeile-' + z.nr + '-fehler' : null">
                                         <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                     </span>

@@ -33,8 +33,8 @@
                        class="np-feld w-16 text-right tabular-nums" @error('version') aria-invalid="true" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Ziel-Gewicht-Summe')" fuer="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default">
-                <input type="number" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default" value="{{ old('ziel_gewicht_summe_default', $modul ? (string) (float) $modul->ziel_gewicht_summe_default : 100) }}"
-                       step="0.01" min="0" class="np-feld w-28 text-right tabular-nums"
+                <input type="text" inputmode="decimal" autocomplete="off" id="ziel_gewicht_summe_default" name="ziel_gewicht_summe_default" value="{{ old('ziel_gewicht_summe_default', $modul ? (string) (float) $modul->ziel_gewicht_summe_default : 100) }}"
+                       class="np-feld w-28 text-right tabular-nums"
                        @error('ziel_gewicht_summe_default') aria-invalid="true" aria-describedby="ziel_gewicht_summe_default-fehler" @enderror>
             </x-einstellung>
             @if($modul)

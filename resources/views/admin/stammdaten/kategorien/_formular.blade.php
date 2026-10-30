@@ -49,7 +49,7 @@
                 <x-segment-auswahl name="rundung_schnitt" required :wert="$rundung('rundung_schnitt', '0.1')" :optionen="$rundungen" />
             </x-einstellung>
             <x-einstellung :label="__('Gewicht im Gesamtschnitt')" fuer="gewicht_gesamt" name="gewicht_gesamt">
-                <input type="number" id="gewicht_gesamt" name="gewicht_gesamt" value="{{ $zahlWert('gewicht_gesamt', '1') }}" required min="0" step="0.25"
+                <input type="text" inputmode="decimal" autocomplete="off" id="gewicht_gesamt" name="gewicht_gesamt" value="{{ $zahlWert('gewicht_gesamt', '1') }}" required
                        class="{{ $zahl }}" @error('gewicht_gesamt') aria-invalid="true" aria-describedby="gewicht_gesamt-fehler" @enderror>
             </x-einstellung>
         </div>
@@ -59,7 +59,7 @@
         <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Promotion') }}</h2>
         <div class="np-karte np-gruppe">
             <x-einstellung :label="__('Mindestschnitt')" fuer="promotion_min_schnitt" name="promotion_min_schnitt">
-                <input type="number" id="promotion_min_schnitt" name="promotion_min_schnitt" value="{{ $zahlWert('promotion_min_schnitt') }}" min="1" max="6" step="0.1"
+                <input type="text" inputmode="decimal" autocomplete="off" id="promotion_min_schnitt" name="promotion_min_schnitt" value="{{ $zahlWert('promotion_min_schnitt') }}"
                        placeholder="{{ __('Optional') }}" class="{{ $zahl }}"
                        @error('promotion_min_schnitt') aria-invalid="true" aria-describedby="promotion_min_schnitt-fehler" @enderror>
             </x-einstellung>
@@ -69,7 +69,7 @@
                        @error('promotion_max_ungenuegend') aria-invalid="true" aria-describedby="promotion_max_ungenuegend-fehler" @enderror>
             </x-einstellung>
             <x-einstellung :label="__('Max. Minuspunkte')" fuer="promotion_max_minuspunkte" name="promotion_max_minuspunkte">
-                <input type="number" id="promotion_max_minuspunkte" name="promotion_max_minuspunkte" value="{{ $zahlWert('promotion_max_minuspunkte') }}" min="0" max="20" step="0.5"
+                <input type="text" inputmode="decimal" autocomplete="off" id="promotion_max_minuspunkte" name="promotion_max_minuspunkte" value="{{ $zahlWert('promotion_max_minuspunkte') }}"
                        placeholder="{{ __('Optional') }}" class="{{ $zahl }}"
                        @error('promotion_max_minuspunkte') aria-invalid="true" aria-describedby="promotion_max_minuspunkte-fehler" @enderror>
             </x-einstellung>

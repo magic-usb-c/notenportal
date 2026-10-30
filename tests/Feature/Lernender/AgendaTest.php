@@ -116,6 +116,11 @@ class AgendaTest extends TestCase
             ->assertSee('LB3')->assertDontSee('id="np-zeitleiste"', false);
         $this->actingAs($this->user)->get(route('learner.exams.index', ['zeitraum' => 'alle']))->assertOk()
             ->assertSee('id="np-zeitleiste"', false);
+        // Gewählter Zeitraum ohne Zeilen: die Auswahl bleibt, sonst gäbe es keinen Weg zurück
+        $this->actingAs($this->user)->get(route('learner.exams.index', ['zeitraum' => '4w']))->assertOk()
+            ->assertSee('id="zeitraum"', false);
+        $this->actingAs($this->user)->get(route('learner.exams.index'))->assertOk()
+            ->assertDontSee('id="zeitraum"', false);
 
         $this->actingAs($this->user)->post(route('learner.exams.store'), [
             'bezug' => 'modul:'.$this->modul->modul_id, 'datum' => now()->addWeek()->toDateString(), 'gewichtung_prozent' => 60, 'titel' => 'LB2',

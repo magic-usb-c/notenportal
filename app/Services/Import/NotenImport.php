@@ -287,6 +287,8 @@ final class NotenImport
                 continue;
             }
             $nr = (int) ($z['nr'] ?? 0);
+            $z['note'] = WertParser::punkt($z['note'] ?? null);
+            $z['gewicht'] = WertParser::punkt($z['gewicht'] ?? null);
             $pruefung = Validator::make($z, [
                 'datum' => ['required', 'date_format:Y-m-d'],
                 'bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],

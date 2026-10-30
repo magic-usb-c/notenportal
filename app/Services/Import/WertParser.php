@@ -47,6 +47,15 @@ final class WertParser
         return (int) $m[1] !== (int) $m[2] && (int) $m[1] <= 12 && (int) $m[2] <= 12;
     }
 
+    /**
+     * Zahl aus der übernommenen Vorschau (JSON im Formularfeld, die Dezimalkomma-Middleware greift dort nicht):
+     * ein einzelnes Dezimalkomma wird zum Punkt, alles andere bleibt, wie es ist, und fällt in der Validierung durch.
+     */
+    public static function punkt(mixed $wert): mixed
+    {
+        return is_string($wert) && preg_match('/^\s*-?\d*,\d+\s*$/', $wert) === 1 ? str_replace(',', '.', trim($wert)) : $wert;
+    }
+
     public static function note(string $s): ?float
     {
         $s = str_replace(',', '.', trim($s));

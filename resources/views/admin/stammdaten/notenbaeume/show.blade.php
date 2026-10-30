@@ -112,7 +112,7 @@
                                         <td class="text-right">
                                             @if($z['tiefe'] > 0)
                                                 <label for="k{{ $id }}-gewicht" class="sr-only">{{ __('Gewicht') }}</label>
-                                                <input id="k{{ $id }}-gewicht" name="knoten[{{ $id }}][gewicht]" inputmode="decimal" value="{{ $alt('gewicht', $zahl($k->gewicht)) }}"
+                                                <input id="k{{ $id }}-gewicht" name="knoten[{{ $id }}][gewicht]" type="text" inputmode="decimal" autocomplete="off" value="{{ $alt('gewicht', $zahl($k->gewicht)) }}"
                                                        class="{{ $zelle }} ml-auto w-18 text-right" {!! $fehlerAttr($id, 'gewicht') !!}>
                                             @else
                                                 <input type="hidden" name="knoten[{{ $id }}][gewicht]" value="{{ $zahl($k->gewicht) }}">
@@ -130,20 +130,20 @@
                                         </td>
                                         <td>
                                             <label for="k{{ $id }}-fallnote" class="sr-only">{{ __('Mindestnote') }}</label>
-                                            <input id="k{{ $id }}-fallnote" name="knoten[{{ $id }}][fallnote]" inputmode="decimal" value="{{ $alt('fallnote', $zahl($k->fallnote)) }}"
+                                            <input id="k{{ $id }}-fallnote" name="knoten[{{ $id }}][fallnote]" type="text" inputmode="decimal" autocomplete="off" value="{{ $alt('fallnote', $zahl($k->fallnote)) }}"
                                                    class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'fallnote') !!}>
                                         </td>
                                         <td>
                                             @if($gruppe)
                                                 <label for="k{{ $id }}-max_ungenuegend" class="sr-only">{{ __('Max. ungenügend') }}</label>
-                                                <input id="k{{ $id }}-max_ungenuegend" name="knoten[{{ $id }}][max_ungenuegend]" inputmode="numeric" value="{{ $alt('max_ungenuegend', $k->max_ungenuegend) }}"
+                                                <input id="k{{ $id }}-max_ungenuegend" name="knoten[{{ $id }}][max_ungenuegend]" type="text" inputmode="numeric" autocomplete="off" value="{{ $alt('max_ungenuegend', $k->max_ungenuegend) }}"
                                                        class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_ungenuegend') !!}>
                                             @endif
                                         </td>
                                         <td>
                                             @if($gruppe)
                                                 <label for="k{{ $id }}-max_minuspunkte" class="sr-only">{{ __('Max. Minuspunkte') }}</label>
-                                                <input id="k{{ $id }}-max_minuspunkte" name="knoten[{{ $id }}][max_minuspunkte]" inputmode="decimal" value="{{ $alt('max_minuspunkte', $zahl($k->max_minuspunkte)) }}"
+                                                <input id="k{{ $id }}-max_minuspunkte" name="knoten[{{ $id }}][max_minuspunkte]" type="text" inputmode="decimal" autocomplete="off" value="{{ $alt('max_minuspunkte', $zahl($k->max_minuspunkte)) }}"
                                                        class="{{ $zelle }} ml-auto w-18 text-right" placeholder="–" {!! $fehlerAttr($id, 'max_minuspunkte') !!}>
                                             @endif
                                         </td>
@@ -176,18 +176,24 @@
                 </x-karte>
             </form>
 
-            <section class="flex items-center gap-4 pt-3">
-                @if($positionen > 0)
-                    <p class="text-sm text-muted">{{ __('Zu diesem Notenbaum sind :anzahl Noten erfasst. Löschen geht erst ohne erfasste Noten.', ['anzahl' => $positionen]) }}</p>
-                @else
-                    <form method="POST" action="{{ route('admin.master-data.grade-trees.destroy', $baum->baum_id) }}"
-                          data-bestaetigen="{{ __('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
-                          x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Notenbaum löschen') }}</button>
-                    </form>
-                @endif
+            {{-- Volle Breite wie «Aufbau» darüber: die Seite hat keine schmale Spalte, an der sich die Zeile ausrichten könnte --}}
+            <section class="mt-10">
+                <div class="np-karte np-gruppe">
+                    <x-einstellung :label="__('Notenbaum löschen')" name="baum-loeschen"
+                                   :hinweis="$positionen > 0 ? __(':anzahl erfasste Noten gingen verloren. Deaktiviere den Notenbaum stattdessen.', ['anzahl' => $positionen]) : null">
+                        @if($positionen > 0)
+                            <button type="button" disabled aria-describedby="baum-loeschen-hinweis" class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
+                        @else
+                            <form method="POST" action="{{ route('admin.master-data.grade-trees.destroy', $baum->baum_id) }}"
+                                  data-bestaetigen="{{ __('Notenbaum «:name» endgültig löschen?', ['name' => $baum->name]) }}" data-bestaetigen-knopf="{{ __('Löschen') }}"
+                                  x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" :disabled="loading" class="np-knopf np-knopf-gefahr">{{ __('Löschen') }}</button>
+                            </form>
+                        @endif
+                    </x-einstellung>
+                </div>
             </section>
         </div>
     </div>

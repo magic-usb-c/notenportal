@@ -1,6 +1,7 @@
 {{-- Betriebslogo (Navigation, Anmeldeseite, Mail-Kopf, Notenblatt): die gewählte Datei wird sofort hochgeladen. --}}
 <form method="POST" action="{{ route('admin.operations.logo.update') }}#darstellung" enctype="multipart/form-data"
-      x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
+      x-data="{ loading: false, aktion: null }" :aria-busy="loading"
+      @submit="if (!$event.defaultPrevented) { aktion = $event.submitter?.name === 'logo_entfernen' ? 'entfernen' : 'hochladen'; setTimeout(() => loading = true) }">
     @csrf
     @method('PUT')
     <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Logo') }}</h2>
@@ -13,16 +14,19 @@
                     <x-symbol name="photo" class="size-6 text-faint" />
                 @endif
             </div>
-            <p class="min-w-0 flex-1 text-xs text-muted">{{ __('PNG, JPG oder WebP, höchstens 1 MB und 1024 × 1024 Pixel.') }}</p>
+            <p id="logo-hinweis" class="min-w-0 flex-1 text-xs text-muted">{{ __('PNG, JPG oder WebP, höchstens 1 MB und 1024 × 1024 Pixel.') }}</p>
             @if($logoVorhanden)
-                <button type="submit" name="logo_entfernen" value="1" formnovalidate :disabled="loading" class="np-knopf np-knopf-schlicht">{{ __('Entfernen') }}</button>
+                <button type="submit" name="logo_entfernen" value="1" formnovalidate :disabled="loading" class="np-knopf np-knopf-schlicht">
+                    <span x-show="loading && aktion === 'entfernen'" x-cloak class="h-4 w-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
+                    {{ __('Entfernen') }}
+                </button>
             @endif
             <input id="logo" name="logo" type="file" class="peer sr-only" accept="image/png,image/jpeg,image/webp"
-                   @error('logo') aria-invalid="true" aria-describedby="logo-fehler" @enderror
+                   aria-describedby="logo-hinweis @error('logo') logo-fehler @enderror" @error('logo') aria-invalid="true" @enderror
                    @change="if ($event.target.files.length) $event.target.form.requestSubmit()">
             <label for="logo" class="np-knopf np-knopf-sekundaer peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
                    :class="loading && 'pointer-events-none opacity-50'">
-                <span x-show="loading" x-cloak class="h-4 w-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
+                <span x-show="loading && aktion === 'hochladen'" x-cloak class="h-4 w-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                 {{ $logoVorhanden ? __('Ersetzen …') : __('Datei wählen …') }}
             </label>
         </div>
