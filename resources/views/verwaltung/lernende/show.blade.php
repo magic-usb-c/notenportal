@@ -5,7 +5,7 @@
                        :untertitel="collect([$lernender->lehrberuf?->name, $lernender->lehrjahr() ? __(':jahr. Lehrjahr', ['jahr' => $lernender->lehrjahr()]) : null, $lernender->lehrende ? __('Lehre endet :datum', ['datum' => $lernender->lehrende->format('d.m.Y')]) : null])->filter()->implode(' · ')">
             <x-status :status="$stand->status" :title="$stand->gruende ? implode(', ', $stand->gruende) : __('Keine Auffälligkeiten')" />
             <x-slot:aktionen>
-                <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}" target="_blank"
+                <a href="{{ route("{$bereich}.learners.grades.print", $lernender->lernender_id) }}"
                    class="np-knopf np-knopf-sekundaer">{{ __('Drucken') }}</a>
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">

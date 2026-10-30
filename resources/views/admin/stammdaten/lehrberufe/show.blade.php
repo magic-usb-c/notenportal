@@ -92,13 +92,17 @@
                                         </td>
                                         <td class="text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
-                                            <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" data-sofort @checked($m->pflicht)
-                                                   aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
+                                            <label class="inline-flex size-6 items-center justify-center">
+                                                <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" data-sofort @checked($m->pflicht)
+                                                       aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
+                                            </label>
                                         </td>
                                         <td class="text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
-                                            <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" data-sofort @checked($m->aktiv)
-                                                   aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
+                                            <label class="inline-flex size-6 items-center justify-center">
+                                                <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" data-sofort @checked($m->aktiv)
+                                                       aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
+                                            </label>
                                         </td>
                                         <td class="text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
@@ -178,8 +182,10 @@
                                                 @csrf
                                                 @method('PATCH')
                                                 <input type="hidden" name="aktiv" value="0">
-                                                <input type="checkbox" name="aktiv" value="1" data-sofort @checked($f->aktiv)
-                                                       aria-label="{{ __('Fach :name aktiv', ['name' => $f->name]) }}" class="np-haken">
+                                                <label class="inline-flex size-6 items-center justify-center">
+                                                    <input type="checkbox" name="aktiv" value="1" data-sofort @checked($f->aktiv)
+                                                           aria-label="{{ __('Fach :name aktiv', ['name' => $f->name]) }}" class="np-haken">
+                                                </label>
                                             </form>
                                         </td>
                                         <td class="text-right">

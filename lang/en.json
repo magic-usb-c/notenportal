@@ -189,6 +189,7 @@
     "Enthaltene Dateien": "Files included",
     "Erfasst von :name": "Added by :name",
     "Ergebnis": "Result",
+    "Kein Ergebnis": "No result",
     "Ergebnis: :wert": "Result: :wert",
     "Erlaubte Hilfsmittel": "Permitted aids",
     "erledigt": "done",
@@ -654,5 +655,10 @@
     "Filter entfernen: :name": "Remove filter: :name",
     ":von auf :bis": ":von to :bis",
     "Bitte ein Fach oder Modul wählen.": "Please choose a subject or module.",
-    "Endnote bleibt bei :wert, egal welche Note": "Final grade stays at :wert, whatever the grade"
+    "Endnote bleibt bei :wert, egal welche Note": "Final grade stays at :wert, whatever the grade",
+    "Zielwert zwischen 1 und 6.": "Target value between 1 and 6.",
+    "Gewicht zwischen 0 und 100.": "Weight between 0 and 100.",
+    "Note zwischen 1 und 6.": "Grade between 1 and 6.",
+    "Das Ziel konnte nicht gespeichert werden.": "The target could not be saved.",
+    "Das Ziel konnte nicht entfernt werden.": "The target could not be removed."
 }

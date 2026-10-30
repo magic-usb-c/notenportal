@@ -5,6 +5,33 @@ import { format, notenKlasse, postJson, stufenFarbe } from './np';
 const SPEICHERBAR = ['gesamt', 'kategorie', 'fach', 'modul'];
 let zeilenNummer = 0;
 
+const imBereich = (wert, min, max) => Number.isFinite(wert) && wert >= min && wert <= max;
+const roh = (wert) => String(wert ?? '').trim();
+
+function meldung(message, art = null) {
+    window.dispatchEvent(new CustomEvent('np-toast', { detail: art ? { message, art } : { message } }));
+}
+
+// Ziel speichern/entfernen ohne Seitenwechsel: JSON-Antwort des ZieleController, Fehler mit lesbarer Meldung.
+async function sendeZiel(url, methode, body, fallback) {
+    const res = await fetch(url, {
+        method: methode,
+        headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    }).catch(() => {
+        throw new Error(fallback);
+    });
+    const daten = await res.json().catch(() => null);
+    if (!res.ok) {
+        throw new Error((daten?.errors ? Object.values(daten.errors).flat()[0] : null) || fallback);
+    }
+    return daten;
+}
+
 function parseElement(text) {
     const m = /^(fach|modul):(\d+)(?:@semester:(\d+))?$/.exec(text ?? '');
     return m ? { typ: m[1], id: m[2], semester: m[3] ?? '' } : { typ: 'modul', id: '', semester: '' };
@@ -30,6 +57,8 @@ export function registriereRechner(Alpine) {
         laedt: false,
         fehler: null,
         timer: null,
+        lauf: 0,
+        speichert: false,
 
         init() {
             this.zeilen = cfg.daten.vorschlaege.map((z) => this.zeileAus(z));
@@ -78,7 +107,65 @@ export function registriereRechner(Alpine) {
         },
 
         get speicherbar() {
-            return cfg.zielUrl && SPEICHERBAR.includes(this.ebene) && !this.zeitraum && this.zielText;
+            return cfg.zielUrl && SPEICHERBAR.includes(this.ebene) && !this.zeitraum && this.zielText && this.zielwertGueltig;
+        },
+
+        get zielwertGueltig() {
+            return imBereich(parseFloat(this.zielwert), 1, 6);
+        },
+
+        // Fehlertext am Feld; ein leeres Feld ist beim Tippen nur unvollständig, kein Fehler.
+        get zielwertFehler() {
+            return roh(this.zielwert) === '' || this.zielwertGueltig ? null : cfg.texte.fehlerZielwert;
+        },
+
+        gewichtFehler(z) {
+            return roh(z.gewicht) === '' || imBereich(parseFloat(z.gewicht), 0, 100) ? null : cfg.texte.fehlerGewicht;
+        },
+
+        wertFehler(z) {
+            return roh(z.wert) === '' || imBereich(parseFloat(z.wert), 1, 6) ? null : cfg.texte.fehlerNote;
+        },
+
+        zeilenFehler(z) {
+            return [this.gewichtFehler(z), this.wertFehler(z)].filter(Boolean).join(' ');
+        },
+
+        zeileGueltig(z) {
+            return imBereich(parseFloat(z.gewicht), 0, 100) && (roh(z.wert) === '' || imBereich(parseFloat(z.wert), 1, 6));
+        },
+
+        // Gerechnet wird nur mit vollständigen, gültigen Angaben; sonst gibt es kein Ergebnis statt eines still verkürzten.
+        get eingabeGueltig() {
+            return this.zielwertGueltig && this.zeilen.every((z) => this.zeileGueltig(z));
+        },
+
+        async speichereZiel() {
+            if (this.speichert || !this.speicherbar) return;
+            this.speichert = true;
+            try {
+                const r = await sendeZiel(cfg.zielUrl, 'POST', { ziel: this.zielText, zielwert: parseFloat(this.zielwert) }, cfg.texte.fehlerZielSpeichern);
+                this.ziele = r.ziele;
+                meldung(r.message);
+            } catch (e) {
+                meldung(e.message, 'fehler');
+            } finally {
+                this.speichert = false;
+            }
+        },
+
+        async entferneZiel(z) {
+            if (this.speichert || !cfg.zielEntfernenUrl) return;
+            this.speichert = true;
+            try {
+                const r = await sendeZiel(cfg.zielEntfernenUrl.replace(/0$/, z.id), 'DELETE', null, cfg.texte.fehlerZielEntfernen);
+                this.ziele = r.ziele;
+                meldung(r.message);
+            } catch (e) {
+                meldung(e.message, 'fehler');
+            } finally {
+                this.speichert = false;
+            }
         },
 
         get gespeichertesZiel() {
@@ -93,28 +180,37 @@ export function registriereRechner(Alpine) {
 
         planen() {
             clearTimeout(this.timer);
+            // Ungültige Angaben blenden das Ergebnis sofort aus, gültige rechnen nach kurzer Pause
+            if (!this.eingabeGueltig) return this.berechnen();
             this.timer = setTimeout(() => this.berechnen(), 220);
         },
 
         async berechnen() {
-            const wert = parseFloat(this.zielwert);
-            if (!this.zielText || !Number.isFinite(wert) || wert < 1 || wert > 6) return;
+            const lauf = ++this.lauf;
+            if (!this.zielText || !this.eingabeGueltig) {
+                this.ergebnis = null;
+                this.fehler = null;
+                this.laedt = false;
+                return;
+            }
             const zeilen = this.zeilen
-                .map((z) => ({ element: this.elementText(z), gewicht: parseFloat(z.gewicht), wert: z.wert === '' ? null : parseFloat(z.wert), datum: z.datum }))
-                .filter((z) => z.element && Number.isFinite(z.gewicht) && z.gewicht >= 0 && z.gewicht <= 100 && (z.wert === null || (z.wert >= 1 && z.wert <= 6)));
+                .map((z) => ({ element: this.elementText(z), gewicht: parseFloat(z.gewicht), wert: roh(z.wert) === '' ? null : parseFloat(z.wert), datum: z.datum }))
+                .filter((z) => z.element);
             this.laedt = true;
             try {
-                this.ergebnis = await postJson(cfg.berechnenUrl, { ziel: this.zielText, zielwert: wert, zeilen });
+                const r = await postJson(cfg.berechnenUrl, { ziel: this.zielText, zielwert: parseFloat(this.zielwert), zeilen });
+                if (lauf !== this.lauf) return;
+                this.ergebnis = r;
                 this.fehler = null;
             } catch (e) {
-                this.fehler = e.message;
+                if (lauf === this.lauf) this.fehler = e.message;
             } finally {
-                this.laedt = false;
+                if (lauf === this.lauf) this.laedt = false;
             }
         },
 
         get offene() {
-            return this.zeilen.filter((z) => z.wert === '' && this.elementText(z)).length;
+            return this.zeilen.filter((z) => roh(z.wert) === '' && this.elementText(z)).length;
         },
 
         // Daten für das Kurvendiagramm. Die View ruft damit zeichne() des Charts auf, das die vorhandene Instanz an Ort

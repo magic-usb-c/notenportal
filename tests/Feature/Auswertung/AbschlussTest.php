@@ -83,6 +83,24 @@ class AbschlussTest extends TestCase
     }
 
     #[Test]
+    public function vorlaeufig_erfuellte_bedingung_traegt_ihren_stand_sichtbar_als_wort(): void
+    {
+        $lernender = $this->lernenderMitBeruf();
+        $this->actingAs($lernender->benutzer);
+        $this->efzBaum();
+        $this->put(route('learner.qualification.update'), ['werte' => [$this->knoten('ipa') => '5,5']])->assertSessionHas('success');
+
+        $html = $this->get(route('learner.qualification.index'))->assertOk()->getContent();
+
+        // «bisher erfüllt» (Gesamtnote, Baum unvollständig) steht als sichtbares Wort, nicht nur im sr-only-Span
+        $this->assertStringContainsString('data-stand="vorlaeufig">'.__('bisher erfüllt').'</span>', $html);
+        $this->assertStringNotContainsString('<span class="sr-only">, '.__('bisher erfüllt').'</span>', $html);
+        // Fest erfüllt (IPA beruht auf einer Prüfung) bleibt ohne dieses Wort; es gibt genau eine vorläufige Bedingung
+        $this->assertSame(1, substr_count($html, 'data-stand="vorlaeufig"'));
+        $this->assertStringContainsString('<span class="sr-only">, '.__('erfüllt').'</span>', $html);
+    }
+
+    #[Test]
     public function ungueltige_werte_und_fremde_knoten_werden_abgelehnt(): void
     {
         $lernender = $this->lernenderMitBeruf();

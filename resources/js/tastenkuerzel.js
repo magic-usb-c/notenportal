@@ -13,10 +13,21 @@ function istEingabefeld(el) {
     return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
 }
 
-// Ein anderer Dialog (z. B. Feedback-Modal) ist offen – nicht gleichzeitig die Übersicht öffnen.
+// Ein modaler Dialog, Drawer oder die Bestätigung ist offen (G10: nie zwei Ebenen zugleich) – dann wirkt kein Kürzel.
+// Geschlossene Drawer und Modals stehen nur auf invisible und inert, nicht auf display:none: offsetParent taugt
+// nicht, sichtbar heisst hier nicht inert und nicht verborgen (checkVisibility, sonst offsetParent als Rückfall).
+const MODALE = '[role="dialog"][aria-modal="true"], [role="alertdialog"], dialog[open]';
+
+function sichtbar(el) {
+    if (el.closest('[inert]')) return false;
+
+    return typeof el.checkVisibility === 'function'
+        ? el.checkVisibility({ visibilityProperty: true })
+        : el.offsetParent !== null;
+}
+
 function andererDialogOffen(ausser) {
-    return [...document.querySelectorAll('[role="dialog"][aria-modal="true"]')]
-        .some((el) => el !== ausser && el.offsetParent !== null);
+    return [...document.querySelectorAll(MODALE)].some((el) => el !== ausser && sichtbar(el));
 }
 
 // Befehlspalette (Ctrl/Cmd+K, resources/js/suche.js) öffnen, ohne suche.js zu ändern: die Funktion
@@ -76,6 +87,10 @@ export function registriereTastenkuerzel(Alpine) {
             if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
             if (istEingabefeld(e.target)) return;
             if (this.offen) return; // Esc/Tab regelt das Dialog-Markup selbst
+            if (andererDialogOffen(this.$refs.dialog)) {
+                this.gGedruecktUm = 0; // angefangenes «g» verfällt, sonst navigiert die nächste Taste nach dem Schliessen
+                return;
+            }
 
             const jetzt = Date.now();
             if (this.gGedruecktUm && jetzt - this.gGedruecktUm <= CHORD_FENSTER_MS) {

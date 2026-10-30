@@ -22,7 +22,7 @@
                    @change="if ($event.target.files.length) $event.target.form.requestSubmit()">
             <label for="logo" class="np-knopf np-knopf-sekundaer peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring"
                    :class="loading && 'pointer-events-none opacity-50'">
-                <span x-show="loading" x-cloak class="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
+                <span x-show="loading" x-cloak class="h-4 w-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-accent border-t-transparent" aria-hidden="true"></span>
                 {{ $logoVorhanden ? __('Ersetzen …') : __('Datei wählen …') }}
             </label>
         </div>

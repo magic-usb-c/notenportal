@@ -33,7 +33,7 @@
         <template x-for="marke in marken" :key="marke.name">
             <span class="np-marke np-filter-token">
                 <span x-text="marke.text"></span>
-                <button type="button" class="-mr-1 inline-flex size-4 items-center justify-center rounded-full text-muted hover:text-text" :aria-label="markeText(marke)" x-on:click="markeEntfernen(marke.name)">×</button>
+                <button type="button" class="-mr-2 -my-1 inline-flex size-6 items-center justify-center rounded-full text-muted hover:text-text" :aria-label="markeText(marke)" x-on:click="markeEntfernen(marke.name)">×</button>
             </span>
         </template>
     @endif

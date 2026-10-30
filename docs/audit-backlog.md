@@ -1232,3 +1232,27 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
     §11 R6-13 «Ergebnis».
   - Wieder aufnehmen nur zusammen mit einer durchlässigeren Scrollkante. Das widerspricht der Kernzahl
     der Basislinie (Lesbarkeit auf Glas kommt über die Kante).
+
+## Audit-Fix-Welle (30.10.2026): bewusst gelassen
+
+Aus dem Audit vom 30.10. (15 bestätigte Befunde, alle behoben) blieben diese Teilpunkte offen:
+
+- **Notenbericht, «Tiefste Fächer und Module» (#5)**: verlinkt nicht auf die betroffenen Lernenden. Das ist ein
+  Funktionswunsch ohne Regel. Die Kacheln übernehmen jetzt die Filter, «Promotion gefährdet» sortiert die Tabelle
+  und markiert die Zeile.
+- **Notenbericht, Zeitraum (#5)**: Bei einem früheren Semester zählt die Kachel die Promotionen dieses Semesters.
+  Status und Gründe (`LernstandRechner`) beziehen sich dagegen auf das laufende Semester. Die Lernendenliste hat
+  keinen Zeitraumfilter. Das war schon vorher so.
+- **Notenimport, Vorschau (#6)**: Die Zeilenmeldungen sind jetzt ganz lesbar, ohne Hover. Es gibt keinen
+  Statusfilter (Alle/Fehler/Prüfen) und keinen Sprung «nächster Fehler».
+- **Ladeindikatoren (#13)**: Keine eigene Utility `np-laedt`. Die Stellen drehen unter `ruhig:` nicht mehr,
+  sondern pulsieren (`ruhig:animate-pulse`).
+- **Abschluss, Bedingung «offen» (#0)**: Bleibt `text-faint`. Sie hat mit dem leeren Kreis eine eigene Form.
+  `text-faint` ist nur für lesbaren Fliesstext ausgeschlossen.
+- **Notenzeile, Inline-Bearbeitung (#9)**: Nicht geändert. Bei einem Fehler bleiben Entwurf und Bearbeitung
+  offen, der Knopf wird wieder aktiv. Geändert ist nur der Begriff, überall «Titel».
+- **Tastenkürzel (#12)**: Kein `beforeunload`-Schutz für halb ausgefüllte Formulare. Die Kürzel greifen bei
+  offenem Dialog oder Drawer nicht mehr. Damit ist der Auslöser des Befunds weg.
+- **Rechner, leeres Gewicht (#1)**: Ein leeres Gewicht gilt als unvollständig, nicht als falsch. Das Feld wird
+  nicht markiert und bekommt keinen eigenen Satz. Die Ergebnis-Karte zeigt dann «Ergebnis –». Markiert werden
+  nur Werte ausserhalb des Bereichs.

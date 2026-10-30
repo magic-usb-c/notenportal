@@ -23,7 +23,7 @@
                         <a href="{{ $r('template') }}" class="np-knopf np-knopf-schlicht">{{ __('Vorlage (CSV)') }}</a>
                         <div class="flex items-center gap-3">
                             <span role="status" class="inline-flex items-center gap-2 text-sm text-muted" x-show="loading" x-cloak>
-                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
+                                <span class="size-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Datei wird gelesen …') }}
                             </span>
                             <button type="submit" :disabled="loading || ! datei" class="np-knopf np-knopf-primaer">{{ __('Datei lesen') }}</button>
@@ -49,6 +49,15 @@
                             anzahl(status) { return this.zeilen.filter((z) => z.status === status).length; },
                             get json() { return JSON.stringify(this.zeilen.filter((z) => z.uebernehmen)); },
                             alle(an) { this.zeilen.forEach((z) => { z.uebernehmen = an && z.status !== 'fehler'; }); },
+                            statusName(s) {
+                                return {
+                                    ok: @js(__('bereit')),
+                                    warnung: @js(__('Warnung')),
+                                    pruefen: @js(__('prüfen')),
+                                    doppelt: @js(__('bereits erfasst')),
+                                    fehler: @js(__('Fehler')),
+                                }[s] ?? '';
+                            },
                             farbe(s) {
                                 return {
                                     ok: 'bg-note-gut/14 text-note-gut',
@@ -174,9 +183,8 @@
                                             <td><input type="number" x-model.number="z.note" min="1" max="6" step="0.05" :aria-label="@js(__('Note Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums" :aria-invalid="! z.note ? 'true' : null"></td>
                                             <td><input type="number" x-model.number="z.gewicht" min="0" max="100" step="1" :aria-label="@js(__('Gewicht Zeile :nr')).replace(':nr', z.nr)" class="{{ $feld }} text-right tabular-nums"></td>
                                             <td>
-                                                <span class="np-marke max-w-full" :class="farbe(z.status)" :title="z.meldung || null">
-                                                    <span class="truncate" x-text="z.meldung || @js(__('bereit'))"></span>
-                                                </span>
+                                                <span class="np-marke" :class="farbe(z.status)" x-text="statusName(z.status)"></span>
+                                                <div class="mt-1 text-pretty text-xs" :class="z.status === 'fehler' ? 'text-note-ungenuegend' : 'text-muted'" data-import-meldung x-show="z.meldung" x-text="z.meldung"></div>
                                             </td>
                                         </tr>
                                     </template>
@@ -190,13 +198,13 @@
                             <button type="submit" form="import-verwerfen" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Verwerfen') }}</button>
                             <button type="button" :disabled="loading || pruefeLaedt" @click="erneutPruefen()"
                                     class="np-knopf np-knopf-sekundaer">
-                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" x-show="pruefeLaedt" x-cloak aria-hidden="true"></span>
+                                <span class="size-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" x-show="pruefeLaedt" x-cloak aria-hidden="true"></span>
                                 <span x-text="pruefeLaedt ? @js(__('Prüfe …')) : @js(__('Erneut prüfen'))"></span>
                             </button>
                         </div>
                         <div class="flex items-center gap-3">
                             <span role="status" class="inline-flex items-center gap-2 text-sm text-muted" x-show="loading" x-cloak>
-                                <span class="size-4 animate-spin rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
+                                <span class="size-4 animate-spin ruhig:animate-pulse rounded-full border-2 border-muted border-t-transparent" aria-hidden="true"></span>
                                 {{ __('Noten werden importiert …') }}
                             </span>
                             <button type="submit" :disabled="loading || pruefeLaedt || gewaehlt === 0"

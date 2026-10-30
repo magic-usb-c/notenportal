@@ -45,6 +45,8 @@
                 try {
                     const ziel = new URL(url, window.location.origin);
                     ziel.searchParams.set('drawer', '1');
+                    // Nach dem Erfassen zurück auf die Seite, von der der Drawer geöffnet wurde (der Server prüft das Ziel)
+                    ziel.searchParams.set('rueckziel', window.location.pathname + window.location.search);
                     // X-Requested-With: die Session merkt sich den Fragment-Abruf nicht als «vorherige URL»
                     const res = await fetch(ziel, { headers: { Accept: 'text/html', 'X-Requested-With': 'XMLHttpRequest' } });
                     if (!res.ok || res.redirected) throw new Error(res.status);

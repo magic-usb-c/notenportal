@@ -355,8 +355,8 @@ final class Datenauskunft
                 return [
                     'csv' => [
                         $n->pruefungsdatum?->format('d.m.Y') ?? '',
-                        $n->semester?->bezeichnung ?? '',
-                        $n->kategorie?->name ?? '',
+                        Csv::safe($n->semester?->bezeichnung ?? ''),
+                        Csv::safe($n->kategorie?->name ?? ''),
                         Csv::safe($fachModul),
                         Csv::safe($n->titel ?? ''),
                         $n->note_wert !== null ? (string) $n->note_wert : NotenSkala::stufeText($n->note_stufe),

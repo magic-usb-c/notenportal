@@ -30,6 +30,11 @@
             ],
             'ohneEinfluss' => __('Die offenen Prüfungen wirken sich :bezug nicht aus; der Wert bleibt bei :resultat.'),
             'keineNoten' => __('Noch keine Noten :bezug.'),
+            'fehlerZielwert' => __('Zielwert zwischen 1 und 6.'),
+            'fehlerGewicht' => __('Gewicht zwischen 0 und 100.'),
+            'fehlerNote' => __('Note zwischen 1 und 6.'),
+            'fehlerZielSpeichern' => __('Das Ziel konnte nicht gespeichert werden.'),
+            'fehlerZielEntfernen' => __('Das Ziel konnte nicht entfernt werden.'),
         ] + ($person === null ? [
             'benoetigtEine' => __('Du brauchst mindestens :note in der nächsten Prüfung, um :bezug auf :ziel zu kommen.'),
             'benoetigtMehrere' => __('Du brauchst mindestens :note in jeder der :n offenen Prüfungen, um :bezug auf :ziel zu kommen.'),
@@ -49,7 +54,7 @@
 
     {{-- Links das Ziel und die offenen Prüfungen, rechts das Ergebnis: Heldenzahl, Kurve, Auswirkung, Promotion --}}
     <div class="py-6"
-         x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'start' => $start, 'texte' => $texte]))">
+         x-data="npRechner(@js(['daten' => $daten, 'berechnenUrl' => $berechnenUrl, 'zielUrl' => $zielUrl, 'zielEntfernenUrl' => $zielUrl ? route('learner.goals.destroy', 0) : null, 'start' => $start, 'texte' => $texte]))">
         <div class="np-seite mx-auto flex flex-col gap-5 px-8">
             @if($lernender)
                 @include('verwaltung.lernende._tabs', ['lernender' => $lernender, 'bereich' => $cockpitBereich, 'aktiv' => 'calculator', 'klasse' => '-mb-1'])
@@ -67,10 +72,10 @@
                             <span class="font-semibold tabular-nums" x-text="'≥ ' + fmt(z.zielwert)"></span>
                         </button>
                         @if($zielUrl)
-                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" x-data="{ loading: false }" @submit="loading = true">
+                            <form method="POST" :action="@js(route('learner.goals.destroy', 0)).replace(/0$/, z.id)" class="pr-1" @submit.prevent="entferneZiel(z)">
                                 @csrf
                                 @method('DELETE')
-                                <button :disabled="loading" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-fill hover:text-text disabled:opacity-50"
+                                <button :disabled="speichert" class="inline-flex size-6 items-center justify-center rounded-full text-muted hover:bg-fill hover:text-text disabled:opacity-50"
                                         :aria-label="@js(__('Ziel entfernen')) + ': ' + z.label" title="{{ __('Ziel entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-3.5" /></button>
                             </form>
                         @endif
@@ -116,7 +121,7 @@
                                             @click="zielwert = String(Math.max(1, Math.round((parseFloat(zielwert) - 0.1) * 10) / 10))"><x-symbol name="minus" strich="2" /></button>
                                     <input id="zielwert" type="number" min="1" max="6" step="0.05" x-model="zielwert"
                                            class="np-feld h-10 w-20 px-2 text-center text-xl font-semibold tabular-nums"
-                                           :class="klasse(zielwert)">
+                                           :class="klasse(zielwert)" :aria-invalid="zielwertFehler ? 'true' : null" :aria-describedby="zielwertFehler ? 'zielwert-fehler' : null">
                                     <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-symbol" aria-label="{{ __('Zielwert erhöhen') }}"
                                             @click="zielwert = String(Math.min(6, Math.round((parseFloat(zielwert) + 0.1) * 10) / 10))"><x-symbol name="plus" strich="2" /></button>
                                 </div>
@@ -126,6 +131,7 @@
                                     @endforeach
                                 </div>
                             </div>
+                            <p id="zielwert-fehler" class="mt-1.5 text-xs text-note-ungenuegend" x-show="zielwertFehler" x-cloak x-text="zielwertFehler"></p>
                         </div>
 
                         <div class="flex min-h-9 items-center justify-between gap-3 border-t border-border pt-4">
@@ -134,13 +140,13 @@
                                 <span class="font-semibold tabular-nums" :class="klasse(ergebnis?.loesung.aktuell)" x-text="fmt(ergebnis?.loesung.aktuell)"></span>
                             </div>
                             @if($zielUrl)
-                                <form method="POST" action="{{ $zielUrl }}" x-show="speicherbar" x-cloak x-data="{ loading: false }" @submit="loading = true">
+                                <form method="POST" action="{{ $zielUrl }}" x-show="speicherbar" x-cloak @submit.prevent="speichereZiel()">
                                     @csrf
                                     <input type="hidden" name="ziel" :value="zielText">
                                     <input type="hidden" name="zielwert" :value="zielwert">
                                     <button class="np-knopf np-knopf-sekundaer"
                                             x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
-                                            :disabled="loading || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert))"></button>
+                                            :disabled="speichert || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert))"></button>
                                 </form>
                             @endif
                         </div>
@@ -183,13 +189,16 @@
                                         </div>
                                     </div>
                                     <span class="relative">
-                                        <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="np-feld np-feld-klein pl-2 pr-6 text-right tabular-nums" aria-label="{{ __('Gewichtung in Prozent') }}">
+                                        <input type="number" min="0" max="100" step="1" x-model="z.gewicht" class="np-feld np-feld-klein pl-2 pr-6 text-right tabular-nums" aria-label="{{ __('Gewichtung in Prozent') }}"
+                                               :aria-invalid="gewichtFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'zeile-' + z.nr + '-fehler' : null">
                                         <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                     </span>
                                     <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
                                            class="np-feld np-feld-klein px-1 text-center font-semibold tabular-nums placeholder:font-semibold placeholder:text-muted"
-                                           :class="klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}">
+                                           :class="klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}"
+                                           :aria-invalid="wertFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'zeile-' + z.nr + '-fehler' : null">
                                     <button type="button" @click="entferne(z.nr)" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __('Prüfung entfernen') }}" title="{{ __('Entfernen') }}"><x-symbol name="x-mark" strich="2" class="size-4" /></button>
+                                    <p :id="'zeile-' + z.nr + '-fehler'" class="col-span-full text-xs text-note-ungenuegend" x-show="zeilenFehler(z)" x-cloak x-text="zeilenFehler(z)"></p>
                                 </div>
                             </template>
                         </div>
@@ -206,6 +215,15 @@
                             <p class="text-sm text-note-ungenuegend" x-text="fehler"></p>
                             <button type="button" class="np-knopf np-knopf-sekundaer" @click="berechnen()">{{ __('Erneut berechnen') }}</button>
                         </div>
+
+                        {{-- Unvollständige oder ungültige Angaben: kein Ergebnis, aber auch keine leere Karte --}}
+                        <template x-if="!ergebnis && !fehler && !laedt">
+                            <div data-rechner-leer>
+                                <div class="text-sm font-medium text-muted">{{ __('Ergebnis') }}</div>
+                                <div class="mt-1 text-display font-bold text-muted" aria-hidden="true">–</div>
+                                <span class="sr-only">{{ __('Kein Ergebnis') }}</span>
+                            </div>
+                        </template>
 
                         <template x-if="ergebnis && !fehler">
                             <div>

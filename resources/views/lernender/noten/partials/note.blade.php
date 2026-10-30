@@ -1,4 +1,4 @@
-{{-- Eine Prüfung in der Notenliste des Lernenden: Kopfzeile, Notiz inline, Kommentare. Erwartet $n, $ich (benutzer_id) --}}
+{{-- Eine Prüfung in der Notenliste des Lernenden: Kopfzeile, Titel inline, Kommentare. Erwartet $n, $ich (benutzer_id) --}}
 @php
     $eigeneSicht = $n->gesehen->firstWhere('viewer_benutzer_id', $ich);
     $bbHatGesehen = $n->gesehen->where('viewer_benutzer_id', '!=', $ich)->isNotEmpty();
@@ -42,20 +42,20 @@
 
     <div class="border-t border-border bg-fill-2">
         <div class="flex items-center gap-2 pl-15 pr-5 pt-3 text-sm">
-            <span class="shrink-0 text-xs font-medium text-muted">{{ __('Notiz') }}</span>
+            <span class="shrink-0 text-xs font-medium text-muted">{{ __('Titel') }}</span>
             <template x-if="!editingTitel">
                 <button type="button" @click="startTitelEdit()" class="inline-flex min-h-9 min-w-0 items-center gap-1.5 text-left hover:text-accent-text"
-                        :class="titel ? 'text-text' : 'text-muted'" aria-label="{{ __('Notiz bearbeiten') }}">
+                        :class="titel ? 'text-text' : 'text-muted'" aria-label="{{ __('Titel bearbeiten') }}">
                     <span class="truncate" x-text="titel || @js(__('Ergänzen'))"></span>
                     <svg class="size-3.5 shrink-0 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </button>
             </template>
             <template x-if="editingTitel">
                 <div class="flex flex-1 items-center gap-2">
-                    <input type="text" x-model="titelDraft" maxlength="150" aria-label="{{ __('Notiz') }}"
+                    <input type="text" x-model="titelDraft" maxlength="150" aria-label="{{ __('Titel') }}"
                            @keydown.enter.prevent="saveTitel()" @keydown.escape.stop="editingTitel = false" x-init="$el.focus()"
                            class="flex-1 {{ $feld }}">
-                    <button type="button" @click="saveTitel()" :disabled="savingTitel" class="np-knopf np-knopf-sekundaer">OK</button>
+                    <button type="button" @click="saveTitel()" :disabled="savingTitel" class="np-knopf np-knopf-sekundaer">{{ __('Speichern') }}</button>
                     <button type="button" @click="editingTitel = false" aria-label="{{ __('Abbrechen') }}" class="np-knopf np-knopf-symbol"><x-symbol name="x-mark" strich="2" /></button>
                     <span x-show="titelError" x-cloak class="shrink-0 text-xs text-note-ungenuegend">{{ __('Nicht gespeichert') }}</span>
                 </div>

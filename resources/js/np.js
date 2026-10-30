@@ -339,12 +339,13 @@ export function registriereScrollbereiche() {
     });
 }
 
-// Segmented Control (role="radiogroup"): Pfeiltasten links/rechts bewegen den Fokus und wählen
-// (roving tabindex – nur ein [role="radio"] ist im Tab-Weg). Einsatz: <div role="radiogroup" x-radiogroup>.
+// Segmented Control (role="radiogroup"): Pfeiltasten bewegen den Fokus und wählen
+// (roving tabindex – nur ein [role="radio"] ist im Tab-Weg). Die Sichtbarkeit zählt nicht: Gruppen in einem
+// erst später geöffneten Menü oder Popover (display:none beim Init) bekommen ihren Tabindex gleich. Einsatz: <div role="radiogroup" x-radiogroup>.
 export function registriereRadiogroup(Alpine) {
     Alpine.directive('radiogroup', (el, directive, { cleanup }) => {
         const radios = () => Array.from(el.querySelectorAll('[role="radio"]'))
-            .filter((r) => !r.disabled && r.getAttribute('aria-disabled') !== 'true' && r.offsetParent !== null);
+            .filter((r) => !r.disabled && r.getAttribute('aria-disabled') !== 'true');
 
         const rovingTabindex = () => {
             const liste = radios();
@@ -353,18 +354,18 @@ export function registriereRadiogroup(Alpine) {
         };
 
         rovingTabindex();
-        // aria-checked (Auswahl) und style/class (x-show-Sichtbarkeit) ändern sich reaktiv über Alpine
+        // aria-checked (Auswahl) ändert sich reaktiv über Alpine; style/class für x-show-Varianten in der Gruppe
         const beobachter = new MutationObserver(rovingTabindex);
         beobachter.observe(el, { attributes: true, attributeFilter: ['aria-checked', 'style', 'class'], subtree: true });
         cleanup(() => beobachter.disconnect());
 
         el.addEventListener('keydown', (ev) => {
-            if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+            if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(ev.key)) return;
             const liste = radios();
             const i = liste.indexOf(document.activeElement);
             if (i === -1) return;
             ev.preventDefault();
-            const naechster = liste[(i + (ev.key === 'ArrowRight' ? 1 : -1) + liste.length) % liste.length];
+            const naechster = liste[(i + (ev.key === 'ArrowRight' || ev.key === 'ArrowDown' ? 1 : -1) + liste.length) % liste.length];
             naechster.focus();
             naechster.click();
         });

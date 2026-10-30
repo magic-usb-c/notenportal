@@ -45,7 +45,7 @@
                     <x-note :wert="$p->note->note_wert" :stufe="$p->note->note_stufe" variante="badge" />
                 </a>
             @elseif($tage <= 0)
-                <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer np-knopf-klein mr-1">{{ __('Note eintragen') }}</a>
+                <a href="{{ route('learner.grades.create', ['pruefung' => $p->pruefung_id, 'rueckziel' => request()->getRequestUri()]) }}" class="np-knopf np-knopf-sekundaer np-knopf-klein mr-1">{{ __('Note eintragen') }}</a>
             @elseif($ziel = $rechnerZiel($p))
                 @if($n = ($noetig ?? collect())->get('id:'.$p->pruefung_id) ?? ($noetig ?? collect())->get($p->datum->toDateString().'|'.(filled($p->titel) ? $p->titel : $p->bezeichnung())))
                     <span @class(['mr-1 text-xs tabular-nums', 'text-note-ungenuegend' => $n['status'] === \App\Services\Auswertung\Zielrechner::UNERREICHBAR, 'text-muted' => $n['status'] !== \App\Services\Auswertung\Zielrechner::UNERREICHBAR])>{{ $n['text'] }}</span>

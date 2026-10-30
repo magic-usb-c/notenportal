@@ -150,8 +150,10 @@
                                         <td class="text-center">
                                             @if($z['tiefe'] > 0)
                                                 <input type="hidden" name="knoten[{{ $id }}][zaehlt]" value="0">
-                                                <input id="k{{ $id }}-zaehlt" type="checkbox" name="knoten[{{ $id }}][zaehlt]" value="1" @checked((bool) $alt('zaehlt', $k->zaehlt))
-                                                       class="np-haken" aria-label="{{ __(':teil zählt', ['teil' => $k->name]) }}">
+                                                <label class="inline-flex size-6 items-center justify-center">
+                                                    <input id="k{{ $id }}-zaehlt" type="checkbox" name="knoten[{{ $id }}][zaehlt]" value="1" @checked((bool) $alt('zaehlt', $k->zaehlt))
+                                                           class="np-haken" aria-label="{{ __(':teil zählt', ['teil' => $k->name]) }}">
+                                                </label>
                                             @else
                                                 <input type="hidden" name="knoten[{{ $id }}][zaehlt]" value="1">
                                             @endif

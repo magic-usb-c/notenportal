@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class Bericht
 {
-    public const array SORTIERUNGEN = ['status', 'name', 'gesamt', 'semester', 'ungenuegend', 'pruefungen', 'letzte'];
+    public const array SORTIERUNGEN = ['status', 'name', 'gesamt', 'semester', 'ungenuegend', 'pruefungen', 'letzte', 'gefaehrdet'];
 
     public function __construct(private readonly LernstandRechner $lernstaende) {}
 
@@ -66,6 +66,7 @@ final class Bericht
                 'ungenuegend' => count(array_filter($this->zeugnisnoten($stand->auswertung, $sid), fn (Element $e) => $e->note < $grenze - 1e-9)),
                 'pruefungen' => (int) ($p?->anzahl ?? 0),
                 'letzte' => $p?->letzte,
+                'gefaehrdet' => $sid !== null && $this->promotionGefaehrdet($stand->auswertung, $sid),
             ];
         });
 
@@ -78,6 +79,22 @@ final class Bericht
             'zeilen' => $this->sortiere($zeilen, $sort, $dir),
             ...$this->aggregate($zeilen, $sid, $grenze, $filter['kategorie_id'] ?? null),
         ];
+    }
+
+    /** Mindestens eine Kategorie mit Semesternote erfüllt ihre Promotionsregel nicht (wie die Zählung in aggregate()). */
+    private function promotionGefaehrdet(Auswertung $a, int $sid): bool
+    {
+        foreach (array_keys($a->kategorien) as $kid) {
+            if ($a->semester($sid, $kid)['note'] === null) {
+                continue;
+            }
+            $promotion = $a->promotion($kid, $sid);
+            if ($promotion !== null && ! $promotion['erfuellt']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return list<Element> zählende Zeugnisnoten eines Semesters oder der ganzen Lehrzeit (IDAF, Sport gehen nicht ein) */
@@ -98,7 +115,6 @@ final class Bericht
 
         foreach ($zeilen as $z) {
             $a = $z->stand->auswertung;
-            $istGefaehrdet = false;
             foreach ($a->kategorien as $kid => $kategorie) {
                 $note = $sid ? $a->semester($sid, $kid)['note'] : $kategorie['note'];
                 if ($note === null) {
@@ -108,10 +124,9 @@ final class Bericht
                 $promotion = $sid ? $a->promotion($kid, $sid) : null;
                 if ($promotion !== null && ! $promotion['erfuellt']) {
                     $kat[$kid]['gefaehrdet'] = ($kat[$kid]['gefaehrdet'] ?? 0) + 1;
-                    $istGefaehrdet = true;
                 }
             }
-            $gefaehrdet += (int) $istGefaehrdet;
+            $gefaehrdet += (int) $z->gefaehrdet;
 
             foreach ($this->zeugnisnoten($a, $sid) as $e) {
                 $alle[] = $e->note;
@@ -228,6 +243,7 @@ final class Bericht
             'ungenuegend' => $z->ungenuegend,
             'pruefungen' => $z->pruefungen,
             'letzte' => $z->letzte ?? '',
+            'gefaehrdet' => (int) $z->gefaehrdet,
             default => mb_strtolower($z->nachname.' '.$z->vorname),
         };
 

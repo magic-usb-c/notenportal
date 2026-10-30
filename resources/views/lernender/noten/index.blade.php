@@ -52,7 +52,7 @@
                     </x-slot>
                     <x-slot name="content">
                         <a href="{{ route('learner.grades.import.index') }}" class="np-menue-eintrag">{{ __('Importieren…') }}</a>
-                        <a href="{{ route('learner.grades.print') }}" target="_blank" rel="noopener noreferrer" class="np-menue-eintrag">{{ __('Drucken') }}</a>
+                        <a href="{{ route('learner.grades.print') }}" class="np-menue-eintrag">{{ __('Drucken') }}</a>
                         <a href="{{ route('learner.grades.export') }}" class="np-menue-eintrag">{{ __('CSV exportieren') }}</a>
                     </x-slot>
                 </x-dropdown>
@@ -310,6 +310,11 @@
 
     {{-- Notenrechner: bis zu 10 hypothetische Noten gleichzeitig, Auswirkung alt → neu; speichert nichts --}}
     <x-drawer name="rechner" :offen="request()->has('rechner')" titel="{{ __('Notenrechner') }}" breite="lg">
+        @if(empty($bezugOptionen))
+            <x-leer symbol="clipboard-document-check" :titel="__('Keine Fächer oder Module')">
+                <a href="{{ route('modules.index') }}" class="np-knopf np-knopf-sekundaer">{{ __('Module ansehen') }}</a>
+            </x-leer>
+        @else
         <div x-data="npNotenrechnerDrawer(@js([
                 'semesterListe' => $semesterListe,
                 'berechnenUrl' => route('learner.grades.calculator.simulate'),
@@ -399,6 +404,7 @@
                 </template>
             </section>
         </div>
+        @endif
     </x-drawer>
 
     <script>

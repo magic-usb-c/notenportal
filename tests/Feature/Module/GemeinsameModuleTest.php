@@ -138,7 +138,8 @@ class GemeinsameModuleTest extends TestCase
     {
         $modulId = DB::table('module')->insertGetId(['modul_nummer' => 'M781', 'titel' => 'Belegtes Modul']);
         $user = $this->lernender();
-        $erfassen = route('learner.grades.create', ['bezug' => 'modul:'.$modulId]);
+        // Der Link trägt das Modul als Rückziel, damit Erfassen und Abbrechen dorthin zurückführen
+        $erfassen = route('learner.grades.create', ['bezug' => 'modul:'.$modulId, 'rueckziel' => route('modules.show', $modulId, false)]);
 
         // Noch nicht belegt: nur «Zu meinen Modulen hinzufügen» ist die Primäraktion, Noten gibt es noch nicht.
         $this->actingAs($user)->get(route('modules.show', $modulId))->assertOk()
@@ -147,7 +148,7 @@ class GemeinsameModuleTest extends TestCase
         $this->post(route('modules.enroll', $modulId))->assertRedirect();
 
         $html = (string) $this->get(route('modules.show', $modulId))->assertOk()
-            ->assertSee('href="'.$erfassen.'"', false)->assertDontSee('Zu meinen Modulen hinzufügen')->getContent();
+            ->assertSee('href="'.e($erfassen).'"', false)->assertDontSee('Zu meinen Modulen hinzufügen')->getContent();
         // Genau eine Primäraktion im Modul selbst (Dialoge des Layouts zählen nicht)
         $this->assertSame(1, substr_count(Str::between($html, '<article', '</article>'), 'np-knopf-primaer'));
 

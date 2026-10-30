@@ -1,6 +1,6 @@
 {{--
     Note erfassen/bearbeiten, für alle Rollen. Erwartet: $action, $bezugOptionen, $semesterListe, $zurueck, $vorschauUrl;
-    optional $note, $pruefung, $submitLabel, $drawer (Name des Drawer-Kontexts: «Abbrechen» schliesst den Drawer,
+    optional $note, $pruefung, $rueckziel (interner Pfad, wohin «Erfassen» zurückführt), $submitLabel, $drawer (Name des Drawer-Kontexts: «Abbrechen» schliesst den Drawer,
     ein Fehler öffnet ihn nach dem Absenden wieder)
 --}}
 @php
@@ -41,6 +41,9 @@
     @endif
     @if($drawer)
         <input type="hidden" name="_drawer" value="{{ $drawer }}">
+    @endif
+    @if(! $note && ($rueckziel = old('rueckziel', $rueckziel ?? null)))
+        <input type="hidden" name="rueckziel" value="{{ $rueckziel }}">
     @endif
     <input type="hidden" name="typ" :value="typ">
     <input type="hidden" name="fach_id" :value="typ === 'fach' ? id : ''">

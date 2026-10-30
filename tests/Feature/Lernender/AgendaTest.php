@@ -11,6 +11,7 @@ use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
 use App\Models\User;
+use App\Services\Auswertung\Konfiguration;
 use App\Services\Calendar\CalendarExport;
 use App\Services\Notifications\Messages\ExamReminder;
 use Illuminate\Http\UploadedFile;
@@ -111,8 +112,23 @@ class AgendaTest extends TestCase
         $response->assertOk();
         // Künftige Prüfung: Rechner mit dem Modul als Ziel; vergangene ohne Note: Note eintragen.
         $response->assertSee(route('learner.grades.calculator', ['ziel' => 'modul:'.$kuenftig->modul_id]), false);
-        $response->assertSee(route('learner.grades.create', ['pruefung' => $vergangen->pruefung_id]), false);
+        $response->assertSee(e(route('learner.grades.create', ['pruefung' => $vergangen->pruefung_id, 'rueckziel' => '/exams'])), false);
         $response->assertDontSee(route('learner.grades.create', ['pruefung' => $kuenftig->pruefung_id]), false);
+
+        // Der Prüfungs-Drawer trägt die Adresse samt Query als Rückziel
+        $bearbeiten = '/exams?bearbeiten='.$vergangen->pruefung_id;
+        $this->actingAs($this->user)->get($bearbeiten)->assertOk()
+            ->assertSee(e(route('learner.grades.create', ['pruefung' => $vergangen->pruefung_id, 'rueckziel' => $bearbeiten])), false);
+
+        // Nach dem Eintragen führt der Weg zurück in die Agenda, auch in die gewählte Ansicht
+        DB::table('semester')->insert(['bezeichnung' => 'AG-1', 'start_datum' => now()->subMonth()->toDateString(), 'end_datum' => now()->addMonths(3)->toDateString(), 'sortierung' => 1]);
+        Konfiguration::vergessen();
+        $monat = '/exams?ansicht=monat&monat='.now()->subDay()->format('Y-m');
+        $this->actingAs($this->user)->post(route('learner.grades.store'), [
+            'typ' => 'modul', 'modul_id' => $vergangen->modul_id, 'pruefung_id' => $vergangen->pruefung_id,
+            'pruefungsdatum' => $vergangen->datum->toDateString(), 'note_wert' => '5.0', 'gewichtung_prozent' => 100, 'rueckziel' => $monat,
+        ])->assertSessionHasNoErrors()->assertRedirect($monat);
+        $this->assertNotNull($vergangen->fresh()->note_id);
     }
 
     #[Test]

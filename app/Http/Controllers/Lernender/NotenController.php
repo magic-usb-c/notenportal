@@ -209,6 +209,7 @@ class NotenController extends Controller
             'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
             'pruefung' => $pruefung,
             'vorauswahl' => is_string($bezug) && preg_match('/^(fach|modul):\d+$/', $bezug) ? $bezug : null,
+            'rueckziel' => $this->rueckziel($request),
         ];
 
         // ?drawer=1: nur das Formular für den Drawer der Notenliste
@@ -261,9 +262,35 @@ class NotenController extends Controller
             $lernender->pruefungen()->offen()->whereKey($request->integer('pruefung_id'))->update(['note_id' => $note->note_id]);
         }
 
+        // Wer aus Übersicht, Rechner oder Modul kam, kehrt dorthin zurück; sonst zeigt die Notenseite das Semester der neuen Note
+        if ($ziel = $this->rueckziel($request)) {
+            return redirect($ziel)->with('success', __('Note gespeichert.'));
+        }
+
         $params = $data['semester_id'] ? ['semester_id' => $data['semester_id']] : [];
 
         return redirect()->route('learner.grades.index', $params)->with('success', __('Note gespeichert.'));
+    }
+
+    /**
+     * Rückziel nach dem Erfassen: nur ein interner Pfad, der auf eine bestehende GET-Route des Portals zeigt
+     * (kein Host, kein «//», keine Steuerzeichen). Die Notenseite selbst gilt nicht als Rückziel,
+     * dort bleibt der Standardweg mit dem Semester der neuen Note.
+     */
+    private function rueckziel(Request $request): ?string
+    {
+        $ziel = $request->input('rueckziel');
+        if (! is_string($ziel) || ! preg_match('#^/(?![/\\\\])[A-Za-z0-9_\-./?=&%~:+,\[\];@!*$()]*$#', $ziel)) {
+            return null;
+        }
+
+        try {
+            $route = app('router')->getRoutes()->match(Request::create($ziel, 'GET'));
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $route->isFallback || $route->getName() === 'learner.grades.index' ? null : $ziel;
     }
 
     /** Neue Note eines Lernenden → aktive Betreuer (GRADE_ADDED). */
@@ -479,8 +506,8 @@ class NotenController extends Controller
                 $semesterLabel = $nummer !== null ? Lehrsemester::name($nummer).' ('.$neutral.')' : $neutral;
                 fputcsv($out, [
                     $r->pruefungsdatum ? \Carbon\Carbon::parse($r->pruefungsdatum)->format('d.m.Y') : '',
-                    $semesterLabel,
-                    $r->kategorie ?? '',
+                    Csv::safe($semesterLabel),
+                    Csv::safe($r->kategorie ?? ''),
                     Csv::safe($fachModul),
                     Csv::safe($r->titel ?? ''),
                     $r->note_wert !== null ? number_format((float) $r->note_wert, 2, '.', '') : NotenSkala::stufeText($r->note_stufe),

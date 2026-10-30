@@ -40,9 +40,10 @@
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
     $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
-    // «Kritisch» öffnet die Lernendenliste mit demselben Lehrberuf und Berufsbildner, «Ungenügend» sortiert die Tabelle unten
-    $kritischUrl = route('admin.learners.index', array_filter(['warnung' => 'kritisch', 'lehrberuf_id' => $filter['lehrberuf_id'], 'berufsbildner_id' => $filter['berufsbildner_id']]));
+    // «Kritisch» öffnet die Lernendenliste mit demselben Lehrberuf, Berufsbildner und Lehrjahr, «Ungenügend» und «Promotion gefährdet» sortieren die Tabelle unten
+    $kritischUrl = route('admin.learners.index', array_filter(['warnung' => 'kritisch', 'lehrberuf_id' => $filter['lehrberuf_id'], 'berufsbildner_id' => $filter['berufsbildner_id'], 'lehrjahr' => $filter['lehrjahr']]));
     $ungenuegendUrl = $sort === 'ungenuegend' && $dir === 'desc' ? '#lernende' : request()->fullUrlWithQuery(['sort' => 'ungenuegend', 'dir' => 'desc']).'#lernende';
+    $gefaehrdetUrl = $sort === 'gefaehrdet' && $dir === 'desc' ? '#lernende' : request()->fullUrlWithQuery(['sort' => 'gefaehrdet', 'dir' => 'desc']).'#lernende';
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Berichte') }}</x-slot>
@@ -112,7 +113,7 @@
                 <x-kachel :label="__('Kritisch')" :wert="$k['rot']" :ton="$k['rot'] ? 'rot' : 'neutral'" :sub="__(':gelb beobachten', ['gelb' => $k['gelb']])" :href="$kritischUrl" />
                 <x-kachel :label="__('Ungenügende Zeugnisnoten')" :wert="$k['ungenuegend']" :ton="$k['ungenuegend'] ? 'rot' : 'neutral'" :sub="__('von :n', ['n' => $k['zeugnisnoten']])" :href="$ungenuegendUrl" />
                 @if($sid)
-                    <x-kachel :label="__('Promotion gefährdet')" :wert="$k['gefaehrdet']" :ton="$k['gefaehrdet'] ? 'rot' : 'neutral'" />
+                    <x-kachel :label="__('Promotion gefährdet')" :wert="$k['gefaehrdet']" :ton="$k['gefaehrdet'] ? 'rot' : 'neutral'" :href="$gefaehrdetUrl" />
                 @endif
             </div>
 
@@ -378,7 +379,12 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <x-status :status="$z->stand->status" />
+                                        <div class="flex flex-wrap items-center gap-x-3">
+                                            <x-status :status="$z->stand->status" />
+                                            @if($z->gefaehrdet)
+                                                <span class="np-marke bg-note-ungenuegend/14 text-note-ungenuegend" data-promotion-gefaehrdet>{{ __('Promotion gefährdet') }}</span>
+                                            @endif
+                                        </div>
                                         @if($z->stand->gruende)
                                             <div class="mt-0.5 text-pretty text-xs text-muted">{{ implode(' · ', $z->stand->gruende) }}</div>
                                         @endif

@@ -29,8 +29,17 @@
         };
         $monatsLink = fn ($m) => route('learner.exams.index', array_filter(['ansicht' => 'monat', 'monat' => $m?->format('Y-m'), 'lektionen' => $zeigeLektionen ? 1 : null]));
         // Daten eines Tages für die Tagesansicht im Drawer
+        // «Prüfung planen» im Tages-Drawer ist ein Link (kein zweiter Drawer über dem ersten) und bleibt in der gewählten Ansicht
+        $planenLink = fn (array $tag) => route('learner.exams.index', array_filter([
+            'planen' => 1,
+            'datum' => $tag['datum']->toDateString(),
+            'ansicht' => $ansicht === 'monat' ? 'monat' : null,
+            'monat' => $ansicht === 'monat' ? $monat->format('Y-m') : null,
+            'lektionen' => $zeigeLektionen ? 1 : null,
+        ]));
         $tagDaten = fn (array $tag) => [
             'datum' => \App\Support\Format::datum($tag['datum'], 'l, j. F Y'),
+            'planen' => $planenLink($tag),
             'eintraege' => $tag['eintraege']->map(fn ($e) => [
                 'titel' => $e['titel'], 'zeit' => $e['zeit'], 'nebentext' => $e['nebentext'], 'punkt' => \App\Support\AgendaArt::punkt($e['art']),
                 'href' => $e['art'] === 'pruefung' ? route('learner.exams.index', ['bearbeiten' => $e['pruefung']->pruefung_id]) : null,
@@ -282,6 +291,7 @@
                             </div>
                         </template>
                     </div>
+                    <a :href="tagAusgewaehlt.planen" class="np-knopf np-knopf-sekundaer self-start">{{ __('Prüfung planen') }}</a>
                 </div>
             </template>
         </x-drawer>

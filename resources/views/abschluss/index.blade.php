@@ -154,6 +154,8 @@
                                                     $fest => ['x-circle', 'text-note-ungenuegend', __('nicht erfüllt')],
                                                     default => ['exclamation-triangle', 'text-note-knapp', __('gefährdet')],
                                                 };
+                                                // «bisher erfüllt» sieht nicht wie «erfüllt» aus: dasselbe Symbol, darum das Wort sichtbar
+                                                $vorlaeufig = $b->stand === Bedingung::ERFUELLT && ! $fest;
                                                 $wert = match (true) {
                                                     $b->wert === null => null,
                                                     $b->regel === Grund::FALLNOTE => null,
@@ -165,7 +167,7 @@
                                                 <x-symbol :name="$symbol" class="size-5 {{ $farbe }}" />
                                                 <div class="min-w-0">
                                                     <div class="wrap-break-word text-sm text-text">{{ $b->code === $e->baum->wurzel->code ? __('Gesamtnote') : $b->name }}</div>
-                                                    <div class="text-xs text-muted">{{ $regel($b) }}<span class="sr-only">, {{ $stand }}</span></div>
+                                                    <div class="text-xs text-muted">{{ $regel($b) }}@if($vorlaeufig) · <span data-stand="vorlaeufig">{{ $stand }}</span>@else<span class="sr-only">, {{ $stand }}</span>@endif</div>
                                                 </div>
                                                 <div class="text-right text-sm tabular-nums">
                                                     @if($b->regel === Grund::FALLNOTE && $b->wert !== null)

@@ -4,6 +4,12 @@
     $textarea = 'np-feld mt-1.5';
     $fehler = 'mt-1 text-xs text-note-ungenuegend';
     $b = $bearbeiten;
+    // Datum aus dem Tages-Drawer (?datum=Y-m-d): nur ein echtes Kalenderdatum, nur beim Planen
+    $vorbelegtesDatum = null;
+    if (! $b && is_string(request()->query('datum')) && preg_match('/^\d{4}-\d{2}-\d{2}$/', request()->query('datum')) === 1) {
+        [$jahr, $mon, $tg] = array_map('intval', explode('-', request()->query('datum')));
+        $vorbelegtesDatum = checkdate($mon, $tg, $jahr) ? request()->query('datum') : null;
+    }
 @endphp
 <form method="POST" action="{{ $b ? route('learner.exams.update', $b->pruefung_id) : route('learner.exams.store') }}"
       class="flex flex-col gap-4" x-data="{ loading: false, gewicht: @js((string) old('gewichtung_prozent', $b?->gewichtung_prozent ?? 100)) }"
@@ -79,7 +85,7 @@
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label for="datum" class="{{ $label }}">{{ __('Datum') }}</label>
-            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}"
+            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString() ?? $vorbelegtesDatum) }}"
                    class="{{ $feld }} tabular-nums" @error('datum') aria-invalid="true" aria-describedby="datum-fehler" @enderror>
             @error('datum')<p id="datum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>
@@ -144,7 +150,7 @@
             <x-note :wert="$b->note->note_wert" :stufe="$b->note->note_stufe" variante="badge" />
         </div>
     @elseif($b)
-        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id]) }}" class="np-knopf np-knopf-sekundaer">{{ __('Note eintragen') }}</a>
+        <a href="{{ route('learner.grades.create', ['pruefung' => $b->pruefung_id, 'rueckziel' => request()->getRequestUri()]) }}" class="np-knopf np-knopf-sekundaer">{{ __('Note eintragen') }}</a>
     @endif
 
     @if($b)

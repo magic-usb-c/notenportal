@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Ziel;
 use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Zielgroesse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -18,7 +19,7 @@ class ZieleController extends Controller
 {
     public function __construct(private readonly Rechner $rechner) {}
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
         $daten = $request->validate([
@@ -43,18 +44,30 @@ class ZieleController extends Controller
             throw ValidationException::withMessages(['ziel' => __('Als Ziel lassen sich Gesamtschnitt, Kategorie, Fach oder Modul speichern.')]);
         }
 
+        $zielwert = round((float) $daten['zielwert'], 2);
         Ziel::updateOrCreate(
             ['lernender_id' => $lernender->lernender_id, ...Ziel::spaltenFuer($z)],
-            ['zielwert' => round((float) $daten['zielwert'], 2)]
+            ['zielwert' => $zielwert]
         );
 
-        return back()->with('success', __('Ziel gespeichert.'));
+        // Der Rechner speichert per fetch und führt seine Zielliste selbst nach (das Szenario bleibt erhalten)
+        if ($request->expectsJson()) {
+            return response()->json(['message' => __('Ziel gespeichert.'), 'ziele' => $this->rechner->ziele($lernender)]);
+        }
+
+        // Ohne JavaScript zurück zum Rechner mit dem soeben gespeicherten Wert (nicht auf eine ältere URL mit anderem zielwert)
+        return redirect()->route('learner.grades.calculator', ['ziel' => (string) $z, 'zielwert' => $zielwert])
+            ->with('success', __('Ziel gespeichert.'));
     }
 
-    public function destroy(Request $request, int $ziel_id): RedirectResponse
+    public function destroy(Request $request, int $ziel_id): RedirectResponse|JsonResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->ziele()->whereKey($ziel_id)->firstOrFail()->delete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => __('Ziel entfernt.'), 'ziele' => $this->rechner->ziele($lernender)]);
+        }
 
         return back()->with('success', __('Ziel entfernt.'));
     }
