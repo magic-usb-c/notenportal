@@ -11,6 +11,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -39,6 +40,13 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureUserIsActive::class,
             EnsurePasswordChanged::class,
         ]);
+
+        // Ein Passwortwechsel (Profil, Reset, Einladung, Zurücksetzen durch einen Admin) beendet alle anderen
+        // Sitzungen des Kontos: der Hash des Passworts liegt (als HMAC) in der Sitzung und wird bei jeder Anfrage
+        // verglichen. Treiberunabhängig (file wie database), ohne logoutOtherDevices(). Beendete Sitzungen
+        // bekommen auf Seiten den Redirect zur Anmeldung, auf JSON-Anfragen 401 (sitzung.js meldet dann ab).
+        // Steht nach SetLocale/EnsureUserIsActive: dort wird $request->user() ohnehin schon gelesen.
+        $middleware->appendToGroup('web', AuthenticateSession::class);
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {

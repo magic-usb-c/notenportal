@@ -5,6 +5,7 @@ namespace Tests;
 use App\Services\Auswertung\Konfiguration;
 use App\Support\Einstellungen;
 use Database\Seeders\BasisSeeder;
+use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
@@ -42,5 +43,21 @@ abstract class TestCase extends BaseTestCase
         Einstellungen::vergessen();
         // Dasselbe gilt für Stammdaten und Notenbäume, die der Rechenkern statisch zwischenspeichert.
         Konfiguration::vergessen();
+    }
+
+    /**
+     * AuthenticateSession (web-Gruppe) merkt sich den Passwort-Hash des angemeldeten Benutzers in der Sitzung. Die
+     * Testsitzung (Treiber «array») lebt über mehrere Anfragen eines Tests; wechselt ein Test mit actingAs() den
+     * Benutzer, würde der Hash des vorigen als «anderes Gerät» gelten und die Anfrage abmelden. Jeder actingAs()-Aufruf
+     * beginnt darum ohne gemerkten Hash (die Middleware trägt ihn bei der nächsten Anfrage wieder ein).
+     */
+    public function actingAs(UserContract $user, $guard = null)
+    {
+        $sitzung = $this->app['session']->driver();
+        $sitzung->forget('password_hash_'.($guard ?? 'web'));
+        // Die Anfrage lädt beim Start die zuletzt gespeicherte Kopie aus dem Handler und mischt sie zurück.
+        $sitzung->getHandler()->destroy($sitzung->getId());
+
+        return parent::actingAs($user, $guard);
     }
 }

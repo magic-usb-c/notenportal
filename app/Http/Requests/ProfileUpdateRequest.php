@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Auth\PasswortOrakelSperre;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,5 +37,29 @@ class ProfileUpdateRequest extends FormRequest
             'vorname' => ['required', 'string', 'max:100'],
             'nachname' => ['required', 'string', 'max:100'],
         ];
+    }
+
+    /** Das aktuelle Passwort wird nur geprüft, wenn es mitgeschickt wird (E-Mail-Änderung): nur dann bremsen. */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('current_password') || $this->input('email') !== $this->user()->email) {
+            PasswortOrakelSperre::pruefen($this, 'current_password');
+        }
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        if ($this->filled('current_password') && $validator->errors()->has('current_password')) {
+            PasswortOrakelSperre::fehlversuch($this);
+        }
+
+        parent::failedValidation($validator);
+    }
+
+    protected function passedValidation(): void
+    {
+        if ($this->filled('current_password')) {
+            PasswortOrakelSperre::zuruecksetzen($this);
+        }
     }
 }
