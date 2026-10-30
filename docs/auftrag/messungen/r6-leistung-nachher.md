@@ -6,7 +6,7 @@ Abnahmebericht zu R6-12 (`docs/auftrag/GUI-R6.md` §4.2, §8, §11). Gegenstück
 
 - **Glas:** Ruhe 18.4 % → 0.6 % (Grenze ≤ 2 %), Palette 34.6 % → 15.6 % (Grenze ≤ 18 %), auf allen elf gemessenen Seiten erfüllt. Glasanteil Menü 3.1 % (Grenze ≤ 12 %, Nachmessung).
 - **Bildzeiten:** Scrollen unter Glas (540 px Höhe) und Tippen in der Palette sind gegenüber derselben Maschine «vorher» durchgehend besser (Scroll p95 39–47 ms → 17 ms, lange Bilder 109–142 → 0 von 150; Tippen p95 Minimum 65–79 ms → 24–39 ms). Das Ziel Tippen ≤ 25 ms ist auf dieser Maschine nicht belegt (Median überall über 29 ms; Abschnitt 5 Punkt 5).
-- **DOM-Knoten:** das alte Mass zählte abgehängte Knoten früherer Seiten mit (Abschnitt 2.8). Bereinigt: `/dashboard` 6 342 (vorher 3 628), `/grades` 9 156 (7 378), `/admin/learners` 7 186 (4 742) – alle drei über «vorher + 10 %»; Ursache nicht einzeln gezählt, Bildzeiten nicht schlechter.
+- **DOM-Knoten:** das alte Mass zählte abgehängte Knoten früherer Seiten mit (Abschnitt 2.8). Bereinigt: `/dashboard` 6 342 (vorher 3 628), `/grades` 9 156 (7 378), `/admin/learners` 7 186 (4 742) – alle drei über «vorher + 10 %»; vor allem `<details>`-Tabellen der Diagramme und die vorab gerenderte Suchpalette; Bildzeiten nicht schlechter.
 - **Nicht erfüllt:** (b) Ruhe p95 ≤ 17.0 ms auf drei Seiten (17.4, 17.2, 17.1 ms); (c) LCP gegen die Basislinie, weil der Rechner heute langsamer ist als am 03.10. – im Vergleich mit vorher derselben Maschine erfüllt; (d) Tippen `/exams` gegen die Basislinie (34.9 gegen 32.9 ms).
 - **Kontrast und Regel-Greps:** alle Modi Exit 0, 0 Pflichtverstösse, alle Greps leer.
 - **Bilder, Rundgang, UI-Check:** Rundgang für alle vier Konten ohne Layoutbefund; 34 bestätigte Befunde (16 mittel, 18 niedrig), 16 verworfen. Sie sind offen (Abschnitt 4).
@@ -179,7 +179,15 @@ Gegen die Basislinie überall «nein», aber nur wegen des langsameren Rechners 
 | `/grades` | 7 378 | 9 156 | +1 778 (+24 %) | ≤ 20 868 | ≤ 8 116 | nein |
 | `/admin/learners` | 4 742 | 7 186 | +2 444 (+52 %) | ≤ 16 387 | ≤ 5 216 | nein |
 
-Die Grenze aus §4.2 ist mit dem alten Mass entstanden und hier nicht anwendbar. Mit demselben, bereinigten Mass verfehlen alle drei Seiten «vorher + 10 %» (GUI-R6.md §4.2, Nachtrag). Woher die zusätzlichen Knoten kommen, ist nicht einzeln gezählt; naheliegend sind die Tabellenfassungen der Diagramme in `<details>` (Planentscheid «Tabelle in details»), die Ansage-Absätze und die zusätzlichen Diagramme. Die Bildzeiten (Scroll, Ruhe, Tippen) sind gegen vorher auf derselben Maschine trotzdem nicht schlechter geworden. Künftig: Knoten nur mit dem bereinigten Mass und gegen «vorher» auf derselben Datenbank vergleichen.
+Die Grenze aus §4.2 ist mit dem alten Mass entstanden und hier nicht anwendbar. Mit demselben, bereinigten Mass verfehlen alle drei Seiten «vorher + 10 %» (GUI-R6.md §4.2, Nachtrag). Herkunft, gezählt am 30.10.2026 mit einem TreeWalker über das lebende Dokument (Elemente, Text, Kommentare; die Zahlen liegen unter `Nodes`, weil CDP auch interne Knoten zählt):
+
+| Seite | vorher | nachher | Zuwachs | davon `<details>` | davon Suchpalette | Rest |
+|---|---:|---:|---:|---:|---:|---:|
+| `/dashboard` (nina.huber) | 1 931 | 3 651 | +1 720 | +1 284 | +364 | +72 |
+| `/grades` (nina.huber) | 3 582 | 4 521 | +939 | +88 | +364 | +487 |
+| `/admin/learners` (laura.frei) | 2 602 | 4 109 | +1 507 | +203 | +520 | +784 (davon SVG +286) |
+
+Auf dem Dashboard sind es vor allem die Tabellenfassungen der Diagramme in `<details>` (Planentscheid «Tabelle in details»), auf jeder Seite die vorab gerenderten Einträge der Suchpalette (177 → 697 Knoten bei laura.frei); der Rest sind Ansagen, Symbole und Tabellenzeilen. Die Bildzeiten (Scroll, Ruhe, Tippen) sind gegen vorher auf derselben Maschine trotzdem nicht schlechter geworden. Künftig: Knoten nur mit dem bereinigten Mass und gegen «vorher» auf derselben Datenbank vergleichen.
 
 ## 3 Kontrast und Regel-Greps (Prüflauf 30.10.2026)
 
@@ -304,7 +312,7 @@ Zählung: 16 mittel (ADMIN-1; UI-lernende-1 bis 6; UI-berufsbildner-1, 3, 4, 5; 
 
 ## 5 Offen
 
-1. **DOM-Knoten:** Messfehler im Werkzeug behoben (abgehängte Knoten früherer Seiten, Abschnitt 2.8). Mit dem bereinigten Mass liegen alle drei Seiten über «vorher + 10 %» (+24 bis +75 %). Offen: zählen, wie viele Knoten in den `<details>`-Tabellen und Ansagen stecken, und entscheiden, ob die Grenze für die Tabellenfassungen angepasst oder die Tabellen erst beim Öffnen erzeugt werden.
+1. **DOM-Knoten:** Messfehler im Werkzeug behoben (abgehängte Knoten früherer Seiten, Abschnitt 2.8). Mit dem bereinigten Mass liegen alle drei Seiten über «vorher + 10 %» (+24 bis +75 %). Gezählt (Abschnitt 2.8): Dashboard vor allem `<details>`-Tabellen, überall die vorab gerenderte Suchpalette. Tippen in der Palette ist trotzdem schneller als vorher. Offen: Grenze für die Tabellenfassungen anpassen oder Tabellen erst beim Öffnen erzeugen – Entscheid David.
 2. **Ruhe p95** 17.4 / 17.2 / 17.1 ms auf `/admin/reports/grades`, `/grades`, `/trainer/learners` gegen die Grenze 17.0 ms. Streuung auf dieser Maschine gleichauf mit vorher; Wiederholung im belegt ruhigen Fenster würde klären, ob es Messrauschen ist.
 3. **Glasanteil Menü:** nachgemessen am 30.10.2026 (`leistung.mjs laura.frei@demo.example /admin --menue='button[aria-label^="Konto"]'`): 3 Flächen, **3.1 %** (Basislinie 20.9 %, Grenze ≤ 12 %) – erfüllt. Gemessen, während ein Workflow lief: Hover p95 18.7 ms gilt darum nur unter Last, der Glasanteil ist lastunabhängig. Weiter nicht gemessen: 2560×1440 und `/trainer/learners/1/grades` (Scroll).
 4. **Absolute Zeiten (Tippen, LCP)** lassen sich auf diesem Rechner nicht gegen die Cloud-Basislinie halten. Für ein sauberes Urteil entweder dieselbe Umgebung wie am 03.10. verwenden oder die Grenze als «≤ vorher» festschreiben. Tippen `/exams` überschreitet die Basislinie auch im Minimum.
