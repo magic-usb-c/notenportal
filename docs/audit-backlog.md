@@ -1216,8 +1216,8 @@ Review-Empfehlungen und Lücken aus dem Workflow `notenportal-r6-welle`, keine B
 - **Notenzeile der Lernenden**: Stift und Papierkorb liegen jetzt ausserhalb der `summary` (absolut darüber).
   Die Zeilen-Hervorhebung endet, sobald der Zeiger auf einem der beiden Knöpfe steht; bei einer mehrzeiligen
   Zeile stehen die Knöpfe oben, die Note mittig.
-- **`np.js` spiegelt `NotenSkala::text()`**: «knapp» ist serverseitig jetzt zusätzlich gepunktet
-  unterstrichen; im Rechner (`notenKlasse` in `np.js`) bleibt «knapp» bis zum Nachziehen nur Farbe.
+- ~~**`np.js` spiegelt `NotenSkala::text()`**~~ erledigt (30.10.): «knapp» ist auch im Rechner gepunktet
+  unterstrichen; `HeatmapStufenFormTest` vergleicht `TEXT` in `np.js` mit `NotenSkala::text()`.
 - **Weitere Admin-Tabellen**: caption ergänzt in Versandprotokoll, Benutzerkonten, Aktivitätsprotokoll und
   Berufsbildner; andere Listen nicht einzeln durchgesehen.
 

@@ -48,6 +48,19 @@ class HeatmapStufenFormTest extends TestCase
         }
     }
 
+    public function test_np_js_spiegelt_die_textklassen_der_notenskala(): void
+    {
+        $js = file_get_contents(resource_path('js/np.js'));
+        $this->assertMatchesRegularExpression('/const TEXT = \{(.*?)\};/s', $js);
+        preg_match('/const TEXT = \{(.*?)\};/s', $js, $block);
+        preg_match_all("/(\w+): '([^']*)'/", $block[1], $paare, PREG_SET_ORDER);
+        $klassen = array_column($paare, 2, 1);
+
+        foreach (['gut' => 5.5, 'genuegend' => 4.5, 'knapp' => 3.8, 'ungenuegend' => 3.0] as $stufe => $wert) {
+            $this->assertSame(NotenSkala::text($wert), $klassen[$stufe] ?? null, "np.js TEXT.$stufe");
+        }
+    }
+
     public function test_gut_und_genuegend_bleiben_ohne_form(): void
     {
         foreach ([5.5, 4.5] as $note) {
