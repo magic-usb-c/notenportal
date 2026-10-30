@@ -7,6 +7,8 @@ let zeilenNummer = 0;
 
 const imBereich = (wert, min, max) => Number.isFinite(wert) && wert >= min && wert <= max;
 const roh = (wert) => String(wert ?? '').trim();
+// Eingaben dürfen ein Dezimalkomma tragen («4,5»), gerechnet und angezeigt wird mit Punkt
+const zahl = (wert) => parseFloat(roh(wert).replace(',', '.'));
 
 function meldung(message, art = null) {
     window.dispatchEvent(new CustomEvent('np-toast', { detail: art ? { message, art } : { message } }));
@@ -111,7 +113,7 @@ export function registriereRechner(Alpine) {
         },
 
         get zielwertGueltig() {
-            return imBereich(parseFloat(this.zielwert), 1, 6);
+            return imBereich(zahl(this.zielwert), 1, 6);
         },
 
         // Fehlertext am Feld; ein leeres Feld ist beim Tippen nur unvollständig, kein Fehler.
@@ -120,11 +122,11 @@ export function registriereRechner(Alpine) {
         },
 
         gewichtFehler(z) {
-            return roh(z.gewicht) === '' || imBereich(parseFloat(z.gewicht), 0, 100) ? null : cfg.texte.fehlerGewicht;
+            return roh(z.gewicht) === '' || imBereich(zahl(z.gewicht), 0, 100) ? null : cfg.texte.fehlerGewicht;
         },
 
         wertFehler(z) {
-            return roh(z.wert) === '' || imBereich(parseFloat(z.wert), 1, 6) ? null : cfg.texte.fehlerNote;
+            return roh(z.wert) === '' || imBereich(zahl(z.wert), 1, 6) ? null : cfg.texte.fehlerNote;
         },
 
         zeilenFehler(z) {
@@ -132,7 +134,7 @@ export function registriereRechner(Alpine) {
         },
 
         zeileGueltig(z) {
-            return imBereich(parseFloat(z.gewicht), 0, 100) && (roh(z.wert) === '' || imBereich(parseFloat(z.wert), 1, 6));
+            return imBereich(zahl(z.gewicht), 0, 100) && (roh(z.wert) === '' || imBereich(zahl(z.wert), 1, 6));
         },
 
         // Gerechnet wird nur mit vollständigen, gültigen Angaben; sonst gibt es kein Ergebnis statt eines still verkürzten.
@@ -144,7 +146,7 @@ export function registriereRechner(Alpine) {
             if (this.speichert || !this.speicherbar) return;
             this.speichert = true;
             try {
-                const r = await sendeZiel(cfg.zielUrl, 'POST', { ziel: this.zielText, zielwert: parseFloat(this.zielwert) }, cfg.texte.fehlerZielSpeichern);
+                const r = await sendeZiel(cfg.zielUrl, 'POST', { ziel: this.zielText, zielwert: zahl(this.zielwert) }, cfg.texte.fehlerZielSpeichern);
                 this.ziele = r.ziele;
                 meldung(r.message);
             } catch (e) {
@@ -194,11 +196,11 @@ export function registriereRechner(Alpine) {
                 return;
             }
             const zeilen = this.zeilen
-                .map((z) => ({ element: this.elementText(z), gewicht: parseFloat(z.gewicht), wert: roh(z.wert) === '' ? null : parseFloat(z.wert), datum: z.datum }))
+                .map((z) => ({ element: this.elementText(z), gewicht: zahl(z.gewicht), wert: roh(z.wert) === '' ? null : zahl(z.wert), datum: z.datum }))
                 .filter((z) => z.element);
             this.laedt = true;
             try {
-                const r = await postJson(cfg.berechnenUrl, { ziel: this.zielText, zielwert: parseFloat(this.zielwert), zeilen });
+                const r = await postJson(cfg.berechnenUrl, { ziel: this.zielText, zielwert: zahl(this.zielwert), zeilen });
                 if (lauf !== this.lauf) return;
                 this.ergebnis = r;
                 this.fehler = null;
@@ -226,7 +228,17 @@ export function registriereRechner(Alpine) {
         },
 
         klasse(v) {
-            return notenKlasse(v, this.grenzen);
+            return notenKlasse(zahl(v), this.grenzen);
+        },
+
+        zahl(v) {
+            return zahl(v);
+        },
+
+        // Stepper und Pfeiltasten am Zielwert: Zehntelschritte zwischen 1 und 6, immer mit Punkt geschrieben
+        schritt(d) {
+            const v = zahl(this.zielwert);
+            this.zielwert = format(Math.min(6, Math.max(1, Math.round(((Number.isFinite(v) ? v : 4) + d) * 10) / 10)), 1);
         },
 
         get heroKlasse() {

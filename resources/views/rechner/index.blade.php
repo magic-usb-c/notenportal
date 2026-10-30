@@ -118,16 +118,16 @@
                             <div class="mt-1.5 flex items-center gap-3">
                                 <div class="flex items-center gap-1">
                                     <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-symbol" aria-label="{{ __('Zielwert senken') }}"
-                                            @click="zielwert = String(Math.max(1, Math.round((parseFloat(zielwert) - 0.1) * 10) / 10))"><x-symbol name="minus" strich="2" /></button>
-                                    <input id="zielwert" type="number" min="1" max="6" step="0.05" x-model="zielwert"
+                                            @click="schritt(-0.1)"><x-symbol name="minus" strich="2" /></button>
+                                    <input id="zielwert" type="text" inputmode="decimal" autocomplete="off" x-model="zielwert" @keydown.arrow-up.prevent="schritt(0.1)" @keydown.arrow-down.prevent="schritt(-0.1)"
                                            class="np-feld h-10 w-20 px-2 text-center text-xl font-semibold tabular-nums"
                                            :class="klasse(zielwert)" :aria-invalid="zielwertFehler ? 'true' : null" :aria-describedby="zielwertFehler ? 'zielwert-fehler' : null">
                                     <button type="button" class="np-knopf np-knopf-sekundaer np-knopf-symbol" aria-label="{{ __('Zielwert erhöhen') }}"
-                                            @click="zielwert = String(Math.min(6, Math.round((parseFloat(zielwert) + 0.1) * 10) / 10))"><x-symbol name="plus" strich="2" /></button>
+                                            @click="schritt(0.1)"><x-symbol name="plus" strich="2" /></button>
                                 </div>
                                 <div class="np-segment np-segment-klein" role="group" aria-label="{{ __('Häufige Ziele') }}">
                                     @foreach(['4.0', '4.5', '5.0', '5.5'] as $v)
-                                        <button type="button" class="tabular-nums" @click="zielwert = '{{ $v }}'" :aria-pressed="parseFloat(zielwert) === {{ $v }}">{{ $v }}</button>
+                                        <button type="button" class="tabular-nums" @click="zielwert = '{{ $v }}'" :aria-pressed="zahl(zielwert) === {{ $v }}">{{ $v }}</button>
                                     @endforeach
                                 </div>
                             </div>
@@ -143,10 +143,10 @@
                                 <form method="POST" action="{{ $zielUrl }}" x-show="speicherbar" x-cloak @submit.prevent="speichereZiel()">
                                     @csrf
                                     <input type="hidden" name="ziel" :value="zielText">
-                                    <input type="hidden" name="zielwert" :value="zielwert">
+                                    <input type="hidden" name="zielwert" :value="zahl(zielwert)">
                                     <button class="np-knopf np-knopf-sekundaer"
-                                            x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
-                                            :disabled="speichert || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === parseFloat(zielwert))"></button>
+                                            x-text="gespeichertesZiel ? (parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert) ? @js(__('Ziel gespeichert')) : @js(__('Ziel aktualisieren'))) : @js(__('Als Ziel speichern'))"
+                                            :disabled="speichert || (gespeichertesZiel && parseFloat(gespeichertesZiel.zielwert) === zahl(zielwert))"></button>
                                 </form>
                             @endif
                         </div>
@@ -193,7 +193,7 @@
                                                :aria-invalid="gewichtFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'zeile-' + z.nr + '-fehler' : null">
                                         <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted" aria-hidden="true">%</span>
                                     </span>
-                                    <input type="number" min="1" max="6" step="0.05" x-model="z.wert" placeholder="?"
+                                    <input type="text" inputmode="decimal" autocomplete="off" x-model="z.wert" placeholder="?"
                                            class="np-feld np-feld-klein px-1 text-center font-semibold tabular-nums placeholder:font-semibold placeholder:text-muted"
                                            :class="klasse(z.wert)" aria-label="{{ __('Note (leer = gesucht)') }}"
                                            :aria-invalid="wertFehler(z) ? 'true' : null" :aria-describedby="zeilenFehler(z) ? 'zeile-' + z.nr + '-fehler' : null">
