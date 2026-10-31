@@ -408,6 +408,12 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Statistik, Mails in Empfängersprache, Mail-Layout (Preheader, Logo dunkel, Outlook-Tabelle), eine
                   Schwelle für «offen», gleichnamige Fächer im Veränderungsdiagramm, «Letzte Prüfung» nur bis heute.
                   Suite 1783 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 2».
+[Q] 30.10. 23:40  Audit Welle 1 (notenportal-audit, je Befund Nachweis- und Nutzenprüfung): 6 bestätigt, behoben
+                  mit Regressionstest. Palette-Nebentext voll deckend, np-feld-Fokus als 2px-Ring in --ring,
+                  Kommentarfehler am Feld (Fach bleibt offen), Agenda behält Monat/Stundenplan nach Planen,
+                  Bearbeiten, Entfernen, Entsperren, Übernehmen (Monat folgt dem Datum), Dashboard-Filter in
+                  sichtbaren Gruppen «Verlauf»/«Wo stehe ich», inaktive Module auf der Modulseite nicht mehr belegbar
+                  (Prüfer: über Noten/Agenda noch möglich → Welle 2). Suite 1804 grün.
 ```
 
 ---

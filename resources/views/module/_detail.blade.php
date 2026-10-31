@@ -6,7 +6,7 @@
     $ich = (int) auth()->user()->benutzer_id;
     $istAdmin = auth()->user()->hasRole('Admin');
     $lernender = \Illuminate\Support\Facades\Route::has('modules.enroll') && auth()->user()->hasRole('Lernender');
-    $kannBelegen = $lernender && ! $belegt;
+    $kannBelegen = $lernender && ! $belegt && $modul->aktiv;
     $lbvForm = $modul->lbvElemente->contains(fn ($e) => filled($e->pruefungsform));
     $lbvGewicht = $modul->lbvElemente->contains(fn ($e) => $e->gewichtung_prozent !== null);
     $meta = collect([

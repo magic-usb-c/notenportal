@@ -8,6 +8,8 @@
     $letzter = $n->kommentare->last();
     $feld = 'np-feld';
     // Aktionen stehen ausserhalb der summary; der Name sagt, welche Prüfung gemeint ist
+    // Fehler des Kommentarfelds gilt nur für die Prüfung, bei der abgeschickt wurde
+    $kommentarFehler = $errors->has('kommentar_text') && (int) session('opened_note') === (int) $n->note_id;
     $kontext = trim(($n->pruefungsdatum?->format('d.m.Y') ?? '').' '.($n->titel ?? ''));
 @endphp
 <div class="relative">
@@ -93,9 +95,14 @@
               x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
             @csrf
             <input type="text" name="kommentar_text" placeholder="{{ __('Kommentar schreiben') }}" aria-label="{{ __('Kommentar schreiben') }}" maxlength="2000" required
+                   value="{{ $kommentarFehler ? old('kommentar_text') : '' }}"
+                   @if($kommentarFehler) aria-invalid="true" aria-describedby="kommentar-{{ $n->note_id }}-fehler" @endif
                    class="min-w-0 flex-1 {{ $feld }}">
             <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Senden') }}</button>
         </form>
+        @if($kommentarFehler)
+            <p id="kommentar-{{ $n->note_id }}-fehler" class="pb-3 pl-15 pr-5 text-xs text-note-ungenuegend">{{ $errors->first('kommentar_text') }}</p>
+        @endif
     </div>
 </details>
     <div class="absolute right-0 top-0 flex h-9 items-center justify-end pr-1.5">

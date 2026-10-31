@@ -13,6 +13,7 @@ use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class KommentarController extends Controller
 {
@@ -29,9 +30,19 @@ class KommentarController extends Controller
             abort_unless(Lernender::sichtbarFuer($user)->whereKey($note->lernender_id)->exists(), 404);
         }
 
-        $validated = $request->validate([
+        $pruefung = Validator::make($request->all(), [
             'kommentar_text' => ['required', 'string', 'max:2000'],
         ]);
+
+        // Fehler am Feld, und das Fach der Prüfung bleibt offen (Validierungs-Redirect kann kein opened_note tragen)
+        if ($pruefung->fails()) {
+            return back()
+                ->withErrors($pruefung)
+                ->withInput()
+                ->with('opened_note', $note_id);
+        }
+
+        $validated = $pruefung->validated();
 
         DB::table('noten_kommentare')->insert([
             'note_id' => $note_id,
@@ -84,6 +95,8 @@ class KommentarController extends Controller
 
         DB::table('noten_kommentare')->where('kommentar_id', $kommentar_id)->delete();
 
-        return back()->with('success', __('Kommentar gelöscht.'));
+        return back()
+            ->with('success', __('Kommentar gelöscht.'))
+            ->with('opened_note', (int) $kommentar->note_id);
     }
 }

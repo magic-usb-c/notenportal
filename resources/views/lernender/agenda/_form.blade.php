@@ -20,6 +20,8 @@
     @else
         <input type="hidden" name="_drawer" value="pruefung">
     @endif
+    @if($ansicht === 'monat')<input type="hidden" name="ansicht" value="monat">@endif
+    @if($zeigeLektionen)<input type="hidden" name="lektionen" value="1">@endif
 
     @if($b && $b->quelle === \App\Models\Pruefung::ICAL && filled($b->lokal_gesperrt))
         @php
@@ -188,6 +190,8 @@
     @if($b->quelle === \App\Models\Pruefung::ICAL && filled($b->lokal_gesperrt))
         <form id="pruefung-entsperren" method="POST" action="{{ route('learner.exams.unlock', $b->pruefung_id) }}" class="hidden">
             @csrf
+            @if($ansicht === 'monat')<input type="hidden" name="ansicht" value="monat">@endif
+            @if($zeigeLektionen)<input type="hidden" name="lektionen" value="1">@endif
         </form>
     @endif
     @foreach($b->dokumente as $d)

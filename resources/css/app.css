@@ -9,7 +9,7 @@
 /* Klassen, die nur per Alpine :class gesetzt werden */
 @source inline('rotate-90 rotate-180');
 @source inline('fill-note-{gut,knapp,ungenuegend} fill-chart-{1,6} fill-muted/30');
-@source inline('bg-accent text-accent-contrast text-accent-contrast/80 text-text text-muted');
+@source inline('bg-accent text-accent-contrast text-text text-muted');
 /* Feder-Kurve: Tailwind gibt ungenutzte @theme-Variablen nicht aus; die Klasse hält --ease-feder im Build, bis Komponenten sie nutzen */
 @source inline('ease-feder');
 
@@ -1134,17 +1134,16 @@ html:not([data-bewegung='reduziert']):active-view-transition-type(zurueck)::view
     color: rgb(var(--muted));
     opacity: 1;
   }
+  /* Fokus wie bei allen Bedienelementen: Ring in --ring (≥ 3:1), der Akzent allein unterscheidet sich im Dunkeln kaum vom Ruherand */
   &:focus,
   &:focus-visible {
-    outline: none;
-    border-color: rgb(var(--accent));
-    box-shadow: 0 0 0 3.5px rgb(var(--accent) / 0.28);
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+    border-color: rgb(var(--ring));
   }
+  /* Fehlerrand bleibt, der Ring erscheint trotzdem; steht nach der Fokusregel */
   &[aria-invalid='true'] {
     border-color: rgb(var(--note-ungenuegend));
-  }
-  &[aria-invalid='true']:focus {
-    box-shadow: 0 0 0 3.5px rgb(var(--note-ungenuegend) / 0.25);
   }
   &:disabled {
     opacity: 0.5;

@@ -89,9 +89,10 @@ class PruefungenController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
-        $lernender->pruefungen()->create([...$this->validiere($request, $lernender), 'quelle' => Pruefung::MANUELL]);
+        $daten = $this->validiere($request, $lernender);
+        $lernender->pruefungen()->create([...$daten, 'quelle' => Pruefung::MANUELL]);
 
-        return redirect()->route('learner.exams.index')->with('success', __('Prüfung geplant.'));
+        return $this->zurAgenda($request, $daten['datum'])->with('success', __('Prüfung geplant.'));
     }
 
     public function update(Request $request, int $pruefung_id): RedirectResponse
@@ -108,7 +109,7 @@ class PruefungenController extends Controller
 
         $pruefung->update($daten);
 
-        return redirect()->route('learner.exams.index')->with('success', __('Prüfung aktualisiert.'));
+        return $this->zurAgenda($request, $daten['datum'])->with('success', __('Prüfung aktualisiert.'));
     }
 
     public function destroy(Request $request, int $pruefung_id): RedirectResponse
@@ -116,17 +117,35 @@ class PruefungenController extends Controller
         $lernender = $request->user()->lernender ?? abort(403);
         $lernender->pruefungen()->whereKey($pruefung_id)->firstOrFail()->delete();
 
-        return redirect()->route('learner.exams.index')->with('success', __('Prüfung entfernt.'));
+        return $this->zurAgenda($request)->with('success', __('Prüfung entfernt.'));
+    }
+
+    /**
+     * Zurück in die Agenda-Ansicht, aus der das Formular kam (Monat bzw. Liste, Stundenplan-Schalter).
+     * Nur erlaubte Werte aus dem Formular; nie die Adresse der Anfrage (sie trägt planen/bearbeiten und
+     * öffnete den Drawer erneut). Im Monat zeigt die Agenda den Monat des gespeicherten Prüfungsdatums,
+     * denn das AJAX-Blättern lässt ein verstecktes Monatsfeld veralten.
+     */
+    private function zurAgenda(Request $request, ?string $datum = null): RedirectResponse
+    {
+        $monat = $request->input('ansicht') === 'monat';
+
+        return redirect()->route('learner.exams.index', array_filter([
+            'ansicht' => $monat ? 'monat' : null,
+            'monat' => $monat && $datum !== null ? CarbonImmutable::parse($datum)->format('Y-m') : null,
+            'lektionen' => $request->boolean('lektionen') ? 1 : null,
+        ]));
     }
 
     /** Hebt die Sperre auf; der nächste Abgleich übernimmt die Quellwerte wieder (Entscheidung C). */
     public function unlock(Request $request, int $pruefung_id): RedirectResponse
     {
         $lernender = $request->user()->lernender ?? abort(403);
-        $lernender->pruefungen()->whereKey($pruefung_id)->where('quelle', Pruefung::ICAL)->firstOrFail()
-            ->update(['lokal_gesperrt' => null]);
+        $pruefung = $lernender->pruefungen()->whereKey($pruefung_id)->where('quelle', Pruefung::ICAL)->firstOrFail();
+        $pruefung->update(['lokal_gesperrt' => null]);
 
-        return redirect()->route('learner.exams.index')->with('success', __('Wird beim nächsten Abgleich wieder vom Kalender übernommen.'));
+        return $this->zurAgenda($request, $pruefung->datum->format('Y-m-d'))
+            ->with('success', __('Wird beim nächsten Abgleich wieder vom Kalender übernommen.'));
     }
 
     /** Vom Schulnetz erkannte, aber nicht automatisch zugeordnete Prüfung manuell übernehmen. */
@@ -160,7 +179,7 @@ class PruefungenController extends Controller
         ]);
         $event->update(['pruefung_id' => $pruefung->pruefung_id]);
 
-        return redirect()->route('learner.exams.index')->with('success', __('Prüfung übernommen.'));
+        return $this->zurAgenda($request, $pruefung->datum->format('Y-m-d'))->with('success', __('Prüfung übernommen.'));
     }
 
     /** Track-/Datumsmeldung aus kategorieFuer durchreichen (z. B. «Track BMS war am … nicht aktiv»), sonst allgemein. */

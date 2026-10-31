@@ -52,18 +52,20 @@
                 @endif
                 <a href="{{ route('learner.grades.calculator', ['ziel' => $ziel]) }}" class="np-knopf np-knopf-schlicht np-knopf-klein mr-1">{{ __('Was brauche ich?') }}</a>
             @endif
-            <a href="{{ route('learner.exams.index', ['bearbeiten' => $p->pruefung_id]) }}" class="np-knopf np-knopf-symbol"
+            <a href="{{ route('learner.exams.index', array_filter(['bearbeiten' => $p->pruefung_id, 'lektionen' => $zeigeLektionen ? 1 : null])) }}" class="np-knopf np-knopf-symbol"
                aria-label="{{ __(':titel bearbeiten', ['titel' => $e['titel']]) }}" title="{{ __('Bearbeiten') }}"><x-symbol name="pencil-square" /></a>
             <form method="POST" action="{{ route('learner.exams.destroy', $p->pruefung_id) }}" data-bestaetigen="{{ __('Prüfung entfernen?') }}" data-bestaetigen-knopf="{{ __('Entfernen') }}"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
                 @method('DELETE')
+                @if($zeigeLektionen)<input type="hidden" name="lektionen" value="1">@endif
                 <button :disabled="loading" class="np-knopf np-knopf-symbol np-knopf-symbol-gefahr" aria-label="{{ __(':titel entfernen', ['titel' => $e['titel']]) }}" title="{{ __('Entfernen') }}"><x-symbol name="trash" /></button>
             </form>
         @elseif($e['art'] === 'erkannt')
             <form method="POST" action="{{ route('learner.exams.adopt', $e['event']->id) }}" class="flex items-center gap-2"
                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                 @csrf
+                @if($zeigeLektionen)<input type="hidden" name="lektionen" value="1">@endif
                 <label for="bezug-{{ $e['event']->id }}" class="sr-only">{{ __('Fach oder Modul') }}</label>
                 <select id="bezug-{{ $e['event']->id }}" name="bezug" required class="np-feld np-feld-klein w-44">
                     <option value="">{{ __('Zuordnen') }}</option>

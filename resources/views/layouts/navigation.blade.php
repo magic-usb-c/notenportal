@@ -234,9 +234,9 @@
                                        :class="i === index ? 'bg-accent text-accent-contrast' : 'text-text'">
                                         <span class="min-w-0">
                                             <span class="block truncate text-sm" x-text="t.label"></span>
-                                            <span class="block truncate text-xs" :class="i === index ? 'text-accent-contrast/80' : 'text-muted'" x-show="t.sub" x-text="t.sub"></span>
+                                            <span class="block truncate text-xs" :class="i === index ? 'text-accent-contrast' : 'text-muted'" x-show="t.sub" x-text="t.sub"></span>
                                         </span>
-                                        <span class="shrink-0 text-xs" :class="i === index ? 'text-accent-contrast/80' : 'text-muted'" x-text="t.gruppe"></span>
+                                        <span class="shrink-0 text-xs" :class="i === index ? 'text-accent-contrast' : 'text-muted'" x-text="t.gruppe"></span>
                                     </a>
                                 </template>
                                 <div x-show="!liste.length && !laden" class="px-3 py-10 text-center text-sm text-muted">{{ __('Keine Treffer') }}</div>

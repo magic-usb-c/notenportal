@@ -42,7 +42,12 @@
             'planen' => $planenLink($tag),
             'eintraege' => $tag['eintraege']->map(fn ($e) => [
                 'titel' => $e['titel'], 'zeit' => $e['zeit'], 'nebentext' => $e['nebentext'], 'punkt' => \App\Support\AgendaArt::punkt($e['art']),
-                'href' => $e['art'] === 'pruefung' ? route('learner.exams.index', ['bearbeiten' => $e['pruefung']->pruefung_id]) : null,
+                'href' => $e['art'] === 'pruefung' ? route('learner.exams.index', array_filter([
+                    'bearbeiten' => $e['pruefung']->pruefung_id,
+                    'ansicht' => $ansicht === 'monat' ? 'monat' : null,
+                    'monat' => $ansicht === 'monat' ? $monat->format('Y-m') : null,
+                    'lektionen' => $zeigeLektionen ? 1 : null,
+                ])) : null,
             ])->values(),
         ];
         $tagLabel = fn (array $tag) => \App\Support\Format::datum($tag['datum'], 'l, j. F Y')

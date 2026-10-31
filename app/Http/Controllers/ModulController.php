@@ -103,6 +103,11 @@ class ModulController extends Controller
         $lernenderId = (int) ($request->user()->lernender?->lernender_id ?? 0);
         abort_if($lernenderId === 0, 403);
 
+        // Ein ausser Betrieb genommenes Modul wird nicht neu belegt; bestehende Belegungen und Noten bleiben.
+        if (! $modul->aktiv) {
+            return back()->with('error', __('Dieses Modul ist nicht mehr aktiv und kann nicht hinzugefügt werden.'));
+        }
+
         $noten->resolveOrCreateOpenModulBelegung($lernenderId, $modul->modul_id, now()->toDateString());
 
         return back()->with('success', __('Modul hinzugefügt. Du kannst jetzt eigene Noten dazu erfassen.'));
