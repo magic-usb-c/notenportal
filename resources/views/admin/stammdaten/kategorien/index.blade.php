@@ -29,24 +29,24 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($kategorien->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-[90rem]">
                     <x-leer symbol="tag" :titel="__('Noch keine Kategorien erfasst.')" />
                 </div>
             @else
-                <div class="np-karte p-2">
+                <div class="np-karte max-w-[90rem] p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <caption class="sr-only">{{ __('Kategorien') }}</caption>
                         <thead>
                             <tr>
-                                <th scope="col" class="w-28">{{ __('Code') }}</th>
-                                <th scope="col" class="w-56">{{ __('Name') }}</th>
+                                <th scope="col" class="w-24">{{ __('Code') }}</th>
+                                <th scope="col" class="w-48">{{ __('Name') }}</th>
                                 <th scope="col" class="w-40 text-right">{{ __('Rundung Zeugnisnote') }}</th>
-                                <th scope="col" class="w-36 text-right">{{ __('Rundung Schnitt') }}</th>
-                                <th scope="col" class="w-28 text-right">{{ __('Gewicht') }}</th>
-                                <th scope="col" class="pl-8">{{ __('Promotion') }}</th>
-                                <th scope="col" class="w-24 text-right">{{ __('Fächer') }}</th>
-                                <th scope="col" class="w-24 text-right">{{ __('Module') }}</th>
-                                <th scope="col" class="w-32"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col" class="w-32 text-right">{{ __('Rundung Schnitt') }}</th>
+                                <th scope="col" class="w-24 text-right">{{ __('Gewicht') }}</th>
+                                <th scope="col" class="pl-6">{{ __('Promotion') }}</th>
+                                <th scope="col" class="w-20 text-right">{{ __('Fächer') }}</th>
+                                <th scope="col" class="w-20 text-right">{{ __('Module') }}</th>
+                                <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -56,7 +56,7 @@
                                     $regel = $promotion($k);
                                 @endphp
                                 <tr data-href="{{ $ziel }}">
-                                    <td class="font-semibold {{ $k->aktiv ? 'text-text' : 'text-muted' }}">{{ $k->code }}</td>
+                                    <td class="truncate font-semibold {{ $k->aktiv ? 'text-text' : 'text-muted' }}">{{ $k->code }}</td>
                                     <td>
                                         <div class="flex min-w-0 items-center gap-2">
                                             <a href="{{ $ziel }}" class="truncate {{ $k->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $k->name }}</a>
@@ -66,7 +66,7 @@
                                     <td class="text-right text-muted">{{ $rundung($k->rundung_element) }}</td>
                                     <td class="text-right text-muted">{{ $rundung($k->rundung_schnitt) }}</td>
                                     <td class="text-right text-text">{{ $zahl($k->gewicht_gesamt) }}</td>
-                                    <td class="truncate pl-8 {{ $regel ? 'text-text' : 'text-muted' }}" @if($regel) title="{{ $regel }}" @endif>{{ $regel ?? '–' }}</td>
+                                    <td class="truncate pl-6 {{ $regel ? 'text-text' : 'text-muted' }}" @if($regel) title="{{ $regel }}" @endif>{{ $regel ?? '–' }}</td>
                                     <td class="text-right {{ $k->faecher_anzahl > 0 ? 'text-text' : 'text-muted' }}">{{ $k->faecher_anzahl }}</td>
                                     <td class="text-right {{ $k->module_anzahl > 0 ? 'text-text' : 'text-muted' }}">{{ $k->module_anzahl }}</td>
                                     <td class="text-right">

@@ -139,6 +139,14 @@ class FeedbackController extends Controller
         }
 
         if ($request->wantsJson()) {
+            // Auf der eigenen Meldungsliste lädt das Widget die Seite neu (die Liste ist serverseitig
+            // gerendert); der Dank kommt dann als Flash. Anderswo zeigt das Widget den Dank selbst.
+            if (($validated['route_name'] ?? null) === 'feedback.index') {
+                $request->session()->flash('success', __('Danke, deine Meldung ist eingegangen.'));
+
+                return response()->json(['ok' => true, 'seite_neu' => true], 201);
+            }
+
             return response()->json(['ok' => true], 201);
         }
 

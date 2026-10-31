@@ -133,9 +133,8 @@ class DokumenteTest extends TestCase
     }
 
     #[Test]
-    public function ein_pdf_zeugnis_bietet_den_abgleich_nur_in_der_eigenen_ablage(): void
+    public function ein_pdf_zeugnis_bietet_den_abgleich_auch_berufsbildner_und_admin(): void
     {
-        // Den Abgleich gibt es nur unter learner.*; früher suchte die Verwaltungsansicht eine Route, die fehlt (500)
         $user = User::factory()->lernender()->create();
         $lernenderId = (int) $user->lernender->lernender_id;
         $dokumentId = DB::table('dokumente')->insertGetId([
@@ -143,18 +142,26 @@ class DokumenteTest extends TestCase
             'pfad' => 'lernende/'.$lernenderId.'/dokumente/z.pdf', 'mime' => 'application/pdf', 'groesse' => 2048,
             'sha256' => str_repeat('a', 64), 'hochgeladen_von_benutzer_id' => $user->benutzer_id, 'erstellt_am' => now(), 'aktualisiert_am' => now(),
         ]);
-        $abgleich = route('learner.documents.reconcile', $dokumentId);
 
         $this->actingAs($user)->get(route('learner.documents.index'))
             ->assertOk()
-            ->assertSee($abgleich, false)
+            ->assertSee(route('learner.documents.reconcile', $dokumentId), false)
             ->assertSee('upload-document', false);
+
+        $berufsbildner = User::factory()->berufsbildner()->create();
+        DB::table('betreuungen')->insert([
+            'berufsbildner_id' => $berufsbildner->berufsbildner->berufsbildner_id, 'lernender_id' => $lernenderId,
+            'gueltig_von' => now()->subMonth()->toDateString(),
+        ]);
+        $this->actingAs($berufsbildner)->get(route('trainer.learners.documents.index', $lernenderId))
+            ->assertOk()
+            ->assertSee(route('trainer.learners.documents.reconcile', [$lernenderId, $dokumentId]), false);
 
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('admin.learners.documents.index', $lernenderId))
             ->assertOk()
             ->assertSee('Zeugnis 1. Semester')
-            ->assertDontSee('reconcile', false);
+            ->assertSee(route('admin.learners.documents.reconcile', [$lernenderId, $dokumentId]), false);
     }
 
     #[Test]

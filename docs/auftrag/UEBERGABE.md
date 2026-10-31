@@ -444,6 +444,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   eigener Zeile mit weichem Umbruch. Mailtexte ohne Wiederholung von Betreff und Fakten (Import nennt
                   Herkunft und «Importiert am», Admin-Reset mit Gültigkeit und «Nicht erwartet?», Betreuung, Kommentar,
                   Prüfungserinnerung). Cockpit: beide Heldennoten auf gleicher Höhe. Suite 1898 grün.
+[Q] 31.10. 12:40  Klicktest Runde 4 und 5 (alle Rollen im Browser, auch Excel-/PDF-Import, Kalenderfeed, Stammdaten,
+                  Mail-Log, Feedback-Verwaltung): 4 Befunde behoben. Toast nach Passwortwechsel überlebt die
+                  Rollenweiche (f602b6b), Meldungsliste unter «Feedback» zeigt die neue Meldung sofort, Zeugnis-Abgleich
+                  für Berufsbildner und Admin wieder verlinkt, Stammdaten-Module stehen im Aktivitätsprotokoll.
+                  Rundgang dunkel (4 Rollen × 1920/2560, 158 verworfen): Kategorien-Tabelle auf Spaltensumme begrenzt.
 ```
 
 ---

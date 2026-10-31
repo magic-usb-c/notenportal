@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Modul;
+use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -109,7 +111,7 @@ class StammdatenModuleController extends Controller
             'ziel_gewicht_summe_default' => ['nullable', 'numeric', 'min:0', 'max:9999'],
         ]);
 
-        DB::table('module')->insert([
+        $modulId = DB::table('module')->insertGetId([
             'modul_nummer' => strtoupper($validated['modul_nummer']),
             'titel' => $validated['titel'],
             'version' => $validated['version'] ?? null,
@@ -119,6 +121,9 @@ class StammdatenModuleController extends Controller
             'erstellt_am' => now(),
             'aktualisiert_am' => now(),
         ]);
+
+        $modul = Modul::find($modulId);
+        Protokoll::schreiben(Protokoll::MODUL_ANGELEGT, $modul, ['nummer' => $modul->modul_nummer]);
 
         return redirect()->route('admin.master-data.modules.index')
             ->with('success', __('Modul angelegt.'));
@@ -154,6 +159,9 @@ class StammdatenModuleController extends Controller
             'aktiv' => (int) ($validated['aktiv'] ?? 1),
             'aktualisiert_am' => now(),
         ]);
+
+        $modul = Modul::find($modul_id);
+        Protokoll::schreiben(Protokoll::MODUL_GEAENDERT, $modul, ['nummer' => $modul->modul_nummer]);
 
         return redirect()->route('admin.master-data.modules.index')
             ->with('success', __('Modul aktualisiert.'));

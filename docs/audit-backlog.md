@@ -1360,3 +1360,9 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
 - **UI-Checker: zwei Auswahlen heissen «Zeitraum»** (Lernenden-Dashboard, `stat-modus` und `stat-zeitraum`): beide
   liegen in einer `role="group"` mit sichtbarem Namen («Wo stehe ich», «Verlauf»), den Screenreader beim Betreten
   ansagen.
+- **Feedback-Leerzustand: Hinweis «Meldungen kommen über «Feedback» in der Symbolleiste.»** (Rundgang 1920, zweite
+  Verifikation): nicht übernommen. Bei eingeschaltetem Knopf wäre der Satz ein erklärender Hinweis (CLAUDE.md); nur der
+  ausgeschaltete Knopf bekommt den Weg «Feedback-Knopf einschalten» (Audit Welle 3).
+- **Klicktest Runde 5, offen geblieben (nicht gefunden, nur nicht durchgeklickt):** Zeugnis-Übernahme schreibend, Lehrberuf
+  Module/Fächer zuweisen, Berufsbildner kommentiert und bearbeitet Prüfungstermine, externe Kalender-Abos, mehrblättrige
+  xlsx und Schulnetz-Formate, Einrichtungsassistent, Backups (bewusst).

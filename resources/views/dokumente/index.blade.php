@@ -18,7 +18,7 @@
     $semesterName = fn (?int $id) => $id ? $konfiguration->semesterName($id, (int) $lernender->lernender_id) : null;
     $gruppen = $dokumente->groupBy('art');
     $hochladenFehler = $errors->hasAny(['datei', 'art', 'semester_id', 'titel']);
-    $abgleich = \Illuminate\Support\Facades\Route::has('learner.documents.reconcile') && $bereich === null;
+    $abgleich = \Illuminate\Support\Facades\Route::has(($bereich ? $bereich.'.learners' : 'learner').'.documents.reconcile');
 @endphp
 <x-app-layout>
     <x-slot name="title">{{ __('Dokumente') }}</x-slot>

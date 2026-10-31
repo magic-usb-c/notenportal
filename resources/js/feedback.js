@@ -342,6 +342,19 @@ export function registriereFeedback(Alpine) {
                 });
 
                 if (res.status === 201) {
+                    const antwort = await res.json().catch(() => null);
+                    if (antwort?.seite_neu) {
+                        // Meldungsliste ist serverseitig gerendert: neu laden (erste Seite, dort steht die
+                        // neue Meldung), der Dank kommt als Flash.
+                        const ziel = new URL(window.location.href);
+                        if (ziel.searchParams.has('page')) {
+                            ziel.searchParams.delete('page');
+                            window.location.assign(ziel.toString());
+                        } else {
+                            window.location.reload();
+                        }
+                        return;
+                    }
                     window.dispatchEvent(new CustomEvent('np-toast', { detail: { message: t('Danke, deine Meldung ist eingegangen.') } }));
                     this.schliessen();
                 } else if (res.status === 422) {
