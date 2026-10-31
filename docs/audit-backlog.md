@@ -1327,3 +1327,23 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
 - **Meldung «nicht mehr aktiv» in der Agenda**: `PruefungenController::bezugFehler` fasst jede Ablehnung des Bezugs zu
   «nicht verfügbar» zusammen; die genauere Meldung aus `kategorieFuer` erscheint nur bei Note und Import. Im Formular
   steht ein ausgeschaltetes, unbelegtes Modul ohnehin nicht zur Wahl.
+
+## Funktionsprüfung Runde 3 (31.10.2026): bewusst gelassen
+
+- **Rechner-Drawer mit Datum ausserhalb der Lehrzeit**: Der Katalog des Rechners kennt nur Semester von Lehrbeginn bis
+  Lehrende; ein Datum ausserhalb ergibt weiterhin «Ungültige Auswahl.». Eigene Module ohne Noten sind behoben. Ob der
+  Drawer ein Datum ausserhalb der Lehrzeit mit eigener Meldung ablehnen oder gar nicht erst anbieten soll, ist eine
+  Produktfrage.
+- **Terminserien über 100 000 Wiederholungen**: Der Kalenderabgleich hebt die Grenze von Sabre beim Auffalten auf
+  100 000 Instanzen ab DTSTART. Minütliche Serien oder stündliche seit über elf Jahren scheitern weiterhin, jetzt mit
+  der Meldung «zu vielen Wiederholungen» statt «nicht erreichbar». Ein Auffalten je Serie bräuchte eigenes
+  VTIMEZONE- und RECURRENCE-ID-Handling.
+- **Datumsfelder ausserhalb von Noten, Agenda und Abgabeterminen**: `max=9999-12-31` sitzt nur an diesen drei
+  Formularen; die Serverregel `date_format:Y-m-d` gilt für alle schreibenden Wege von Note, Prüfung und Abgabe.
+- **Sehr frühe vierstellige Jahre** (0200-01-01) besteht `date_format:Y-m-d`; Noten fängt die Lehrzeitprüfung im
+  NoteService ab, Prüfungstermine nicht. Eine feste Jahresgrenze wäre ein Betriebswert im Code.
+- **Fehlertexte des Kalenderabgleichs nur Deutsch**: `CalendarSync::fehlertext` schreibt seine Texte (auch die sechs
+  neuen) deutsch nach `calendar_feeds.last_error`, die Einstellungen zeigen sie unübersetzt. Übersetzen liesse sich das
+  erst mit einem gespeicherten Fehlercode statt Text; die Meldung trifft bisher nur, wer selbst einen Kalender abonniert.
+- **Katalogparameter `days` der Inaktivitätsmail entfällt**: Ein auf der VM in `notification_policies.params` verstellter
+  Wert wird ignoriert; es gilt die Betriebsfrist «Erinnerung ohne neue Note nach» (Standard 30 Tage wie zuvor).

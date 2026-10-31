@@ -49,6 +49,7 @@
                                   @if($user->aktiv) data-bestaetigen="{{ __('Konto deaktivieren?') }}" data-bestaetigen-text="{{ __('Anmelden ist danach nicht mehr möglich.') }}" data-bestaetigen-knopf="{{ __('Deaktivieren') }}" @endif
                                   x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
                                 @csrf
+                                <input type="hidden" name="aktiv" value="{{ $user->aktiv ? 0 : 1 }}">
                                 <button type="submit" :disabled="loading" class="np-knopf {{ $user->aktiv ? 'np-knopf-gefahr' : 'np-knopf-sekundaer' }}">
                                     {{ $user->aktiv ? __('Deaktivieren') : __('Aktivieren') }}
                                 </button>

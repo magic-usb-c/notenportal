@@ -128,8 +128,13 @@ class ModulController extends Controller
 
         $entfernt = DB::transaction(function () use ($lernenderId, $modul_id): bool {
             // Sperren, damit nicht gleichzeitig eine Note an der Belegung entsteht.
-            DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->where('modul_id', $modul_id)
+            $belegungen = DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->where('modul_id', $modul_id)
                 ->lockForUpdate()->pluck('modul_belegung_id');
+
+            // Keine Belegung (mehr): schon entfernt, zweiter Klick oder zweiter Tab – gleiches Ergebnis wie beim ersten Mal.
+            if ($belegungen->isEmpty()) {
+                return true;
+            }
 
             if (! $this->entfernbar($lernenderId, $modul_id)) {
                 return false;

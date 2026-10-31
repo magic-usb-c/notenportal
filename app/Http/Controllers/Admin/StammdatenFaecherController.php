@@ -64,7 +64,7 @@ class StammdatenFaecherController extends Controller
     public function edit(int $fach_id)
     {
         $fach = DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
-        $kategorien = $this->aktiveKategorien();
+        $kategorien = $this->aktiveKategorien((int) $fach->kategorie_id);
         $loeschSperre = $this->loeschSperre($fach_id);
 
         return view('admin.stammdaten.faecher.edit', compact('fach', 'kategorien', 'loeschSperre'));
@@ -73,7 +73,7 @@ class StammdatenFaecherController extends Controller
     public function update(Request $request, int $fach_id): RedirectResponse
     {
         $fach = DB::table('faecher')->where('fach_id', $fach_id)->firstOrFail();
-        $validated = $this->validiere($request, $fach_id);
+        $validated = $this->validiere($request, $fach_id, (int) $fach->kategorie_id);
 
         // Skala wechseln geht nur, solange keine Noten der anderen Art bestehen – sonst wären sie unlesbar.
         $skala = $validated['skala'] ?? $fach->skala;
@@ -149,7 +149,7 @@ class StammdatenFaecherController extends Controller
     }
 
     /** @return array<string, mixed> */
-    private function validiere(Request $request, ?int $fachId = null): array
+    private function validiere(Request $request, ?int $fachId = null, ?int $aktuelleKategorieId = null): array
     {
         $track = is_string($t = $request->input('track_typ')) && $t !== '' ? $t : null;
         $eindeutig = fn (string $spalte) => Rule::unique('faecher', $spalte)
@@ -159,7 +159,9 @@ class StammdatenFaecherController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:200', $eindeutig('name')],
             'kurzname' => ['required', 'string', 'max:50', $eindeutig('kurzname')],
-            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')->where('aktiv', 1)],
+            // Die bisherige Kategorie des Fachs gilt auch inaktiv: sonst liesse sich ein Fach nach dem Deaktivieren der Kategorie nicht mehr speichern.
+            'kategorie_id' => ['required', 'integer', Rule::exists('kategorien', 'kategorie_id')
+                ->where(fn ($q) => $q->where('aktiv', 1)->when($aktuelleKategorieId, fn ($q) => $q->orWhere('kategorie_id', $aktuelleKategorieId)))],
             'track_typ' => ['nullable', 'in:BMS,ABU'],
             'skala' => ['sometimes', 'in:note,stufe'],
             'zaehlt' => ['sometimes', 'boolean'],
@@ -170,8 +172,10 @@ class StammdatenFaecherController extends Controller
         ]);
     }
 
-    private function aktiveKategorien()
+    private function aktiveKategorien(?int $zusaetzlichId = null)
     {
-        return DB::table('kategorien')->where('aktiv', 1)->orderBy('sortierung')->get();
+        return DB::table('kategorien')
+            ->where(fn ($q) => $q->where('aktiv', 1)->when($zusaetzlichId, fn ($q) => $q->orWhere('kategorie_id', $zusaetzlichId)))
+            ->orderBy('sortierung')->get();
     }
 }

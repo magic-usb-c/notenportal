@@ -282,6 +282,34 @@ class NotenImportTest extends TestCase
     }
 
     #[Test]
+    public function veralteter_token_verwirft_die_neuere_vorschau_nicht(): void
+    {
+        $schluessel = 'notenimport.'.$this->user->lernender->lernender_id;
+        $csvA = "Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;SK;A;4,5;50%\n";
+        $csvB = "Datum;Fach/Modul;Titel;Note;Gewicht\n03.03.2026;SK;B;5,0;50%\n";
+        $this->actingAs($this->user)->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('a.csv', $csvA)]);
+        $vorschauA = session($schluessel);
+        $this->post(route('learner.grades.import.read'), ['datei' => UploadedFile::fake()->createWithContent('b.csv', $csvB)]);
+        $vorschauB = session($schluessel);
+        $this->assertNotSame($vorschauA['token'], $vorschauB['token']);
+
+        // Tab A schickt die ältere Vorschau ab: abgelehnt mit passender Meldung, Vorschau B bleibt unangetastet
+        $this->post(route('learner.grades.import.apply'), [
+            'zeilen' => json_encode([[...$vorschauA['zeilen'][0], 'uebernehmen' => true]]),
+            'token' => $vorschauA['token'],
+        ])->assertSessionHas('error', __('Diese Vorschau ist nicht mehr aktuell. Bitte Datei neu einlesen.'));
+        $this->assertSame(0, Note::count());
+        $this->assertSame($vorschauB['token'], session($schluessel)['token']);
+
+        // Die neuere Vorschau lässt sich weiterhin übernehmen
+        $this->post(route('learner.grades.import.apply'), [
+            'zeilen' => json_encode([[...$vorschauB['zeilen'][0], 'uebernehmen' => true]]),
+            'token' => $vorschauB['token'],
+        ])->assertSessionHas('success');
+        $this->assertSame(1, Note::count());
+    }
+
+    #[Test]
     public function excel_ohne_kopfzeile_wird_nach_inhalt_gelesen(): void
     {
         $blatt = new Spreadsheet;

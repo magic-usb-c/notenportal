@@ -24,10 +24,13 @@ class SendDigests extends Command
         DigestItem::query()->whereNull('sent_at')->orderBy('created_at')->get()->groupBy('user_id')
             ->each(function ($eintraege, $userId) use (&$anzahl) {
                 $user = User::find($userId);
-                if ($user && $user->aktiv) {
+                // Anlässe, die seit dem Eintrag ausgeschaltet oder abbestellt wurden, gehören nicht mehr in die Mail
+                $zustellbar = $user ? $eintraege->filter(fn (DigestItem $i) => ! NotificationCatalog::exists($i->type)
+                    || (NotificationCatalog::policy($i->type)['enabled'] && Notifier::frequencyFor($user, $i->type) !== NotificationCatalog::NEVER)) : $eintraege;
+                if ($user && $user->aktiv && $zustellbar->isNotEmpty()) {
                     // In der Sprache des Empfängers bauen (Gruppenlabel aus dem Katalog, Betreff, Titel)
-                    Notifier::dispatch($user, NotificationCatalog::DAILY_DIGEST, function () use ($eintraege) {
-                        $items = $eintraege->map(fn (DigestItem $i) => [
+                    Notifier::dispatch($user, NotificationCatalog::DAILY_DIGEST, function () use ($zustellbar) {
+                        $items = $zustellbar->map(fn (DigestItem $i) => [
                             'group' => NotificationCatalog::exists($i->type) ? NotificationCatalog::get($i->type)['label'] : '',
                             'title' => $i->title,
                             'text' => $i->body,

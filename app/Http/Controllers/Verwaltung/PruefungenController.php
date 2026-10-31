@@ -200,9 +200,12 @@ class PruefungenController extends VerwaltungController
             'lernender_id' => ['required', 'integer'],
             'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
             'titel' => ['required', 'string', 'max:150'],
-            'datum' => ['required', 'date'],
+            'datum' => ['required', 'date_format:Y-m-d'],
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
+        ], [
+            'bezug.required' => __('Bitte Fach oder Modul wählen.'),
+            'datum.date_format' => __('Bitte ein gültiges Datum eingeben.'),
+        ]);
 
         $lernender = $this->sichtbarerLernender($request, (int) $daten['lernender_id']);
         [$typ, $id] = explode(':', $daten['bezug']);

@@ -26,7 +26,7 @@ class BenutzerControllerTest extends TestCase
         $berufsbildnerId = $bb->berufsbildner->berufsbildner_id;
 
         $this->actingAs($this->admin)
-            ->post(route('admin.users.toggle-active', $bb->benutzer_id))
+            ->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0])
             ->assertSessionHas('success');
 
         $this->assertNotNull(Berufsbildner::withTrashed()->find($berufsbildnerId)->geloescht_am);
@@ -39,8 +39,8 @@ class BenutzerControllerTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
         $berufsbildnerId = $bb->berufsbildner->berufsbildner_id;
 
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0]);
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 1]);
 
         $this->assertNull(Berufsbildner::withTrashed()->find($berufsbildnerId)->geloescht_am);
         $this->assertNotNull($bb->fresh()->berufsbildner);

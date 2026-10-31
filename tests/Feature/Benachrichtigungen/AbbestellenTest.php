@@ -111,7 +111,7 @@ class AbbestellenTest extends TestCase
         $user = User::factory()->lernender()->create();
         $url = URL::signedRoute('notifications.unsubscribe', ['user' => $user->benutzer_id, 'type' => NotificationCatalog::PASSWORD_CHANGED]);
 
-        $this->post($url)->assertOk();
+        $this->post($url)->assertOk()->assertSee('lässt sich nicht abbestellen');
 
         $this->assertDatabaseMissing('notification_preferences', [
             'user_id' => $user->benutzer_id,

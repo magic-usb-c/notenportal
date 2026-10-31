@@ -208,7 +208,21 @@ class BenutzerController extends Controller
             return back()->with('error', __('Eigener Account kann nicht deaktiviert werden.'));
         }
 
-        $neuAktiv = ! $user->aktiv;
+        // Zielzustand kommt aus dem Formular: ein wiederholt gesendetes Formular schaltet nicht zurück
+        $neuAktiv = (bool) $request->validate(['aktiv' => ['required', 'boolean']])['aktiv'];
+        $meldung = $neuAktiv ? __('Benutzer aktiviert.') : __('Benutzer deaktiviert.');
+
+        if ((bool) $user->aktiv === $neuAktiv) {
+            return back()->with('success', $meldung);
+        }
+
+        $berufsbildnerId = $user->berufsbildner?->berufsbildner_id;
+        if (! $neuAktiv && $berufsbildnerId && DB::table('betreuungen')
+            ->where('berufsbildner_id', $berufsbildnerId)
+            ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
+            ->exists()) {
+            return back()->with('error', __('Aktive Betreuungen zuerst übergeben.'));
+        }
 
         DB::transaction(function () use ($user, $neuAktiv) {
             $berufsbildner = $user->berufsbildner;
@@ -225,7 +239,7 @@ class BenutzerController extends Controller
 
         Protokoll::schreiben($neuAktiv ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $user);
 
-        return back()->with('success', $neuAktiv ? __('Benutzer aktiviert.') : __('Benutzer deaktiviert.'));
+        return back()->with('success', $meldung);
     }
 
     /** Lernenden-Konten werden ausschliesslich über die Lernenden-Verwaltung geändert. */

@@ -107,7 +107,8 @@ class FeedbackController extends Controller
 
         $feedback->status = $validated['status'];
         $feedback->admin_notiz = $validated['admin_notiz'] ?? null;
-        $feedback->erledigt_am = $validated['status'] === Feedback::STATUS_ERLEDIGT ? now() : null;
+        // Das Erledigt-Datum entsteht beim Übergang nach «erledigt»; eine Notizkorrektur lässt es stehen.
+        $feedback->erledigt_am = $validated['status'] === Feedback::STATUS_ERLEDIGT ? ($feedback->erledigt_am ?? now()) : null;
         $feedback->save();
 
         // Hat die Hauptmeldung Duplikate, übernehmen sie Status, erledigt_am und admin_notiz.

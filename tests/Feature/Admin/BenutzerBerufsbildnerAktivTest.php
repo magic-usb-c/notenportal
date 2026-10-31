@@ -33,7 +33,7 @@ class BenutzerBerufsbildnerAktivTest extends TestCase
     public function bearbeiten_eines_deaktivierten_berufsbildners_stellt_die_zeile_nicht_wieder_her(): void
     {
         $bb = User::factory()->berufsbildner()->create();
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0]);
         $this->assertSame(0, Berufsbildner::where('benutzer_id', $bb->benutzer_id)->count());
 
         $this->speichern($bb)->assertRedirect();
@@ -47,7 +47,7 @@ class BenutzerBerufsbildnerAktivTest extends TestCase
     public function deaktivierter_berufsbildner_nach_bearbeiten_nicht_zuteilbar(): void
     {
         $bb = User::factory()->berufsbildner()->create();
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0]);
         $this->speichern($bb);
         $lernender = User::factory()->lernender()->create()->lernender;
 
@@ -64,10 +64,10 @@ class BenutzerBerufsbildnerAktivTest extends TestCase
     public function reaktivieren_stellt_die_zeile_wieder_her(): void
     {
         $bb = User::factory()->berufsbildner()->create();
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0]);
         $this->speichern($bb);
 
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 1]);
 
         $this->assertTrue((bool) $bb->fresh()->aktiv);
         $this->assertSame(1, Berufsbildner::where('benutzer_id', $bb->benutzer_id)->count());
@@ -82,7 +82,7 @@ class BenutzerBerufsbildnerAktivTest extends TestCase
         $this->speichern($user, ['Berufsbildner'])->assertRedirect();
         $this->assertSame(0, Berufsbildner::withTrashed()->where('benutzer_id', $user->benutzer_id)->count());
 
-        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $user->benutzer_id));
+        $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $user->benutzer_id), ['aktiv' => 1]);
 
         $this->assertTrue((bool) $user->fresh()->aktiv);
         $this->assertSame(1, Berufsbildner::where('benutzer_id', $user->benutzer_id)->count());

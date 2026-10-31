@@ -585,7 +585,7 @@ class NoteService
      * Kategorie für ein Modul ausserhalb des Lehrberufs: die im Lehrberuf am häufigsten verwendete,
      * sonst die erste aktive Kategorie. Rückgabe ist immer eine gültige kategorie_id (Fremdschlüssel).
      */
-    private function fallbackModulKategorie(int $lehrberufId): int
+    public function fallbackModulKategorie(int $lehrberufId): int
     {
         return $this->fallbackKategorieCache[$lehrberufId] ??= (int) (DB::table('lehrberuf_module')
             ->where('lehrberuf_id', $lehrberufId)

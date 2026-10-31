@@ -93,10 +93,10 @@ class BenachrichtigungsRegelnTest extends TestCase
         $this->actingAs($admin)
             ->put(route('admin.notifications.update'), [
                 'policies' => [
-                    $type => ['enabled' => '1', 'mandatory' => '0', 'frequency' => 'immediate', 'params' => ['days' => 999]],
+                    $type => ['enabled' => '1', 'mandatory' => '0', 'frequency' => 'immediate', 'params' => ['repeat_days' => 999]],
                 ],
             ])
-            ->assertSessionHasErrors('policies.'.$type.'.params.days');
+            ->assertSessionHasErrors('policies.'.$type.'.params.repeat_days');
     }
 
     #[Test]

@@ -169,6 +169,9 @@ final class Sicherung
             2. Inhalt von dateien/ nach storage/app/private kopieren,
                danach: sudo chgrp -R www-data storage/app/private && sudo chmod -R g+rwX storage/app/private
             3. php artisan optimize:clear
+
+            Wichtig: Die gespeicherten Kalenderadressen sind mit dem APP_KEY aus .env verschlüsselt, und .env ist nicht in dieser
+            Sicherung. Bei einem anderen APP_KEY den alten als APP_PREVIOUS_KEYS eintragen, sonst müssen die Lernenden ihre Kalender neu hinterlegen.
             TXT;
     }
 }

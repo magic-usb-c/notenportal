@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\Table;
@@ -39,10 +40,41 @@ class CalendarFeed extends Model
         return $this->hasMany(CalendarEvent::class);
     }
 
-    /** Anzeige ohne Geheimnis: nur Host. */
+    /**
+     * Gespeicherte Adresse; null, wenn sie sich nicht entschlüsseln lässt (Datenbank aus einer Sicherung
+     * unter einem anderen APP_KEY). Jeder lesende Zugriff auf `url` läuft hierüber, nie über das Attribut.
+     */
+    public function adresse(): ?string
+    {
+        try {
+            return $this->url === null ? null : (string) $this->url;
+        } catch (DecryptException) {
+            return null;
+        }
+    }
+
+    /**
+     * Setzt eine neue Adresse. Ist die gespeicherte nicht entschlüsselbar, darf Laravel den Altwert beim
+     * Dirty-Vergleich (isDirty, save) nicht mehr entschlüsseln wollen – sonst liesse sich der Kalender nie reparieren.
+     */
+    public function adresseSetzen(string $url): void
+    {
+        if ($this->exists && $this->adresse() === null) {
+            unset($this->original['url']);
+        }
+        $this->url = $url;
+    }
+
+    /** Anzeige ohne Geheimnis: nur Host; leer, wenn die Adresse nicht lesbar ist. */
     public function host(): string
     {
-        return (string) parse_url((string) $this->url, PHP_URL_HOST);
+        return (string) parse_url((string) $this->adresse(), PHP_URL_HOST);
+    }
+
+    /** Host oder, wenn nicht ermittelbar, ein Platzhalter – für Listen und Meldungen. */
+    public function anzeigehost(): string
+    {
+        return $this->host() ?: __('Adresse nicht lesbar');
     }
 
     protected function casts(): array

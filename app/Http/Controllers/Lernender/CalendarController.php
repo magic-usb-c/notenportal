@@ -53,11 +53,11 @@ class CalendarController extends Controller
             }
 
             // Andere Adresse: der alte Stempel gehört zum alten Kalender und darf ihn nicht als unverändert ausgeben.
-            if ($feed->exists && $feed->url !== $url) {
+            if ($feed->exists && $feed->adresse() !== $url) {
                 $feed->etag = null;
                 $feed->last_modified = null;
             }
-            $feed->url = $url;
+            $feed->adresseSetzen($url);
         }
 
         $feed->fill([
@@ -65,7 +65,15 @@ class CalendarController extends Controller
             'import_lessons' => $request->boolean('import_lessons'),
             'import_appointments' => $request->boolean('import_appointments'),
             'import_exams' => $request->boolean('import_exams'),
-        ])->save();
+        ]);
+
+        // Die Schalter ändern, was der Abgleich aus demselben Kalender macht. Bliebe der Stempel stehen, antwortete
+        // die Quelle mit 304 («unverändert»), und das Ein- oder Ausschalten wirkte erst bei der nächsten Änderung dort.
+        if ($feed->exists && $feed->isDirty(['import_lessons', 'import_appointments', 'import_exams'])) {
+            $feed->etag = null;
+            $feed->last_modified = null;
+        }
+        $feed->save();
 
         return redirect()->route('settings.calendar')->with('success', __('Kalender gespeichert.'));
     }
@@ -121,7 +129,7 @@ class CalendarController extends Controller
                 $events += $stats['events'];
                 $exams += $stats['exams'];
             } catch (Throwable $e) {
-                $fehler[] = $feed->host().': '.CalendarSync::fehlertext($e);
+                $fehler[] = $feed->anzeigehost().': '.CalendarSync::fehlertext($e);
             }
         }
 

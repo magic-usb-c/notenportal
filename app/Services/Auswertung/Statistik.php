@@ -62,7 +62,8 @@ final class Statistik
         $punkte = [];
         foreach ($mitDatum as $l) {
             $datum = substr($l->datum, 0, 10);
-            if ($l->istUnbekannt() || $l->quelle !== Leistung::NOTE || $datum < $von->toDateString() || $datum > $bis->toDateString()
+            // Notenbaum-Positionen (IPA, Schlussarbeit) rechnen in der Reihe mit, sind aber keine Punkte
+            if ($l->istPosition() || $l->istUnbekannt() || $l->quelle !== Leistung::NOTE || $datum < $von->toDateString() || $datum > $bis->toDateString()
                 || ! $this->gehoertZu($l, $z, $k)) {
                 continue;
             }

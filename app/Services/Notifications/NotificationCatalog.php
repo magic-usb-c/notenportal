@@ -133,7 +133,6 @@ final class NotificationCatalog
                 'group' => 'noten', 'roles' => self::L, 'enabled' => true, 'mandatory' => false,
                 'frequency' => self::IMMEDIATE, 'frequencies' => $alle,
                 'params' => [
-                    'days' => ['label' => __('Nach Tagen ohne Note'), 'default' => 30, 'min' => 7, 'max' => 180],
                     'repeat_days' => ['label' => __('Wiederholen alle (Tage)'), 'default' => 14, 'min' => 7, 'max' => 90],
                 ],
             ],

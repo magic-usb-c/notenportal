@@ -83,7 +83,7 @@ class BemerkungUndKontenTest extends TestCase
 
         $this->actingAs($admin)->get(route('admin.users.edit', $lernender->benutzer_id))
             ->assertRedirect(route('admin.learners.show', $lernender->lernender_id));
-        $this->actingAs($admin)->post(route('admin.users.toggle-active', $lernender->benutzer_id))->assertNotFound();
+        $this->actingAs($admin)->post(route('admin.users.toggle-active', $lernender->benutzer_id), ['aktiv' => 0])->assertNotFound();
         $this->assertTrue($lernender->benutzer->fresh()->aktiv);
     }
 }

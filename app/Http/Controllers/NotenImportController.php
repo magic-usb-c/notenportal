@@ -114,15 +114,19 @@ class NotenImportController extends Controller
         abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
         $request->validate(['zeilen' => ['required', 'json'], 'token' => ['required', 'string']]);
 
-        // Vorschau atomar aus der Session ziehen und an das mitgesendete Einmal-Token binden: ein zweiter Post
-        // derselben Daten (Back-Knopf, Doppelklick, zweiter Tab) findet keine (oder eine bereits andere) Vorschau
-        // mehr vor und legt nichts ein zweites Mal an.
+        // Vorschau an das mitgesendete Einmal-Token binden: ein zweiter Post derselben Daten (Back-Knopf, Doppelklick,
+        // zweiter Tab) findet keine Vorschau mehr vor und legt nichts ein zweites Mal an. Die Vorschau wird erst nach
+        // bestandener Prüfung (und vor dem Import) entfernt; eine neuere Vorschau mit anderem Token bleibt unangetastet.
         $schluessel = $this->schluessel($lernender);
-        $vorschau = $request->session()->pull($schluessel);
-        $token = is_string($vorschau['token'] ?? null) ? $vorschau['token'] : null;
-        if ($vorschau === null || $token === null || ! hash_equals($token, (string) $request->input('token'))) {
+        $vorschau = $request->session()->get($schluessel);
+        $token = is_array($vorschau) && is_string($vorschau['token'] ?? null) ? $vorschau['token'] : null;
+        if ($token === null) {
             return back()->with('error', __('Diese Vorschau wurde bereits übernommen.'));
         }
+        if (! hash_equals($token, (string) $request->input('token'))) {
+            return back()->with('error', __('Diese Vorschau ist nicht mehr aktuell. Bitte Datei neu einlesen.'));
+        }
+        $request->session()->forget($schluessel);
 
         $zeilen = json_decode((string) $request->input('zeilen'), true);
         abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);

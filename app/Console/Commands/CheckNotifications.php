@@ -22,6 +22,7 @@ use App\Services\Notifications\Messages\SemesterClosed;
 use App\Services\Notifications\Messages\SemesterEnding;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
+use App\Support\Betrieb;
 use Closure;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
@@ -83,6 +84,12 @@ class CheckNotifications extends Command
             return;
         }
 
+        // Erst prüfen, ob überhaupt zugestellt würde: sonst gälte der Anlass als gemeldet, obwohl nichts verschickt wurde
+        // (Anlass ausgeschaltet, persönliche Wahl «nie»), und käme nach dem Wiedereinschalten nie mehr.
+        if (! Notifier::wuerdeZustellen($empfaenger, $type)) {
+            return;
+        }
+
         if (Notifier::once($empfaenger, $type, $key)) {
             Notifier::send($empfaenger, $type, $inhalt);
         }
@@ -121,7 +128,8 @@ class CheckNotifications extends Command
 
     private function inactivity(): void
     {
-        $tage = NotificationCatalog::param(NotificationCatalog::INACTIVITY, 'days');
+        // Eine Quelle für die Schwelle: dieselbe Frist wie die Ampel (Betrieb → «Erinnerung ohne neue Note nach»)
+        $tage = Betrieb::fristInaktivTage();
         $wiederholung = NotificationCatalog::param(NotificationCatalog::INACTIVITY, 'repeat_days');
         $lernende = $this->aktiveLernende();
         if ($lernende->isEmpty()) {

@@ -83,7 +83,8 @@ final class GradeWatcher
     {
         $out = [];
         foreach ($a->elemente as $schluessel => $e) {
-            if ($e->note === null) {
+            // Nicht zählende Fächer fliessen in keinen Schnitt ein (Übersicht, Bericht): keine Meldung «neu ungenügend»
+            if ($e->note === null || ! $e->zaehlt) {
                 continue;
             }
             $out[$schluessel] = ['typ' => $e->typ, 'name' => $e->label, 'semesterId' => $e->semesterId, 'wert' => $e->note];

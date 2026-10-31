@@ -232,10 +232,10 @@ class NotenController extends Controller
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel' => ['nullable', 'string', 'max:150'],
-            'pruefungsdatum' => ['required', 'date'],
+            'pruefungsdatum' => ['required', 'date_format:Y-m-d'],
             ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ], NoteService::bezugMeldungen());
+        ], NoteService::bezugMeldungen() + ['pruefungsdatum.date_format' => __('Bitte ein gültiges Datum eingeben.')]);
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id);
 
@@ -350,10 +350,10 @@ class NotenController extends Controller
             'fach_id' => ['nullable', 'integer', 'exists:faecher,fach_id'],
             'modul_id' => ['nullable', 'integer', 'exists:module,modul_id'],
             'titel' => ['nullable', 'string', 'max:150'],
-            'pruefungsdatum' => ['required', 'date'],
+            'pruefungsdatum' => ['required', 'date_format:Y-m-d'],
             ...NoteService::wertRegeln(),
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],
-        ], NoteService::bezugMeldungen());
+        ], NoteService::bezugMeldungen() + ['pruefungsdatum.date_format' => __('Bitte ein gültiges Datum eingeben.')]);
 
         $data = $this->noteService->normalizeForSave($validated, (int) $lernender->lernender_id, $note);
 

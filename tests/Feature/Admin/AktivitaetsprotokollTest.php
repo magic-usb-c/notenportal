@@ -274,10 +274,10 @@ class AktivitaetsprotokollTest extends TestCase
         $admin = User::factory()->admin()->create();
         $bb = User::factory()->berufsbildner()->create();
 
-        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0]);
         $this->assertSame(Protokoll::ADMIN_KONTO_DEAKTIVIERT, $this->letzterEintrag()->aktion);
 
-        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bb->benutzer_id));
+        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 1]);
         $this->assertSame(Protokoll::ADMIN_KONTO_REAKTIVIERT, $this->letzterEintrag()->aktion);
     }
 

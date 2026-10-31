@@ -197,6 +197,34 @@ final class Rechner
             }
         }
 
+        // Module, die sich die Person selbst dazugenommen hat (eigene Belegung, unabhängig von module.aktiv), auch ohne
+        // Noten: dieselbe Menge und Kategorie-Auflösung wie die Auswahl der Notenerfassung (NoteService::modulesForLernender).
+        $bekannt = array_column($module, 'id');
+        $eigene = DB::table('modul_belegungen as mb')
+            ->leftJoin('lehrberuf_module as lbm', function ($join) use ($lernender) {
+                $join->on('lbm.modul_id', '=', 'mb.modul_id')
+                    ->where('lbm.lehrberuf_id', '=', (int) $lernender->lehrberuf_id)
+                    ->where('lbm.aktiv', '=', 1);
+            })
+            ->where('mb.lernender_id', $id)->whereNotIn('mb.modul_id', $bekannt ?: [0])
+            ->distinct()->pluck('lbm.kategorie_id', 'mb.modul_id')->all();
+        if ($eigene !== []) {
+            $fallback = $this->noteService->fallbackModulKategorie((int) $lernender->lehrberuf_id);
+            foreach ($eigene as $modulId => $kategorieId) {
+                $kategorieId = (int) ($kategorieId ?: $fallback);
+                if ($kategorieId > 0) {
+                    $module[] = [
+                        'id' => (int) $modulId,
+                        'name' => $k->modulName((int) $modulId),
+                        'kategorie_id' => $kategorieId,
+                        'ziel' => $k->module[(int) $modulId]['ziel'] ?? null,
+                        'empfohlen' => null,
+                        'erfassbar' => true,
+                    ];
+                }
+            }
+        }
+
         $von = $lernender->lehrbeginn?->toDateString() ?? now()->toDateString();
         $bis = $lernender->lehrende?->toDateString() ?? Carbon::parse($von)->addYears(4)->toDateString();
 

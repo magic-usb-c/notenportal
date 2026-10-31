@@ -87,7 +87,7 @@
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label for="datum" class="{{ $label }}">{{ __('Datum') }}</label>
-            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString() ?? $vorbelegtesDatum) }}"
+            <input type="date" id="datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString() ?? $vorbelegtesDatum) }}" max="9999-12-31"
                    class="{{ $feld }} tabular-nums" @error('datum') aria-invalid="true" aria-describedby="datum-fehler" @enderror>
             @error('datum')<p id="datum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

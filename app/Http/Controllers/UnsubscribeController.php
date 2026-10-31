@@ -24,11 +24,10 @@ class UnsubscribeController extends Controller
         abort_unless(NotificationCatalog::exists($type), 404);
 
         $def = NotificationCatalog::get($type);
-        $policy = NotificationCatalog::policy($type);
 
         return view('notifications.abbestellen', [
             'label' => $def['label'],
-            'mandatory' => $policy['mandatory'],
+            'mandatory' => ! $this->abbestellbar($type),
         ]);
     }
 
@@ -38,20 +37,34 @@ class UnsubscribeController extends Controller
         abort_unless(NotificationCatalog::exists($type), 404);
 
         $def = NotificationCatalog::get($type);
-        $policy = NotificationCatalog::policy($type);
-
-        if (! $policy['mandatory'] && in_array(NotificationCatalog::NEVER, $def['frequencies'], true)) {
-            NotificationPreference::query()->updateOrCreate(
-                ['user_id' => $benutzer->benutzer_id, 'type' => $type],
-                ['frequency' => NotificationCatalog::NEVER],
-            );
-        }
 
         // RFC 8058: Mailprogramme senden den Body "List-Unsubscribe=One-Click" statt die Seite zu öffnen.
-        if (str_contains((string) $request->getContent(), 'List-Unsubscribe=One-Click')) {
+        $oneClick = str_contains((string) $request->getContent(), 'List-Unsubscribe=One-Click');
+
+        // Der Link steht in älteren Mails: hat der Betrieb den Anlass inzwischen zur Pflicht gemacht, ändert sich nichts,
+        // und das darf nicht als «Abbestellt» erscheinen.
+        if (! $this->abbestellbar($type)) {
+            return $oneClick
+                ? response(__('Nicht abbestellbar.'), 409)->header('Content-Type', 'text/plain; charset=UTF-8')
+                : view('notifications.abbestellen', ['label' => $def['label'], 'mandatory' => true]);
+        }
+
+        NotificationPreference::query()->updateOrCreate(
+            ['user_id' => $benutzer->benutzer_id, 'type' => $type],
+            ['frequency' => NotificationCatalog::NEVER],
+        );
+
+        if ($oneClick) {
             return response(__('Abbestellt.'), 200)->header('Content-Type', 'text/plain; charset=UTF-8');
         }
 
         return view('notifications.abbestellt', ['label' => $def['label']]);
+    }
+
+    /** Nur, wenn der Anlass nicht verpflichtend ist und «nie» als Frequenz zulässt. */
+    private function abbestellbar(string $type): bool
+    {
+        return ! NotificationCatalog::policy($type)['mandatory']
+            && in_array(NotificationCatalog::NEVER, NotificationCatalog::get($type)['frequencies'], true);
     }
 }

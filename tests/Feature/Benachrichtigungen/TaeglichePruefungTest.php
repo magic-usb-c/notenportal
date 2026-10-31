@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Notifications\PortalMail;
 use App\Services\Auswertung\LernstandRechner;
 use App\Services\Notifications\NotificationCatalog;
+use App\Support\Betrieb;
 use App\Support\Einstellungen;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -272,7 +273,7 @@ class TaeglichePruefungTest extends TestCase
         $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
         $id = $lernenderUser->lernender->lernender_id;
         DB::table('lernende')->where('lernender_id', $id)->update(['lehrbeginn' => $start->toDateString(), 'lehrende' => null]);
-        $tage = NotificationCatalog::param(NotificationCatalog::INACTIVITY, 'days');
+        $tage = Betrieb::fristInaktivTage();
         $marke = fn (Carbon $am) => NotificationMark::query()->insert([
             'user_id' => $lernenderUser->benutzer_id, 'type' => NotificationCatalog::INACTIVITY,
             'subject_key' => 'inaktiv:'.$id.':0', 'created_at' => $am,

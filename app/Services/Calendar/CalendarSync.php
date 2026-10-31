@@ -15,12 +15,16 @@ use Carbon\CarbonInterface;
 use DateTimeZone;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
+use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Sabre\VObject\Component\VEvent;
 use Sabre\VObject\DateTimeParser;
 use Sabre\VObject\Reader;
+use Sabre\VObject\Recur\MaxInstancesExceededException;
+use Sabre\VObject\Settings;
 
 /**
  * Gleicht einen abonnierten iCal-Kalender ab: Termine und Lektionen landen in calendar_events,
@@ -35,13 +39,22 @@ final class CalendarSync
 
     private const int DAYS_AHEAD = 400;
 
+    /**
+     * Sabre zählt beim Auffalten jede Instanz ab DTSTART gegen eine Grenze (Standard 3500). Eine tägliche Serie
+     * seit 2015 überschreitet sie und liesse den ganzen Kalender scheitern; für die Dauer des Auffaltens gilt dieser Wert.
+     */
+    private const int MAX_WIEDERHOLUNGEN = 100_000;
+
+    /** Obergrenze für Freitextfelder in Bytes: die Spalten sind TEXT (65 535 Bytes), mit Reserve. */
+    private const int MAX_TEXT_BYTES = 60_000;
+
     public function __construct(private readonly SchoolNetDescriptionParser $parser) {}
 
     /** @return array{events: int, exams: int, unmatched: int, removed: int, unchanged: bool} */
     public function sync(CalendarFeed $feed): array
     {
         try {
-            $antwort = $this->fetch((string) $feed->url, $feed->etag, $feed->last_modified);
+            $antwort = $this->fetch($feed->adresse() ?? throw new DecryptException('Adresse nicht lesbar.'), $feed->etag, $feed->last_modified);
             if ($antwort['body'] === null) {
                 // 304 Not Modified: nichts zu parsen, nur den Zeitpunkt fortschreiben. `last_error` muss
                 // dabei weg – sonst steht der Text des letzten Fehlversuchs neben einem grünen Status.
@@ -73,9 +86,14 @@ final class CalendarSync
      */
     public static function fehlertext(\Throwable $e): string
     {
-        $text = $e::class === RuntimeException::class
-            ? $e->getMessage()
-            : 'Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).';
+        $text = match (true) {
+            $e::class === RuntimeException::class => $e->getMessage(),
+            $e instanceof DecryptException => 'Die gespeicherte Adresse lässt sich nicht lesen. Bitte den Kalender neu hinterlegen.',
+            $e instanceof QueryException => 'Kalender enthält Daten, die nicht gespeichert werden konnten.',
+            $e instanceof MaxInstancesExceededException => 'Kalender enthält Terminserien mit zu vielen Wiederholungen.',
+            str_starts_with($e::class, 'Sabre\\VObject\\') => 'Kalender enthält Angaben, die sich nicht auswerten lassen.',
+            default => 'Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).',
+        };
 
         // Rückfallebene, falls je eine Adresse in einen eigenen Text gerät: nur der Host bleibt übrig,
         // und den zeigen die Einstellungen ohnehin neben jedem Kalender an.
@@ -102,7 +120,14 @@ final class CalendarSync
         }
         // Termine ohne Zeitzone («floating») gelten in der Zeitzone der Anwendung, nicht in UTC.
         $zone = new DateTimeZone((string) config('app.timezone'));
-        $kalender = $kalender->expand($von->toDateTime(), $bis->toDateTime(), $zone);
+        $grenze = Settings::$maxRecurrences;
+        Settings::$maxRecurrences = self::MAX_WIEDERHOLUNGEN;
+        try {
+            $kalender = $kalender->expand($von->toDateTime(), $bis->toDateTime(), $zone);
+        } finally {
+            // Statischer Zustand des ganzen Prozesses (Cron, Queue-Worker): immer zurücksetzen.
+            Settings::$maxRecurrences = $grenze;
+        }
         $lernender = $feed->lernender()->firstOrFail();
         $module = $this->moduleNachNummer($lernender);
         $faecher = $this->faecherNachKuerzel();
@@ -150,7 +175,7 @@ final class CalendarSync
                         'lernender_id' => $lernender->lernender_id,
                         'kind' => $kind,
                         'summary' => mb_substr($summary !== '' ? $summary : 'Termin', 0, 255),
-                        'description' => $beschreibung !== '' ? $beschreibung : null,
+                        'description' => $beschreibung !== '' ? mb_strcut($beschreibung, 0, self::MAX_TEXT_BYTES) : null,
                         'location' => $ort ? mb_substr($ort, 0, 120) : null,
                         'ends_at' => $ende?->format('Y-m-d H:i:s'),
                         'all_day' => $ganztags,
@@ -198,7 +223,8 @@ final class CalendarSync
         $url = self::normalizeUrl($url);
         for ($i = 0; $i < 4; $i++) {
             $ips = self::assertPublicUrl($url);
-            $headers = ['User-Agent' => 'Notenportal-Kalenderabgleich', 'Accept' => 'text/calendar, */*'];
+            // Kein br/zstd: nur Formate, die sich unten mit Obergrenze selbst entpacken lassen.
+            $headers = ['User-Agent' => 'Notenportal-Kalenderabgleich', 'Accept' => 'text/calendar, */*', 'Accept-Encoding' => 'gzip, deflate'];
             // Bedingte Header INNERHALB der Schleife setzen: bei einer Weiterleitung baut Http::withHeaders()
             // die Anfrage neu auf, ausserhalb der Schleife gesetzte Header gingen dabei verloren.
             if ($etag !== null) {
@@ -217,7 +243,11 @@ final class CalendarSync
             }
             // Grösse schon während des Downloads begrenzen, nicht erst danach (sonst landet eine Riesenantwort im Speicher)
             $zuGross = false;
+            // decode_content=false: Guzzle/cURL entpackte sonst selbst und ohne Grenze (gzip-Bombe: wenige KB
+            // über die Leitung, Gigabytes im Speicher). So zählen Content-Length und progress die echten Bytes,
+            // entpackt wird unten mit Obergrenze.
             $anfrage = $anfrage->withOptions([
+                'decode_content' => false,
                 'on_headers' => function ($r) use (&$zuGross) {
                     if ((int) $r->getHeaderLine('Content-Length') > self::MAX_BYTES) {
                         $zuGross = true;
@@ -252,6 +282,7 @@ final class CalendarSync
             if (strlen($body) > self::MAX_BYTES) {
                 throw new RuntimeException('Kalenderdatei ist grösser als 5 MB.');
             }
+            $body = self::entpacken($body, strtolower(trim($antwort->header('Content-Encoding'))));
             if (! str_contains($body, 'BEGIN:VCALENDAR')) {
                 throw new RuntimeException('Die Adresse liefert keinen iCal-Kalender.');
             }
@@ -259,6 +290,23 @@ final class CalendarSync
             return ['body' => $body, 'etag' => $antwort->header('ETag') ?: null, 'last_modified' => $antwort->header('Last-Modified') ?: null];
         }
         throw new RuntimeException('Zu viele Weiterleitungen.');
+    }
+
+    /** Entpackt gzip/deflate höchstens bis MAX_BYTES; alles andere als unkomprimiert wird abgelehnt. */
+    private static function entpacken(string $body, string $kodierung): string
+    {
+        if ($kodierung === '' || $kodierung === 'identity') {
+            return $body;
+        }
+        if (! in_array($kodierung, ['gzip', 'x-gzip', 'deflate'], true)) {
+            throw new RuntimeException('Der Kalender wird in einem nicht unterstützten Übertragungsformat geliefert.');
+        }
+        $roh = @zlib_decode($body, self::MAX_BYTES + 1);
+        if ($roh === false || strlen($roh) > self::MAX_BYTES) {
+            throw new RuntimeException('Kalenderdatei ist entpackt grösser als 5 MB oder lässt sich nicht entpacken.');
+        }
+
+        return $roh;
     }
 
     public static function normalizeUrl(string $url): string
@@ -375,7 +423,7 @@ final class CalendarSync
             'dauer_minuten' => $dauer ?: null,
             'pruefungsart' => ($info['exam_type'] ?? null) ? mb_substr($info['exam_type'], 0, 150) : null,
             'hilfsmittel' => ($info['aids'] ?? null) ? mb_substr($info['aids'], 0, 255) : null,
-            'stoff' => $info['material'] ?? null,
+            'stoff' => ($info['material'] ?? null) ? mb_strcut($info['material'], 0, self::MAX_TEXT_BYTES) : null,
             'raum' => $raum ? mb_substr((string) $raum, 0, 60) : null,
             'lehrperson' => ($info['teacher'] ?? null) ? mb_substr($info['teacher'], 0, 60) : null,
         ];

@@ -422,6 +422,16 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Live-Routencache neu gebaut (betrieb.md). Rundgang-Workflow nimmt args.env (NP_PLAYWRIGHT).
                   Prüfer: belegtes ausgeschaltetes Modul fehlte in der Notenauswahl → modulesForLernender nimmt
                   eigene Belegungen unabhängig von aktiv. Suite 1817 grün. Bewusst gelassen: audit-backlog «Audit Welle 2».
+[Q] 31.10. 08:30  Funktionsprüfung Runde 3 (7 Dimensionen, neue Schwerpunkte): 22 Befunde mit Sonde bestätigt, in 7 Gruppen
+                  mit Regressionstest behoben. Datum nur date_format:Y-m-d (5-stelliges Jahr), Kalender: gzip mit
+                  Obergrenze selbst entpackt, Serien bis 100 000, Schalter setzen ETag zurück, unlesbare Adresse nach
+                  APP_KEY-Wechsel ohne 500, lange Beschreibungen gekürzt, eigene Fehlertexte; Erinnerungen gehen nicht
+                  mehr verloren, wenn ein Anlass zeitweise aus war; Inaktivitätsmail nimmt die Betriebsfrist; Digest ohne
+                  abbestellte Anlässe; Abbestellen bei Pflichtanlass ehrlich (409 bei One-Click); kein Reset-Link an
+                  deaktivierte Konten; «neu ungenügend» nur für zählende Fächer; IPA kein Verlaufspunkt; Lehrzeit nicht
+                  enger als bestehende Noten; Konto-Schalter mit Zielzustand und Betreuungssperre; Fach in inaktiver
+                  Kategorie bearbeitbar; Feedback behält Erledigt-Datum; Namenssuche mit vollem Namen; Import-Token.
+                  Suite 1884 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 3».
 ```
 
 ---

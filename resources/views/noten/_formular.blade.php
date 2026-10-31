@@ -92,7 +92,7 @@
     <div>
         <label for="pruefungsdatum" class="{{ $label }}">{{ __('Prüfungsdatum') }}</label>
         <div class="mt-1.5 flex items-center gap-3">
-            <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" class="np-feld w-48 tabular-nums"
+            <input type="date" id="pruefungsdatum" name="pruefungsdatum" required x-model="datum" max="9999-12-31" class="np-feld w-48 tabular-nums"
                    aria-describedby="pruefungsdatum-hinweis @error('pruefungsdatum') pruefungsdatum-fehler @enderror" @error('pruefungsdatum') aria-invalid="true" @enderror>
             <p id="pruefungsdatum-hinweis" class="text-xs" :class="semester ? 'text-muted' : 'text-note-knapp'"
                x-text="semester ? semester.name : (datum ? @js(__('Kein Semester für dieses Datum')) : '')"></p>

@@ -56,10 +56,10 @@ class DatenauskunftAusgetretenTest extends TestCase
             'lernender_id' => $lernender->lernender->lernender_id,
             'berufsbildner_id' => $bb->berufsbildner_id,
             'gueltig_von' => '2025-01-01',
-            'gueltig_bis' => null,
+            'gueltig_bis' => '2025-12-31',
         ]);
 
-        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bbUser->benutzer_id))->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.users.toggle-active', $bbUser->benutzer_id), ['aktiv' => 0])->assertRedirect();
         $this->assertTrue(Berufsbildner::withTrashed()->findOrFail($bb->berufsbildner_id)->trashed());
 
         $zip = $this->oeffnen(User::withTrashed()->findOrFail($bbUser->benutzer_id));

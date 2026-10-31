@@ -26,9 +26,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -87,7 +89,10 @@ class LernendeController extends VerwaltungController
                     ->where('vorname', 'like', $like)
                     ->orWhere('nachname', 'like', $like)
                     ->orWhere('email', 'like', $like)
-                    ->orWhere('benutzername', 'like', $like)));
+                    ->orWhere('benutzername', 'like', $like)
+                    // Voller Name in beiden Reihenfolgen, wie die Suchpalette ihn findet
+                    ->orWhereRaw("CONCAT(vorname, ' ', nachname) LIKE ?", [$like])
+                    ->orWhereRaw("CONCAT(nachname, ' ', vorname) LIKE ?", [$like])));
             })
             ->when($filter['lehrberuf_id'], fn ($q, $id) => $q->where('lehrberuf_id', $id))
             ->when($filter['berufsbildner_id'], fn ($q, $id) => $q->whereHas('betreuungen', fn ($b) => $b->aktiv()->where('berufsbildner_id', $id)))
@@ -262,7 +267,7 @@ class LernendeController extends VerwaltungController
 
         $benutzerId = $lernender->benutzer_id;
 
-        $daten = $request->validate([
+        $validator = Validator::make($request->all(), [
             'vorname' => ['required', 'string', 'max:100'],
             'nachname' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', Rule::unique('benutzer', 'email')->ignore($benutzerId, 'benutzer_id')],
@@ -272,6 +277,32 @@ class LernendeController extends VerwaltungController
             'lehrende' => ['nullable', 'date', 'after_or_equal:lehrbeginn'],
             'bemerkung' => ['nullable', 'string', 'max:5000'],
         ]);
+        // Bestehende Noten dürfen durch die neue Lehrzeit nicht ausserhalb liegen, sonst liessen sie sich nicht mehr bearbeiten
+        $validator->after(function ($v) use ($lernender) {
+            if ($v->errors()->hasAny(['lehrbeginn', 'lehrende'])) {
+                return;
+            }
+            $grenzen = DB::table('noten')
+                ->where('lernender_id', $lernender->lernender_id)
+                ->whereNull('geloescht_am')
+                ->selectRaw('MIN(pruefungsdatum) as frueh, MAX(pruefungsdatum) as spaet')
+                ->first();
+            if (! $grenzen || $grenzen->frueh === null) {
+                return;
+            }
+            $frueh = Carbon::parse($grenzen->frueh)->startOfDay();
+            $spaet = Carbon::parse($grenzen->spaet)->startOfDay();
+            $beginn = Carbon::parse((string) $v->getData()['lehrbeginn'])->startOfDay();
+            $ende = ($v->getData()['lehrende'] ?? null) ? Carbon::parse((string) $v->getData()['lehrende'])->startOfDay() : null;
+
+            if ($beginn->gt($frueh)) {
+                $v->errors()->add('lehrbeginn', __('Die früheste Note ist vom :datum und läge vor dem Lehrbeginn.', ['datum' => $frueh->format('d.m.Y')]));
+            }
+            if ($ende && $ende->lt($spaet)) {
+                $v->errors()->add('lehrende', __('Die späteste Note ist vom :datum und läge nach dem Ende der Lehre.', ['datum' => $spaet->format('d.m.Y')]));
+            }
+        });
+        $daten = $validator->validate();
 
         DB::transaction(function () use ($lernender, $daten) {
             $lernender->benutzer->update([
@@ -308,11 +339,9 @@ class LernendeController extends VerwaltungController
             ->whereIn('lernender_id', $ids)
             ->whereNull('geloescht_am')
             ->groupBy('lernender_id')
-            ->select([
-                'lernender_id',
-                DB::raw('COUNT(*) as anzahl'),
-                DB::raw('MAX(pruefungsdatum) as letzte'),
-            ])
+            ->select(['lernender_id', DB::raw('COUNT(*) as anzahl')])
+            // «Letzte Note» zählt nur Prüfungen bis heute, wie LernstandRechner; vorerfasste Termine nicht
+            ->selectRaw('MAX(CASE WHEN pruefungsdatum <= ? THEN pruefungsdatum END) as letzte', [now()->toDateString()])
             ->get()
             ->keyBy('lernender_id');
         $staende = $this->lernstaende->fuer(array_map('intval', $ids));

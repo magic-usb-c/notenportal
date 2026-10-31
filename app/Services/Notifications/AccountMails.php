@@ -38,6 +38,11 @@ final class AccountMails
 
     public static function passwordResetByAdmin(User $user): void
     {
+        // Wie «Passwort vergessen»: an deaktivierte oder gelöschte Konten geht weder Link noch Mail
+        if (! $user->aktiv || $user->trashed()) {
+            return;
+        }
+
         $token = Password::broker('invites')->createToken($user);
 
         Notifier::dispatch($user, NotificationCatalog::PASSWORD_RESET, fn () => new MailContent(

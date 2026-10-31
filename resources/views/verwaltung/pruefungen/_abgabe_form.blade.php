@@ -40,7 +40,7 @@
     <div class="grid grid-cols-2 gap-3">
         <div>
             <label for="abgabe-datum" class="{{ $label }}">{{ __('Datum') }}</label>
-            <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}"
+            <input type="date" id="abgabe-datum" name="datum" required value="{{ old('datum', $b?->datum?->toDateString()) }}" max="9999-12-31"
                    class="{{ $feld }} tabular-nums" @error('datum') aria-invalid="true" aria-describedby="abgabe-datum-fehler" @enderror>
             @error('datum')<p id="abgabe-datum-fehler" class="{{ $fehler }}">{{ $message }}</p>@enderror
         </div>

@@ -227,3 +227,5 @@ rsync -a /tmp/wiederherstellung/dateien/lernende/ /var/www/notenportal/storage/a
 sudo chgrp -R www-data storage/app/private && sudo chmod -R g+rwX storage/app/private
 php artisan optimize:clear
 ```
+
+Die Sicherung enthält `.env` nicht: Wird auf einer Installation mit anderem `APP_KEY` wiederhergestellt, den alten Schlüssel als `APP_PREVIOUS_KEYS` eintragen, sonst lassen sich die verschlüsselten Kalenderadressen der Lernenden nicht mehr lesen und müssen neu hinterlegt werden.

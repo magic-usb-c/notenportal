@@ -150,6 +150,7 @@
     "Diese Position gehört nicht zum Abschluss dieser Person.": "This item does not belong to this person’s final assessment.",
     "Diese Seite ist offline nicht verfügbar. Bitte die Verbindung prüfen und es erneut versuchen.": "This page isn't available offline. Please check the connection and try again.",
     "Diese Vorschau wurde bereits übernommen.": "This preview has already been applied.",
+    "Diese Vorschau ist nicht mehr aktuell. Bitte Datei neu einlesen.": "This preview is outdated. Please read the file again.",
     "Diese Übersicht öffnen": "Open this overview",
     "Dieses Modul gehört nicht zum Lehrberuf. Füg es auf der Modulseite zu deinen Modulen hinzu.": "This module is not part of the occupation. Add it to your modules on the module page.",
     "disp.": "exempt",
@@ -661,6 +662,7 @@
     "Filter entfernen: :name": "Remove filter: :name",
     ":von auf :bis": ":von to :bis",
     "Bitte ein Fach oder Modul wählen.": "Please choose a subject or module.",
+    "Bitte ein gültiges Datum eingeben.": "Please enter a valid date.",
     "Endnote bleibt bei :wert, egal welche Note": "Final grade stays at :wert, whatever the grade",
     "Zielwert zwischen 1 und 6.": "Target value between 1 and 6.",
     "Gewicht zwischen 0 und 100.": "Weight between 0 and 100.",
@@ -668,5 +670,9 @@
     "Das Ziel konnte nicht gespeichert werden.": "The target could not be saved.",
     "Das Ziel konnte nicht entfernt werden.": "The target could not be removed.",
     "Das Konto ist deaktiviert oder gelöscht – kein erneuter Versand.": "The account is deactivated or deleted – not sent again.",
-    "Der Link ist abgelaufen – Passwort im Benutzerkonto neu zurücksetzen.": "The link has expired – reset the password again in the user account."
+    "Der Link ist abgelaufen – Passwort im Benutzerkonto neu zurücksetzen.": "The link has expired – reset the password again in the user account.",
+    "Die früheste Note ist vom :datum und läge vor dem Lehrbeginn.": "The earliest grade is dated :datum and would fall before the start of the apprenticeship.",
+    "Die späteste Note ist vom :datum und läge nach dem Ende der Lehre.": "The latest grade is dated :datum and would fall after the end of the apprenticeship.",
+    "Nicht abbestellbar.": "Cannot be unsubscribed.",
+    "Adresse nicht lesbar": "Address not readable"
 }

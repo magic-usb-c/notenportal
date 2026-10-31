@@ -115,9 +115,34 @@ class ModulEntfernenTest extends TestCase
         $this->actingAs($andere)->post(route('modules.enroll', $this->modul))->assertSessionHas('success');
         $ich = $this->lernender();
 
-        $this->actingAs($ich)->delete(route('modules.unenroll', $this->modul))->assertSessionHas('error');
+        $this->actingAs($ich)->delete(route('modules.unenroll', $this->modul))->assertSessionMissing('error');
 
         $this->assertSame(1, $this->belegungen($andere));
+    }
+
+    #[Test]
+    public function zweites_entfernen_meldet_keinen_fehler_zu_noten(): void
+    {
+        $user = $this->lernender();
+        $this->actingAs($user)->post(route('modules.enroll', $this->modul))->assertSessionHas('success');
+
+        $this->delete(route('modules.unenroll', $this->modul))->assertSessionHas('success')->assertSessionMissing('error');
+        $this->delete(route('modules.unenroll', $this->modul))->assertRedirect()
+            ->assertSessionHas('success', 'Modul aus deinen Modulen entfernt.')->assertSessionMissing('error');
+
+        $this->assertSame(0, $this->belegungen($user));
+        $this->assertSame(0, DB::table('noten')->count());
+    }
+
+    #[Test]
+    public function ein_nie_belegtes_modul_meldet_keinen_fehler_zu_noten(): void
+    {
+        $user = $this->lernender();
+
+        $this->actingAs($user)->delete(route('modules.unenroll', $this->modul))->assertRedirect()
+            ->assertSessionHas('success')->assertSessionMissing('error');
+
+        $this->assertSame(0, $this->belegungen($user));
     }
 
     #[Test]

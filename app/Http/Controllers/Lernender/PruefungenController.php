@@ -249,7 +249,7 @@ class PruefungenController extends Controller
     {
         $daten = $request->validate([
             'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
-            'datum' => ['required', 'date'],
+            'datum' => ['required', 'date_format:Y-m-d'],
             'uhrzeit' => ['nullable', 'date_format:H:i'],
             'gewichtung_prozent' => ['required', 'numeric', 'min:0', 'max:100'],
             'titel' => ['nullable', 'string', 'max:150'],
@@ -258,7 +258,10 @@ class PruefungenController extends Controller
             'hilfsmittel' => ['nullable', 'string', 'max:255'],
             'stoff' => ['nullable', 'string', 'max:5000'],
             'notizen' => ['nullable', 'string', 'max:5000'],
-        ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
+        ], [
+            'bezug.required' => __('Bitte Fach oder Modul wählen.'),
+            'datum.date_format' => __('Bitte ein gültiges Datum eingeben.'),
+        ]);
 
         [$typ, $id] = explode(':', $daten['bezug']);
         try {

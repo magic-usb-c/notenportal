@@ -13,9 +13,9 @@
                 <div class="flex items-center gap-3">
                     <span class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-fill text-muted" aria-hidden="true"><x-symbol name="calendar" class="size-4" /></span>
                     <div class="min-w-0 flex-1">
-                        <div class="truncate text-sm font-medium text-text">{{ $f->label ?: $f->host() }}</div>
+                        <div class="truncate text-sm font-medium text-text">{{ $f->label ?: $f->anzeigehost() }}</div>
                         <div class="truncate text-xs text-muted">
-                            {{ $f->host() }} ·
+                            {{ $f->anzeigehost() }} ·
                             @if($f->last_synced_at)
                                 {{ __('Letzter Abgleich: :datum', ['datum' => $f->last_synced_at->format('d.m.Y H:i')]) }}
                                 · <span @class(['text-note-ungenuegend' => $fehlgeschlagen])>{{ $fehlgeschlagen ? __('fehlgeschlagen') : __('erfolgreich') }}</span>
