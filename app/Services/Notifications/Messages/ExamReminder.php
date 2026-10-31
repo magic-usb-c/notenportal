@@ -31,7 +31,7 @@ final class ExamReminder
 
         return new MailContent(
             subject: __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]),
-            lines: [__('Am :datum steht deine nächste Prüfung an.', ['datum' => $p->datum->format('d.m.Y')])],
+            lines: [__('Deine nächste Prüfung steht an.')],
             facts: array_filter([
                 __('Datum') => $datum,
                 __('Fach / Modul') => $bezug,

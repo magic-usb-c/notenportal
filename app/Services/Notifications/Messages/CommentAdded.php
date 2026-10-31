@@ -20,7 +20,7 @@ final class CommentAdded
 
         return new MailContent(
             subject: __('Neuer Kommentar zu :bezug', ['bezug' => $bezug]),
-            lines: [__(':name hat die Note vom :datum in :bezug kommentiert:', ['name' => $name, 'datum' => self::datum($note), 'bezug' => $bezug])],
+            lines: [__(':name hat die Note kommentiert.', ['name' => $name])],
             facts: [__('Fach / Modul') => $bezug, __('Note') => $note->anzeige(), __('Datum') => self::datum($note)],
             sections: [['title' => __('Kommentar'), 'text' => $kommentarText]],
             actionLabel: __('Kommentar ansehen'),

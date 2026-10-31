@@ -1347,3 +1347,16 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
   erst mit einem gespeicherten Fehlercode statt Text; die Meldung trifft bisher nur, wer selbst einen Kalender abonniert.
 - **Katalogparameter `days` der Inaktivitätsmail entfällt**: Ein auf der VM in `notification_policies.params` verstellter
   Wert wird ignoriert; es gilt die Betriebsfrist «Erinnerung ohne neue Note nach» (Standard 30 Tage wie zuvor).
+
+## Rundgang dunkel und Audit Welle 3 (31.10.2026): bewusst gelassen
+
+- **Abschluss: Tabelle «zu breit, Zahlen weit vom Namen»** (Rundgang 1920, `abschluss/index.blade.php:109`,
+  vorgeschlagen `grid-cols-[26rem_minmax(0,48rem)]`): verworfen. Die Breite bis zur Inhaltskante ist der Entscheid aus
+  8037bac (siehe Eintrag «Cockpit-Reiter Noten und Abschluss»); die `np-tabelle` streift die Zeilen und führt das Auge
+  von Teil zu Note. Eine 48rem-Spalte liesse bei 2560 px rund die Hälfte der Fläche leer und vergrösserte den Sprung
+  der rechten Kante zwischen den Cockpit-Reitern.
+- **UI-Checker: «Filter zurücksetzen» doppelt im leeren Feedback-Filterergebnis**: gleiches Muster in fünf Listen
+  (Feedback, Berichte, Verwaltung Noten und Lernende); die Leerzeile bietet den Weg dort an, wo der Blick ist.
+- **UI-Checker: zwei Auswahlen heissen «Zeitraum»** (Lernenden-Dashboard, `stat-modus` und `stat-zeitraum`): beide
+  liegen in einer `role="group"` mit sichtbarem Namen («Wo stehe ich», «Verlauf»), den Screenreader beim Betreten
+  ansagen.

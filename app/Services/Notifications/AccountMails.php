@@ -48,9 +48,11 @@ final class AccountMails
         Notifier::dispatch($user, NotificationCatalog::PASSWORD_RESET, fn () => new MailContent(
             subject: __('Dein Passwort wurde zurückgesetzt'),
             title: __('Dein Passwort wurde zurückgesetzt'),
-            lines: [__('Dein Passwort wurde zurückgesetzt.')],
+            lines: [__('Dein altes Passwort gilt nicht mehr. Lege über den Knopf ein neues fest.')],
+            facts: [__('Gültig für') => __(':anzahl Tage', ['anzahl' => intdiv((int) config('auth.passwords.invites.expire'), 1440)])],
             actionLabel: __('Neues Passwort festlegen'),
             actionUrl: route('password.reset', ['token' => $token, 'email' => $user->email]),
+            outro: [__('Nicht erwartet? Dann melde dich bei deinem Betrieb.')],
         ));
 
         Protokoll::schreiben(Protokoll::ADMIN_RESET_LINK_GESCHICKT, $user);

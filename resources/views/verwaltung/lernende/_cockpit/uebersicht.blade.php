@@ -19,14 +19,14 @@
                 @else
                     <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Gesamtschnitt') }}</div>
                 @endif
-                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="text-3xl leading-none" />
+                <x-note :wert="$stand->auswertung->gesamtNote" variante="hero" :stellen="1" class="flex min-h-9 items-center text-3xl leading-none" />
                 @if($qv && ! $qv->wurzel()->vollstaendig)
                     <div class="text-xs tabular-nums text-muted">{{ __(':anteil % erfasst', ['anteil' => (int) round($qv->erfasst() * 100)]) }}</div>
                 @endif
             </div>
             <div class="flex flex-col gap-1 px-5 py-4">
                 <div class="flex min-h-6 items-center text-xs font-medium text-muted">@if($semesterBekannt)<x-semester :id="$stand->semesterId" :lernender="$stand->auswertung->lernenderId" />@else{{ __('Semester') }}@endif</div>
-                <x-note :wert="$stand->semesterNote" variante="hero" :stellen="1" class="text-3xl leading-none" />
+                <x-note :wert="$stand->semesterNote" variante="hero" :stellen="1" class="flex min-h-9 items-center text-3xl leading-none" />
                 @if($delta !== null && $delta != 0)
                     <div @class(['text-xs', 'text-muted', 'font-medium' => $delta < 0])>
                         <span aria-hidden="true">{{ $delta > 0 ? '▲' : '▼' }}</span> {{ __(':delta zum Vorsemester', ['delta' => ($delta > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($delta), 1)]) }}

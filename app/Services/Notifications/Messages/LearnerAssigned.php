@@ -22,12 +22,10 @@ final class LearnerAssigned
         $kuenftig = $ab !== null && $ab->copy()->startOfDay()->gt(today());
         $datum = $kuenftig ? $ab->format('d.m.Y') : null;
 
-        $zeile = match (true) {
-            $kuenftig && $beruf !== null => __('Du betreust ab dem :datum :name («:beruf»).', ['datum' => $datum, 'name' => $name, 'beruf' => $beruf]),
-            $kuenftig => __('Du betreust ab dem :datum :name.', ['datum' => $datum, 'name' => $name]),
-            $beruf !== null => __('Du betreust ab sofort :name («:beruf»).', ['name' => $name, 'beruf' => $beruf]),
-            default => __('Du betreust ab sofort :name.', ['name' => $name]),
-        };
+        // Der Lehrberuf steht nur in den Fakten, nicht zusätzlich im Satz
+        $zeile = $kuenftig
+            ? __('Du betreust ab dem :datum :name.', ['datum' => $datum, 'name' => $name])
+            : __('Du betreust ab sofort :name.', ['name' => $name]);
 
         return new MailContent(
             subject: __('Neue Betreuung: :name', ['name' => $name]),

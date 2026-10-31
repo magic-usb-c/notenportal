@@ -439,6 +439,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Leerzustand bietet das Einschalten des Knopfs, Kachel «Neu» ohne Akzent. Neuer Workflow
                   notenportal-mail-pruefung (alle Mailarten DE/EN rendern, hell/dunkel × 640/390, Urteil, Verifikation).
                   Suite 1889 grün.
+[Q] 31.10. 10:40  Mail-Prüfung (58 Mails, 12 Befunde bestätigt, 28 verworfen) behoben: Mail-Layout ohne Schrift unter
+                  13 px (Faktenlabels, Titel, Tabellenkopf ohne Versalien, Fusszeile; schmal 14 px), Ersatzlink auf
+                  eigener Zeile mit weichem Umbruch. Mailtexte ohne Wiederholung von Betreff und Fakten (Import nennt
+                  Herkunft und «Importiert am», Admin-Reset mit Gültigkeit und «Nicht erwartet?», Betreuung, Kommentar,
+                  Prüfungserinnerung). Cockpit: beide Heldennoten auf gleicher Höhe. Suite 1898 grün.
 ```
 
 ---

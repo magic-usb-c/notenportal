@@ -116,7 +116,7 @@ class MailVorlagenFunktionspruefungTest extends TestCase
         foreach ($ths[1] as $stil) {
             // Grossbuchstaben mit breitem Zeichenabstand machten die Kopfzellen unteilbar breit.
             $this->assertStringNotContainsString('letter-spacing:.06em', $stil);
-            $this->assertStringContainsString('font-size:10px', $stil);
+            $this->assertStringContainsString('font-size:13px', $stil);
             $this->assertStringContainsString('padding:8px 4px', $stil);
         }
     }

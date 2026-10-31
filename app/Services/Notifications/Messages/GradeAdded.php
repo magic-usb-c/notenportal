@@ -34,13 +34,15 @@ final class GradeAdded
         $betreff = $anzahl === 1
             ? __(':name: 1 Note importiert', ['name' => $name])
             : __(':name: :anzahl Noten importiert', ['name' => $name, 'anzahl' => $anzahl]);
+        // Die Anzahl steht im Betreff; der Absatz sagt, woher die Noten kommen, die Fakten wann
         $zeile = $anzahl === 1
-            ? __(':name hat 1 Note importiert.', ['name' => $name])
-            : __(':name hat :anzahl Noten importiert.', ['name' => $name, 'anzahl' => $anzahl]);
+            ? __(':name hat die Note aus einer Datei ins Portal übernommen.', ['name' => $name])
+            : __(':name hat die Noten aus einer Datei ins Portal übernommen.', ['name' => $name]);
 
         return new MailContent(
             subject: $betreff,
             lines: [$zeile],
+            facts: [__('Importiert am') => now()->format('d.m.Y, H:i')],
             actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
             digestTitle: $betreff,
