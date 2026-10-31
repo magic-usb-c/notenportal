@@ -31,16 +31,21 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 class ModulController extends Controller
 {
-    /** Ohne Auswahl öffnet wie in Notizen das erste Modul – bei einer Suche der erste Treffer. */
+    /**
+     * Ohne Auswahl öffnet wie in Notizen das erste Modul – bei einer Suche der erste Treffer.
+     * Lernende landen zuerst auf einem eigenen Modul, sofern eines passt.
+     */
     public function index(Request $request): View
     {
         $module = $this->liste();
         $begriffe = $this->suchbegriffe($request);
-        $erstes = $module->first(fn (Modul $m) => collect($begriffe)->every(
+        $belegte = $this->belegte($request);
+        $treffer = $module->filter(fn (Modul $m) => collect($begriffe)->every(
             fn (string $b) => str_contains(mb_strtolower($m->modul_nummer.' '.$m->titel), $b)
         ));
+        $erstes = $treffer->first(fn (Modul $m) => $belegte->contains($m->modul_id)) ?? $treffer->first();
 
-        return $this->ansicht($request, $module, $erstes?->modul_id);
+        return $this->ansicht($request, $module, $erstes?->modul_id, $belegte);
     }
 
     public function show(Request $request, int $modul_id): View
@@ -54,14 +59,13 @@ class ModulController extends Controller
      *
      * @param  Collection<int, Modul>  $module
      */
-    private function ansicht(Request $request, Collection $module, ?int $modulId): View
+    private function ansicht(Request $request, Collection $module, ?int $modulId, ?Collection $belegte = null): View
     {
         $modul = $modulId === null ? null : Modul::query()
             ->with(['handlungsziele', 'lbvElemente', 'dokumente.hochgeladenVon', 'ersteller'])
             ->findOrFail($modulId);
         $lernenderId = (int) ($request->user()->lernender?->lernender_id ?? 0);
-        $belegte = $lernenderId === 0 ? collect() : DB::table('modul_belegungen')
-            ->where('lernender_id', $lernenderId)->whereNull('end_datum')->pluck('modul_id')->map(fn ($id) => (int) $id);
+        $belegte ??= $this->belegte($request);
 
         return view('module.index', [
             'module' => $module,
@@ -73,6 +77,15 @@ class ModulController extends Controller
                 && $this->entfernbar($lernenderId, $modul->modul_id),
             'mbkVersion' => $modul ? $this->katalogversion($modul) : null,
         ]);
+    }
+
+    /** Offene eigene Belegungen der angemeldeten Person (nur Lernende haben welche). */
+    private function belegte(Request $request): Collection
+    {
+        $lernenderId = (int) ($request->user()->lernender?->lernender_id ?? 0);
+
+        return $lernenderId === 0 ? collect() : DB::table('modul_belegungen')
+            ->where('lernender_id', $lernenderId)->whereNull('end_datum')->pluck('modul_id')->map(fn ($id) => (int) $id);
     }
 
     /** @return Collection<int, Modul> */

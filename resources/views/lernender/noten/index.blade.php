@@ -296,7 +296,11 @@
                 @else
                     {{-- Semester oder Kategorie ohne Noten: nur eine Zeile --}}
                     <p class="flex items-center gap-3 px-1 py-2 text-sm text-muted">
-                        {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
+                        @if($kategorieId)
+                            {{ __('Keine Noten in :kategorie im :semester', ['kategorie' => $a->konfiguration->kategorieName((int) $kategorieId), 'semester' => $semLabel]) }}
+                        @else
+                            {{ __('Keine Noten in :semester', ['semester' => $semLabel]) }}
+                        @endif
                         <a href="{{ route('learner.grades.create') }}" x-data @click.prevent="$dispatch('np-note', { url: $el.href, titel: @js(__('Neue Note')) })"
                            class="inline-flex min-h-6 items-center text-accent-text underline-offset-2 hover:underline">{{ __('Note erfassen') }}</a>
                     </p>

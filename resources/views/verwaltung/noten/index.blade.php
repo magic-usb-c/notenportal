@@ -63,7 +63,7 @@
                     <x-kachel :label="__('Gesamtschnitt')" :note="$a->gesamtNote" :wert="null" :href="$detailUrl" />
                     <x-kachel :label="$semNr ? $a->konfiguration->semesterName($semNr, $a->lernenderId) : __('Semester')" :note="$semNote" :wert="null" />
                     <x-kachel :label="__('Prüfungen')" :wert="$notes->total()" :sub="$gefiltert ? __('im Filter') : null" />
-                    <x-kachel :label="__('Neu')" :wert="$neuCount" :ton="$neuCount ? 'accent' : 'neutral'" />
+                    <x-kachel :label="__('Neu')" :wert="$neuCount" />
                 </div>
 
                 @if($stand->gruende)

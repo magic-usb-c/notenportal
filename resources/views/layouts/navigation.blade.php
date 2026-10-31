@@ -226,6 +226,7 @@
                                        class="h-14 flex-1 border-0 bg-transparent px-0 text-lg text-text placeholder:text-muted focus:ring-0" aria-label="{{ __('Suchbegriff') }}">
                                 <kbd class="np-taste">Esc</kbd>
                             </div>
+                            <p class="sr-only" role="status" x-text="laden ? '' : (liste.length === 0 ? @js(__('Keine Treffer')) : (liste.length === 1 ? @js(__('1 Treffer')) : @js(__(':n Treffer')).replace(':n', liste.length)))"></p>
                             <div id="np-palette-treffer" role="listbox" aria-label="{{ __('Suchen') }}" class="max-h-[28rem] overflow-y-auto border-t border-border p-1.5">
                                 <template x-for="(t, i) in liste" :key="t.url + t.label">
                                     <a :href="t.url" tabindex="-1" role="option" :id="'np-palette-treffer-' + i" :aria-selected="i === index ? 'true' : 'false'" @mouseenter="index = i"

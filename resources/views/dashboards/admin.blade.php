@@ -119,7 +119,9 @@
                                                         <span class="truncate text-text">{{ $bb->name }}</span>
                                                     </span>
                                                 </td>
-                                                <td class="text-right text-text">{{ $bb->lernende }}</td>
+                                                <td class="text-right">
+                                                    @if($bb->lernende > 0)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id]) }}" aria-label="{{ __(':anzahl Lernende von :name', ['anzahl' => $bb->lernende, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center font-medium text-accent-text underline-offset-2 hover:underline">{{ $bb->lernende }}</a>@else<span class="text-muted">0</span>@endif
+                                                </td>
                                                 <td class="text-right">
                                                     @if($bb->rot)<a href="{{ route('admin.learners.index', ['berufsbildner_id' => $bb->id, 'warnung' => 'kritisch']) }}" aria-label="{{ __(':anzahl kritisch bei :name', ['anzahl' => $bb->rot, 'name' => $bb->name]) }}" class="inline-flex min-h-6 items-center gap-1.5 rounded-md font-semibold text-note-ungenuegend underline-offset-2 hover:underline"><span class="size-1.5 rounded-full bg-note-ungenuegend" aria-hidden="true"></span>{{ $bb->rot }}</a>@else<span class="text-muted">0</span>@endif
                                                 </td>

@@ -106,8 +106,11 @@ class NotenController extends Controller
         $prevSemesterId = ($idx !== false && $idx > 0) ? $semesterIds[$idx - 1] : null;
         $nextSemesterId = ($idx !== false && $idx < ($semesterIds->count() - 1)) ? $semesterIds[$idx + 1] : null;
 
-        // Filter
+        // Filter (unbekannte Kategorie aus der URL wie kein Filter)
         $kategorieId = $request->filled('kategorie_id') ? (int) $request->input('kategorie_id') : null;
+        if ($kategorieId !== null && ! array_key_exists($kategorieId, Konfiguration::ausDb()->kategorien)) {
+            $kategorieId = null;
+        }
 
         // Notes Query (immer fürs ausgewählte Semester; Kategorie optional)
         $q = $this->noteService->learnerNotesQuery($lernenderId);

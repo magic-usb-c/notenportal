@@ -432,6 +432,13 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   enger als bestehende Noten; Konto-Schalter mit Zielzustand und Betreuungssperre; Fach in inaktiver
                   Kategorie bearbeitbar; Feedback behält Erledigt-Datum; Namenssuche mit vollem Namen; Import-Token.
                   Suite 1884 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 3».
+[Q] 31.10. 11:30  Audit Welle 3 (4 Befunde) und Rundgang-Sichtbefunde (3): Leerzeile der Notenliste nennt Kategorie und
+                  Semester, Lernendenzahl im Admin-Dashboard verlinkt die gefilterte Liste, Modulseite öffnet für
+                  Lernende zuerst ein eigenes Modul, Befehlspalette meldet die Trefferzahl an Screenreader (im Browser
+                  gemessen), Filterleiste des Lernenden-Dashboards in Kartenreihenfolge mit Trennlinien, Feedback-
+                  Leerzustand bietet das Einschalten des Knopfs, Kachel «Neu» ohne Akzent. Neuer Workflow
+                  notenportal-mail-pruefung (alle Mailarten DE/EN rendern, hell/dunkel × 640/390, Urteil, Verifikation).
+                  Suite 1889 grün.
 ```
 
 ---

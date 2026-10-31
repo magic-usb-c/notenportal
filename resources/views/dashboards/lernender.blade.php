@@ -144,8 +144,21 @@
                         <option value="{{ $kid }}" @selected($f['kategorie'] === $kid)>{{ $name }}</option>
                     @endforeach
                 </select>
+                @if($zeigen['wo_stehe_ich'])
+                    <span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+                    <div role="group" aria-labelledby="stat-gruppe-wostehe" class="flex flex-wrap items-center gap-2">
+                        <span id="stat-gruppe-wostehe" class="text-sm text-muted">{{ __('Wo stehe ich') }}</span>
+                        <label for="stat-modus" class="sr-only">{{ __('Zeitraum') }}</label>
+                        <select name="modus" id="stat-modus" class="{{ $auswahl }}">
+                            @foreach($wMeta['optionen']['modus'] as $wert => $text)
+                                <option value="{{ $wert }}" @selected($f['modus'] === $wert)>{{ $text }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
                 @if($zeigen['verlauf'])
-                    <div role="group" aria-labelledby="stat-gruppe-verlauf" class="ml-3 flex flex-wrap items-center gap-2">
+                    <span class="mx-1 h-5 w-px bg-border" aria-hidden="true"></span>
+                    <div role="group" aria-labelledby="stat-gruppe-verlauf" class="flex flex-wrap items-center gap-2">
                         <span id="stat-gruppe-verlauf" class="text-sm text-muted">{{ __('Verlauf') }}</span>
                         <label for="stat-zeitraum" class="sr-only">{{ __('Zeitraum') }}</label>
                         <select name="zeitraum" id="stat-zeitraum" class="{{ $auswahl }}">
@@ -160,21 +173,10 @@
                                 <option value="{{ $fid }}" @selected($f['fach'] === $fid)>{{ $name }}</option>
                             @endforeach
                         </select>
-                        <label for="stat-achse" class="sr-only">{{ __('Zeitachse') }}</label>
+                        <label for="stat-achse" class="ml-1 text-sm text-muted">{{ __('Zeitachse') }}</label>
                         <select name="achse" id="stat-achse" class="{{ $auswahl }}">
                             @foreach($optionen['achse'] as $wert => $text)
                                 <option value="{{ $wert }}" @selected($f['achse'] === $wert)>{{ $text }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-                @if($zeigen['wo_stehe_ich'])
-                    <div role="group" aria-labelledby="stat-gruppe-wostehe" class="ml-3 flex flex-wrap items-center gap-2">
-                        <span id="stat-gruppe-wostehe" class="text-sm text-muted">{{ __('Wo stehe ich') }}</span>
-                        <label for="stat-modus" class="sr-only">{{ __('Zeitraum') }}</label>
-                        <select name="modus" id="stat-modus" class="{{ $auswahl }}">
-                            @foreach($wMeta['optionen']['modus'] as $wert => $text)
-                                <option value="{{ $wert }}" @selected($f['modus'] === $wert)>{{ $text }}</option>
                             @endforeach
                         </select>
                     </div>

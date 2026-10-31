@@ -47,7 +47,13 @@
         <div class="mx-auto np-seite px-8 flex flex-col gap-4">
             @if(! $gibtEs)
                 <div class="np-karte">
-                    <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
+                    @if($knopfAus)
+                        <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" :text="__('Der Feedback-Knopf ist ausgeschaltet.')">
+                            <a href="{{ route('admin.operations.edit') }}#bedienung" class="np-knopf np-knopf-sekundaer">{{ __('Feedback-Knopf einschalten') }}</a>
+                        </x-leer>
+                    @else
+                        <x-leer symbol="chat-bubble-left-ellipsis" :titel="__('Noch keine Meldungen')" />
+                    @endif
                 </div>
             @else
                 <x-filterleiste :action="route('admin.feedback.index')" suche-name="suche" :suche-wert="$suche"

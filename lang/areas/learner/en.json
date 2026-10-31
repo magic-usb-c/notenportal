@@ -120,6 +120,7 @@
     "Keine Noten erfasst.": "No grades recorded.",
     "Keine Noten gefunden.": "No grades found.",
     "Keine Noten in :semester": "No grades in :semester",
+    "Keine Noten in :kategorie im :semester": "No grades in :kategorie in :semester",
     "Keine Zeile ausgewählt.": "No row selected.",
     "Keine offenen Prüfungen": "No remaining exams",
     "Keine offenen Prüfungen geplant": "No remaining exams planned",

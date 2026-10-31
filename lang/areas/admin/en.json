@@ -714,5 +714,7 @@
     "In diesen :anzahl Wochen wurde keine Note erfasst.": "No grade was recorded in these :anzahl weeks.",
     "Zeitraum auf :zeitraum erweitern": "Extend period to :zeitraum",
     "Durchschnitt": "Average",
-    "Ganze Lehrzeit anzeigen": "Show entire apprenticeship"
+    "Ganze Lehrzeit anzeigen": "Show entire apprenticeship",
+    "Der Feedback-Knopf ist ausgeschaltet.": "The feedback button is switched off.",
+    "Feedback-Knopf einschalten": "Switch on feedback button"
 }

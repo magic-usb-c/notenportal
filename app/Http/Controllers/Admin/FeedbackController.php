@@ -12,6 +12,7 @@ use App\Services\Notifications\Messages\FeedbackAnswered;
 use App\Services\Notifications\NotificationCatalog;
 use App\Services\Notifications\Notifier;
 use App\Support\Csv;
+use App\Support\Einstellungen;
 use App\Support\Protokoll;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -85,8 +86,9 @@ class FeedbackController extends Controller
 
         $meldungen = $q->paginate(25)->withQueryString();
         $gibtEs = $meldungen->total() > 0 || Feedback::exists();
+        $knopfAus = ! $gibtEs && Einstellungen::get(Einstellungen::FEEDBACK_KNOPF, '1') === '0';
 
-        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'suche', 'sort', 'duplikate', 'gibtEs', 'hatDuplikatSpalte', 'hatAnhaengeTabelle'));
+        return view('admin.feedback.index', compact('meldungen', 'status', 'kategorie', 'rolle', 'suche', 'sort', 'duplikate', 'gibtEs', 'knopfAus', 'hatDuplikatSpalte', 'hatAnhaengeTabelle'));
     }
 
     public function update(Request $request, int $feedback_id): JsonResponse|RedirectResponse
