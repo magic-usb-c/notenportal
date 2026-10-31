@@ -73,4 +73,17 @@ class PasswortWechselTest extends TestCase
             ->get(route('password.initial'))
             ->assertRedirect(route('dashboard'));
     }
+
+    #[Test]
+    public function bestaetigung_ueberlebt_die_rollenweiche(): void
+    {
+        $this->followingRedirects()
+            ->actingAs($this->mitStartpasswort())
+            ->put(route('password.initial.update'), [
+                'password' => 'EigenesPasswort2026',
+                'password_confirmation' => 'EigenesPasswort2026',
+            ])
+            ->assertOk()
+            ->assertSee('Passwort gespeichert.');
+    }
 }

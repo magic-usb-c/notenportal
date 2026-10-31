@@ -70,6 +70,8 @@ Route::get('/dashboard', function (Request $request) {
         $u && $u->hasRole('Berufsbildner') => 'trainer.dashboard',
         default => 'learner.dashboard',
     };
+    // Toast des Absenders überlebt den Zwischenschritt
+    $request->session()->reflash();
 
     return redirect()->route($ziel, $request->query());
 })->middleware(['auth'])->name('dashboard');
