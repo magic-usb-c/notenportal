@@ -56,8 +56,8 @@ class ZugriffsschutzTest extends TestCase
         'notifications.settings',
         'notifications.settings.update',
         // Module sind gemeinsame Stammdaten: ansehen, anlegen, ergänzen und Unterlagen beisteuern
-        // steht jeder angemeldeten Person offen, unabhängig von der Rolle. Nur modules.enroll
-        // (Modul in die eigene Notenerfassung holen) trägt role:Lernender und fehlt hier deshalb.
+        // steht jeder angemeldeten Person offen, unabhängig von der Rolle. Nur modules.enroll und modules.unenroll
+        // (Modul in die eigene Notenerfassung holen bzw. wieder entfernen) tragen role:Lernender und fehlen hier deshalb.
         'modules.index',
         'modules.create',
         'modules.store',

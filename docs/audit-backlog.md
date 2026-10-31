@@ -1303,3 +1303,27 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
   und erscheint im Modulstatus nicht; die Agenda zeigt ihn weiterhin. Das Planungsformular prüft das Datum nicht gegen
   die Lehrzeit; ein Fach-Termin ausserhalb jedes Semesters ist aber auch für Rechner und Zeugnis bedeutungslos, der
   Rechenkern verwirft ihn ebenso.
+
+## Audit Welle 2 (31.10.2026): bewusst gelassen
+
+- **Entfernen gleichzeitig mit einer neuen Note**: `ModulController::entfernen` prüft und löscht in einer Transaktion
+  mit `lockForUpdate`, die Notenerfassung (`Lernender\NotenController::store`, `Verwaltung\LernendeNotenController`)
+  legt Belegung und Note aber ohne äusseres Transaktionsfenster an. Fällt beides auf dieselbe Millisekunde, scheitert
+  die Note am Composite-FK mit 500; Daten werden nicht verfälscht. Der Fall braucht zwei gleichzeitige Tabs derselben
+  Person.
+- **Kalenderabgleich und ausgeschaltete Module**: `CalendarSync::bezug` bzw. `moduleNachNummer` ordnet Termine über die
+  Modulnummer zu, ohne `aktiv` zu prüfen, und legt so eine Prüfung zu einem ausgeschalteten, nicht belegten Modul an.
+  Der Abgleich übernimmt nur, was die Schule im Kalender führt; eine Sperre dort müsste festlegen, was mit dem Termin
+  geschieht (verwerfen oder als Fach-Termin), das ist eine Produktfrage.
+- **Ausgeschaltetes Modul mit nur geschlossener Belegung**: Die Modulseite zeigt weder «Hinzufügen» noch
+  «Entfernen»; Noten bleiben über die bestehende Belegung erfassbar. Die Person sieht ihr Modul, kann es nur nicht neu
+  öffnen; das ist die gewollte Folge der Inaktiv-Regel.
+- **Entfernen eines ausgeschalteten Moduls ist endgültig**: Ohne Noten und Prüfungen darf die Person ein
+  ausgeschaltetes Modul entfernen, danach aber nicht wieder hinzufügen. Ob das Entfernen dort gesperrt oder eine
+  Warnung gezeigt werden soll, ist eine Produktfrage.
+- **Entfernen löscht auch geschlossene Belegungen**: `unenroll` löscht alle Belegungen der Person zum Modul, auch
+  solche mit `end_datum`, sofern weder Noten noch Prüfungen daran hängen. Eine geschlossene Belegung ohne Noten trägt
+  keine Information, die verloren ginge.
+- **Meldung «nicht mehr aktiv» in der Agenda**: `PruefungenController::bezugFehler` fasst jede Ablehnung des Bezugs zu
+  «nicht verfügbar» zusammen; die genauere Meldung aus `kategorieFuer` erscheint nur bei Note und Import. Im Formular
+  steht ein ausgeschaltetes, unbelegtes Modul ohnehin nicht zur Wahl.

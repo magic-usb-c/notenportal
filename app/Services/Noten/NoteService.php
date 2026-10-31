@@ -58,6 +58,9 @@ class NoteService
     /** @var array<int, Collection> kategorie_id je modul_id, Schlüssel lehrberuf_id */
     private array $modulKategorienCache = [];
 
+    /** @var array<int, bool> modul_id => ausgeschaltet; nur im Batch befüllt */
+    private array $modulInaktivCache = [];
+
     /**
      * Nur im Batch: Semester und Tracks einmal geladen und in PHP nach Datum gefiltert. Die Caches nach Datum
      * allein trafen bei einer Notenliste kaum, denn fast jede Zeile hat ein anderes Datum.
@@ -92,6 +95,7 @@ class NoteService
         $this->semesterCache = [];
         $this->erlaubteFaecherKategorienCache = [];
         $this->modulKategorienCache = [];
+        $this->modulInaktivCache = [];
         $this->semesterListe = null;
         $this->trackCache = [];
         $this->skalaCache = [];
@@ -303,9 +307,10 @@ class NoteService
             ->leftJoinSub($open, 'openmb', function ($join) {
                 $join->on('openmb.modul_id', '=', 'm.modul_id');
             })
-            ->where('m.aktiv', 1)
+            // Lehrberufsmodule nur, solange sie eingeschaltet sind; eigene Belegungen bleiben auch nach dem
+            // Ausschalten wählbar, sonst liessen sich deren Noten weder erfassen noch bearbeiten (kategorieFuer erlaubt sie)
             ->where(function ($w) use ($lernenderId) {
-                $w->whereNotNull('lbm.modul_id')->orWhereExists(function ($q) use ($lernenderId) {
+                $w->where(fn ($l) => $l->where('m.aktiv', 1)->whereNotNull('lbm.modul_id'))->orWhereExists(function ($q) use ($lernenderId) {
                     $q->select(DB::raw(1))->from('modul_belegungen as alle')
                         ->whereColumn('alle.modul_id', 'm.modul_id')
                         ->where('alle.lernender_id', $lernenderId);
@@ -536,6 +541,12 @@ class NoteService
             return (int) $kategorieId;
         }
 
+        // Ein vom Admin ausser Betrieb genommenes Modul wird nicht neu belegt – weder über die Modulseite
+        // noch über Note erfassen oder Prüfung planen. Wer es schon belegt hat (offen oder geschlossen), behält es.
+        if ($this->modulInaktiv($id) && ! $this->hatBelegung($lernenderId, $id)) {
+            throw ValidationException::withMessages(['modul_id' => __('Dieses Modul ist nicht mehr aktiv.')]);
+        }
+
         $lehrberufId = $this->lehrberufIdFuer($lernenderId);
         $kategorieId = $this->modulKategorien($lehrberufId)->get($id);
 
@@ -552,6 +563,14 @@ class NoteService
         }
 
         return (int) $kategorieId;
+    }
+
+    /** Ist das Modul ausgeschaltet (module.aktiv = 0)? Im Batch je Modul einmal gelesen statt je Zeile. */
+    private function modulInaktiv(int $modulId): bool
+    {
+        $lesen = fn (): bool => DB::table('module')->where('modul_id', $modulId)->where('aktiv', 0)->exists();
+
+        return $this->batch ? ($this->modulInaktivCache[$modulId] ??= $lesen()) : $lesen();
     }
 
     private function hatBelegung(int $lernenderId, int $modulId): bool

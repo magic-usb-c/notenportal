@@ -414,6 +414,14 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Bearbeiten, Entfernen, Entsperren, Übernehmen (Monat folgt dem Datum), Dashboard-Filter in
                   sichtbaren Gruppen «Verlauf»/«Wo stehe ich», inaktive Module auf der Modulseite nicht mehr belegbar
                   (Prüfer: über Noten/Agenda noch möglich → Welle 2). Suite 1804 grün.
+[Q] 31.10. 00:45  Audit Welle 2: «Aus meinen Modulen entfernen» (DELETE modules/{id}/unenroll, nur ohne Noten – auch
+                  gelöschte – und ohne geplante Prüfungen, im Browser auf der Demo hin und zurück geklickt).
+                  Ausgeschaltete Module auf keinem Weg neu belegbar (NoteService::kategorieFuer: Note, Prüfung,
+                  Abgabetermin, Import); bestehende Belegungen behalten alles. Folge für den Betrieb: historische
+                  Noten zu einem ausgeschalteten Modul ohne Belegung erst nach Reaktivierung importierbar.
+                  Live-Routencache neu gebaut (betrieb.md). Rundgang-Workflow nimmt args.env (NP_PLAYWRIGHT).
+                  Prüfer: belegtes ausgeschaltetes Modul fehlte in der Notenauswahl → modulesForLernender nimmt
+                  eigene Belegungen unabhängig von aktiv. Suite 1817 grün. Bewusst gelassen: audit-backlog «Audit Welle 2».
 ```
 
 ---

@@ -11,7 +11,7 @@ export const meta = {
 
 // Aufruf: Workflow({name: 'notenportal-dunkel-rundgang'}) oder mit args:
 //   { rollen: ['lernende','berufsbildner','admin'], breiten: [1920, 2560],
-//     ordner: '/root/.notenportal/rundgang', maxBilder: 20, buendel: 4, pruefBuendel: 3, maxSeiten: 150 }
+//     ordner: '/root/.notenportal/rundgang', maxBilder: 20, buendel: 4, pruefBuendel: 3, maxSeiten: 150, env: '<env.sh>' }
 // Rückgabe: { bestaetigt, verworfen, ungeprueft, messung, unvollstaendig: { laeufe, befunde } } –
 // «ungeprüft» sind Befunde, deren Prüfer abbrach (Nutzungslimit); nach dem Reset mit resumeFromRunId weiter.
 // Kein Date.now() im Skript – wer einen Zeitstempel im Ordnernamen will, gibt ihn per args.ordner mit.
@@ -33,7 +33,8 @@ const BUENDEL = A.buendel || 4
 const PRUEF_BUENDEL = A.pruefBuendel || 3 // Befunde je Verifikationsrunde (zwei opus-xhigh-Agenten pro Befund)
 const MAX_SEITEN = A.maxSeiten || 150
 
-const PW = 'export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\\s*=\\s*\'\\K[^\']+" database/seeders/DemoSeeder.php)'
+// args.env: Datei, die NP_PLAYWRIGHT, NP_URL und Cache-Variablen setzt (VM); wird vor dem Rundgang gesourct
+const PW = (A.env ? `source ${A.env} && ` : '') + 'export NP_TEST_PW=$(grep -oP "DEMO_PASSWORT\\s*=\\s*\'\\K[^\']+" database/seeders/DemoSeeder.php)'
 
 const AUFNAHME_SCHEMA = {
   type: 'object',

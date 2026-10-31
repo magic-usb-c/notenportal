@@ -34,6 +34,13 @@
                     <button type="submit" :disabled="loading" class="np-knopf np-knopf-primaer">{{ __('Zu meinen Modulen hinzufügen') }}</button>
                 </form>
             @elseif($lernender && $belegt)
+                @if($entfernbar ?? false)
+                    <form method="POST" action="{{ route('modules.unenroll', $modul->modul_id) }}" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) setTimeout(() => loading = true)">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" :disabled="loading" class="np-knopf np-knopf-sekundaer">{{ __('Aus meinen Modulen entfernen') }}</button>
+                    </form>
+                @endif
                 <a href="{{ route('learner.grades.create', ['bezug' => 'modul:'.$modul->modul_id, 'rueckziel' => route('modules.show', $modul->modul_id, false)]) }}" class="np-knopf np-knopf-primaer">{{ __('Note erfassen') }}</a>
             @endif
         </div>

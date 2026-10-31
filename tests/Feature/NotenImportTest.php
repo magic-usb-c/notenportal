@@ -96,6 +96,26 @@ class NotenImportTest extends TestCase
     }
 
     #[Test]
+    public function import_zu_einem_ausgeschalteten_modul_braucht_eine_bestehende_belegung(): void
+    {
+        // «Ausser Betrieb» heisst: keine neue Belegung, egal wer sie anlegt. Historische Noten zu einem
+        // inzwischen ausgeschalteten Modul gehen nur, wenn die Person es schon belegt hat.
+        DB::table('module')->where('modul_id', $this->modul)->update(['aktiv' => 0]);
+        $import = app(NotenImport::class);
+        $lernenderId = (int) $this->user->lernender->lernender_id;
+        $benutzerId = (int) $this->user->benutzer_id;
+        $zeile = [['nr' => 1, 'datum' => '2026-03-02', 'bezug' => 'modul:'.$this->modul, 'titel' => 'LB1', 'note' => 5.0, 'gewicht' => 100, 'uebernehmen' => true]];
+
+        $ergebnis = $import->importieren($zeile, $lernenderId, $benutzerId);
+        $this->assertSame(0, $ergebnis['neu']);
+        $this->assertStringContainsString(__('Dieses Modul ist nicht mehr aktiv.'), $ergebnis['fehler'][0]);
+        $this->assertSame(0, DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->count());
+
+        DB::table('modul_belegungen')->insert(['lernender_id' => $lernenderId, 'modul_id' => $this->modul, 'start_datum' => '2026-02-01']);
+        $this->assertSame(1, $import->importieren($zeile, $lernenderId, $benutzerId)['neu']);
+    }
+
+    #[Test]
     public function import_ueber_mehrere_semester_oeffnet_die_standardansicht_und_fehler_liefern_kein_semester(): void
     {
         DB::table('semester')->insert(['bezeichnung' => '25/26-1', 'start_datum' => '2025-08-01', 'end_datum' => '2026-01-31', 'sortierung' => 9]);

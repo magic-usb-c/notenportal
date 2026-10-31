@@ -69,6 +69,8 @@ class ModulController extends Controller
             'modul' => $modul,
             'belegte' => $belegte,
             'belegt' => $modul !== null && $belegte->contains($modul->modul_id),
+            'entfernbar' => $modul !== null && $lernenderId !== 0 && $belegte->contains($modul->modul_id)
+                && $this->entfernbar($lernenderId, $modul->modul_id),
             'mbkVersion' => $modul ? $this->katalogversion($modul) : null,
         ]);
     }
@@ -111,6 +113,52 @@ class ModulController extends Controller
         $noten->resolveOrCreateOpenModulBelegung($lernenderId, $modul->modul_id, now()->toDateString());
 
         return back()->with('success', __('Modul hinzugefügt. Du kannst jetzt eigene Noten dazu erfassen.'));
+    }
+
+    /**
+     * Ein versehentlich hinzugefügtes Modul wieder aus den eigenen Modulen nehmen. Nur solange nichts
+     * daran hängt: keine Note (auch keine gelöschte – der Fremdschlüssel hält sie an der Belegung)
+     * und keine geplante Prüfung. Danach gilt das Modul als geführt und bleibt es.
+     */
+    public function entfernen(Request $request, int $modul_id): RedirectResponse
+    {
+        Modul::query()->findOrFail($modul_id);
+        $lernenderId = (int) ($request->user()->lernender?->lernender_id ?? 0);
+        abort_if($lernenderId === 0, 403);
+
+        $entfernt = DB::transaction(function () use ($lernenderId, $modul_id): bool {
+            // Sperren, damit nicht gleichzeitig eine Note an der Belegung entsteht.
+            DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->where('modul_id', $modul_id)
+                ->lockForUpdate()->pluck('modul_belegung_id');
+
+            if (! $this->entfernbar($lernenderId, $modul_id)) {
+                return false;
+            }
+
+            DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->where('modul_id', $modul_id)->delete();
+
+            return true;
+        });
+
+        if (! $entfernt) {
+            return back()->with('error', __('Dieses Modul kann nicht entfernt werden, weil schon Noten oder Prüfungen dazu erfasst sind.'));
+        }
+
+        return back()->with('success', __('Modul aus deinen Modulen entfernt.'));
+    }
+
+    /** Wahr, wenn an keiner Belegung der Person für dieses Modul etwas hängt (gelöschte Noten zählen mit). */
+    private function entfernbar(int $lernenderId, int $modulId): bool
+    {
+        $belegungen = DB::table('modul_belegungen')->where('lernender_id', $lernenderId)->where('modul_id', $modulId)
+            ->pluck('modul_belegung_id');
+
+        if ($belegungen->isEmpty()) {
+            return false;
+        }
+
+        return ! DB::table('noten')->whereIn('modul_belegung_id', $belegungen)->exists()
+            && ! DB::table('pruefungen')->where('lernender_id', $lernenderId)->where('modul_id', $modulId)->exists();
     }
 
     public function create(): View

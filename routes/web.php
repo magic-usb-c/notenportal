@@ -153,6 +153,8 @@ Route::middleware(['auth'])
         // Ein Modul in die eigene Notenerfassung holen: legt die eigene Belegung an, kopiert nichts.
         Route::post('/{modul_id}/enroll', [ModulController::class, 'belegen'])
             ->whereNumber('modul_id')->middleware('role:Lernender')->name('enroll');
+        Route::delete('/{modul_id}/unenroll', [ModulController::class, 'entfernen'])
+            ->whereNumber('modul_id')->middleware('role:Lernender')->name('unenroll');
 
         Route::post('/{modul_id}/documents', [ModulController::class, 'dokumentSpeichern'])
             ->whereNumber('modul_id')->middleware('throttle:30,1,module-documents')->name('documents.store');
