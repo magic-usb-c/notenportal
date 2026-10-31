@@ -64,7 +64,7 @@ class AlleGesehenMeldungTest extends TestCase
     public function sammelmeldungen_kennen_die_einzahl(): void
     {
         $this->assertSame('1 Note angesehen', GradeSeen::sammel(1, '/x')->subject);
-        $this->assertStringContainsString('1 Note als gesehen markiert', GradeSeen::sammel(1, '/x')->lines[0]);
+        $this->assertSame('1 Note wurde als gesehen markiert.', GradeSeen::sammel(1, '/x')->lines[0]);
         $this->assertSame('3 Noten angesehen', GradeSeen::sammel(3, '/x')->subject);
 
         $lernender = User::factory()->lernender()->create(['vorname' => 'Test', 'nachname' => 'Person'])->lernender;

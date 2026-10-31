@@ -1393,3 +1393,6 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
   vergleichen.
 - **Pilot-Reset:** Nach `pilot-vorbereiten` zählt die Inaktivität ab Kontoeröffnung, nicht ab dem Reset; die Sperre
   «eine Mail je Wiederholungsfrist» begrenzt die Folge.
+- **Inaktivitätsmail einer neuen Phase kann sich verzögern.** Ist die Inaktivitätsfrist kürzer als die
+  Wiederholungsfrist, hält die Sperre die Mail nach einer neuen Note bis zum Ende der Wiederholungsfrist der
+  Vorgängermail zurück. Sie kommt später, nie doppelt (Review 31.10.).

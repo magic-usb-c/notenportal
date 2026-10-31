@@ -1,7 +1,7 @@
 export const meta = {
   name: 'notenportal-mail-pruefung',
   description: 'Alle Mailarten rendern (DE/EN, HTML und Text), hell und dunkel bei 640 und 390 px aufnehmen, jede Mail beurteilen, jeden Befund gegnerisch verifizieren',
-  whenToUse: 'Nach Änderungen an resources/views/mail/*, app/Services/Notifications/* oder Mailtexten, oder wenn die Mails abgenommen werden sollen. args: { env: "<env.sh>", scratch: "<ordner>", db: "notenportal_wNN_test", max?: number }',
+  whenToUse: 'Nach Änderungen an resources/views/mail/*, app/Services/Notifications/* oder Mailtexten, oder wenn die Mails abgenommen werden sollen. args: { env: "<env.sh>", scratch: "<ordner>", db: "notenportal_wNN_test", max?: number, hinweis?: "Varianten/Schwerpunkt dieser Runde" }',
   phases: [
     { title: 'Rendern', detail: 'Wegwerf-Test in einer *_test-DB schreibt jede Mailart als HTML und Text, danach Playwright-Aufnahmen' },
     { title: 'Urteil', detail: 'je Mailart ein Prüfer: Bilder, HTML und Textfassung' },
@@ -17,6 +17,7 @@ const SCRATCH = A.scratch
 const DB = A.db
 const ENV = A.env ? `source ${A.env} && ` : ''
 const MAX = A.max || 40
+const HINWEIS = A.hinweis ? `\n\nSchwerpunkt dieser Runde (zusätzliche Varianten als eigene Mailart mit Suffix rendern): ${A.hinweis}` : ''
 if (!SCRATCH || !DB || !/_test$/.test(DB)) throw new Error('args.scratch und args.db (*_test) sind Pflicht')
 const MAILDIR = `${SCRATCH}/mails`
 
@@ -90,7 +91,7 @@ Ziel: Jede Mail, die das Portal verschicken kann, als fertig gerendertes HTML un
 4. Aufnahmen: Schreibe ${MAILDIR}/aufnahme.mjs (Playwright; Pfad zum Paket steht in $NP_PLAYWRIGHT nach «${ENV}true», sonst in tools/pruefung/browser.mjs nachsehen, wie die anderen Werkzeuge Playwright laden). Für jede HTML-Datei per file:// vier ganzseitige PNGs: colorScheme light/dark × Breite 640 (Mailfenster am Desktop) / 390 (Telefon), deviceScaleFactor 1. Dateiname ${MAILDIR}/bilder/<typ>-<hell|dunkel>-<640|390>.png. Externe Bilder (Logo-URL) dürfen fehlen; notiere es nur.
 5. Ein Bild deiner Wahl mit Read ansehen, um zu prüfen, dass die Aufnahme taugt (nicht leer, nicht abgeschnitten).
 
-Rückgabe: alle Mails mit Pfaden; in «fehlend» jede Mailart, die du gefunden, aber nicht rendern konntest, mit Grund.`, { label: 'rendern', phase: 'Rendern', schema: RENDER_SCHEMA, model: 'sonnet', effort: 'high' })
+Rückgabe: alle Mails mit Pfaden; in «fehlend» jede Mailart, die du gefunden, aber nicht rendern konntest, mit Grund.${HINWEIS}`, { label: 'rendern', phase: 'Rendern', schema: RENDER_SCHEMA, model: 'sonnet', effort: 'high' })
 
 if (!render || !render.mails || !render.mails.length) {
   return { mails: [], bestaetigt: [], verworfen: [], ungeprueft: [], fehler: render ? render.fehler : 'Render-Agent ohne Ergebnis' }

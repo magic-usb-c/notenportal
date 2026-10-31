@@ -37,7 +37,7 @@ class NotenGesehenController extends VerwaltungController
         $this->markieren([$note->note_id], $viewerId);
 
         if ($warNeu) {
-            $this->benachrichtigen($lernender, fn () => GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id])));
+            $this->benachrichtigen($lernender, fn () => GradeSeen::einzeln($note, route('learner.grades.index', ['_open' => $note->note_id]), $request->user()));
         }
 
         return back()
@@ -64,7 +64,7 @@ class NotenGesehenController extends VerwaltungController
         }
 
         $this->markieren($noteIds, $viewerId);
-        $this->benachrichtigen($lernender, fn () => GradeSeen::sammel($anzahl, route('learner.grades.index')));
+        $this->benachrichtigen($lernender, fn () => GradeSeen::sammel($anzahl, route('learner.grades.index'), $request->user()));
 
         return back()->with('success', $anzahl === 1 ? __('1 Note als gesehen markiert.') : __(':anzahl Noten als gesehen markiert.', ['anzahl' => $anzahl]));
     }

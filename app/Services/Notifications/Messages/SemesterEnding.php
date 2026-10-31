@@ -38,7 +38,7 @@ final class SemesterEnding
 
         return new MailContent(
             subject: __('Semesterende naht: :semester', ['semester' => $name]),
-            lines: [__('Das Semester «:semester» endet am :ende. Denk daran, offene Prüfungen einzutragen und dein Zeugnis hochzuladen, sobald es da ist.', ['semester' => $name, 'ende' => $semester->end_datum->format('d.m.Y')])],
+            lines: [__('Denk daran, offene Prüfungen einzutragen und dein Zeugnis hochzuladen, sobald es da ist.')],
             facts: [__('Semester') => $name, __('Ende') => $semester->end_datum->format('d.m.Y')],
             sections: $sections,
             actionLabel: __('Zur Prüfungsliste'),

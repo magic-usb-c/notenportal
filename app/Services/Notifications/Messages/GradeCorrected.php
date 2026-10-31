@@ -18,7 +18,7 @@ final class GradeCorrected
 
         return new MailContent(
             subject: __('Note in :bezug korrigiert', ['bezug' => $bezug]),
-            lines: [__('Deine Note vom :datum in :bezug wurde korrigiert.', ['datum' => self::datum($note), 'bezug' => $bezug])],
+            lines: [__('Deine Note wurde nachträglich geändert.')],
             facts: [__('Fach / Modul') => $bezug, __('Bisherige Note') => $alterWert, __('Neue Note') => $note->anzeige(), __('Datum') => self::datum($note)],
             actionLabel: __('Note ansehen'),
             actionUrl: $zielUrl,

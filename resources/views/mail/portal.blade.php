@@ -68,7 +68,7 @@
     <tr><td align="center" style="padding:28px 12px;">
         <!--[if mso]><table role="presentation" align="center" width="600" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
-            <tr><td class="np-pad" style="padding:0 8px 14px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};" >
+            <tr><td class="np-pad np-klein" style="padding:0 8px 14px;font-family:{{ $schrift }};font-size:13px;color:{{ $f['muted'] }};" >
                 @if($logoUrl ?? null)
                     <img class="np-logo" src="{{ $logoUrl }}" alt="" height="20" style="vertical-align:middle;margin-right:8px;border-radius:4px;">
                 @else
@@ -111,7 +111,7 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:{{ $schrift }};font-size:14px;border-collapse:collapse;">
                                 <tr>
                                     @foreach($c->table['head'] as $i => $kopf)
-                                        <th class="np-muted np-line" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 4px 8px {{ $i === 0 ? 4 : 14 }}px;font-size:13px;font-weight:600;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
+                                        <th class="np-muted np-line np-klein" align="{{ $i === 0 ? 'left' : 'right' }}" style="padding:8px 4px 8px {{ $i === 0 ? 4 : 14 }}px;font-size:13px;font-weight:600;color:{{ $f['muted'] }};border-bottom:1px solid {{ $f['border'] }};">{{ $kopf }}</th>
                                     @endforeach
                                 </tr>
                                 @foreach($c->table['rows'] as $zeile)
@@ -145,7 +145,7 @@
                         <tr><td class="np-pad" style="padding:22px 36px 6px;">
                             {{-- Knopf als Zelle (Outlook-Desktop kennt kein Padding auf Links): Farbe und Rundung auf der Zelle, mso-padding-alt für Word, Link trägt das Padding für alle anderen. --}}
                             <table role="presentation" cellpadding="0" cellspacing="0" class="np-btn-tabelle"><tr>
-                                <td class="np-btn-zelle" bgcolor="{{ $f['accent'] }}" style="background:{{ $f['accent'] }};border-radius:12px;mso-padding-alt:13px 24px;"><a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;color:#ffffff;font-family:{{ $schrift }};font-size:15px;font-weight:600;text-decoration:none;padding:13px 24px;">{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}</a></td>
+                                <td class="np-btn-zelle" bgcolor="{{ $f['accent'] }}" style="background:{{ $f['accent'] }};border-radius:12px;mso-padding-alt:13px 24px;"><a class="np-btn" href="{{ $c->actionUrl }}" style="display:inline-block;color:#ffffff;font-family:{{ $schrift }};font-size:15px;line-height:20px;mso-line-height-rule:exactly;font-weight:600;text-decoration:none;padding:13px 24px;">{{ $c->actionLabel ?? __('Im Notenportal öffnen') }}</a></td>
                             </tr></table>
                         </td></tr>
                     @endif

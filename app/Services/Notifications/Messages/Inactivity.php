@@ -16,7 +16,7 @@ final class Inactivity
 
         return new MailContent(
             subject: $betreff,
-            lines: [__('Du hast seit :tage Tagen keine Note mehr eingetragen. Trag deine aktuellen Noten ein, damit dein Notenstand stimmt.', ['tage' => $tage])],
+            lines: [__('Trag deine aktuellen Noten ein, damit dein Notenstand stimmt.')],
             actionLabel: __('Note erfassen'),
             actionUrl: route('learner.grades.create'),
             digestTitle: $betreff,

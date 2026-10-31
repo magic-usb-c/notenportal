@@ -482,6 +482,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Pruefung::art() rekursierte bei fehlendem Attribut endlos (Segfault), liest jetzt die Attribute direkt.
                   Doku: Erinnerung «Note fehlt nach Prüfung» gab es nie (siehe «Offen für David»). Review ohne Befund,
                   Suite 1996 grün.
+[Q] 31.10. 18:10  Mail-Prüfung (64 Fassungen inkl. Abgabe-Erinnerung, Semesterende mit Abgabe, umgeleitete Testmail;
+                  14 bestätigt, 16 verworfen, alle niedrig) behoben: Knopf 46 px hoch (feste Zeilenhöhe), Betriebszeile
+                  und Tabellenkopf auf dem Telefon 14 px. Korrektur-, Gesehen-, Inaktivitäts- und Semesterende-Mail
+                  wiederholen Titel und Fakten nicht mehr im Absatz. Gesehen-Mails nennen die Person statt «Dein
+                  Berufsbildner» (auch Admins markieren). Mail-Workflow kennt args.hinweis für Varianten. Suite 2003 grün.
 ```
 
 ---
