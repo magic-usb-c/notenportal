@@ -166,6 +166,14 @@ class PruefungenController extends Controller
             return back()->with('error', $this->bezugFehler($e, $typ));
         }
 
+        // Schon übernommen (der Abgleich hat die Verknüpfung früher überschrieben): nur wieder verknüpfen.
+        $vorhanden = $lernender->pruefungen()->where('extern_uid', $event->uid)->first();
+        if ($vorhanden) {
+            $event->update(['pruefung_id' => $vorhanden->pruefung_id]);
+
+            return $this->zurAgenda($request, $vorhanden->datum->format('Y-m-d'))->with('success', __('Prüfung war bereits übernommen.'));
+        }
+
         $info = $this->parser->parse($event->summary, $event->description);
         $werte = CalendarSync::pruefungsWerte($info, $event->starts_at, $event->ends_at, (bool) $event->all_day, $event->location);
         $pruefung = $lernender->pruefungen()->create([

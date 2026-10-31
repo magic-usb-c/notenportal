@@ -165,7 +165,13 @@ final class CalendarSync
                         $pruefungenGesehen[] = $pruefungId;
                         $stats['exams']++;
                     } else {
-                        $stats['unmatched']++;
+                        // Vom Lernenden von Hand übernommen (Lernender\PruefungenController::adopt): die Prüfung
+                        // trägt dieselbe extern_uid. Verknüpfung behalten, sonst taucht der Termin wieder als
+                        // «nicht zugeordnet» auf und überschriebe die Verknüpfung mit null.
+                        $pruefungId = Pruefung::query()->where('lernender_id', $lernender->lernender_id)->where('extern_uid', $uid)->value('pruefung_id');
+                        if ($pruefungId === null) {
+                            $stats['unmatched']++;
+                        }
                     }
                 }
 

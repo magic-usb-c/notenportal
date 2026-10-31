@@ -53,7 +53,9 @@ class MailLog extends Model
         if (preg_match('/certificate|SSL (operation|routines|error|handshake)|enable_crypto|(?-i:\bTLS\b|STARTTLS)/i', $roh) === 1) {
             return __('Die verschlüsselte Verbindung zum Mailserver ist fehlgeschlagen – Zertifikat und Verschlüsselung prüfen.');
         }
-        if (preg_match('/could not be established|refused|timed out|timeout|getaddrinfo|getaddresses|stream_socket_client|unable to connect|no route to host|network is unreachable/i', $roh) === 1) {
+        // «Expected response code» ist die Antwort eines erreichten Servers (z. B. «refused by policy»), kein Verbindungsfehler
+        if (preg_match('/Expected response code/i', $roh) !== 1
+            && preg_match('/could not be established|refused|timed out|timeout|getaddrinfo|getaddresses|stream_socket_client|unable to connect|no route to host|network is unreachable/i', $roh) === 1) {
             return __('Der Mailserver ist nicht erreichbar – Host, Port und Verschlüsselung prüfen.');
         }
 

@@ -11,7 +11,7 @@ use App\Support\NotenSkala;
 use App\Support\Zahl;
 
 /**
- * Erinnerung an eine geplante Prüfung: Datum/Uhrzeit, Fach/Modul, Titel, Gewichtung, bisheriger Schnitt,
+ * Erinnerung an eine geplante Prüfung (bzw. einen Abgabetermin, dann ohne Prüfungsangaben): Datum/Uhrzeit, Fach/Modul, Titel, Gewichtung, bisheriger Schnitt,
  * Prüfungsart, Dauer, erlaubte Hilfsmittel, Prüfungsstoff und eigene Notizen – der Lernende soll die Mail
  * lesen und wissen, was er lernen muss, ohne das Portal öffnen zu müssen.
  */
@@ -29,17 +29,23 @@ final class ExamReminder
             ? $a->fach((int) $p->fach_id)['note']
             : ($a->elemente['m'.$p->modul_id]->note ?? null);
 
+        // Abgabetermine behalten ihre Erinnerung, nennen sich aber nicht Prüfung und tragen keine Prüfungsangaben.
+        $abgabe = $p->istAbgabe();
+        $betreff = $abgabe
+            ? __('Abgabe in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')])
+            : __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]);
+
         return new MailContent(
-            subject: __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]),
-            lines: [__('Deine nächste Prüfung steht an.')],
+            subject: $betreff,
+            lines: [$abgabe ? __('Dein nächster Abgabetermin steht an.') : __('Deine nächste Prüfung steht an.')],
             facts: array_filter([
                 __('Datum') => $datum,
                 __('Fach / Modul') => $bezug,
                 __('Titel') => $p->titel,
-                __('Gewichtung') => $gewicht,
-                __('Prüfungsart') => $p->pruefungsart,
-                __('Dauer') => $p->dauer_minuten ? __(':minuten Minuten', ['minuten' => $p->dauer_minuten]) : null,
-                __('Erlaubte Hilfsmittel') => $p->hilfsmittel,
+                __('Gewichtung') => $abgabe ? null : $gewicht,
+                __('Prüfungsart') => $abgabe ? null : $p->pruefungsart,
+                __('Dauer') => ! $abgabe && $p->dauer_minuten ? __(':minuten Minuten', ['minuten' => $p->dauer_minuten]) : null,
+                __('Erlaubte Hilfsmittel') => $abgabe ? null : $p->hilfsmittel,
                 __('Bisheriger Schnitt') => $schnitt !== null ? NotenSkala::format($schnitt) : null,
             ]),
             sections: array_filter([
@@ -48,7 +54,7 @@ final class ExamReminder
             ]),
             actionLabel: __('Zur Agenda'),
             actionUrl: route('learner.exams.index'),
-            digestTitle: __('Prüfung in :bezug am :datum', ['bezug' => $bezug, 'datum' => $p->datum->format('d.m.Y')]),
+            digestTitle: $betreff,
         );
     }
 }

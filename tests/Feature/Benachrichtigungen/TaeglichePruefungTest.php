@@ -78,6 +78,8 @@ class TaeglichePruefungTest extends TestCase
     {
         Notification::fake();
         $lernenderUser = User::factory()->lernender()->create(['email' => 'lernender@firma.ch']);
+        // Die Frist zählt auch ab Kontoeröffnung: ein Konto von vor einem Jahr ist längst über der Frist
+        DB::table('benutzer')->where('benutzer_id', $lernenderUser->benutzer_id)->update(['erstellt_am' => today()->subYear()->toDateTimeString()]);
 
         $this->artisan('notifications:check');
 

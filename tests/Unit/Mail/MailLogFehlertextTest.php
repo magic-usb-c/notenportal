@@ -29,6 +29,8 @@ class MailLogFehlertextTest extends TestCase
             'certificate im Empfänger' => ['Expected response code "250/251/252" but got code "550", with message "550 5.1.1 <certificate@example.ch>: Recipient address rejected: User unknown"', 'fehlgeschlagen'],
             'authentication in der Absenderadresse' => ['Email "authentication@firma.example" does not comply with addr-spec of RFC 2822.', 'fehlgeschlagen'],
             'allgemein' => ['Expected response code "250" but got code "550", with message "550 Mailbox unavailable"', 'fehlgeschlagen'],
+            'Richtlinie mit refused' => ['Expected response code "250" but got code "554", with message "554 5.7.1 Message refused by policy"', 'fehlgeschlagen'],
+            'Zeitüberschreitung des Servers' => ['Expected response code "250" but got code "451", with message "451 4.4.2 Timeout waiting for data"', 'fehlgeschlagen'],
             'leer' => ['', 'fehlgeschlagen'],
         ];
     }

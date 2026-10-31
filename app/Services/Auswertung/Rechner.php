@@ -10,6 +10,7 @@ use App\Services\Noten\NoteService;
 use App\Support\NotenSkala;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
@@ -68,8 +69,13 @@ final class Rechner
      */
     private function standard(array $katalog, array $vorschlaege, Auswertung $a): ?string
     {
+        // Nicht erfassbare Fächer (Track beendet, Fach inaktiv) sind nur dann Startziel, wenn es nichts Erfassbares gibt.
+        $erfassbareFaecher = array_column(array_filter($katalog['faecher'], fn (array $f) => $f['erfassbar']), 'id');
+        $nichtErfassbar = fn (string $element): bool => $erfassbareFaecher !== []
+            && preg_match('/^fach:(\d+)@/', $element, $m) === 1 && ! in_array((int) $m[1], $erfassbareFaecher, true);
+
         foreach ($vorschlaege as $z) {
-            if (($z['quelle'] ?? null) === Leistung::GEPLANT) {
+            if (($z['quelle'] ?? null) === Leistung::GEPLANT && ! $nichtErfassbar($z['element'])) {
                 return $z['element'];
             }
         }
@@ -86,7 +92,7 @@ final class Rechner
                     $e->typ === Element::MODUL => "modul:{$e->modulId}",
                     default => null,
                 };
-                if ($element !== null) {
+                if ($element !== null && ! $nichtErfassbar($element)) {
                     $letztesDatum = $l->datum;
                     $letztesElement = $element;
                 }
@@ -98,8 +104,9 @@ final class Rechner
 
         if ($katalog['faecher'] !== [] && $katalog['semester'] !== []) {
             $sem = $katalog['aktuelles_semester'] ?? $katalog['semester'][0]['id'];
+            $erstes = array_values(array_filter($katalog['faecher'], fn (array $f) => $f['erfassbar']))[0] ?? $katalog['faecher'][0];
 
-            return 'fach:'.$katalog['faecher'][0]['id'].'@semester:'.$sem;
+            return 'fach:'.$erstes['id'].'@semester:'.$sem;
         }
         if ($katalog['module'] !== []) {
             return 'modul:'.$katalog['module'][0]['id'];
@@ -154,7 +161,17 @@ final class Rechner
             ->where('n.lernender_id', $id)->whereNull('n.geloescht_am')->whereNotNull('f.kategorie_id')
             ->distinct()->pluck('f.kategorie_id', 'f.fach_id');
 
-        $faecher = $erlaubt->union($mitNoten)
+        // Fächer mit geplanter Prüfung bleiben im Katalog, auch wenn sie heute nicht mehr erfassbar sind (Track beendet,
+        // Fach inaktiv): vorschlaege() nimmt diese Prüfungen auf, der Rechner muss sie also kennen (gleiches Muster wie bei Modulen).
+        $geplante = $this->quelle->geplante([$id])[$id] ?? [];
+        $mitGeplanten = collect();
+        foreach ($geplante as $p) {
+            if ($p->fachId !== null) {
+                $mitGeplanten->put($p->fachId, $p->kategorieId);
+            }
+        }
+
+        $faecher = $erlaubt->union($mitNoten)->union($mitGeplanten)
             ->map(fn ($kid, $fid) => ['id' => (int) $fid, 'name' => $k->fachName((int) $fid), 'kategorie_id' => (int) $kid, 'erfassbar' => $erlaubt->has($fid)])
             ->sortBy('name')->values()->all();
 
@@ -179,7 +196,7 @@ final class Rechner
         $ausserhalb = DB::table('noten as n')->join('modul_belegungen as mb', 'mb.modul_belegung_id', '=', 'n.modul_belegung_id')
             ->where('n.lernender_id', $id)->whereNull('n.geloescht_am')->whereNotNull('n.kategorie_id')
             ->distinct()->pluck('n.kategorie_id', 'mb.modul_id')->all();
-        foreach ($this->quelle->geplante([$id])[$id] ?? [] as $p) {
+        foreach ($geplante as $p) {
             if ($p->modulId !== null) {
                 $ausserhalb += [$p->modulId => $p->kategorieId];
             }
@@ -236,6 +253,14 @@ final class Rechner
         if ($notenSpanne?->von !== null) {
             $von = min($von, (string) $notenSpanne->von);
             $bis = max($bis, (string) $notenSpanne->bis);
+        }
+
+        // Geplante Fach-Prüfungen ausserhalb der Lehrzeit (Verlängerung, Nachholprüfung) gehören ebenfalls in die Spanne.
+        foreach ($geplante as $p) {
+            if ($p->fachId !== null && $p->datum !== null) {
+                $von = min($von, (string) $p->datum);
+                $bis = max($bis, (string) $p->datum);
+            }
         }
 
         $semester = [];
@@ -311,7 +336,22 @@ final class Rechner
     {
         $katalog = $this->katalog($lernender);
 
-        return array_map(fn (array $z) => $this->zeile($z, $katalog, $a->konfiguration, 'zeilen'), $this->vorschlaege($lernender, $a));
+        // Sicherheitsnetz: Dashboard und Cockpit dürfen nie an einer einzelnen Rechnerzeile scheitern. Eine übersprungene
+        // Zeile fehlt im Zielbedarf, darum nie stumm.
+        $out = [];
+        foreach ($this->vorschlaege($lernender, $a) as $z) {
+            try {
+                $out[] = $this->zeile($z, $katalog, $a->konfiguration, 'zeilen');
+            } catch (ValidationException $e) {
+                Log::warning('Rechner: Vorschlag übersprungen, weil er nicht im Katalog steht.', [
+                    'lernender_id' => (int) $lernender->lernender_id,
+                    'element' => $z['element'] ?? null,
+                    'grund' => implode(' ', $e->validator->errors()->all()),
+                ]);
+            }
+        }
+
+        return $out;
     }
 
     /** @param  array{ziel: string, zielwert: float|string, ersetzt?: ?int, zeilen: list<array<string, mixed>>}  $eingabe */

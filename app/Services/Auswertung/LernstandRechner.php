@@ -35,7 +35,9 @@ final class LernstandRechner
             ->groupBy('lernender_id')->selectRaw('lernender_id, MAX(pruefungsdatum) as letzte')->pluck('letzte', 'lernender_id');
         $ueberfaellig = DB::table('pruefungen')->whereIn('lernender_id', $lernenderIds)->whereNull('note_id')->whereNull('abgesagt_am')->where('datum', '<', now()->toDateString())
             ->groupBy('lernender_id')->selectRaw('lernender_id, COUNT(*) as anzahl')->pluck('anzahl', 'lernender_id');
-        $lehrzeit = DB::table('lernende')->whereIn('lernender_id', $lernenderIds)->get(['lernender_id', 'lehrbeginn', 'lehrende'])->keyBy('lernender_id');
+        $lehrzeit = DB::table('lernende')->leftJoin('benutzer', 'benutzer.benutzer_id', '=', 'lernende.benutzer_id')
+            ->whereIn('lernende.lernender_id', $lernenderIds)
+            ->get(['lernende.lernender_id', 'lernende.lehrbeginn', 'lernende.lehrende', 'benutzer.erstellt_am'])->keyBy('lernender_id');
         $lehrbeginn = $lehrzeit->pluck('lehrbeginn', 'lernender_id');
         // In einem Rutsch vorladen statt pro Person: verhindert N+1 bei Lehrsemester::nummer()
         // (personalisierte Semesternamen), das verlauf()/toArray() weiter unten je Person nutzt.
@@ -48,7 +50,9 @@ final class LernstandRechner
                 $auswertungen[$id],
                 isset($letzte[$id]) ? Carbon::parse($letzte[$id]) : null,
                 (int) ($ueberfaellig[$id] ?? 0),
-                isset($lehrbeginn[$id]) ? Carbon::parse($lehrbeginn[$id]) : null,
+                // «noch keine Noten» erst nach der Frist ab Lehrbeginn oder, wenn das Konto später eröffnet wurde, ab der
+                // Eröffnung – dieselbe Regel wie die Inaktivitätsmail (CheckNotifications::inactivity)
+                collect([$lehrbeginn[$id] ?? null, $lehrzeit[$id]->erstellt_am ?? null])->filter()->map(fn ($d) => Carbon::parse($d))->max(),
                 isset($lehrzeit[$id]->lehrende) ? Carbon::parse($lehrzeit[$id]->lehrende) : null,
             );
         }

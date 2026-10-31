@@ -70,9 +70,10 @@ class NewPasswordController extends Controller
             $status = Password::broker('invites')->reset($credentials, $callback);
         }
 
+        // Jeder Fehlstatus gibt dieselbe Meldung: «Kein Konto» (INVALID_USER) darf nicht von «Link ungültig» zu unterscheiden sein.
         return $status === Password::PASSWORD_RESET
             ? redirect()->route('login')->with('status', __($status))
-            : back()->withErrors(['email' => [__($status)]]);
+            : back()->withErrors(['email' => [__(Password::INVALID_TOKEN)]]);
     }
 
     /**

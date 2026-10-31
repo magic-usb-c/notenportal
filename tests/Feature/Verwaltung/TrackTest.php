@@ -3,6 +3,7 @@
 namespace Tests\Feature\Verwaltung;
 
 use App\Models\Semester;
+use App\Services\Noten\NoteService;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -81,5 +82,45 @@ class TrackTest extends TestCase
             ->assertSessionHas('error');
 
         $this->assertNull($track->refresh()->end_datum);
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function vergangenes_endsemester_beendet_den_track_an_dessen_semesterende(string $bereich): void
+    {
+        $lernender = $this->neuerLernender();
+        $verwalter = $this->verwalter($bereich, $lernender);
+        $start = Semester::factory()->create(['start_datum' => '2020-08-01', 'end_datum' => '2021-01-31', 'sortierung' => 800]);
+        $ende = Semester::factory()->create(['start_datum' => '2021-02-01', 'end_datum' => '2021-07-31', 'sortierung' => 801]);
+        $track = $this->bmsTrack($lernender, $start->semester_id);
+        $track->update(['start_datum' => '2020-08-01']);
+
+        $this->actingAs($verwalter)
+            ->post(route("{$bereich}.tracks.end", [$lernender->lernender_id, $track->lernender_track_id]), [
+                'end_semester_id' => $ende->semester_id,
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertSame('2021-07-31', $track->refresh()->end_datum->toDateString());
+        $this->assertFalse(app(NoteService::class)->activeTrackTypesForLernender($lernender->lernender_id)->contains('BMS'));
+    }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function laufendes_endsemester_beendet_den_track_heute(string $bereich): void
+    {
+        $lernender = $this->neuerLernender();
+        $verwalter = $this->verwalter($bereich, $lernender);
+        $start = Semester::factory()->create();
+        $ende = Semester::factory()->create(['sortierung' => $start->sortierung + 1]);
+        $track = $this->bmsTrack($lernender, $start->semester_id);
+
+        $this->actingAs($verwalter)
+            ->post(route("{$bereich}.tracks.end", [$lernender->lernender_id, $track->lernender_track_id]), [
+                'end_semester_id' => $ende->semester_id,
+            ])
+            ->assertSessionHas('success');
+
+        $this->assertSame(today()->toDateString(), $track->refresh()->end_datum->toDateString());
     }
 }

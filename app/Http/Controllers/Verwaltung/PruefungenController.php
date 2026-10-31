@@ -70,6 +70,22 @@ class PruefungenController extends VerwaltungController
         $pruefungen = $filter['lernender_id'] !== null
             ? $alle->where('lernender_id', $filter['lernender_id'])->values()
             : $alle;
+        // Selbst erfasste Abgabetermine ausserhalb des Zeitfensters (z. B. Projektabgabe in 4 Monaten oder
+        // ein altes, falsches Datum ohne Note) bleiben beim gewählten Lernenden erreichbar. Nur die Liste,
+        // nicht die Zähler der Seitenleiste.
+        if ($filter['lernender_id'] !== null && $filter['zeitraum'] === 'alle' && in_array($filter['lernender_id'], $ids, true) && Pruefung::hatArtSpalte()) {
+            $ausserhalb = Pruefung::query()
+                ->where('lernender_id', $filter['lernender_id'])
+                ->where('art', Pruefung::ART_ABGABE)
+                ->whereNotIn('pruefung_id', $pruefungen->pluck('pruefung_id')->all() ?: [0])
+                ->where(fn ($q) => $q
+                    ->where('datum', '>', $heute->addDays($tageVoraus)->toDateString())
+                    ->orWhere(fn ($q2) => $q2->where('datum', '<', $heute->toDateString())->whereNull('note_id')->whereNull('abgesagt_am')))
+                ->with(['fach', 'modul', 'lernender.benutzer', 'note'])
+                ->orderBy('datum')->orderBy('uhrzeit')
+                ->get();
+            $pruefungen = $pruefungen->concat($ausserhalb)->sortBy([['datum', 'asc'], ['uhrzeit', 'asc']])->values();
+        }
         $fehlt = $alle->filter(fn (Pruefung $p) => $this->zustand($p, $heute) === 'fehlt')->countBy('lernender_id');
         $proLernendem = $alle->countBy('lernender_id');
         $lernende = $lernendeOptionen->map(fn (Lernender $l) => [

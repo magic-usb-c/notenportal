@@ -97,6 +97,8 @@ class LernendeListeTest extends TestCase
         $bb = User::factory()->berufsbildner()->create();
         $fertig = $this->neuerLernender(['vorname' => 'Abschlusstest'], ['lehrbeginn' => now()->subYears(4)->toDateString(), 'lehrende' => now()->subDays(2)->toDateString()]);
         $laufend = $this->neuerLernender(['vorname' => 'Laufendtest'], ['lehrbeginn' => now()->subYear()->toDateString()]);
+        // Konto seit Lehrbeginn: «noch keine Noten» zählt ab dem späteren von Lehrbeginn und Kontoeröffnung
+        DB::table('benutzer')->where('benutzer_id', $laufend->benutzer_id)->update(['erstellt_am' => now()->subYear()]);
         $this->betreue($bb, $fertig);
         $this->betreue($bb, $laufend);
 

@@ -68,6 +68,13 @@ final class Einrichtung
         $kategorienGeprueft = Einstellungen::get(self::KATEGORIEN_GEPRUEFT) === '1';
         $kategorienInfo = __(':anzahl aktiv', ['anzahl' => $anzahl('kategorien', fn ($q) => $q->where('aktiv', 1))]);
 
+        $mail = MailSettings::values();
+        $mailInfo = match ($mail['source']) {
+            'db' => (string) $mail[MailSettings::HOST],
+            'env' => (string) ($mail['env_host'] ?: $mail['env_from']),
+            default => '',
+        };
+
         $stand = [
             'operations' => ['erledigt' => $name !== '', 'info' => $name],
             // Kategorien gelten erst nach dem Speichern des Schritts als geprüft – auch wenn Vorlagen schon aktiv sind
@@ -76,7 +83,7 @@ final class Einrichtung
             'professions' => ['erledigt' => $lehrberufe > 0, 'info' => __(':lehrberufe Lehrberufe · :faecher Fächer', ['lehrberufe' => $lehrberufe, 'faecher' => $faecher])],
             'modules' => ['erledigt' => $module > 0, 'info' => __(':anzahl Zuordnungen', ['anzahl' => $module])],
             'people' => ['erledigt' => $bb + $lernende > 0, 'info' => __(':bb Berufsbildner · :lernende Lernende', ['bb' => $bb, 'lernende' => $lernende])],
-            'mail' => ['erledigt' => MailSettings::values()['source'] !== 'none', 'info' => ''],
+            'mail' => ['erledigt' => $mail['source'] !== 'none', 'info' => $mailInfo],
         ];
         // Der Haken am Abschluss verspricht «alles erledigt» – nicht nur «Einrichtung geschlossen» (HIG: Status nicht täuschen)
         $stand['finish'] = ['erledigt' => ! self::offen() && ! in_array(false, array_column($stand, 'erledigt'), true), 'info' => ''];

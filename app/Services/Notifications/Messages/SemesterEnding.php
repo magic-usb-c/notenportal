@@ -21,9 +21,15 @@ final class SemesterEnding
     {
         $name = Konfiguration::ausDb()->semesterName((int) $semester->semester_id, $lernenderId);
         $sections = [];
-        if ($offenePruefungen !== []) {
-            $zeilen = array_map(fn (Pruefung $p) => '- '.$p->bezeichnung().' ('.$p->datum->format('d.m.Y').')', $offenePruefungen);
-            $sections[] = ['title' => __('Offene geplante Prüfungen'), 'text' => implode("\n", $zeilen)];
+        // Abgabetermine sind keine Prüfungen: eigene Liste unter eigener Überschrift
+        $zeile = fn (Pruefung $p) => '- '.$p->bezeichnung().' ('.$p->datum->format('d.m.Y').')';
+        $nurPruefungen = array_values(array_filter($offenePruefungen, fn (Pruefung $p) => ! $p->istAbgabe()));
+        $nurAbgaben = array_values(array_filter($offenePruefungen, fn (Pruefung $p) => $p->istAbgabe()));
+        if ($nurPruefungen !== []) {
+            $sections[] = ['title' => __('Offene geplante Prüfungen'), 'text' => implode("\n", array_map($zeile, $nurPruefungen))];
+        }
+        if ($nurAbgaben !== []) {
+            $sections[] = ['title' => __('Offene Abgaben'), 'text' => implode("\n", array_map($zeile, $nurAbgaben))];
         }
         if ($offeneModule !== []) {
             $zeilen = array_map(fn (Element $e) => '- '.$e->label.' ('.__('offen: :prozent %', ['prozent' => rtrim(rtrim(number_format((float) $e->offenGewicht(), 2, '.', ''), '0'), '.')]).')', $offeneModule);

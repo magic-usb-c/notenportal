@@ -67,10 +67,13 @@ class Pruefung extends Model
         return self::$hatArtSpalte;
     }
 
-    /** «pruefung», solange die Spalte fehlt oder kein Wert gesetzt ist – Bestandsdaten sind alle Prüfungen. */
+    /**
+     * «pruefung», solange die Spalte fehlt oder kein Wert gesetzt ist – Bestandsdaten sind alle Prüfungen.
+     * Direkt aus den Attributen: getAttribute('art') hielte diese Methode bei fehlendem Wert für eine Relation und riefe sich endlos selbst.
+     */
     public function art(): string
     {
-        return $this->getAttribute('art') ?? self::ART_PRUEFUNG;
+        return $this->attributes['art'] ?? self::ART_PRUEFUNG;
     }
 
     public function istAbgabe(): bool

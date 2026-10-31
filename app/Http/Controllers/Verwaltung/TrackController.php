@@ -61,9 +61,12 @@ class TrackController extends VerwaltungController
             return back()->with('error', __('Das Endsemester liegt vor dem Startsemester.'));
         }
 
+        // Der Track endet am Ende des gewählten Endsemesters, spätestens heute (laufendes Semester: heute).
         // DB-Constraint end_datum >= start_datum: ein künftiger Track endet an seinem Starttag.
+        $endSemester = Semester::query()->findOrFail((int) $daten['end_semester_id']);
+        $ende = min($endSemester->end_datum, today());
         $track->update([
-            'end_datum' => max(today(), $track->start_datum)->toDateString(),
+            'end_datum' => max($track->start_datum, $ende)->toDateString(),
             'end_semester_id' => (int) $daten['end_semester_id'],
         ]);
 

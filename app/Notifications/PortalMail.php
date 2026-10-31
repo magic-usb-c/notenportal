@@ -54,7 +54,8 @@ class PortalMail extends Notification implements ShouldQueue
 
         $user = $notifiable instanceof User ? $notifiable : null;
         $katalog = NotificationCatalog::exists($this->type) ? NotificationCatalog::get($this->type) : null;
-        $abmelden = $user && $katalog && ! NotificationCatalog::policy($this->type)['mandatory']
+        // Bei Umleitung liest ein Dritter die Mail: der Link würde die Wahl der Originalperson ändern
+        $abmelden = $user && $katalog && ! NotificationCatalog::policy($this->type)['mandatory'] && ! MailSettings::redirectTo()
             ? URL::signedRoute('notifications.unsubscribe', ['user' => $user->benutzer_id, 'type' => $this->type])
             : null;
 

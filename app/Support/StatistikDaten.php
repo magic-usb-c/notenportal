@@ -17,6 +17,7 @@ use App\Services\Auswertung\Statistik;
 use App\Services\Auswertung\Verteilung;
 use App\Services\Auswertung\Zielgroesse;
 use App\Services\Auswertung\Zielrechner;
+use App\Services\Statistik\Zeugnisbalken;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -243,25 +244,12 @@ final class StatistikDaten
         $semester = $sid !== null ? array_values(array_filter($a->semester($sid, $kat)['elemente'], fn (Element $e) => $e->note !== null)) : [];
         usort($semester, fn (Element $x, Element $y) => $x->note <=> $y->note);
 
-        $lehrzeit = [];
-        foreach ($a->elemente as $e) {
-            if (($kat !== null && $e->kategorieId !== $kat) || ! $e->zaehlt) {
-                continue;
-            }
-            if ($e->typ === Element::MODUL && $e->note !== null) {
-                $lehrzeit[$e->label] = $e->note;
-            } elseif ($e->typ === Element::FACH && ! isset($lehrzeit[$e->label])) {
-                $note = $a->fach((int) $e->fachId)['note'];
-                if ($note !== null) {
-                    $lehrzeit[$e->label] = $note;
-                }
-            }
-        }
-        asort($lehrzeit);
+        $lehrzeit = Zeugnisbalken::lehrzeit($a, $kat);
+        $semesterLabels = Zeugnisbalken::beschriften($semester, $k);
 
         $modus = $f->wert('modus') === 'lehrzeit' || $semester === [] ? 'lehrzeit' : 'semester';
-        $labels = $modus === 'semester' ? array_map(fn (Element $e) => $e->label, $semester) : array_keys($lehrzeit);
-        $werte = $modus === 'semester' ? array_map(fn (Element $e) => $e->note, $semester) : array_values($lehrzeit);
+        $labels = $modus === 'semester' ? $semesterLabels : array_column($lehrzeit, 'label');
+        $werte = $modus === 'semester' ? array_map(fn (Element $e) => $e->note, $semester) : array_column($lehrzeit, 'wert');
 
         $satz = __('Noch keine Zeugnisnoten.');
         if ($werte !== []) {
@@ -274,8 +262,8 @@ final class StatistikDaten
             'schluessel' => 'wostehe',
             'diagramm' => [
                 'modus' => $modus,
-                'semester' => ['name' => $k->semesterName($sid, $a->lernenderId), 'labels' => array_map(fn (Element $e) => $e->label, $semester), 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
-                'lehrzeit' => ['labels' => array_keys($lehrzeit), 'werte' => array_values($lehrzeit)],
+                'semester' => ['name' => $k->semesterName($sid, $a->lernenderId), 'labels' => $semesterLabels, 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
+                'lehrzeit' => ['labels' => array_column($lehrzeit, 'label'), 'werte' => array_column($lehrzeit, 'wert')],
                 'grenzen' => NotenSkala::grenzen(),
             ],
             'tabelle' => ['spalten' => [__('Fach'), __('Note'), __('Stufe')], 'zeilen' => array_map(

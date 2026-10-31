@@ -17,7 +17,7 @@
                     </span>
                     <span class="flex-1 min-w-0">
                         <span class="block text-sm font-medium text-text">{{ __($name) }}</span>
-                        <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : __('offen') }}</span>
+                        <span class="block text-xs text-muted truncate">{{ $stand[$key]['info'] !== '' ? $stand[$key]['info'] : ($ok ? '' : __('offen')) }}</span>
                     </span>
                     <a href="{{ route('admin.setup', $key) }}" class="np-knopf np-knopf-schlicht">{{ $ok ? __('Bearbeiten') : __('Erledigen') }}</a>
                 </li>

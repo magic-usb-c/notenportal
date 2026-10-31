@@ -223,4 +223,46 @@ class AbgabeterminTest extends TestCase
         // Der Menüeintrag öffnet das Formular für genau diese Person
         $this->get($ziel)->assertOk()->assertSee('name="lernender_id" value="'.$lernender->lernender_id.'"', false);
     }
+
+    #[Test]
+    #[DataProvider('verwalterRollen')]
+    public function abgabetermine_ausserhalb_des_zeitfensters_bleiben_in_der_liste_erreichbar(string $rolle): void
+    {
+        $lernender = $this->lernender();
+        $user = $this->verwalter($rolle, $lernender);
+        foreach (['Ferne Projektarbeit' => 120, 'Alter Entwurf' => -40, 'Morgiger Bericht' => 1] as $titel => $tage) {
+            $this->actingAs($user)->post(route("{$rolle}.exams.store"), [
+                'lernender_id' => $lernender->lernender_id,
+                'bezug' => 'modul:'.$this->modul,
+                'titel' => $titel,
+                'datum' => now()->addDays($tage)->toDateString(),
+            ])->assertSessionHasNoErrors()->assertSessionHas('success');
+        }
+        $fern = Pruefung::where('titel', 'Ferne Projektarbeit')->firstOrFail();
+        $alt = Pruefung::where('titel', 'Alter Entwurf')->firstOrFail();
+
+        $liste = $this->actingAs($user)->get(route("{$rolle}.exams.index", ['lernender_id' => $lernender->lernender_id]))->assertOk();
+        $liste->assertSee('Ferne Projektarbeit')->assertSee('Alter Entwurf')->assertSee('Morgiger Bericht')
+            ->assertSee('bearbeiten='.$fern->pruefung_id, false)->assertSee('bearbeiten='.$alt->pruefung_id, false);
+
+        $this->actingAs($user)->delete(route("{$rolle}.exams.destroy", $fern->pruefung_id), ['lernender_id' => $lernender->lernender_id])
+            ->assertRedirect();
+        $this->assertDatabaseMissing('pruefungen', ['pruefung_id' => $fern->pruefung_id]);
+    }
+
+    #[Test]
+    public function zeitraumfilter_blendet_ferne_abgabetermine_weiterhin_aus(): void
+    {
+        $lernender = $this->lernender();
+        $user = $this->verwalter('admin', $lernender);
+        $this->actingAs($user)->post(route('admin.exams.store'), [
+            'lernender_id' => $lernender->lernender_id, 'bezug' => 'modul:'.$this->modul,
+            'titel' => 'Ferne Abgabe', 'datum' => now()->addDays(120)->toDateString(),
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($user)->get(route('admin.exams.index', ['lernender_id' => $lernender->lernender_id, 'zeitraum' => '30']))
+            ->assertOk()->assertDontSee('Ferne Abgabe');
+        $this->actingAs($user)->get(route('admin.exams.index', ['lernender_id' => $lernender->lernender_id]))
+            ->assertOk()->assertSee('Ferne Abgabe');
+    }
 }

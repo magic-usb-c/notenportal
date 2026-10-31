@@ -61,6 +61,11 @@ class MailSettingsController extends Controller
                 ->with('error', __('Testmail fehlgeschlagen: :fehler', ['fehler' => MailLog::fehlertext($log->error)]));
         }
 
+        if (filled($log->redirected_to)) {
+            return $this->zurueck($request)
+                ->with('success', __('Testmail an :to verschickt, umgeleitet an :ziel.', ['to' => $to, 'ziel' => $log->redirected_to]));
+        }
+
         return $this->zurueck($request)->with('success', __('Testmail an :to verschickt.', ['to' => $to]));
     }
 

@@ -74,12 +74,15 @@ class StammdatenKategorieController extends Controller
             ...KategorieRegeln::regeln(),
         ]);
 
+        // Leeres Feld heisst «unverändert», nicht «ganz nach vorn»
+        $bisherigeSortierung = (int) DB::table('kategorien')->where('kategorie_id', $kategorie_id)->value('sortierung');
+
         DB::table('kategorien')
             ->where('kategorie_id', $kategorie_id)
             ->update([
                 'code' => $validated['code'],
                 'name' => $validated['name'],
-                'sortierung' => (int) ($validated['sortierung'] ?? 0),
+                'sortierung' => (int) ($validated['sortierung'] ?? $bisherigeSortierung),
                 'aktiv' => (bool) ($validated['aktiv'] ?? true),
                 ...$this->rechenregelWerte($validated),
             ]);

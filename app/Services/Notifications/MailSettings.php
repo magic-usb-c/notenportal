@@ -47,14 +47,15 @@ final class MailSettings
 
         if (filled($db[self::HOST] ?? null)) {
             $encryption = $db[self::ENCRYPTION] ?? 'ssl';
+            [$username, $password] = self::credentials((string) $db[self::HOST], $encryption, $db[self::USERNAME] ?? null);
             config([
                 'mail.default' => 'smtp',
                 'mail.mailers.smtp.host' => $db[self::HOST],
                 'mail.mailers.smtp.port' => (int) ($db[self::PORT] ?? 465),
                 'mail.mailers.smtp.scheme' => $encryption === 'ssl' ? 'smtps' : 'smtp',
                 'mail.mailers.smtp.require_tls' => $encryption === 'tls',
-                'mail.mailers.smtp.username' => $db[self::USERNAME] ?? null,
-                'mail.mailers.smtp.password' => self::password() ?? self::envPasswordFor((string) $db[self::HOST], $encryption),
+                'mail.mailers.smtp.username' => $username,
+                'mail.mailers.smtp.password' => $password,
             ]);
         } else {
             config([
@@ -158,10 +159,19 @@ final class MailSettings
         }
     }
 
-    /** Das .env-Passwort geht nur verschlüsselt an den .env-Host, nie an einen anderen in der Oberfläche eingetragenen Server. */
-    private static function envPasswordFor(string $host, string $encryption): ?string
+    /**
+     * Benutzer und Passwort fallen nur als Paar auf die .env zurück, und nur für denselben Host mit Verschlüsselung:
+     * Ohne eigenen Benutzer gilt der .env-Benutzer, ohne eigenes Passwort das .env-Passwort nur zum .env-Benutzer.
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    private static function credentials(string $host, string $encryption, mixed $dbUsername): array
     {
-        return $encryption !== 'none' && strcasecmp($host, (string) self::$env['host']) === 0 ? self::$env['password'] : null;
+        $envPaar = $encryption !== 'none' && strcasecmp($host, (string) self::$env['host']) === 0;
+        $username = filled($dbUsername) ? (string) $dbUsername : ($envPaar ? self::$env['username'] : null);
+        $passendZurEnv = $envPaar && strcasecmp((string) $username, (string) self::$env['username']) === 0;
+
+        return [$username, self::password() ?? ($passendZurEnv ? self::$env['password'] : null)];
     }
 
     /** .env-Werte einmal pro Prozess festhalten, damit apply() nach einer DB-Änderung zurückfallen kann. */

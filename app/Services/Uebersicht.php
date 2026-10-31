@@ -22,6 +22,7 @@ use App\Services\Auswertung\Rechner;
 use App\Services\Auswertung\Verteilung;
 use App\Services\Auswertung\Zielrechner;
 use App\Services\Betrieb\Sicherung;
+use App\Services\Statistik\Zeugnisbalken;
 use App\Support\Betrieb;
 use App\Support\Format;
 use App\Support\NotenSkala;
@@ -502,22 +503,11 @@ final class Uebersicht
         $semester = $semesterId ? $a->semester($semesterId)['elemente'] : [];
         usort($semester, fn (Element $x, Element $y) => $x->note <=> $y->note);
 
-        $lehrzeit = [];
-        foreach ($a->elemente as $e) {
-            if (! $e->zaehlt) {
-                continue;
-            }
-            if ($e->typ === Element::MODUL && $e->note !== null) {
-                $lehrzeit[$e->label] = $e->note;
-            } elseif ($e->typ === Element::FACH && ! isset($lehrzeit[$e->label])) {
-                $lehrzeit[$e->label] = $a->fach($e->fachId)['note'];
-            }
-        }
-        asort($lehrzeit);
+        $lehrzeit = Zeugnisbalken::lehrzeit($a);
 
         return [
-            'semester' => ['name' => $a->konfiguration->semesterName($semesterId, $a->lernenderId), 'labels' => array_map(fn (Element $e) => $e->label, $semester), 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
-            'lehrzeit' => ['labels' => array_keys($lehrzeit), 'werte' => array_values($lehrzeit)],
+            'semester' => ['name' => $a->konfiguration->semesterName($semesterId, $a->lernenderId), 'labels' => Zeugnisbalken::beschriften($semester, $a->konfiguration), 'werte' => array_map(fn (Element $e) => $e->note, $semester)],
+            'lehrzeit' => ['labels' => array_column($lehrzeit, 'label'), 'werte' => array_column($lehrzeit, 'wert')],
         ];
     }
 

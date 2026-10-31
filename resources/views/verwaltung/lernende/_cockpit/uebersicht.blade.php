@@ -37,7 +37,7 @@
                 <div class="flex min-h-6 items-center text-xs font-medium text-muted">{{ __('Nächste Prüfung') }}</div>
                 <div class="flex min-h-9 items-center text-xl font-semibold text-text">@if($naechste){{ \App\Support\Format::date($naechste->datum, 'tag_monat') }}@else<span class="font-normal text-muted">{{ \App\Support\NotenSkala::format(null) }}</span>@endif</div>
                 @if($naechste)
-                    <div class="truncate text-xs text-muted">{{ $naechste->bezeichnung() }} · {{ \App\Support\Format::wann($naechste->datum) }}</div>
+                    <div class="truncate text-xs text-muted" title="{{ $naechste->bezeichnung() }} · {{ \App\Support\Format::wann($naechste->datum) }}">{{ $naechste->bezeichnung() }} · {{ \App\Support\Format::wann($naechste->datum) }}</div>
                 @endif
             </div>
             <div class="flex flex-col gap-1 px-5 py-4">

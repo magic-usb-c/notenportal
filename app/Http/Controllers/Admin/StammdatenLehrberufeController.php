@@ -202,7 +202,8 @@ class StammdatenLehrberufeController extends Controller
                         ->where('mb.modul_id', $modul_id)
                         ->where('l.lehrberuf_id', $lehrberuf_id)
                         ->select('mb.modul_belegung_id'))
-                    ->update(['kategorie_id' => $kategorieId]);
+                    // Stammdatenpflege, keine Notenänderung: aktualisiert_am bleibt, sonst wären alle Modulnoten wieder «neu»
+                    ->update(['kategorie_id' => $kategorieId, 'aktualisiert_am' => DB::raw('aktualisiert_am')]);
             }
         });
 

@@ -566,7 +566,7 @@ Sprung auf eine Seite. Oben rechts: Feedback melden (Sprechblase), Hell/Dunkel, 
   die Daten. Track (BMS oder ABU) mit Start- und Endsemester, sonst fehlen die Fächer. Bemerkung
   im Cockpit ist intern.
 - **Empfohlene Benachrichtigungen:** Tageszusammenfassung für neue Noten und Korrekturen, sofort
-  für kritische Fälle und fehlende Noten nach einer Prüfung.
+  für gefährdete Lernende.
 
 ### Admin
 

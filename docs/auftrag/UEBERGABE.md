@@ -466,6 +466,22 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   flex-wrap (Ergebnis rutscht unter 1440 unter die Eingaben), Regel im Skill notenportal-ui. Rundgang
                   dunkel 1280 alle Rollen ohne Befund. Prüfer: Mailadressen im Rohtext lösen keinen
                   falschen Treffer mehr aus, .env-Passwort nie ohne Verschlüsselung. Suite 1943 grün.
+[Q] 31.10. 16:40  Funktionsprüfung Runde 7 (8 Dimensionen, 19 bestätigt, 1 verworfen) und Behebung mit Regressionstests:
+                  Rechner/Dashboard/Cockpit fallen bei geplanter Prüfung in einem nicht mehr erfassbaren Fach nicht mehr
+                  um (Katalog nimmt das Fach auf, Sicherheitsnetz mit Log). Kalender: übernommene Prüfung bleibt beim
+                  Abgleich verknüpft, zweites Übernehmen meldet «bereits übernommen» statt 500. Abgabetermine ausserhalb
+                  des 90-Tage-Fensters stehen in der Liste des Lernenden. Track endet am Ende des gewählten Endsemesters.
+                  Lernortwechsel eines Moduls markiert keine Noten als neu, leere Sortierung behält den Platz, Einrichtung
+                  zeigt den Mail-Schritt richtig. Gleichnamige Fächer verschiedener Kategorien bleiben in Lehrzeit-Balken
+                  und «Wo stehe ich» getrennt (neu app/Services/Statistik/Zeugnisbalken.php). Mail: .env-Benutzer und
+                  -Passwort nur als Paar, Toast nennt das Umleitungsziel, «Expected response code» nie «nicht erreichbar»,
+                  umgeleitete Mails ohne Abbestell-Link. «Passwort zurücksetzen» verrät keine Konten mehr. Inaktivität
+                  (Mail und Ampel «noch keine Noten») zählt ab dem späteren von Lehrbeginn und Kontoeröffnung, höchstens
+                  eine Inaktivitätsmail je Wiederholungsfrist (kein Doppel beim Regelwechsel im Pilot). Abgaben erinnern als
+                  Abgabe, Semesterende führt sie getrennt. Zeitplan-Sperren laufen nach 5–120 Minuten ab statt nach 24 h.
+                  Pruefung::art() rekursierte bei fehlendem Attribut endlos (Segfault), liest jetzt die Attribute direkt.
+                  Doku: Erinnerung «Note fehlt nach Prüfung» gab es nie (siehe «Offen für David»). Review ohne Befund,
+                  Suite 1996 grün.
 ```
 
 ---
@@ -479,6 +495,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
   erzwingt dasselbe für Tests, der Workflow `notenportal-funktionspruefung` erlaubt nur Empfänger unter
   `@demo.example`/`example.*` und Host 127.0.0.1:2525. Falls die Adresse jemandem gehört: Hinweis an Migadu oder
   den Empfänger ist deine Entscheidung.
+- **Erinnerung «Note fehlt nach Prüfung» gibt es nicht (Funktionsprüfung Runde 7, 31.10.).** Doku und
+  Berufsbildner-Anleitung versprachen sie, im Katalog fehlte sie. Die Doku sagt jetzt, was es gibt. Ein neuer
+  Anlass würde im laufenden Pilot am ersten Morgen alle offenen Prüfungen melden, auch solche, deren Note ohne
+  Verknüpfung erfasst wurde (Fehlalarm). Soll er kommen: Anlass im Katalog (Lernende und Berufsbildner, Frist
+  in Tagen), Merker je Prüfung, Start erst für Prüfungen ab Einführungstag.
 - **R6-13 Lichtbrechung am Kapselrand: gebaut, geprüft, nicht übernommen (30.10.).** Dein Auftrag
   («liquid glass») galt als Ja. Unter den Kapseln liegt aber die Scrollkante, also eine gleichförmige
   Fläche: Die Brechung ändert dort höchstens 2 von 255 Farbstufen, man sieht sie nicht. Scrollen auf

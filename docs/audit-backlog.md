@@ -1379,3 +1379,17 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
 - **Klicktest Runde 6, nicht durchgeklickt:** Backups (bewusst), Abschluss des Einrichtungsassistenten, JSON-Import
   eines Notenbaums, Mail-Umleitung und Schalter «Passwort löschen» in den Mail-Einstellungen, «Abbrechen» beim
   Track-Wechsel. Hell-Modus und schmale Fenster nur im Rundgang, nicht im Klicktest (der lief dunkel bei 1920).
+
+## Funktionsprüfung Runde 7 (31.10.2026): bewusst gelassen
+
+- **Übernommene Kalender-Prüfung folgt dem Kalender nicht.** Sie bleibt beim Abgleich verknüpft, hat aber keinen Feed
+  (`calendar_feed_id` null): verschiebt sich der Termin, ändert sich ihr Datum nicht, verschwindet er, wird sie nicht
+  abgesagt. Bestand vor dem Fix; ändern hiesse, manuell übernommene Prüfungen dem Feed zu überlassen.
+- **Wiederkehrende Kalendertermine mit gleicher UID** hängen alle an der einen übernommenen Prüfung; einzelne Vorkommen
+  lassen sich nicht eigens übernehmen (vorher 500).
+- **Vergangene, benotete Abgabetermine älter als 30 Tage** stehen nicht in der Terminliste; sie sind über die Note
+  erreichbar.
+- **Sperrfrist der Sicherung 120 Minuten** ist geschätzt; nach dem ersten echten Lauf mit der gemessenen Dauer
+  vergleichen.
+- **Pilot-Reset:** Nach `pilot-vorbereiten` zählt die Inaktivität ab Kontoeröffnung, nicht ab dem Reset; die Sperre
+  «eine Mail je Wiederholungsfrist» begrenzt die Folge.

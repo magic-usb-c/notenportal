@@ -15,7 +15,11 @@ class MailPasswortRueckfallTest extends TestCase
     {
         parent::setUp();
         $this->envNeuLesen();
-        config(['mail.mailers.smtp.host' => 'smtp.installation.example', 'mail.mailers.smtp.password' => 'Installationspasswort']);
+        config([
+            'mail.mailers.smtp.host' => 'smtp.installation.example',
+            'mail.mailers.smtp.username' => 'versand@installation.example',
+            'mail.mailers.smtp.password' => 'Installationspasswort',
+        ]);
     }
 
     protected function tearDown(): void
@@ -53,6 +57,56 @@ class MailPasswortRueckfallTest extends TestCase
 
         MailSettings::apply();
 
+        $this->assertNull(config('mail.mailers.smtp.password'));
+    }
+
+    #[Test]
+    public function gleicher_host_ohne_benutzer_behaelt_das_installationspaar(): void
+    {
+        Einstellungen::set(MailSettings::HOST, 'smtp.installation.example');
+        Einstellungen::set(MailSettings::PORT, '587');
+        Einstellungen::set(MailSettings::ENCRYPTION, 'tls');
+
+        MailSettings::apply();
+
+        $this->assertSame('versand@installation.example', config('mail.mailers.smtp.username'));
+        $this->assertSame('Installationspasswort', config('mail.mailers.smtp.password'));
+    }
+
+    #[Test]
+    public function gleicher_host_mit_eigenem_benutzer_ohne_passwort_bekommt_das_installationspasswort_nicht(): void
+    {
+        Einstellungen::set(MailSettings::HOST, 'smtp.installation.example');
+        Einstellungen::set(MailSettings::USERNAME, 'anderer@installation.example');
+
+        MailSettings::apply();
+
+        $this->assertSame('anderer@installation.example', config('mail.mailers.smtp.username'));
+        $this->assertNull(config('mail.mailers.smtp.password'));
+    }
+
+    #[Test]
+    public function gleicher_host_mit_installationsbenutzer_bekommt_das_installationspasswort(): void
+    {
+        Einstellungen::set(MailSettings::HOST, 'smtp.installation.example');
+        Einstellungen::set(MailSettings::USERNAME, 'Versand@Installation.example');
+
+        MailSettings::apply();
+
+        $this->assertSame('Installationspasswort', config('mail.mailers.smtp.password'));
+    }
+
+    #[Test]
+    public function fremder_host_und_ohne_verschluesselung_bekommen_den_installationsbenutzer_nicht(): void
+    {
+        Einstellungen::set(MailSettings::HOST, 'mail.fremd.example');
+        MailSettings::apply();
+        $this->assertNull(config('mail.mailers.smtp.username'));
+
+        Einstellungen::set(MailSettings::HOST, 'smtp.installation.example');
+        Einstellungen::set(MailSettings::ENCRYPTION, 'none');
+        MailSettings::apply();
+        $this->assertNull(config('mail.mailers.smtp.username'));
         $this->assertNull(config('mail.mailers.smtp.password'));
     }
 

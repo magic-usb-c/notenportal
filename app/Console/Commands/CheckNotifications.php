@@ -144,7 +144,11 @@ class CheckNotifications extends Command
             ->pluck('letzte', 'lernender_id');
 
         foreach ($lernende as $l) {
-            $bezug = isset($letzte[$l->lernender_id]) ? Carbon::parse($letzte[$l->lernender_id]) : $l->lehrbeginn;
+            // Ohne Note zählt die Zeit seit Lehrbeginn oder, wenn das Konto später eröffnet wurde, seit der Kontoeröffnung:
+            // wer mitten in der Lehre ins Portal kommt, hat die Frist erst ab dann.
+            $bezug = isset($letzte[$l->lernender_id])
+                ? Carbon::parse($letzte[$l->lernender_id])
+                : collect([$l->lehrbeginn, $l->benutzer->erstellt_am])->filter()->max();
             if (! $bezug) {
                 continue;
             }
@@ -163,6 +167,12 @@ class CheckNotifications extends Command
             // Phase (nach der letzten Note bzw. ab Lehrbeginn) gilt als verschickt.
             $phaseAb = isset($letzte[$l->lernender_id]) ? $bezug : $bezug->copy()->startOfDay();
             if ($this->alterMerker($l->benutzer, NotificationCatalog::INACTIVITY, 'inaktiv:'.$l->lernender_id.':'.$periode, $phaseAb)) {
+                continue;
+            }
+            // Höchstens eine Inaktivitätsmail je Wiederholungsfrist, auch wenn der Bezug wechselt (neue Regel ab Kontoeröffnung,
+            // Phase nach einer gelöschten Note): die Mail der Vorperiode liegt genau $wiederholung Tage zurück und zählt nicht.
+            if (NotificationMark::query()->where('user_id', $l->benutzer->benutzer_id)->where('type', NotificationCatalog::INACTIVITY)
+                ->where('created_at', '>=', today()->subDays(max(0, $wiederholung - 1)))->exists()) {
                 continue;
             }
 
