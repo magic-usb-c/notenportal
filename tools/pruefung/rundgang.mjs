@@ -7,6 +7,8 @@
 // Schreibt nichts: nach der Anmeldung werden alle Nicht-GET-Requests abgebrochen.
 // Befunde (je einmal pro Art+Text): UEBERLAUF, KLEIN (<10 px), ABGESCHNITTEN, ELLIPSE<90,
 // RAND, VORFAHR-CLIP, UEBERLAPPUNG, STATUS, LADEN, JS. Exit-Code 1, wenn Befunde vorliegen.
+// SCROLLT: Inhalt liegt in einem eigenen waagrechten Scrollbereich ausserhalb der Sicht (erreichbar, nicht
+// abgeschnitten) – unter 1920 px nur Hinweis, ab 1920 px Befund (dort soll nichts seitlich scrollen).
 // Ziel über NP_URL (Standard http://127.0.0.1:8099), Passwort nur über NP_TEST_PW.
 import fs from 'node:fs';
 import { ZUSTAND_USAGE, anmelden, basisUrl, optionen, starteBrowser, zustandsZeile } from './browser.mjs';
@@ -108,9 +110,20 @@ try {
         if (el.scrollWidth > el.clientWidth + 1 && /hidden|clip/.test(s.overflowX) && s.textOverflow !== 'ellipsis' && s.display !== 'inline') out.push(['ABGESCHNITTEN', name(el)]);
         if (s.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1 && el.clientWidth < 90) out.push(['ELLIPSE<90', el.clientWidth + 'px ' + name(el)]);
         const r = el.getBoundingClientRect();
-        if (r.right > innerWidth + 1 || r.left < -1) out.push(['RAND', name(el)]);
+        let sc = el.parentElement;
+        while (sc && sc !== document.body && !(/auto|scroll/.test(getComputedStyle(sc).overflowX) && sc.scrollWidth > sc.clientWidth + 1)) sc = sc.parentElement;
+        let imScroll = false;
+        if (sc && sc !== document.body) {
+          const sr = sc.getBoundingClientRect();
+          if (r.right > sr.right + 2 || r.left < sr.left - 2) {
+            out.push(['SCROLLT', name(el) + ' in ' + name(sc).slice(0, 50)]);
+            imScroll = true;
+          }
+        }
+        if (!imScroll && (r.right > innerWidth + 1 || r.left < -1)) out.push(['RAND', name(el)]);
+        // Im Scrollbereich zählt nur ein Clip zwischen Element und Scrollbereich; die Überlappung prüft der Abgleich unten
         let v = el.parentElement;
-        while (v && v !== document.body) {
+        while (v && v !== document.body && !(imScroll && v === sc)) {
           const vs = getComputedStyle(v);
           if (/hidden|clip/.test(vs.overflowX) || /hidden|clip/.test(vs.overflowY)) {
             const vr = v.getBoundingClientRect();
@@ -126,7 +139,8 @@ try {
           for (const rr of range.getClientRects()) {
             if (rr.width <= 1 || rr.height <= 1) continue;
             let l = rr.left, o = rr.top, re = rr.right, u = rr.bottom;
-            for (let w = el.parentElement; w && w !== document.documentElement; w = w.parentElement) {
+            // ab dem Element selbst: ein truncate-Element beschneidet seinen eigenen Text
+            for (let w = el; w && w !== document.documentElement; w = w.parentElement) {
               const ws = getComputedStyle(w);
               if (ws.overflowX !== 'visible' || ws.overflowY !== 'visible' || ws.contentVisibility === 'hidden') {
                 const wr = w.getBoundingClientRect();
@@ -175,10 +189,13 @@ try {
 console.log(`Besucht ${besucht.size} Seiten (${email}, ${breite}x${hoehe}, ${opt.hell ? 'hell' : 'dunkel'})`);
 if (zustand) console.log(zustand);
 const eindeutig = new Set();
+const hinweise = breite < 1920 ? new Set(['SCROLLT']) : new Set();
+let zaehlt = 0;
 for (const [p, a, t] of befunde) {
   const k = a + t;
   if (eindeutig.has(k)) continue;
   eindeutig.add(k);
+  if (!hinweise.has(a)) zaehlt++;
   console.log(`${a}\t${p}\t${t}`);
 }
-process.exit(eindeutig.size ? 1 : 0);
+process.exit(zaehlt ? 1 : 0);

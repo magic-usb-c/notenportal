@@ -38,6 +38,11 @@ mkdir -p "$CACHE_LEER"
 export APP_CONFIG_CACHE="$CACHE_LEER/config.php" APP_ROUTES_CACHE="$CACHE_LEER/routes.php" \
     APP_EVENTS_CACHE="$CACHE_LEER/events.php"
 
+# Die Demo verschickt nie echte Mails: auf der VM stünde sonst das Mailkonto aus der .env dahinter
+# (am 31.10. ging so eine Testmail hinaus). Echte Umgebungsvariablen gehen der .env vor;
+# MAIL_URL «null», weil eine leere URL den Transport des Mailers leert (MailManager::getConfig prüft isset).
+export MAIL_MAILER=log MAIL_HOST=127.0.0.1 MAIL_PORT=2525 MAIL_USERNAME= MAIL_PASSWORD= MAIL_URL=null
+
 laeuft() { curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$URL/login" 2>/dev/null | grep -q '^200$'; }
 
 starten() {

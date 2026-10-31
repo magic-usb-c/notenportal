@@ -48,13 +48,13 @@
                             <caption class="sr-only">{{ __('Module') }}</caption>
                             <thead>
                                 <tr>
-                                    <th scope="col" class="w-24">{{ __('Nummer') }}</th>
-                                    <th scope="col">{{ __('Titel') }}</th>
-                                    <th scope="col" class="w-52">{{ __('Lernort') }}</th>
-                                    <th scope="col" class="w-24 text-right">{{ __('Semester') }}</th>
-                                    <th scope="col" class="w-20 text-center">{{ __('Pflicht') }}</th>
-                                    <th scope="col" class="w-20 text-center">{{ __('Aktiv') }}</th>
-                                    <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col" class="w-16 px-2">{{ __('Nummer') }}</th>
+                                    <th scope="col" class="px-2">{{ __('Titel') }}</th>
+                                    <th scope="col" class="w-40 px-2">{{ __('Lernort') }}</th>
+                                    <th scope="col" class="w-18 text-right px-2">{{ __('Semester') }}</th>
+                                    <th scope="col" class="w-12 text-center px-1">{{ __('Pflicht') }}</th>
+                                    <th scope="col" class="w-10 text-center px-1">{{ __('Aktiv') }}</th>
+                                    <th scope="col" class="w-24 px-2"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -64,8 +64,8 @@
                                         $ton = $m->aktiv ? 'text-text' : 'text-muted';
                                     @endphp
                                     <tr>
-                                        <td class="{{ $ton }}">{{ $m->modul_nummer }}</td>
-                                        <td>
+                                        <td class="px-2 {{ $ton }}">{{ $m->modul_nummer }}</td>
+                                        <td class="px-2">
                                             <div class="flex min-w-0 items-center gap-2">
                                                 <span class="truncate {{ $ton }}" title="{{ $m->titel }}">{{ $m->titel }}</span>
                                                 @unless($m->aktiv)
@@ -73,7 +73,7 @@
                                                 @endunless
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="px-2">
                                             <select name="kategorie_id" form="{{ $formular }}" data-sofort class="np-feld np-feld-klein"
                                                     aria-label="{{ __('Lernort für :titel', ['titel' => $m->titel]) }}">
                                                 @foreach($kategorien as $k)
@@ -84,27 +84,27 @@
                                                 @endforeach
                                             </select>
                                         </td>
-                                        <td>
+                                        <td class="px-2">
                                             <input type="number" name="empfohlenes_lehrsemester_nr" min="1" max="12" value="{{ $m->empfohlenes_lehrsemester_nr }}"
                                                    form="{{ $formular }}" data-sofort placeholder="–"
                                                    aria-label="{{ __('Empfohlenes Semester :nummer', ['nummer' => $m->modul_nummer]) }}"
-                                                   class="np-feld np-feld-klein ml-auto w-16 text-right tabular-nums">
+                                                   class="np-feld np-feld-klein ml-auto w-14 text-right tabular-nums">
                                         </td>
-                                        <td class="text-center">
+                                        <td class="px-1 text-center">
                                             <input type="hidden" name="pflicht" value="0" form="{{ $formular }}">
                                             <label class="inline-flex size-6 items-center justify-center">
                                                 <input type="checkbox" name="pflicht" value="1" form="{{ $formular }}" data-sofort @checked($m->pflicht)
                                                        aria-label="{{ __('Pflichtmodul :nummer', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
                                             </label>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="px-1 text-center">
                                             <input type="hidden" name="aktiv" value="0" form="{{ $formular }}">
                                             <label class="inline-flex size-6 items-center justify-center">
                                                 <input type="checkbox" name="aktiv" value="1" form="{{ $formular }}" data-sofort @checked($m->aktiv)
                                                        aria-label="{{ __('Modul :nummer aktiv', ['nummer' => $m->modul_nummer]) }}" class="np-haken">
                                             </label>
                                         </td>
-                                        <td class="text-right">
+                                        <td class="px-2 text-right">
                                             <form id="{{ $formular }}" method="POST" class="hidden"
                                                   action="{{ route('admin.master-data.professions.modules.update', [$lehrberuf->lehrberuf_id, $m->modul_id]) }}">
                                                 @csrf
@@ -154,18 +154,18 @@
                             <caption class="sr-only">{{ __('Fächer (berufsspezifisch)') }}</caption>
                             <thead>
                                 <tr>
-                                    <th scope="col" class="w-20">{{ __('Kürzel') }}</th>
-                                    <th scope="col">{{ __('Name') }}</th>
-                                    <th scope="col" class="w-16 text-center">{{ __('Aktiv') }}</th>
-                                    <th scope="col" class="w-28"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                    <th scope="col" class="w-14 px-2">{{ __('Kürzel') }}</th>
+                                    <th scope="col" class="px-2">{{ __('Name') }}</th>
+                                    <th scope="col" class="w-10 text-center px-1">{{ __('Aktiv') }}</th>
+                                    <th scope="col" class="w-24 px-2"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($zugewieseneFaecher as $f)
                                     @php $ton = $f->aktiv ? 'text-text' : 'text-muted'; @endphp
                                     <tr>
-                                        <td class="truncate {{ $ton }}">{{ $f->kurzname }}</td>
-                                        <td>
+                                        <td class="px-2 truncate {{ $ton }}">{{ $f->kurzname }}</td>
+                                        <td class="px-2">
                                             <div class="flex min-w-0 items-center gap-2">
                                                 <span class="truncate {{ $ton }}" title="{{ $f->name }}">{{ $f->name }}</span>
                                                 @if($f->track_typ)
@@ -176,7 +176,7 @@
                                                 @endunless
                                             </div>
                                         </td>
-                                        <td class="text-center">
+                                        <td class="px-1 text-center">
                                             <form method="POST" action="{{ route('admin.master-data.professions.subjects.update', [$lehrberuf->lehrberuf_id, $f->fach_id]) }}">
                                                 @csrf
                                                 @method('PATCH')
@@ -187,7 +187,7 @@
                                                 </label>
                                             </form>
                                         </td>
-                                        <td class="text-right">
+                                        <td class="px-2 text-right">
                                             @if($f->in_gebrauch)
                                                 {{-- Statt eines gesperrten Knopfs der Grund als Text: lesbar ohne Hover und für die Tastatur kein toter Halt --}}
                                                 <span class="text-xs text-muted" title="{{ __('Noten oder Prüfungen vorhanden') }}">{{ __('In Gebrauch') }}<span class="sr-only">: {{ __('Noten oder Prüfungen vorhanden') }}</span></span>

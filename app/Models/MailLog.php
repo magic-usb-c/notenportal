@@ -39,6 +39,27 @@ class MailLog extends Model
         return $this->belongsTo(User::class, 'user_id', 'benutzer_id');
     }
 
+    /** Verständlicher deutscher Text zur rohen Transportmeldung (die bleibt unverändert in `error` und im Versandprotokoll). */
+    public static function fehlertext(?string $roh): string
+    {
+        // Adressen und Kontonamen zählen nicht: ein Host wie certificate.example.ch oder ein Empfänger
+        // authentication@firma.ch ist weder Zertifikat- noch Anmeldefehler
+        $roh = (string) preg_replace(['/[^\s<>"\'()]+@[^\s<>"\'()]+/', '/\b(?:host|username) "[^"]*"/i', '/\b[a-z][a-z0-9+.-]*:\/\/\S+/i', '/\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b/i'], ' ', (string) $roh);
+
+        if (preg_match('/authenticat|\b535\b|username and password|credentials/i', $roh) === 1) {
+            return __('Anmeldung am Mailserver abgelehnt – Benutzername und Passwort prüfen.');
+        }
+        // TLS nur in Grossschrift: ein kleines «tls» ist das Schema der Adresse, kein Verschlüsselungsfehler
+        if (preg_match('/certificate|SSL (operation|routines|error|handshake)|enable_crypto|(?-i:\bTLS\b|STARTTLS)/i', $roh) === 1) {
+            return __('Die verschlüsselte Verbindung zum Mailserver ist fehlgeschlagen – Zertifikat und Verschlüsselung prüfen.');
+        }
+        if (preg_match('/could not be established|refused|timed out|timeout|getaddrinfo|getaddresses|stream_socket_client|unable to connect|no route to host|network is unreachable/i', $roh) === 1) {
+            return __('Der Mailserver ist nicht erreichbar – Host, Port und Verschlüsselung prüfen.');
+        }
+
+        return __('Der Versand ist fehlgeschlagen – Details im Versandprotokoll.');
+    }
+
     protected function casts(): array
     {
         return ['sent_at' => 'datetime', 'failed_at' => 'datetime', 'created_at' => 'datetime', 'payload' => 'array'];

@@ -40,6 +40,8 @@
     $mitLehrjahr = count($nachLehrjahr) > 1;
     $spalten = $sid ? 8 : 7;
     $kopf = 'inline-flex min-h-6 items-center gap-1 hover:text-text';
+    // Rechtsbündige Spalten: Pfeil vor dem Text, damit der Kopf mit den Zahlen bündig bleibt
+    $kopfRechts = $kopf.' flex-row-reverse';
     // «Kritisch» öffnet die Lernendenliste mit demselben Lehrberuf, Berufsbildner und Lehrjahr, «Ungenügend» und «Promotion gefährdet» sortieren die Tabelle unten
     $kritischUrl = route('admin.learners.index', array_filter(['warnung' => 'kritisch', 'lehrberuf_id' => $filter['lehrberuf_id'], 'berufsbildner_id' => $filter['berufsbildner_id'], 'lehrjahr' => $filter['lehrjahr']]));
     $ungenuegendUrl = $sort === 'ungenuegend' && $dir === 'desc' ? '#lernende' : request()->fullUrlWithQuery(['sort' => 'ungenuegend', 'dir' => 'desc']).'#lernende';
@@ -139,46 +141,50 @@
                             $hLinks = fn (float $v) => round($skala::breite($v), 2);
                         @endphp
                         <x-diagramm :titel="__('Verteilung der Zeugnisnoten')">
-                            <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs tabular-nums text-muted" aria-hidden="true">
-                                <span class="inline-flex items-center gap-1.5"><span class="w-4 border-t border-dashed border-muted"></span>{{ __('genügend :wert', ['wert' => $skala::format($genuegend, 1)]) }}</span>
-                                @if($verteilung['median'] !== null)
-                                    <span class="inline-flex items-center gap-1.5"><span class="h-0.5 w-4 rounded-full bg-text"></span>{{ __('Median') }} {{ $skala::format($verteilung['median'], 2) }}</span>
-                                @endif
-                            </div>
-                            <div class="flex gap-2" role="img" aria-labelledby="np-histogramm-satz">
-                                <div class="relative h-64 w-7 shrink-0" aria-hidden="true">
-                                    @foreach($hMarken as $marke)
-                                        <span class="absolute right-0 translate-y-1/2 text-2xs tabular-nums leading-none text-muted" style="bottom: {{ $hHoehe($marke) }}%">{{ $marke }}</span>
-                                    @endforeach
+                            {{-- Das Diagramm füllt die Kartenhöhe (die rechte Spalte gibt sie vor), mindestens 16rem --}}
+                            <div class="flex h-full flex-col">
+                                <div class="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs tabular-nums text-muted" aria-hidden="true">
+                                    <span class="inline-flex items-center gap-1.5"><span class="w-4 border-t border-dashed border-muted"></span>{{ __('genügend :wert', ['wert' => $skala::format($genuegend, 1)]) }}</span>
+                                    @if($verteilung['median'] !== null)
+                                        <span class="inline-flex items-center gap-1.5"><span class="h-0.5 w-4 rounded-full bg-text"></span>{{ __('Median') }} {{ $skala::format($verteilung['median'], 2) }}</span>
+                                    @endif
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <div class="relative h-64" aria-hidden="true">
+                                <div class="flex min-h-64 flex-1 gap-2" role="img" aria-labelledby="np-histogramm-satz">
+                                    {{-- mb-5 gleicht die Zeile der x-Achse (mt-1 + h-4) aus, damit die Marken auf den Gitterlinien bleiben --}}
+                                    <div class="relative mb-5 w-7 shrink-0" aria-hidden="true">
                                         @foreach($hMarken as $marke)
-                                            <div class="absolute inset-x-0 border-t {{ $marke === 0 ? 'border-border-strong/60' : 'border-border' }}" style="bottom: {{ $hHoehe($marke) }}%"></div>
+                                            <span class="absolute right-0 translate-y-1/2 text-2xs tabular-nums leading-none text-muted" style="bottom: {{ $hHoehe($marke) }}%">{{ $marke }}</span>
                                         @endforeach
-                                        <div class="absolute inset-0 flex items-end gap-px">
-                                            @foreach($verteilung['werte'] as $i => $anzahl)
-                                                <div class="flex h-full min-w-0 flex-1 items-end" title="{{ __('Note ab') }} {{ $verteilung['labels'][$i] }}: {{ $anzahl }}">
-                                                    @if($anzahl > 0)
-                                                        <div class="w-full rounded-t-sm {{ $skala::balken($verteilung['farben'][$i]) }}" style="height: {{ max(1.5, $hHoehe($anzahl)) }}%"></div>
-                                                    @endif
-                                                </div>
+                                    </div>
+                                    <div class="flex min-w-0 flex-1 flex-col">
+                                        <div class="relative flex-1" aria-hidden="true">
+                                            @foreach($hMarken as $marke)
+                                                <div class="absolute inset-x-0 border-t {{ $marke === 0 ? 'border-border-strong/60' : 'border-border' }}" style="bottom: {{ $hHoehe($marke) }}%"></div>
+                                            @endforeach
+                                            <div class="absolute inset-0 flex items-end gap-px">
+                                                @foreach($verteilung['werte'] as $i => $anzahl)
+                                                    <div class="flex h-full min-w-0 flex-1 items-end" title="{{ __('Note ab') }} {{ $verteilung['labels'][$i] }}: {{ $anzahl }}">
+                                                        @if($anzahl > 0)
+                                                            <div class="w-full rounded-t-sm {{ $skala::balken($verteilung['farben'][$i]) }}" style="height: {{ max(1.5, $hHoehe($anzahl)) }}%"></div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            <div class="absolute inset-y-0 border-l border-dashed border-muted" style="left: {{ $hLinks($genuegend) }}%"></div>
+                                            @if($verteilung['median'] !== null)
+                                                <div class="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-text" style="left: {{ $hLinks($verteilung['median']) }}%"></div>
+                                            @endif
+                                        </div>
+                                        <div class="relative mt-1 h-4" aria-hidden="true">
+                                            @foreach([1, 2, 3, 4, 5, 6] as $note)
+                                                <span class="absolute -translate-x-1/2 text-2xs tabular-nums text-muted" style="left: {{ $hLinks($note) }}%">{{ $note }}</span>
                                             @endforeach
                                         </div>
-                                        <div class="absolute inset-y-0 border-l border-dashed border-muted" style="left: {{ $hLinks($genuegend) }}%"></div>
-                                        @if($verteilung['median'] !== null)
-                                            <div class="absolute inset-y-0 w-0.5 -translate-x-1/2 bg-text" style="left: {{ $hLinks($verteilung['median']) }}%"></div>
-                                        @endif
-                                    </div>
-                                    <div class="relative mt-1 h-4" aria-hidden="true">
-                                        @foreach([1, 2, 3, 4, 5, 6] as $note)
-                                            <span class="absolute -translate-x-1/2 text-2xs tabular-nums text-muted" style="left: {{ $hLinks($note) }}%">{{ $note }}</span>
-                                        @endforeach
                                     </div>
                                 </div>
+                                <x-noten-legende class="mt-3" />
+                                <p id="np-histogramm-satz" class="mt-2 text-xs text-muted">{{ $hSatz }}</p>
                             </div>
-                            <x-noten-legende class="mt-3" />
-                            <p id="np-histogramm-satz" class="mt-2 text-xs text-muted">{{ $hSatz }}</p>
                             <x-slot:tabelle>
                                 <table class="np-tabelle text-sm">
                                     <caption class="sr-only">{{ __('Verteilung der Zeugnisnoten') }}</caption>
@@ -202,23 +208,23 @@
                     <div class="flex flex-col gap-4">
                         @if($k['zeugnisnoten'] > 0)
                             <x-karte :titel="__('Kategorien')" :polster="false">
-                                <div class="px-2 pb-2">
-                                    <table class="np-tabelle table-fixed text-sm">
+                                <div class="overflow-x-auto px-2 pb-2">
+                                    <table class="np-tabelle text-sm">
                                         <caption class="sr-only">{{ __('Kategorien') }}</caption>
                                         <thead>
                                             <tr>
                                                 <th scope="col">{{ __('Kategorie') }}</th>
-                                                <th scope="col" class="w-24 text-right">{{ __('Lernende') }}</th>
-                                                <th scope="col" class="w-16 text-right"><span aria-hidden="true">Ø</span><span class="sr-only">{{ __('Durchschnitt') }}</span></th>
-                                                <th scope="col" class="w-28 text-right">{{ __('Min – Max') }}</th>
-                                                <th scope="col" class="w-28 text-right">{{ __('Ungenügend') }}</th>
-                                                @if($sid)<th scope="col" class="w-28 text-right">{{ __('Gefährdet') }}</th>@endif
+                                                <th scope="col" class="text-right">{{ __('Lernende') }}</th>
+                                                <th scope="col" class="text-right"><span aria-hidden="true">Ø</span><span class="sr-only">{{ __('Durchschnitt') }}</span></th>
+                                                <th scope="col" class="text-right">{{ __('Min – Max') }}</th>
+                                                <th scope="col" class="text-right">{{ __('Ungenügend') }}</th>
+                                                @if($sid)<th scope="col" class="text-right">{{ __('Gefährdet') }}</th>@endif
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($kategorien as $kat)
                                                 <tr>
-                                                    <td class="truncate font-medium text-text">{{ $kat['name'] }}</td>
+                                                    <td class="font-medium text-text">{{ $kat['name'] }}</td>
                                                     <td class="text-right text-muted">{{ $kat['anzahl'] }}</td>
                                                     <td class="text-right font-semibold {{ NotenSkala::text($kat['schnitt']) }}">{{ NotenSkala::format($kat['schnitt'], 2) }}</td>
                                                     <td class="whitespace-nowrap text-right text-muted">{{ NotenSkala::format($kat['min'], 1) }} – {{ NotenSkala::format($kat['max'], 1) }}</td>
@@ -351,21 +357,22 @@
             @endif
 
             <x-karte id="lernende" :titel="__('Lernende')" :polster="false">
-                <div class="px-2 pb-2">
-                    <table class="np-tabelle table-fixed text-sm">
+                {{-- Unter der Mindestbreite scrollt die Tabelle in der Karte, statt die Status-Spalte zu quetschen --}}
+                <div class="overflow-x-auto px-2 pb-2 print:overflow-visible">
+                    <table class="np-tabelle table-fixed min-w-[64rem] text-sm print:min-w-0">
                         <caption class="sr-only">{{ __('Lernende') }}</caption>
                         <thead>
                             <tr>
-                                <th scope="col" class="w-72" aria-sort="{{ $ariaSort('name') }}"><a href="{{ $sortUrl('name') }}" class="{{ $kopf }}">{{ __('Name') }} {{ $pfeil('name') }}</a></th>
+                                <th scope="col" class="w-56" aria-sort="{{ $ariaSort('name') }}"><a href="{{ $sortUrl('name') }}" class="{{ $kopf }}">{{ __('Name') }} {{ $pfeil('name') }}</a></th>
                                 <th scope="col" aria-sort="{{ $ariaSort('status') }}"><a href="{{ $sortUrl('status') }}" class="{{ $kopf }}">{{ __('Status') }} {{ $pfeil('status') }}</a></th>
-                                <th scope="col" class="w-24 text-right" aria-sort="{{ $ariaSort('gesamt') }}"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="{{ $kopf }}">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
+                                <th scope="col" class="w-24 text-right" aria-sort="{{ $ariaSort('gesamt') }}"><a href="{{ $sortUrl('gesamt', 'desc') }}" class="{{ $kopfRechts }}">{{ __('Gesamt') }} {{ $pfeil('gesamt') }}</a></th>
                                 @if($sid)
-                                    <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('semester') }}"><a href="{{ $sortUrl('semester', 'desc') }}" class="{{ $kopf }}">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
+                                    <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('semester') }}"><a href="{{ $sortUrl('semester', 'desc') }}" class="{{ $kopfRechts }}">{{ __('Semester') }} {{ $pfeil('semester') }}</a></th>
                                 @endif
-                                <th scope="col" class="w-32 text-right" aria-sort="{{ $ariaSort('ungenuegend') }}"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="{{ $kopf }}">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
-                                <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('pruefungen') }}"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="{{ $kopf }}">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
-                                <th scope="col" class="w-32 text-right" aria-sort="{{ $ariaSort('letzte') }}"><a href="{{ $sortUrl('letzte', 'desc') }}" class="{{ $kopf }}">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
-                                <th scope="col" class="w-24 print:hidden"><span class="sr-only">{{ __('Aktionen') }}</span></th>
+                                <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('ungenuegend') }}"><a href="{{ $sortUrl('ungenuegend', 'desc') }}" class="{{ $kopfRechts }}">{{ __('Ungenügend') }} {{ $pfeil('ungenuegend') }}</a></th>
+                                <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('pruefungen') }}"><a href="{{ $sortUrl('pruefungen', 'desc') }}" class="{{ $kopfRechts }}">{{ __('Prüfungen') }} {{ $pfeil('pruefungen') }}</a></th>
+                                <th scope="col" class="w-28 text-right" aria-sort="{{ $ariaSort('letzte') }}"><a href="{{ $sortUrl('letzte', 'desc') }}" class="{{ $kopfRechts }}">{{ __('Letzte Note') }} {{ $pfeil('letzte') }}</a></th>
+                                <th scope="col" class="w-20 print:hidden"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
                         <tbody>

@@ -81,7 +81,7 @@ class MailLogController extends Controller
 
         if ($neu->status === MailLog::FAILED) {
             return redirect()->route('admin.mail-log.index')
-                ->with('error', __('Erneuter Versand fehlgeschlagen: :fehler', ['fehler' => mb_substr((string) $neu->error, 0, 150)]));
+                ->with('error', __('Erneuter Versand fehlgeschlagen: :fehler', ['fehler' => MailLog::fehlertext($neu->error)]));
         }
 
         return redirect()->route('admin.mail-log.index')->with('success', __('Erneut in die Warteschlange gestellt.'));

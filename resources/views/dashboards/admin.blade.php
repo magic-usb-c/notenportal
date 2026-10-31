@@ -41,14 +41,14 @@
             <ul class="col-span-12 grid grid-cols-6 gap-4" aria-label="{{ __('Kennzahlen') }}">
                 @foreach($kacheln as [$name, $symbol, $farbe, $wert, $link])
                     <li>
-                        <a href="{{ $link }}" class="np-karte np-karte-klickbar flex h-full items-start justify-between gap-3 p-4">
-                            <span class="flex min-w-0 flex-col gap-3">
-                                <span class="flex size-8 items-center justify-center rounded-full {{ $farbe }}" aria-hidden="true">
+                        <a href="{{ $link }}" class="np-karte np-karte-klickbar flex h-full flex-col gap-3 p-4">
+                            <span class="flex items-start justify-between gap-3">
+                                <span class="flex size-8 shrink-0 items-center justify-center rounded-full {{ $farbe }}" aria-hidden="true">
                                     <x-symbol :name="$symbol" strich="2" class="size-4" />
                                 </span>
-                                <span class="truncate text-sm font-medium text-muted" title="{{ $name }}">{{ $name }}</span>
+                                <span class="text-xl font-semibold tabular-nums leading-none text-text">{{ $wert }}</span>
                             </span>
-                            <span class="text-xl font-semibold tabular-nums leading-none text-text">{{ $wert }}</span>
+                            <span class="text-sm font-medium text-muted">{{ $name }}</span>
                         </a>
                     </li>
                 @endforeach

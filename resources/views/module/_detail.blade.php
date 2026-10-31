@@ -16,7 +16,7 @@
         $lernender && $belegt ? __('In deinen Modulen') : null,
     ])->filter()->implode(' · ') ?: null;
 @endphp
-{{-- Gewähltes Modul neben der Quellliste: Kopf mit Aktionen, links der Inhalt, rechts Verweise und Unterlagen --}}
+{{-- Gewähltes Modul neben der Quellliste: Kopf mit Aktionen, links der Inhalt, rechts Verweise und Unterlagen (darunter, wenn die Mindestbreiten nicht nebeneinander passen) --}}
 <article class="flex flex-col gap-6" aria-labelledby="modul-titel">
     <header class="flex items-start justify-between gap-6">
         <div class="min-w-0">
@@ -46,8 +46,8 @@
         </div>
     </header>
 
-    <div class="grid grid-cols-12 items-start gap-5">
-        <div class="col-span-8 flex flex-col gap-5">
+    <div class="flex flex-wrap items-start gap-5">
+        <div class="flex min-w-128 flex-2 flex-col gap-5">
             @if($modul->beschreibung)
                 <section class="np-karte p-5" aria-labelledby="modul-beschreibung">
                     <h3 id="modul-beschreibung" class="text-sm font-semibold text-text">{{ __('Beschreibung') }}</h3>
@@ -89,8 +89,8 @@
                             <tbody>
                                 @foreach($modul->lbvElemente as $element)
                                     <tr>
-                                        <td class="text-text">{{ $element->bezeichnung }}</td>
-                                        @if($lbvForm)<td class="text-muted">{{ $element->pruefungsform ?: '–' }}</td>@endif
+                                        <td class="break-words text-text">{{ $element->bezeichnung }}</td>
+                                        @if($lbvForm)<td class="break-words text-muted">{{ $element->pruefungsform ?: '–' }}</td>@endif
                                         @if($lbvGewicht)<td class="text-right tabular-nums text-text">{{ $element->gewichtung_prozent !== null ? (int) $element->gewichtung_prozent.' %' : '–' }}</td>@endif
                                     </tr>
                                 @endforeach
@@ -108,7 +108,7 @@
             @endunless
         </div>
 
-        <div class="col-span-4 flex flex-col gap-5">
+        <div class="flex min-w-80 flex-1 flex-col gap-5">
             @if($mbk || $modul->link)
                 <section class="np-karte p-5" aria-labelledby="modul-verweise">
                     <h3 id="modul-verweise" class="text-sm font-semibold text-text">{{ __('Verweise') }}</h3>

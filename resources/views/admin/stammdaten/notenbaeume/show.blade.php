@@ -81,8 +81,8 @@
                                     <th scope="col" class="text-right">{{ __('Anteil') }}</th>
                                     <th scope="col">{{ __('Rundung') }}</th>
                                     <th scope="col" class="text-right">{{ __('Mindestnote') }}</th>
-                                    <th scope="col" class="text-right">{{ __('Max. ungenügend') }}</th>
-                                    <th scope="col" class="text-right">{{ __('Max. Minuspunkte') }}</th>
+                                    <th scope="col" class="whitespace-pre-line text-right">{{ __('Max. ungenügend') }}</th>
+                                    <th scope="col" class="whitespace-pre-line text-right">{{ __('Max. Minuspunkte') }}</th>
                                     <th scope="col" class="text-center">{{ __('Zählt') }}</th>
                                     <th scope="col">{{ __('Entfällt mit') }}</th>
                                 </tr>
@@ -106,7 +106,7 @@
                                         <td class="{{ $einzug[min($z['tiefe'], 4)] }}">
                                             <label for="k{{ $id }}-name" class="sr-only">{{ __('Name') }}</label>
                                             <input id="k{{ $id }}-name" name="knoten[{{ $id }}][name]" value="{{ $alt('name', $k->name) }}" required maxlength="150"
-                                                   class="{{ $zelle }} w-full min-w-64 {{ $gruppe ? 'font-medium' : '' }}" {!! $fehlerAttr($id, 'name') !!}>
+                                                   class="{{ $zelle }} w-full min-w-60 {{ $gruppe ? 'font-medium' : '' }}" {!! $fehlerAttr($id, 'name') !!}>
                                         </td>
                                         <td class="max-w-80 text-xs text-muted">{{ $quelle }}</td>
                                         <td class="text-right">
@@ -118,7 +118,7 @@
                                                 <input type="hidden" name="knoten[{{ $id }}][gewicht]" value="{{ $zahl($k->gewicht) }}">
                                             @endif
                                         </td>
-                                        <td class="text-right tabular-nums text-muted">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</td>
+                                        <td class="whitespace-nowrap text-right tabular-nums text-muted">{{ $z['anteil'] !== null ? $prozent($z['anteil']) : '' }}</td>
                                         <td>
                                             <label for="k{{ $id }}-rundung" class="sr-only">{{ __('Rundung') }}</label>
                                             <select id="k{{ $id }}-rundung" name="knoten[{{ $id }}][rundung]" class="{{ $zelle }} w-24 py-0 pr-8" {!! $fehlerAttr($id, 'rundung') !!}>

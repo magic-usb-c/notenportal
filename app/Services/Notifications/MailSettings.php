@@ -54,7 +54,7 @@ final class MailSettings
                 'mail.mailers.smtp.scheme' => $encryption === 'ssl' ? 'smtps' : 'smtp',
                 'mail.mailers.smtp.require_tls' => $encryption === 'tls',
                 'mail.mailers.smtp.username' => $db[self::USERNAME] ?? null,
-                'mail.mailers.smtp.password' => self::password() ?? self::$env['password'],
+                'mail.mailers.smtp.password' => self::password() ?? self::envPasswordFor((string) $db[self::HOST], $encryption),
             ]);
         } else {
             config([
@@ -156,6 +156,12 @@ final class MailSettings
 
             return null;
         }
+    }
+
+    /** Das .env-Passwort geht nur verschlüsselt an den .env-Host, nie an einen anderen in der Oberfläche eingetragenen Server. */
+    private static function envPasswordFor(string $host, string $encryption): ?string
+    {
+        return $encryption !== 'none' && strcasecmp($host, (string) self::$env['host']) === 0 ? self::$env['password'] : null;
     }
 
     /** .env-Werte einmal pro Prozess festhalten, damit apply() nach einer DB-Änderung zurückfallen kann. */

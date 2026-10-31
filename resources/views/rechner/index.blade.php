@@ -83,10 +83,11 @@
                 </template>
             </div>
 
-            <div class="grid grid-cols-12 items-start gap-5">
+            {{-- Zwei gleiche Spalten; reicht die Breite für beide Mindestbreiten nicht, rutscht das Ergebnis unter die Eingaben --}}
+            <div class="flex flex-wrap items-start gap-5">
 
                 {{-- Eingaben --}}
-                <div class="col-span-6 flex flex-col gap-5">
+                <div class="flex min-w-[40rem] flex-1 flex-col gap-5">
                     <section class="np-karte flex flex-col gap-5 p-5" aria-label="{{ __('Ziel') }}">
                         <div role="radiogroup" x-radiogroup aria-label="{{ __('Ebene') }}" class="np-segment flex w-full">
                             @foreach($ebenen as $wert => $name)
@@ -208,7 +209,7 @@
                 </div>
 
                 {{-- Ergebnis --}}
-                <div class="col-span-6 flex flex-col gap-5">
+                <div class="flex min-w-[26rem] flex-1 flex-col gap-5">
                     <section class="np-karte flex min-h-56 flex-col items-center justify-center px-10 py-8 text-center transition-opacity duration-150" :class="laedt ? 'opacity-70' : ''" :aria-busy="laedt" aria-live="polite">
                         {{-- Fehler mit Weiterweg (HIG «Alerts»: Ursache und Handlung) --}}
                         <div x-show="fehler" x-cloak class="flex flex-col items-center gap-3">
@@ -298,7 +299,7 @@
                                 <tbody>
                                     <template x-for="v in ergebnis?.vergleich ?? []" :key="v.text">
                                         <tr>
-                                            <th scope="row" class="truncate text-left font-normal" :class="v.ist_ziel ? 'font-semibold text-text' : 'text-text'" x-text="v.label"></th>
+                                            <th scope="row" class="truncate text-left font-normal" :class="v.ist_ziel ? 'font-semibold text-text' : 'text-text'" x-text="v.label" :title="v.label"></th>
                                             <td class="text-right text-muted" x-text="fmt(v.vorher)"></td>
                                             <td class="text-right font-semibold" :class="klasse(v.nachher)" x-text="fmt(v.nachher)"></td>
                                             <td class="text-right tabular-nums text-muted"
@@ -311,34 +312,35 @@
                     </x-karte>
 
                     <x-karte :titel="__('Promotion')" :polster="false" x-show="ergebnis?.promotion?.length" x-cloak>
+                        {{-- Schlanke Zahlenspalten, Kategorie und Promotion teilen den Rest: passt in der schmalen Spalte ohne Abschneiden --}}
                         <div class="px-2 pb-2">
                             <table class="np-tabelle table-fixed text-sm">
                                 <caption class="sr-only">{{ __('Promotion') }}</caption>
                                 <colgroup>
                                     <col>
+                                    <col class="w-14">
                                     <col class="w-24">
-                                    <col class="w-28">
-                                    <col class="w-28">
-                                    <col class="w-56">
+                                    <col class="w-24">
+                                    <col>
                                 </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">{{ __('Kategorie') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Schnitt') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Ungenügend') }}</th>
-                                        <th scope="col" class="text-right">{{ __('Minuspunkte') }}</th>
-                                        <th scope="col" class="text-right" title="{{ __('Heute → Szenario') }}">{{ __('Promotion') }}</th>
+                                        <th scope="col" class="px-2 text-right">{{ __('Schnitt') }}</th>
+                                        <th scope="col" class="px-2 text-right">{{ __('Ungenügend') }}</th>
+                                        <th scope="col" class="px-2 text-right">{{ __('Minuspunkte') }}</th>
+                                        <th scope="col" class="text-right">{{ __('Promotion') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <template x-for="p in ergebnis?.promotion ?? []" :key="p.kategorie + p.semester">
                                         <tr>
-                                            <th scope="row" class="truncate text-left font-normal"><span class="font-medium text-text" x-text="p.kategorie"></span> <span class="text-muted" x-text="p.semester"></span></th>
-                                            <td class="text-right font-semibold" :class="klasse(p.nachher.schnitt)" x-text="fmt(p.nachher.schnitt)"></td>
-                                            <td class="text-right text-text" x-text="p.nachher.ungenuegend"></td>
-                                            <td class="text-right text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></td>
+                                            <th scope="row" class="text-left font-normal"><span class="font-medium text-text" x-text="p.kategorie"></span> <span class="text-muted" x-text="p.semester"></span></th>
+                                            <td class="px-2 text-right font-semibold" :class="klasse(p.nachher.schnitt)" x-text="fmt(p.nachher.schnitt)"></td>
+                                            <td class="px-2 text-right text-text" x-text="p.nachher.ungenuegend"></td>
+                                            <td class="px-2 text-right text-text" x-text="fmt(p.nachher.minuspunkte, 1)"></td>
                                             <td class="text-right">
-                                                <div class="inline-flex items-center justify-end gap-1.5">
+                                                <div class="inline-flex flex-wrap items-center justify-end gap-1.5">
                                                     {{-- Stand heute nur, wenn das Szenario ihn ändert --}}
                                                     <template x-if="p.vorher && p.vorher.erfuellt !== p.nachher.erfuellt">
                                                         <div class="inline-flex items-center gap-1.5">

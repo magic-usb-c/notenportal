@@ -33,7 +33,9 @@ class RechnerSeiteBarrierefreiheitTest extends TestCase
         $this->assertStringContainsString('<caption class="sr-only">Promotion</caption>', $html);
 
         // Erste Zelle jeder Zeile ist ein Zeilenkopf (th scope=row), nicht td
-        $this->assertSame(2, substr_count($html, '<th scope="row" class="truncate text-left font-normal"'));
+        // Auswirkung kürzt lange Namen, Promotion umbricht sie (schmale Spalte, nichts darf abgeschnitten werden)
+        $this->assertSame(1, substr_count($html, '<th scope="row" class="truncate text-left font-normal"'));
+        $this->assertSame(1, substr_count($html, '<th scope="row" class="text-left font-normal"'));
         $this->assertDoesNotMatchRegularExpression('/<tr>\s*<td class="truncate"/', $html);
     }
 
@@ -55,5 +57,40 @@ class RechnerSeiteBarrierefreiheitTest extends TestCase
         $this->assertStringNotContainsString('bg-text/', $html);
         $this->assertStringContainsString('even:bg-fill-2', $html);
         $this->assertStringContainsString('hover:bg-fill ', $html);
+    }
+
+    #[Test]
+    public function gekuerzter_zeilenkopf_der_auswirkung_traegt_den_vollen_namen_als_title(): void
+    {
+        $html = $this->seite();
+
+        $this->assertMatchesRegularExpression(
+            '/<th scope="row" class="truncate text-left font-normal"[^>]*\s:title="v\.label"/',
+            $html,
+        );
+    }
+
+    #[Test]
+    public function promotion_tabelle_fluchtet_in_den_randspalten_mit_auswirkung_und_titel(): void
+    {
+        $html = $this->seite();
+
+        $start = strpos($html, '<caption class="sr-only">Promotion</caption>');
+        $this->assertNotFalse($start);
+        $tabelle = substr($html, $start, strpos($html, '</table>', $start) - $start);
+
+        // Randspalten behalten das Standardpolster der Tabelle (12 px) wie die Auswirkung, nur die inneren Zahlenspalten sind enger
+        $this->assertStringContainsString('<th scope="col">Kategorie</th>', $tabelle);
+        $this->assertStringContainsString('<th scope="col" class="text-right">Promotion</th>', $tabelle);
+        $this->assertStringContainsString('<th scope="row" class="text-left font-normal">', $tabelle);
+        $this->assertStringContainsString('<td class="text-right">', $tabelle);
+        $this->assertSame(3, substr_count($tabelle, '<th scope="col" class="px-2 text-right">'));
+        $this->assertStringNotContainsString('<th scope="col" class="px-2">', $tabelle);
+    }
+
+    #[Test]
+    public function promotion_kopf_hat_keinen_erklaerenden_tooltip(): void
+    {
+        $this->assertStringNotContainsString('Heute → Szenario', $this->seite());
     }
 }

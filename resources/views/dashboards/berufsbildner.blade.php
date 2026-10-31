@@ -50,8 +50,9 @@
     </x-slot>
 
     <div class="py-6">
-        {{-- Oben die Filterkacheln über die ganze Breite, darunter links die Klassentabelle (8/12) und rechts
-             Aufmerksamkeit, Termine und Lehrende (4/12). --}}
+        {{-- Oben die Filterkacheln über die ganze Breite, darunter links die Klassentabelle (zwei Drittel) und rechts
+             Aufmerksamkeit, Termine und Lehrende (ein Drittel). Passen die Mindestbreiten nicht nebeneinander,
+             rutscht die rechte Spalte unter die Tabelle, statt deren letzte Spalten abzuschneiden. --}}
         <div class="np-raster mx-auto flex np-seite flex-col gap-5 px-8"
              x-data="{
                  filter: 'alle',
@@ -82,10 +83,10 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-12 items-start gap-5">
+            <div class="flex flex-wrap items-start gap-5">
                 {{-- Meine Lernenden --}}
                 @if($zeigen['lernende'])
-                <div @class(['flex min-w-0 flex-col gap-5', 'col-span-8' => $rechts, 'col-span-12' => ! $rechts])>
+                <div @class(['flex flex-col gap-5', 'min-w-231 flex-2' => $rechts, 'w-full min-w-0' => ! $rechts])>
                 @if($zeilen->isNotEmpty())
                     {{-- Wer hat sich bewegt: Hantel je betreute Person, Filter aus der Adresse (funktioniert ohne JavaScript) --}}
                     <section class="flex flex-col gap-3" aria-label="{{ __('Wer hat sich bewegt') }}">
@@ -169,7 +170,7 @@
                             <table class="np-tabelle table-fixed text-sm">
                                 <caption class="sr-only">{{ __('Meine Lernenden') }}</caption>
                                 <colgroup>
-                                    <col class="w-32"><col class="w-48"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
+                                    <col class="w-32"><col class="w-44"><col class="w-20"><col class="w-32"><col class="w-24"><col class="w-24"><col class="w-24"><col>
                                 </colgroup>
                                 <thead data-np-tabellenkopf>
                                     <tr>
@@ -194,7 +195,7 @@
                                         <tr data-href="{{ $ziel }}" x-show="passt(zeilen[{{ $loop->index }}])">
                                             <td class="h-13"><x-status :status="$s->status" /></td>
                                             <td class="py-1.5">
-                                                <a href="{{ $ziel }}" class="block truncate font-medium text-text">{{ $b->vorname }} {{ $b->nachname }}</a>
+                                                <a href="{{ $ziel }}" class="block truncate font-medium text-text" title="{{ $b->vorname }} {{ $b->nachname }}">{{ $b->vorname }} {{ $b->nachname }}</a>
                                                 @if($z->lernender->lehrberuf)
                                                     <div class="truncate text-xs text-muted" title="{{ $z->lernender->lehrberuf->name }}">{{ $z->lernender->lehrberuf->kuerzel ?: $z->lernender->lehrberuf->name }}</div>
                                                 @endif
@@ -243,7 +244,7 @@
                 @endif
 
                 @if($rechts)
-                <div @class(['flex min-w-0 flex-col gap-5', 'col-span-4' => $zeigen['lernende'], 'col-span-12' => ! $zeigen['lernende']])>
+                <div @class(['flex flex-col gap-5', 'min-w-76 flex-1' => $zeigen['lernende'], 'w-full min-w-0' => ! $zeigen['lernende']])>
                     @if($zeigen['aufmerksamkeit'])
                         <x-karte :titel="__('Braucht Aufmerksamkeit')" symbol="exclamation-triangle" :polster="false">
                             <x-slot:aktionen><span class="np-marke tabular-nums">{{ count($aufmerksamkeit) }}</span></x-slot:aktionen>

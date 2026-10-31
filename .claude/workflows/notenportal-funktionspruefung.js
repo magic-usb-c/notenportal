@@ -39,6 +39,8 @@ UMGEBUNG (VM, wird von Apache live ausgeliefert):
   \$NP_TEST_PW (env.sh setzt es) – nie ausgeben, nie als Argument. Browser-Werkzeuge: tools/pruefung/{shot,klick,rundgang}.mjs
   (Skill-Datei .claude/skills/notenportal-pruefwerkzeuge/SKILL.md), Playwright über NP_PLAYWRIGHT. Eigene Playwright-Skripte in
   ${SCRATCH}/ ablegen; tools/pruefung/browser.mjs exportiert starteBrowser/anmelden (lies es).
+- KEINE Aussenwirkung: Mails nur an Adressen unter @demo.example oder @example.com/.org/.net, nie an echte Domains (auch nicht
+  x@gmail.com). In den Mail-Einstellungen als Host nur 127.0.0.1 Port 2525 eintragen, nie einen echten Mailserver.
 - Du bist Prüfer: KEINE Änderung an Dateien im Repo, keine Git-Schreibbefehle, kein composer, kein npm. Nur ${SCRATCH} beschreiben.
 - Nicht raten: jeder Befund braucht Datei:Zeile UND einen Beleg (Sonde, die rot ist, oder Befehl mit Ausgabe). Lies die Stelle.
 - Keine Stilfragen, keine Geschmacksfragen, keine reinen Refactorings. Gesucht sind Fehler, die eine Person trifft: falsches
@@ -136,7 +138,7 @@ Grenzfälle (keine Daten, gelöschte Noten, beendete Betreuung), Fehlerbehandlun
 (eigene Skripte in ${SCRATCH}/klick/, Vorbild tools/pruefung/klick.mjs und browser.mjs): Lernende nina.huber: Note erfassen, bearbeiten,
 löschen, Prüfung anlegen, Ziel setzen, Rechner bedienen, Dokument hochladen, Einstellungen speichern. Berufsbildner michael.baumann:
 Note kommentieren, als gesehen markieren, Prüfungstermin, Cockpit-Reiter. Admin laura.frei: Konto anlegen, Fach anlegen/umbenennen/
-löschen, Einstellung speichern, Bericht filtern und exportieren, Testmail (Mailer der Demo schreibt ins Log). Erfasse je Schritt:
+löschen, Einstellung speichern, Bericht filtern und exportieren, Testmail nur an @demo.example (Mailer der Demo schreibt ins Log). Erfasse je Schritt:
 HTTP-Status, Konsolenfehler, Erfolgsmeldung sichtbar, Ergebnis wirklich gespeichert (Seite neu laden), Fokus/Tastatur bei Dialogen.
 Demo-Daten darfst du verändern (Wegwerf). Höchstens ${MAX} Befunde.`,
 }

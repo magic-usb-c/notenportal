@@ -1366,3 +1366,16 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
 - **Klicktest Runde 5, offen geblieben (nicht gefunden, nur nicht durchgeklickt):** Zeugnis-Übernahme schreibend, Lehrberuf
   Module/Fächer zuweisen, Berufsbildner kommentiert und bearbeitet Prüfungstermine, externe Kalender-Abos, mehrblättrige
   xlsx und Schulnetz-Formate, Einrichtungsassistent, Backups (bewusst).
+
+## Schmale Fenster und Klicktest Runde 6 (31.10.2026): bewusst gelassen
+
+- **Admin-Lernendenliste bei 1280/1440: Status und «Noten» nur per Querscroll in der Karte.** Die Tabelle hat eine
+  Mindestbreite (`min-w-[78rem]`, Berufsbildner `68rem`) und scrollt in ihrer Karte, statt den Status zu quetschen.
+  Spalten umzuordnen oder auszublenden hiesse, den Massstab 1920 zu ändern, wo alle Spalten nebeneinander passen.
+- **Kategorien bei 1280: Promotionsregel der BMS bricht auf mehrere Zeilen um.** Lesbar, nichts abgeschnitten; die
+  Regel steht nicht mehr gekürzt mit `title`, sondern ganz in der Zelle.
+- **Notenbaum-Aufbau (1280 und 1440, Spalte «Entfällt mit») und Bericht «Kategorien» (1280) scrollen in der Karte** (Rundgang meldet `SCROLLT`, unter
+  1920 nur Hinweis). Beide Tabellen tragen Zahlen, die nebeneinander stehen müssen.
+- **Klicktest Runde 6, nicht durchgeklickt:** Backups (bewusst), Abschluss des Einrichtungsassistenten, JSON-Import
+  eines Notenbaums, Mail-Umleitung und Schalter «Passwort löschen» in den Mail-Einstellungen, «Abbrechen» beim
+  Track-Wechsel. Hell-Modus und schmale Fenster nur im Rundgang, nicht im Klicktest (der lief dunkel bei 1920).

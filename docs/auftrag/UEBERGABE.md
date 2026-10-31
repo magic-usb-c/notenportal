@@ -449,12 +449,36 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Rollenweiche (f602b6b), Meldungsliste unter «Feedback» zeigt die neue Meldung sofort, Zeugnis-Abgleich
                   für Berufsbildner und Admin wieder verlinkt, Stammdaten-Module stehen im Aktivitätsprotokoll.
                   Rundgang dunkel (4 Rollen × 1920/2560, 158 verworfen): Kategorien-Tabelle auf Spaltensumme begrenzt.
+[Q] 31.10. 13:30  Klicktest Runde 6 (1 Befund) und schmale Fenster (Rundgang 1280/1440, 9 Befunde): Testmail und erneutes
+                  Senden melden SMTP-Fehler deutsch (`MailLog::fehlertext`: Anmeldung, TLS, nicht erreichbar, sonst
+                  allgemein; Rohtext bleibt im Versandprotokoll). 11 Seiten brechen schmal nicht mehr: Tabellen scrollen
+                  in ihrer Karte (Lernendenliste, Bericht), Raster mit flex-wrap statt 12 Spalten (Berufsbildner-
+                  Übersicht, Moduldetail), Spalten gestrafft (Fächer, Kategorien, Lehrberuf, Notenbaum, Rechner),
+                  Admin-Kacheln mit Label unter der Zahl. 1920/2560 unverändert. rundgang.mjs meldet Elemente in einem
+                  eigenen Scrollbereich als SCROLLT (unter 1920 nur Hinweis). Vorfall: eine Testmail ging aus der Demo
+                  echt hinaus (siehe «Offen für David»); Demo-Server und phpunit.xml setzen jetzt eigene MAIL_*-Werte
+                  (auch MAIL_URL), der Prüf-Workflow verbietet echte Empfänger und Mailserver. Review: das .env-Passwort
+                  ging an jeden in der Oberfläche eingetragenen Host ohne eigenes Passwort, jetzt nur noch an den
+                  .env-Host (MailPasswortRueckfallTest). Rundgang hell 1920 alle Rollen ohne Befund.
+                  Blockprüfung (Bilder 1920/2560 je Rolle, ui-checker): 10 Befunde behoben – Tooltips für gekürzte
+                  Namen, Codes und Betreuer, Histogramm füllt die Berichtkarte, Sortierpfeil vor rechtsbündigen Köpfen,
+                  Notenbaum-Namen breiter, Promotion fluchtet, Hinweis-Tooltip «Heute → Szenario» weg. Rechner als
+                  flex-wrap (Ergebnis rutscht unter 1440 unter die Eingaben), Regel im Skill notenportal-ui. Rundgang
+                  dunkel 1280 alle Rollen ohne Befund. Prüfer: Mailadressen im Rohtext lösen keinen
+                  falschen Treffer mehr aus, .env-Passwort nie ohne Verschlüsselung. Suite 1943 grün.
 ```
 
 ---
 
 ## Offen für David
 
+- **Vorfall 31.10., 12:52: eine Testmail ging echt hinaus.** Ein Klicktest-Agent hat in der Demo (:8099) eine
+  Testmail an eine Adresse bei gmail.com ausgelöst; der Demo-Server erbte das Mailkonto aus der `.env` der VM und
+  verschickte sie über Migadu (mail_log id 4, Status sent). Zurückholen lässt sie sich nicht. Abgedichtet:
+  `tools/pruefung/demo-server.sh` exportiert `MAIL_MAILER=log` und einen toten Host ohne Zugangsdaten, `phpunit.xml`
+  erzwingt dasselbe für Tests, der Workflow `notenportal-funktionspruefung` erlaubt nur Empfänger unter
+  `@demo.example`/`example.*` und Host 127.0.0.1:2525. Falls die Adresse jemandem gehört: Hinweis an Migadu oder
+  den Empfänger ist deine Entscheidung.
 - **R6-13 Lichtbrechung am Kapselrand: gebaut, geprüft, nicht übernommen (30.10.).** Dein Auftrag
   («liquid glass») galt als Ja. Unter den Kapseln liegt aber die Scrollkante, also eine gleichförmige
   Fläche: Die Brechung ändert dort höchstens 2 von 255 Farbstufen, man sieht sie nicht. Scrollen auf

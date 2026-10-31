@@ -28,6 +28,9 @@
     $spalten = $bereich === 'admin' ? 9 : 8;
     // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte; der Admin hat zwei Spalten mehr und füllt das Fenster
     $kartenbreite = $bereich === 'admin' ? '' : 'max-w-7xl';
+    // Untergrenze der Tabelle: feste Spalten plus Status-Spalte (13 rem, Marken umbrechen). Darunter scrollt die Tabelle in der Karte,
+    // statt dass Marken in die Aktionsspalte laufen oder die Seite überläuft; ab etwa 1700 px Fensterbreite bleibt alles unverändert.
+    $tabellenMin = $bereich === 'admin' ? 'min-w-[78rem]' : 'min-w-[68rem]';
     // Veränderung zum Vorsemester als Text mit Pfeil (nie nur Farbe)
     $deltaText = fn (float $d) => ($d > 0 ? '+' : '−').\App\Support\NotenSkala::format(abs($d), 1);
     // Gar keine sichtbaren Lernenden (auch keine inaktiven) und kein Filter: Leerzustand für die ganze Ansicht.
@@ -140,9 +143,9 @@
 
                 <x-punktstreifen :paket="$statistik" class="{{ $kartenbreite }}" />
 
-                <div class="np-karte {{ $kartenbreite }} overflow-hidden" data-np-liste>
-                    <div class="p-2">
-                        <table class="np-tabelle table-fixed text-sm">
+                <div class="np-karte {{ $kartenbreite }}" data-np-liste>
+                    <div class="overflow-x-auto rounded-xl p-2">
+                        <table class="np-tabelle table-fixed text-sm {{ $tabellenMin }}">
                             <caption class="sr-only">{{ __('Lernende') }}</caption>
                             <colgroup>
                                 <col class="w-56"><col class="w-28">
@@ -176,7 +179,7 @@
                                             <div class="flex min-w-0 items-center gap-3">
                                                 <span class="np-monogramm size-8 shrink-0 text-2xs" aria-hidden="true">{{ mb_strtoupper(mb_substr($z->vorname ?? '', 0, 1).mb_substr($z->nachname ?? '', 0, 1)) ?: '?' }}</span>
                                                 <div class="min-w-0">
-                                                    <a href="{{ $zielUrl }}" title="{{ $l->benutzer->email }}" class="block truncate font-medium {{ $l->benutzer->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
+                                                    <a href="{{ $zielUrl }}" title="{{ $z->nachname }} {{ $z->vorname }} · {{ $l->benutzer->email }}" class="block truncate font-medium {{ $l->benutzer->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $z->nachname }} {{ $z->vorname }}</a>
                                                     {{-- Bei einer Suche zeigt die Adresse, warum die Person trifft --}}
                                                     @if($filter['suche'] !== '')
                                                         <div class="truncate text-xs text-muted">{{ $l->benutzer->email }}</div>
@@ -189,7 +192,7 @@
                                             <span class="text-muted">· {{ $z->lehrjahr ?: '–' }}</span>
                                         </td>
                                         @if($bereich === 'admin')
-                                            <td class="truncate text-muted">
+                                            <td class="truncate text-muted"@if($z->betreuer) title="{{ $z->betreuer->nachname }} {{ $z->betreuer->vorname }}"@endif>
                                                 {{ $z->betreuer ? $z->betreuer->nachname.' '.$z->betreuer->vorname : '–' }}
                                             </td>
                                         @endif

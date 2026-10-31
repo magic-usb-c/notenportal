@@ -25,10 +25,10 @@
                             <tr>
                                 <th scope="col" class="w-28">{{ __('Kürzel') }}</th>
                                 <th scope="col">{{ __('Name') }}</th>
-                                <th scope="col" class="w-52">{{ __('Kategorie') }}</th>
+                                <th scope="col" class="w-40">{{ __('Kategorie') }}</th>
                                 <th scope="col" class="w-28">{{ __('Track') }}</th>
-                                <th scope="col" class="w-28 text-right">{{ __('Lehrberufe') }}</th>
-                                <th scope="col" class="w-28 text-right">{{ __('Noten') }}</th>
+                                <th scope="col" class="w-24 text-right">{{ __('Lehrberufe') }}</th>
+                                <th scope="col" class="w-24 text-right">{{ __('Noten') }}</th>
                                 <th scope="col" class="w-32"><span class="sr-only">{{ __('Aktionen') }}</span></th>
                             </tr>
                         </thead>
@@ -39,13 +39,13 @@
                                     <td class="font-semibold {{ $f->aktiv ? 'text-text' : 'text-muted' }}">{{ $f->kurzname }}</td>
                                     <td>
                                         <div class="flex min-w-0 items-center gap-2">
-                                            <a href="{{ $ziel }}" class="truncate {{ $f->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text">{{ $f->name }}</a>
+                                            <a href="{{ $ziel }}" class="truncate {{ $f->aktiv ? 'text-text' : 'text-muted' }} hover:text-accent-text" title="{{ $f->name }}">{{ $f->name }}</a>
                                             @if($f->skala === 'stufe')<span class="np-marke shrink-0 text-muted">{{ __('Stufe') }}</span>@endif
                                             @unless($f->zaehlt)<span class="np-marke shrink-0 text-muted">{{ __('zählt nicht') }}</span>@endunless
                                             @unless($f->aktiv)<span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>@endunless
                                         </div>
                                     </td>
-                                    <td class="truncate text-muted">{{ $f->kategorie_name ?? '–' }}</td>
+                                    <td class="truncate text-muted" @if($f->kategorie_name) title="{{ $f->kategorie_name }}" @endif>{{ $f->kategorie_name ?? '–' }}</td>
                                     <td class="text-muted">{{ $f->track_typ ?? '–' }}</td>
                                     <td class="text-right {{ $f->lehrberuf_count > 0 ? 'text-text' : 'text-muted' }}">{{ $f->lehrberuf_count }}</td>
                                     <td class="text-right {{ $f->noten_count > 0 ? 'text-text' : 'text-muted' }}">{{ $f->noten_count }}</td>

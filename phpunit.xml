@@ -33,6 +33,13 @@
         <env name="DB_DATABASE" value="notenportal_test"/>
         <env name="LOG_CHANNEL" value="null" force="true"/>
         <env name="MAIL_MAILER" value="array"/>
+        <!-- Kein Mailkonto aus der .env in Tests: ein in der DB gesetzter Host fiele sonst auf dessen Passwort zurück -->
+        <env name="MAIL_HOST" value="127.0.0.1" force="true"/>
+        <env name="MAIL_PORT" value="2525" force="true"/>
+        <env name="MAIL_USERNAME" value="" force="true"/>
+        <env name="MAIL_PASSWORD" value="" force="true"/>
+        <!-- «null», nicht leer: eine leere URL leert den Transport (MailManager::getConfig prüft isset) -->
+        <env name="MAIL_URL" value="null" force="true"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
     </php>

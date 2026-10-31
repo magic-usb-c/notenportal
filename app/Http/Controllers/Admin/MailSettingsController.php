@@ -58,7 +58,7 @@ class MailSettingsController extends Controller
         }
         if ($log->status === MailLog::FAILED) {
             return $this->zurueck($request)
-                ->with('error', __('Testmail fehlgeschlagen: :fehler', ['fehler' => mb_substr((string) $log->error, 0, 150)]));
+                ->with('error', __('Testmail fehlgeschlagen: :fehler', ['fehler' => MailLog::fehlertext($log->error)]));
         }
 
         return $this->zurueck($request)->with('success', __('Testmail an :to verschickt.', ['to' => $to]));

@@ -1,6 +1,10 @@
 {
     "Erneut gesendet": "Resent",
     "Erneuter Versand fehlgeschlagen: :fehler": "Resending failed: :fehler",
+    "Anmeldung am Mailserver abgelehnt – Benutzername und Passwort prüfen.": "Mail server rejected the login – check username and password.",
+    "Die verschlüsselte Verbindung zum Mailserver ist fehlgeschlagen – Zertifikat und Verschlüsselung prüfen.": "The encrypted connection to the mail server failed – check certificate and encryption.",
+    "Der Mailserver ist nicht erreichbar – Host, Port und Verschlüsselung prüfen.": "The mail server is unreachable – check host, port and encryption.",
+    "Der Versand ist fehlgeschlagen – Details im Versandprotokoll.": "Sending failed – see the delivery log for details.",
     "Adresse nicht zustellbar – Mail-Umleitung setzen oder Adresse korrigieren.": "Address undeliverable – set a mail redirect or correct the address.",
     "Kein Mailserver eingerichtet – die Testmail wurde nicht verschickt.": "No mail server set up – the test email was not sent.",
     "+:n Duplikate": "+:n duplicates",
