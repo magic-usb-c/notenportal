@@ -1396,3 +1396,18 @@ Seite ändert daran nichts (gemessen mit Playwright, Browser auf `de`).
 - **Inaktivitätsmail einer neuen Phase kann sich verzögern.** Ist die Inaktivitätsfrist kürzer als die
   Wiederholungsfrist, hält die Sperre die Mail nach einer neuen Note bis zum Ende der Wiederholungsfrist der
   Vorgängermail zurück. Sie kommt später, nie doppelt (Review 31.10.).
+
+Funktionsprüfung Runde 8 (31.10.2026): bewusst gelassen
+
+- **Keine Warnung für unbekannte «Gew…»-Spalten im Notenimport.** Die Kopferkennung kennt jetzt Klammern, «in %»,
+  «Prozent», «Anteil» und Faktor-Spalten; eine Warnung für weitere Schreibweisen fehlt.
+- **Semester löschen ordnet nicht neu.** Lücken zählen weiter als Semester (Lehrsemester), nur Anlegen und
+  Datumsänderung ohne eigene Sortierung sortieren chronologisch ein.
+- **Berufsbildner mit Lernenden nach Lehrende blockieren weiter**, solange deren Konto aktiv ist; die Meldung nennt
+  sie jetzt mit Namen.
+- **Ein vollständiger, leerer Kalender löscht weiterhin alle Termine.** Nur abgeschnittene Dateien ohne
+  END:VCALENDAR gelten als Fehler.
+- **Reaktivierte Lernende behalten eine offene Betreuung bei einem inzwischen inaktiven Berufsbildner.** Wer ein
+  Konto wieder öffnet, prüft die Betreuung in der Benutzerverwaltung; eine automatische Übergabe gibt es nicht.
+- **«Abgeschnitten» im Tabellenleser ist eine Schätzung.** Der Hinweis erscheint, wenn nach der Zeilengrenze noch
+  Notenzeilen folgen; er ist nur Information, die gelesenen Zeilen bleiben gültig.

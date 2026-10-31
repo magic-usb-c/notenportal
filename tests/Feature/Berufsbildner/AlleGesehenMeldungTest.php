@@ -44,7 +44,7 @@ class AlleGesehenMeldungTest extends TestCase
             ->assertSessionHas('success', '1 Note als gesehen markiert.');
 
         $titel = DigestItem::query()->where('user_id', $lernenderUser->benutzer_id)->pluck('title')->all();
-        $this->assertSame(['1 Note angesehen'], $titel);
+        $this->assertSame([trim($bb->vorname.' '.$bb->nachname).' hat 1 Note angesehen'], $titel);
     }
 
     #[Test]

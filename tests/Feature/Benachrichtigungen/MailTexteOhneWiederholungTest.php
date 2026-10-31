@@ -156,6 +156,24 @@ class MailTexteOhneWiederholungTest extends TestCase
     }
 
     #[Test]
+    public function gesehen_meldung_nennt_die_person_auch_in_der_tageszusammenfassung(): void
+    {
+        $lernender = User::factory()->lernender()->create()->lernender;
+        $note = Note::factory()->create(['lernender_id' => $lernender->lernender_id]);
+        $bb = User::factory()->berufsbildner()->create(['vorname' => 'Peter', 'nachname' => 'Muster']);
+
+        $einzeln = GradeSeen::einzeln($note, '/x', $bb);
+        $this->assertStringContainsString('Peter Muster', (string) $einzeln->digestTitle);
+        $this->assertSame('Peter Muster hat die Note in '.$einzeln->facts['Fach / Modul'].' angesehen', $einzeln->digestTitle);
+
+        $this->assertSame('Peter Muster hat 1 Note angesehen', GradeSeen::sammel(1, '/x', $bb)->digestTitle);
+        $this->assertSame('Peter Muster hat 3 Noten angesehen', GradeSeen::sammel(3, '/x', $bb)->digestTitle);
+
+        $this->assertSame('3 Noten angesehen', GradeSeen::sammel(3, '/x')->digestTitle);
+        $this->assertSame('Note in '.$einzeln->facts['Fach / Modul'].' angesehen', GradeSeen::einzeln($note, '/x')->digestTitle);
+    }
+
+    #[Test]
     public function inaktivitaetsmail_nennt_die_tage_nur_im_betreff(): void
     {
         $lernender = User::factory()->lernender()->create()->lernender;

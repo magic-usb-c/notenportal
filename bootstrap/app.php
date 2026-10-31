@@ -52,6 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
 
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Laravels Standard deckt nur password, password_confirmation und current_password ab. Die übrigen
+        // Passwortfelder (SMTP-Passwort, Passwort-Vergabe durch Admins) würden bei einem Validierungsfehler im
+        // Klartext in die Sitzung (Tabelle sessions) geflasht, obwohl MailSettings sie sonst verschlüsselt ablegt.
+        $exceptions->dontFlash(['mail_password', 'passwort', 'passwort_confirmation']);
+
         // Abgelaufene Sitzung (419): statt der Fehlerseite zurück zum Formular, mit Hinweis.
         // JSON-Anfragen behalten 419 – die bestehenden fetch-Aufrufer behandeln das schon.
         // Hinweis: der Handler wandelt TokenMismatchException schon vor renderViaCallbacks() in eine

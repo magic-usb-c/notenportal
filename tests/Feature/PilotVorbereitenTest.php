@@ -5,14 +5,21 @@ namespace Tests\Feature;
 use App\Models\Betreuung;
 use App\Models\Feedback;
 use App\Models\Note;
+use App\Models\NotenbaumPosition;
 use App\Models\User;
+use App\Services\Auswertung\Konfiguration;
+use App\Services\Auswertung\Notenbaum\BaumVorlage;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
 use Tests\TestCase;
 
 class PilotVorbereitenTest extends TestCase
 {
+    use VerwaltungTestHilfen;
+
     private function testdaten(): User
     {
         Storage::fake('local');
@@ -56,5 +63,26 @@ class PilotVorbereitenTest extends TestCase
         $this->assertNotNull($lernender->lernender->fresh());
         $this->assertTrue($lernender->fresh()->passwort_wechsel_noetig);
         $this->assertTrue($admin->fresh()->passwort_wechsel_noetig);
+    }
+
+    #[Test]
+    public function abschlussnoten_im_notenbaum_werden_in_vorschau_gezaehlt_und_ausgefuehrt_geloescht(): void
+    {
+        $lehrberuf = DB::table('lehrberufe')->insertGetId(['kuerzel' => 'NPT', 'name' => 'Testberuf EFZ']);
+        DB::table('semester')->insert(['bezeichnung' => 'T-1', 'start_datum' => '2024-08-01', 'end_datum' => now()->addYears(3)->toDateString(), 'sortierung' => 1]);
+        Konfiguration::vergessen();
+        $lernender = $this->neuerLernender([], ['lehrberuf_id' => $lehrberuf]);
+        app(BaumVorlage::class)->importieren(BaumVorlage::laden('informatiker-efz-bivo2020'), $lehrberuf);
+        $knoten = (int) DB::table('notenbaum_knoten')->where('code', 'ipa')->value('knoten_id');
+        NotenbaumPosition::create(['lernender_id' => $lernender->lernender_id, 'knoten_id' => $knoten, 'note_wert' => 5.5, 'erfasst_von_benutzer_id' => $lernender->benutzer->benutzer_id]);
+
+        Artisan::call('notenportal:pilot-vorbereiten');
+        $this->assertMatchesRegularExpression('/notenbaum_positionen\s*\|\s*1\s*\|/', Artisan::output());
+        $this->assertSame(1, DB::table('notenbaum_positionen')->count());
+
+        $this->artisan('notenportal:pilot-vorbereiten', ['--ausfuehren' => true])->assertSuccessful();
+
+        $this->assertSame(0, DB::table('notenbaum_positionen')->count());
+        $this->assertGreaterThan(0, DB::table('notenbaum_knoten')->count());
     }
 }

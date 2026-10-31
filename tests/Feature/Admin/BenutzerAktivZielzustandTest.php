@@ -58,7 +58,7 @@ class BenutzerAktivZielzustandTest extends TestCase
         ]);
 
         $this->actingAs($this->admin)->post(route('admin.users.toggle-active', $bb->benutzer_id), ['aktiv' => 0])
-            ->assertSessionHas('error', __('Aktive Betreuungen zuerst übergeben.'));
+            ->assertSessionHas('error', fn ($m) => str_starts_with($m, 'Aktive Betreuungen zuerst übergeben: ') && str_contains($m, $lernender->vorname));
 
         $this->assertTrue((bool) $bb->fresh()->aktiv);
         $this->assertNotNull($bb->fresh()->berufsbildner);

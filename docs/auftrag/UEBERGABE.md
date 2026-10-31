@@ -487,6 +487,15 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   und Tabellenkopf auf dem Telefon 14 px. Korrektur-, Gesehen-, Inaktivitäts- und Semesterende-Mail
                   wiederholen Titel und Fakten nicht mehr im Absatz. Gesehen-Mails nennen die Person statt «Dein
                   Berufsbildner» (auch Admins markieren). Mail-Workflow kennt args.hinweis für Varianten. Suite 2003 grün.
+[Q] 31.10. 21:00  Funktionsprüfung Runde 8 (13 bestätigt) behoben in sechs Gruppen. Notenimport: Gewichtsköpfe mit
+                  Klammer, «in %», «Prozent», «Anteil» und Faktor-Spalten («Faktor», «(1-3)»; «(0-100)» bleibt Prozent),
+                  ungültiges Gewicht bleibt beim erneuten Prüfen ungültig statt still 100 %, Korrekturen überleben eine
+                  fehlgeschlagene Übernahme, Stufenfächer (Sport A/B/C/d) als Dublette erkannt, Hinweis bei mehr als 500
+                  Notenzeilen. Uploads bis 10 MB mit verständlichen Meldungen (Grösse, Endung). Semester ohne eigene
+                  Sortierung reihen sich chronologisch ein. Lehrende/inaktiv setzen nennt blockierende Lernende mit Namen,
+                  Suche nach «Vorname Nachname» in Benutzern und Protokoll. Mail-Passwort nie in der Sitzung (dontFlash).
+                  Abgeschnittene .ics ohne END:VCALENDAR löschen keine Termine mehr. pilot:vorbereiten leert auch
+                  notenbaum_positionen. Gesehen-Sammelmail mit Namen im Betreff. Suite 2071 grün.
 ```
 
 ---

@@ -64,7 +64,7 @@ class NotenImportController extends Controller
 
         $datei = $request->file('datei');
         try {
-            $tabelle = $this->leser->lesen($datei->getRealPath(), $datei->getClientOriginalExtension());
+            [$tabelle, $quelleLaenger] = $this->leser->lesenMitHinweis($datei->getRealPath(), $datei->getClientOriginalExtension());
         } catch (\Throwable) {
             throw ValidationException::withMessages(['datei' => __('Die Datei lässt sich nicht lesen.')]);
         }
@@ -76,6 +76,7 @@ class NotenImportController extends Controller
 
         $request->session()->put($this->schluessel($lernender), [
             ...$vorschau,
+            'abgeschnitten' => $vorschau['abgeschnitten'] || $quelleLaenger,
             'datei' => mb_substr($datei->getClientOriginalName(), 0, 120),
             'token' => Str::random(40),
         ]);
@@ -135,7 +136,8 @@ class NotenImportController extends Controller
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
         if ($ergebnis['neu'] === 0) {
             // Vorschau mit frischem Token zurücklegen, damit die Person korrigieren und erneut übernehmen kann.
-            $request->session()->put($schluessel, [...$vorschau, 'token' => Str::random(40)]);
+            // Die gesendeten Korrekturen bleiben erhalten, auch die der Zeile, an der die Übernahme scheiterte.
+            $request->session()->put($schluessel, [...$this->mitKorrekturen($vorschau, $zeilen, (int) $lernender->lernender_id), 'token' => Str::random(40)]);
 
             return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
@@ -166,6 +168,31 @@ class NotenImportController extends Controller
             : route('learner.grades.index', $parameter);
 
         return redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
+    }
+
+    /**
+     * Gesendete (nur die ausgewählten) Zeilen neu prüfen und nach Zeilennummer in die Vorschau zurückführen:
+     * nicht gesendete Zeilen bleiben, aber abgewählt; unbekannte Nummern vom Client werden nie aufgenommen;
+     * eine leere Sendung lässt den alten Stand unverändert.
+     *
+     * @param  array<string, mixed>  $vorschau
+     * @param  list<array<string, mixed>>  $gesendet
+     * @return array<string, mixed>
+     */
+    private function mitKorrekturen(array $vorschau, array $gesendet, int $lernenderId): array
+    {
+        $bisher = is_array($vorschau['zeilen'] ?? null) ? $vorschau['zeilen'] : [];
+        if ($gesendet === [] || $bisher === []) {
+            return $vorschau;
+        }
+
+        $geprueft = [];
+        foreach ($this->import->pruefeZeilen($gesendet, $lernenderId, $bisher) as $zeile) {
+            $geprueft[$zeile['nr']] = $zeile;
+        }
+        $vorschau['zeilen'] = array_map(fn (array $alt) => $geprueft[$alt['nr']] ?? [...$alt, 'uebernehmen' => false], $bisher);
+
+        return $vorschau;
     }
 
     public function verwerfen(Request $request): RedirectResponse

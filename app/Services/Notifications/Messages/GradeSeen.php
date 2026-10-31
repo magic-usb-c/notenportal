@@ -24,7 +24,9 @@ final class GradeSeen
             facts: [__('Fach / Modul') => $bezug, __('Note') => $note->anzeige(), __('Datum') => self::datum($note)],
             actionLabel: __('Note ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: __('Note in :bezug angesehen', ['bezug' => $bezug]),
+            digestTitle: $name !== ''
+                ? __(':name hat die Note in :bezug angesehen', ['name' => $name, 'bezug' => $bezug])
+                : __('Note in :bezug angesehen', ['bezug' => $bezug]),
         );
     }
 
@@ -44,7 +46,9 @@ final class GradeSeen
             lines: [$zeile],
             actionLabel: __('Noten ansehen'),
             actionUrl: $zielUrl,
-            digestTitle: $betreff,
+            digestTitle: $name === '' ? $betreff : ($anzahl === 1
+                ? __(':name hat 1 Note angesehen', ['name' => $name])
+                : __(':name hat :anzahl Noten angesehen', ['name' => $name, 'anzahl' => $anzahl])),
         );
     }
 

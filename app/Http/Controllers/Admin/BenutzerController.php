@@ -11,6 +11,7 @@ use App\Services\Notifications\AccountMails;
 use App\Support\Protokoll;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -57,6 +58,8 @@ class BenutzerController extends Controller
                 ->orWhere('b.nachname', 'like', $like)
                 ->orWhere('b.email', 'like', $like)
                 ->orWhere('b.benutzername', 'like', $like)
+                ->orWhereRaw("CONCAT(b.vorname, ' ', b.nachname) LIKE ?", [$like])
+                ->orWhereRaw("CONCAT(b.nachname, ' ', b.vorname) LIKE ?", [$like])
             );
         }
 
@@ -155,11 +158,9 @@ class BenutzerController extends Controller
             throw ValidationException::withMessages(['rollen' => __('Die eigene Admin-Rolle bleibt bestehen.')]);
         }
         $berufsbildner = $user->berufsbildner;
-        if ($berufsbildner && ! $rollen->contains('Berufsbildner') && DB::table('betreuungen')
-            ->where('berufsbildner_id', $berufsbildner->berufsbildner_id)
-            ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
-            ->exists()) {
-            throw ValidationException::withMessages(['rollen' => __('Aktive Betreuungen zuerst übergeben.')]);
+        if ($berufsbildner && ! $rollen->contains('Berufsbildner')
+            && ($blockierend = $this->blockierendeLernende((int) $berufsbildner->berufsbildner_id))->isNotEmpty()) {
+            throw ValidationException::withMessages(['rollen' => $this->betreuungenMeldung($blockierend)]);
         }
 
         $passwortZurueckgesetzt = ! empty($validated['passwort']);
@@ -217,11 +218,9 @@ class BenutzerController extends Controller
         }
 
         $berufsbildnerId = $user->berufsbildner?->berufsbildner_id;
-        if (! $neuAktiv && $berufsbildnerId && DB::table('betreuungen')
-            ->where('berufsbildner_id', $berufsbildnerId)
-            ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', now()->toDateString()))
-            ->exists()) {
-            return back()->with('error', __('Aktive Betreuungen zuerst übergeben.'));
+        if (! $neuAktiv && $berufsbildnerId
+            && ($blockierend = $this->blockierendeLernende((int) $berufsbildnerId))->isNotEmpty()) {
+            return back()->with('error', $this->betreuungenMeldung($blockierend));
         }
 
         DB::transaction(function () use ($user, $neuAktiv) {
@@ -240,6 +239,40 @@ class BenutzerController extends Controller
         Protokoll::schreiben($neuAktiv ? Protokoll::ADMIN_KONTO_REAKTIVIERT : Protokoll::ADMIN_KONTO_DEAKTIVIERT, $user);
 
         return back()->with('success', $meldung);
+    }
+
+    /**
+     * Namen der Lernenden, deren laufende Betreuung ein Berufsbildner noch übergeben muss. Betreuungen deaktivierter
+     * oder gelöschter Lernender blockieren nicht: Sie hätten keinen Lernenden mehr, dem etwas zu übergeben wäre.
+     *
+     * @return Collection<int, string>
+     */
+    private function blockierendeLernende(int $berufsbildnerId): Collection
+    {
+        return DB::table('betreuungen as bt')
+            ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')
+            ->join('benutzer as lb', 'lb.benutzer_id', '=', 'l.benutzer_id')
+            ->where('bt.berufsbildner_id', $berufsbildnerId)
+            ->where(fn ($q) => $q->whereNull('bt.gueltig_bis')->orWhere('bt.gueltig_bis', '>=', now()->toDateString()))
+            ->whereNull('l.geloescht_am')
+            ->whereNull('lb.geloescht_am')
+            ->where('lb.aktiv', 1)
+            ->orderBy('lb.nachname')->orderBy('lb.vorname')
+            ->get(['lb.vorname', 'lb.nachname'])
+            ->map(fn ($r) => trim($r->vorname.' '.$r->nachname))
+            ->unique()
+            ->values();
+    }
+
+    /** @param  Collection<int, string>  $namen */
+    private function betreuungenMeldung(Collection $namen): string
+    {
+        $gezeigt = $namen->take(5)->implode(', ');
+        $rest = $namen->count() - 5;
+
+        return $rest > 0
+            ? __('Aktive Betreuungen zuerst übergeben: :namen und :n weitere.', ['namen' => $gezeigt, 'n' => $rest])
+            : __('Aktive Betreuungen zuerst übergeben: :namen.', ['namen' => $gezeigt]);
     }
 
     /** Lernenden-Konten werden ausschliesslich über die Lernenden-Verwaltung geändert. */

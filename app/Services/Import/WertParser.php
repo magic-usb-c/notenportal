@@ -73,6 +73,38 @@ final class WertParser
     }
 
     /**
+     * Stufe eines Stufenfachs (Sport): A/B/C in beliebiger Schreibweise, «d» auch als «dispensiert»/«disp.»
+     * (so steht sie im eigenen Export). Gibt die gespeicherte Form zurück (A, B, C, d) oder null.
+     */
+    public static function stufe(string $s): ?string
+    {
+        $s = trim($s);
+        if (preg_match('/^[abc]$/i', $s) === 1) {
+            return strtoupper($s);
+        }
+
+        return preg_match('/^(?:d|disp|dispensiert|dispensed|exempt)\.?$/iu', $s) === 1 ? 'd' : null;
+    }
+
+    /**
+     * Faktor-Spalte («Faktor», «Gewicht (Faktor)», «Gewichtung (1–3)»): 1 = volles Gewicht, 0.5 = halbes – nie ein
+     * Prozentwert. null = leer (Standard 100), false = ungültig (kein Faktor über 1: das Gewicht reicht bis 100 %).
+     */
+    public static function faktor(string $s): float|false|null
+    {
+        $s = str_replace(',', '.', trim($s));
+        if ($s === '') {
+            return null;
+        }
+        if (! is_numeric($s)) {
+            return false;
+        }
+        $wert = round((float) $s * 100, 2);
+
+        return $wert >= 0 && $wert <= 100 ? $wert : false;
+    }
+
+    /**
      * null = leer (Standard 100), false = ungültig; Werte ≤ 1 gelten als Anteil (0.5 → 50 %) – aber nur ohne
      * explizites «%»-Zeichen, sonst ist die Deutung als Prozentwert eindeutig (0.5 % bleibt 0.5 %).
      */

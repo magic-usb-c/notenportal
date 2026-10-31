@@ -40,7 +40,9 @@ class AktivitaetController extends Controller
                 ->when($person !== '', fn ($q) => $q->whereHas('benutzer', fn ($qq) => $qq
                     ->where('vorname', 'like', '%'.$personEscaped.'%')
                     ->orWhere('nachname', 'like', '%'.$personEscaped.'%')
-                    ->orWhere('email', 'like', '%'.$personEscaped.'%')))
+                    ->orWhere('email', 'like', '%'.$personEscaped.'%')
+                    ->orWhereRaw("CONCAT(vorname, ' ', nachname) LIKE ?", ['%'.$personEscaped.'%'])
+                    ->orWhereRaw("CONCAT(nachname, ' ', vorname) LIKE ?", ['%'.$personEscaped.'%'])))
                 ->when($von !== '', fn ($q) => $q->where('erstellt_am', '>=', Carbon::parse($von)->startOfDay()))
                 ->when($bis !== '', fn ($q) => $q->where('erstellt_am', '<=', Carbon::parse($bis)->endOfDay()))
                 ->orderByDesc('erstellt_am')

@@ -7,6 +7,7 @@ namespace App\Services\Dokumente;
 use App\Exceptions\DateiNichtGespeichert;
 use App\Models\Dokument;
 use App\Models\Lernender;
+use Closure;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -37,10 +38,44 @@ final class Ablage
     public static function regeln(): array
     {
         return [
-            'datei' => ['required', 'file', 'max:'.self::MAX_KB, 'extensions:'.implode(',', self::ENDUNGEN), 'mimetypes:'.implode(',', self::MIMES)],
+            'datei' => self::dateiregeln(self::MAX_KB, self::ENDUNGEN, self::MIMES, static fn (): string => __('Erlaubt sind PDF, Bild, Word, Excel und CSV.')),
             'art' => ['required', Rule::in(array_keys(Dokument::ARTEN))],
             'semester_id' => ['nullable', 'integer', 'exists:semester,semester_id'],
             'titel' => ['nullable', 'string', 'max:150'],
+        ];
+    }
+
+    /**
+     * Regeln für ein hochgeladenes Dokument mit Meldungen in Worten statt Kilobyte und Medientyp-Liste.
+     * Gleiche Prüfungen wie max/extensions/mimetypes: Endung nach dem Namen, Inhalt nach finfo.
+     *
+     * @param  list<string>  $endungen
+     * @param  list<string>  $mimes
+     * @param  Closure(): string  $erlaubt  erlaubte Arten in Worten, erst bei einem Fehler übersetzt
+     * @return list<mixed>
+     */
+    public static function dateiregeln(int $maxKb, array $endungen, array $mimes, Closure $erlaubt): array
+    {
+        $pruefen = static fn (Closure $ok, Closure $meldung): Closure => static function (string $attribut, mixed $wert, Closure $fail) use ($ok, $meldung): void {
+            if ($wert instanceof UploadedFile && ! $ok($wert)) {
+                $fail($meldung());
+            }
+        };
+
+        return [
+            'bail', 'required', 'file',
+            $pruefen(
+                static fn (UploadedFile $d): bool => ($d->getSize() ?: 0) / 1024 <= $maxKb,
+                static fn (): string => __('Die Datei ist zu gross (höchstens :mb MB).', ['mb' => intdiv($maxKb, 1024)]),
+            ),
+            $pruefen(
+                static fn (UploadedFile $d): bool => in_array(strtolower($d->getClientOriginalExtension()), $endungen, true),
+                static fn (): string => __('Die Endung dieser Datei ist nicht erlaubt.').' '.$erlaubt(),
+            ),
+            $pruefen(
+                static fn (UploadedFile $d): bool => in_array($d->getMimeType(), $mimes, true),
+                static fn (): string => __('Der Inhalt der Datei passt nicht zur Endung.').' '.$erlaubt(),
+            ),
         ];
     }
 

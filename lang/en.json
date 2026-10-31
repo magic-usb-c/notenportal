@@ -677,5 +677,11 @@
     "Die früheste Note ist vom :datum und läge vor dem Lehrbeginn.": "The earliest grade is dated :datum and would fall before the start of the apprenticeship.",
     "Die späteste Note ist vom :datum und läge nach dem Ende der Lehre.": "The latest grade is dated :datum and would fall after the end of the apprenticeship.",
     "Nicht abbestellbar.": "Cannot be unsubscribed.",
-    "Adresse nicht lesbar": "Address not readable"
+    "Adresse nicht lesbar": "Address not readable",
+    "Erlaubt sind PDF, Bild, Word, Excel und CSV.": "Allowed: PDF, image, Word, Excel and CSV.",
+    "Erlaubt sind PDF, Bild, Word und OpenDocument.": "Allowed: PDF, image, Word and OpenDocument.",
+    "Die Datei ist zu gross (höchstens :mb MB).": "The file is too large (up to :mb MB).",
+    "Die Endung dieser Datei ist nicht erlaubt.": "The extension of this file is not allowed.",
+    "Der Inhalt der Datei passt nicht zur Endung.": "The content of the file does not match its extension.",
+    "Die Kalenderdatei ist unvollständig. Die bisherigen Termine bleiben unverändert.": "The calendar file is incomplete. Existing events are left unchanged."
 }

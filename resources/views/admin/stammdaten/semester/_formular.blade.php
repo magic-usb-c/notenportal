@@ -1,4 +1,4 @@
-{{-- Formular «Semester» für Anlegen und Bearbeiten. $semester ist null beim Anlegen (Sortierung leer = ans Ende). --}}
+{{-- Formular «Semester» für Anlegen und Bearbeiten. $semester ist null beim Anlegen (Sortierung leer = nach Startdatum einsortiert). --}}
 @php($wert = fn (string $k) => old($k, $semester?->{$k}))
 <form method="POST" action="{{ $semester ? route('admin.master-data.semesters.update', $semester->semester_id) : route('admin.master-data.semesters.store') }}"
       class="flex np-spalte flex-col gap-8" x-data="{ loading: false }" @submit="if (!$event.defaultPrevented) loading = true">
@@ -25,7 +25,7 @@
             </x-einstellung>
             <x-einstellung :label="__('Sortierung')" fuer="sortierung" name="sortierung">
                 <input type="number" id="sortierung" name="sortierung" value="{{ $wert('sortierung') }}" min="0"
-                       @if($semester) required @else placeholder="{{ __('Automatisch') }}" @endif
+                       placeholder="{{ __('Automatisch') }}"
                        class="np-feld w-28 text-right tabular-nums" @error('sortierung') aria-invalid="true" aria-describedby="sortierung-fehler" @enderror>
             </x-einstellung>
         </div>

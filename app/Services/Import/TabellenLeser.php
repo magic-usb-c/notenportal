@@ -23,8 +23,21 @@ final class TabellenLeser
     /** Summe der entpackten Einträge einer xlsx/ods: Notenlisten liegen weit darunter, Bomben weit darüber. */
     public const int MAX_ENTPACKT_BYTES = 30 * 1024 * 1024;
 
+    /** Gelesen werden die Notenzeilen plus Platz für Titel-, Kopf- und Fusszeilen; eine Zeile mehr zeigt, dass die Quelle länger ist. */
+    private const int GELESEN = self::MAX_ZEILEN + 20;
+
     /** @return list<list<string>> */
     public function lesen(string $pfad, string $endung): array
+    {
+        return $this->lesenMitHinweis($pfad, $endung)[0];
+    }
+
+    /**
+     * Wie lesen(), meldet aber zusätzlich, ob die Quelle mehr Zeilen hat, als gelesen werden (dann fehlt der Rest).
+     *
+     * @return array{0: list<list<string>>, 1: bool}
+     */
+    public function lesenMitHinweis(string $pfad, string $endung): array
     {
         $zeilen = match (strtolower($endung)) {
             'pdf' => $this->pdf($pfad),
@@ -32,7 +45,9 @@ final class TabellenLeser
             default => $this->tabelle($pfad),
         };
 
-        return array_slice(array_values(array_filter($zeilen, fn (array $z) => implode('', $z) !== '')), 0, self::MAX_ZEILEN + 20);
+        $zeilen = array_values(array_filter($zeilen, fn (array $z) => implode('', $z) !== ''));
+
+        return [array_slice($zeilen, 0, self::GELESEN), count($zeilen) > self::GELESEN];
     }
 
     /** @return list<list<string>> */
@@ -64,7 +79,7 @@ final class TabellenLeser
         $letzteSpalte = Coordinate::stringFromColumnIndex(min(Coordinate::columnIndexFromString($blatt->getHighestDataColumn()), self::MAX_SPALTEN));
         // Formeln aus fremden Dateien nie berechnen – den in der Datei gespeicherten Wert nehmen
         $zeilen = [];
-        foreach ($blatt->getRowIterator(1, min($blatt->getHighestDataRow(), self::MAX_ZEILEN + 20)) as $zeile) {
+        foreach ($blatt->getRowIterator(1, min($blatt->getHighestDataRow(), self::GELESEN + 1)) as $zeile) {
             $zellen = [];
             foreach ($zeile->getCellIterator('A', $letzteSpalte) as $zelle) {
                 $v = $zelle->isFormula() ? $zelle->getOldCalculatedValue() : $zelle->getValue();
@@ -106,7 +121,7 @@ final class TabellenLeser
         {
             public function readCell(string $columnAddress, int $row, string $worksheetName = ''): bool
             {
-                return $row <= TabellenLeser::MAX_ZEILEN + 20
+                return $row <= TabellenLeser::MAX_ZEILEN + 21
                     && Coordinate::columnIndexFromString($columnAddress) <= TabellenLeser::MAX_SPALTEN;
             }
         };

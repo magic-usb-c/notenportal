@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  */
 final class Modulablage
 {
-    public const int MAX_KB = 20480;
+    public const int MAX_KB = 10240;
 
     public const array ENDUNGEN = ['pdf', 'jpg', 'jpeg', 'png', 'docx', 'odt'];
 
@@ -39,7 +39,7 @@ final class Modulablage
     public static function regeln(): array
     {
         return [
-            'datei' => ['required', 'file', 'max:'.self::MAX_KB, 'extensions:'.implode(',', self::ENDUNGEN), 'mimetypes:'.implode(',', self::MIMES)],
+            'datei' => Ablage::dateiregeln(self::MAX_KB, self::ENDUNGEN, self::MIMES, static fn (): string => __('Erlaubt sind PDF, Bild, Word und OpenDocument.')),
             'titel' => ['nullable', 'string', 'max:150'],
         ];
     }

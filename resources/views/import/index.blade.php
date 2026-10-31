@@ -38,10 +38,11 @@
                     $spalte = fn (int $i) => $i < 26 ? chr(65 + $i) : (string) ($i + 1);
                 @endphp
                 <script>
-                    function npImport(zeilen, pruefenUrl, bezeichnungen) {
+                    function npImport(zeilen, pruefenUrl, bezeichnungen, stufenfaecher) {
                         return {
                             zeilen,
                             bezeichnungen,
+                            stufenfaecher,
                             loading: false,
                             pruefeLaedt: false,
                             get gewaehlt() { return this.zeilen.filter((z) => z.uebernehmen).length; },
@@ -52,7 +53,12 @@
                                 const alsZahl = (w) => { const n = window.np.zahl(w); return Number.isFinite(n) ? n : w; };
                                 return JSON.stringify(liste.map((z) => ({ ...z, note: alsZahl(z.note), gewicht: String(z.gewicht ?? '').trim() === '' ? null : alsZahl(z.gewicht) })));
                             },
-                            ungueltigeNote(z) { return ! Number.isFinite(window.np.zahl(z.note)); },
+                            // Stufenfach (Sport): A, B, C oder d statt einer Zahl
+                            stufe(z) { return this.stufenfaecher.includes(z.bezug); },
+                            ungueltigeNote(z) {
+                                if (this.stufe(z)) { return ! /^(?:[abc]|d|disp\.?|dispensiert)$/i.test(String(z.note ?? '').trim()); }
+                                return ! Number.isFinite(window.np.zahl(z.note));
+                            },
                             ungueltigesGewicht(z) { const n = window.np.zahl(z.gewicht); return String(z.gewicht ?? '').trim() !== '' && ! (n >= 0 && n <= 100); },
                             meldungId(z) { return z.meldung ? 'import-meldung-' + z.nr : null; },
                             get json() { return this.serialisiert(this.zeilen.filter((z) => z.uebernehmen)); },
@@ -104,7 +110,7 @@
                 </script>
 
                 <form method="POST" action="{{ $r('apply') }}" class="flex flex-col gap-4" :aria-busy="loading || pruefeLaedt"
-                      x-data="npImport({{ Js::from($zeilen) }}, {{ Js::from($r('validate')) }}, {{ Js::from(collect($optionen)->flatten(1)->pluck('label', 'wert')) }})" @submit="if (!$event.defaultPrevented) loading = true">
+                      x-data="npImport({{ Js::from($zeilen) }}, {{ Js::from($r('validate')) }}, {{ Js::from(collect($optionen)->flatten(1)->pluck('label', 'wert')) }}, {{ Js::from(collect($optionen)->flatten(1)->where('skala', 'stufe')->pluck('wert')->values()) }})" @submit="if (!$event.defaultPrevented) loading = true">
                     @csrf
                     <input type="hidden" name="zeilen" :value="json">
                     <input type="hidden" name="token" value="{{ $vorschau['token'] ?? '' }}">
@@ -131,6 +137,12 @@
                             @endforeach
                         </dl>
                     </section>
+
+                    @if($vorschau['abgeschnitten'] ?? false)
+                        <div role="status" class="rounded-xl bg-note-knapp/14 px-4 py-3 text-sm text-note-knapp">
+                            {{ __('Nur die ersten :anzahl Zeilen gelesen. Den Rest bitte als zweite Datei importieren.', ['anzahl' => \App\Services\Import\TabellenLeser::MAX_ZEILEN]) }}
+                        </div>
+                    @endif
 
                     <section class="np-karte overflow-hidden">
                         <div class="overflow-x-auto p-2">

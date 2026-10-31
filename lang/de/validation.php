@@ -134,6 +134,7 @@ return [
 
     // ---- Verständliche Meldungen für Formatregeln (regex) ----
     'custom' => [
+        'datei' => ['uploaded' => 'Die Datei ist zu gross oder wurde nicht vollständig übertragen.'],
         'benutzername' => ['regex' => 'Der Benutzername darf nur Buchstaben, Ziffern und . _ - enthalten.'],
         'version' => ['regex' => 'Die Katalogversion besteht aus einer oder zwei Ziffern.'],
         'mail_host' => ['regex' => 'Der Server darf nur Buchstaben, Ziffern, Punkte und Bindestriche enthalten.'],

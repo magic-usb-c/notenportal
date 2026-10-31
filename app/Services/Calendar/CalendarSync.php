@@ -292,6 +292,12 @@ final class CalendarSync
             if (! str_contains($body, 'BEGIN:VCALENDAR')) {
                 throw new RuntimeException('Die Adresse liefert keinen iCal-Kalender.');
             }
+            // Eine unterwegs abgeschnittene Datei liest Sabre im nachsichtigen Modus als gültigen, kürzeren
+            // Kalender: apply() würde die «fehlenden» Termine und künftigen Prüfungen löschen. Ohne Abschluss
+            // bleibt der Bestand unberührt, der Abgleich meldet einen Fehler.
+            if (stripos($body, 'END:VCALENDAR') === false) {
+                throw new RuntimeException(__('Die Kalenderdatei ist unvollständig. Die bisherigen Termine bleiben unverändert.'));
+            }
 
             return ['body' => $body, 'etag' => $antwort->header('ETag') ?: null, 'last_modified' => $antwort->header('Last-Modified') ?: null];
         }

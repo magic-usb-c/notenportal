@@ -179,6 +179,7 @@ return [
     */
 
     'custom' => [
+        'datei' => ['uploaded' => 'The file is too large or was not transferred completely.'],
         'benutzername' => ['regex' => 'The username may only contain letters, digits and . _ -.'],
         'version' => ['regex' => 'The catalogue version consists of one or two digits.'],
         'mail_host' => ['regex' => 'The server may only contain letters, digits, dots and hyphens.'],
