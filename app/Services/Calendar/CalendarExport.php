@@ -71,7 +71,7 @@ final class CalendarExport
         $kalender->{'REFRESH-INTERVAL'}['VALUE'] = 'DURATION';
 
         $lernender = $user->lernender;
-        $ids = $lernender ? [(int) $lernender->lernender_id] : Lernender::sichtbarFuer($user)->pluck('lernender_id')->map(fn ($id) => (int) $id)->all();
+        $ids = $lernender ? [(int) $lernender->lernender_id] : Lernender::sichtbarFuer($user)->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))->pluck('lernender_id')->map(fn ($id) => (int) $id)->all();
         $mitName = $lernender === null;
         // Einmal pro Abo bestimmen: hasRole() fragt die DB bei jedem Aufruf ab.
         $cockpitRoute = $mitName ? ($user->hasRole('Admin') ? 'admin.learners.show' : 'trainer.learners.show') : null;

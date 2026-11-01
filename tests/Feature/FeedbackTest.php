@@ -369,6 +369,10 @@ class FeedbackTest extends TestCase
         $this->actingAs($admin)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertOk();
         $this->actingAs($anderer)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertForbidden();
         $this->actingAs($melder)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertForbidden();
+
+        // Datei fehlt auf der Disk: 404 statt 500
+        Storage::disk('local')->delete($feedback->screenshot_pfad);
+        $this->actingAs($admin)->get(route('admin.feedback.screenshot', $feedback->feedback_id))->assertNotFound();
     }
 
     #[Test]

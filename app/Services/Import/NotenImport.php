@@ -6,6 +6,7 @@ namespace App\Services\Import;
 
 use App\Models\Note;
 use App\Services\Noten\NoteService;
+use App\Support\Csv;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -420,7 +421,17 @@ final class NotenImport
             $zeilen[] = [now()->subDays(7 * ($i + 1))->format('d.m.Y'), $label, 'Prüfung '.($i + 1), $i ? '5.0' : '4.5', '100'];
         }
 
-        return "\xEF\xBB\xBF".implode("\r\n", array_map(fn ($z) => implode(';', $z), $zeilen))."\r\n";
+        // fputcsv statt implode: ein Semikolon im Modultitel bleibt so ein einziges Feld (Anführungszeichen),
+        // Csv::safe neutralisiert Formelanfänge (CWE-1236) wie in allen anderen Exporten.
+        $h = fopen('php://temp', 'w+');
+        foreach ($zeilen as $z) {
+            fputcsv($h, array_map(Csv::safe(...), $z), ';', '"', '', "\r\n");
+        }
+        rewind($h);
+        $csv = (string) stream_get_contents($h);
+        fclose($h);
+
+        return "\xEF\xBB\xBF".$csv;
     }
 
     /** @see WertParser::datum() */

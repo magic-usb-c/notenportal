@@ -90,7 +90,10 @@ class BerichtController extends Controller
             }
 
             fclose($out);
-        }, 'notenbericht_'.now()->format('Ymd').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }, 'notenbericht_'.now()->format('Ymd').'.csv', [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
+        ]);
     }
 
     /**

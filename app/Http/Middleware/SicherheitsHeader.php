@@ -22,7 +22,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * auf einem gemeinsam genutzten Gerät). Symfony setzt in Response::prepare() immer einen
  * Standard-Cache-Control («no-cache, private»); darum Direktiven gezielt setzen/entfernen statt
  * has()/set() – ein has()-Check wäre immer wahr. Downloads (BinaryFileResponse/StreamedResponse,
- * z. B. Sicherungen, CSV-Exporte, Dokumente) bleiben unverändert, ebenso Manifest, Offline-Seite
+ * z. B. Sicherungen, Dokumente) bleiben unverändert und setzen «private, no-store» selbst (auch die
+ * CSV-Exporte mit Noten und Feedback), ebenso Manifest, Offline-Seite
  * und der token-basierte .ics-Kalenderabo-Link (kein Login, sollen wie bisher cachebar bleiben).
  */
 class SicherheitsHeader

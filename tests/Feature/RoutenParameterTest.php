@@ -21,13 +21,21 @@ class RoutenParameterTest extends TestCase
         $offen = [];
         foreach (Route::getRoutes() as $route) {
             foreach ($route->parameterNames() as $name) {
-                if ((str_ends_with($name, '_id') || in_array($name, ['id', 'user'], true)) && ($route->wheres[$name] ?? null) !== '[0-9]+') {
+                if ((str_ends_with($name, '_id') || in_array($name, ['id', 'user'], true)) && ($route->wheres[$name] ?? null) !== '[0-9]{1,18}') {
                     $offen[] = "{$route->uri()} → {$name}";
                 }
             }
         }
 
         $this->assertSame([], $offen, "Ohne Zahlenmuster:\n".implode("\n", $offen));
+    }
+
+    #[Test]
+    public function eine_zwanzigstellige_id_endet_mit_404(): void
+    {
+        $this->actingAs(User::factory()->admin()->create())
+            ->get('/admin/master-data/professions/99999999999999999999')
+            ->assertNotFound();
     }
 
     #[Test]

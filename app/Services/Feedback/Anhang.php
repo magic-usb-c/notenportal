@@ -198,6 +198,9 @@ final class Anhang
     /** Nur für Admins und die meldende Person (Autorisierung: App\Http\Controllers\FeedbackController::anhang). */
     public function ausliefern(FeedbackAnhang $anhang): StreamedResponse
     {
+        // Datei fehlt auf der Disk (Wiederherstellung ohne Dateien): 404 statt 500
+        abort_unless(Storage::disk(self::DISK)->exists($anhang->pfad), 404);
+
         return Storage::disk(self::DISK)->response($anhang->pfad, $anhang->dateiname, [
             'Content-Type' => $anhang->mime ?: 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',

@@ -529,12 +529,25 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Abgebrochen am Nutzungslimit: Funktionsprüfung Runde 14 (lernende, berufsbildner, admin, sicherheit,
                   jobs; scratchpad runde14) und Mail-Prüfung (mail14) liefen noch – Ergebnisse dort sichten, Bestätigtes
                   mit notenportal-befunde-beheben umsetzen. Test-DBs w01–w24 und Grant am Sessionende aufräumen.
+[Q] 01.11. 07:50  Funktionsprüfung Runde 14 (12 bestätigt) und Mail-Prüfung (alle 60 Mailarten DE/EN, 29 bestätigt) behoben:
+                  Datenauskunft mit Abschlussnoten, Stammdaten und gelöschten Noten; Zeugnis-Abgleich bietet Sport
+                  nicht mehr an und meldet Grenzwert/Betreuer wie der Notenimport (NotenImportFolgen); fehlende Datei
+                  → Meldung statt 500; Prüfungstermine/BB-Kalender ohne deaktivierte Konten; IDs über 18 Ziffern → 404;
+                  ungültiges UTF-8 in der Suche → kein 500; Noten-CSV-Vorlage maskiert Semikolon; alle CSV-Exporte
+                  no-store; Semesterabschluss-Mail an Betreuer am Stichtag Semesterende und für Nachzügler; Kalender
+                  holt voll, solange ein künftiger Prüfungstermin unzugeordnet ist. Mails: englische Anführungszeichen,
+                  «supervision», 14 px auf Mobil, kein leerer Block, Feedback-Status nicht dreifach, Knopf «:name öffnen».
+                  Live-Routen-Cache neu gebaut. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 14 und Mail-Prüfung».
 ```
 
 ---
 
 ## Offen für David
 
+- **Datenauskunft und interne Bemerkung (01.11.):** Das Feld `bemerkung` zu Lernenden (Freitext von Admin und
+  Berufsbildner) steht nicht im Auskunft-ZIP; Einstellungsseite und README sagen das offen. Nach Art. 25 DSG gehören
+  Personendaten grundsätzlich in die Auskunft. Aufnehmen hiesse: Lernende lesen erstmals, was über sie notiert ist.
+  Entscheid: aufnehmen (eine Zeile in `Datenauskunft::stammdaten()`) oder so lassen.
 - **Vorfall 31.10., 12:52: eine Testmail ging echt hinaus.** Ein Klicktest-Agent hat in der Demo (:8099) eine
   Testmail an eine Adresse bei gmail.com ausgelöst; der Demo-Server erbte das Mailkonto aus der `.env` der VM und
   verschickte sie über Migadu (mail_log id 4, Status sent). Zurückholen lässt sie sich nicht. Abgedichtet:

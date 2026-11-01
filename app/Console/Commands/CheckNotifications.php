@@ -271,7 +271,7 @@ class CheckNotifications extends Command
                 );
 
                 $ungenuegend = count(array_filter($r['elemente'], fn ($e) => $e->note < $a->konfiguration->genuegend - 1e-9));
-                foreach (Empfaenger::aktiveBetreuer((int) $l->lernender_id) as $betreuerUser) {
+                foreach (Empfaenger::aktiveBetreuer((int) $l->lernender_id, $semesterEintrag->end_datum) as $betreuerUser) {
                     $betreuerZeilen[$betreuerUser->benutzer_id]['user'] = $betreuerUser;
                     $betreuerZeilen[$betreuerUser->benutzer_id]['zeilen'][] = [
                         'lernender' => $l, 'schnitt' => $r['note'], 'ungenuegend' => $ungenuegend,
@@ -280,12 +280,49 @@ class CheckNotifications extends Command
             }
 
             foreach ($betreuerZeilen as $eintrag) {
-                $this->melden(
-                    $eintrag['user'], NotificationCatalog::SEMESTER_CLOSED, 'semester:'.$semesterEintrag->semester_id,
-                    fn () => SemesterClosed::betreuer($semesterEintrag, $eintrag['zeilen']),
-                    'Semesterabschluss '.$semesterEintrag->bezeichnung.' – Betreuer ('.$eintrag['user']->email.')'
-                );
+                $this->betreuerAbschluss($semesterEintrag, $eintrag['user'], $eintrag['zeilen']);
             }
+        }
+    }
+
+    /**
+     * Sammelmail an einen Betreuer. Die Marke gilt je Betreuer und Lernendem: Wer seine Noten erst später im
+     * Siebentagefenster einträgt, kommt in einer zweiten, kurzen Mail nach, ohne dass jemand doppelt aufgeführt wird.
+     * Die frühere Marke je Semester («semester:<id>») gilt weiter als «alles gemeldet».
+     *
+     * @param  list<array{lernender: Lernender, schnitt: ?float, ungenuegend: int}>  $zeilen
+     */
+    private function betreuerAbschluss(Semester $semester, User $betreuer, array $zeilen): void
+    {
+        $type = NotificationCatalog::SEMESTER_CLOSED;
+        $schluessel = 'semester:'.$semester->semester_id;
+
+        if (Notifier::bereitsGemeldet($betreuer, $type, $schluessel)) {
+            return;
+        }
+
+        $neu = array_values(array_filter(
+            $zeilen,
+            fn (array $z) => ! Notifier::bereitsGemeldet($betreuer, $type, $schluessel.':'.$z['lernender']->lernender_id)
+        ));
+        if ($neu === [] || ! Notifier::wuerdeZustellen($betreuer, $type)) {
+            return;
+        }
+
+        $log = 'Semesterabschluss '.$semester->bezeichnung.' – Betreuer ('.$betreuer->email.')';
+        if ($this->dryRun) {
+            $this->line('[dry-run] '.$log.' → '.$betreuer->email);
+
+            return;
+        }
+
+        // Marken zuerst setzen (wie once() in melden()): gesendet wird nur, was dieser Lauf wirklich zuerst gemeldet hat.
+        $zuSenden = array_values(array_filter(
+            $neu,
+            fn (array $z) => Notifier::once($betreuer, $type, $schluessel.':'.$z['lernender']->lernender_id)
+        ));
+        if ($zuSenden !== []) {
+            Notifier::send($betreuer, $type, SemesterClosed::betreuer($semester, $zuSenden));
         }
     }
 

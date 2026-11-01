@@ -19,7 +19,7 @@ final class LearnerAtRisk
             subject: __('Lernstand kritisch: :name', ['name' => $name]),
             lines: [__('Der Lernstand von :name steht auf Rot:', ['name' => $name])],
             sections: [['title' => __('Gründe'), 'text' => implode("\n", array_map(fn ($g) => '- '.$g, $gruende))]],
-            actionLabel: __('Zum Cockpit'),
+            actionLabel: __(':name öffnen', ['name' => $name]),
             actionUrl: route('trainer.learners.show', $lernender->lernender_id),
             digestTitle: __('Lernstand kritisch: :name', ['name' => $name]),
         );

@@ -7,14 +7,9 @@ namespace App\Http\Controllers;
 use App\Models\Lernender;
 use App\Services\Dokumente\Ablage;
 use App\Services\Import\NotenImport;
+use App\Services\Import\NotenImportFolgen;
 use App\Services\Import\TabellenLeser;
 use App\Services\Noten\NoteService;
-use App\Services\Notifications\Empfaenger;
-use App\Services\Notifications\GradeWatcher;
-use App\Services\Notifications\Messages\GradeAdded;
-use App\Services\Notifications\NotificationCatalog;
-use App\Services\Notifications\Notifier;
-use App\Support\Protokoll;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,7 +32,7 @@ class NotenImportController extends Controller
         private readonly NotenImport $import,
         private readonly TabellenLeser $leser,
         private readonly NoteService $noten,
-        private readonly GradeWatcher $gradeWatcher = new GradeWatcher,
+        private readonly NotenImportFolgen $folgen = new NotenImportFolgen,
     ) {}
 
     public function index(Request $request): View
@@ -125,7 +120,7 @@ class NotenImportController extends Controller
         }
         $request->session()->forget($schluessel);
 
-        $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
+        $vorher = $this->folgen->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
         if ($ergebnis['neu'] === 0) {
             // Vorschau mit frischem Token zurücklegen, damit die Person korrigieren und erneut übernehmen kann.
@@ -134,23 +129,7 @@ class NotenImportController extends Controller
 
             return back()->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
-        $this->gradeWatcher->pruefen((int) $lernender->lernender_id, $vorher);
-
-        if ($bereich !== null) {
-            Protokoll::schreiben(Protokoll::ADMIN_NOTENIMPORT_UEBERNOMMEN, $lernender, ['anzahl' => $ergebnis['neu']]);
-        }
-
-        // Eigener Import des Lernenden (nicht durch Verwaltung) → aktive Betreuer, eine Sammelmeldung
-        if ($bereich === null) {
-            $lernender->loadMissing('benutzer');
-            $zielUrl = route('trainer.learners.grades.index', $lernender->lernender_id);
-            $anzahlNeu = $ergebnis['neu'];
-            foreach (Empfaenger::aktiveBetreuer((int) $lernender->lernender_id) as $betreuer) {
-                Notifier::send($betreuer, NotificationCatalog::GRADE_ADDED, fn () => GradeAdded::sammel(
-                    $lernender, $anzahlNeu, $zielUrl
-                ));
-            }
-        }
+        $this->folgen->nachDemImport($lernender, $bereich, $ergebnis['neu'], $vorher);
 
         // Zur Notenliste des betroffenen Semesters – sonst zeigte sie das aktuelle und die neuen Noten blieben unsichtbar.
         // Noten aus mehreren Semestern: Standardansicht, die Erfolgsmeldung nennt die Anzahl.

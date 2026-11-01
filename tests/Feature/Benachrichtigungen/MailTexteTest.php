@@ -9,6 +9,7 @@ use App\Models\Kategorie;
 use App\Models\Modul;
 use App\Models\Pruefung;
 use App\Models\User;
+use App\Services\Notifications\MailContent;
 use App\Services\Notifications\Messages\BelowThreshold;
 use App\Services\Notifications\Messages\ExamReminder;
 use App\Services\Notifications\Messages\FeedbackAnswered;
@@ -123,5 +124,34 @@ class MailTexteTest extends TestCase
 
         $this->assertStringContainsString('Done', $c->subject);
         $this->assertStringNotContainsString('Erledigt', $c->lines[0]);
+    }
+
+    #[Test]
+    public function statusmail_nennt_den_status_nur_wo_er_neu_ist(): void
+    {
+        $nurStatus = FeedbackAnswered::content(Feedback::factory()->create(['status' => Feedback::STATUS_ERLEDIGT, 'admin_notiz' => null]));
+        $this->assertSame([], $nurStatus->facts);
+
+        $beantwortet = FeedbackAnswered::content(Feedback::factory()->create(['status' => Feedback::STATUS_IN_ARBEIT, 'admin_notiz' => 'Ist erledigt.']));
+        $this->assertStringNotContainsString('In Arbeit', $beantwortet->lines[0]);
+        $this->assertSame(['Status' => 'In Arbeit'], $beantwortet->facts);
+    }
+
+    #[Test]
+    public function mail_ohne_schlusstext_und_knopf_hat_keinen_leeren_block_und_der_englische_fuss_englische_anfuehrungszeichen(): void
+    {
+        $ansicht = fn (MailContent $c, ?string $anlass) => view('mail.portal', [
+            'c' => $c, 'vorname' => 'Nina', 'anlass' => $anlass, 'abmeldenUrl' => null,
+            'einstellungenUrl' => null, 'betrieb' => '', 'portalUrl' => url('/'),
+        ])->render();
+
+        $html = $ansicht(new MailContent(subject: 'Test', lines: ['Hallo'], facts: ['Zeit' => '12:00']), null);
+        $this->assertStringNotContainsString('padding:18px 36px 30px', $html);
+        $this->assertStringNotContainsString('<br><a class="np-link-muted"', $html);
+
+        App::setLocale('en');
+        $html = $ansicht(new MailContent(subject: 'Test', lines: ['Hallo']), 'Test');
+        $this->assertStringContainsString('because of “Test”', $html);
+        $this->assertStringNotContainsString('«', $html);
     }
 }

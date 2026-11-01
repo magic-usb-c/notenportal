@@ -54,7 +54,15 @@ final class CalendarSync
     public function sync(CalendarFeed $feed): array
     {
         try {
-            $antwort = $this->fetch($feed->adresse() ?? throw new DecryptException('Adresse nicht lesbar.'), $feed->etag, $feed->last_modified);
+            // Bedingte Header nur, solange kein künftiger Prüfungstermin unzugeordnet ist: Ein 304 liesse apply() ausfallen,
+            // und die Zuordnung hängt von Stammdaten ab (Fach freigeschaltet, Modul, Lehrberuf, Track), die sich ohne
+            // Änderung im Kalender ändern. Vergangene, liegengebliebene Termine zählen nicht – sonst gäbe es dauerhaft Vollabrufe.
+            $bedingt = ! $feed->events()->where('kind', CalendarEvent::EXAM)->whereNull('pruefung_id')->where('starts_at', '>=', now())->exists();
+            $antwort = $this->fetch(
+                $feed->adresse() ?? throw new DecryptException('Adresse nicht lesbar.'),
+                $bedingt ? $feed->etag : null,
+                $bedingt ? $feed->last_modified : null
+            );
             if ($antwort['body'] === null) {
                 // 304 Not Modified: nichts zu parsen, nur den Zeitpunkt fortschreiben. `last_error` muss
                 // dabei weg – sonst steht der Text des letzten Fehlversuchs neben einem grünen Status.

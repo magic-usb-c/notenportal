@@ -128,12 +128,13 @@ class SicherheitsHeaderTest extends TestCase
     }
 
     #[Test]
-    public function csv_export_wird_nicht_mit_no_store_verschlechtert(): void
+    public function csv_export_setzt_no_store_selbst(): void
     {
         $lernender = User::factory()->lernender()->create();
 
         $antwort = $this->actingAs($lernender)->get(route('learner.grades.export'))->assertOk();
 
-        $this->assertStringNotContainsString('no-store', (string) $antwort->headers->get('Cache-Control'));
+        $this->assertTrue($antwort->headers->hasCacheControlDirective('no-store'));
+        $this->assertTrue($antwort->headers->hasCacheControlDirective('private'));
     }
 }

@@ -11,8 +11,10 @@ use App\Models\Dokument;
 use App\Models\Fach;
 use App\Models\Feedback;
 use App\Models\FeedbackStimme;
+use App\Models\Lehrberuf;
 use App\Models\MailLog;
 use App\Models\Note;
+use App\Models\NotenbaumPosition;
 use App\Models\NotenKommentar;
 use App\Models\Pruefung;
 use App\Models\User;
@@ -20,6 +22,7 @@ use App\Support\Datenauskunft;
 use App\Support\Einstellungen;
 use App\Support\NotenSkala;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -141,6 +144,92 @@ class DatenauskunftTest extends TestCase
         $this->assertStringNotContainsString($dokumentB->originalname, $alles);
         $this->assertStringNotContainsString('fremdes-dokument', strtolower($alles));
 
+        $zip->close();
+    }
+
+    /** Legt Baum und manuellen Knoten an und gibt die Knoten-ID zurück. */
+    private function manuellerKnoten(string $name, string $code, int $lehrberufId): int
+    {
+        $baum = DB::table('notenbaeume')->insertGetId(['name' => 'Baum '.$code, 'bezug' => 'lehrberuf', 'lehrberuf_id' => $lehrberufId, 'aktiv' => true]);
+
+        return DB::table('notenbaum_knoten')->insertGetId([
+            'baum_id' => $baum, 'eltern_id' => null, 'code' => $code, 'name' => $name, 'typ' => 'manuell',
+            'gewicht' => 1, 'elementtyp' => 'alle', 'sortierung' => 0,
+        ]);
+    }
+
+    #[Test]
+    public function auskunft_enthaelt_abschlusspositionen_stammdaten_und_geloeschte_noten_nur_der_eigenen_person(): void
+    {
+        $lehrberuf = Lehrberuf::factory()->create(['name' => 'Testberuf Auskunft']);
+        $a = User::factory()->lernender([
+            'lehrberuf_id' => $lehrberuf->lehrberuf_id, 'lehrbeginn' => '2023-08-01', 'lehrende' => '2027-07-31',
+            'klasse_schule' => 'KLASSE-A1', 'klasse_bms' => 'BMS-A2', 'bemerkung' => 'INTERNE-BEMERKUNG-XYZ',
+        ])->create();
+        $b = User::factory()->lernender()->create();
+        $idA = $a->lernender->lernender_id;
+
+        $eigenerKnoten = $this->manuellerKnoten('Eigene Schlussarbeit', 'eigene_sa', $lehrberuf->lehrberuf_id);
+        $fremderKnoten = $this->manuellerKnoten('Fremde Abschlussarbeit', 'fremde_aa', Lehrberuf::factory()->create()->lehrberuf_id);
+        NotenbaumPosition::create(['lernender_id' => $idA, 'knoten_id' => $eigenerKnoten, 'note_wert' => 5.25, 'datum' => '2026-06-15', 'erfasst_von_benutzer_id' => $a->benutzer_id]);
+        NotenbaumPosition::create(['lernender_id' => $b->lernender->lernender_id, 'knoten_id' => $fremderKnoten, 'note_wert' => 2.75, 'erfasst_von_benutzer_id' => $b->benutzer_id]);
+
+        $eigeneGeloescht = Note::factory()->create(['lernender_id' => $idA, 'titel' => 'Eigene gelöschte Note', 'note_wert' => 3.5]);
+        $eigeneGeloescht->delete();
+        Note::factory()->create(['lernender_id' => $idA, 'titel' => 'Eigene sichtbare Note', 'note_wert' => 4.5]);
+        Note::factory()->create(['lernender_id' => $b->lernender->lernender_id, 'titel' => 'Fremde gelöschte Note', 'note_wert' => 1.25])->delete();
+
+        $zip = $this->oeffnen($a);
+
+        $abschluss = json_decode((string) $zip->getFromName('abschluss.json'), true);
+        $this->assertCount(1, $abschluss);
+        $this->assertSame('Eigene Schlussarbeit', $abschluss[0]['knoten']);
+        $this->assertSame('eigene_sa', $abschluss[0]['code']);
+        $this->assertEquals(5.25, $abschluss[0]['note']);
+        $this->assertSame('2026-06-15', $abschluss[0]['datum']);
+
+        $lernenderJson = json_decode((string) $zip->getFromName('lernender.json'), true);
+        $this->assertSame('Testberuf Auskunft', $lernenderJson['lehrberuf']);
+        $this->assertSame('2023-08-01', $lernenderJson['lehrbeginn']);
+        $this->assertSame('2027-07-31', $lernenderJson['lehrende']);
+        $this->assertSame('KLASSE-A1', $lernenderJson['klasse_schule']);
+        $this->assertSame('BMS-A2', $lernenderJson['klasse_bms']);
+
+        $geloescht = json_decode((string) $zip->getFromName('geloeschte-noten.json'), true);
+        $this->assertCount(1, $geloescht);
+        $this->assertSame('Eigene gelöschte Note', $geloescht[0]['titel']);
+        $this->assertEquals(3.5, $geloescht[0]['note']);
+        $this->assertNotEmpty($geloescht[0]['geloescht_am']);
+
+        // noten.json bleibt auf die sichtbaren Noten beschränkt.
+        $this->assertCount(1, json_decode((string) $zip->getFromName('noten.json'), true));
+
+        $alles = $this->alleEintraege($zip);
+        $this->assertStringNotContainsString('Fremde Abschlussarbeit', $alles);
+        $this->assertStringNotContainsString('fremde_aa', $alles);
+        $this->assertStringNotContainsString('Fremde gelöschte Note', $alles);
+        $this->assertStringNotContainsString('INTERNE-BEMERKUNG-XYZ', $alles);
+
+        // Die README beschreibt die neuen Dateien und behauptet nicht pauschal «alle Daten».
+        $readme = (string) $zip->getFromName('README.txt');
+        foreach (['abschluss.json', 'lernender.json', 'geloeschte-noten.json'] as $datei) {
+            $this->assertStringContainsString('- '.$datei.':', $readme);
+        }
+        $this->assertStringNotContainsString('enthält alle Daten', $readme);
+
+        $zip->close();
+    }
+
+    #[Test]
+    public function ohne_abschlusspositionen_und_geloeschte_noten_fehlen_diese_dateien_stammdaten_bleiben(): void
+    {
+        $a = User::factory()->lernender()->create();
+
+        $zip = $this->oeffnen($a);
+
+        $this->assertFalse($zip->locateName('abschluss.json'));
+        $this->assertFalse($zip->locateName('geloeschte-noten.json'));
+        $this->assertNotFalse($zip->locateName('lernender.json'));
         $zip->close();
     }
 

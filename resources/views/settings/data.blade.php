@@ -13,7 +13,7 @@
             <section>
                 <h2 class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Datenauskunft') }}</h2>
                 <div class="np-karte">
-                    <x-einstellung :label="__('Alle Daten dieses Kontos')" :hinweis="__('Diese Datei enthält alle Daten, die das Notenportal zu diesem Konto gespeichert hat.')">
+                    <x-einstellung :label="__('Daten dieses Kontos')" :hinweis="__('Diese Datei enthält die Daten, die das Notenportal zu diesem Konto gespeichert hat, ohne interne Bemerkungen der Verwaltung.')">
                         <a href="{{ route('profile.data-export') }}" class="np-knopf np-knopf-sekundaer">
                             <x-symbol name="arrow-down-tray" strich="2" />{{ __('Daten herunterladen') }}
                         </a>

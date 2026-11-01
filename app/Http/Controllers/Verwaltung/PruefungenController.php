@@ -40,7 +40,8 @@ class PruefungenController extends VerwaltungController
         $user = $request->user();
         $heute = CarbonImmutable::today();
 
-        $lernendeOptionen = Lernender::sichtbarFuer($user)->with('benutzer')->get()
+        // Deaktivierte (ausgetretene) Konten wie in der Übersicht ausgeblendet
+        $lernendeOptionen = Lernender::sichtbarFuer($user)->whereHas('benutzer', fn ($q) => $q->where('aktiv', true))->with('benutzer')->get()
             ->sortBy(fn (Lernender $l) => mb_strtolower($l->benutzer->nachname.' '.$l->benutzer->vorname))
             ->values();
         $ids = $lernendeOptionen->pluck('lernender_id')->map(fn ($v) => (int) $v)->all();
@@ -157,12 +158,13 @@ class PruefungenController extends VerwaltungController
         return $gruppen;
     }
 
-    /** abgesagt, benotet, fehlt (vergangen ohne Note) oder offen */
+    /** abgesagt, benotet, abgeschlossen (Lehre vorbei, nichts mehr nachzuholen), fehlt (vergangen ohne Note) oder offen */
     private function zustand(Pruefung $p, CarbonImmutable $heute): string
     {
         return match (true) {
             $p->abgesagt_am !== null => 'abgesagt',
             $p->note !== null => 'benotet',
+            $p->lernender?->lehrende?->lt($heute) => 'abgeschlossen',
             CarbonImmutable::parse($p->datum->toDateString())->lt($heute) => 'fehlt',
             default => 'offen',
         };

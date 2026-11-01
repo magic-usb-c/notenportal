@@ -6,6 +6,7 @@ namespace App\Services\Notifications;
 
 use App\Models\Betreuung;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
@@ -13,13 +14,22 @@ use Illuminate\Database\Eloquent\Collection;
  */
 final class Empfaenger
 {
-    /** @return Collection<int, User> Benutzer der Berufsbildner, die den Lernenden heute aktiv betreuen. */
-    public static function aktiveBetreuer(int $lernenderId): Collection
+    /**
+     * @param  CarbonInterface|null  $stichtag  Tag, an dem die Betreuung gelten muss (Standard: heute). Der Semesterabschluss
+     *                                          läuft erst nach dem Semesterende und braucht dessen Datum.
+     * @return Collection<int, User> Benutzer der Berufsbildner, die den Lernenden am Stichtag aktiv betreuen.
+     */
+    public static function aktiveBetreuer(int $lernenderId, ?CarbonInterface $stichtag = null): Collection
     {
-        $berufsbildnerIds = Betreuung::query()
-            ->aktiv()
-            ->where('lernender_id', $lernenderId)
-            ->pluck('berufsbildner_id');
+        $betreuungen = Betreuung::query()->where('lernender_id', $lernenderId);
+        if ($stichtag === null) {
+            $betreuungen->aktiv();
+        } else {
+            $tag = $stichtag->toDateString();
+            $betreuungen->where('gueltig_von', '<=', $tag)
+                ->where(fn ($q) => $q->whereNull('gueltig_bis')->orWhere('gueltig_bis', '>=', $tag));
+        }
+        $berufsbildnerIds = $betreuungen->pluck('berufsbildner_id');
 
         if ($berufsbildnerIds->isEmpty()) {
             return new Collection;

@@ -25,9 +25,9 @@ Route::middleware('auth')->group(function () {
 // Beide Klassen ausschliessen: Die web-Gruppe enthält PreventRequestForgery, ValidateCsrfToken ist nur eine veraltete Unterklasse davon.
 Route::middleware(['signed', 'throttle:30,1,unsubscribe'])->group(function () {
     Route::get('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'show'])
-        ->whereNumber('user')->name('notifications.unsubscribe');
+        ->name('notifications.unsubscribe');
     Route::post('/notifications/unsubscribe/{user}/{type}', [UnsubscribeController::class, 'store'])
-        ->whereNumber('user')->withoutMiddleware([ValidateCsrfToken::class, PreventRequestForgery::class])->name('notifications.unsubscribe.store');
+        ->withoutMiddleware([ValidateCsrfToken::class, PreventRequestForgery::class])->name('notifications.unsubscribe.store');
 });
 
 // Passwort vergessen / festlegen per Mail-Link (auch für neu eröffnete Konten)
@@ -45,7 +45,7 @@ Route::middleware(['auth', 'role:Admin'])->prefix('admin')->name('admin.')->grou
     // ohne diesen Präfix würde dieses niedrige Limit mit anderen throttle:-Routen desselben Benutzers geteilt.
     Route::post('/operations/mail/test', [MailSettingsController::class, 'test'])->middleware('throttle:6,1,mail-test')->name('mail.test');
     Route::get('/mail-log', [MailLogController::class, 'index'])->name('mail-log.index');
-    Route::post('/mail-log/{id}/retry', [MailLogController::class, 'retry'])->whereNumber('id')->name('mail-log.retry');
+    Route::post('/mail-log/{id}/retry', [MailLogController::class, 'retry'])->name('mail-log.retry');
     Route::get('/notifications', [NotificationPolicyController::class, 'index'])->name('notifications.index');
     Route::put('/notifications', [NotificationPolicyController::class, 'update'])->name('notifications.update');
 });

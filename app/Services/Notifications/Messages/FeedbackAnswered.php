@@ -16,13 +16,15 @@ final class FeedbackAnswered
     {
         $status = __(Feedback::STATUS[$feedback->status] ?? $feedback->status);
         $beantwortet = filled($feedback->admin_notiz) && ($antwortNeu ?? true);
+        $datum = $feedback->erstellt_am?->format('d.m.Y') ?? '';
 
         return new MailContent(
             subject: $beantwortet ? __('Deine Meldung wurde beantwortet') : __('Deine Meldung ist jetzt «:status»', ['status' => $status]),
+            // Betreff und Absatz nennen den Status schon, die Faktenzeile nur, wenn der Betreff die Antwort meldet
             lines: [$beantwortet
-                ? __('Deine Meldung hat den Status «:status».', ['status' => $status])
-                : __('Der Status deiner Meldung ist jetzt «:status».', ['status' => $status])],
-            facts: [__('Status') => $status],
+                ? __('Auf deine Meldung vom :datum gibt es eine Antwort.', ['datum' => $datum])
+                : __('Der Status deiner Meldung vom :datum ist jetzt «:status».', ['datum' => $datum, 'status' => $status])],
+            facts: $beantwortet ? [__('Status') => $status] : [],
             sections: $beantwortet ? [['title' => __('Antwort'), 'text' => $feedback->admin_notiz]] : [],
             actionLabel: __('Meine Meldungen'),
             actionUrl: route('feedback.index'),

@@ -277,12 +277,16 @@ class ModulController extends Controller
         return back()->with('success', __('Unterlage hochgeladen. Alle sehen sie ab sofort.'));
     }
 
-    public function dokumentZeigen(Request $request, int $modul_id, int $modul_dokument_id, Modulablage $ablage): StreamedResponse
+    public function dokumentZeigen(Request $request, int $modul_id, int $modul_dokument_id, Modulablage $ablage): StreamedResponse|RedirectResponse
     {
         $dokument = ModulDokument::query()
             ->with('modul')
             ->where('modul_id', $modul_id)
             ->findOrFail($modul_dokument_id);
+
+        if (! $ablage->vorhanden($dokument)) {
+            return back(fallback: route('modules.show', $modul_id))->with('error', __('Die Datei ist nicht mehr vorhanden.'));
+        }
 
         return $ablage->ausliefern($dokument, ! $request->boolean('download'));
     }

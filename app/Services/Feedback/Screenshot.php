@@ -45,6 +45,9 @@ final class Screenshot
 
     public function ausliefern(Feedback $feedback): StreamedResponse
     {
+        // Datei fehlt auf der Disk (Wiederherstellung ohne Dateien): 404 statt 500
+        abort_unless(Storage::disk(self::DISK)->exists((string) $feedback->screenshot_pfad), 404);
+
         return Storage::disk(self::DISK)->response($feedback->screenshot_pfad, 'feedback-'.$feedback->feedback_id.'.jpg', [
             'Content-Type' => $feedback->screenshot_mime ?? 'image/jpeg',
             'X-Content-Type-Options' => 'nosniff',

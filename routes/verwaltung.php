@@ -27,10 +27,10 @@ Route::get('/grades/export', [NotenExportController::class, 'alle'])->name('grad
 
 Route::get('/exams', [PruefungenController::class, 'index'])->name('exams.index');
 Route::post('/exams', [PruefungenController::class, 'store'])->name('exams.store');
-Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('exams.update');
-Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('exams.destroy');
+Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->name('exams.update');
+Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->name('exams.destroy');
 
-Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(function () {
+Route::prefix('/learners/{lernender_id}')->group(function () {
     Route::get('/', [LernendeController::class, 'show'])->name('learners.show');
     Route::get('/edit', [LernendeController::class, 'edit'])->name('learners.edit');
     Route::put('/', [LernendeController::class, 'update'])->name('learners.update');
@@ -40,11 +40,11 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
 
     Route::post('/supervisions', [BetreuungController::class, 'store'])->name('learners.supervision.store');
     Route::post('/supervisions/{betreuung_id}/end', [BetreuungController::class, 'beenden'])
-        ->whereNumber('betreuung_id')->name('supervisions.end');
+        ->name('supervisions.end');
 
     Route::post('/tracks', [TrackController::class, 'store'])->name('learners.tracks.store');
     Route::post('/tracks/{track_id}/end', [TrackController::class, 'beenden'])
-        ->whereNumber('track_id')->name('tracks.end');
+        ->name('tracks.end');
 
     Route::get('/qualification', [AbschlussController::class, 'index'])->name('learners.qualification');
     Route::put('/qualification', [AbschlussController::class, 'update'])->name('learners.qualification.update');
@@ -64,12 +64,12 @@ Route::prefix('/learners/{lernender_id}')->whereNumber('lernender_id')->group(fu
     Route::get('/grades/import/template', [NotenImportController::class, 'vorlage'])->name('learners.grades.import.template');
     Route::get('/documents', [DokumenteController::class, 'index'])->name('learners.documents.index');
     Route::post('/documents', [DokumenteController::class, 'store'])->middleware('throttle:30,1,documents-store')->name('learners.documents.store');
-    Route::get('/documents/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('learners.documents.show');
-    Route::delete('/documents/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('learners.documents.destroy');
-    Route::get('/documents/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('learners.documents.reconcile');
-    Route::post('/documents/{dokument_id}/reconcile', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('learners.documents.reconcile.apply');
+    Route::get('/documents/{dokument_id}', [DokumenteController::class, 'show'])->name('learners.documents.show');
+    Route::delete('/documents/{dokument_id}', [DokumenteController::class, 'destroy'])->name('learners.documents.destroy');
+    Route::get('/documents/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->name('learners.documents.reconcile');
+    Route::post('/documents/{dokument_id}/reconcile', [DokumenteController::class, 'abgleichUebernehmen'])->name('learners.documents.reconcile.apply');
 
-    Route::prefix('/grades/{note_id}')->whereNumber('note_id')->group(function () {
+    Route::prefix('/grades/{note_id}')->group(function () {
         Route::get('/edit', [LernendeNotenController::class, 'edit'])->name('learners.grades.edit');
         Route::put('/', [LernendeNotenController::class, 'update'])->name('learners.grades.update');
         Route::delete('/', [LernendeNotenController::class, 'destroy'])->name('learners.grades.destroy');

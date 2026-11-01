@@ -110,6 +110,7 @@ class NotenExportController extends VerwaltungController
             fclose($out);
         }, $dateiname, [
             'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'private, no-store',
         ]);
     }
 }

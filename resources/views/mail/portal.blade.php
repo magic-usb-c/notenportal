@@ -101,7 +101,7 @@
 
                     @foreach($c->sections as $abschnitt)
                         <tr><td class="np-pad np-text" style="padding:14px 36px 4px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:14px;line-height:1.6;">
-                            <p class="np-muted" style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ $f['muted'] }};">{{ $abschnitt['title'] }}</p>
+                            <p class="np-muted np-klein" style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ $f['muted'] }};">{{ $abschnitt['title'] }}</p>
                             {!! $absatz($abschnitt['text']) !!}
                         </td></tr>
                     @endforeach
@@ -127,7 +127,7 @@
 
                     @foreach($gruppen as $gruppe => $eintraege)
                         <tr><td class="np-pad" style="padding:14px 36px 2px;font-family:{{ $schrift }};">
-                            @if($gruppe !== '')<p class="np-muted" style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ $f['muted'] }};">{{ $gruppe }}</p>@endif
+                            @if($gruppe !== '')<p class="np-muted np-klein" style="margin:0 0 4px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:{{ $f['muted'] }};">{{ $gruppe }}</p>@endif
                             @foreach($eintraege as $e)
                                 <div class="np-line" style="padding:9px 0;border-bottom:1px solid {{ $f['border'] }};">
                                     @if(! empty($e['url']))
@@ -135,7 +135,7 @@
                                     @else
                                         <span class="np-text" style="color:{{ $f['text'] }};font-weight:600;font-size:14px;{{ $umbruch }}">{{ $e['title'] }}</span>
                                     @endif
-                                    @if(! empty($e['text']))<div class="np-muted" style="color:{{ $f['muted'] }};font-size:13px;margin-top:2px;{{ $umbruch }}">{{ $e['text'] }}</div>@endif
+                                    @if(! empty($e['text']))<div class="np-muted np-klein" style="color:{{ $f['muted'] }};font-size:13px;margin-top:2px;{{ $umbruch }}">{{ $e['text'] }}</div>@endif
                                 </div>
                             @endforeach
                         </td></tr>
@@ -150,21 +150,26 @@
                         </td></tr>
                     @endif
 
-                    <tr><td class="np-pad np-text" style="padding:18px 36px 30px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:14px;line-height:1.55;">
-                        @foreach($c->outro as $zeile)
-                            <p style="margin:0 0 10px;{{ $umbruch }}">{{ $zeile }}</p>
-                        @endforeach
-                        @if($c->actionUrl)
-                            <p class="np-muted np-klein" style="margin:10px 0 0;font-size:13px;color:{{ $f['muted'] }};{{ $umbruch }}">{{ __('Knopf funktioniert nicht?') }}<br>{{ $c->actionUrl }}</p>
-                        @endif
-                    </td></tr>
+                    @if($c->outro || $c->actionUrl)
+                        <tr><td class="np-pad np-text" style="padding:18px 36px 30px;font-family:{{ $schrift }};color:{{ $f['text'] }};font-size:14px;line-height:1.55;">
+                            @foreach($c->outro as $zeile)
+                                <p style="margin:0 0 10px;{{ $umbruch }}">{{ $zeile }}</p>
+                            @endforeach
+                            @if($c->actionUrl)
+                                <p class="np-muted np-klein" style="margin:10px 0 0;font-size:13px;color:{{ $f['muted'] }};{{ $umbruch }}">{{ __('Knopf funktioniert nicht?') }}<br>{{ $c->actionUrl }}</p>
+                            @endif
+                        </td></tr>
+                    @else
+                        {{-- Ohne Schlusstext und Knopf nur der Abstand zum Kartenrand, kein leerer Block --}}
+                        <tr><td style="height:20px;line-height:20px;font-size:0;">&nbsp;</td></tr>
+                    @endif
                 </table>
             </td></tr>
             <tr><td class="np-pad np-muted np-klein" style="padding:18px 8px 0;font-family:{{ $schrift }};font-size:13px;line-height:1.6;color:{{ $f['muted'] }};">
                 @if($anlass){{ __('Du erhältst diese Mail wegen «:anlass».', ['anlass' => $anlass]) }}@endif
                 @if($einstellungenUrl) <a class="np-link-muted" href="{{ $einstellungenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Benachrichtigungen einstellen') }}</a>@endif
                 @if($abmeldenUrl) · <a class="np-link-muted" href="{{ $abmeldenUrl }}" style="color:{{ $f['muted'] }};text-decoration:underline;">{{ __('Diese Mails abbestellen') }}</a>@endif
-                <br><a class="np-link-muted" href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
+                @if($anlass || $einstellungenUrl || $abmeldenUrl)<br>@endif<a class="np-link-muted" href="{{ $portalUrl }}" style="color:{{ $f['muted'] }};text-decoration:none;">Notenportal{{ $betrieb !== '' ? ' '.$betrieb : '' }}</a>
             </td></tr>
         </table>
         <!--[if mso]></td></tr></table><![endif]-->

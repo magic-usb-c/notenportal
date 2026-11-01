@@ -38,7 +38,7 @@ final class StatistikAntwort
     /** @param  array<string, mixed>  $paket */
     public static function json(array $paket): JsonResponse
     {
-        return response()->json($paket)
+        return response()->json($paket, 200, [], JSON_INVALID_UTF8_SUBSTITUTE)
             ->header('Vary', 'Accept')
             ->header('Cache-Control', 'private, no-store');
     }

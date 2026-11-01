@@ -47,14 +47,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-// IDs in Routen sind Zahlen: «/admin/master-data/professions/abc» endet mit 404 statt mit einem TypeError (500) im
+// IDs in Routen sind Zahlen mit höchstens 18 Stellen (passt immer in einen int): «/admin/master-data/professions/abc» und
+// eine 20-stellige Zahl enden mit 404 statt mit einem TypeError (500) im
 // int-typisierten Controller. Gilt auch für auth.php und notifications.php (unten eingebunden); ein neuer Parameter
-// «…_id» gehört in diese Liste, RoutenParameterTest meldet ihn sonst.
+// «…_id» gehört in diese Liste, RoutenParameterTest meldet ihn sonst. Kein ->whereNumber() an einzelnen Routen: es
+// überschreibt das Muster.
 Route::patterns(array_fill_keys([
     'anhang_id', 'baum_id', 'benutzer_id', 'betreuung_id', 'calendar_event_id', 'dokument_id', 'fach_id', 'feedback_id',
     'id', 'kategorie_id', 'kommentar_id', 'lehrberuf_id', 'lernender_id', 'modul_dokument_id', 'modul_id', 'note_id',
     'pruefung_id', 'semester_id', 'track_id', 'user', 'ziel_id',
-], '[0-9]+'));
+], '[0-9]{1,18}'));
 
 Route::get('/', fn () => Auth::check()
     ? redirect()->route('dashboard')
@@ -112,8 +114,8 @@ Route::middleware(['auth', 'role:Lernender'])
         Route::get('/import/template', [NotenImportController::class, 'vorlage'])->name('import.template');
         Route::get('/create', [LernenderNotenController::class, 'create'])->name('create');
         Route::post('/', [LernenderNotenController::class, 'store'])->name('store');
-        Route::post('/modules/{modul_id}/repeat', [LernenderNotenController::class, 'modulWiederholen'])->whereNumber('modul_id')->name('module.repeat');
-        Route::post('/modules/{modul_id}/resume', [LernenderNotenController::class, 'modulFortsetzen'])->whereNumber('modul_id')->name('module.resume');
+        Route::post('/modules/{modul_id}/repeat', [LernenderNotenController::class, 'modulWiederholen'])->name('module.repeat');
+        Route::post('/modules/{modul_id}/resume', [LernenderNotenController::class, 'modulFortsetzen'])->name('module.resume');
 
         Route::get('/{note_id}/edit', [LernenderNotenController::class, 'edit'])->name('edit');
         Route::put('/{note_id}', [LernenderNotenController::class, 'update'])->name('update');
@@ -148,22 +150,22 @@ Route::middleware(['auth'])
         Route::get('/', [ModulController::class, 'index'])->name('index');
         Route::get('/create', [ModulController::class, 'create'])->name('create');
         Route::post('/', [ModulController::class, 'store'])->middleware('throttle:30,1,modules-store')->name('store');
-        Route::get('/{modul_id}', [ModulController::class, 'show'])->whereNumber('modul_id')->name('show');
-        Route::get('/{modul_id}/edit', [ModulController::class, 'edit'])->whereNumber('modul_id')->name('edit');
-        Route::put('/{modul_id}', [ModulController::class, 'update'])->whereNumber('modul_id')->name('update');
+        Route::get('/{modul_id}', [ModulController::class, 'show'])->name('show');
+        Route::get('/{modul_id}/edit', [ModulController::class, 'edit'])->name('edit');
+        Route::put('/{modul_id}', [ModulController::class, 'update'])->name('update');
 
         // Ein Modul in die eigene Notenerfassung holen: legt die eigene Belegung an, kopiert nichts.
         Route::post('/{modul_id}/enroll', [ModulController::class, 'belegen'])
-            ->whereNumber('modul_id')->middleware('role:Lernender')->name('enroll');
+            ->middleware('role:Lernender')->name('enroll');
         Route::delete('/{modul_id}/unenroll', [ModulController::class, 'entfernen'])
-            ->whereNumber('modul_id')->middleware('role:Lernender')->name('unenroll');
+            ->middleware('role:Lernender')->name('unenroll');
 
         Route::post('/{modul_id}/documents', [ModulController::class, 'dokumentSpeichern'])
-            ->whereNumber('modul_id')->middleware('throttle:30,1,module-documents')->name('documents.store');
+            ->middleware('throttle:30,1,module-documents')->name('documents.store');
         Route::get('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentZeigen'])
-            ->whereNumber(['modul_id', 'modul_dokument_id'])->name('documents.show');
+            ->name('documents.show');
         Route::delete('/{modul_id}/documents/{modul_dokument_id}', [ModulController::class, 'dokumentLoeschen'])
-            ->whereNumber(['modul_id', 'modul_dokument_id'])->name('documents.destroy');
+            ->name('documents.destroy');
     });
 
 /**
@@ -175,10 +177,10 @@ Route::middleware(['auth', 'role:Lernender'])
     ->group(function () {
         Route::get('/', [DokumenteController::class, 'index'])->name('index');
         Route::post('/', [DokumenteController::class, 'store'])->middleware('throttle:30,1,documents-store')->name('store');
-        Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->whereNumber('dokument_id')->name('show');
-        Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->whereNumber('dokument_id')->name('destroy');
-        Route::get('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->whereNumber('dokument_id')->name('reconcile');
-        Route::post('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleichUebernehmen'])->whereNumber('dokument_id')->name('reconcile.apply');
+        Route::get('/{dokument_id}', [DokumenteController::class, 'show'])->name('show');
+        Route::delete('/{dokument_id}', [DokumenteController::class, 'destroy'])->name('destroy');
+        Route::get('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleich'])->name('reconcile');
+        Route::post('/{dokument_id}/reconcile', [DokumenteController::class, 'abgleichUebernehmen'])->name('reconcile.apply');
     });
 
 /**
@@ -189,24 +191,24 @@ Route::middleware(['auth', 'role:Lernender'])
     ->group(function () {
         Route::get('/exams', [PruefungenController::class, 'index'])->name('exams.index');
         Route::post('/exams', [PruefungenController::class, 'store'])->name('exams.store');
-        Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->whereNumber('pruefung_id')->name('exams.update');
-        Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->whereNumber('pruefung_id')->name('exams.destroy');
+        Route::put('/exams/{pruefung_id}', [PruefungenController::class, 'update'])->name('exams.update');
+        Route::delete('/exams/{pruefung_id}', [PruefungenController::class, 'destroy'])->name('exams.destroy');
         Route::post('/exams/detected/{calendar_event_id}/adopt', [PruefungenController::class, 'adopt'])
-            ->whereNumber('calendar_event_id')->name('exams.adopt');
+            ->name('exams.adopt');
         Route::post('/exams/{pruefung_id}/unlock', [PruefungenController::class, 'unlock'])
-            ->whereNumber('pruefung_id')->name('exams.unlock');
+            ->name('exams.unlock');
 
         Route::post('/calendar/feed', [LernenderCalendarController::class, 'feedStore'])
             ->middleware('throttle:10,1,calendar-feed')->name('calendar.feed.store');
         Route::delete('/calendar/feed/{id}', [LernenderCalendarController::class, 'feedDestroy'])
-            ->whereNumber('id')->middleware('throttle:10,1,calendar-feed-destroy')->name('calendar.feed.destroy');
+            ->middleware('throttle:10,1,calendar-feed-destroy')->name('calendar.feed.destroy');
         Route::post('/calendar/feed/{id}/sync', [LernenderCalendarController::class, 'feedSync'])
-            ->whereNumber('id')->middleware('throttle:6,1,calendar-feed-sync')->name('calendar.feed.sync');
+            ->middleware('throttle:6,1,calendar-feed-sync')->name('calendar.feed.sync');
         Route::post('/calendar/sync', [LernenderCalendarController::class, 'sync'])
             ->middleware('throttle:6,1,calendar-sync')->name('calendar.sync');
 
         Route::post('/goals', [ZieleController::class, 'store'])->name('goals.store');
-        Route::delete('/goals/{ziel_id}', [ZieleController::class, 'destroy'])->whereNumber('ziel_id')->name('goals.destroy');
+        Route::delete('/goals/{ziel_id}', [ZieleController::class, 'destroy'])->name('goals.destroy');
     });
 
 /**
@@ -262,7 +264,7 @@ Route::middleware(['auth', 'role:Admin'])
         Route::post('/users/{benutzer_id}/toggle-active', [AdminBenutzerController::class, 'toggleAktiv'])
             ->name('users.toggle-active');
         Route::get('/users/{benutzer_id}/data-export', [AdminDatenauskunftController::class, 'zeigen'])
-            ->whereNumber('benutzer_id')->middleware('throttle:3,1,admin-data-export')->name('users.data-export');
+            ->middleware('throttle:3,1,admin-data-export')->name('users.data-export');
 
         // Stammdaten: Lehrberufe (inkl. Modul- & Fach-Zuweisung)
         Route::get('/master-data/professions', [StammdatenLehrberufeController::class, 'index'])
@@ -337,15 +339,15 @@ Route::middleware(['auth', 'role:Admin'])
         Route::post('/master-data/grade-trees/import', [StammdatenNotenbaeumeController::class, 'importieren'])
             ->middleware('throttle:30,1,grade-tree-import')->name('master-data.grade-trees.import');
         Route::get('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'show'])
-            ->whereNumber('baum_id')->name('master-data.grade-trees.show');
+            ->name('master-data.grade-trees.show');
         Route::put('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'update'])
-            ->whereNumber('baum_id')->name('master-data.grade-trees.update');
+            ->name('master-data.grade-trees.update');
         Route::post('/master-data/grade-trees/{baum_id}/active', [StammdatenNotenbaeumeController::class, 'aktivieren'])
-            ->whereNumber('baum_id')->name('master-data.grade-trees.activate');
+            ->name('master-data.grade-trees.activate');
         Route::get('/master-data/grade-trees/{baum_id}/export', [StammdatenNotenbaeumeController::class, 'exportieren'])
-            ->whereNumber('baum_id')->name('master-data.grade-trees.export');
+            ->name('master-data.grade-trees.export');
         Route::delete('/master-data/grade-trees/{baum_id}', [StammdatenNotenbaeumeController::class, 'destroy'])
-            ->whereNumber('baum_id')->name('master-data.grade-trees.destroy');
+            ->name('master-data.grade-trees.destroy');
 
         // Stammdaten: Semester
         Route::get('/master-data/semesters', [StammdatenSemesterController::class, 'index'])
@@ -386,11 +388,11 @@ Route::middleware(['auth', 'role:Admin'])
         Route::get('/feedback', [AdminFeedbackController::class, 'index'])->name('feedback.index');
         Route::get('/feedback/export', [AdminFeedbackController::class, 'export'])->name('feedback.export');
         Route::patch('/feedback/{feedback_id}', [AdminFeedbackController::class, 'update'])
-            ->whereNumber('feedback_id')->name('feedback.update');
+            ->name('feedback.update');
         Route::get('/feedback/{feedback_id}/screenshot', [AdminFeedbackController::class, 'screenshot'])
-            ->whereNumber('feedback_id')->name('feedback.screenshot');
+            ->name('feedback.screenshot');
         Route::patch('/feedback/{feedback_id}/duplicate', [AdminFeedbackController::class, 'duplikat'])
-            ->whereNumber('feedback_id')->name('feedback.duplicate');
+            ->name('feedback.duplicate');
     });
 
 /**
@@ -404,11 +406,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/feedback/similar', [FeedbackController::class, 'aehnliche'])
         ->middleware('throttle:60,1,feedback-similar')->name('feedback.similar');
     Route::post('/feedback/{feedback_id}/vote', [FeedbackController::class, 'stimmen'])
-        ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote');
+        ->middleware('throttle:30,1,feedback-vote')->name('feedback.vote');
     Route::delete('/feedback/{feedback_id}/vote', [FeedbackController::class, 'stimmeZurueck'])
-        ->whereNumber('feedback_id')->middleware('throttle:30,1,feedback-vote')->name('feedback.vote.destroy');
+        ->middleware('throttle:30,1,feedback-vote')->name('feedback.vote.destroy');
     Route::get('/feedback/{feedback_id}/anhaenge/{anhang_id}', [FeedbackController::class, 'anhang'])
-        ->whereNumber('feedback_id')->whereNumber('anhang_id')->name('feedback.attachment');
+        ->name('feedback.attachment');
 });
 
 /**

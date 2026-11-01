@@ -35,7 +35,7 @@ final class LearnerAssigned
                 __('Lehrbeginn') => $lernender->lehrbeginn?->format('d.m.Y'),
                 __('Betreuung ab') => $datum,
             ]),
-            actionLabel: $kuenftig ? __('Meine Lernenden') : __('Zum Cockpit'),
+            actionLabel: $kuenftig ? __('Meine Lernenden') : __(':name öffnen', ['name' => $name]),
             actionUrl: $kuenftig ? route('trainer.learners.index') : route('trainer.learners.show', $lernender->lernender_id),
             digestTitle: __('Neue Betreuung: :name', ['name' => $name]),
         );

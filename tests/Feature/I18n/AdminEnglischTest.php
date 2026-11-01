@@ -277,4 +277,24 @@ class AdminEnglischTest extends TestCase
 
         $this->assertKeineFehlendenSchluessel();
     }
+
+    #[Test]
+    public function betreuung_heisst_in_der_mail_und_im_anlass_gleich(): void
+    {
+        $nina = $this->lernender('nina.huber@demo.example');
+        $name = trim($nina->benutzer->vorname.' '.$nina->benutzer->nachname);
+
+        [$jetzt, $kuenftig, $anlass] = $this->mitEnglisch(fn () => [
+            LearnerAssigned::content($nina),
+            LearnerAssigned::content($nina, Carbon::now()->addDays(10)),
+            __('Neue Betreuung'),
+        ]);
+
+        // Betreff, Satz, Fakt und der Anlass im Fuss sagen «supervision», nie «mentor»
+        $this->assertSame('New supervision', $anlass);
+        $this->assertSame('New supervision: '.$name, $jetzt->subject);
+        $this->assertSame(['You now supervise '.$name.'.'], $jetzt->lines);
+        $this->assertArrayHasKey('Supervision from', $kuenftig->facts);
+        $this->assertStringNotContainsStringIgnoringCase('mentor', json_encode([$jetzt, $kuenftig]));
+    }
 }

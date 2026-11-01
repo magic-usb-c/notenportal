@@ -17,6 +17,7 @@ use App\Models\LernenderTrack;
 use App\Models\MailLog;
 use App\Models\ModulBelegung;
 use App\Models\Note;
+use App\Models\NotenbaumPosition;
 use App\Models\NotenGesehen;
 use App\Models\NotenKommentar;
 use App\Models\NotificationPreference;
@@ -315,6 +316,21 @@ final class Datenauskunft
         ], $noten->map(fn (array $n) => $n['csv'])->all());
         $enthalten[] = 'noten.csv, noten.json';
 
+        $geloeschteNoten = $this->geloeschteNoten($lernender);
+        if ($geloeschteNoten !== []) {
+            $zip->addFromString('geloeschte-noten.json', $this->json($geloeschteNoten));
+            $enthalten[] = 'geloeschte-noten.json';
+        }
+
+        $abschluss = $this->abschluss($lernender);
+        if ($abschluss !== []) {
+            $zip->addFromString('abschluss.json', $this->json($abschluss));
+            $enthalten[] = 'abschluss.json';
+        }
+
+        $zip->addFromString('lernender.json', $this->json($this->stammdaten($lernender)));
+        $enthalten[] = 'lernender.json';
+
         $this->csv($zip, 'pruefungen.csv', [
             __('Datum'), __('Uhrzeit'), __('Fach / Modul'), __('Titel'), __('Gewichtung %'), __('Note'), __('Abgesagt'),
             __('Prüfungsart'), __('Raum'), __('Lehrperson'), __('Erlaubte Hilfsmittel'), __('Prüfungsstoff'), __('Eigene Notizen'),
@@ -391,6 +407,86 @@ final class Datenauskunft
                     ],
                 ];
             });
+    }
+
+    /**
+     * Gelöschte Noten der Person: Sie bleiben in der Datenbank erhalten (Soft-Delete), gehören also zur Auskunft,
+     * erscheinen aber nicht in noten.csv/noten.json, die den sichtbaren Stand zeigen.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function geloeschteNoten(Lernender $lernender): array
+    {
+        return Note::onlyTrashed()
+            ->where('lernender_id', $lernender->lernender_id)
+            ->with(['kategorie', 'semester', 'fach', 'modulBelegung.modul'])
+            ->orderByDesc('geloescht_am')
+            ->orderByDesc('note_id')
+            ->get()
+            ->map(fn (Note $n) => [
+                'note_id' => $n->note_id,
+                'titel' => $n->titel,
+                'fach_oder_modul' => $n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? '')),
+                'kategorie' => $n->kategorie?->name,
+                'semester' => $n->semester?->bezeichnung,
+                'datum' => $n->pruefungsdatum?->toDateString(),
+                'note' => $n->note_wert,
+                'stufe' => $n->note_stufe,
+                'gewichtung_prozent' => (float) ($n->gewichtung_prozent ?? 100),
+                'geloescht_am' => optional($n->geloescht_am)->toIso8601String(),
+            ])
+            ->all();
+    }
+
+    /**
+     * Von Hand erfasste Abschlusspositionen (IPA, Schlussarbeit, Abschlussprüfungen). Der Knoten kommt über die
+     * Position selbst, nicht über den aktuellen Lehrberuf, damit auch Positionen eines früheren Baums erscheinen.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function abschluss(Lernender $lernender): array
+    {
+        $positionen = NotenbaumPosition::query()
+            ->where('lernender_id', $lernender->lernender_id)
+            ->with('knoten.baum')
+            ->orderBy('datum')
+            ->orderBy('position_id')
+            ->get();
+
+        $ids = $positionen->pluck('erfasst_von_benutzer_id')->merge($positionen->pluck('aktualisiert_von_benutzer_id'))->filter()->unique()->all();
+        $namen = $ids === [] ? collect() : User::withTrashed()->whereIn('benutzer_id', $ids)->get()
+            ->mapWithKeys(fn (User $u) => [$u->benutzer_id => trim($u->vorname.' '.$u->nachname)]);
+
+        return $positionen->map(fn (NotenbaumPosition $p) => [
+            'knoten' => $p->knoten?->name,
+            'code' => $p->knoten?->code,
+            'notenbaum' => $p->knoten?->baum?->name,
+            'note' => $p->note_wert,
+            'datum' => $p->datum?->toDateString(),
+            'erfasst_von' => ($namen[$p->erfasst_von_benutzer_id] ?? '') ?: null,
+            'geaendert_von' => ($namen[$p->aktualisiert_von_benutzer_id] ?? '') ?: null,
+            'erstellt_am' => optional($p->erstellt_am)->toIso8601String(),
+            'aktualisiert_am' => optional($p->aktualisiert_am)->toIso8601String(),
+        ])->all();
+    }
+
+    /**
+     * Stammdaten des Lernenden-Datensatzes. Die interne Bemerkung der Verwaltung ist bewusst nicht enthalten
+     * (Entscheid offen), die README sagt das.
+     *
+     * @return array<string, mixed>
+     */
+    private function stammdaten(Lernender $lernender): array
+    {
+        $lernender->loadMissing('lehrberuf');
+
+        return [
+            'lehrberuf' => $lernender->lehrberuf?->name,
+            'lehrbeginn' => $lernender->lehrbeginn?->toDateString(),
+            'lehrende' => $lernender->lehrende?->toDateString(),
+            'klasse_schule' => $lernender->klasse_schule,
+            'klasse_bms' => $lernender->klasse_bms,
+        ];
     }
 
     /** @return list<list<string>> */
@@ -626,7 +722,7 @@ final class Datenauskunft
             __('Konto').': '.$name.' ('.$user->benutzername.')',
             __('Erstellt am').' '.now()->format('d.m.Y H:i'),
             '',
-            __('Diese Datei enthält alle Daten, die das Notenportal zu diesem Konto gespeichert hat.'),
+            __('Diese Datei enthält die Daten, die das Notenportal zu diesem Konto gespeichert hat, ohne interne Bemerkungen der Verwaltung.'),
             '',
             __('Enthaltene Dateien').':',
         ];
@@ -635,6 +731,9 @@ final class Datenauskunft
         $beschreibungen = [
             'konto.json' => __('Kontodaten: Profil, Rollen und persönliche Einstellungen (ohne Passwort).'),
             'noten.csv, noten.json' => __('Alle Noten mit Fach oder Modul, Datum, Gewichtung und Kommentaren.'),
+            'geloeschte-noten.json' => __('Gelöschte Noten mit Zeitpunkt der Löschung.'),
+            'abschluss.json' => __('Abschlussnoten: IPA, Schlussarbeit und Abschlussprüfungen.'),
+            'lernender.json' => __('Lehrberuf, Lehrbeginn, Lehrende und Klassen.'),
             'pruefungen.csv' => __('Geplante und vergangene Prüfungen.'),
             'ziele.json' => __('Persönliche Notenziele.'),
             'belegungen.json' => __('Modulbelegungen und Ausbildungsabschnitte.'),

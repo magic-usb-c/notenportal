@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Zeugnis (PDF mit Textlayer) gegen die Zeugnisnoten des Rechenkerns prüfen:
- * gleich / abweichend / fehlt im Portal; Fächer ohne Gegenstück im Portal erscheinen als «unbekannt».
+ * gleich / abweichend / fehlt im Portal; Fächer ohne Gegenstück im Portal erscheinen als «unbekannt», Stufenfächer (Sport) als «stufe».
  * Fehlende lassen sich als Note «Zeugnis» übernehmen.
  */
 final class ZeugnisAbgleich
@@ -29,10 +29,17 @@ final class ZeugnisAbgleich
         }
 
         $a = $this->quelle->auswertung($lernenderId);
+        $stufenFaecher = $this->stufenFaecher();
         $zeilen = [];
         foreach ($this->zeilen($text, $lernenderId) as $z) {
             if ($z['bezug'] === null) {
                 $zeilen[] = [...$z, 'portal' => null, 'differenz' => null, 'status' => 'unbekannt'];
+
+                continue;
+            }
+            if (isset($stufenFaecher[$z['bezug']])) {
+                // Stufenfächer (Sport) kennen keine Zeugnisnote als Zahl und lassen sich nicht übernehmen
+                $zeilen[] = [...$z, 'portal' => null, 'differenz' => null, 'status' => 'stufe'];
 
                 continue;
             }
@@ -90,14 +97,22 @@ final class ZeugnisAbgleich
         $lehrende = DB::table('lernende')->where('lernender_id', $lernenderId)->value('lehrende');
         $datum = $lehrende && (string) $lehrende < (string) $semester->end_datum ? max((string) $lehrende, (string) $semester->start_datum) : (string) $semester->end_datum;
 
+        $stufenFaecher = $this->stufenFaecher();
         $markiert = [];
         foreach (array_values($zeilen) as $i => $z) {
-            if (! empty($z['uebernehmen'])) {
+            if (! empty($z['uebernehmen']) && ! isset($stufenFaecher[$z['bezug']])) {
                 $markiert[] = ['nr' => $i + 1, 'datum' => substr($datum, 0, 10), 'bezug' => $z['bezug'], 'titel' => 'Zeugnis',
                     'note' => (float) $z['note'], 'gewicht' => 100, 'uebernehmen' => true];
             }
         }
 
         return $this->import->importieren($markiert, $lernenderId, $benutzerId);
+    }
+
+    /** @return array<string, true> Bezüge «fach:ID» der Fächer mit Stufenskala */
+    private function stufenFaecher(): array
+    {
+        return DB::table('faecher')->where('skala', 'stufe')->pluck('fach_id')
+            ->mapWithKeys(fn ($id) => ['fach:'.$id => true])->all();
     }
 }

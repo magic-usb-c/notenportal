@@ -119,6 +119,12 @@ final class Ablage
         return Storage::disk(self::DISK)->path($dokument->pfad);
     }
 
+    /** Liegt die Datei noch im Speicher (fehlt sie nach einem Restore ohne storage/, gibt es nichts auszuliefern)? */
+    public function vorhanden(Dokument $dokument): bool
+    {
+        return Storage::disk(self::DISK)->exists($dokument->pfad);
+    }
+
     public function ausliefern(Dokument $dokument, bool $anzeigen): StreamedResponse
     {
         $inline = $anzeigen && in_array($dokument->mime, Dokument::INLINE, true);

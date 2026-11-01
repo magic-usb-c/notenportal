@@ -73,6 +73,12 @@ final class Modulablage
         }
     }
 
+    /** Liegt die Datei noch im Speicher? */
+    public function vorhanden(ModulDokument $dokument): bool
+    {
+        return Storage::disk(self::DISK)->exists($dokument->pfad);
+    }
+
     public function ausliefern(ModulDokument $dokument, bool $anzeigen): StreamedResponse
     {
         $inline = $anzeigen && in_array($dokument->mime, ModulDokument::INLINE, true);

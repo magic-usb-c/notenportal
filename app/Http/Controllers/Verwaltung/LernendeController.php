@@ -57,7 +57,7 @@ class LernendeController extends VerwaltungController
 
         $filter = [
             // Ein Array-Parameter (?suche[]=x) gilt als leere Suche
-            'suche' => is_string($suche = $request->input('suche')) ? trim($suche) : '',
+            'suche' => is_string($suche = $request->input('suche')) ? trim(mb_scrub($suche, 'UTF-8')) : '',
             'lehrberuf_id' => $request->integer('lehrberuf_id') ?: null,
             'lehrjahr' => $request->integer('lehrjahr') ?: null,
             'bms' => in_array($request->input('bms'), ['ja', 'nein'], true) ? $request->input('bms') : '',

@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Dokument;
 use App\Models\Lernender;
 use App\Services\Dokumente\Ablage;
+use App\Services\Import\NotenImportFolgen;
 use App\Services\Import\ZeugnisAbgleich;
 use App\Services\Noten\NoteService;
 use Illuminate\Http\RedirectResponse;
@@ -61,11 +62,16 @@ class DokumenteController extends Controller
         return redirect($this->route($bereich, $lernender, 'index'))->with('success', __('«:titel» gespeichert.', ['titel' => $dokument->titel]));
     }
 
-    public function show(Request $request): StreamedResponse
+    public function show(Request $request): StreamedResponse|RedirectResponse
     {
-        [$lernender] = $this->kontext($request);
+        [$lernender, $bereich] = $this->kontext($request);
+        $dokument = $this->dokument($request, $lernender);
 
-        return $this->ablage->ausliefern($this->dokument($request, $lernender), $request->boolean('anzeigen'));
+        if (! $this->ablage->vorhanden($dokument)) {
+            return back(fallback: $this->route($bereich, $lernender, 'index'))->with('error', __('Die Datei ist nicht mehr vorhanden.'));
+        }
+
+        return $this->ablage->ausliefern($dokument, $request->boolean('anzeigen'));
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -104,7 +110,7 @@ class DokumenteController extends Controller
         ]);
     }
 
-    public function abgleichUebernehmen(Request $request, ZeugnisAbgleich $abgleich): RedirectResponse
+    public function abgleichUebernehmen(Request $request, ZeugnisAbgleich $abgleich, NotenImportFolgen $folgen): RedirectResponse
     {
         [$lernender, $bereich] = $this->kontext($request);
         $dokument = $this->dokument($request, $lernender);
@@ -117,12 +123,14 @@ class DokumenteController extends Controller
             'zeilen.*.note' => ['required', 'numeric', 'min:1', 'max:6'],
             'zeilen.*.uebernehmen' => ['nullable', 'boolean'],
         ]);
+        $vorher = $folgen->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $abgleich->uebernehmen($daten['zeilen'], (int) $daten['semester_id'], (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
 
         $zurueck = redirect($this->route($bereich, $lernender, 'reconcile', ['dokument_id' => $dokument->dokument_id, 'semester_id' => $daten['semester_id']]));
         if ($ergebnis['neu'] === 0) {
             return $zurueck->with('error', $ergebnis['fehler'] !== [] ? implode(' · ', array_slice($ergebnis['fehler'], 0, 3)) : __('Keine Zeile ausgewählt.'));
         }
+        $folgen->nachDemImport($lernender, $bereich, $ergebnis['neu'], $vorher);
 
         return $zurueck->with('success', $ergebnis['neu'] === 1 ? __('1 Zeugnisnote übernommen.') : __(':anzahl Zeugnisnoten übernommen.', ['anzahl' => $ergebnis['neu']]));
     }

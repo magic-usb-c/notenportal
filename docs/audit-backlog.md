@@ -1452,3 +1452,20 @@ Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
 - **Verworfen mit wahrem Kern, für eine spätere Welle:** Zeugnis-Abgleich ohne Weg zur Korrektur einer Abweichung;
   Zeugnisübersicht verliert die Ansicht beim Semesterwechsel; Drucken, CSV und Import nur im «…»-Menü; Agenda-
   Monatsraster mit 42 Tab-Stopps ohne Pfeiltasten. Die Prüfer hielten keinen davon für einen Regelverstoss.
+
+## Funktionsprüfung Runde 14 und Mail-Prüfung (01.11.2026): bewusst gelassen
+
+- **Datenauskunft ohne `bemerkung`:** Der interne Freitext der Verwaltung zu Lernenden fehlt im ZIP; README und
+  Einstellungsseite sagen das («ohne interne Bemerkungen der Verwaltung»). Ob er nach Art. 25 DSG hinein muss,
+  entscheidet David (steht unter «Offen für David»). Kommentare zu gelöschten Noten sind nicht im ZIP.
+- **Zeugnis-Abgleich mit Stufenfach:** Eine Zahl für Sport erscheint mit Status «Stufe» ohne Übernahme; ist nur diese
+  Zeile markiert (altes Formular), kommt «Keine Zeile ausgewählt.».
+- **Prüfungstermine bei abgeschlossener Lehre:** Termine ohne Note stehen weiter in «Kürzlich vergangen, ohne Note»,
+  aber ohne Warnung und ohne Zähler.
+- **Kalender-Vollabruf:** Ein künftiger, dauerhaft unzuordenbarer Prüfungstermin (fremdes Kürzel, abgewähltes
+  Freifach) kostet bis zu seinem Datum bei jedem Abgleich einen vollen Abruf statt 304.
+- **Noten-CSV-Vorlage:** `fputcsv` setzt Felder mit Leerzeichen in Anführungszeichen; der Import liest sie gleich.
+- **Mails, verworfen:** Umbruch langer Adressen mitten im Wort auf 390 px, «7.» und «Semester» auf zwei Zeilen, Titel
+  und erster Absatz mit demselben Semester, Digest ohne Anlass im Fuss, englische Anrede ohne Komma, Rolle
+  «Lernender» bei weiblicher Person, rohe mysqldump-Meldung in der Sicherungsmail (für Admins gewollt).
+

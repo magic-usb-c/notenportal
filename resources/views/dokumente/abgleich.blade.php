@@ -111,7 +111,7 @@
                                                     </label>
                                                 @else
                                                     <x-status :status="match ($z['status']) { 'gleich' => 'gruen', 'abweichung' => 'gelb', default => 'neutral' }"
-                                                              :text="match ($z['status']) { 'gleich' => __('stimmt'), 'abweichung' => __('abweichend'), 'unbekannt' => __('nicht zugeordnet'), default => __('fehlt') }" />
+                                                              :text="match ($z['status']) { 'gleich' => __('stimmt'), 'abweichung' => __('abweichend'), 'unbekannt' => __('nicht zugeordnet'), 'stufe' => __('Stufe'), default => __('fehlt') }" />
                                                 @endif
                                             </td>
                                         </tr>

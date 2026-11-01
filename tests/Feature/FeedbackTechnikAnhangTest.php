@@ -251,6 +251,10 @@ class FeedbackTechnikAnhangTest extends TestCase
         $this->actingAs($admin)->get(route('feedback.attachment', [$feedback->feedback_id, $anhang->feedback_anhang_id]))->assertOk();
         $this->actingAs($melder)->get(route('feedback.attachment', [$feedback->feedback_id, $anhang->feedback_anhang_id]))->assertOk();
         $this->actingAs($anderer)->get(route('feedback.attachment', [$feedback->feedback_id, $anhang->feedback_anhang_id]))->assertForbidden();
+
+        // Datei fehlt auf der Disk: 404 statt 500
+        Storage::disk('local')->delete($pfad);
+        $this->actingAs($admin)->get(route('feedback.attachment', [$feedback->feedback_id, $anhang->feedback_anhang_id]))->assertNotFound();
     }
 
     #[Test]
