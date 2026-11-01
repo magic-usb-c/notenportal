@@ -32,10 +32,10 @@
             <div class="flex items-center gap-3">
                 <div class="inline-flex h-9 items-center gap-0.5 rounded-full bg-fill p-0.5" role="group" aria-label="{{ __('Semester') }}">
                     <a class="{{ $pfeil }}" aria-label="{{ __('Vorheriges Semester') }}"
-                       @if($prevSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-left" strich="2" /></a>
+                       @if($prevSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $prevSemesterId])) }}" data-behalte-ansicht @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-left" strich="2" /></a>
                     <x-semester :id="$selectedSemesterId ?: null" :lernender="$a->lernenderId" class="whitespace-nowrap px-2 text-sm font-medium tabular-nums text-text" />
                     <a class="{{ $pfeil }}" aria-label="{{ __('Nächstes Semester') }}"
-                       @if($nextSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) }}" @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-right" strich="2" /></a>
+                       @if($nextSemesterId) href="{{ route('learner.grades.index', $mit(['semester_id' => $nextSemesterId])) }}" data-behalte-ansicht @else role="link" aria-disabled="true" tabindex="-1" @endif><x-symbol name="chevron-right" strich="2" /></a>
                 </div>
                 @if($semesterRest)
                     <span class="text-xs text-muted">{{ $semesterRest }}</span>
@@ -64,7 +64,13 @@
         </x-seitenkopf>
     </x-slot>
 
-    <div class="py-6" x-data="{ ansicht: @js(request('ansicht') === 'alle' ? 'alle' : 'semester') }">
+    {{-- Die Ansicht steht in der Adresse und in den Semester- und Kategorielinks: Pfeil und Neuladen behalten sie --}}
+    <div class="py-6" x-data="{ ansicht: @js(request('ansicht') === 'alle' ? 'alle' : 'semester') }"
+         x-init="$watch('ansicht', (wert) => {
+             const setze = (href) => { const u = new URL(href, location.href); wert === 'alle' ? u.searchParams.set('ansicht', 'alle') : u.searchParams.delete('ansicht'); return u.pathname + u.search + u.hash; };
+             history.replaceState(history.state, '', setze(location.href));
+             document.querySelectorAll('a[data-behalte-ansicht][href]').forEach((a) => a.setAttribute('href', setze(a.href)));
+         })">
         <div class="mx-auto flex np-seite flex-col gap-6 px-8">
 
             {{-- Statuszeile --}}
@@ -85,9 +91,9 @@
                     <button type="button" role="radio" :aria-checked="ansicht === 'alle'" @click="ansicht = 'alle'">{{ __('Zeugnisübersicht') }}</button>
                 </div>
                 <nav class="np-segment max-w-full overflow-x-auto" x-show="ansicht === 'semester'" aria-label="{{ __('Kategorie') }}">
-                    <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" @if(! $kategorieId) aria-current="page" @endif>{{ __('Alle') }}</a>
+                    <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => null])) }}" data-behalte-ansicht @if(! $kategorieId) aria-current="page" @endif>{{ __('Alle') }}</a>
                     @foreach($kategorien as $k)
-                        <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" @if($kategorieId === $k->kategorie_id) aria-current="page" @endif>{{ $k->name }}</a>
+                        <a href="{{ route('learner.grades.index', $mit(['kategorie_id' => $k->kategorie_id])) }}" data-behalte-ansicht @if($kategorieId === $k->kategorie_id) aria-current="page" @endif>{{ $k->name }}</a>
                     @endforeach
                 </nav>
             </div>

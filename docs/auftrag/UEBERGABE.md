@@ -525,6 +525,10 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   zwei Hinweistexte weg. Modul bearbeiten: nach einem Konflikt steht der gespeicherte Stand
                   schreibgeschützt neben der eigenen Fassung. Semester umdatieren bleibt bei David.
                   Bewusst gelassen: audit-backlog «Funktionsprüfung Runden 12 und 13, Audit Welle 4».
+[Q] 01.11. 04:40  Notenübersicht: Zeugnisübersicht bleibt bei Semesterwechsel und Neuladen (Ansicht in Adresse und Links).
+                  Abgebrochen am Nutzungslimit: Funktionsprüfung Runde 14 (lernende, berufsbildner, admin, sicherheit,
+                  jobs; scratchpad runde14) und Mail-Prüfung (mail14) liefen noch – Ergebnisse dort sichten, Bestätigtes
+                  mit notenportal-befunde-beheben umsetzen. Test-DBs w01–w24 und Grant am Sessionende aufräumen.
 ```
 
 ---
