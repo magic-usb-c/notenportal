@@ -91,10 +91,7 @@ class NotenImportController extends Controller
     public function pruefen(Request $request): JsonResponse
     {
         [$lernender] = $this->kontext($request);
-        abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
-        $request->validate(['zeilen' => ['required', 'json']]);
-        $zeilen = json_decode((string) $request->input('zeilen'), true);
-        abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
+        $zeilen = $this->gesendeteZeilen($request);
 
         // Sicherheitsstatus je Zeile (Feld «sicher») kommt aus der zuletzt bekannten Vorschau, nicht vom Client.
         $vorschau = $request->session()->get($this->schluessel($lernender));
@@ -112,8 +109,7 @@ class NotenImportController extends Controller
     public function uebernehmen(Request $request): RedirectResponse
     {
         [$lernender, $bereich] = $this->kontext($request);
-        abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
-        $request->validate(['zeilen' => ['required', 'json'], 'token' => ['required', 'string']]);
+        $zeilen = $this->gesendeteZeilen($request, ['token' => ['required', 'string']]);
 
         // Vorschau an das mitgesendete Einmal-Token binden: ein zweiter Post derselben Daten (Back-Knopf, Doppelklick,
         // zweiter Tab) findet keine Vorschau mehr vor und legt nichts ein zweites Mal an. Die Vorschau wird erst nach
@@ -128,9 +124,6 @@ class NotenImportController extends Controller
             return back()->with('error', __('Diese Vorschau ist nicht mehr aktuell. Bitte Datei neu einlesen.'));
         }
         $request->session()->forget($schluessel);
-
-        $zeilen = json_decode((string) $request->input('zeilen'), true);
-        abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
 
         $vorher = $this->gradeWatcher->schnappschuss((int) $lernender->lernender_id);
         $ergebnis = $this->import->importieren($zeilen, (int) $lernender->lernender_id, (int) $request->user()->benutzer_id);
@@ -168,6 +161,30 @@ class NotenImportController extends Controller
             : route('learner.grades.index', $parameter);
 
         return redirect($ziel)->with('success', $ergebnis['neu'] === 1 ? __('1 Note importiert.') : __(':anzahl Noten importiert.', ['anzahl' => $ergebnis['neu']]));
+    }
+
+    /**
+     * Die vom Formular gesendeten Zeilen (JSON) für «Erneut prüfen» und «Übernehmen»: Länge, Aufbau und Werte werden
+     * geprüft, bevor irgendetwas damit geschieht. Jede Zeile ist ein Objekt, jeder Wert Text, Zahl, Wahrheitswert oder null.
+     *
+     * @param  array<string, mixed>  $weitereRegeln
+     * @return list<array<string, scalar|null>>
+     */
+    private function gesendeteZeilen(Request $request, array $weitereRegeln = []): array
+    {
+        abort_if(is_string($request->input('zeilen')) && strlen($request->input('zeilen')) > self::MAX_ZEILEN_JSON, 422);
+        $request->validate(['zeilen' => ['required', 'json'], ...$weitereRegeln]);
+
+        $zeilen = json_decode((string) $request->input('zeilen'), true);
+        abort_unless(is_array($zeilen) && array_is_list($zeilen) && count($zeilen) <= TabellenLeser::MAX_ZEILEN, 422);
+        foreach ($zeilen as $zeile) {
+            abort_unless(is_array($zeile), 422);
+            foreach ($zeile as $wert) {
+                abort_unless($wert === null || is_scalar($wert), 422);
+            }
+        }
+
+        return $zeilen;
     }
 
     /**

@@ -88,11 +88,11 @@ final class CalendarSync
     {
         $text = match (true) {
             $e::class === RuntimeException::class => $e->getMessage(),
-            $e instanceof DecryptException => 'Die gespeicherte Adresse lässt sich nicht lesen. Bitte den Kalender neu hinterlegen.',
-            $e instanceof QueryException => 'Kalender enthält Daten, die nicht gespeichert werden konnten.',
-            $e instanceof MaxInstancesExceededException => 'Kalender enthält Terminserien mit zu vielen Wiederholungen.',
-            str_starts_with($e::class, 'Sabre\\VObject\\') => 'Kalender enthält Angaben, die sich nicht auswerten lassen.',
-            default => 'Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).',
+            $e instanceof DecryptException => __('Die gespeicherte Adresse lässt sich nicht lesen. Bitte den Kalender neu hinterlegen.'),
+            $e instanceof QueryException => __('Kalender enthält Daten, die nicht gespeichert werden konnten.'),
+            $e instanceof MaxInstancesExceededException => __('Kalender enthält Terminserien mit zu vielen Wiederholungen.'),
+            str_starts_with($e::class, 'Sabre\\VObject\\') => __('Kalender enthält Angaben, die sich nicht auswerten lassen.'),
+            default => __('Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).'),
         };
 
         // Rückfallebene, falls je eine Adresse in einen eigenen Text gerät: nur der Host bleibt übrig,
@@ -103,7 +103,21 @@ final class CalendarSync
             $text
         ) ?? '';
 
-        return mb_substr(trim($text) !== '' ? $text : 'Kalender nicht erreichbar.', 0, 480);
+        return mb_substr(trim($text) !== '' ? $text : __('Kalender nicht erreichbar.'), 0, 480);
+    }
+
+    /**
+     * Gespeicherten Fehlertext in der Sprache des Betrachters ausgeben: `last_error` entsteht auch im Cron
+     * (Standardsprache) und bleibt in der Sprache seiner Entstehung stehen. Bekannte Texte werden übersetzt,
+     * alles andere bleibt unverändert.
+     */
+    public static function anzeigetext(string $gespeichert): string
+    {
+        if (preg_match('/^Kalender nicht erreichbar \(HTTP (\d{3})\)\.$/u', $gespeichert, $treffer)) {
+            return __('Kalender nicht erreichbar (HTTP :status).', ['status' => $treffer[1]]);
+        }
+
+        return __($gespeichert);
     }
 
     /** @return array{events: int, exams: int, unmatched: int, removed: int} */
@@ -270,7 +284,7 @@ final class CalendarSync
             try {
                 $antwort = $anfrage->get($url);
             } catch (\Throwable $e) {
-                throw $zuGross ? new RuntimeException('Kalenderdatei ist grösser als 5 MB.') : $e;
+                throw $zuGross ? new RuntimeException(__('Kalenderdatei ist grösser als 5 MB.')) : $e;
             }
             if ($antwort->redirect() && $antwort->header('Location')) {
                 $url = (string) UriResolver::resolve(new Uri($url), new Uri($antwort->header('Location')));
@@ -282,15 +296,15 @@ final class CalendarSync
                 return ['body' => null, 'etag' => $etag, 'last_modified' => $lastModified];
             }
             if (! $antwort->successful()) {
-                throw new RuntimeException('Kalender nicht erreichbar (HTTP '.$antwort->status().').');
+                throw new RuntimeException(__('Kalender nicht erreichbar (HTTP :status).', ['status' => $antwort->status()]));
             }
             $body = $antwort->body();
             if (strlen($body) > self::MAX_BYTES) {
-                throw new RuntimeException('Kalenderdatei ist grösser als 5 MB.');
+                throw new RuntimeException(__('Kalenderdatei ist grösser als 5 MB.'));
             }
             $body = self::entpacken($body, strtolower(trim($antwort->header('Content-Encoding'))));
             if (! str_contains($body, 'BEGIN:VCALENDAR')) {
-                throw new RuntimeException('Die Adresse liefert keinen iCal-Kalender.');
+                throw new RuntimeException(__('Die Adresse liefert keinen iCal-Kalender.'));
             }
             // Eine unterwegs abgeschnittene Datei liest Sabre im nachsichtigen Modus als gültigen, kürzeren
             // Kalender: apply() würde die «fehlenden» Termine und künftigen Prüfungen löschen. Ohne Abschluss
@@ -301,7 +315,7 @@ final class CalendarSync
 
             return ['body' => $body, 'etag' => $antwort->header('ETag') ?: null, 'last_modified' => $antwort->header('Last-Modified') ?: null];
         }
-        throw new RuntimeException('Zu viele Weiterleitungen.');
+        throw new RuntimeException(__('Zu viele Weiterleitungen.'));
     }
 
     /** Entpackt gzip/deflate höchstens bis MAX_BYTES; alles andere als unkomprimiert wird abgelehnt. */
@@ -311,11 +325,11 @@ final class CalendarSync
             return $body;
         }
         if (! in_array($kodierung, ['gzip', 'x-gzip', 'deflate'], true)) {
-            throw new RuntimeException('Der Kalender wird in einem nicht unterstützten Übertragungsformat geliefert.');
+            throw new RuntimeException(__('Der Kalender wird in einem nicht unterstützten Übertragungsformat geliefert.'));
         }
         $roh = @zlib_decode($body, self::MAX_BYTES + 1);
         if ($roh === false || strlen($roh) > self::MAX_BYTES) {
-            throw new RuntimeException('Kalenderdatei ist entpackt grösser als 5 MB oder lässt sich nicht entpacken.');
+            throw new RuntimeException(__('Kalenderdatei ist entpackt grösser als 5 MB oder lässt sich nicht entpacken.'));
         }
 
         return $roh;
@@ -345,7 +359,7 @@ final class CalendarSync
     {
         $teile = parse_url($url);
         if (! $teile || ! in_array(strtolower($teile['scheme'] ?? ''), ['http', 'https'], true) || empty($teile['host'])) {
-            throw new RuntimeException('Bitte eine http(s)- oder webcal-Adresse angeben.');
+            throw new RuntimeException(__('Bitte eine http(s)- oder webcal-Adresse angeben.'));
         }
         if (config('notenportal.calendar_allow_private', false)) {
             return [];
@@ -356,13 +370,13 @@ final class CalendarSync
             array_column(@dns_get_record($host, DNS_AAAA) ?: [], 'ipv6'),
         );
         if ($ips === []) {
-            throw new RuntimeException('Adresse nicht auflösbar.');
+            throw new RuntimeException(__('Adresse nicht auflösbar.'));
         }
         foreach ($ips as $ip) {
             $v4 = self::eingebetteteIpv4($ip);
             if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
                 || ($v4 !== null && ! filter_var($v4, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE))) {
-                throw new RuntimeException('Interne Adressen sind nicht erlaubt.');
+                throw new RuntimeException(__('Interne Adressen sind nicht erlaubt.'));
             }
         }
 

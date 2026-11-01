@@ -496,6 +496,13 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Suche nach «Vorname Nachname» in Benutzern und Protokoll. Mail-Passwort nie in der Sitzung (dontFlash).
                   Abgeschnittene .ics ohne END:VCALENDAR löschen keine Termine mehr. pilot:vorbereiten leert auch
                   notenbaum_positionen. Gesehen-Sammelmail mit Namen im Betreff. Suite 2071 grün.
+[Q] 01.11. 01:00  Funktionsprüfung Runde 9 (Notenlogik, Sicherheit, Berufsbildner, Lernende; 9 bestätigt) behoben:
+                  Upload mit über 150 Zeichen langem Dateinamen gibt keinen 500 mehr und hinterlässt keine Datei. CSV wird
+                  zeilenweise gelesen (300 000 Leerzeilen ohne Speicherspitze), manipuliertes Import-JSON gibt 422 und
+                  zerstört die Vorschau nicht. Noten eines ausgeschalteten Fachs lassen sich korrigieren (nur das eigene Fach
+                  der Note, Track am Prüfungsdatum gilt weiter, Fach bleibt im Auswahlfeld). Track beenden bricht ab, wenn
+                  Noten nach dem Enddatum liegen. Sport (Stufenfach) ohne «benötigt», ohne Rechner-Knopf, nicht als Ziel.
+                  Ziel- und Kalenderfehlertexte englisch übersetzt. Notenlogik ohne Befund. Suite 2120 grün.
 ```
 
 ---

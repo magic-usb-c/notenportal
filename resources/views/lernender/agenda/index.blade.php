@@ -23,6 +23,10 @@
             if ($p->modul_id !== null) {
                 return 'modul:'.$p->modul_id;
             }
+            // Stufenfach (Sport): kein Notenschnitt, also nichts zu rechnen
+            if ($p->fach?->skala === 'stufe') {
+                return null;
+            }
             $semester = $konfiguration->semesterFuerDatum($p->datum->toDateString());
 
             return $semester !== null ? 'fach:'.$p->fach_id.'@semester:'.$semester : null;

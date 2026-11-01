@@ -171,7 +171,11 @@ final class Rechner
             }
         }
 
+        // Stufenfächer (z. B. Sport) haben keinen Schnitt: weder rechnen noch als Ziel wählen
+        $stufe = DB::table('faecher')->where('skala', 'stufe')->pluck('fach_id')->map(fn ($f) => (int) $f)->all();
+
         $faecher = $erlaubt->union($mitNoten)->union($mitGeplanten)
+            ->reject(fn ($kid, $fid) => in_array((int) $fid, $stufe, true))
             ->map(fn ($kid, $fid) => ['id' => (int) $fid, 'name' => $k->fachName((int) $fid), 'kategorie_id' => (int) $kid, 'erfassbar' => $erlaubt->has($fid)])
             ->sortBy('name')->values()->all();
 

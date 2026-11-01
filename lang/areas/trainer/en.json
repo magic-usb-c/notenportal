@@ -243,5 +243,6 @@
     "Bemerkung": "Note",
     "Für Lernende nicht sichtbar.": "Not visible to apprentices.",
     "Das Endsemester liegt vor dem Startsemester.": "The end semester is before the start semester.",
+    "Es gibt Noten dieses Tracks nach dem :datum. Wähle ein späteres Endsemester.": "There are grades in this track after :datum. Choose a later end semester.",
     "Mit neuen Noten": "With new grades"
 }

@@ -683,5 +683,20 @@
     "Die Datei ist zu gross (höchstens :mb MB).": "The file is too large (up to :mb MB).",
     "Die Endung dieser Datei ist nicht erlaubt.": "The extension of this file is not allowed.",
     "Der Inhalt der Datei passt nicht zur Endung.": "The content of the file does not match its extension.",
-    "Die Kalenderdatei ist unvollständig. Die bisherigen Termine bleiben unverändert.": "The calendar file is incomplete. Existing events are left unchanged."
+    "Die Kalenderdatei ist unvollständig. Die bisherigen Termine bleiben unverändert.": "The calendar file is incomplete. Existing events are left unchanged.",
+    "Kalenderdatei ist grösser als 5 MB.": "The calendar file is larger than 5 MB.",
+    "Kalender nicht erreichbar (HTTP :status).": "Calendar not reachable (HTTP :status).",
+    "Die Adresse liefert keinen iCal-Kalender.": "The address does not deliver an iCal calendar.",
+    "Zu viele Weiterleitungen.": "Too many redirects.",
+    "Der Kalender wird in einem nicht unterstützten Übertragungsformat geliefert.": "The calendar is delivered in an unsupported transfer format.",
+    "Kalenderdatei ist entpackt grösser als 5 MB oder lässt sich nicht entpacken.": "The calendar file is larger than 5 MB once unpacked, or cannot be unpacked.",
+    "Bitte eine http(s)- oder webcal-Adresse angeben.": "Please enter an http(s) or webcal address.",
+    "Adresse nicht auflösbar.": "Address could not be resolved.",
+    "Interne Adressen sind nicht erlaubt.": "Internal addresses are not allowed.",
+    "Die gespeicherte Adresse lässt sich nicht lesen. Bitte den Kalender neu hinterlegen.": "The stored address cannot be read. Please add the calendar again.",
+    "Kalender enthält Daten, die nicht gespeichert werden konnten.": "The calendar contains data that could not be saved.",
+    "Kalender enthält Terminserien mit zu vielen Wiederholungen.": "The calendar contains event series with too many repetitions.",
+    "Kalender enthält Angaben, die sich nicht auswerten lassen.": "The calendar contains details that cannot be processed.",
+    "Kalender nicht erreichbar (Zeitüberschreitung oder unbekannter Server).": "Calendar not reachable (timeout or unknown server).",
+    "Kalender nicht erreichbar.": "Calendar not reachable."
 }

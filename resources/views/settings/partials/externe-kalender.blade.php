@@ -38,7 +38,7 @@
                     </div>
                 </div>
                 @if($fehlgeschlagen && $f->last_error)
-                    <p class="mt-2 pl-11 text-xs text-note-ungenuegend">{{ $f->last_error }}</p>
+                    <p class="mt-2 pl-11 text-xs text-note-ungenuegend">{{ \App\Services\Calendar\CalendarSync::anzeigetext($f->last_error) }}</p>
                 @endif
                 <div class="mt-2 flex flex-wrap gap-1.5 pl-11">
                     @foreach([['import_exams', __('Prüfungen')], ['import_appointments', __('Termine')], ['import_lessons', __('Lektionen (Stundenplan)')]] as [$feld, $bezeichnung])

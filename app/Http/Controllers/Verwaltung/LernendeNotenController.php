@@ -155,7 +155,7 @@ class LernendeNotenController extends VerwaltungController
         return view('verwaltung.noten.edit', [
             'lernender' => $lernender,
             'note' => $note,
-            'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id),
+            'bezugOptionen' => $this->noteService->bezugOptionen($lernender_id, $note),
             'semesterListe' => $this->noteService->semesterListe($lernender_id),
         ]);
     }

@@ -325,7 +325,7 @@ class NotenController extends Controller
 
         $daten = [
             'note' => $note,
-            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
+            'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id, $note),
             'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
         ];
 

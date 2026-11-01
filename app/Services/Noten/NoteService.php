@@ -205,12 +205,12 @@ class NoteService
     }
 
     /** @param  list<string>  $tracks */
-    private function faecherFuerTracks(int $lernenderId, array $tracks): Builder
+    private function faecherFuerTracks(int $lernenderId, array $tracks, bool $nurAktive = true): Builder
     {
         $lehrberufId = $this->lehrberufIdFuer($lernenderId);
 
         return Fach::query()
-            ->where('aktiv', 1)
+            ->when($nurAktive, fn (Builder $q) => $q->where('aktiv', 1))
             ->whereNotNull('kategorie_id')
             ->where(fn (Builder $q) => $q
                 ->where(fn (Builder $t) => $t->whereNotNull('track_typ')->whereIn('track_typ', $tracks === [] ? [''] : $tracks))
@@ -405,7 +405,7 @@ class NoteService
         return ['note_wert' => $wert, 'note_stufe' => null];
     }
 
-    public function pruefeZeile(array $data, int $lernenderId): array
+    public function pruefeZeile(array $data, int $lernenderId, ?Note $bisher = null): array
     {
         if (! $this->batch) {
             $this->resetCache();
@@ -457,7 +457,7 @@ class NoteService
             }
 
             $fachId = (int) $data['fach_id'];
-            $kategorieId = $this->kategorieFuer($lernenderId, 'fach', $fachId, Carbon::parse($date));
+            $kategorieId = $this->kategorieFuer($lernenderId, 'fach', $fachId, Carbon::parse($date), $bisher);
 
             return [
                 'kategorie_id' => (int) $kategorieId,
@@ -509,7 +509,7 @@ class NoteService
      */
     public function normalizeForSave(array $data, int $lernenderId, ?Note $bisher = null): array
     {
-        $ergebnis = $this->pruefeZeile($data, $lernenderId);
+        $ergebnis = $this->pruefeZeile($data, $lernenderId, $bisher);
 
         if (($data['typ'] ?? null) === 'modul') {
             $ergebnis['modul_belegung_id'] = $this->behalteBelegung($bisher, $lernenderId, (int) $ergebnis['modul_id'], $ergebnis['pruefungsdatum'])
@@ -526,15 +526,21 @@ class NoteService
      *
      * Track-Fächer gelten nur, wenn der Track am Stichtag (Prüfungsdatum; ohne Angabe heute) gültig war.
      *
+     * Ausnahme wie bei Modulen («wer es schon belegt hat, behält es»): Beim Bearbeiten einer bestehenden Note
+     * ($bisher) bleibt deren eigenes Fach zulässig, auch wenn es inzwischen ausgeschaltet ist – sonst liesse sich
+     * ein Tippfehler nicht mehr berichtigen. Die Ausnahme gilt nur für genau dieses Fach und wird nicht in die
+     * gecachte Liste gemischt; neue Noten, Prüfungen und der Import bleiben auf aktive Fächer beschränkt.
+     *
      * @param  'fach'|'modul'  $typ
      */
-    public function kategorieFuer(int $lernenderId, string $typ, int $id, ?CarbonInterface $stichtag = null): int
+    public function kategorieFuer(int $lernenderId, string $typ, int $id, ?CarbonInterface $stichtag = null, ?Note $bisher = null): int
     {
         if ($typ === 'fach') {
-            $kategorieId = $this->erlaubteFaecherKategorien($lernenderId, $stichtag)->get($id);
+            $kategorieId = $this->erlaubteFaecherKategorien($lernenderId, $stichtag)->get($id)
+                ?? $this->behalteInaktivesFach($lernenderId, $id, $stichtag ?? now(), $bisher);
 
             if (! $kategorieId) {
-                throw ValidationException::withMessages(['fach_id' => $this->trackNichtAktivMeldung($lernenderId, $id, $stichtag ?? now())
+                throw ValidationException::withMessages(['fach_id' => $this->trackNichtAktivMeldung($lernenderId, $id, $stichtag ?? now(), $bisher !== null && (int) $bisher->fach_id === $id)
                     ?? __('Dieses Fach ist für den Lehrberuf oder Track nicht freigegeben.')]);
             }
 
@@ -563,6 +569,28 @@ class NoteService
         }
 
         return (int) $kategorieId;
+    }
+
+    /**
+     * Kategorie des Fachs einer bestehenden Note, wenn das Fach ausgeschaltet ist (faecher.aktiv = 0), sonst null.
+     * Gilt nur, wenn die Note dieses Fach schon hat; ein Track-Fach braucht weiterhin einen am Stichtag gültigen Track.
+     */
+    private function behalteInaktivesFach(int $lernenderId, int $fachId, CarbonInterface $stichtag, ?Note $bisher): ?int
+    {
+        if ($bisher === null || (int) $bisher->fach_id !== $fachId || ! $bisher->kategorie_id) {
+            return null;
+        }
+
+        $fach = Fach::query()->whereKey($fachId)->first(['fach_id', 'aktiv', 'track_typ']);
+        if ($fach === null || (int) $fach->aktiv === 1) {
+            return null;
+        }
+
+        if ($fach->track_typ !== null && ! $this->activeTrackTypesForLernender($lernenderId, $stichtag)->contains($fach->track_typ)) {
+            return null;
+        }
+
+        return (int) $bisher->kategorie_id;
     }
 
     /** Ist das Modul ausgeschaltet (module.aktiv = 0)? Im Batch je Modul einmal gelesen statt je Zeile. */
@@ -652,10 +680,10 @@ class NoteService
     /**
      * Meldung, wenn das Fach zu einem Track des Lernenden gehört, dieser am Stichtag aber nicht galt; sonst null.
      */
-    private function trackNichtAktivMeldung(int $lernenderId, int $fachId, CarbonInterface $stichtag): ?string
+    private function trackNichtAktivMeldung(int $lernenderId, int $fachId, CarbonInterface $stichtag, bool $auchInaktiv = false): ?string
     {
         $track = Fach::query()->whereKey($fachId)->value('track_typ');
-        if (! $track || ! $this->faecherFuerTracks($lernenderId, [$track])->whereKey($fachId)->exists()) {
+        if (! $track || ! $this->faecherFuerTracks($lernenderId, [$track], ! $auchInaktiv)->whereKey($fachId)->exists()) {
             return null;
         }
 
@@ -694,7 +722,7 @@ class NoteService
      *
      * @return array<string, list<array{wert: string, label: string}>>
      */
-    public function bezugOptionen(int $lernenderId): array
+    public function bezugOptionen(int $lernenderId, ?Note $bearbeitet = null): array
     {
         $optionen = $this->formOptionsForLernender($lernenderId);
         $namen = Kategorie::query()->pluck('name', 'kategorie_id');
@@ -707,6 +735,16 @@ class NoteService
         foreach ($optionen['faecher'] as $f) {
             $gruppen[$namen[$f->kategorie_id] ?? 'Fächer'][] = ['wert' => 'fach:'.$f->fach_id, 'label' => $f->name,
                 'skala' => in_array((int) $f->fach_id, $stufen, true) ? 'stufe' : 'note'];
+        }
+
+        // Beim Bearbeiten bleibt das bisherige Fach der Note wählbar, auch wenn es ausgeschaltet wurde: fehlte es,
+        // wechselte das Auswahlfeld still auf ein anderes Fach (kategorieFuer lässt genau dieses Fach zu).
+        if ($bearbeitet?->fach_id && ! $optionen['faecher']->contains('fach_id', $bearbeitet->fach_id)) {
+            $fach = Fach::query()->whereKey($bearbeitet->fach_id)->first(['fach_id', 'name', 'kategorie_id', 'skala']);
+            if ($fach) {
+                $gruppen[$namen[$bearbeitet->kategorie_id] ?? 'Fächer'][] = ['wert' => 'fach:'.$fach->fach_id, 'label' => $fach->name,
+                    'skala' => $fach->skala === 'stufe' ? 'stufe' : 'note'];
+            }
         }
 
         $reihenfolge = Kategorie::query()->orderBy('sortierung')->pluck('name')->all();
@@ -743,7 +781,9 @@ class NoteService
                 ->where('lernender_id', (int) $lernender->lernender_id)
                 ->first();
 
-            return $note ? ['titel' => __('Note bearbeiten'), 'daten' => $daten + ['note' => $note]] : null;
+            return $note
+                ? ['titel' => __('Note bearbeiten'), 'daten' => ['bezugOptionen' => $this->bezugOptionen((int) $lernender->lernender_id, $note)] + $daten + ['note' => $note]]
+                : null;
         }
 
         return null;

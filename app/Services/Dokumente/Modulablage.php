@@ -11,6 +11,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 /**
  * Private Ablage für Unterlagen zu einem Modul: Disk «local» (storage/app/private, nie öffentlich),
@@ -54,16 +55,22 @@ final class Modulablage
             self::DISK,
         ), 'module/'.$modul->modul_id);
 
-        return ModulDokument::create([
-            'modul_id' => $modul->modul_id,
-            'titel' => filled($titel) ? $titel : (pathinfo($original, PATHINFO_FILENAME) ?: 'Unterlage'),
-            'originalname' => $original,
-            'pfad' => $pfad,
-            'mime' => $datei->getMimeType() ?? 'application/octet-stream',
-            'groesse' => (int) $datei->getSize(),
-            'sha256' => hash_file('sha256', (string) $datei->getRealPath()),
-            'hochgeladen_von_benutzer_id' => $benutzerId,
-        ]);
+        try {
+            return ModulDokument::create([
+                'modul_id' => $modul->modul_id,
+                'titel' => filled($titel) ? $titel : mb_substr(pathinfo($original, PATHINFO_FILENAME) ?: 'Unterlage', 0, Ablage::TITEL_MAX),
+                'originalname' => $original,
+                'pfad' => $pfad,
+                'mime' => $datei->getMimeType() ?? 'application/octet-stream',
+                'groesse' => (int) $datei->getSize(),
+                'sha256' => hash_file('sha256', (string) $datei->getRealPath()),
+                'hochgeladen_von_benutzer_id' => $benutzerId,
+            ]);
+        } catch (Throwable $e) {
+            Storage::disk(self::DISK)->delete($pfad);
+
+            throw $e;
+        }
     }
 
     public function ausliefern(ModulDokument $dokument, bool $anzeigen): StreamedResponse

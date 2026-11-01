@@ -54,13 +54,15 @@ final readonly class Zielgroesse
     /** $lernenderId: Kontext mit genau einem Lernenden – relative Semesternummer statt neutralem Namen. */
     public function label(Konfiguration $k, ?int $lernenderId = null): string
     {
+        // Wie Konfiguration::semesterName: reine Unit-Tests laufen ohne gebundenen Translator.
+        $uebersetzt = app()->bound('translator');
         $sem = $this->semesterId !== null ? ' · '.$k->semesterName($this->semesterId, $lernenderId) : '';
 
         return match ($this->ebene) {
-            'gesamt' => 'Gesamtschnitt',
+            'gesamt' => $uebersetzt ? __('Gesamtschnitt') : 'Gesamtschnitt',
             'kategorie' => $k->kategorieName($this->id).$sem,
-            'semester' => 'Semesterschnitt · '.$k->semesterName($this->id, $lernenderId),
-            'fach' => $k->fachName($this->id).($sem !== '' ? $sem : ' · Lehrzeit'),
+            'semester' => ($uebersetzt ? __('Semesterschnitt') : 'Semesterschnitt').' · '.$k->semesterName($this->id, $lernenderId),
+            'fach' => $k->fachName($this->id).($sem !== '' ? $sem : ' · '.($uebersetzt ? __('Lehrzeit') : 'Lehrzeit')),
             'modul' => $k->modulName($this->id),
         };
     }

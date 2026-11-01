@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Verwaltung;
 use App\Models\Semester;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 /** Schul-Tracks (BMS/ABU) eines Lernenden starten und beenden. */
@@ -64,9 +66,24 @@ class TrackController extends VerwaltungController
         // Der Track endet am Ende des gewählten Endsemesters, spätestens heute (laufendes Semester: heute).
         // DB-Constraint end_datum >= start_datum: ein künftiger Track endet an seinem Starttag.
         $endSemester = Semester::query()->findOrFail((int) $daten['end_semester_id']);
-        $ende = min($endSemester->end_datum, today());
+        $ende = max($track->start_datum, min($endSemester->end_datum, today()))->toDateString();
+
+        // Noten dieses Tracks nach dem Enddatum wären danach nicht mehr speicherbar (Track gilt nur am Prüfungsdatum).
+        $spaetere = DB::table('noten as n')
+            ->join('faecher as f', 'f.fach_id', '=', 'n.fach_id')
+            ->where('n.lernender_id', $lernender->lernender_id)
+            ->whereNull('n.geloescht_am')
+            ->where('f.track_typ', $track->track_typ)
+            ->where('n.pruefungsdatum', '>', $ende)
+            ->exists();
+        if ($spaetere) {
+            return back()->with('error', __('Es gibt Noten dieses Tracks nach dem :datum. Wähle ein späteres Endsemester.', [
+                'datum' => Carbon::parse($ende)->format('d.m.Y'),
+            ]));
+        }
+
         $track->update([
-            'end_datum' => max($track->start_datum, $ende)->toDateString(),
+            'end_datum' => $ende,
             'end_semester_id' => (int) $daten['end_semester_id'],
         ]);
 

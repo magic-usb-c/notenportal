@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Throwable;
 
 /**
  * Private Ablage: Disk «local» (storage/app/private, nie öffentlich ausgeliefert),
@@ -21,6 +22,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 final class Ablage
 {
     public const int MAX_KB = 10240;
+
+    /** Länge der Spalte dokumente.titel; ein Dateiname als Titel wird darauf gekürzt. */
+    public const int TITEL_MAX = 150;
 
     public const array ENDUNGEN = ['pdf', 'jpg', 'jpeg', 'png', 'xlsx', 'xls', 'ods', 'csv', 'docx'];
 
@@ -89,19 +93,25 @@ final class Ablage
             self::DISK,
         ), 'lernende/'.$lernender->lernender_id.'/dokumente/'.now()->format('Y'));
 
-        return Dokument::create([
-            'lernender_id' => $lernender->lernender_id,
-            'semester_id' => $daten['semester_id'] ?? null,
-            'pruefung_id' => $pruefungId,
-            'art' => $daten['art'],
-            'titel' => filled($daten['titel'] ?? null) ? $daten['titel'] : (pathinfo($original, PATHINFO_FILENAME) ?: 'Dokument'),
-            'originalname' => $original,
-            'pfad' => $pfad,
-            'mime' => $datei->getMimeType() ?? 'application/octet-stream',
-            'groesse' => (int) $datei->getSize(),
-            'sha256' => hash_file('sha256', $datei->getRealPath()),
-            'hochgeladen_von_benutzer_id' => $benutzerId,
-        ]);
+        try {
+            return Dokument::create([
+                'lernender_id' => $lernender->lernender_id,
+                'semester_id' => $daten['semester_id'] ?? null,
+                'pruefung_id' => $pruefungId,
+                'art' => $daten['art'],
+                'titel' => filled($daten['titel'] ?? null) ? $daten['titel'] : mb_substr(pathinfo($original, PATHINFO_FILENAME) ?: 'Dokument', 0, self::TITEL_MAX),
+                'originalname' => $original,
+                'pfad' => $pfad,
+                'mime' => $datei->getMimeType() ?? 'application/octet-stream',
+                'groesse' => (int) $datei->getSize(),
+                'sha256' => hash_file('sha256', $datei->getRealPath()),
+                'hochgeladen_von_benutzer_id' => $benutzerId,
+            ]);
+        } catch (Throwable $e) {
+            Storage::disk(self::DISK)->delete($pfad);
+
+            throw $e;
+        }
     }
 
     public function pfad(Dokument $dokument): string

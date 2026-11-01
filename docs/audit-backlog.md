@@ -1411,3 +1411,11 @@ Funktionsprüfung Runde 8 (31.10.2026): bewusst gelassen
   Konto wieder öffnet, prüft die Betreuung in der Benutzerverwaltung; eine automatische Übergabe gibt es nicht.
 - **«Abgeschnitten» im Tabellenleser ist eine Schätzung.** Der Hinweis erscheint, wenn nach der Zeilengrenze noch
   Notenzeilen folgen; er ist nur Information, die gelesenen Zeilen bleiben gültig.
+
+Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
+
+- **Track starten prüft frühere Noten nicht.** Nur das Beenden bricht ab, wenn Noten des Tracks nach dem Enddatum liegen.
+- **Fach aus dem Lehrberuf genommen (lehrberuf_faecher.aktiv = 0):** Noten darin bleiben nicht korrigierbar; die
+  Ausnahme gilt nur für ausgeschaltete Fächer (faecher.aktiv = 0).
+- **Bestehende Ziele auf ein Stufenfach bleiben stehen**, neue lassen sich nicht mehr anlegen.
+- **Gespeicherte Kalenderfehler** werden nur aus dem Deutschen übersetzt; ein auf Englisch gespeicherter Fehler bleibt englisch.

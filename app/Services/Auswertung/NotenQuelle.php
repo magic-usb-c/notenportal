@@ -141,6 +141,8 @@ final class NotenQuelle
             ->whereIn('p.lernender_id', $lernenderIds)
             ->whereNull('p.note_id')
             ->whereNull('p.abgesagt_am')
+            // Stufenfächer (z. B. Sport) haben keinen Schnitt: keine nötige Note, kein Rechner, kein Ziel
+            ->where(fn ($q) => $q->whereNull('f.skala')->orWhere('f.skala', '<>', 'stufe'))
             ->orderBy('p.datum')
             ->get(['p.pruefung_id', 'p.lernender_id', 'p.fach_id', 'p.modul_id', 'p.titel', 'p.datum', 'p.gewichtung_prozent',
                 DB::raw('COALESCE(f.kategorie_id, lbm.kategorie_id) as kategorie_id')]);

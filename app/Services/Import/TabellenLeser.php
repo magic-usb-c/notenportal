@@ -50,18 +50,68 @@ final class TabellenLeser
         return [array_slice($zeilen, 0, self::GELESEN), count($zeilen) > self::GELESEN];
     }
 
-    /** @return list<list<string>> */
+    /**
+     * CSV als Zeilen mit Zellen. Leere Zeilen (auch «;;;») werden übersprungen, und nach GELESEN + 1 Zeilen mit Inhalt
+     * ist Schluss: Speicher und Zeit hängen so nicht von der Zeilenzahl der Datei ab (eine Zeile mehr als GELESEN
+     * genügt, damit lesenMitHinweis() meldet, dass die Quelle länger ist).
+     *
+     * @return list<list<string>>
+     */
     public function csv(string $inhalt): array
     {
         $inhalt = preg_replace('/^\xEF\xBB\xBF/', '', $inhalt) ?? $inhalt;
         if (! mb_check_encoding($inhalt, 'UTF-8')) {
             $inhalt = mb_convert_encoding($inhalt, 'UTF-8', 'Windows-1252');
         }
-        $zeilen = preg_split('/\R/u', $inhalt) ?: [];
-        $probe = implode("\n", array_slice($zeilen, 0, 10));
+
+        // Trennzeichen aus den ersten zehn Zeilen mit Inhalt, ohne die Datei zu zerlegen
+        $probe = '';
+        $n = 0;
+        foreach ($this->csvZeilen($inhalt) as $zeile) {
+            if (trim($zeile) === '') {
+                continue;
+            }
+            $probe .= $zeile."\n";
+            if (++$n >= 10) {
+                break;
+            }
+        }
         $trenner = collect([';' => substr_count($probe, ';'), ',' => substr_count($probe, ','), "\t" => substr_count($probe, "\t")])->sortDesc()->keys()->first();
 
-        return array_map(fn (string $z) => array_map(fn ($c) => trim((string) $c), str_getcsv($z, $trenner, '"', '\\')), $zeilen);
+        $out = [];
+        foreach ($this->csvZeilen($inhalt) as $zeile) {
+            if (trim($zeile) === '') {
+                continue;
+            }
+            $zellen = array_map(fn ($c) => trim((string) $c), str_getcsv($zeile, $trenner, '"', '\\'));
+            if (implode('', $zellen) === '') {
+                continue;
+            }
+            $out[] = $zellen;
+            if (count($out) > self::GELESEN) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Zeilen eines Textes nacheinander (Zeilenende wie \R), ohne den ganzen Text in ein Array zu zerlegen.
+     *
+     * @return \Generator<int, string>
+     */
+    private function csvZeilen(string $inhalt): \Generator
+    {
+        $laenge = strlen($inhalt);
+        $pos = 0;
+        while ($pos < $laenge) {
+            if (preg_match('/\G([^\n\r\x0B\x0C\x{85}\x{2028}\x{2029}]*)(\R|\z)/u', $inhalt, $m, PREG_OFFSET_CAPTURE, $pos) !== 1) {
+                return;
+            }
+            yield $m[1][0];
+            $pos = $m[2][1] + strlen($m[2][0]);
+        }
     }
 
     /** @return list<list<string>> */
