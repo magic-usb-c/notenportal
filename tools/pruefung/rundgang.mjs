@@ -59,7 +59,8 @@ try {
     try {
       r = await page.goto(basisUrl + pfad, { waitUntil: 'networkidle', timeout: 20000 });
     } catch (e) {
-      befunde.push([pfad, 'LADEN', String(e).slice(0, 120)]);
+      // Link liefert eine Datei (z. B. /documents/1): keine Seite, kein Befund
+      if (!/Download is starting/.test(String(e))) befunde.push([pfad, 'LADEN', String(e).slice(0, 120)]);
       continue;
     }
     await page.waitForTimeout(250);

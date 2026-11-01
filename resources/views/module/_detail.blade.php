@@ -73,7 +73,7 @@
                 <section class="np-karte" aria-labelledby="modul-lbv">
                     <h3 id="modul-lbv" class="px-5 pb-2 pt-5 text-sm font-semibold text-text">{{ __('Leistungsbeurteilung') }}</h3>
                     <div class="px-2 pb-2">
-                        <table class="np-tabelle table-fixed text-sm">
+                        <table class="np-tabelle table-fixed max-w-2xl text-sm">
                             <colgroup>
                                 <col>
                                 @if($lbvForm)<col class="w-56">@endif

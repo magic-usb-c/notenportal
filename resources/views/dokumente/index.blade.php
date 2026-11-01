@@ -50,7 +50,8 @@
             @else
                 @foreach(Dokument::ARTEN as $art => $artName)
                     @continue(! $gruppen->has($art))
-                    <x-karte :titel="Dokument::label($art)" :polster="false">
+                    {{-- Obergrenze: 61rem feste Spalten + 1rem Rand + 28rem Titel; alle Karten gleich breit, Spalten bündig --}}
+                    <x-karte :titel="Dokument::label($art)" :polster="false" class="max-w-[90rem]">
                         <x-slot:aktionen>
                             <span class="text-sm tabular-nums text-muted">{{ $gruppen[$art]->count() }}</span>
                         </x-slot:aktionen>

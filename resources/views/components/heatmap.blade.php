@@ -6,15 +6,15 @@
     $marke = fn ($wert) => new \Illuminate\Support\HtmlString($skala::stufe($wert) === $skala::UNGENUEGEND ? '<span aria-hidden="true">▼ </span>' : '');
 @endphp
 @if($daten['gruppen'])
-    {{-- Matrix Fach × Semester: die Namensspalte bleibt stehen, falls die Semester einmal nicht in die Breite passen. --}}
+    {{-- Matrix Fach × Semester, nur so breit wie ihre Spalten (keine Lücke zwischen Name und Noten); die Namensspalte bleibt stehen, falls die Semester einmal nicht in die Breite passen. --}}
     <div class="overflow-x-auto">
-        <table class="w-full text-sm border-separate border-spacing-y-0.5">
+        <table class="text-sm border-separate border-spacing-y-0.5">
             <caption class="sr-only">{{ __('Zeugnisnoten') }}</caption>
             <thead>
                 <tr class="text-2xs font-medium text-muted">
                     <th scope="col" class="sticky left-0 min-w-48 bg-card px-5 py-2 text-left font-medium">{{ __('Fach / Modul') }}</th>
                     @foreach($daten['semester'] as $s)
-                        <th scope="col" class="px-1 py-2 text-right font-medium leading-tight">{{ $s['name'] }}</th>
+                        <th scope="col" class="px-2 py-2 text-right font-medium leading-tight">{{ $s['name'] }}</th>
                     @endforeach
                     <th scope="col" class="px-5 py-2 text-right font-medium">{{ __('Lehrzeit') }}</th>
                 </tr>
@@ -24,7 +24,7 @@
                     <tr>
                         <th scope="row" class="sticky left-0 bg-card px-5 pb-1 pt-3 text-left text-xs font-semibold text-text">{{ $g['name'] }}</th>
                         @foreach($daten['semester'] as $s)
-                            <td class="px-1 pb-1 pt-3 text-right"><span class="text-2xs font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
+                            <td class="px-2 pb-1 pt-3 text-right"><span class="text-2xs font-semibold tabular-nums {{ $skala::text($g['semester'][$s['id']] ?? null) }}">{{ $marke($g['semester'][$s['id']] ?? null) }}{{ isset($g['semester'][$s['id']]) ? $skala::format($g['semester'][$s['id']], 1) : '' }}</span></td>
                         @endforeach
                         <td class="px-5 pb-1 pt-3 text-right">{{ $marke($g['note']) }}<x-note :wert="$g['note']" :stellen="1" class="text-sm" /></td>
                     </tr>
@@ -39,7 +39,7 @@
                                 </div>
                             </th>
                             @foreach($daten['semester'] as $s)
-                                <td class="px-1 py-0.5 text-right">
+                                <td class="px-2 py-0.5 text-right">
                                     @if(array_key_exists($s['id'], $z['zellen']))
                                         <span class="{{ $zelle }} {{ $skala::badge($z['zellen'][$s['id']]) }}" title="{{ $z['label'] }} · {{ $s['name'] }}">{{ $marke($z['zellen'][$s['id']]) }}{{ $skala::format($z['zellen'][$s['id']]) }}</span>
                                     @endif
@@ -54,7 +54,7 @@
                 <tr class="text-xs">
                     <th scope="row" class="sticky left-0 bg-card px-5 pb-2 pt-3 text-left text-xs font-semibold text-muted">{{ __('Semesterschnitt') }}</th>
                     @foreach($daten['semester'] as $s)
-                        <td class="px-1 pb-2 pt-3 text-right">{{ $marke($daten['semesterschnitt'][$s['id']] ?? null) }}<x-note :wert="$daten['semesterschnitt'][$s['id']] ?? null" :stellen="1" /></td>
+                        <td class="px-2 pb-2 pt-3 text-right">{{ $marke($daten['semesterschnitt'][$s['id']] ?? null) }}<x-note :wert="$daten['semesterschnitt'][$s['id']] ?? null" :stellen="1" /></td>
                     @endforeach
                     <td class="px-5 pb-2 pt-3 text-right">{{ $marke($daten['gesamt']) }}<x-note :wert="$daten['gesamt']" :stellen="1" class="text-base font-semibold" /></td>
                 </tr>

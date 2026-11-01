@@ -503,6 +503,11 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   der Note, Track am Prüfungsdatum gilt weiter, Fach bleibt im Auswahlfeld). Track beenden bricht ab, wenn
                   Noten nach dem Enddatum liegen. Sport (Stufenfach) ohne «benötigt», ohne Rechner-Knopf, nicht als Ziel.
                   Ziel- und Kalenderfehlertexte englisch übersetzt. Notenlogik ohne Befund. Suite 2120 grün.
+[G] 01.11. 02:00  Dunkel-Rundgang 9 (3 Rollen × 1920/2560, 394 Prüfagents, 5 bestätigt, 172 verworfen) behoben: Tabellen
+                  bei 2560 nicht mehr überdehnt – Dokumente (Karte 90rem), Leistungsbeurteilung im Moduldetail (max-w-2xl),
+                  Lernendenliste Admin (100rem), Notenbaum-Liste (max-w-6xl, Tooltips), Zeugnisnoten-Matrix nur so breit
+                  wie ihre Spalten. rundgang.mjs wertet Datei-Links (Download) nicht mehr als Ladefehler. Rundgänge aller
+                  drei Rollen Exit 0.
 ```
 
 ---

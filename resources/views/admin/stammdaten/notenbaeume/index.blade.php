@@ -25,11 +25,11 @@
     <div class="py-6">
         <div class="mx-auto np-seite px-8">
             @if($baeume->isEmpty())
-                <div class="np-karte">
+                <div class="np-karte max-w-6xl">
                     <x-leer symbol="queue-list" :titel="__('Noch keine Notenbäume')" />
                 </div>
             @else
-                <div class="np-karte p-2">
+                <div class="np-karte max-w-6xl p-2">
                     <table class="np-tabelle table-fixed text-sm">
                         <caption class="sr-only">{{ __('Notenbäume') }}</caption>
                         <thead>
@@ -49,13 +49,13 @@
                                 <tr data-href="{{ $ziel }}">
                                     <td>
                                         <div class="flex min-w-0 items-center gap-2">
-                                            <a href="{{ $ziel }}" class="truncate font-medium {{ $b->aktiv ? 'text-text' : 'text-muted' }}">{{ $b->name }}</a>
+                                            <a href="{{ $ziel }}" title="{{ $b->name }}" class="truncate font-medium {{ $b->aktiv ? 'text-text' : 'text-muted' }}">{{ $b->name }}</a>
                                             @unless($b->aktiv)
                                                 <span class="np-marke shrink-0 text-muted">{{ __('Inaktiv') }}</span>
                                             @endunless
                                         </div>
                                     </td>
-                                    <td class="truncate {{ $b->aktiv ? 'text-text' : 'text-muted' }}">{{ $gilt }}</td>
+                                    <td class="truncate {{ $b->aktiv ? 'text-text' : 'text-muted' }}" title="{{ $gilt }}">{{ $gilt }}</td>
                                     <td class="text-right text-muted">{{ $b->positionen }}</td>
                                     <td class="text-right">
                                         <x-zeilen-link :href="route('admin.master-data.grade-trees.export', $b->baum_id)" :label="__('Exportieren')" :zeile="$b->name" />

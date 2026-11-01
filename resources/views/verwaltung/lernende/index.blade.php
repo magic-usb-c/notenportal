@@ -26,8 +26,9 @@
         default => __('vor :tage Tagen', ['tage' => $tage]),
     };
     $spalten = $bereich === 'admin' ? 9 : 8;
-    // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte; der Admin hat zwei Spalten mehr und füllt das Fenster
-    $kartenbreite = $bereich === 'admin' ? '' : 'max-w-7xl';
+    // Obergrenze der Karte: Summe der festen Spalten plus Platz für die Status-Spalte; der Admin hat zwei Spalten mehr (100rem),
+    // damit 2560 px wie 1920 px aussieht und die Filterleiste einzeilig bleibt
+    $kartenbreite = $bereich === 'admin' ? 'max-w-[100rem]' : 'max-w-7xl';
     // Untergrenze der Tabelle: feste Spalten plus Status-Spalte (13 rem, Marken umbrechen). Darunter scrollt die Tabelle in der Karte,
     // statt dass Marken in die Aktionsspalte laufen oder die Seite überläuft; ab etwa 1700 px Fensterbreite bleibt alles unverändert.
     $tabellenMin = $bereich === 'admin' ? 'min-w-[78rem]' : 'min-w-[68rem]';
