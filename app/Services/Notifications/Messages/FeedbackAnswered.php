@@ -6,6 +6,7 @@ namespace App\Services\Notifications\Messages;
 
 use App\Models\Feedback;
 use App\Services\Notifications\MailContent;
+use Illuminate\Support\Str;
 
 /** Die eigene Meldung wurde beantwortet – oder nur ihr Status hat sich geändert (dann ohne Antwort-Behauptung). */
 final class FeedbackAnswered
@@ -25,7 +26,8 @@ final class FeedbackAnswered
             sections: $beantwortet ? [['title' => __('Antwort'), 'text' => $feedback->admin_notiz]] : [],
             actionLabel: __('Meine Meldungen'),
             actionUrl: route('feedback.index'),
-            digestTitle: __('Deine Meldung ist jetzt «:status»', ['status' => $status]),
+            digestTitle: $beantwortet ? __('Deine Meldung wurde beantwortet') : __('Deine Meldung ist jetzt «:status»', ['status' => $status]),
+            digestText: $beantwortet ? Str::limit((string) $feedback->admin_notiz, 300) : null,
         );
     }
 }

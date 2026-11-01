@@ -36,6 +36,11 @@ class DatenauskunftController extends Controller
         Log::info('Datenauskunft erstellt', ['benutzer_id' => $user->benutzer_id]);
         Protokoll::schreiben(Protokoll::AUTH_DATENAUSKUNFT_EIGENE, $user);
 
-        return response()->download($pfad, $this->datenauskunft->dateiname($user))->deleteFileAfterSend();
+        $antwort = response()->download($pfad, $this->datenauskunft->dateiname($user))->deleteFileAfterSend();
+        // Persönliche Daten: nie in Proxys oder gemeinsam genutzten Caches ablegen
+        $antwort->setPrivate();
+        $antwort->headers->addCacheControlDirective('no-store');
+
+        return $antwort;
     }
 }

@@ -37,12 +37,16 @@ class AktivitaetController extends Controller
             ? Aktivitaet::query()
                 ->with('benutzer')
                 ->when($aktion !== '', fn ($q) => $q->where('aktion', $aktion))
-                ->when($person !== '', fn ($q) => $q->whereHas('benutzer', fn ($qq) => $qq
-                    ->where('vorname', 'like', '%'.$personEscaped.'%')
-                    ->orWhere('nachname', 'like', '%'.$personEscaped.'%')
-                    ->orWhere('email', 'like', '%'.$personEscaped.'%')
-                    ->orWhereRaw("CONCAT(vorname, ' ', nachname) LIKE ?", ['%'.$personEscaped.'%'])
-                    ->orWhereRaw("CONCAT(nachname, ' ', vorname) LIKE ?", ['%'.$personEscaped.'%'])))
+                // Gruppiert: Handelnde Person ODER betroffene Person (Spalte «Ziel»), danach mit den
+                // übrigen Filtern (aktion, von, bis) verundet.
+                ->when($person !== '', fn ($q) => $q->where(fn ($g) => $g
+                    ->whereHas('benutzer', fn ($qq) => $qq
+                        ->where('vorname', 'like', '%'.$personEscaped.'%')
+                        ->orWhere('nachname', 'like', '%'.$personEscaped.'%')
+                        ->orWhere('email', 'like', '%'.$personEscaped.'%')
+                        ->orWhereRaw("CONCAT(vorname, ' ', nachname) LIKE ?", ['%'.$personEscaped.'%'])
+                        ->orWhereRaw("CONCAT(nachname, ' ', vorname) LIKE ?", ['%'.$personEscaped.'%']))
+                    ->orWhere('ziel_bezeichnung', 'like', '%'.$personEscaped.'%')))
                 ->when($von !== '', fn ($q) => $q->where('erstellt_am', '>=', Carbon::parse($von)->startOfDay()))
                 ->when($bis !== '', fn ($q) => $q->where('erstellt_am', '<=', Carbon::parse($bis)->endOfDay()))
                 ->orderByDesc('erstellt_am')

@@ -441,6 +441,11 @@ final class CalendarSync
     {
         $titel = trim(implode(': ', array_filter([$info['label'] ?? null, $info['title'] ?? null])));
         $dauer = $info['duration_minutes'] ?? ($ende && ! $ganztags ? max(0, (int) $start->diffInMinutes($ende)) : null);
+        // Gleiche Grenze wie das manuelle Formular (1 bis 600): sonst sprengt ein Termin über mehrere Wochen die
+        // Spalte (smallint) und lässt den ganzen Abgleich beziehungsweise das Übernehmen scheitern.
+        if ($dauer !== null && ($dauer < 1 || $dauer > 600)) {
+            $dauer = null;
+        }
         $raum = $info['room'] ?? $ort;
         $werte = [
             'titel' => $titel !== '' ? mb_substr($titel, 0, 150) : null,

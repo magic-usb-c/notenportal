@@ -1419,3 +1419,17 @@ Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
   Ausnahme gilt nur für ausgeschaltete Fächer (faecher.aktiv = 0).
 - **Bestehende Ziele auf ein Stufenfach bleiben stehen**, neue lassen sich nicht mehr anlegen.
 - **Gespeicherte Kalenderfehler** werden nur aus dem Deutschen übersetzt; ein auf Englisch gespeicherter Fehler bleibt englisch.
+
+## Funktionsprüfung Runden 10 und 11 (01.11.2026): bewusst gelassen
+
+- **CSV mit offenem Anführungsfeld:** Ein Feld, das mit «"» beginnt und nie schliesst, reicht höchstens 64 KB weit
+  (`TabellenLeser::MAX_LOGISCHE_ZEILE`); in einer kleineren Datei verschluckt es die folgenden Zeilen als ein Feld.
+  Bei Notenlisten kommt das praktisch nicht vor, eine Heuristik dagegen würde «24"»-Angaben mitten im Feld brechen.
+- **Kalender-Prüfungen mit Dauer über 600 Minuten** (mehrtägige Termine mit Uhrzeit) werden ohne Dauer übernommen;
+  bestehende ical-Prüfungen verlieren die Dauer beim nächsten Abgleich, sofern das Feld nicht lokal gesperrt ist.
+- **Login-Sperre:** Exotische Schreibweisen einer E-Mail können auf denselben Zählerschlüssel fallen; das sperrt
+  breiter, verhindert aber keinen echten Login. Ein Zähler pro Konto wurde verworfen (erlaubte gezielte Fremdsperre).
+- **403-Seite:** Ersetzt die bekannten Framework-Texte («Forbidden», «This action is unauthorized.», «Invalid
+  signature.»), reicht andere Meldungen aber durch; im Code gibt es heute keine weitere englische `abort(403, …)`.
+- **Verworfen (kein Fehler):** Filter «Keine Noten» zeigt frisch angelegte Lernende (Liste und Ampel zählen
+  verschieden, beides begründet); Semester umdatieren mit Noten (Entscheid steht unter «Offen für David»).

@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
  * Start Testbetrieb: Konten, Lernende, Betreuungen und Tracks bleiben,
  * alle Testnoten und erfassten Abschlussnoten (Notenbaum-Positionen) samt Kommentaren, gesehen-Markierungen, Modulbelegungen,
  * Feedback, Tageszusammenfassungs-Einträge und Benachrichtigungs-Merker werden
- * gelöscht. Alle Konten müssen ihr Passwort neu setzen.
+ * gelöscht; der Abrufzustand (ETag) der Kalender wird zurückgesetzt, damit der nächste Abgleich die Prüfungen neu aufbaut. Alle Konten müssen ihr Passwort neu setzen.
  */
 #[Description('Testdaten für den Start des Testbetriebs bereinigen')]
 #[Signature('notenportal:pilot-vorbereiten {--ausfuehren : Änderungen wirklich schreiben (sonst nur Vorschau)}')]
@@ -43,6 +43,10 @@ class PilotVorbereiten extends Command
             foreach (array_diff(self::TABELLEN, ['feedback']) as $tabelle) {
                 DB::table($tabelle)->delete();
             }
+
+            // Ohne ETag und Last-Modified antwortet der Kalenderserver nicht mehr mit 304 «unverändert»:
+            // der nächste Abgleich baut die gelöschten Prüfungen aus dem Kalender wieder auf.
+            DB::table('calendar_feeds')->update(['etag' => null, 'last_modified' => null]);
 
             DB::table('benutzer')->whereNull('geloescht_am')->update(['passwort_wechsel_noetig' => true]);
         });

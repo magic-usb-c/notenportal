@@ -81,6 +81,24 @@ class LoginRequest extends FormRequest
 
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return $this->normalisierteEmail().'|'.$this->ip();
+    }
+
+    /**
+     * Reduziert die E-Mail auf das, was die Datenbank als gleich vergleicht (Gross-/Kleinschreibung,
+     * Kombinationszeichen, unsichtbare Zeichen), damit alle Schreibweisen denselben Zähler treffen.
+     */
+    private function normalisierteEmail(): string
+    {
+        $email = $this->string('email')->toString();
+
+        if (class_exists(\Normalizer::class)) {
+            $email = \Normalizer::normalize($email, \Normalizer::FORM_KD) ?: $email;
+        }
+
+        $email = preg_replace('/\p{M}+/u', '', $email) ?? $email;
+        $email = Str::lower(Str::transliterate(Str::lower($email)));
+
+        return preg_replace('/[^a-z0-9@._+-]/', '', $email) ?? '';
     }
 }

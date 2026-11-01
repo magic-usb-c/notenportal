@@ -27,6 +27,7 @@
             ($hantelFilter['sort'] ?? null) === 'name',
         ])->filter()->count();
         $unterGenuegend = collect($hantel['zeilen'])
+            ->reject(fn ($r) => $r['status'] === \App\Services\Auswertung\Lernstand::ABGESCHLOSSEN)
             ->filter(fn ($r) => in_array(\App\Support\NotenSkala::stufe($r['jetzt']), [\App\Support\NotenSkala::KNAPP, \App\Support\NotenSkala::UNGENUEGEND], true))
             ->values();
         $feld = 'np-feld np-feld-klein w-auto max-w-64';

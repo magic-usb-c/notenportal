@@ -106,6 +106,8 @@ class FeedbackController extends Controller
         $geaendert = $feedback->status !== $validated['status'] || $feedback->admin_notiz !== ($validated['admin_notiz'] ?? null);
         // Nur eine neue oder geänderte Antwort heisst «beantwortet»; eine stehende Notiz bei reinem Statuswechsel nicht
         $antwortNeu = filled($validated['admin_notiz'] ?? null) && $feedback->admin_notiz !== $validated['admin_notiz'];
+        // Benachrichtigt wird nur bei Statuswechsel oder neuer Antwort; eine geleerte oder gekürzte Notiz sagt der meldenden Person nichts Neues.
+        $benachrichtigen = $feedback->status !== $validated['status'] || $antwortNeu;
 
         $feedback->status = $validated['status'];
         $feedback->admin_notiz = $validated['admin_notiz'] ?? null;
@@ -123,12 +125,12 @@ class FeedbackController extends Controller
             ]);
         }
 
-        if ($geaendert && $feedback->benutzer) {
+        if ($benachrichtigen && $feedback->benutzer) {
             Notifier::send($feedback->benutzer, NotificationCatalog::FEEDBACK_ANSWERED, fn () => FeedbackAnswered::content($feedback, $antwortNeu));
         }
 
         // Jeder Absender eines Duplikats bekommt ebenfalls Bescheid – ausser er hat auch das Original gemeldet.
-        if ($geaendert) {
+        if ($benachrichtigen) {
             foreach ($duplikate as $duplikat) {
                 if (! $duplikat->benutzer) {
                     continue;

@@ -102,7 +102,7 @@ class SicherheitsHeaderTest extends TestCase
     }
 
     #[Test]
-    public function download_einer_sicherung_wird_nicht_mit_no_store_verschlechtert(): void
+    public function download_einer_sicherung_ist_privat_und_wird_nie_gespeichert(): void
     {
         Storage::fake('local');
         Process::fake(function (PendingProcess $prozess) {
@@ -120,7 +120,11 @@ class SicherheitsHeaderTest extends TestCase
 
         $antwort = $this->actingAs($admin)->get(route('admin.operations.backups.show', $name))->assertOk();
 
-        $this->assertStringNotContainsString('no-store', (string) $antwort->headers->get('Cache-Control'));
+        // Die Middleware lässt Downloads in Ruhe; die Sicherung (ganze Datenbank) setzt no-store selbst
+        $cache = (string) $antwort->headers->get('Cache-Control');
+        $this->assertStringContainsString('no-store', $cache);
+        $this->assertStringContainsString('private', $cache);
+        $this->assertStringNotContainsString('public', $cache);
     }
 
     #[Test]

@@ -26,6 +26,9 @@ final class TabellenLeser
     /** Gelesen werden die Notenzeilen plus Platz für Titel-, Kopf- und Fusszeilen; eine Zeile mehr zeigt, dass die Quelle länger ist. */
     private const int GELESEN = self::MAX_ZEILEN + 20;
 
+    /** Längster Datensatz einer CSV in Bytes (mit Zeilenumbrüchen in Anführungsfeldern); darüber gilt ein offenes Anführungsfeld als Fehler der Datei. */
+    private const int MAX_LOGISCHE_ZEILE = 64 * 1024;
+
     /** @return list<list<string>> */
     public function lesen(string $pfad, string $endung): array
     {
@@ -55,6 +58,10 @@ final class TabellenLeser
      * ist Schluss: Speicher und Zeit hängen so nicht von der Zeilenzahl der Datei ab (eine Zeile mehr als GELESEN
      * genügt, damit lesenMitHinweis() meldet, dass die Quelle länger ist).
      *
+     * Ein Zeilenumbruch in einem Anführungsfeld gehört zum Feld (fgetcsv); ein Anführungszeichen mitten in einem
+     * Feld («Bildschirm 24" Test») öffnet kein Feld. Ein Feld, das mit «"» beginnt und nie geschlossen wird, reicht
+     * höchstens MAX_LOGISCHE_ZEILE Bytes weit; danach gilt nur die erste Zeile als Datensatz und der Rest wird normal gelesen.
+     *
      * @return list<list<string>>
      */
     public function csv(string $inhalt): array
@@ -63,6 +70,8 @@ final class TabellenLeser
         if (! mb_check_encoding($inhalt, 'UTF-8')) {
             $inhalt = mb_convert_encoding($inhalt, 'UTF-8', 'Windows-1252');
         }
+        // Alle Zeilenenden (\r\n, \r, \n, NEL, LS, PS …) zu \n, damit fgetcsv überall gleich trennt
+        $inhalt = preg_replace('/\R/u', "\n", $inhalt) ?? $inhalt;
 
         // Trennzeichen aus den ersten zehn Zeilen mit Inhalt, ohne die Datei zu zerlegen
         $probe = '';
@@ -79,11 +88,8 @@ final class TabellenLeser
         $trenner = collect([';' => substr_count($probe, ';'), ',' => substr_count($probe, ','), "\t" => substr_count($probe, "\t")])->sortDesc()->keys()->first();
 
         $out = [];
-        foreach ($this->csvZeilen($inhalt) as $zeile) {
-            if (trim($zeile) === '') {
-                continue;
-            }
-            $zellen = array_map(fn ($c) => trim((string) $c), str_getcsv($zeile, $trenner, '"', '\\'));
+        foreach ($this->csvDatensaetze($inhalt, $trenner) as $zellen) {
+            $zellen = array_map(fn ($c) => trim((string) $c), $zellen);
             if (implode('', $zellen) === '') {
                 continue;
             }
@@ -97,7 +103,40 @@ final class TabellenLeser
     }
 
     /**
-     * Zeilen eines Textes nacheinander (Zeilenende wie \R), ohne den ganzen Text in ein Array zu zerlegen.
+     * Datensätze eines CSV-Textes (Zeilenende \n) nacheinander, ohne den ganzen Text in ein Array zu zerlegen.
+     * Leere Zeilen kommen als [null].
+     *
+     * @return \Generator<int, list<string|null>>
+     */
+    private function csvDatensaetze(string $inhalt, string $trenner): \Generator
+    {
+        $strom = fopen('php://temp', 'r+');
+        if ($strom === false) {
+            throw new RuntimeException('CSV nicht lesbar.');
+        }
+        try {
+            fwrite($strom, $inhalt);
+            rewind($strom);
+            while (true) {
+                $start = (int) ftell($strom);
+                $zellen = fgetcsv($strom, null, $trenner, '"', '\\');
+                if ($zellen === false) {
+                    return;
+                }
+                if ((int) ftell($strom) - $start > self::MAX_LOGISCHE_ZEILE) {
+                    // Anführungsfeld ohne Ende: nur die erste Zeile gilt als Datensatz, der Rest wird wieder normal gelesen
+                    fseek($strom, $start);
+                    $zellen = str_getcsv((string) fgets($strom), $trenner, '"', '\\');
+                }
+                yield $zellen;
+            }
+        } finally {
+            fclose($strom);
+        }
+    }
+
+    /**
+     * Zeilen eines Textes nacheinander (Zeilenende \n), ohne den ganzen Text in ein Array zu zerlegen; nur für die Trennerprobe.
      *
      * @return \Generator<int, string>
      */
@@ -106,11 +145,12 @@ final class TabellenLeser
         $laenge = strlen($inhalt);
         $pos = 0;
         while ($pos < $laenge) {
-            if (preg_match('/\G([^\n\r\x0B\x0C\x{85}\x{2028}\x{2029}]*)(\R|\z)/u', $inhalt, $m, PREG_OFFSET_CAPTURE, $pos) !== 1) {
-                return;
+            $ende = strpos($inhalt, "\n", $pos);
+            if ($ende === false) {
+                $ende = $laenge;
             }
-            yield $m[1][0];
-            $pos = $m[2][1] + strlen($m[2][0]);
+            yield substr($inhalt, $pos, $ende - $pos);
+            $pos = $ende + 1;
         }
     }
 

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Betreuung;
+use App\Models\CalendarFeed;
 use App\Models\Feedback;
 use App\Models\Note;
 use App\Models\NotenbaumPosition;
@@ -63,6 +64,23 @@ class PilotVorbereitenTest extends TestCase
         $this->assertNotNull($lernender->lernender->fresh());
         $this->assertTrue($lernender->fresh()->passwort_wechsel_noetig);
         $this->assertTrue($admin->fresh()->passwort_wechsel_noetig);
+    }
+
+    #[Test]
+    public function ausfuehren_setzt_den_abrufzustand_der_kalender_zurueck(): void
+    {
+        $lernender = $this->testdaten();
+        $feed = CalendarFeed::create(['lernender_id' => $lernender->lernender->lernender_id, 'url' => 'https://schulnetz.example/ical/geheim']);
+        $feed->forceFill(['etag' => '"abc"', 'last_modified' => 'Sat, 31 Oct 2026 10:00:00 GMT'])->save();
+
+        $this->artisan('notenportal:pilot-vorbereiten')->assertSuccessful();
+        $this->assertSame('"abc"', $feed->fresh()->etag);
+
+        $this->artisan('notenportal:pilot-vorbereiten', ['--ausfuehren' => true])->assertSuccessful();
+
+        $this->assertNull($feed->fresh()->etag);
+        $this->assertNull($feed->fresh()->last_modified);
+        $this->assertSame(1, CalendarFeed::count());
     }
 
     #[Test]

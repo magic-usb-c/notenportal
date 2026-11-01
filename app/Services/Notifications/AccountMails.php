@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notifications;
 
+use App\Http\Controllers\Auth\NewPasswordController;
 use App\Models\User;
 use App\Support\Einstellungen;
 use App\Support\Protokoll;
@@ -38,6 +39,9 @@ final class AccountMails
 
     public static function passwordResetByAdmin(User $user): void
     {
+        // Zuerst, auch für deaktivierte Konten: ein früherer Vergessen-Link darf nach dem Reset nicht mehr gelten
+        NewPasswordController::offeneLinksLoeschen($user);
+
         // Wie «Passwort vergessen»: an deaktivierte oder gelöschte Konten geht weder Link noch Mail
         if (! $user->aktiv || $user->trashed()) {
             return;

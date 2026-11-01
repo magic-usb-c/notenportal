@@ -95,8 +95,11 @@ class BetriebController extends Controller
         $pfad = $this->sicherung->pfad($name);
         Protokoll::schreiben(Protokoll::ADMIN_SICHERUNG_HERUNTERGELADEN, null, ['name' => $name]);
 
-        return response()->download($pfad, $name, ['Content-Type' => 'application/zip'])
-            ->setPrivate();
+        // Ganze Datenbank: wie die Datenauskunft nie in Proxys oder gemeinsam genutzten Caches ablegen
+        $antwort = response()->download($pfad, $name, ['Content-Type' => 'application/zip'])->setPrivate();
+        $antwort->headers->addCacheControlDirective('no-store');
+
+        return $antwort;
     }
 
     public function sicherungLoeschen(string $name): RedirectResponse

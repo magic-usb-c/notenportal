@@ -508,6 +508,14 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Lernendenliste Admin (100rem), Notenbaum-Liste (max-w-6xl, Tooltips), Zeugnisnoten-Matrix nur so breit
                   wie ihre Spalten. rundgang.mjs wertet Datei-Links (Download) nicht mehr als Ladefehler. Rundgänge aller
                   drei Rollen Exit 0.
+[Q] 01.11. 03:30  Funktionsprüfung Runden 10 (Klicktest, Admin, Jobs) und 11 (Lernende, Berufsbildner, Sicherheit, Mails):
+                  12 bestätigt, alle behoben. CSV-Import liest Umbrüche in Anführungsfeldern (fgetcsv, 64-KB-Grenze),
+                  Kalender-Abgleich scheitert nicht mehr an Dauer > 65535 Min., Pilot-Reset leert Feed-ETags, Protokoll-
+                  suche findet die betroffene Person, /grades wählt am ersten Semestertag das laufende Semester, LBV-
+                  Gewichte mit Nachkommastellen, BB-Warnliste ohne abgeschlossene Lernende, Login-Sperre zählt alle
+                  Schreibweisen einer E-Mail, Datenauskunft und Sicherung «private, no-store», Admin-Reset entwertet
+                  alte Vergessen-Links, 403 bei ungültiger Signatur deutsch, Feedback-Mail nur bei Status oder Antwort.
+                  Suite 2151 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runden 10 und 11».
 ```
 
 ---

@@ -91,7 +91,7 @@
                                     <tr>
                                         <td class="break-words text-text">{{ $element->bezeichnung }}</td>
                                         @if($lbvForm)<td class="break-words text-muted">{{ $element->pruefungsform ?: '–' }}</td>@endif
-                                        @if($lbvGewicht)<td class="text-right tabular-nums text-text">{{ $element->gewichtung_prozent !== null ? (int) $element->gewichtung_prozent.' %' : '–' }}</td>@endif
+                                        @if($lbvGewicht)<td class="text-right tabular-nums text-text">{{ \App\Support\Zahl::prozent($element->gewichtung_prozent) }}</td>@endif
                                     </tr>
                                 @endforeach
                             </tbody>

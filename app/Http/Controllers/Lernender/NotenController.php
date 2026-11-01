@@ -97,7 +97,7 @@ class NotenController extends Controller
             : (int) ($semester->firstWhere(function ($s) {
                 $today = Carbon::today()->toDateString();
 
-                return (string) $s->start_datum <= $today && (string) $s->end_datum >= $today;
+                return $s->start_datum->toDateString() <= $today && $s->end_datum->toDateString() >= $today;
             })?->semester_id ?? ($semester->last()?->semester_id ?? 0));
 
         // prev/next Semester (für Pfeile)
