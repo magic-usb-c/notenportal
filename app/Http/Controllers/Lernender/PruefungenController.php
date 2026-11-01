@@ -156,7 +156,7 @@ class PruefungenController extends Controller
             ->whereNull('pruefung_id')->findOrFail($calendar_event_id);
 
         $daten = $request->validate([
-            'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
+            'bezug' => ['required', 'string', 'regex:/^(fach|modul):[1-9][0-9]{0,17}$/'],
         ], ['bezug.required' => __('Bitte Fach oder Modul wählen.')]);
         [$typ, $id] = explode(':', $daten['bezug']);
         try {
@@ -256,7 +256,7 @@ class PruefungenController extends Controller
     private function validiere(Request $request, Lernender $lernender): array
     {
         $daten = $request->validate([
-            'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
+            'bezug' => ['required', 'string', 'regex:/^(fach|modul):[1-9][0-9]{0,17}$/'],
             'datum' => ['required', 'date_format:Y-m-d'],
             'uhrzeit' => ['nullable', 'date_format:H:i'],
             'gewichtung_prozent' => ['required', 'numeric', 'min:0', 'max:100'],

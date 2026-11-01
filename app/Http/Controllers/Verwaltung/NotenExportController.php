@@ -90,7 +90,7 @@ class NotenExportController extends VerwaltungController
             fwrite($out, "\xEF\xBB\xBF");
 
             $kopf = [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')];
-            fputcsv($out, $mitName ? [__('Nachname'), __('Vorname'), ...$kopf] : $kopf, ';');
+            fputcsv($out, $mitName ? [__('Nachname'), __('Vorname'), ...$kopf] : $kopf, ';', '"', '');
 
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
@@ -104,7 +104,7 @@ class NotenExportController extends VerwaltungController
                     $r->gewichtung_prozent ?? 100,
                 ];
 
-                fputcsv($out, $mitName ? [Csv::safe($r->nachname), Csv::safe($r->vorname), ...$zeile] : $zeile, ';');
+                fputcsv($out, $mitName ? [Csv::safe($r->nachname), Csv::safe($r->vorname), ...$zeile] : $zeile, ';', '"', '');
             }
 
             fclose($out);

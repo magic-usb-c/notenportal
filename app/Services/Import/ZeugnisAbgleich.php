@@ -100,8 +100,9 @@ final class ZeugnisAbgleich
         $stufenFaecher = $this->stufenFaecher();
         $markiert = [];
         foreach (array_values($zeilen) as $i => $z) {
-            if (! empty($z['uebernehmen']) && ! isset($stufenFaecher[$z['bezug']])) {
-                $markiert[] = ['nr' => $i + 1, 'datum' => substr($datum, 0, 10), 'bezug' => $z['bezug'], 'titel' => 'Zeugnis',
+            $bezug = NotenImport::bezugNormalisieren((string) ($z['bezug'] ?? '')) ?? (string) ($z['bezug'] ?? '');
+            if (! empty($z['uebernehmen']) && ! isset($stufenFaecher[$bezug])) {
+                $markiert[] = ['nr' => $i + 1, 'datum' => substr($datum, 0, 10), 'bezug' => $bezug, 'titel' => 'Zeugnis',
                     'note' => (float) $z['note'], 'gewicht' => 100, 'uebernehmen' => true];
             }
         }

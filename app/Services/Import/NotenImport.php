@@ -17,6 +17,9 @@ use Illuminate\Validation\ValidationException;
  */
 final class NotenImport
 {
+    /** Kanonischer Bezug «fach:ID» / «modul:ID»: ID ohne führende Null und höchstens 18 Ziffern (passt in PHP_INT_MAX). */
+    public const string BEZUG_MUSTER = '/^(fach|modul):[1-9][0-9]{0,17}$/';
+
     private const array KOPF = [
         'datum' => ['datum', 'date', 'prüfungsdatum', 'pruefungsdatum', 'am', 'tag'],
         'bezug' => ['fach', 'modul', 'fach/modul', 'fach / modul', 'bezug', 'kurs', 'gegenstand', 'lernfeld', 'fach oder modul'],
@@ -100,7 +103,7 @@ final class NotenImport
                     'datum' => $datum,
                     'bezug' => $bezug,
                     'bezug_roh' => mb_substr($roh('bezug'), 0, 150),
-                    'titel' => mb_substr($roh('titel'), 0, 150),
+                    'titel' => mb_substr(Csv::entschaerfen($roh('titel')), 0, 150),
                     'note' => $note ?? $stufe,
                     'gewicht' => $this->gewichtFeld($gewicht, $roh('gewicht'), $faktor),
                     ...$bewertet,
@@ -145,7 +148,7 @@ final class NotenImport
                 $datumRoh = trim((string) ($z['datum'] ?? ''));
                 $datum = $datumRoh !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $datumRoh) === 1 ? $datumRoh : null;
                 $bezugRoh = (string) ($z['bezug'] ?? '');
-                $bezug = $bezugRoh !== '' && preg_match('/^(fach|modul):\d+$/', $bezugRoh) === 1 ? $bezugRoh : null;
+                $bezug = $bezugRoh !== '' && preg_match(self::BEZUG_MUSTER, $bezugRoh) === 1 ? $bezugRoh : null;
                 $noteRoh = trim((string) ($z['note'] ?? ''));
                 $note = WertParser::note($noteRoh);
                 $stufe = WertParser::stufe($noteRoh);
@@ -335,7 +338,7 @@ final class NotenImport
             $z['gewicht'] = WertParser::punkt($z['gewicht'] ?? null);
             $pruefung = Validator::make($z, [
                 'datum' => ['required', 'date_format:Y-m-d'],
-                'bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
+                'bezug' => ['required', 'regex:'.self::BEZUG_MUSTER],
                 'titel' => ['nullable', 'string', 'max:150'],
                 'note' => $stufenFach
                     ? ['required', 'string', 'in:'.implode(',', NoteService::STUFEN)]
@@ -349,7 +352,7 @@ final class NotenImport
             }
 
             $datum = (string) $z['datum'];
-            $bezug = (string) $z['bezug'];
+            $bezug = self::bezugNormalisieren((string) $z['bezug']) ?? (string) $z['bezug'];
             $schluessel = $bezug.'|'.$datum.'|'.($stufenFach ? 's:'.$z['note'] : number_format((float) $z['note'], 2));
             if (isset($vorhanden[$schluessel])) {
                 $fehler[] = __('Zeile :nr: :fehler', ['nr' => $nr, 'fehler' => __('bereits erfasst')]);
@@ -410,6 +413,15 @@ final class NotenImport
         }
 
         return ['neu' => $neu, 'fehler' => [], 'semester_ids' => array_keys($semesterIds)];
+    }
+
+    /**
+     * Bezug in die kanonische Form bringen («fach:007» → «fach:7»), damit Dubletten- und Stufenfach-Schlüssel
+     * immer dieselbe Zeichenkette vergleichen. Null, wenn der Bezug keine gültige Form hat.
+     */
+    public static function bezugNormalisieren(string $bezug): ?string
+    {
+        return preg_match('/^(fach|modul):0*([1-9][0-9]{0,17})$/', $bezug, $m) === 1 ? $m[1].':'.$m[2] : null;
     }
 
     /** CSV-Vorlage mit Kopfzeile und je einem Beispiel pro Fach/Modul-Art. */

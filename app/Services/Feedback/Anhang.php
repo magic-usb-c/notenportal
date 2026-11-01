@@ -39,6 +39,9 @@ final class Anhang
 
     public const string DISK = 'local';
 
+    /** So viele Bytes einer Textdatei werden auf gültiges UTF-8 geprüft. */
+    private const int TEXT_PRUEF_BYTES = 65536;
+
     private const string ORDNER = 'feedback/anhaenge';
 
     /** getimagesize()-Bildtyp => [Endung, MIME]. Bewusst keine weiteren Formate (kein SVG/HTML – XSS). */
@@ -104,7 +107,13 @@ final class Anhang
     /** Reine Textdatei: gültiges UTF-8, keine Nullbytes. */
     private static function istText(string $pfad): bool
     {
-        $inhalt = @file_get_contents($pfad, false, null, 0, 65536);
+        $inhalt = @file_get_contents($pfad, false, null, 0, self::TEXT_PRUEF_BYTES);
+
+        // Nur bei grösseren Dateien liegt der Schnitt mitten in der Datei: ein dort abgeschnittenes
+        // Mehrbyte-Zeichen ist kein Kodierungsfehler. Kleinere Dateien werden ganz geprüft.
+        if (is_string($inhalt) && (int) @filesize($pfad) > self::TEXT_PRUEF_BYTES) {
+            $inhalt = preg_replace('/[\xC0-\xF7][\x80-\xBF]{0,2}$/D', '', $inhalt) ?? $inhalt;
+        }
 
         return $inhalt !== false && ! str_contains($inhalt, "\0") && mb_check_encoding($inhalt, 'UTF-8');
     }

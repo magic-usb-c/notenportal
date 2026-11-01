@@ -15,4 +15,13 @@ class Csv
 
         return preg_match('/^[=+\-@\t\r]/', $value) ? "'".$value : $value;
     }
+
+    /**
+     * Gegenstück zu safe() beim Wiedereinlesen: entfernt das Apostroph, das safe() vor ein Formelzeichen
+     * (=, +, -, @, Tab, CR) gesetzt hat. Ein Apostroph vor jedem anderen Zeichen gehört zum Text und bleibt.
+     */
+    public static function entschaerfen(string $value): string
+    {
+        return preg_replace('/^\'(?=[=+\-@\t\r])/', '', $value) ?? $value;
+    }
 }

@@ -78,7 +78,7 @@ class BerichtController extends Controller
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
             fputcsv($out, [__('Nachname'), __('Vorname'), __('Lehrberuf'), __('Status'), __('Gesamtnote'), ...($mitSemester ? [__('Semesternote')] : []),
-                __('Ungenügende Zeugnisnoten'), __('Prüfungen'), __('Letzte Note'), __('Gründe')], ';');
+                __('Ungenügende Zeugnisnoten'), __('Prüfungen'), __('Letzte Note'), __('Gründe')], ';', '"', '');
 
             foreach ($zeilen as $z) {
                 fputcsv($out, [
@@ -86,7 +86,7 @@ class BerichtController extends Controller
                     $this->statusText($z->stand->status), $zahl($z->gesamt), ...($mitSemester ? [$zahl($z->semester)] : []),
                     $z->ungenuegend, $z->pruefungen, $z->letzte ? Carbon::parse($z->letzte)->format('d.m.Y') : '',
                     Csv::safe(implode(', ', $z->stand->gruende)),
-                ], ';');
+                ], ';', '"', '');
             }
 
             fclose($out);

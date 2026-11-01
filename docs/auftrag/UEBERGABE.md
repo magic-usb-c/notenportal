@@ -538,6 +538,13 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   holt voll, solange ein künftiger Prüfungstermin unzugeordnet ist. Mails: englische Anführungszeichen,
                   «supervision», 14 px auf Mobil, kein leerer Block, Feedback-Status nicht dreifach, Knopf «:name öffnen».
                   Live-Routen-Cache neu gebaut. Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 14 und Mail-Prüfung».
+[Q] 01.11. 08:30  Funktionsprüfung Runde 15 (6 bestätigt, alle niedrig) behoben: Admin löst die Datenauskunft aus der
+                  Lernendenansicht aus (Menü «Daten herunterladen»). CSV liest und schreibt nach RFC 4180 (leeres Escape in
+                  allen zehn Schreibern), Titel mit Backslash und «\"» überstehen Export und Import, das Schutz-Apostroph
+                  vor = + - @ fällt beim Import weg. Bezug «fach:007» und IDs über 18 Ziffern werden überall abgewiesen,
+                  der Zeugnis-Abgleich normalisiert vor dem Stufenfach-Test. Textanhang über 64 KB mit Umlaut am Schnitt
+                  wird angenommen, Notenbaum-Export einer fehlenden ID gibt 404. Suite 2245 grün.
+                  Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 15».
 ```
 
 ---

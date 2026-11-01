@@ -119,14 +119,14 @@ final class TabellenLeser
             rewind($strom);
             while (true) {
                 $start = (int) ftell($strom);
-                $zellen = fgetcsv($strom, null, $trenner, '"', '\\');
+                $zellen = fgetcsv($strom, null, $trenner, '"', '');
                 if ($zellen === false) {
                     return;
                 }
                 if ((int) ftell($strom) - $start > self::MAX_LOGISCHE_ZEILE) {
                     // Anführungsfeld ohne Ende: nur die erste Zeile gilt als Datensatz, der Rest wird wieder normal gelesen
                     fseek($strom, $start);
-                    $zellen = str_getcsv((string) fgets($strom), $trenner, '"', '\\');
+                    $zellen = str_getcsv((string) fgets($strom), $trenner, '"', '');
                 }
                 yield $zellen;
             }

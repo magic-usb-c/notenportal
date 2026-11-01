@@ -68,4 +68,31 @@ class CsvAnfuehrungsfeldTest extends TestCase
 
         $this->assertSame([['a', 'b'], ['c', "d\ne"]], $zeilen);
     }
+
+    /** Funktionsprüfung Runde 15: Die Vorlage schreibt ohne Escape-Zeichen (RFC 4180), der Leser muss dasselbe annehmen. */
+    #[Test]
+    public function titel_mit_backslash_am_ende_laesst_sich_aus_der_vorlage_wieder_lesen(): void
+    {
+        $zeile = ['02.03.2026', 'M908', 'Pfad C:\\Temp\\', '4,5', '50'];
+        $h = fopen('php://temp', 'w+');
+        fputcsv($h, explode(';', self::KOPF), ';', '"', '', "\r\n");
+        fputcsv($h, $zeile, ';', '"', '', "\r\n");
+        fputcsv($h, ['03.03.2026', 'M908', 'Test', '5', '50'], ';', '"', '', "\r\n");
+        rewind($h);
+        $csv = (string) stream_get_contents($h);
+
+        $zeilen = (new TabellenLeser)->csv($csv);
+
+        $this->assertCount(3, $zeilen);
+        $this->assertSame($zeile, $zeilen[1]);
+        $this->assertSame(['03.03.2026', 'M908', 'Test', '5', '50'], $zeilen[2]);
+    }
+
+    #[Test]
+    public function backslash_vor_anfuehrungszeichen_im_feld_bleibt_erhalten(): void
+    {
+        $zeilen = (new TabellenLeser)->csv("a;\"x\\\"\"y z\";4\nb;c;5\n");
+
+        $this->assertSame([['a', 'x\\"y z', '4'], ['b', 'c', '5']], $zeilen);
+    }
 }

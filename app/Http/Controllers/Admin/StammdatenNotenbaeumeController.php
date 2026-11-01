@@ -205,6 +205,8 @@ class StammdatenNotenbaeumeController extends Controller
 
     public function exportieren(int $baum_id): Response
     {
+        DB::table('notenbaeume')->where('baum_id', $baum_id)->exists() || abort(404);
+
         $daten = $this->vorlagen->exportieren($baum_id);
         $json = (string) json_encode($daten, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         $datei = 'notenbaum-'.(Str::slug((string) $daten['name']) ?: $baum_id).'.json';

@@ -1469,3 +1469,12 @@ Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
   und erster Absatz mit demselben Semester, Digest ohne Anlass im Fuss, englische Anrede ohne Komma, Rolle
   «Lernender» bei weiblicher Person, rohe mysqldump-Meldung in der Sicherungsmail (für Admins gewollt).
 
+## Funktionsprüfung Runde 15 (01.11.2026): bewusst gelassen
+
+- **Titel, der wirklich mit «'=» beginnt:** Der Export schützt nur das erste Zeichen; beim Import fällt das Apostroph
+  vor dem Formelzeichen weg (`Csv::entschaerfen`), aus «'=x» wird «=x». Ohne geändertes Exportformat nicht von einem
+  geschützten «=x» zu unterscheiden, sehr selten.
+- **Zeugnis-Abgleich als Dienst:** Ein nicht normalisierbarer Bezug geht unverändert an den Notenimport und scheitert
+  dort mit Zeilenfehler; der Controller weist ihn vorher per Regel ab, der Dienst selbst meldet nichts Eigenes.
+- **Textanhang über 64 KB:** Am Schnitt wird auch ein vollständiges Mehrbyte-Zeichen ganz am Ende des Lesefensters
+  verworfen, bevor auf UTF-8 geprüft wird. Unschädlich, nur die Prüfung sieht ein Zeichen weniger.

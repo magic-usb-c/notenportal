@@ -325,6 +325,24 @@ class NotenImportBefundeTest extends TestCase
     }
 
     #[Test]
+    public function der_eigene_export_behaelt_titel_mit_backslash_und_anfuehrungszeichen(): void
+    {
+        $semester = (int) DB::table('semester')->value('semester_id');
+        $kategorie = (int) DB::table('kategorien')->value('kategorie_id');
+        $titel = ['Pfad C:\\Daten\\', 'Zitat \\"echt\\" und "doppelt"', '=Summe'];
+        foreach ($titel as $i => $t) {
+            Note::factory()->create(['lernender_id' => $this->lid, 'fach_id' => $this->fach, 'kategorie_id' => $kategorie, 'semester_id' => $semester,
+                'pruefungsdatum' => '2026-03-0'.($i + 2), 'titel' => $t, 'note_wert' => 4.5, 'note_stufe' => null]);
+        }
+        $csv = $this->actingAs($this->user)->get(route('learner.grades.export'))->streamedContent();
+        Note::query()->forceDelete();
+
+        $this->lesen($csv)->assertRedirect();
+
+        $this->assertEqualsCanonicalizing($titel, array_column($this->vorschau()['zeilen'], 'titel'));
+    }
+
+    #[Test]
     public function stufe_bei_zahlenfach_und_zahl_bei_stufenfach_sind_sichtbare_fehler(): void
     {
         $this->lesen("Datum;Fach/Modul;Titel;Note;Gewicht\n02.03.2026;SK;A;B;100\n03.03.2026;Sport;B;4,5;100\n04.03.2026;Sport;C;x;100\n")->assertRedirect();

@@ -216,7 +216,7 @@ class PruefungenController extends VerwaltungController
     {
         $daten = $request->validate([
             'lernender_id' => ['required', 'integer'],
-            'bezug' => ['required', 'string', 'regex:/^(fach|modul):\d+$/'],
+            'bezug' => ['required', 'string', 'regex:/^(fach|modul):[1-9][0-9]{0,17}$/'],
             'titel' => ['required', 'string', 'max:150'],
             'datum' => ['required', 'date_format:Y-m-d'],
             'gewichtung_prozent' => ['nullable', 'numeric', 'min:0', 'max:100'],

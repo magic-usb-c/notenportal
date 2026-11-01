@@ -261,7 +261,7 @@ class FeedbackController extends Controller
         return response()->streamDownload(function () use ($rows) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, [__('Datum'), __('Nachname'), __('Vorname'), __('E-Mail'), __('Rolle'), __('Kategorie'), __('Status'), __('Text'), __('Route'), __('URL'), __('Viewport'), __('Browser')], ';');
+            fputcsv($out, [__('Datum'), __('Nachname'), __('Vorname'), __('E-Mail'), __('Rolle'), __('Kategorie'), __('Status'), __('Text'), __('Route'), __('URL'), __('Viewport'), __('Browser')], ';', '"', '');
 
             foreach ($rows as $r) {
                 fputcsv($out, [
@@ -277,7 +277,7 @@ class FeedbackController extends Controller
                     Csv::safe($r->url ?? ''),
                     Csv::safe($r->viewport ?? ''),
                     Csv::safe($r->browser ?? ''),
-                ], ';');
+                ], ';', '"', '');
             }
 
             fclose($out);

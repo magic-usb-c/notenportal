@@ -23,6 +23,9 @@
                         @if($stand->auswertung->baeume)
                             <x-dropdown-link href="{{ route($bereich.'.learners.qualification', $lernender->lernender_id) }}">{{ __('Abschluss') }}</x-dropdown-link>
                         @endif
+                        @if($bereich === 'admin')
+                            <x-dropdown-link href="{{ route('admin.users.data-export', $lernender->benutzer_id) }}">{{ __('Daten herunterladen') }}</x-dropdown-link>
+                        @endif
                     </x-slot>
                 </x-dropdown>
             </x-slot:aktionen>

@@ -211,7 +211,7 @@ class NotenController extends Controller
             'bezugOptionen' => $this->noteService->bezugOptionen((int) $lernender->lernender_id),
             'semesterListe' => $this->noteService->semesterListe((int) $lernender->lernender_id),
             'pruefung' => $pruefung,
-            'vorauswahl' => is_string($bezug) && preg_match('/^(fach|modul):\d+$/', $bezug) ? $bezug : null,
+            'vorauswahl' => is_string($bezug) && preg_match('/^(fach|modul):[1-9][0-9]{0,17}$/', $bezug) ? $bezug : null,
             'rueckziel' => $this->rueckziel($request),
         ];
 
@@ -500,7 +500,7 @@ class NotenController extends Controller
         return response()->streamDownload(function () use ($rows, $lernenderId) {
             $out = fopen('php://output', 'w');
             fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')], ';');
+            fputcsv($out, [__('Datum'), __('Semester'), __('Kategorie'), __('Fach / Modul'), __('Titel'), __('Note'), __('Gewichtung %')], ';', '"', '');
             foreach ($rows as $r) {
                 $fachModul = $r->fach_name
                     ?? ($r->modul_nummer ? $r->modul_nummer.' – '.$r->modul_titel : '');
@@ -515,7 +515,7 @@ class NotenController extends Controller
                     Csv::safe($r->titel ?? ''),
                     $r->note_wert !== null ? number_format((float) $r->note_wert, 2, '.', '') : NotenSkala::stufeText($r->note_stufe),
                     $r->gewichtung_prozent ?? 100,
-                ], ';');
+                ], ';', '"', '');
             }
             fclose($out);
         }, $filename, [

@@ -119,7 +119,7 @@ class DokumenteController extends Controller
         $daten = $request->validate([
             'semester_id' => ['required', 'integer', 'exists:semester,semester_id'],
             'zeilen' => ['required', 'array', 'max:100'],
-            'zeilen.*.bezug' => ['required', 'regex:/^(fach|modul):\d+$/'],
+            'zeilen.*.bezug' => ['required', 'regex:/^(fach|modul):[1-9][0-9]{0,17}$/'],
             'zeilen.*.note' => ['required', 'numeric', 'min:1', 'max:6'],
             'zeilen.*.uebernehmen' => ['nullable', 'boolean'],
         ]);

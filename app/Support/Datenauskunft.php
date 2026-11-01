@@ -700,9 +700,9 @@ final class Datenauskunft
     {
         $out = fopen('php://temp', 'r+');
         fwrite($out, "\xEF\xBB\xBF");
-        fputcsv($out, $kopf, ';');
+        fputcsv($out, $kopf, ';', '"', '');
         foreach ($zeilen as $zeile) {
-            fputcsv($out, $zeile, ';');
+            fputcsv($out, $zeile, ';', '"', '');
         }
         rewind($out);
         $inhalt = (string) stream_get_contents($out);
