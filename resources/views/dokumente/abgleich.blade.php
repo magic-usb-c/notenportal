@@ -110,8 +110,13 @@
                                                         {{ __('übernehmen') }}
                                                     </label>
                                                 @else
-                                                    <x-status :status="match ($z['status']) { 'gleich' => 'gruen', 'abweichung' => 'gelb', default => 'neutral' }"
-                                                              :text="match ($z['status']) { 'gleich' => __('stimmt'), 'abweichung' => __('abweichend'), 'unbekannt' => __('nicht zugeordnet'), 'stufe' => __('Stufe'), default => __('fehlt') }" />
+                                                    <div class="flex items-center justify-between gap-3">
+                                                        <x-status :status="match ($z['status']) { 'gleich' => 'gruen', 'abweichung' => 'gelb', default => 'neutral' }"
+                                                                  :text="match ($z['status']) { 'gleich' => __('stimmt'), 'abweichung' => __('abweichend'), 'unbekannt' => __('nicht zugeordnet'), 'stufe' => __('Stufe'), default => __('fehlt') }" />
+                                                        @if($z['status'] === 'abweichung')
+                                                            <a href="{{ $notenUrl($semesterId) }}" class="inline-flex min-h-6 items-center text-sm text-accent-text hover:underline">{{ __('Noten ansehen') }}</a>
+                                                        @endif
+                                                    </div>
                                                 @endif
                                             </td>
                                         </tr>

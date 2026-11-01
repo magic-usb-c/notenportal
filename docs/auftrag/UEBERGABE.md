@@ -545,6 +545,12 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   der Zeugnis-Abgleich normalisiert vor dem Stufenfach-Test. Textanhang über 64 KB mit Umlaut am Schnitt
                   wird angenommen, Notenbaum-Export einer fehlenden ID gibt 404. Suite 2245 grün.
                   Bewusst gelassen: audit-backlog «Funktionsprüfung Runde 15».
+[Q] 01.11. 11:00  Dunkel-Rundgang 15 und UX-Lauf 17: Aktivitätsprotokoll begrenzt Karte und Seitenwechsel je
+                  Spaltensatz (2560 px wie 1920 px). Menüs (x-dropdown) mit Pfeil auf/ab, Pos1/Ende, Öffnen per Pfeil
+                  vom Auslöser, Fokus auf den ersten Eintrag bei Tastaturöffnung. Agenda-Monatsraster mit wanderndem
+                  Fokus (Pfeile, Bild auf/ab für Monate, Pos1/Ende je Woche). Zeugnis-Abgleich verlinkt bei Abweichung
+                  «Noten ansehen» ins Semester. Rundgang 15 wegen Nutzungslimit unvollständig (Resume offen).
+                  Bewusst gelassen: audit-backlog «UX-Lauf 17».
 ```
 
 ---

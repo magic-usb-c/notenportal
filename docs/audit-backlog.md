@@ -1478,3 +1478,16 @@ Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
   dort mit Zeilenfehler; der Controller weist ihn vorher per Regel ab, der Dienst selbst meldet nichts Eigenes.
 - **Textanhang über 64 KB:** Am Schnitt wird auch ein vollständiges Mehrbyte-Zeichen ganz am Ende des Lesefensters
   verworfen, bevor auf UTF-8 geprüft wird. Unschädlich, nur die Prüfung sieht ein Zeichen weniger.
+
+## UX-Lauf 17 (01.11.2026): bewusst gelassen
+
+- **Agenda, Randtage:** Bild auf/ab von einem Tag des Nachbarmonats (1. Dez. in der Novemberansicht) rechnet vom
+  angezeigten Monat aus, nicht vom Monat des fokussierten Tags. Pfeil hoch in der ersten Zeile bleibt am ersten Tag
+  statt in den Vormonat zu wechseln. Beides selten und ohne Datenfolge.
+- **Menü mit Darstellungsschalter:** Pos1/Ende auf dem Segment (Hell/Dunkel/System) springen zum ersten bzw. letzten
+  Menüeintrag, statt im Segment zu bleiben. Die Pfeiltasten links/rechts bleiben beim Segment. Wer innerhalb der
+  150 ms Ausblendung nach Escape erneut Leertaste drückt, verliert einmal den Fokus an die Seite (Prüfer gemessen).
+- **Zeugnis-Abgleich «Noten ansehen»:** führt ins Semester, nicht aufs einzelne Fach – die Notenliste kennt nur
+  Semester und Kategorie als Filter.
+- **Tastaturtests:** Agenda und Menüs sind per Feature-Test nur auf Markup und Alpine-Ausdrücke geprüft; das Verhalten
+  im Browser lief per Sonde, nicht als Dauertest.

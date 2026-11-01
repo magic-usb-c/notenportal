@@ -54,6 +54,9 @@
                 ])) : null,
             ])->values(),
         ];
+        // Roving tabindex: je Raster genau ein Tab-Stopp – heute im angezeigten Monat, sonst sein erster Tag
+        $tabTag = collect($monatsraster)->first(fn ($t) => $t['heute'] && $t['imMonat']) ?? collect($monatsraster)->first(fn ($t) => $t['imMonat']);
+        $tabDatum = $tabTag ? $tabTag['datum']->toDateString() : null;
         $tagLabel = fn (array $tag) => \App\Support\Format::datum($tag['datum'], 'l, j. F Y')
             .($tag['eintraege']->isNotEmpty() ? ' – '.($tag['eintraege']->count() === 1 ? __('1 Eintrag') : __(':anzahl Einträge', ['anzahl' => $tag['eintraege']->count()])) : '');
     @endphp
@@ -68,7 +71,42 @@
         beiVerlauf() {
             if (this.ansicht === 'monat' && location.pathname + location.search !== this.adresse) location.reload();
         },
-        async wechsle(url, richtung) {
+        {{-- Tastatur im Tagesraster (roving tabindex): Pfeile = Tag/Woche, Pos1/Ende = Wochenanfang/-ende, Bild hoch/runter = Monat (nur im grossen Raster) --}}
+        tagTaste(e) {
+            if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            const raster = e.currentTarget;
+            const tage = [...raster.querySelectorAll('[data-np-tag]')];
+            const i = tage.indexOf(document.activeElement);
+            if (i < 0) return;
+            let ziel;
+            switch (e.key) {
+                case 'ArrowLeft': ziel = i - 1; break;
+                case 'ArrowRight': ziel = i + 1; break;
+                case 'ArrowUp': ziel = i - 7; break;
+                case 'ArrowDown': ziel = i + 7; break;
+                case 'Home': ziel = i - i % 7; break;
+                case 'End': ziel = i - i % 7 + 6; break;
+                case 'PageUp': case 'PageDown': return this.tagMonat(e, raster, tage[i], e.key === 'PageDown');
+                default: return;
+            }
+            e.preventDefault();
+            tage[Math.min(Math.max(ziel, 0), tage.length - 1)].focus();
+        },
+        tagMonat(e, raster, tag, vor) {
+            const link = raster.dataset.npRaster === 'monat' ? document.querySelector(`[data-np-blaettern=${vor ? 'vor' : 'zurueck'}]`) : null;
+            const monat = link ? new URL(link.href).searchParams.get('monat') : null;
+            if (! monat) return;
+            e.preventDefault();
+            const [jahr, nr] = monat.split('-').map(Number);
+            const letzter = new Date(jahr, nr, 0).getDate();
+            const t = Math.min(Number(tag.dataset.npTag.slice(8)), letzter);
+            this.wechsle(link.href, vor ? 'vor' : 'zurueck', monat + '-' + String(t).padStart(2, '0'));
+        },
+        tagMerke(e) {
+            if (! e.target.matches('[data-np-tag]')) return;
+            e.currentTarget.querySelectorAll('[data-np-tag]').forEach((t) => t.tabIndex = t === e.target ? 0 : -1);
+        },
+        async wechsle(url, richtung, fokusDatum) {
             this.abbruch?.abort();
             const abbruch = this.abbruch = new AbortController();
             try {
@@ -95,7 +133,11 @@
                         this.adresse = location.pathname + location.search;
                         const ansage = document.querySelector('[data-np-monat-ansage]');
                         if (ansage) ansage.textContent = neu.querySelector('h2')?.textContent ?? '';
-                        if (hatteFokus) ((knopf && neu.querySelector(`[data-np-blaettern=${knopf}]:not([tabindex])`)) || neu.querySelector('h2'))?.focus({ preventScroll: true });
+                        const fokusTag = hatteFokus && fokusDatum ? neu.querySelector(`[data-np-tag='${fokusDatum}']`) : null;
+                        if (fokusTag) {
+                            neu.querySelectorAll('[data-np-tag]').forEach((t) => t.tabIndex = t === fokusTag ? 0 : -1);
+                            fokusTag.focus();
+                        } else if (hatteFokus) ((knopf && neu.querySelector(`[data-np-blaettern=${knopf}]:not([tabindex])`)) || neu.querySelector('h2'))?.focus({ preventScroll: true });
                     } catch (e) {
                         location.assign(url);
                     }
@@ -197,7 +239,7 @@
                         <a href="{{ $monatsLink(null) }}" class="-my-1 inline-flex min-h-6 items-center gap-0.5 text-sm text-accent-text">{{ __('Monat') }}<x-symbol name="chevron-right" strich="2" class="size-3.5" /></a>
                     </div>
                     <div class="np-karte p-4">
-                    <div class="grid grid-cols-7 text-center">
+                    <div class="grid grid-cols-7 text-center" data-np-raster="mini" @keydown="tagTaste($event)" @focusin="tagMerke($event)">
                         @foreach(range(0, 6) as $i)
                             <div class="py-1 text-2xs font-medium text-muted">{{ \App\Support\Format::date(now()->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addDays($i), 'dd') }}</div>
                         @endforeach
@@ -205,7 +247,7 @@
                             @php
                                 $arten = collect(\App\Support\AgendaArt::ARTEN)->intersect($tag['eintraege']->pluck('art'));
                             @endphp
-                            <button type="button" aria-label="{{ $tagLabel($tag) }}"
+                            <button type="button" aria-label="{{ $tagLabel($tag) }}" data-np-tag="{{ $tag['datum']->toDateString() }}" tabindex="{{ $tag['datum']->toDateString() === $tabDatum ? 0 : -1 }}"
                                     @click="tagAusgewaehlt = @js($tagDaten($tag)); $dispatch('open-drawer', 'tag')"
                                     class="flex h-10 flex-col items-center justify-center gap-0.5 rounded-lg transition-colors duration-100 hover:bg-surface-2/60 focus-visible:outline-2 focus-visible:outline-ring">
                                 <span @class(['inline-flex size-6 items-center justify-center rounded-full text-xs tabular-nums',
@@ -242,13 +284,13 @@
                             <div class="px-2.5 py-2 text-right text-xs font-medium text-muted">{{ \App\Support\Format::date(now()->startOfWeek(\Carbon\CarbonInterface::MONDAY)->addDays($i), 'ddd') }}</div>
                         @endforeach
                     </div>
-                    <div class="grid grid-cols-7 *:border-b *:border-l *:border-border [&>*:nth-child(7n+1)]:border-l-0 [&>*:nth-last-child(-n+7)]:border-b-0">
+                    <div data-np-raster="monat" @keydown="tagTaste($event)" @focusin="tagMerke($event)" class="grid grid-cols-7 *:border-b *:border-l *:border-border [&>*:nth-child(7n+1)]:border-l-0 [&>*:nth-last-child(-n+7)]:border-b-0">
                         @foreach($monatsraster as $tag)
                             @php
                                 $chips = $tag['eintraege']->take(4);
                                 $mehr = $tag['eintraege']->count() - $chips->count();
                             @endphp
-                            <button type="button" aria-label="{{ $tagLabel($tag) }}"
+                            <button type="button" aria-label="{{ $tagLabel($tag) }}" data-np-tag="{{ $tag['datum']->toDateString() }}" tabindex="{{ $tag['datum']->toDateString() === $tabDatum ? 0 : -1 }}"
                                     @click="tagAusgewaehlt = @js($tagDaten($tag)); $dispatch('open-drawer', 'tag')"
                                     @class(['flex min-h-[max(7rem,12vh)] flex-col gap-1 p-1.5 text-left transition-colors duration-100 hover:bg-surface-2/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
                                             'bg-fill-2' => ! $tag['imMonat']])>

@@ -44,7 +44,16 @@
                     $hatZiel = collect($eintraege->items())->contains(fn ($e, $i) => $e->ziel_bezeichnung && $e->ziel_bezeichnung !== $zeilen[$i]['wer']);
                     $hatDetails = $zeilen->contains(fn ($z) => $z['details'] !== '');
                 @endphp
-                <div @class(['np-karte overflow-hidden', 'max-w-4xl' => ! $hatZiel && ! $hatDetails])>
+                @php
+                    // Obergrenze je Spaltensatz: feste Spalten plus Platz für die Restspalte, damit 2560 px wie 1920 px aussieht
+                    $breite = match (true) {
+                        $hatZiel && $hatDetails => 'max-w-[100rem]',
+                        $hatDetails => 'max-w-[90rem]',
+                        $hatZiel => 'max-w-6xl',
+                        default => 'max-w-4xl',
+                    };
+                @endphp
+                <div class="np-karte overflow-hidden {{ $breite }}">
                     <div class="p-2">
                         <table class="np-tabelle table-fixed text-sm">
                             <caption class="sr-only">{{ __('Aktivitätsprotokoll') }}</caption>
@@ -89,7 +98,7 @@
                 </div>
 
                 @if($eintraege->hasPages())
-                    <div class="px-1">{{ $eintraege->links() }}</div>
+                    <div class="px-1 {{ $breite }}">{{ $eintraege->links() }}</div>
                 @endif
             @endif
         </div>

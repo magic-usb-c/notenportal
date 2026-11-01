@@ -107,6 +107,9 @@ class DokumenteController extends Controller
             'ergebnis' => $abgleich->pruefen($this->ablage->pfad($dokument), (int) $lernender->lernender_id, $semesterId ? (int) $semesterId : null),
             'darfUebernehmen' => $this->darfNotenAnlegen($request, $lernender, $bereich),
             'r' => fn (string $name, array $p = []) => $this->route($bereich, $lernender, $name, $p),
+            'notenUrl' => fn (int $semesterId) => $bereich
+                ? route($bereich.'.learners.grades.index', ['lernender_id' => $lernender->lernender_id, 'semester_id' => $semesterId])
+                : route('learner.grades.index', ['semester_id' => $semesterId]),
         ]);
     }
 
