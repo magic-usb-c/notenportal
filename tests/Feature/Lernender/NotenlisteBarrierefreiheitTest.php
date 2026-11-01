@@ -85,4 +85,20 @@ class NotenlisteBarrierefreiheitTest extends TestCase
         $this->assertSame(1, $xp->query('//a[contains(@aria-label,"Note bearbeiten: ")][@x-data]')->length);
         $this->assertSame(1, $xp->query('//form[contains(@action,"/grades/")][.//button[contains(@aria-label,"Note löschen")]]')->length);
     }
+
+    #[Test]
+    public function titel_bearbeiten_gibt_den_fokus_zurueck_und_meldet_fehler_als_alert(): void
+    {
+        $html = $this->get(route('learner.grades.index'))->assertOk()->getContent();
+        $noteId = DB::table('noten')->value('note_id');
+
+        $this->assertMatchesRegularExpression('/<button[^>]*x-ref="titelKnopf"/', $html);
+        $this->assertStringContainsString('stopTitelEdit()', $html);
+        $this->assertStringContainsString('@keydown.escape.stop="stopTitelEdit()"', $html);
+        $this->assertStringContainsString("this.wurzel.querySelector('[x-ref=titelKnopf]')?.focus()", $html);
+        $this->assertStringNotContainsString('editingTitel = false" aria-label', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*aria-describedby="titel-'.$noteId.'-fehler"/', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*:aria-invalid="titelError/', $html);
+        $this->assertMatchesRegularExpression('/<span[^>]*id="titel-'.$noteId.'-fehler"[^>]*role="alert"|<span[^>]*role="alert"[^>]*id="titel-'.$noteId.'-fehler"/', $html);
+    }
 }

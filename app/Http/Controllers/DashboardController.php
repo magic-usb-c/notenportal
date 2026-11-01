@@ -24,6 +24,12 @@ class DashboardController extends Controller
     /** Sortierschlüssel, die früher als `sort` an der Tabelle hingen und nicht mit der Hantel (delta|name) kollidieren. */
     private const array TABELLE_SORT_ALT = ['status', 'semester', 'gesamt', 'trend'];
 
+    /** Kachelfilter «Meine Lernenden» (Adresse `liste`), erster Eintrag ist der Standard. */
+    private const array TABELLE_LISTEN = ['alle', 'rot', 'gelb', 'neu'];
+
+    /** Höchstlänge der Suche in der Adresse. */
+    private const int SUCHE_MAX = 100;
+
     public function __construct(
         private readonly Uebersicht $uebersicht,
         private readonly NoteService $noteService,
@@ -70,6 +76,9 @@ class DashboardController extends Controller
         $filter = [
             'order' => $order,
             'dir' => $request->query('dir') === 'desc' ? 'desc' : 'asc',
+            // Kachel und Suche liegen in der Adresse, damit Sortierlinks und Lesezeichen sie mitnehmen
+            'liste' => in_array($request->query('liste'), self::TABELLE_LISTEN, true) ? $request->query('liste') : self::TABELLE_LISTEN[0],
+            'suche' => is_string($request->query('suche')) ? mb_substr(trim($request->query('suche')), 0, self::SUCHE_MAX) : '',
         ];
 
         // Berufsbildner nur über Lernender::sichtbarFuer (in Uebersicht::berufsbildner)

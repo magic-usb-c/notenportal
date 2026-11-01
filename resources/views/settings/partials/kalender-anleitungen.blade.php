@@ -17,10 +17,6 @@
             <dt class="font-medium text-text">{{ __('Google Kalender') }}</dt>
             <dd>{{ __('Einstellungen des Kalenders → «Privatadresse im iCal-Format».') }}</dd>
         </div>
-        <div>
-            <dt class="font-medium text-text">{{ __('Schulnetz') }}</dt>
-            <dd>{{ __('iCal-Adresse aus dem Schulnetz hinterlegen: Prüfungen, Termine und Lektionen erscheinen dann in der Agenda.') }}</dd>
-        </div>
     </dl>
     <p class="mt-2.5 text-xs text-muted">
         {{ __('Der Import ist aktuell nur lesend: Änderungen im Portal werden nicht in den Quellkalender zurückgeschrieben.') }}

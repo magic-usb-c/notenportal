@@ -56,9 +56,23 @@
              rutscht die rechte Spalte unter die Tabelle, statt deren letzte Spalten abzuschneiden. --}}
         <div class="np-raster mx-auto flex np-seite flex-col gap-5 px-8"
              x-data="{
-                 filter: 'alle',
-                 suche: '',
+                 filter: @js($filter['liste']),
+                 suche: @js($filter['suche']),
                  zeilen: @js($filterDaten),
+                 init() {
+                     this.$watch('filter', () => this.merke());
+                     this.$watch('suche', () => this.merke());
+                 },
+                 merke() {
+                     const setze = (u) => {
+                         const s = this.suche.trim().slice(0, 100);
+                         this.filter === 'alle' ? u.searchParams.delete('liste') : u.searchParams.set('liste', this.filter);
+                         s === '' ? u.searchParams.delete('suche') : u.searchParams.set('suche', s);
+                         return u.pathname + u.search + u.hash;
+                     };
+                     history.replaceState(history.state, '', setze(new URL(location.href)));
+                     document.querySelectorAll('[data-np-tabellenkopf] a[data-np-sort]').forEach((a) => { a.href = setze(new URL(a.href, location.href)); });
+                 },
                  passt(z) {
                      const suche = this.suche.trim().toLowerCase();
                      return (this.filter === 'alle' || this.filter === z.s || (this.filter === 'neu' && z.n > 0))
@@ -94,6 +108,8 @@
                         <x-filterleiste :action="route('trainer.dashboard')" :aktive-filter="$hantelAktiv" :zurueck="route('trainer.dashboard')"
                                         :statistik="['json' => false, 'standard' => ['status' => 'alle', 'sort' => 'delta'], 'ersetze' => ['[data-np-filterstatus]', '[data-np-untergenuegend]', '[data-np-tabellenkopf]']]">
                             <x-slot:hidden>
+                                <input type="hidden" name="liste" value="{{ $filter['liste'] === 'alle' ? '' : $filter['liste'] }}" :value="filter === 'alle' ? '' : filter">
+                                <input type="hidden" name="suche" value="{{ $filter['suche'] }}" :value="suche.trim().slice(0, 100)">
                                 @if($filter['order'])
                                     <input type="hidden" name="order" value="{{ $filter['order'] }}">
                                     <input type="hidden" name="dir" value="{{ $filter['dir'] }}">
@@ -161,9 +177,14 @@
                                 $pfeil = ! $aktiv
                                     ? '<span class="invisible text-muted group-hover/sort:visible group-focus-visible/sort:visible" aria-hidden="true">↑</span>'
                                     : '<span aria-hidden="true">'.($filter['dir'] === 'asc' ? '↑' : '↓').'</span>';
-                                $url = e(request()->fullUrlWithQuery(['order' => $spalte, 'dir' => $naechsteDir]));
+                                $url = e(request()->fullUrlWithQuery([
+                                    'order' => $spalte,
+                                    'dir' => $naechsteDir,
+                                    'liste' => $filter['liste'] === 'alle' ? null : $filter['liste'],
+                                    'suche' => $filter['suche'] === '' ? null : $filter['suche'],
+                                ]));
 
-                                return '<a href="'.$url.'" class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text'.($rechts ? ' flex-row-reverse' : '').($aktiv ? ' font-semibold text-text' : '').'">'.e($label).' '.$pfeil.'</a>';
+                                return '<a href="'.$url.'" data-np-sort class="group/sort inline-flex min-h-6 items-center gap-1 hover:text-text'.($rechts ? ' flex-row-reverse' : '').($aktiv ? ' font-semibold text-text' : '').'">'.e($label).' '.$pfeil.'</a>';
                             };
                             $ariaSort = fn (string $spalte) => $filter['order'] === $spalte ? ($filter['dir'] === 'desc' ? 'descending' : 'ascending') : 'none';
                         @endphp

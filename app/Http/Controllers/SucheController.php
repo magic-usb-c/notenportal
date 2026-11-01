@@ -113,7 +113,11 @@ class SucheController extends Controller
             ->limit(6)->get()
             ->map(fn (Note $n) => [
                 'label' => $n->titel ?: ($n->fach?->name ?? trim(($n->modulBelegung?->modul?->modul_nummer ?? '').' '.($n->modulBelegung?->modul?->titel ?? ''))),
-                'sub' => __('Note :wert · :datum', ['wert' => NotenSkala::format($n->note_wert), 'datum' => $n->pruefungsdatum?->format('d.m.Y')]),
+                // Stufenfach (Sport): kein Notenwert, die Stufe steht in note_stufe
+                'sub' => __('Note :wert · :datum', [
+                    'wert' => $n->note_stufe !== null ? NotenSkala::stufeText($n->note_stufe) : NotenSkala::format($n->note_wert),
+                    'datum' => $n->pruefungsdatum?->format('d.m.Y'),
+                ]),
                 'url' => route('learner.grades.index', ['_open' => $n->note_id]),
                 'gruppe' => __('Eigene Noten'),
             ])->values();

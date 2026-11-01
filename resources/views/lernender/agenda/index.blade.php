@@ -203,7 +203,7 @@
                         @endforeach
                         @foreach($monatsraster as $tag)
                             @php
-                                $arten = $tag['eintraege']->pluck('art')->map(fn ($a) => in_array($a, ['pruefung', 'erkannt'], true) ? 'bg-accent' : 'bg-muted')->unique()->take(3);
+                                $arten = collect(\App\Support\AgendaArt::ARTEN)->intersect($tag['eintraege']->pluck('art'));
                             @endphp
                             <button type="button" aria-label="{{ $tagLabel($tag) }}"
                                     @click="tagAusgewaehlt = @js($tagDaten($tag)); $dispatch('open-drawer', 'tag')"
@@ -212,8 +212,8 @@
                                               'bg-accent font-semibold text-accent-contrast' => $tag['heute'],
                                               'text-text' => ! $tag['heute'] && $tag['imMonat'],
                                               'text-muted' => ! $tag['heute'] && ! $tag['imMonat']])>{{ $tag['datum']->format('j') }}</span>
-                                <span class="flex h-1 gap-0.5" aria-hidden="true">
-                                    @foreach($arten as $farbe)<span class="size-1 rounded-full {{ $farbe }}"></span>@endforeach
+                                <span class="flex h-2 gap-0.5" aria-hidden="true">
+                                    @foreach($arten as $art)@include('lernender.agenda._punkt', ['art' => $art])@endforeach
                                 </span>
                             </button>
                         @endforeach

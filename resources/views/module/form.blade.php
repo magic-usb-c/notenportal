@@ -3,6 +3,21 @@
     $nummerFest = ! $neu && ! auth()->user()->hasRole('Admin');
     // Hinweis und Fehler eines Felds gemeinsam für aria-describedby
     $beschrieben = fn (string $feld, bool $hinweis = true) => implode(' ', array_filter([$hinweis ? $feld.'-hinweis' : null, $errors->has($feld) ? $feld.'-fehler' : null]));
+    // Speichern abgebrochen, weil inzwischen jemand anderes gespeichert hat: der gespeicherte Stand steht neben
+    // der eigenen Fassung, damit das nächste Speichern (mit frischem Stand) nichts Fremdes ungesehen überschreibt.
+    $konflikt = ! $neu && is_string(old('stand')) && old('stand') !== '' && old('stand') !== (string) $modul->aktualisiert_am?->getTimestamp();
+    // Zeilenenden vereinheitlichen: Browser senden Textfelder mit \r\n, gespeichert ist \n
+    $text = fn ($wert) => trim(preg_replace('/\R/u', "\n", (string) $wert));
+    $gespeichert = ! $konflikt ? [] : array_filter([
+        'modul_nummer' => [__('Modulnummer'), (string) $modul->modul_nummer],
+        'titel' => [__('Titel'), (string) $modul->titel],
+        'version' => [__('Katalogversion'), (string) $modul->version],
+        'link' => [__('Verweis'), (string) $modul->link],
+        'beschreibung' => [__('Beschreibung'), (string) $modul->beschreibung],
+        // Leer gelassene Ziele ändern nichts: dann gibt es auch nichts zu vergleichen.
+        'handlungsziele' => [__('Handlungsziele und Handlungskompetenzen'), $text(old('handlungsziele')) === '' ? null : $ziele],
+        // Die Modulnummer wird beim Speichern gross geschrieben, nur sie vergleicht ohne Gross-/Kleinschreibung
+    ], fn ($z, $feld) => $z[1] !== null && ($feld === 'modul_nummer' ? mb_strtoupper($text(old($feld))) !== $text($z[1]) : $text(old($feld)) !== $text($z[1])), ARRAY_FILTER_USE_BOTH);
 @endphp
 
 <x-app-layout>
@@ -62,6 +77,24 @@
                     </div>
                     <p class="mt-2 px-1 text-xs text-muted">{{ __('Was du hier ergänzt, steht sofort allen zur Verfügung.') }}</p>
                 </section>
+
+                @if($gespeichert)
+                    <section>
+                        <h2 id="gespeichert-titel" class="mb-2 px-1 text-sm font-semibold text-text">{{ __('Inzwischen gespeichert') }}</h2>
+                        <div class="np-karte np-gruppe">
+                            @foreach($gespeichert as $feld => [$bezeichnung, $wert])
+                                <x-einstellung :label="$bezeichnung" :fuer="$feld.'-gespeichert'" :gestapelt="in_array($feld, ['beschreibung', 'handlungsziele'], true)">
+                                    @if(in_array($feld, ['beschreibung', 'handlungsziele'], true))
+                                        <textarea id="{{ $feld }}-gespeichert" rows="{{ $feld === 'handlungsziele' ? 8 : 3 }}" readonly aria-describedby="gespeichert-titel" class="np-feld">{{ $wert }}</textarea>
+                                    @else
+                                        <input type="text" id="{{ $feld }}-gespeichert" value="{{ $wert }}" readonly aria-describedby="gespeichert-titel"
+                                               class="np-feld {{ match ($feld) { 'version' => 'w-24 text-right tabular-nums', 'modul_nummer' => 'w-32 tabular-nums', default => 'w-80' } }}">
+                                    @endif
+                                </x-einstellung>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
 
                 <x-formular-aktionen :abbrechen="$neu ? route('modules.index') : route('modules.show', $modul->modul_id)">{{ $neu ? __('Modul anlegen') : __('Änderungen speichern') }}</x-formular-aktionen>
             </form>

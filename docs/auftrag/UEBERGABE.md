@@ -516,6 +516,15 @@ Entscheide, die David treffen muss, kommen unter «Offen für David» — nicht 
                   Schreibweisen einer E-Mail, Datenauskunft und Sicherung «private, no-store», Admin-Reset entwertet
                   alte Vergessen-Links, 403 bei ungültiger Signatur deutsch, Feedback-Mail nur bei Status oder Antwort.
                   Suite 2151 grün. Bewusst gelassen: audit-backlog «Funktionsprüfung Runden 10 und 11».
+[Q] 01.11. 04:10  Funktionsprüfung Runden 12 (Notenlogik, Klicktest, Mails) und 13 (Notenlogik-Fuzz) plus Audit Welle 4:
+                  10 bestätigt, 9 behoben. Notenlogik ohne Abweichung (20 000 Rundungsfälle, rund 7900 Rechner-Szenarien).
+                  Befehlspalette zeigt Sport-Stufen statt «Note –», «Letzte Note» und Bericht «Letzte» ohne Zukunfts-
+                  noten, Katalogimport-Meldung ohne falschen Plural, BB-Übersicht behält Kachel und Suche beim Sortieren
+                  (auch in der Adresse), Sofort-Speichern wartet bei Pfeiltasten bis Verlassen oder Enter, Notentitel
+                  behält den Fokus und meldet Fehler hörbar, Monatsraster: Prüfung als Quadrat, theme-color = --bg,
+                  zwei Hinweistexte weg. Modul bearbeiten: nach einem Konflikt steht der gespeicherte Stand
+                  schreibgeschützt neben der eigenen Fassung. Semester umdatieren bleibt bei David.
+                  Bewusst gelassen: audit-backlog «Funktionsprüfung Runden 12 und 13, Audit Welle 4».
 ```
 
 ---

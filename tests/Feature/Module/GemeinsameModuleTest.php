@@ -178,6 +178,50 @@ class GemeinsameModuleTest extends TestCase
     }
 
     #[Test]
+    public function nach_einem_konflikt_steht_der_gespeicherte_stand_neben_der_eigenen_fassung(): void
+    {
+        $modulId = DB::table('module')->insertGetId(['modul_nummer' => 'M783', 'titel' => 'Gemeinsam']);
+        $stand = (string) Modul::query()->findOrFail($modulId)->aktualisiert_am->getTimestamp();
+        $this->actingAs($this->lernender())->put(route('modules.update', $modulId), [
+            'modul_nummer' => 'M783', 'titel' => 'Gemeinsam', 'handlungsziele' => '1 Ziel der zweiten Person',
+        ])->assertSessionHasNoErrors();
+        DB::table('module')->where('modul_id', $modulId)->update(['aktualisiert_am' => '2026-09-14 09:00:00']);
+
+        $erste = $this->lernender();
+        $html = $this->actingAs($erste)->from(route('modules.edit', $modulId))->followingRedirects()
+            ->put(route('modules.update', $modulId), [
+                'modul_nummer' => 'M783', 'titel' => 'Gemeinsam', 'handlungsziele' => '1 Ziel der ersten Person', 'stand' => $stand,
+            ])->assertOk()->getContent();
+
+        // Eigene Fassung im Feld, der gespeicherte Stand schreibgeschützt daneben – der Titel ist gleich und fehlt dort
+        $this->assertMatchesRegularExpression('/name="handlungsziele"[^>]*>1 Ziel der ersten Person</', $html);
+        $this->assertStringContainsString('Inzwischen gespeichert', $html);
+        $this->assertMatchesRegularExpression('/id="handlungsziele-gespeichert"[^>]*readonly[^>]*>1 Ziel der zweiten Person</', $html);
+        $this->assertStringNotContainsString('id="titel-gespeichert"', $html);
+
+        // Wer den gespeicherten Stand gesehen hat, speichert mit dem frischen Stand bewusst darüber
+        $frisch = (string) Modul::query()->findOrFail($modulId)->aktualisiert_am->getTimestamp();
+        $this->actingAs($erste)->put(route('modules.update', $modulId), [
+            'modul_nummer' => 'M783', 'titel' => 'Gemeinsam',
+            'handlungsziele' => "1 Ziel der zweiten Person\n2 Ziel der ersten Person", 'stand' => $frisch,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame(['Ziel der zweiten Person', 'Ziel der ersten Person'],
+            DB::table('modul_handlungsziele')->where('modul_id', $modulId)->orderBy('sortierung')->pluck('text')->all());
+
+        // Konflikt und zugleich ein anderer Fehler: die Konfliktmeldung kommt zuerst, nicht nur der andere Fehler
+        DB::table('module')->where('modul_id', $modulId)->update(['aktualisiert_am' => '2026-09-15 09:00:00']);
+        $this->actingAs($erste)->put(route('modules.update', $modulId), [
+            'modul_nummer' => 'M783', 'titel' => '', 'handlungsziele' => "1 Ziel\r\n2 Ziel", 'stand' => $stand,
+        ])->assertSessionHasErrors('handlungsziele')->assertSessionDoesntHaveErrors('titel');
+
+        // Ohne Konflikt (anderer Validierungsfehler) erscheint kein gespeicherter Stand
+        $this->actingAs($erste)->from(route('modules.edit', $modulId))->followingRedirects()
+            ->put(route('modules.update', $modulId), [
+                'modul_nummer' => 'M783', 'titel' => '', 'stand' => (string) Modul::query()->findOrFail($modulId)->aktualisiert_am->getTimestamp(),
+            ])->assertOk()->assertDontSee('Inzwischen gespeichert');
+    }
+
+    #[Test]
     public function der_verweis_nimmt_die_katalogversion_des_eigenen_lehrberufs(): void
     {
         // Das Modul selbst führt V5 (der Katalog kennt nur eine Zeile je Nummer), der Lehrberuf

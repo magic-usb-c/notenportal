@@ -46,7 +46,8 @@ final class Bericht
             ->whereNull('geloescht_am')
             ->when($sid, fn ($q) => $q->where('semester_id', $sid))
             ->groupBy('lernender_id')
-            ->selectRaw('lernender_id, COUNT(*) as anzahl, MAX(pruefungsdatum) as letzte')
+            // «Letzte» wie in Lernendenliste und Lernstand nur bis heute; die Anzahl zählt alle Noten.
+            ->selectRaw('lernender_id, COUNT(*) as anzahl, MAX(CASE WHEN pruefungsdatum <= ? THEN pruefungsdatum END) as letzte', [now()->toDateString()])
             ->get()
             ->keyBy('lernender_id');
 

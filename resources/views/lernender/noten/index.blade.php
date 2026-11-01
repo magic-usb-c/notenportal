@@ -423,10 +423,19 @@
                 editingTitel: false,
                 savingTitel: false,
                 titelError: false,
+                wurzel: null,
                 startTitelEdit() {
                     this.titelDraft = this.titel ?? '';
                     this.titelError = false;
                     this.editingTitel = true;
+                },
+                init() {
+                    this.wurzel = this.$el;
+                },
+                stopTitelEdit() {
+                    this.editingTitel = false;
+                    // $el zeigt im Handler auf den schon entfernten Knopf: Auslöser über die Wurzel suchen
+                    this.$nextTick(() => this.wurzel.querySelector('[x-ref=titelKnopf]')?.focus());
                 },
                 async saveTitel() {
                     this.savingTitel = true;
@@ -443,7 +452,7 @@
                         });
                         if (res.ok) {
                             this.titel = (await res.json()).titel;
-                            this.editingTitel = false;
+                            this.stopTitelEdit();
                         } else {
                             this.titelError = true;
                         }

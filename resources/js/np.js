@@ -656,8 +656,11 @@ export function registriereDezimalfelder() {
 }
 
 export function registriereSofortSenden() {
-    document.addEventListener('change', (ev) => {
-        const form = ev.target.closest?.('[data-sofort]')?.form;
+    const NAVIGATION = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown']);
+    const feldVon = (ziel) => ziel?.closest?.('[data-sofort]') ?? null;
+    const istWahlfeld = (feld) => feld.tagName === 'SELECT' || feld.type === 'radio';
+    const gleicheGruppe = (a, b) => a === b || (a.type === 'radio' && b.type === 'radio' && a.form === b.form && a.name === b.name);
+    const senden = (form) => {
         if (!form || form.dataset.sendet) return;
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -665,8 +668,51 @@ export function registriereSofortSenden() {
         }
         form.dataset.sendet = '1';
         form.requestSubmit();
+    };
+
+    // Auswahlfelder und Radiogruppen ändern sich mit jedem Pfeil (oder Buchstaben) schon beim Durchblättern. Wer mit
+    // der Tastatur blättert, sendet erst beim Verlassen des Feldes oder mit Enter (WCAG 3.2.2); Zeiger, Schalter und
+    // Checkboxen senden sofort. Das change-Ereignis selbst läuft weiter, die Live-Vorschau am Feld bleibt also erhalten.
+    let taste = null;
+    let offen = null;
+
+    document.addEventListener('pointerdown', () => { taste = null; }, true);
+    document.addEventListener('keydown', (ev) => {
+        const feld = feldVon(ev.target);
+        taste = null;
+        if (!feld || !istWahlfeld(feld)) return;
+        if (ev.key === 'Enter' && offen && gleicheGruppe(offen, feld)) {
+            ev.preventDefault();
+            const form = offen.form;
+            offen = null;
+            senden(form);
+            return;
+        }
+        const blaettern = NAVIGATION.has(ev.key) || (ev.key.length === 1 && ev.key !== ' ');
+        if (blaettern && !ev.ctrlKey && !ev.metaKey && !ev.altKey) taste = { feld, zeit: ev.timeStamp };
+    });
+    document.addEventListener('change', (ev) => {
+        const feld = feldVon(ev.target);
+        const form = feld?.form;
+        if (!form || form.dataset.sendet) return;
+        if (istWahlfeld(feld) && taste && gleicheGruppe(taste.feld, feld) && ev.timeStamp - taste.zeit < 500) {
+            offen = feld;
+            return;
+        }
+        offen = null;
+        senden(form);
+    });
+    document.addEventListener('focusout', (ev) => {
+        if (!offen || !gleicheGruppe(offen, ev.target)) return;
+        const nach = feldVon(ev.relatedTarget);
+        if (nach && gleicheGruppe(offen, nach)) return;
+        if (document.hasFocus?.() === false) return;
+        const form = offen.form;
+        offen = null;
+        senden(form);
     });
     window.addEventListener('pageshow', (ev) => {
+        offen = null;
         if (ev.persisted) document.querySelectorAll('form[data-sendet]').forEach((form) => delete form.dataset.sendet);
     });
 }

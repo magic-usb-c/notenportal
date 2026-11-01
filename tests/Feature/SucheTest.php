@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Fach;
+use App\Models\Kategorie;
 use App\Models\Note;
+use App\Models\Semester;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -62,6 +64,38 @@ class SucheTest extends TestCase
         $this->assertCount(1, $treffer);
         $this->assertSame('Eigene Noten', $treffer[0]['gruppe']);
         $this->assertStringContainsString(route('learner.grades.index'), $treffer[0]['url']);
+    }
+
+    #[Test]
+    public function stufennote_zeigt_in_der_suche_die_stufe(): void
+    {
+        $lernender = $this->neuerLernender();
+        $semester = Semester::factory()->create([
+            'start_datum' => now()->subMonths(3)->toDateString(),
+            'end_datum' => now()->addMonths(3)->toDateString(),
+        ]);
+        $this->bmsTrack($lernender, (int) $semester->semester_id);
+        $sport = Fach::factory()->create(['skala' => 'stufe', 'zaehlt' => false, 'name' => 'Sport']);
+        foreach (['Ausdauerlauf' => 'B', 'Geraeteturnen' => 'd'] as $titel => $stufe) {
+            Note::create([
+                'lernender_id' => $lernender->lernender_id,
+                'kategorie_id' => Kategorie::where('code', 'BMS')->value('kategorie_id'),
+                'semester_id' => $semester->semester_id,
+                'erfasst_von_benutzer_id' => $lernender->benutzer_id,
+                'gewichtung_prozent' => 100,
+                'fach_id' => $sport->fach_id,
+                'titel' => $titel,
+                'pruefungsdatum' => now()->subDays(2)->toDateString(),
+                'note_wert' => null,
+                'note_stufe' => $stufe,
+            ]);
+        }
+
+        $sub = fn (string $q) => collect($this->actingAs($lernender->benutzer)
+            ->getJson(route('search', ['q' => $q]))->assertOk()->json())->firstWhere('gruppe', 'Eigene Noten')['sub'];
+
+        $this->assertStringStartsWith('Note B ·', $sub('Ausdauerlauf'));
+        $this->assertStringStartsWith('Note dispensiert ·', $sub('Geraeteturnen'));
     }
 
     #[Test]

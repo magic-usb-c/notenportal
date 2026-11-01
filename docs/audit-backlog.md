@@ -1433,3 +1433,22 @@ Funktionsprüfung Runde 9 (31.10.2026): bewusst gelassen
   signature.»), reicht andere Meldungen aber durch; im Code gibt es heute keine weitere englische `abort(403, …)`.
 - **Verworfen (kein Fehler):** Filter «Keine Noten» zeigt frisch angelegte Lernende (Liste und Ampel zählen
   verschieden, beides begründet); Semester umdatieren mit Noten (Entscheid steht unter «Offen für David»).
+
+## Funktionsprüfung Runden 12 und 13, Audit Welle 4 (01.11.2026): bewusst gelassen
+
+- **Semesterdaten trotz Noten änderbar** (Audit 4, korrektheit, mittel): bleibt bei David, Entscheid steht unter
+  «Offen für David» in `docs/auftrag/UEBERGABE.md`.
+- **Bericht «Letzte»:** Zeigt nur Noten bis heute; die Spalte «Anzahl» zählt weiter alle Noten, auch geplante mit
+  Datum in der Zukunft (sie sind erfasste Noten, nur noch nicht fällig).
+- **Sofort-Speichern mit Tastatur:** Auswahlfeld und Radiogruppe senden nach Pfeil oder Buchstabe erst beim Verlassen
+  oder mit Enter. Wer das Fenster wechselt, ohne zurückzukehren, speichert die Pfeilwahl nicht – gewollt, sonst
+  sendete schon der Fensterwechsel. Der Regressionstest simuliert die Ereignisfolge, ein Browserlauf fehlt.
+- **Monatsraster:** Prüfungen sind ein Quadrat, alles andere ein Kreis; das `aria-label` der Tagesschaltfläche nennt
+  weiter nur Datum und Anzahl, nicht die Art (die Tagesansicht im Drawer nennt sie).
+- **Hinweistexte in Formularen:** `kalender/create` und `admin/betrieb/_theme` bleiben, beide verhindern einen Fehler.
+- **Modul bearbeiten nach Konflikt:** Das zweite Absenden speichert bewusst, sobald der gespeicherte Stand neben der
+  eigenen Fassung steht; ein Zusammenführen Zeile für Zeile gibt es nicht. Schreibgeschützte Felder sehen wie die
+  übrigen Felder aus (wie die feste Modulnummer für Lernende).
+- **Verworfen mit wahrem Kern, für eine spätere Welle:** Zeugnis-Abgleich ohne Weg zur Korrektur einer Abweichung;
+  Zeugnisübersicht verliert die Ansicht beim Semesterwechsel; Drucken, CSV und Import nur im «…»-Menü; Agenda-
+  Monatsraster mit 42 Tab-Stopps ohne Pfeiltasten. Die Prüfer hielten keinen davon für einen Regelverstoss.

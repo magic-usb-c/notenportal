@@ -56,7 +56,8 @@ class BerufsbildnerController extends Controller
             ->keyBy('berufsbildner_id');
 
         // Lernende ohne Noteneintrag innerhalb der Frist (Einstellung «Erinnerung ohne neue Note nach») je BB
-        $letzteNote = DB::table('noten')->whereNull('geloescht_am')->groupBy('lernender_id')
+        // Nur Noten bis heute: wie Lernendenliste und Lernstand zählt eine Note mit künftigem Prüfungsdatum nicht als Eintrag.
+        $letzteNote = DB::table('noten')->whereNull('geloescht_am')->where('pruefungsdatum', '<=', $today)->groupBy('lernender_id')
             ->select(['lernender_id', DB::raw('MAX(pruefungsdatum) as last_entry')]);
         $ohneNotenCount = DB::table('betreuungen as bt')
             ->join('lernende as l', 'l.lernender_id', '=', 'bt.lernender_id')

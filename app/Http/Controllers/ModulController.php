@@ -226,9 +226,10 @@ class ModulController extends Controller
     public function update(Request $request, int $modul_id): RedirectResponse
     {
         $modul = Modul::query()->findOrFail($modul_id);
+        // Zuerst der Stand: sonst meldete ein anderer Fehler nur sich, und das nächste Speichern überschriebe ungewarnt
+        $this->standPruefen($request, $modul);
         $this->nummerVereinheitlichen($request);
         $daten = $request->validate($this->regeln($modul_id));
-        $this->standPruefen($request, $modul);
 
         DB::transaction(function () use ($modul, $daten, $request) {
             $werte = [
@@ -314,7 +315,7 @@ class ModulController extends Controller
 
         if ($mitgebracht !== '' && $mitgebracht !== (string) $modul->aktualisiert_am?->getTimestamp()) {
             throw ValidationException::withMessages([
-                'handlungsziele' => __('Jemand anderes hat dieses Modul inzwischen geändert. Öffne die Seite neu und trag deine Ergänzung dort ein, damit nichts verloren geht.'),
+                'handlungsziele' => __('Jemand anderes hat dieses Modul inzwischen geändert. Übernimm aus dem gespeicherten Stand, was dir fehlt, und speichere erneut.'),
             ]);
         }
     }

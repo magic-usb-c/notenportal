@@ -145,7 +145,7 @@ class ModulkatalogController extends Controller
         ]);
 
         return redirect()->route('admin.master-data.modules.index')->with('success', __(
-            ':module Module, :berufe Lehrberufe und :zuordnungen Zuordnungen übernommen.',
+            'Übernommen – Module: :module, Lehrberufe: :berufe, Zuordnungen: :zuordnungen.',
             ['module' => $bericht['module'], 'berufe' => $bericht['berufe'], 'zuordnungen' => $bericht['zuordnungen']],
         ));
     }

@@ -68,7 +68,6 @@
             <p class="px-4 py-3 text-xs text-muted">{{ __('Höchstens :max Kalender. Bitte zuerst einen entfernen.', ['max' => \App\Models\CalendarFeed::MAX_PRO_LERNENDEM]) }}</p>
         @endif
     </div>
-    <p class="mt-2 px-1 text-xs text-muted">{{ __('iCal-Adresse hinterlegen: Prüfungen, Termine und Lektionen erscheinen dann in der Agenda.') }}</p>
     <div class="mt-3">
         @include('settings.partials.kalender-anleitungen')
     </div>
