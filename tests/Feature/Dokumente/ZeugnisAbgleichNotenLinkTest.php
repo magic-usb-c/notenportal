@@ -12,6 +12,7 @@ use Database\Seeders\BasisSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Feature\Verwaltung\VerwaltungTestHilfen;
 use Tests\TestCase;
@@ -86,15 +87,16 @@ class ZeugnisAbgleichNotenLinkTest extends TestCase
     }
 
     #[Test]
-    public function abweichende_zeile_fuehrt_verwaltung_zu_den_noten_des_lernenden(): void
+    #[DataProvider('verwalterRollen')]
+    public function abweichende_zeile_fuehrt_verwaltung_zu_den_noten_des_lernenden(string $rolle): void
     {
         $d = $this->zeugnis('Sprache und Kommunikation ........ 5,0');
         $lernenderId = (int) $this->user->lernender->lernender_id;
 
-        $this->actingAs(User::factory()->admin()->create())
-            ->get(route('admin.learners.documents.reconcile', [$lernenderId, $d->dokument_id, 'semester_id' => $this->semester]))->assertOk()
+        $this->actingAs($this->verwalter($rolle, $this->user->lernender))
+            ->get(route($rolle.'.learners.documents.reconcile', [$lernenderId, $d->dokument_id, 'semester_id' => $this->semester]))->assertOk()
             ->assertSee('Noten ansehen')
-            ->assertSee(route('admin.learners.grades.index', ['lernender_id' => $lernenderId, 'semester_id' => $this->semester]), false);
+            ->assertSee(route($rolle.'.learners.grades.index', ['lernender_id' => $lernenderId, 'semester_id' => $this->semester]), false);
     }
 
     #[Test]
